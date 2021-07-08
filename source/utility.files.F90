@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements various file-related utilities.
+!!{
+Contains a module which implements various file-related utilities.
+!!}
 
 ! Specify an explicit dependence on the C interface files.
 !: $(BUILDPATH)/flock.o $(BUILDPATH)/mkdir.o $(BUILDPATH)/unlink.o $(BUILDPATH)/rename.o $(BUILDPATH)/access.o
 
 module File_Utilities
-  !% Implements various file-related utilities.
+  !!{
+  Implements various file-related utilities.
+  !!}
   use   , intrinsic :: ISO_C_Binding     , only : c_int         , c_char, c_ptr
   use               :: ISO_Varying_String, only : varying_string
   use               :: Locks             , only : ompLock
@@ -34,38 +38,50 @@ module File_Utilities
        &    File_Name_Temporary, File_Remove    , Directory_Make, File_Name_Expand
 
   interface Count_Lines_in_File
-     !% Generic interface for {\normalfont \ttfamily Count\_Lines\_in\_File} function.
+     !!{
+     Generic interface for {\normalfont \ttfamily Count\_Lines\_in\_File} function.
+     !!}
      module procedure Count_Lines_in_File_Char
      module procedure Count_Lines_in_File_VarStr
   end interface Count_Lines_in_File
 
   interface File_Exists
-     !% Generic interface for functions that check for a files existance.
+     !!{
+     Generic interface for functions that check for a files existance.
+     !!}
      module procedure File_Exists_Char
      module procedure File_Exists_VarStr
   end interface File_Exists
 
   interface File_Path
-     !% Generic interface for functions that return the path to a file.
+     !!{
+     Generic interface for functions that return the path to a file.
+     !!}
      module procedure File_Path_Char
      module procedure File_Path_VarStr
   end interface File_Path
 
   interface File_Remove
-     !% Generic interface for functions that remove a file.
+     !!{
+     Generic interface for functions that remove a file.
+     !!}
      module procedure File_Remove_Char
      module procedure File_Remove_VarStr
   end interface File_Remove
 
   interface Directory_Make
-     !% Generic interface for functions that create a directory.
+     !!{
+     Generic interface for functions that create a directory.
+     !!}
      module procedure Directory_Make_Char
      module procedure Directory_Make_VarStr
   end interface Directory_Make
 
   interface
      function mkdir_C(name) bind(c,name='mkdir_C')
-       !% Template for a C function that calls {\normalfont \ttfamily mkdir()} to make a directory.
+       !!{
+       Template for a C function that calls {\normalfont \ttfamily mkdir()} to make a directory.
+       !!}
        import
        integer  (c_int ) :: mkdir_C
        character(c_char) :: name
@@ -74,7 +90,9 @@ module File_Utilities
 
   interface
      function unlink_C(name) bind(c,name='unlink_C')
-       !% Template for a C function that calls {\normalfont \ttfamily unlink()} to remove a file.
+       !!{
+       Template for a C function that calls {\normalfont \ttfamily unlink()} to remove a file.
+       !!}
        import
        integer  (c_int ) :: unlink_C
        character(c_char) :: name
@@ -83,7 +101,9 @@ module File_Utilities
 
   interface
      function rename_C(nameOld,nameNew) bind(c,name='rename_C')
-       !% Template for a C function that calls {\normalfont \ttfamily rename()} to rename a file.
+       !!{
+       Template for a C function that calls {\normalfont \ttfamily rename()} to rename a file.
+       !!}
        import
        integer  (c_int ) :: rename_C
        character(c_char) :: nameOld , nameNew
@@ -92,7 +112,9 @@ module File_Utilities
 
   interface
      subroutine flock_C(name,ld,lockIsShared) bind(c,name='flock_C')
-       !% Template for a C function that calls {\normalfont \ttfamily flock()} to lock a file.
+       !!{
+       Template for a C function that calls {\normalfont \ttfamily flock()} to lock a file.
+       !!}
        import
        character(c_char)        :: name
        type     (c_ptr )        :: ld
@@ -102,7 +124,9 @@ module File_Utilities
 
   interface
      subroutine funlock_C(ld) bind(c,name='funlock_C')
-       !% Template for a C function that calls {\normalfont \ttfamily flock()} to unlock a file.
+       !!{
+       Template for a C function that calls {\normalfont \ttfamily flock()} to unlock a file.
+       !!}
        import
        type(c_ptr) :: ld
      end subroutine funlock_C
@@ -120,7 +144,9 @@ module File_Utilities
   ! Declare interface for the POSIX access() function.
   interface
      function access_C(name) bind(c,name='access_C')
-       !% Template for a C function that calls {\normalfont \ttfamily access()} to check for file existance.
+       !!{
+       Template for a C function that calls {\normalfont \ttfamily access()} to check for file existance.
+       !!}
        import
        integer  (c_int ) :: access_C
        character(c_char) :: name
@@ -128,7 +154,9 @@ module File_Utilities
   end interface
 
   type, public :: lockDescriptor
-     !% Type used to store file lock descriptors.
+     !!{
+     Type used to store file lock descriptors.
+     !!}
      private
      type(c_ptr         ) :: lockDescriptorC
      type(varying_string) :: fileName
@@ -144,7 +172,9 @@ module File_Utilities
 contains
 
   logical function File_Exists_VarStr(fileName)
-    !% Checks for existance of file {\normalfont \ttfamily fileName} (version for varying string argument).
+    !!{
+    Checks for existance of file {\normalfont \ttfamily fileName} (version for varying string argument).
+    !!}
     use :: ISO_Varying_String, only : char
     implicit none
     type(varying_string), intent(in   ) :: fileName
@@ -154,20 +184,26 @@ contains
   end function File_Exists_VarStr
 
   logical function File_Exists_Char(fileName)
-    !% Checks for existance of file {\normalfont \ttfamily fileName} (version for character argument).
+    !!{
+    Checks for existance of file {\normalfont \ttfamily fileName} (version for character argument).
+    !!}
     implicit none
     character(len=*), intent(in   ) :: fileName
 
-    !# <workaround type="gfortran" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;ml&#x2F;fortran&#x2F;2019-12&#x2F;msg00012.html">
-    !#  <description>Segfault triggered by inquire when running multiple OpenMP threads and a large number of MPI processes. Cause unknown. To workaround this we use the POSIX access() function to test for file existance.</description>
-    !# </workaround>
+    !![
+    <workaround type="gfortran" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;ml&#x2F;fortran&#x2F;2019-12&#x2F;msg00012.html">
+     <description>Segfault triggered by inquire when running multiple OpenMP threads and a large number of MPI processes. Cause unknown. To workaround this we use the POSIX access() function to test for file existance.</description>
+    </workaround>
+    !!]
     !! inquire(file=fileName,exist=File_Exists_Char)
     File_Exists_Char=access_C(trim(fileName)//char(0)) == 0
     return
   end function File_Exists_Char
 
   integer function Count_Lines_in_File_VarStr(in_file,comment_char)
-    !% Returns the number of lines in the file {\normalfont \ttfamily in\_file} (version for varying string argument).
+    !!{
+    Returns the number of lines in the file {\normalfont \ttfamily in\_file} (version for varying string argument).
+    !!}
     use :: ISO_Varying_String, only : char
     implicit none
     type     (varying_string), intent(in   )           :: in_file
@@ -182,7 +218,9 @@ contains
   end function Count_Lines_in_File_VarStr
 
   integer function Count_Lines_in_File_Char(in_file,comment_char)
-    !% Returns the number of lines in the file {\normalfont \ttfamily in\_file} (version for character argument).
+    !!{
+    Returns the number of lines in the file {\normalfont \ttfamily in\_file} (version for character argument).
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     character(len=*), intent(in   )           :: in_file
@@ -210,7 +248,9 @@ contains
   end function Count_Lines_in_File_Char
 
   subroutine File_Lock(fileName,lock,lockIsShared)
-    !% Place a lock on a file.
+    !!{
+    Place a lock on a file.
+    !!}
     use :: ISO_Varying_String, only : trim, assignment(=)
     implicit none
     character(len=*         ), intent(in   )           :: fileName
@@ -241,7 +281,9 @@ contains
   end subroutine File_Lock
 
   subroutine File_Unlock(lock,sync)
-    !% Remove a lock from a file.
+    !!{
+    Remove a lock from a file.
+    !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : char
     implicit none
@@ -249,12 +291,16 @@ contains
     logical                , intent(in   ), optional :: sync
     integer                                          :: fileUnit      , errorStatus, &
          &                                              fileDescriptor
-    !# <optionalArgument name="sync" defaultsTo=".true." />
+    !![
+    <optionalArgument name="sync" defaultsTo=".true." />
+    !!]
 
     if (sync_) then
-       !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-       !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
-       !# </workaround>
+       !![
+       <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+        <description>Internal file I/O in gfortran can be non-thread safe.</description>
+       </workaround>
+       !!]
 #ifdef THREADSAFEIO
        !$omp critical(gfortranInternalIO)
 #endif
@@ -263,9 +309,11 @@ contains
        !$omp end critical(gfortranInternalIO)
 #endif
        if (errorStatus == 0) then
-          !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-          !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
-          !# </workaround>
+          !![
+          <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+           <description>Internal file I/O in gfortran can be non-thread safe.</description>
+          </workaround>
+          !!]
 #ifdef THREADSAFEIO
           !$omp critical(gfortranInternalIO)
 #endif
@@ -274,9 +322,11 @@ contains
           !$omp end critical(gfortranInternalIO)
 #endif
           if (fsync(fileDescriptor) /= 0) call Galacticus_Error_Report('error syncing file at unlock'//{introspection:location})
-          !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-          !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
-          !# </workaround>
+          !![
+          <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+           <description>Internal file I/O in gfortran can be non-thread safe.</description>
+          </workaround>
+          !!]
 #ifdef THREADSAFEIO
           !$omp critical(gfortranInternalIO)
 #endif
@@ -298,7 +348,9 @@ contains
   end subroutine File_Unlock
 
   function Executable_Find(executableName)
-    !% Return the full path to the executable of the given name.
+    !!{
+    Return the full path to the executable of the given name.
+    !!}
     use :: ISO_Varying_String, only : operator(//)      , char              , assignment(=)
     use :: String_Handling   , only : String_Count_Words, String_Split_Words
     implicit none
@@ -323,7 +375,9 @@ contains
   contains
 
     subroutine Get_Paths(pathsLength)
-      !% Retrieve the {\normalfont \ttfamily PATH} environment variable.
+      !!{
+      Retrieve the {\normalfont \ttfamily PATH} environment variable.
+      !!}
       use ISO_Varying_String, only : assignment(=)
       implicit none
       integer                     , intent(in   ) :: pathsLength
@@ -339,7 +393,9 @@ contains
   end function Executable_Find
 
   subroutine Directory_Make_VarStr(pathName)
-    !% Make the given directory path. Will create intermediate directories in the path if necessary.
+    !!{
+    Make the given directory path. Will create intermediate directories in the path if necessary.
+    !!}
     use :: ISO_Varying_String, only : char
     implicit none
     type(varying_string), intent(in   ) :: pathName
@@ -349,7 +405,9 @@ contains
   end subroutine Directory_Make_VarStr
 
   subroutine Directory_Make_Char(pathName)
-    !% Make the given directory path. Will create intermediate directories in the path if necessary.
+    !!{
+    Make the given directory path. Will create intermediate directories in the path if necessary.
+    !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : var_str                , trim
     implicit none
@@ -376,7 +434,9 @@ contains
   end subroutine Directory_Make_Char
 
   function File_Path_VarStr(fileName)
-    !% Returns the path to the file.
+    !!{
+    Returns the path to the file.
+    !!}
     use :: ISO_Varying_String, only : char
     implicit none
     type(varying_string)                :: File_Path_VarStr
@@ -387,7 +447,9 @@ contains
   end function File_Path_VarStr
 
   function File_Path_Char(fileName)
-    !% Returns the path to the file.
+    !!{
+    Returns the path to the file.
+    !!}
     use :: ISO_Varying_String, only : char, index, extract, assignment(=)
     implicit none
     type     (varying_string)                :: File_Path_Char
@@ -402,7 +464,9 @@ contains
   end function File_Path_Char
 
   function File_Name(fileName)
-    !% Returns the path to the file.
+    !!{
+    Returns the path to the file.
+    !!}
     use :: ISO_Varying_String, only : varying_string, assignment(=), extract, index
     implicit none
     type     (varying_string)                :: File_Name
@@ -417,7 +481,9 @@ contains
   end function File_Name
 
   function File_Name_Temporary(fileRootName,path) result(fileName)
-    !% Returns the path to the file.
+    !!{
+    Returns the path to the file.
+    !!}
 #ifdef USEMPI
     use    :: MPI_Utilities     , only : mpiSelf
 #endif
@@ -449,7 +515,9 @@ contains
   end function File_Name_Temporary
 
   subroutine File_Remove_VarStr(fileName)
-    !% Remove a file.
+    !!{
+    Remove a file.
+    !!}
     use :: ISO_Varying_String, only : char
     implicit none
     type(varying_string), intent(in   ) :: fileName
@@ -459,7 +527,9 @@ contains
   end subroutine File_Remove_VarStr
 
   subroutine File_Remove_Char(fileName)
-    !% Remove a file.
+    !!{
+    Remove a file.
+    !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : char
     implicit none
@@ -473,21 +543,30 @@ contains
     return
   end subroutine File_Remove_Char
 
-  subroutine File_Rename(nameOld,nameNew)
-    !% Remove a file.
+  subroutine File_Rename(nameOld,nameNew,overwrite)
+    !!{
+    Remove a file.
+    !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : trim                   , operator(//), char
     implicit none
-    type   (varying_string), intent(in   ) :: nameOld, nameNew
-    integer(c_int         )                :: status
+    type   (varying_string), intent(in   )           :: nameOld  , nameNew
+    logical                , intent(in   ), optional :: overwrite
+    integer(c_int         )                          :: status
+    !![
+    <optionalArgument name="overwrite" defaultsTo=".false."/>
+    !!]
 
+    if (overwrite_ .and. File_Exists(nameNew)) call File_Remove(nameNew)
     status=rename_C(char(nameOld)//char(0),char(nameNew)//char(0))
     if (status /= 0) call Galacticus_Error_Report('failed to rename file "'//trim(nameOld)//'" to "'//trim(nameNew)//'"'//{introspection:location})
     return
   end subroutine File_Rename
 
   function File_Name_Expand(fileNameIn) result(fileNameOut)
-    !% Expands placeholders for Galacticus paths in file names.
+    !!{
+    Expands placeholders for Galacticus paths in file names.
+    !!}
     use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataDynamic, pathTypeDataStatic, pathTypeExec
     use :: ISO_Varying_String, only : assignment(=) , replace
     implicit none

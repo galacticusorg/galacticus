@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,34 +17,40 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a hot halo temperature profile class.
+!!{
+Contains a module which provides a hot halo temperature profile class.
+!!}
 
 module Hot_Halo_Temperature_Profiles
-  !% Provides a hot halo temperature profile class.
+  !!{
+  Provides a hot halo temperature profile class.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
-  !# <functionClass>
-  !#  <name>hotHaloTemperatureProfile</name>
-  !#  <descriptiveName>Hot halo temperature profiles</descriptiveName>
-  !#  <description>
-  !#   Class implementing hot halo temperarture profiles.
-  !#  </description>
-  !#  <default>virial</default>
-  !#  <method name="temperature" >
-  !#   <description>Return the temperature of the hot halo at the given {\normalfont \ttfamily radius}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
-  !#   <argument>double precision          , intent(in   ) :: radius</argument>
-  !#  </method>
-  !#  <method name="temperatureLogSlope" >
-  !#   <description>Return the logarithmic slope of the temperature of the hot halo at the given {\normalfont \ttfamily radius}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
-  !#   <argument>double precision          , intent(in   ) :: radius</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>hotHaloTemperatureProfile</name>
+   <descriptiveName>Hot halo temperature profiles</descriptiveName>
+   <description>
+    Class implementing hot halo temperarture profiles.
+   </description>
+   <default>virial</default>
+   <method name="temperature" >
+    <description>Return the temperature of the hot halo at the given {\normalfont \ttfamily radius}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type            (treeNode), intent(inout) :: node</argument>
+    <argument>double precision          , intent(in   ) :: radius</argument>
+   </method>
+   <method name="temperatureLogSlope" >
+    <description>Return the logarithmic slope of the temperature of the hot halo at the given {\normalfont \ttfamily radius}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type            (treeNode), intent(inout) :: node</argument>
+    <argument>double precision          , intent(in   ) :: radius</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Hot_Halo_Temperature_Profiles

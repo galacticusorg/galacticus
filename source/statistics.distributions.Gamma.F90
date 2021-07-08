@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a 1D gamma distibution function.
+  !!{
+  Implementation of a 1D gamma distibution function.
+  !!}
 
-  !# <distributionFunction1D name="distributionFunction1DGamma">
-  !#  <description>A 1D gamma distribution function class.</description>
-  !# </distributionFunction1D>
+  !![
+  <distributionFunction1D name="distributionFunction1DGamma">
+   <description>A 1D gamma distribution function class.</description>
+  </distributionFunction1D>
+  !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DGamma
-     !% Implementation of a 1D gamma distibution function.
+     !!{
+     Implementation of a 1D gamma distibution function.
+     !!}
      private
      logical          :: limitLowerExists, limitUpperExists
      double precision :: limitLower      , limitUpper      , &
@@ -36,7 +42,9 @@
   end type distributionFunction1DGamma
 
   interface distributionFunction1DGamma
-     !% Constructors for the {\normalfont \ttfamily gamma} 1D distribution function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily gamma} 1D distribution function class.
+     !!}
      module procedure gammaConstructorParameters
      module procedure gammaConstructorInternal
   end interface distributionFunction1DGamma
@@ -44,8 +52,10 @@
 contains
 
   function gammaConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily gamma} 1D distribution function class which builds
-    !% the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily gamma} 1D distribution function class which builds
+    the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunction1DGamma)                :: self
@@ -54,42 +64,50 @@ contains
     double precision                                             :: shape                 , rate      , &
          &                                                          limitLower            , limitUpper
 
-    !# <inputParameter>
-    !#   <name>shape</name>
-    !#   <description>The shape parameter of the gamma distribution function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>rate</name>
-    !#   <description>The rate parameter of the gamma distribution function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>limitLower</name>
-    !#   <description>The lower limit of the gamma distribution function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>limitUpper</name>
-    !#   <description>The upper limit of the gamma distribution function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>shape</name>
+      <description>The shape parameter of the gamma distribution function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>rate</name>
+      <description>The rate parameter of the gamma distribution function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>limitLower</name>
+      <description>The lower limit of the gamma distribution function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>limitUpper</name>
+      <description>The upper limit of the gamma distribution function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=distributionFunction1DGamma(shape,rate,randomNumberGenerator_,limitLower,limitUpper)
-    !# <objectDestructor name="randomNumberGenerator_"/>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <objectDestructor name="randomNumberGenerator_"/>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function gammaConstructorParameters
 
   function gammaConstructorInternal(shape,rate,randomNumberGenerator_,limitLower,limitUpper) result(self)
-    !% Constructor for ``gamma'' 1D distribution function class.
+    !!{
+    Constructor for ``gamma'' 1D distribution function class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (distributionFunction1DGamma)                                  :: self
     double precision                             , intent(in   )                   :: shape                 , rate
     double precision                             , intent(in   ), optional         :: limitLower            , limitUpper
     class           (randomNumberGeneratorClass ), intent(in   ), optional, target :: randomNumberGenerator_
-    !# <constructorAssign variables="shape, rate, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="shape, rate, *randomNumberGenerator_"/>
+    !!]
 
     if (rate <= 0.0d0 .or. shape <= 0.0d0) call Galacticus_Error_Report('rate>0 and shape>0 are required'//{introspection:location})
     self%limitLowerExists=.false.
@@ -116,7 +134,9 @@ contains
   end function gammaConstructorInternal
 
   double precision function gammaDensity(self,x)
-    !% Return the density of a Gamma distribution.
+    !!{
+    Return the density of a Gamma distribution.
+    !!}
     use :: Gamma_Functions, only : Gamma_Function
     implicit none
     class           (distributionFunction1DGamma), intent(inout) :: self
@@ -144,7 +164,9 @@ contains
   end function gammaDensity
 
   double precision function gammaCumulative(self,x)
-    !% Return the cumulative probability of a Gamma distribution.
+    !!{
+    Return the cumulative probability of a Gamma distribution.
+    !!}
     use :: Gamma_Functions, only : Gamma_Function_Incomplete_Complementary
     implicit none
     class           (distributionFunction1DGamma), intent(inout) :: self
@@ -180,7 +202,9 @@ contains
   end function gammaCumulative
 
   double precision function gammaInverse(self,p)
-    !% Return the inverse of a Gamma distribution.
+    !!{
+    Return the inverse of a Gamma distribution.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Gamma_Functions , only : Inverse_Gamma_Function_Incomplete_Complementary
     implicit none

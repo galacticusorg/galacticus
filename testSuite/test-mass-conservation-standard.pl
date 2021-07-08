@@ -16,10 +16,10 @@ use Data::Dumper;
 system("cd ..; scripts/aux/launch.pl testSuite/parameters/test-mass-conservation-standard.xml");
 
 # Check for failed models.
-system("grep -q -i fatal outputs/test-mass-conservation-standard/galacticus_*/galacticus.log");
+system('grep -q -i -e fatal -e "Galacticus experienced" outputs/test-mass-conservation-standard/galacticus_*/galacticus.log');
 if ( $? == 0 ) {
     # Failures were found. Output their reports.
-    my @failures = split(" ",`grep -l -i fatal outputs/test-mass-conservation-standard/galacticus_*/galacticus.log`);
+    my @failures = split(" ",`grep -l -i -e fatal -e "Galacticus experienced" outputs/test-mass-conservation-standard/galacticus_*/galacticus.log`);
     foreach my $failure ( @failures ) {
 	print "FAILED: log from ".$failure.":\n";
 	system("cat ".$failure);
@@ -58,57 +58,57 @@ for(my $i=0;$i<nelem($centrals);++$i) {
 	     +$properties->{'blackHoleMass'        }->($satellites)->($inTree)->sum()
 	    )
 	    /(
-		+$parameters->{'cosmologyParametersMethod'}->{'OmegaBaryon'}->{'value'}
-		/$parameters->{'cosmologyParametersMethod'}->{'OmegaMatter'}->{'value'}
+		+$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
+		/$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
 	    )
 	    /$properties->{'basicMass'}->($centrals)->(($i));
 }
 $properties->{'diskMassStellar'      } /= 
     (
-     +$parameters->{'cosmologyParametersMethod'}->{'OmegaBaryon'}->{'value'}
-     /$parameters->{'cosmologyParametersMethod'}->{'OmegaMatter'}->{'value'}
+     +$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
+     /$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
     )
     *$properties->{'basicMass'};
 $properties->{'diskMassGas'          } /= 
     (
-     +$parameters->{'cosmologyParametersMethod'}->{'OmegaBaryon'}->{'value'}
-     /$parameters->{'cosmologyParametersMethod'}->{'OmegaMatter'}->{'value'}
+     +$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
+     /$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
     )
     *$properties->{'basicMass'};
 $properties->{'spheroidMassStellar'  } /= 
     (
-     +$parameters->{'cosmologyParametersMethod'}->{'OmegaBaryon'}->{'value'}
-     /$parameters->{'cosmologyParametersMethod'}->{'OmegaMatter'}->{'value'}
+     +$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
+     /$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
     )
     *$properties->{'basicMass'};
 $properties->{'spheroidMassGas'      } /= 
     (
-     +$parameters->{'cosmologyParametersMethod'}->{'OmegaBaryon'}->{'value'}
-     /$parameters->{'cosmologyParametersMethod'}->{'OmegaMatter'}->{'value'}
+     +$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
+     /$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
     )
     *$properties->{'basicMass'};
 $properties->{'hotHaloMass'          } /= 
     (
-     +$parameters->{'cosmologyParametersMethod'}->{'OmegaBaryon'}->{'value'}
-     /$parameters->{'cosmologyParametersMethod'}->{'OmegaMatter'}->{'value'}
+     +$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
+     /$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
     )
     *$properties->{'basicMass'};
 $properties->{'hotHaloOutflowedMass' } /= 
     (
-     +$parameters->{'cosmologyParametersMethod'}->{'OmegaBaryon'}->{'value'}
-     /$parameters->{'cosmologyParametersMethod'}->{'OmegaMatter'}->{'value'}
+     +$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
+     /$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
     )
     *$properties->{'basicMass'};
 $properties->{'hotHaloUnaccretedMass'} /= 
     (
-     +$parameters->{'cosmologyParametersMethod'}->{'OmegaBaryon'}->{'value'}
-     /$parameters->{'cosmologyParametersMethod'}->{'OmegaMatter'}->{'value'}
+     +$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
+     /$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
     )
     *$properties->{'basicMass'};
 $properties->{'blackHoleMass'        } /= 
     (
-     +$parameters->{'cosmologyParametersMethod'}->{'OmegaBaryon'}->{'value'}
-     /$parameters->{'cosmologyParametersMethod'}->{'OmegaMatter'}->{'value'}
+     +$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
+     /$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
     )
     *$properties->{'basicMass'};
 my $massTotal =

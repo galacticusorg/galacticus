@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements quasi-random sequences.
+!!{
+Contains a module which implements quasi-random sequences.
+!!}
 
 ! Specify an explicit dependence on the interface.GSL.C.odeiv2.o object file.
 !: $(BUILDPATH)/interface.GSL.C.odeiv2.o
@@ -32,9 +34,11 @@
 !; gsl
 
 module Numerical_ODE_Solvers
-  !% Implements an ODE solver class.
-  use, intrinsic :: ISO_C_Binding         , only : c_ptr                      , c_funptr, c_size_t, c_int, &
-       &                                           c_double
+  !!{
+  Implements an ODE solver class.
+  !!}
+  use, intrinsic :: ISO_C_Binding         , only : c_double                   , c_funptr, c_int, c_ptr, &
+          &                                        c_size_t
   use            :: Numerical_Integration2, only : integratorMultiVectorized1D
   implicit none
   private
@@ -56,25 +60,33 @@ module Numerical_ODE_Solvers
 
   interface
      function gsl_odeiv2_step_type_get(i) bind(c,name='gsl_odeiv2_step_type_get')
-       !% Template for GSL interface ODEIV2 stepper type function.
+       !!{
+       Template for GSL interface ODEIV2 stepper type function.
+       !!}
        import c_ptr, c_int
        type   (c_ptr)                       :: gsl_odeiv2_step_type_get
        integer(c_int), intent(in   ), value :: i
      end function gsl_odeiv2_step_type_get
      function gsl_odeiv2_system_init(dim,func,jacobian) bind(c,name='gsl_odeiv2_system_init')
-       !% Template for GSL interface ODEIV2 system initialization function.
+       !!{
+       Template for GSL interface ODEIV2 system initialization function.
+       !!}
        import c_ptr, c_funptr, c_size_t
        type   (c_ptr   )                       :: gsl_odeiv2_system_init
        integer(c_size_t), intent(in   ), value :: dim
        type   (c_funptr), intent(in   ), value :: func                  , jacobian
      end function gsl_odeiv2_system_init
      subroutine gsl_odeiv2_system_free(system) bind(c,name='gsl_odeiv2_system_free')
-       !% Template for GSL interface ODEIV2 system free function.
+       !!{
+       Template for GSL interface ODEIV2 system free function.
+       !!}
        import c_ptr
        type(c_ptr), intent(in   ), value :: system
      end subroutine gsl_odeiv2_system_free
      function gsl_odeiv2_driver_alloc_y_new(sys,T,hstart,epsabs,epsrel) bind(c,name='gsl_odeiv2_driver_alloc_y_new')
-       !% Template for GSL interface ODEIV2 step allocation function.
+       !!{
+       Template for GSL interface ODEIV2 step allocation function.
+       !!}
        import c_ptr, c_double
        type(c_ptr   )                       :: gsl_odeiv2_driver_alloc_y_new
        type(c_ptr   ), intent(in   ), value :: sys                          , T
@@ -82,7 +94,9 @@ module Numerical_ODE_Solvers
             &                                  hstart
      end function gsl_odeiv2_driver_alloc_y_new
      function gsl_odeiv2_driver_alloc_scaled2_new(sys,T,hstart,epsabs,epsrel,a_y,a_dydt,scale_abs) bind(c,name='gsl_odeiv2_driver_alloc_scaled2_new')
-       !% Template for GSL interface ODEIV2 step allocation function.
+       !!{
+       Template for GSL interface ODEIV2 step allocation function.
+       !!}
        import c_ptr, c_double
        type(c_ptr   )                              :: gsl_odeiv2_driver_alloc_scaled2_new
        type(c_ptr   ), intent(in   ), value        :: sys                                , T
@@ -92,25 +106,33 @@ module Numerical_ODE_Solvers
        real(c_double), intent(in   ), dimension(*) :: scale_abs
      end function gsl_odeiv2_driver_alloc_scaled2_new
      subroutine gsl_odeiv2_driver_free(d) bind(c,name='gsl_odeiv2_driver_free')
-       !% Template for GSL interface ODEIV2 driver free function.
+       !!{
+       Template for GSL interface ODEIV2 driver free function.
+       !!}
        import c_ptr
        type(c_ptr), intent(in   ), value :: d
      end subroutine gsl_odeiv2_driver_free     
      function gsl_odeiv2_driver_reset(d) bind(c,name='gsl_odeiv2_driver_reset')
-       !% Template for GSL interface ODEIV2 driver reset function.
+       !!{
+       Template for GSL interface ODEIV2 driver reset function.
+       !!}
        import c_ptr, c_int
        integer(c_int)                       :: gsl_odeiv2_driver_reset
        type   (c_ptr), intent(in   ), value :: d
      end function gsl_odeiv2_driver_reset
      function gsl_odeiv2_driver_reset_hstart(d,hstart) bind(c,name='gsl_odeiv2_driver_reset_hstart')
-       !% Template for GSL interface ODEIV2 driver timestep reset function.
+       !!{
+       Template for GSL interface ODEIV2 driver timestep reset function.
+       !!}
        import c_ptr, c_int, c_double
        integer(c_int   )                       :: gsl_odeiv2_driver_reset_hstart
        type   (c_ptr   ), intent(in   ), value :: d
        real   (c_double), intent(in   ), value :: hstart
      end function gsl_odeiv2_driver_reset_hstart
      function gsl_odeiv2_driver2_apply(d,t,t1,y,ps,li,sa) bind(c,name='gsl_odeiv2_driver2_apply')
-       !% Interface for GSL interface ODEIV2 driver apply function.
+       !!{
+       Interface for GSL interface ODEIV2 driver apply function.
+       !!}
        import c_ptr, c_funptr, c_double, c_int
        integer(c_int   )                              :: gsl_odeiv2_driver2_apply
        type   (c_ptr   ), intent(in   ), value        :: d
@@ -122,13 +144,17 @@ module Numerical_ODE_Solvers
        type   (c_funptr), intent(in   ), value        :: sa
      end function gsl_odeiv2_driver2_apply
      function gsl_odeiv2_driver_h(d) bind(c,name='gsl_odeiv2_driver_h')
-       !% Template for GSL interface to ODEIV2 driver timestep get function.
+       !!{
+       Template for GSL interface to ODEIV2 driver timestep get function.
+       !!}
        import c_ptr, c_double
        real(c_double)                       :: gsl_odeiv2_driver_h
        type(c_ptr   ), intent(in   ), value :: d
      end function gsl_odeiv2_driver_h     
      subroutine msbdfactive_context(d,dim,t,y,dydt) bind(c)
-       !% Template for MSBDF active stepper context.
+       !!{
+       Template for MSBDF active stepper context.
+       !!}
        import c_ptr, c_size_t, c_double
        type   (c_ptr   ), intent(in   ), value        :: d
        integer(c_size_t), intent(in   ), value        :: dim
@@ -136,27 +162,35 @@ module Numerical_ODE_Solvers
        real   (c_double), intent(inout), dimension(*) :: y  , dydt
      end subroutine msbdfactive_context
      subroutine msbdfactive_state(d,dim,y) bind(c,name='msbdfactive_state')
-       !% Template for MSBDF active ODE stepper state function.
+       !!{
+       Template for MSBDF active ODE stepper state function.
+       !!}
        import c_ptr, c_size_t, c_double
        type   (c_ptr   ), intent(in   ), value        :: d
        integer(c_size_t), intent(in   ), value        :: dim
        real   (c_double), intent(inout), dimension(*) :: y
      end subroutine msbdfactive_state
      subroutine gsl_odeiv2_driver_errors(d,yerr) bind(c,name='gsl_odeiv2_driver_errors')
-       !% Template for GSL ODE driver errors.
+       !!{
+       Template for GSL ODE driver errors.
+       !!}
        import c_ptr, c_double
        type   (c_ptr   ), intent(in   ), value        :: d
        real   (c_double), intent(  out), dimension(*) :: yerr
      end subroutine gsl_odeiv2_driver_errors
      subroutine gsl_odeiv2_driver_init_errors(d) bind(c,name='gsl_odeiv2_driver_init_errors')
-       !% Template for GSL ODE driver error initialization.
+       !!{
+       Template for GSL ODE driver error initialization.
+       !!}
        import c_ptr
        type(c_ptr), intent(in   ), value :: d
      end subroutine gsl_odeiv2_driver_init_errors
   end interface
   
   type :: odeSolver
-     !% Type providing ODE solving.
+     !!{
+     Type providing ODE solving.
+     !!}
      private
      procedure(derivativesTemplate        ), pointer    , nopass :: derivatives
      procedure(jacobianTemplate           ), pointer    , nopass :: jacobian
@@ -172,17 +206,21 @@ module Numerical_ODE_Solvers
      integer  (c_size_t                   )                      :: dim
      logical                                                     :: integratorErrorTolerant
    contains
-     !# <methods>
-     !#   <method description="Solve the ODE system." method="solve" />
-     !#   <method description="Return estimates of the errors in ODE variables." method="errors" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Solve the ODE system." method="solve" />
+       <method description="Return estimates of the errors in ODE variables." method="errors" />
+     </methods>
+     !!]
      final     ::           odeSolverDestructor
      procedure :: solve  => odeSolverSolve
      procedure :: errors => odeSolverErrors
   end type odeSolver
   
   interface odeSolver
-     !% Constructor for the {\normalfont \ttfamily odeSolver} class.
+     !!{
+     Constructor for the {\normalfont \ttfamily odeSolver} class.
+     !!}
      module procedure odeSolverConstructor
   end interface odeSolver
   
@@ -253,7 +291,9 @@ module Numerical_ODE_Solvers
   end interface
 
   type :: solverList
-     !% Type used to maintain a list of ODE solvers when ODE solving is performed recursively.
+     !!{
+     Type used to maintain a list of ODE solvers when ODE solving is performed recursively.
+     !!}
      type(odeSolver), pointer :: solver => null()
   end type solverList
 
@@ -265,9 +305,11 @@ module Numerical_ODE_Solvers
 contains
 
   function odeSolverConstructor(dim,derivatives,jacobian,integrator,integrands,integratorErrorTolerant,stepperType,toleranceAbsolute,toleranceRelative,hStart,dydtScale,yScale,scale,finalState,postStep,errorAnalyzer,errorHandler) result(self)
-    !% Constructor for {\normalfont \ttfamily odeSolver} obejcts.
-    use, intrinsic :: ISO_C_Binding   , only : c_funloc               , c_null_funptr
+    !!{
+    Constructor for {\normalfont \ttfamily odeSolver} obejcts.
+    !!}
     use            :: Galacticus_Error, only : Galacticus_Error_Report
+    use, intrinsic :: ISO_C_Binding   , only : c_funloc               , c_null_funptr
     implicit none
     type            (odeSolver                  )                                        :: self
     integer         (c_size_t                   ), intent(in   )                         :: dim
@@ -285,14 +327,16 @@ contains
          &                                                                                  yScale                 , dydtScale        , &
          &                                                                                  hStart
     double precision                             , intent(in   ), optional, dimension(:) :: scale
-    !# <optionalArgument name="stepperType"             defaultsTo="gsl_odeiv2_step_rkck"/>
-    !# <optionalArgument name="toleranceAbsolute"       defaultsTo="0.0d0"               />
-    !# <optionalArgument name="toleranceRelative"       defaultsTo="0.0d0"               />
-    !# <optionalArgument name="yScale"                  defaultsTo="1.0d0"               />
-    !# <optionalArgument name="dydtScale"               defaultsTo="0.0d0"               />
-    !# <optionalArgument name="hStart"                  defaultsTo="1.0d0"               />
-    !# <optionalArgument name="integratorErrorTolerant" defaultsTo=".false."             />
-    !# <constructorAssign variables="dim, *derivatives, *jacobian, *integrator, *integrands, *finalState, *postStep, *errorAnalyzer, *errorHandler"/>
+    !![
+    <optionalArgument name="stepperType"             defaultsTo="gsl_odeiv2_step_rkck"/>
+    <optionalArgument name="toleranceAbsolute"       defaultsTo="0.0d0"               />
+    <optionalArgument name="toleranceRelative"       defaultsTo="0.0d0"               />
+    <optionalArgument name="yScale"                  defaultsTo="1.0d0"               />
+    <optionalArgument name="dydtScale"               defaultsTo="0.0d0"               />
+    <optionalArgument name="hStart"                  defaultsTo="1.0d0"               />
+    <optionalArgument name="integratorErrorTolerant" defaultsTo=".false."             />
+    <constructorAssign variables="dim, *derivatives, *jacobian, *integrator, *integrands, *finalState, *postStep, *errorAnalyzer, *errorHandler"/>
+    !!]
 
     ! Validate.
     if (toleranceAbsolute_ <= 0.0d0 .and. toleranceRelative_ <= 0.0d0) &
@@ -322,7 +366,9 @@ contains
   end function odeSolverConstructor
 
   subroutine odeSolverDestructor(self)
-    !% Destructor for {\normalfont \ttfamily odeSolver} objects.
+    !!{
+    Destructor for {\normalfont \ttfamily odeSolver} objects.
+    !!}
     implicit none
     type(odeSolver), intent(inout) :: self
 
@@ -339,12 +385,14 @@ contains
   end subroutine odeSolverDestructor
 
   subroutine odeSolverSolve(self,x0,x1,y,z,xStep,status)
-    !% Solve the ODE system.
-    use, intrinsic :: ISO_C_Binding         , only : c_null_ptr             , c_null_funptr, c_funloc
+    !!{
+    Solve the ODE system.
+    !!}
     use            :: Galacticus_Error      , only : Galacticus_Error_Report
-    use            :: Interface_GSL         , only : GSL_Success            , GSL_Failure
-    use            :: ISO_Varying_String    , only : var_str                , operator(//)
-    use            :: ODE_Solver_Error_Codes, only : odeSolverInterrupt     , interruptedAtX
+    use, intrinsic :: ISO_C_Binding         , only : c_funloc               , c_null_funptr     , c_null_ptr
+    use            :: ISO_Varying_String    , only : operator(//)           , var_str
+    use            :: Interface_GSL         , only : GSL_Failure            , GSL_Success
+    use            :: ODE_Solver_Error_Codes, only : interruptedAtX         , odeSolverInterrupt
     use            :: String_Handling       , only : operator(//)
     implicit none
     class           (odeSolver ), intent(inout), target                        :: self
@@ -481,9 +529,11 @@ contains
   contains
 
     subroutine latentIntegrator(x)
-      !% Wrapper function which performs integration of latent variables.
-      use :: Galacticus_Display, only : Galacticus_Display_Message
-      use :: Galacticus_Error  , only : Galacticus_Error_Report   , errorStatusSuccess
+      !!{
+      Wrapper function which performs integration of latent variables.
+      !!}
+      use :: Display         , only : displayMessage
+      use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusSuccess
       implicit none
       double precision, intent(in   )       :: x
       double precision, dimension(self%dim) :: y
@@ -500,7 +550,7 @@ contains
       x0Step =+                                x
       if (status /= errorStatusSuccess) then
          if (self%integratorErrorTolerant) then
-            call Galacticus_Display_Message('integration of latent variables failed - ignoring'                          )
+            call displayMessage('integration of latent variables failed - ignoring'                          )
          else
             call Galacticus_Error_Report   ('integration of latent variables failed'           //{introspection:location})
          end if
@@ -509,7 +559,9 @@ contains
     end subroutine latentIntegrator
     
     subroutine integrandsWrapper(nz,x,e,dzdx)
-      !% Wrapper function which calls the integrands functions.
+      !!{
+      Wrapper function which calls the integrands functions.
+      !!}
       implicit none
       integer         , intent(in   )                              :: nz
       double precision, intent(in   ), dimension(              : ) :: x
@@ -530,7 +582,9 @@ contains
   end subroutine odeSolverSolve
   
   function derivativesWrapper(x,y,dydx,parameterPointer) bind(c)
-    !% Wrapper function used for \gls{gsl} ODEIV2 derivative functions.
+    !!{
+    Wrapper function used for \gls{gsl} ODEIV2 derivative functions.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_double, c_int, c_ptr
     implicit none
     integer(c_int   )                              :: derivativesWrapper
@@ -549,7 +603,9 @@ contains
   end function derivativesWrapper
 
   function jacobianWrapper(x,y,dfdy,dfdx,parameterPointer) bind(c)
-    !% Wrapper function used for \gls{gsl} ODEIV2 Jacobian functions.
+    !!{
+    Wrapper function used for \gls{gsl} ODEIV2 Jacobian functions.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_double, c_int, c_ptr
     implicit none
     integer(c_int   )                              :: jacobianWrapper
@@ -569,7 +625,9 @@ contains
   end function jacobianWrapper
 
   subroutine odeSolverErrors(self,yError)
-    !% Return estimates of the errors in ODE properties.
+    !!{
+    Return estimates of the errors in ODE properties.
+    !!}
     implicit none
     class           (odeSolver), intent(inout)               :: self
     double precision           , intent(  out), dimension(:) :: yError

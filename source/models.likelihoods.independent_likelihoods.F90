@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a model likelihood class which combines other likelihoods assumed to be independent.
+  !!{
+  Implementation of a model likelihood class which combines other likelihoods assumed to be independent.
+  !!}
 
   use :: Posterior_Sampling_State, only : posteriorSampleStateSimple
 
@@ -31,11 +33,15 @@
      logical                                                            :: parameterMapInitialized
   end type posteriorSampleLikelihoodList
 
-  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodIndependentLikelihoods">
-  !#  <description>A posterior sampling likelihood class which combines other likelihoods assumed to be independent.</description>
-  !# </posteriorSampleLikelihood>
+  !![
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodIndependentLikelihoods">
+   <description>A posterior sampling likelihood class which combines other likelihoods assumed to be independent.</description>
+  </posteriorSampleLikelihood>
+  !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodIndependentLikelihoods
-     !% Implementation of a posterior sampling likelihood class which combines other likelihoods assumed to be independent.
+     !!{
+     Implementation of a posterior sampling likelihood class which combines other likelihoods assumed to be independent.
+     !!}
      private
      type            (posteriorSampleLikelihoodList), pointer :: modelLikelihoods    => null()
      double precision                                         :: logLikelihoodAccept
@@ -46,7 +52,9 @@
   end type posteriorSampleLikelihoodIndependentLikelihoods
 
   interface posteriorSampleLikelihoodIndependentLikelihoods
-     !% Constructors for the {\normalfont \ttfamily independentLikelihoods} posterior sampling convergence class.
+     !!{
+     Constructors for the {\normalfont \ttfamily independentLikelihoods} posterior sampling convergence class.
+     !!}
      module procedure independentLikelihoodsConstructorParameters
      module procedure independentLikelihoodsConstructorInternal
   end interface posteriorSampleLikelihoodIndependentLikelihoods
@@ -54,8 +62,10 @@
 contains
 
   function independentLikelihoodsConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily independentLikelihoods} posterior sampling convergence class which builds the object from a
-    !% parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily independentLikelihoods} posterior sampling convergence class which builds the object from a
+    parameter set.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Input_Parameters, only : inputParameter         , inputParameterErrorStatusEmptyValue, inputParameterErrorStatusSuccess, inputParameters
     use :: String_Handling , only : String_Count_Words     , String_Split_Words                 , char
@@ -67,21 +77,23 @@ contains
          &                                                                     errorStatus
     type   (varying_string                                 )                :: parameterMapJoined
 
-    !# <inputParameter>
-    !#   <name>logLikelihoodAccept</name>
-    !#   <variable>self%logLikelihoodAccept</variable>
-    !#   <defaultValue>huge(0.0d0)</defaultValue>
-    !#   <description>The log-likelihood which should be ``accepted''---once the log-likelihood reaches this value (or larger) no further updates to the chain will be made.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    if     (                                                                                   &
-         &   parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.) &
-         &  /=                                                                                 &
-         &   parameters%copiesCount('parameterMap'                   ,zeroIfNotPresent=.true.) &
+    !![
+    <inputParameter>
+      <name>logLikelihoodAccept</name>
+      <variable>self%logLikelihoodAccept</variable>
+      <defaultValue>huge(0.0d0)</defaultValue>
+      <description>The log-likelihood which should be ``accepted''---once the log-likelihood reaches this value (or larger) no further updates to the chain will be made.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
+    if     (                                                                             &
+         &   parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.) &
+         &  /=                                                                           &
+         &   parameters%copiesCount('parameterMap'             ,zeroIfNotPresent=.true.) &
          & ) call Galacticus_Error_Report('number of parameter maps must match number of likelihoods'//{introspection:location})
     self            %modelLikelihoods => null()
     modelLikelihood_                  => null()
-    do i=1,parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.)
        if (associated(modelLikelihood_)) then
           allocate(modelLikelihood_%next)
           modelLikelihood_ => modelLikelihood_%next
@@ -89,7 +101,9 @@ contains
           allocate(self%modelLikelihoods)
           modelLikelihood_ => self%modelLikelihoods
        end if
-       !# <objectBuilder class="posteriorSampleLikelihood" name="modelLikelihood_%modelLikelihood_" source="parameters" copy="i"/>
+       !![
+       <objectBuilder class="posteriorSampleLikelihood" name="modelLikelihood_%modelLikelihood_" source="parameters" copy="i"/>
+       !!]
        modelLikelihood_%simulationState        =posteriorSampleStateSimple(1)
        modelLikelihood_%parameterMapInitialized=.false.
        call parameters%value('parameterMap',parameterMapJoined,copyInstance=i)
@@ -117,18 +131,24 @@ contains
   end function independentLikelihoodsConstructorParameters
 
   function independentLikelihoodsConstructorInternal(modelLikelihoods,logLikelihoodAccept) result(self)
-    !% Constructor for ``independentLikelihoods'' posterior sampling likelihood class.
+    !!{
+    Constructor for ``independentLikelihoods'' posterior sampling likelihood class.
+    !!}
     implicit none
     type            (posteriorSampleLikelihoodIndependentLikelihoods)                        :: self
     type            (posteriorSampleLikelihoodList                  ), target, intent(in   ) :: modelLikelihoods
     double precision                                                         , intent(in   ) :: logLikelihoodAccept
-    !# <constructorAssign variables="*modelLikelihoods, logLikelihoodAccept"/>
+    !![
+    <constructorAssign variables="*modelLikelihoods, logLikelihoodAccept"/>
+    !!]
 
     return
   end function independentLikelihoodsConstructorInternal
 
   subroutine independentLikelihoodsDestructor(self)
-    !% Destructor for ``independentLikelihoods'' posterior sampling likelihood class.
+    !!{
+    Destructor for ``independentLikelihoods'' posterior sampling likelihood class.
+    !!}
     implicit none
     type   (posteriorSampleLikelihoodIndependentLikelihoods), intent(inout) :: self
     type   (posteriorSampleLikelihoodList                  ), pointer       :: modelLikelihood_, modelLikelihoodNext
@@ -138,12 +158,18 @@ contains
        modelLikelihood_ => self%modelLikelihoods
        do while (associated(modelLikelihood_))
           modelLikelihoodNext => modelLikelihood_%next
-          !# <objectDestructor name="modelLikelihood_%modelLikelihood_"/>
+          !![
+          <objectDestructor name="modelLikelihood_%modelLikelihood_"/>
+          !!]
           do i=1,size(modelLikelihood_%modelParametersActive_  )
-             !# <objectDestructor name="modelLikelihood_%modelParametersActive_  (i)%modelParameter_"/>
+             !![
+             <objectDestructor name="modelLikelihood_%modelParametersActive_  (i)%modelParameter_"/>
+             !!]
           end do
           do i=1,size(modelLikelihood_%modelParametersInactive_)
-             !# <objectDestructor name="modelLikelihood_%modelParametersInactive_(i)%modelParameter_"/>
+             !![
+             <objectDestructor name="modelLikelihood_%modelParametersInactive_(i)%modelParameter_"/>
+             !!]
           end do
           deallocate(modelLikelihood_)
           modelLikelihood_ => modelLikelihoodNext
@@ -153,7 +179,9 @@ contains
   end subroutine independentLikelihoodsDestructor
 
   double precision function independentLikelihoodsEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
-    !% Return the log-likelihood for the halo mass function likelihood function.
+    !!{
+    Return the log-likelihood for the halo mass function likelihood function.
+    !!}
     use :: Galacticus_Error            , only : Galacticus_Error_Report
     use :: Models_Likelihoods_Constants, only : logImpossible
     implicit none
@@ -194,8 +222,11 @@ contains
              if (modelLikelihood_%parameterMap(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNames(i))//']'//{introspection:location})
              ! Copy the model parameter definition.
              allocate(modelLikelihood_%modelParametersActive_(i)%modelParameter_,mold=modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_)
-             !# <deepCopyReset variables="modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_"/>
-             !# <deepCopy source="modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_" destination="modelLikelihood_%modelParametersActive_(i)%modelParameter_"/>
+             !![
+             <deepCopyReset variables="modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_"/>
+             <deepCopy source="modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_" destination="modelLikelihood_%modelParametersActive_(i)%modelParameter_"/>
+             <deepCopyFinalize variables="modelLikelihood_%modelParametersActive_(i)%modelParameter_"/>
+             !!]
           end do
           if (allocated(modelLikelihood_%parameterMapInactive)) then
              do i=1,size(modelLikelihood_%parameterMapInactive)
@@ -210,8 +241,11 @@ contains
                 if (modelLikelihood_%parameterMapInactive(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNamesInactive(i))//']'//{introspection:location})
                 ! Copy the model parameter definition.
                 allocate(modelLikelihood_%modelParametersInactive_(i)%modelParameter_,mold=modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_)
-                !# <deepCopyReset variables="modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_"/>
-                !# <deepCopy source="modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_" destination="modelLikelihood_%modelParametersInactive_(i)%modelParameter_"/>
+                !![
+                <deepCopyReset variables="modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_"/>
+                <deepCopy source="modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_" destination="modelLikelihood_%modelParametersInactive_(i)%modelParameter_"/>
+                <deepCopyFinalize variables="modelLikelihood_%modelParametersInactive_(i)%modelParameter_"/>
+                !!]
              end do
           end if
           ! Mark the likelihood as initialized.
@@ -254,7 +288,9 @@ contains
   end function independentLikelihoodsEvaluate
 
   subroutine independentLikelihoodsFunctionChanged(self)
-    !% Respond to possible changes in the likelihood function.
+    !!{
+    Respond to possible changes in the likelihood function.
+    !!}
     implicit none
     class(posteriorSampleLikelihoodIndependentLikelihoods), intent(inout) :: self
     type (posteriorSampleLikelihoodList                  ), pointer       :: modelLikelihood_

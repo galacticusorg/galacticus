@@ -96,6 +96,9 @@ my %pbsOptions =
      waitSleepDuration   =>  10
     );
 
+# Determine if slow tests are to be skipped.
+my $skipSlow = exists($options{'skip-slow'}) && $options{'skip-slow'} eq "yes";
+
 # Define a list of executables to run. Each hash must give the name of the executable, should specify whether or not the
 # executable should be run inside of Valgrind (this is useful for detecting errors which lead to misuse of memory but which don't
 # necessary cause a crash), and should specify if the executable should be built and run under mpi.
@@ -111,7 +114,7 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
-	name     => "tests.files.exe",                                                   # Tests of file functions.
+	name     => "tests.files.exe",                                                    # Tests of file functions.
 	valgrind => 0,
 	mpi      => 0
     },
@@ -337,10 +340,16 @@ my @executablesToRun = (
     {
 	name     => "tests.spherical_collapse.baryons_dark_matter.exe",                   # .
 	valgrind => 0,
-	mpi      => 0
+	mpi      => 0,
+	isSlow   => 1
     },
     {
 	name     => "tests.spherical_collapse.nonlinear.exe",                             # .
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
+	name     => "tests.warm_dark_matter.exe",                                         # Tests of critical overdensity for collapse in warm dark matter model.
 	valgrind => 0,
 	mpi      => 0
     },
@@ -486,6 +495,16 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.mass_accretion_history.Hearin2021.exe",                        # Tests of dark matter halo mass accretion histories.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
+	name     => "tests.mass_accretion_history.Hearin2021_stochastic.exe",             # Tests of stochastic dark matter halo mass accretion histories.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.dark_matter_profiles.exe",                                     # Tests of dark matter profiles.
 	valgrind => 0,
 	mpi      => 0
@@ -503,7 +522,8 @@ my @executablesToRun = (
     {
 	name     => "tests.dark_matter_profiles.generic.exe",                             # Tests of generic, numerical implementations of dark matter profile functions.
 	valgrind => 0,
-	mpi      => 0
+	mpi      => 0,
+	isSlow   => 1
     },
     {
 	name     => "tests.MPI.exe",                                                      # Tests of MPI functionality.
@@ -561,12 +581,14 @@ my @executablesToRun = (
 	name     => "tests.excursion_sets.exe",                                           # Tests of excursion set solvers.
 	valgrind =>  0,
 	ppn      => 16,
-	mpi      =>  0
+	mpi      =>  0,
+	isSlow   =>  1
     },
     {
 	name     => "tests.merger_tree_branching.exe",                                    # Tests of merger tree branching rate functions.
 	valgrind => 0,
-	mpi      => 0
+	mpi      => 0,
+	isSlow   => 1
     },
     {
 	name     => "tests.event_hooks.exe",                                              # Tests of event hook infrastructure.
@@ -576,8 +598,8 @@ my @executablesToRun = (
     );
 
 # Build all executables.
-my @executablesNonMPI  = map {$_->{'mpi'} == 0 ? $_->{'name'} : ()} @executablesToRun;
-my @executablesMPI     = map {$_->{'mpi'} >  0 ? $_->{'name'} : ()} @executablesToRun;
+my @executablesNonMPI  = map {($_->{'mpi'} == 0) && (! $skipSlow || ! exists($_->{'isSlow'}) || $_->{'isSlow'} == 0) ? $_->{'name'} : ()} @executablesToRun;
+my @executablesMPI     = map {($_->{'mpi'} >  0) && (! $skipSlow || ! exists($_->{'isSlow'}) || $_->{'isSlow'} == 0) ? $_->{'name'} : ()} @executablesToRun;
 my $compileCommand     = "rm -rf ./work/build ./work/buildMPI\n";
 $compileCommand       .= "make -j16 "                            .join(" ",@executablesNonMPI)."\n"
     if ( scalar(@executablesNonMPI) > 0 );
@@ -605,6 +627,8 @@ unlink("testSuite/compileTests.pbs");
 my @launchFiles;
 @jobStack = ();
 foreach my $executable ( @executablesToRun ) {
+    next
+	if ( $skipSlow && exists($executable->{'isSlow'}) && $executable->{'isSlow'} == 1 );
     # Generate the job.
     if ( exists($executable->{'name'}) ) {
 	(my $label = $executable->{'name'}) =~ s/\./_/;

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which displays a banner for \glc.
+!!{
+Contains a module which displays a banner for \glc.
+!!}
 
 module Galacticus_Banner
-  !% Displays a banner for \glc.
+  !!{
+  Displays a banner for \glc.
+  !!}
   implicit none
   private
   public :: Galacticus_Banner_Show
@@ -28,16 +32,18 @@ module Galacticus_Banner
 contains
 
   subroutine Galacticus_Banner_Show
-    !% Displays the \glc\ banner.
-    use :: Galacticus_Display, only : Galacticus_Verbosity_Level, verbositySilent
+    !!{
+    Displays the \glc\ banner.
+    !!}
+    use :: Display      , only : displayVerbosity, verbosityLevelSilent
 #ifdef USEMPI
-    use :: MPI_Utilities     , only : mpiSelf
+    use :: MPI_Utilities, only : mpiSelf
 #endif
     implicit none
 #ifdef USEMPI
     if (mpiSelf%rank() == 0) then
 #endif
-       if (Galacticus_Verbosity_Level() > verbositySilent) then
+       if (displayVerbosity() > verbosityLevelSilent) then
           write (0,*) '             ##                                     '
           write (0,*) '  ####        #                  #                  '
           write (0,*) ' #   #        #             #                       '
@@ -48,7 +54,7 @@ contains
           write (0,*) '  ####  #### ### ####  ###   ## ###  ###   #### ##  '
           write (0,*)
           write (0,*) '© 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016,'
-          write (0,*) '  2017, 2018, 2019, 2020'
+          write (0,*) '  2017, 2018, 2019, 2020, 2021'
           write (0,*) '  - Andrew Benson'
           write (0,*)
        end if

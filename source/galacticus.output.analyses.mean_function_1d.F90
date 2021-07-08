@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,22 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a generic 1D mean function (i.e. mean value of some property weighted by number density of
-  !% objects binned by some property) output analysis class.
+  !!{
+  Contains a module which implements a generic 1D mean function (i.e. mean value of some property weighted by number density of
+  objects binned by some property) output analysis class.
+  !!}
 
   use :: ISO_Varying_String, only : varying_string
 
-  !# <outputAnalysis name="outputAnalysisMeanFunction1D">
-  !#  <description>A generic 1D mean function (i.e. mean value of some property weighted by number density of objects binned by some property) output analysis class.</description>
-  !#  <deepCopy>
-  !#   <functionClass variables="volumeFunctionUnweighted, volumeFunctionWeighted, volumeFunctionCross"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="volumeFunctionUnweighted, volumeFunctionWeighted, volumeFunctionCross"/>
-  !#  </stateStorable>
-  !# </outputAnalysis>
+  !![
+  <outputAnalysis name="outputAnalysisMeanFunction1D">
+   <description>A generic 1D mean function (i.e. mean value of some property weighted by number density of objects binned by some property) output analysis class.</description>
+   <deepCopy>
+    <functionClass variables="volumeFunctionUnweighted, volumeFunctionWeighted, volumeFunctionCross"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="volumeFunctionUnweighted, volumeFunctionWeighted, volumeFunctionCross"/>
+   </stateStorable>
+  </outputAnalysis>
+  !!]
   type, extends(outputAnalysisClass) :: outputAnalysisMeanFunction1D
-     !% A generic 1D mean function (i.e. mean value of some property weighted by number density of objects binned by some property) output analysis class.
+     !!{
+     A generic 1D mean function (i.e. mean value of some property weighted by number density of objects binned by some property) output analysis class.
+     !!}
      private
      type            (varying_string                )                              :: label                             , comment                         , &
           &                                                                           propertyLabel                     , propertyComment                 , &
@@ -49,10 +55,12 @@
      logical                                                                       :: finalized                         , likelihoodNormalize             , &
           &                                                                           xAxisIsLog                        , yAxisIsLog
    contains
-     !# <methods>
-     !#   <method description="Return the results of the mean function operator." method="results" />
-     !#   <method description="Finalize analysis of the mean function operator." method="finalizeAnalysis" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return the results of the mean function operator." method="results" />
+       <method description="Finalize analysis of the mean function operator." method="finalizeAnalysis" />
+     </methods>
+     !!]
      final     ::                     meanFunction1DDestructor
      procedure :: analyze          => meanFunction1DAnalyze
      procedure :: finalize         => meanFunction1DFinalize
@@ -63,7 +71,9 @@
   end type outputAnalysisMeanFunction1D
 
   interface outputAnalysisMeanFunction1D
-     !% Constructors for the ``meanFunction1D'' output analysis class.
+     !!{
+     Constructors for the ``meanFunction1D'' output analysis class.
+     !!}
      module procedure meanFunction1DConstructorParameters
      module procedure meanFunction1DConstructorInternal
   end interface outputAnalysisMeanFunction1D
@@ -71,7 +81,9 @@
 contains
 
   function meanFunction1DConstructorParameters(parameters) result(self)
-    !% Constructor for the ``meanFunction1D'' output analysis class which takes a parameter set as input.
+    !!{
+    Constructor for the ``meanFunction1D'' output analysis class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error       , only : Galacticus_Error_Report
     use :: Input_Parameters       , only : inputParameter                                , inputParameters
     use :: Memory_Management      , only : allocateArray
@@ -104,162 +116,168 @@ contains
     logical                                                                                :: likelihoodNormalize                  , xAxisIsLog                            , &
          &                                                                                    yAxisIsLog
 
-    !# <objectBuilder class="nodePropertyExtractor"      name="nodePropertyExtractor_"       source="parameters"          />
-    !# <objectBuilder class="nodePropertyExtractor"      name="outputAnalysisWeightPropertyExtractor_" source="weightParameters"    />
-    !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyOperator_"        source="parameters"          />
-    !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisWeightPropertyOperator_"  source="weightParameters"    />
-    !# <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyUnoperator_"      source="unoperatorParameters"/>
-    !# <objectBuilder class="outputAnalysisWeightOperator"         name="outputAnalysisWeightOperator_"          source="parameters"          />
-    !# <objectBuilder class="outputAnalysisDistributionOperator"   name="outputAnalysisDistributionOperator_"    source="parameters"          />
-    !# <objectBuilder class="galacticFilter"                       name="galacticFilter_"                        source="parameters"          />
-    !# <objectBuilder class="outputTimes"                          name="outputTimes_"                           source="parameters"          />
+    !![
+    <objectBuilder class="nodePropertyExtractor"      name="nodePropertyExtractor_"       source="parameters"          />
+    <objectBuilder class="nodePropertyExtractor"      name="outputAnalysisWeightPropertyExtractor_" source="weightParameters"    />
+    <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyOperator_"        source="parameters"          />
+    <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisWeightPropertyOperator_"  source="weightParameters"    />
+    <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyUnoperator_"      source="unoperatorParameters"/>
+    <objectBuilder class="outputAnalysisWeightOperator"         name="outputAnalysisWeightOperator_"          source="parameters"          />
+    <objectBuilder class="outputAnalysisDistributionOperator"   name="outputAnalysisDistributionOperator_"    source="parameters"          />
+    <objectBuilder class="galacticFilter"                       name="galacticFilter_"                        source="parameters"          />
+    <objectBuilder class="outputTimes"                          name="outputTimes_"                           source="parameters"          />
+    !!]
     unoperatorParameters=parameters%subParameters('unoperator',requireValue=.false.)
     weightParameters    =parameters%subParameters('weight'    ,requireValue=.false.)
     call allocateArray(binCenter   ,[int(parameters%count('binCenter'),kind=c_size_t)                     ])
     call allocateArray(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t)*outputTimes_%count()])
     if (parameters%count('outputWeight') /= parameters%count('binCenter')*outputTimes_%count()) &
          & call Galacticus_Error_Report('incorrect number of output weights provided'//{introspection:location})
-    !# <inputParameter>
-    !#   <name>label</name>
-    !#   <source>parameters</source>
-    !#   <variable>label</variable>
-    !#   <description>A label for the analysis.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>xAxisLabel</name>
-    !#   <source>parameters</source>
-    !#   <description>A label for the $x$-axis in a plot of this analysis.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>yAxisLabel</name>
-    !#   <source>parameters</source>
-    !#   <description>A label for the $y$-axis in a plot of this analysis.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>xAxisIsLog</name>
-    !#   <source>parameters</source>
-    !#   <description>If true, indicates that the $x$-axis should be logarithmic in a plot of this analysis.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>yAxisIsLog</name>
-    !#   <source>parameters</source>
-    !#   <description>If true, indicates that the $y$-axis should be logarithmic in a plot of this analysis.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>comment</name>
-    !#   <source>parameters</source>
-    !#   <variable>comment</variable>
-    !#   <description>A descriptive comment for the analysis.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>propertyLabel</name>
-    !#   <source>parameters</source>
-    !#   <variable>propertyLabel</variable>
-    !#   <description>A label for the property variable.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>propertyComment</name>
-    !#   <source>parameters</source>
-    !#   <variable>propertyComment</variable>
-    !#   <description>A descriptive comment for the property variable.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>propertyUnits</name>
-    !#   <source>parameters</source>
-    !#   <variable>propertyUnits</variable>
-    !#   <description>A human-readable description of the units for the property.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>propertyUnitsInSI</name>
-    !#   <source>parameters</source>
-    !#   <variable>propertyUnitsInSI</variable>
-    !#   <description>A units for the property in the SI system.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>meanLabel</name>
-    !#   <source>parameters</source>
-    !#   <variable>meanLabel</variable>
-    !#   <description>A label for the mean.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>meanComment</name>
-    !#   <source>parameters</source>
-    !#   <variable>meanComment</variable>
-    !#   <description>A descriptive comment for the mean.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>meanUnits</name>
-    !#   <source>parameters</source>
-    !#   <variable>meanUnits</variable>
-    !#   <description>A human-readable description of the units for the mean.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>meanUnitsInSI</name>
-    !#   <source>parameters</source>
-    !#   <variable>meanUnitsInSI</variable>
-    !#   <description>A units for the mean in the SI system.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>binCenter</name>
-    !#   <source>parameters</source>
-    !#   <variable>binCenter</variable>
-    !#   <description>The value of the property at the center of each bin.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>bufferCount</name>
-    !#   <source>parameters</source>
-    !#   <variable>bufferCount</variable>
-    !#   <description>The number of buffer bins to include below and above the range of actual bins.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>outputWeight</name>
-    !#   <source>parameters</source>
-    !#   <variable>outputWeight</variable>
-    !#   <description>The weight to assign to each bin at each output.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceModel</name>
-    !#   <source>parameters</source>
-    !#   <variable>covarianceModel</variable>
-    !#   <description>The model to use for computing covariances.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceBinomialBinsPerDecade</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of bins per decade of halo mass to use when constructing volume function covariance matrices for main branch galaxies.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceBinomialMassHaloMinimum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d8</defaultValue>
-    !#   <description>The minimum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceBinomialMassHaloMaximum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d16</defaultValue>
-    !#   <description>The maximum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>likelihoodNormalize</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true then normalize the likelihood to make it a probability density.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>label</name>
+      <source>parameters</source>
+      <variable>label</variable>
+      <description>A label for the analysis.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>xAxisLabel</name>
+      <source>parameters</source>
+      <description>A label for the $x$-axis in a plot of this analysis.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>yAxisLabel</name>
+      <source>parameters</source>
+      <description>A label for the $y$-axis in a plot of this analysis.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>xAxisIsLog</name>
+      <source>parameters</source>
+      <description>If true, indicates that the $x$-axis should be logarithmic in a plot of this analysis.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>yAxisIsLog</name>
+      <source>parameters</source>
+      <description>If true, indicates that the $y$-axis should be logarithmic in a plot of this analysis.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>comment</name>
+      <source>parameters</source>
+      <variable>comment</variable>
+      <description>A descriptive comment for the analysis.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>propertyLabel</name>
+      <source>parameters</source>
+      <variable>propertyLabel</variable>
+      <description>A label for the property variable.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>propertyComment</name>
+      <source>parameters</source>
+      <variable>propertyComment</variable>
+      <description>A descriptive comment for the property variable.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>propertyUnits</name>
+      <source>parameters</source>
+      <variable>propertyUnits</variable>
+      <description>A human-readable description of the units for the property.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>propertyUnitsInSI</name>
+      <source>parameters</source>
+      <variable>propertyUnitsInSI</variable>
+      <description>A units for the property in the SI system.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>meanLabel</name>
+      <source>parameters</source>
+      <variable>meanLabel</variable>
+      <description>A label for the mean.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>meanComment</name>
+      <source>parameters</source>
+      <variable>meanComment</variable>
+      <description>A descriptive comment for the mean.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>meanUnits</name>
+      <source>parameters</source>
+      <variable>meanUnits</variable>
+      <description>A human-readable description of the units for the mean.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>meanUnitsInSI</name>
+      <source>parameters</source>
+      <variable>meanUnitsInSI</variable>
+      <description>A units for the mean in the SI system.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>binCenter</name>
+      <source>parameters</source>
+      <variable>binCenter</variable>
+      <description>The value of the property at the center of each bin.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>bufferCount</name>
+      <source>parameters</source>
+      <variable>bufferCount</variable>
+      <description>The number of buffer bins to include below and above the range of actual bins.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>outputWeight</name>
+      <source>parameters</source>
+      <variable>outputWeight</variable>
+      <description>The weight to assign to each bin at each output.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>covarianceModel</name>
+      <source>parameters</source>
+      <variable>covarianceModel</variable>
+      <description>The model to use for computing covariances.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>covarianceBinomialBinsPerDecade</name>
+      <source>parameters</source>
+      <defaultValue>10</defaultValue>
+      <description>The number of bins per decade of halo mass to use when constructing volume function covariance matrices for main branch galaxies.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>covarianceBinomialMassHaloMinimum</name>
+      <source>parameters</source>
+      <defaultValue>1.0d8</defaultValue>
+      <description>The minimum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>covarianceBinomialMassHaloMaximum</name>
+      <source>parameters</source>
+      <defaultValue>1.0d16</defaultValue>
+      <description>The maximum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>likelihoodNormalize</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true then normalize the likelihood to make it a probability density.</description>
+    </inputParameter>
+    !!]
    if (parameters%isPresent('meanValueTarget')) then
        if (parameters%isPresent('meanCovarianceTarget')) then
-          !# <inputParameter>
-          !#   <name>meanValueTarget</name>
-          !#   <source>parameters</source>
-          !#   <description>The target function for likelihood calculations.</description>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>meanCovarianceTarget</name>
-          !#   <source>parameters</source>
-          !#   <variable>meanCovarianceTarget1D</variable>
-          !#   <description>The target function covariance for likelihood calculations.</description>
-          !# </inputParameter>
+          !![
+          <inputParameter>
+            <name>meanValueTarget</name>
+            <source>parameters</source>
+            <description>The target function for likelihood calculations.</description>
+          </inputParameter>
+          <inputParameter>
+            <name>meanCovarianceTarget</name>
+            <source>parameters</source>
+            <variable>meanCovarianceTarget1D</variable>
+            <description>The target function covariance for likelihood calculations.</description>
+          </inputParameter>
+          !!]
           if (size(meanCovarianceTarget1D) == size(meanValueTarget)**2) then
              allocate(meanCovarianceTarget(size(meanValueTarget),size(meanValueTarget)))
              meanCovarianceTarget=reshape(meanCovarianceTarget1D,shape(meanCovarianceTarget))
@@ -272,69 +290,75 @@ contains
     else
        if (parameters%isPresent('meanCovariance')) call Galacticus_Error_Report('functionTarget must be specified if meanCovariance is present'//{introspection:location})
     end if
-    !# <inputParameter>
-    !#   <name>targetLabel</name>
-    !#   <source>parameters</source>
-    !#   <description>A label for the target dataset in a plot of this analysis.</description>
-    !#   <defaultValue>var_str('')</defaultValue>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>targetLabel</name>
+      <source>parameters</source>
+      <description>A label for the target dataset in a plot of this analysis.</description>
+      <defaultValue>var_str('')</defaultValue>
+    </inputParameter>
+    !!]
     ! Build the object.
-    !# <conditionalCall>
-    !#  <call>
-    !#   self=outputAnalysisMeanFunction1D(                                                                                               &amp;
-    !#        &amp;                        label                                                                                        , &amp;
-    !#        &amp;                        comment                                                                                      , &amp;
-    !#        &amp;                        propertyLabel                                                                                , &amp;
-    !#        &amp;                        propertyComment                                                                              , &amp;
-    !#        &amp;                        propertyUnits                                                                                , &amp;
-    !#        &amp;                        propertyUnitsInSI                                                                            , &amp;
-    !#        &amp;                        meanLabel                                                                                    , &amp;
-    !#        &amp;                        meanComment                                                                                  , &amp;
-    !#        &amp;                        meanUnits                                                                                    , &amp;
-    !#        &amp;                        meanUnitsInSI                                                                                , &amp;
-    !#        &amp;                        binCenter                                                                                    , &amp;
-    !#        &amp;                        bufferCount                                                                                  , &amp;
-    !#        &amp;                        reshape(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t),outputTimes_%count()]), &amp;
-    !#        &amp;                        nodePropertyExtractor_                                                             , &amp;
-    !#        &amp;                        outputAnalysisWeightPropertyExtractor_                                                       , &amp;
-    !#        &amp;                        outputAnalysisPropertyOperator_                                                              , &amp;
-    !#        &amp;                        outputAnalysisWeightPropertyOperator_                                                        , &amp;
-    !#        &amp;                        outputAnalysisPropertyUnoperator_                                                            , &amp;
-    !#        &amp;                        outputAnalysisWeightOperator_                                                                , &amp;
-    !#        &amp;                        outputAnalysisDistributionOperator_                                                          , &amp;
-    !#        &amp;                        galacticFilter_                                                                              , &amp;
-    !#        &amp;                        outputTimes_                                                                                 , &amp;
-    !#        &amp;                        enumerationOutputAnalysisCovarianceModelEncode(char(covarianceModel),includesPrefix=.false.) , &amp;
-    !#        &amp;                        covarianceBinomialBinsPerDecade                                                              , &amp;
-    !#        &amp;                        covarianceBinomialMassHaloMinimum                                                            , &amp;
-    !#        &amp;                        covarianceBinomialMassHaloMaximum                                                            , &amp;
-    !#        &amp;                        likelihoodNormalize                                                                          , &amp;
-    !#        &amp;                        xAxisLabel                                                                                   , &amp;
-    !#        &amp;                        yAxisLabel                                                                                   , &amp;
-    !#        &amp;                        xAxisIsLog                                                                                   , &amp;
-    !#        &amp;                        yAxisIsLog                                                                                   , &amp;
-    !#        &amp;                        targetLabel                                                                                    &amp;
-    !#        &amp;                        {conditions}                                                                                   &amp;
-    !#        &amp;                       )
-    !#  </call>
-    !#  <argument name="meanValueTarget"      value="meanValueTarget"      parameterPresent="parameters"/>
-    !#  <argument name="meanCovarianceTarget" value="meanCovarianceTarget" parameterPresent="parameters"/>
-    !# </conditionalCall>
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="nodePropertyExtractor_"      />
-    !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"/>
-    !# <objectDestructor name="outputAnalysisPropertyOperator_"       />
-    !# <objectDestructor name="outputAnalysisWeightPropertyOperator_" />
-    !# <objectDestructor name="outputAnalysisPropertyUnoperator_"     />
-    !# <objectDestructor name="outputAnalysisWeightOperator_"         />
-    !# <objectDestructor name="outputAnalysisDistributionOperator_"   />
-    !# <objectDestructor name="galacticFilter_"                       />
-    !# <objectDestructor name="outputTimes_"                          />
+    !![
+    <conditionalCall>
+     <call>
+      self=outputAnalysisMeanFunction1D(                                                                                               &amp;
+           &amp;                        label                                                                                        , &amp;
+           &amp;                        comment                                                                                      , &amp;
+           &amp;                        propertyLabel                                                                                , &amp;
+           &amp;                        propertyComment                                                                              , &amp;
+           &amp;                        propertyUnits                                                                                , &amp;
+           &amp;                        propertyUnitsInSI                                                                            , &amp;
+           &amp;                        meanLabel                                                                                    , &amp;
+           &amp;                        meanComment                                                                                  , &amp;
+           &amp;                        meanUnits                                                                                    , &amp;
+           &amp;                        meanUnitsInSI                                                                                , &amp;
+           &amp;                        binCenter                                                                                    , &amp;
+           &amp;                        bufferCount                                                                                  , &amp;
+           &amp;                        reshape(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t),outputTimes_%count()]), &amp;
+           &amp;                        nodePropertyExtractor_                                                             , &amp;
+           &amp;                        outputAnalysisWeightPropertyExtractor_                                                       , &amp;
+           &amp;                        outputAnalysisPropertyOperator_                                                              , &amp;
+           &amp;                        outputAnalysisWeightPropertyOperator_                                                        , &amp;
+           &amp;                        outputAnalysisPropertyUnoperator_                                                            , &amp;
+           &amp;                        outputAnalysisWeightOperator_                                                                , &amp;
+           &amp;                        outputAnalysisDistributionOperator_                                                          , &amp;
+           &amp;                        galacticFilter_                                                                              , &amp;
+           &amp;                        outputTimes_                                                                                 , &amp;
+           &amp;                        enumerationOutputAnalysisCovarianceModelEncode(char(covarianceModel),includesPrefix=.false.) , &amp;
+           &amp;                        covarianceBinomialBinsPerDecade                                                              , &amp;
+           &amp;                        covarianceBinomialMassHaloMinimum                                                            , &amp;
+           &amp;                        covarianceBinomialMassHaloMaximum                                                            , &amp;
+           &amp;                        likelihoodNormalize                                                                          , &amp;
+           &amp;                        xAxisLabel                                                                                   , &amp;
+           &amp;                        yAxisLabel                                                                                   , &amp;
+           &amp;                        xAxisIsLog                                                                                   , &amp;
+           &amp;                        yAxisIsLog                                                                                   , &amp;
+           &amp;                        targetLabel                                                                                    &amp;
+           &amp;                        {conditions}                                                                                   &amp;
+           &amp;                       )
+     </call>
+     <argument name="meanValueTarget"      value="meanValueTarget"      parameterPresent="parameters"/>
+     <argument name="meanCovarianceTarget" value="meanCovarianceTarget" parameterPresent="parameters"/>
+    </conditionalCall>
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="nodePropertyExtractor_"      />
+    <objectDestructor name="outputAnalysisWeightPropertyExtractor_"/>
+    <objectDestructor name="outputAnalysisPropertyOperator_"       />
+    <objectDestructor name="outputAnalysisWeightPropertyOperator_" />
+    <objectDestructor name="outputAnalysisPropertyUnoperator_"     />
+    <objectDestructor name="outputAnalysisWeightOperator_"         />
+    <objectDestructor name="outputAnalysisDistributionOperator_"   />
+    <objectDestructor name="galacticFilter_"                       />
+    <objectDestructor name="outputTimes_"                          />
+    !!]
     return
   end function meanFunction1DConstructorParameters
 
   function meanFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,meanLabel,meanComment,meanUnits,meanUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperatorIn_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,meanValueTarget,meanCovarianceTarget) result (self)
-    !% Constructor for the ``meanFunction1D'' output analysis class for internal use.
+    !!{
+    Constructor for the ``meanFunction1D'' output analysis class for internal use.
+    !!}
     use :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerIdentity
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorBoolean       , outputAnalysisPropertyOperatorClass , outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSquareRoot, &
           &                                                 propertyOperatorList
@@ -377,7 +401,9 @@ contains
          &                                                                                                     weightOperatorCrossProperty_
     type            (outputAnalysisPropertyOperatorBoolean       ), pointer                                 :: propertyOperatorUnweightedBoolean_
     type            (outputAnalysisPropertyOperatorSquareRoot    ), pointer                                 :: propertyOperatorCrossSquareRoot_
-    !# <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, meanLabel, meanComment, meanUnits, meanUnitsInSI, xAxisLabel, yAxisLabel, xAxisIsLog, yAxisIsLog, targetLabel, meanValueTarget, meanCovarianceTarget"/>
+    !![
+    <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, meanLabel, meanComment, meanUnits, meanUnitsInSI, xAxisLabel, yAxisLabel, xAxisIsLog, yAxisIsLog, targetLabel, meanValueTarget, meanCovarianceTarget"/>
+    !!]
 
     ! Mark as unfinalized.
     self%finalized=.false.
@@ -388,18 +414,24 @@ contains
     allocate(outputAnalysisDistributionNormalizerWeighted_  )
     allocate(outputAnalysisDistributionNormalizerUnweighted_)
     allocate(outputAnalysisDistributionNormalizerCross_     )
-    !# <referenceConstruct object="outputAnalysisDistributionNormalizerWeighted_"   constructor="outputAnalysisDistributionNormalizerIdentity()"/>
-    !# <referenceConstruct object="outputAnalysisDistributionNormalizerUnweighted_" constructor="outputAnalysisDistributionNormalizerIdentity()"/>
-    !# <referenceConstruct object="outputAnalysisDistributionNormalizerCross_"      constructor="outputAnalysisDistributionNormalizerIdentity()"/>
+    !![
+    <referenceConstruct object="outputAnalysisDistributionNormalizerWeighted_"   constructor="outputAnalysisDistributionNormalizerIdentity()"/>
+    <referenceConstruct object="outputAnalysisDistributionNormalizerUnweighted_" constructor="outputAnalysisDistributionNormalizerIdentity()"/>
+    <referenceConstruct object="outputAnalysisDistributionNormalizerCross_"      constructor="outputAnalysisDistributionNormalizerIdentity()"/>
+    !!]
     ! Build weight operator that includes the weight property.
     allocate(outputAnalysisWeightOperatorWeighted_     )
     allocate(weightOperatorWeight_                     )
     allocate(weightOperatorWeight_                %next)
     allocate(weightOperatorWeightProperty_             )
-    !# <referenceConstruct object="weightOperatorWeightProperty_" constructor="outputAnalysisWeightOperatorProperty(outputAnalysisWeightPropertyExtractor_,outputAnalysisWeightPropertyOperator_)"/>
+    !![
+    <referenceConstruct object="weightOperatorWeightProperty_" constructor="outputAnalysisWeightOperatorProperty(outputAnalysisWeightPropertyExtractor_,outputAnalysisWeightPropertyOperator_)"/>
+    !!]
     weightOperatorWeight_     %operator_ => outputAnalysisWeightOperatorIn_
     weightOperatorWeight_%next%operator_ => weightOperatorWeightProperty_
-    !# <referenceConstruct object="outputAnalysisWeightOperatorWeighted_" constructor="outputAnalysisWeightOperatorSequence(weightOperatorWeight_)"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightOperatorWeighted_" constructor="outputAnalysisWeightOperatorSequence(weightOperatorWeight_)"/>
+    !!]
     ! Build weight operator that includes square-root of the weight property. We use this to effectively compute the covariance
     ! between numerator and denominator in our ratio of volume functions. If we define:
     !
@@ -423,16 +455,24 @@ contains
     allocate(propertyOperatorCrossSquareRoot_         )
     ! Build a sequence property operator for the cross-correlation weight property. This includes any property operator passed to
     ! this constructor, plus the square-root operator.
-    !# <referenceConstruct object="propertyOperatorCrossSquareRoot_" constructor="outputAnalysisPropertyOperatorSquareRoot()"/>
+    !![
+    <referenceConstruct object="propertyOperatorCrossSquareRoot_" constructor="outputAnalysisPropertyOperatorSquareRoot()"/>
+    !!]
     propertyOperator_     %operator_ => outputAnalysisWeightPropertyOperator_ ! First operator in the sequence is whatever operator was passed to this constructor.
     propertyOperator_%next%operator_ => propertyOperatorCrossSquareRoot_
-    !# <referenceConstruct object="weightOperatorCrossPropertyOperator_" constructor="outputAnalysisPropertyOperatorSequence(propertyOperator_)"/>
+    !![
+    <referenceConstruct object="weightOperatorCrossPropertyOperator_" constructor="outputAnalysisPropertyOperatorSequence(propertyOperator_)"/>
+    !!]
     ! Build a weight operator sequence - the first operator is whatever weight operator was passed to this constructor, the second
     ! is the operator which weights by the property value.
-    !# <referenceConstruct object="weightOperatorCrossProperty_" constructor="outputAnalysisWeightOperatorProperty(outputAnalysisWeightPropertyExtractor_,weightOperatorCrossPropertyOperator_)"/>
+    !![
+    <referenceConstruct object="weightOperatorCrossProperty_" constructor="outputAnalysisWeightOperatorProperty(outputAnalysisWeightPropertyExtractor_,weightOperatorCrossPropertyOperator_)"/>
+    !!]
     weightOperatorCross_     %operator_ => outputAnalysisWeightOperatorIn_
     weightOperatorCross_%next%operator_ => weightOperatorCrossProperty_
-    !# <referenceConstruct object="outputAnalysisWeightOperatorCross_" constructor="outputAnalysisWeightOperatorSequence(weightOperatorCross_)"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightOperatorCross_" constructor="outputAnalysisWeightOperatorSequence(weightOperatorCross_)"/>
+    !!]
     ! Build weight operator that includes a final boolean operator. We use this in the unweighted case to allow filters to be
     ! applied to the weight property. If any filter sets the property value to zero, this boolean operator will return zero,
     ! otherwise it will return unity.
@@ -446,126 +486,136 @@ contains
     allocate(propertyOperatorUnweightedBoolean_            )
     ! Build a sequence property operator for the unweight property. This includes any property operator passed to this
     ! constructor, plus the boolean operator.
-    !# <referenceConstruct object="propertyOperatorUnweightedBoolean_" constructor="outputAnalysisPropertyOperatorBoolean()"/>
+    !![
+    <referenceConstruct object="propertyOperatorUnweightedBoolean_" constructor="outputAnalysisPropertyOperatorBoolean()"/>
+    !!]
     propertyOperatorUnweighted_     %operator_ => outputAnalysisWeightPropertyOperator_ ! First operator in the sequence is whatever operator was passed to this constructor.
     propertyOperatorUnweighted_%next%operator_ => propertyOperatorUnweightedBoolean_
-    !# <referenceConstruct object="weightOperatorUnweightedPropertyOperator_" constructor="outputAnalysisPropertyOperatorSequence(propertyOperatorUnweighted_)"/>
+    !![
+    <referenceConstruct object="weightOperatorUnweightedPropertyOperator_" constructor="outputAnalysisPropertyOperatorSequence(propertyOperatorUnweighted_)"/>
+    !!]
     ! Build a weight operator sequence - the first operator is whatever weight operator was passed to this constructor, the second
     ! is the operator which weights by the property value.
-    !# <referenceConstruct object="weightOperatorUnweightedProperty_" constructor="outputAnalysisWeightOperatorProperty(outputAnalysisWeightPropertyExtractor_,weightOperatorUnweightedPropertyOperator_)"/>
+    !![
+    <referenceConstruct object="weightOperatorUnweightedProperty_" constructor="outputAnalysisWeightOperatorProperty(outputAnalysisWeightPropertyExtractor_,weightOperatorUnweightedPropertyOperator_)"/>
+    !!]
     weightOperatorUnweighted_     %operator_ => outputAnalysisWeightOperatorIn_
     weightOperatorUnweighted_%next%operator_ => weightOperatorUnweightedProperty_
-    !# <referenceConstruct object="outputAnalysisWeightOperatorUnweighted_" constructor="outputAnalysisWeightOperatorSequence(weightOperatorUnweighted_)"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightOperatorUnweighted_" constructor="outputAnalysisWeightOperatorSequence(weightOperatorUnweighted_)"/>
+    !!]
     ! Build weighted, unweighted, and cross volume function objects.
     allocate(self%volumeFunctionUnweighted)
     allocate(self%volumeFunctionWeighted  )
     allocate(self%volumeFunctionCross     )
-    !# <referenceConstruct isResult="yes" owner="self" object="volumeFunctionUnweighted">
-    !#  <constructor>
-    !#   outputAnalysisVolumeFunction1D(                                                 &amp;
-    !#    &amp;                         label                                          , &amp;
-    !#    &amp;                         comment                                        , &amp;
-    !#    &amp;                         propertyLabel                                  , &amp;
-    !#    &amp;                         propertyComment                                , &amp;
-    !#    &amp;                         propertyUnits                                  , &amp;
-    !#    &amp;                         propertyUnitsInSI                              , &amp;
-    !#    &amp;                         meanLabel                                      , &amp;
-    !#    &amp;                         meanComment                                    , &amp;
-    !#    &amp;                         meanUnits                                      , &amp;
-    !#    &amp;                         meanUnitsInSI                                  , &amp;
-    !#    &amp;                         binCenter                                      , &amp;
-    !#    &amp;                         bufferCount                                    , &amp;
-    !#    &amp;                         outputWeight                                   , &amp;
-    !#    &amp;                         nodePropertyExtractor_               , &amp;
-    !#    &amp;                         outputAnalysisPropertyOperator_                , &amp;
-    !#    &amp;                         outputAnalysisPropertyUnoperator_              , &amp;
-    !#    &amp;                         outputAnalysisWeightOperatorUnweighted_        , &amp;
-    !#    &amp;                         outputAnalysisDistributionOperator_            , &amp;
-    !#    &amp;                         outputAnalysisDistributionNormalizerUnweighted_, &amp;
-    !#    &amp;                         galacticFilter_                                , &amp;
-    !#    &amp;                         outputTimes_                                   , &amp;
-    !#    &amp;                         covarianceModel                                , &amp;
-    !#    &amp;                         covarianceBinomialBinsPerDecade                , &amp;
-    !#    &amp;                         covarianceBinomialMassHaloMinimum              , &amp;
-    !#    &amp;                         covarianceBinomialMassHaloMaximum                &amp;
-    !#    &amp;                        )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <referenceConstruct isResult="yes" owner="self" object="volumeFunctionWeighted">
-    !#  <constructor>
-    !#   outputAnalysisVolumeFunction1D(                                                 &amp;
-    !#    &amp;                         label                                          , &amp;
-    !#    &amp;                         comment                                        , &amp;
-    !#    &amp;                         propertyLabel                                  , &amp;
-    !#    &amp;                         propertyComment                                , &amp;
-    !#    &amp;                         propertyUnits                                  , &amp;
-    !#    &amp;                         propertyUnitsInSI                              , &amp;
-    !#    &amp;                         meanLabel                                      , &amp;
-    !#    &amp;                         meanComment                                    , &amp;
-    !#    &amp;                         meanUnits                                      , &amp;
-    !#    &amp;                         meanUnitsInSI                                  , &amp;
-    !#    &amp;                         binCenter                                      , &amp;
-    !#    &amp;                         bufferCount                                    , &amp;
-    !#    &amp;                         outputWeight                                   , &amp;
-    !#    &amp;                         nodePropertyExtractor_               , &amp;
-    !#    &amp;                         outputAnalysisPropertyOperator_                , &amp;
-    !#    &amp;                         outputAnalysisPropertyUnoperator_              , &amp;
-    !#    &amp;                         outputAnalysisWeightOperatorWeighted_          , &amp;
-    !#    &amp;                         outputAnalysisDistributionOperator_            , &amp;
-    !#    &amp;                         outputAnalysisDistributionNormalizerWeighted_  , &amp;
-    !#    &amp;                         galacticFilter_                                , &amp;
-    !#    &amp;                         outputTimes_                                   , &amp;
-    !#    &amp;                         covarianceModel                                , &amp;
-    !#    &amp;                         covarianceBinomialBinsPerDecade                , &amp;
-    !#    &amp;                         covarianceBinomialMassHaloMinimum              , &amp;
-    !#    &amp;                         covarianceBinomialMassHaloMaximum                &amp;
-    !#    &amp;                        )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <referenceConstruct isResult="yes" owner="self" object="volumeFunctionCross">
-    !#  <constructor>
-    !#   outputAnalysisVolumeFunction1D(                                                 &amp;
-    !#    &amp;                         label                                          , &amp;
-    !#    &amp;                         comment                                        , &amp;
-    !#    &amp;                         propertyLabel                                  , &amp;
-    !#    &amp;                         propertyComment                                , &amp;
-    !#    &amp;                         propertyUnits                                  , &amp;
-    !#    &amp;                         propertyUnitsInSI                              , &amp;
-    !#    &amp;                         meanLabel                                      , &amp;
-    !#    &amp;                         meanComment                                    , &amp;
-    !#    &amp;                         meanUnits                                      , &amp;
-    !#    &amp;                         meanUnitsInSI                                  , &amp;
-    !#    &amp;                         binCenter                                      , &amp;
-    !#    &amp;                         bufferCount                                    , &amp;
-    !#    &amp;                         outputWeight                                   , &amp;
-    !#    &amp;                         nodePropertyExtractor_               , &amp;
-    !#    &amp;                         outputAnalysisPropertyOperator_                , &amp;
-    !#    &amp;                         outputAnalysisPropertyUnoperator_              , &amp;
-    !#    &amp;                         outputAnalysisWeightOperatorCross_             , &amp;
-    !#    &amp;                         outputAnalysisDistributionOperator_            , &amp;
-    !#    &amp;                         outputAnalysisDistributionNormalizerCross_     , &amp;
-    !#    &amp;                         galacticFilter_                                , &amp;
-    !#    &amp;                         outputTimes_                                   , &amp;
-    !#    &amp;                         covarianceModel                                , &amp;
-    !#    &amp;                         covarianceBinomialBinsPerDecade                , &amp;
-    !#    &amp;                         covarianceBinomialMassHaloMinimum              , &amp;
-    !#    &amp;                         covarianceBinomialMassHaloMaximum                &amp;
-    !#    &amp;                        )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <objectDestructor name="outputAnalysisDistributionNormalizerWeighted_"   />
-    !# <objectDestructor name="outputAnalysisDistributionNormalizerUnweighted_" />
-    !# <objectDestructor name="outputAnalysisDistributionNormalizerCross_"      />
-    !# <objectDestructor name="outputAnalysisWeightOperatorWeighted_"           />
-    !# <objectDestructor name="outputAnalysisWeightOperatorCross_"              />
-    !# <objectDestructor name="outputAnalysisWeightOperatorUnweighted_"         />
-    !# <objectDestructor name="weightOperatorCrossPropertyOperator_"            />
-    !# <objectDestructor name="weightOperatorUnweightedPropertyOperator_"       />
-    !# <objectDestructor name="propertyOperatorCrossSquareRoot_"                />
-    !# <objectDestructor name="propertyOperatorUnweightedBoolean_"              />
-    !# <objectDestructor name="weightOperatorWeightProperty_"                   />
-    !# <objectDestructor name="weightOperatorCrossProperty_"                    />
-    !# <objectDestructor name="weightOperatorUnweightedProperty_"               />
+    !![
+    <referenceConstruct isResult="yes" owner="self" object="volumeFunctionUnweighted">
+     <constructor>
+      outputAnalysisVolumeFunction1D(                                                 &amp;
+       &amp;                         label                                          , &amp;
+       &amp;                         comment                                        , &amp;
+       &amp;                         propertyLabel                                  , &amp;
+       &amp;                         propertyComment                                , &amp;
+       &amp;                         propertyUnits                                  , &amp;
+       &amp;                         propertyUnitsInSI                              , &amp;
+       &amp;                         meanLabel                                      , &amp;
+       &amp;                         meanComment                                    , &amp;
+       &amp;                         meanUnits                                      , &amp;
+       &amp;                         meanUnitsInSI                                  , &amp;
+       &amp;                         binCenter                                      , &amp;
+       &amp;                         bufferCount                                    , &amp;
+       &amp;                         outputWeight                                   , &amp;
+       &amp;                         nodePropertyExtractor_                         , &amp;
+       &amp;                         outputAnalysisPropertyOperator_                , &amp;
+       &amp;                         outputAnalysisPropertyUnoperator_              , &amp;
+       &amp;                         outputAnalysisWeightOperatorUnweighted_        , &amp;
+       &amp;                         outputAnalysisDistributionOperator_            , &amp;
+       &amp;                         outputAnalysisDistributionNormalizerUnweighted_, &amp;
+       &amp;                         galacticFilter_                                , &amp;
+       &amp;                         outputTimes_                                   , &amp;
+       &amp;                         covarianceModel                                , &amp;
+       &amp;                         covarianceBinomialBinsPerDecade                , &amp;
+       &amp;                         covarianceBinomialMassHaloMinimum              , &amp;
+       &amp;                         covarianceBinomialMassHaloMaximum                &amp;
+       &amp;                        )
+     </constructor>
+    </referenceConstruct>
+    <referenceConstruct isResult="yes" owner="self" object="volumeFunctionWeighted">
+     <constructor>
+      outputAnalysisVolumeFunction1D(                                                 &amp;
+       &amp;                         label                                          , &amp;
+       &amp;                         comment                                        , &amp;
+       &amp;                         propertyLabel                                  , &amp;
+       &amp;                         propertyComment                                , &amp;
+       &amp;                         propertyUnits                                  , &amp;
+       &amp;                         propertyUnitsInSI                              , &amp;
+       &amp;                         meanLabel                                      , &amp;
+       &amp;                         meanComment                                    , &amp;
+       &amp;                         meanUnits                                      , &amp;
+       &amp;                         meanUnitsInSI                                  , &amp;
+       &amp;                         binCenter                                      , &amp;
+       &amp;                         bufferCount                                    , &amp;
+       &amp;                         outputWeight                                   , &amp;
+       &amp;                         nodePropertyExtractor_                         , &amp;
+       &amp;                         outputAnalysisPropertyOperator_                , &amp;
+       &amp;                         outputAnalysisPropertyUnoperator_              , &amp;
+       &amp;                         outputAnalysisWeightOperatorWeighted_          , &amp;
+       &amp;                         outputAnalysisDistributionOperator_            , &amp;
+       &amp;                         outputAnalysisDistributionNormalizerWeighted_  , &amp;
+       &amp;                         galacticFilter_                                , &amp;
+       &amp;                         outputTimes_                                   , &amp;
+       &amp;                         covarianceModel                                , &amp;
+       &amp;                         covarianceBinomialBinsPerDecade                , &amp;
+       &amp;                         covarianceBinomialMassHaloMinimum              , &amp;
+       &amp;                         covarianceBinomialMassHaloMaximum                &amp;
+       &amp;                        )
+     </constructor>
+    </referenceConstruct>
+    <referenceConstruct isResult="yes" owner="self" object="volumeFunctionCross">
+     <constructor>
+      outputAnalysisVolumeFunction1D(                                                 &amp;
+       &amp;                         label                                          , &amp;
+       &amp;                         comment                                        , &amp;
+       &amp;                         propertyLabel                                  , &amp;
+       &amp;                         propertyComment                                , &amp;
+       &amp;                         propertyUnits                                  , &amp;
+       &amp;                         propertyUnitsInSI                              , &amp;
+       &amp;                         meanLabel                                      , &amp;
+       &amp;                         meanComment                                    , &amp;
+       &amp;                         meanUnits                                      , &amp;
+       &amp;                         meanUnitsInSI                                  , &amp;
+       &amp;                         binCenter                                      , &amp;
+       &amp;                         bufferCount                                    , &amp;
+       &amp;                         outputWeight                                   , &amp;
+       &amp;                         nodePropertyExtractor_                         , &amp;
+       &amp;                         outputAnalysisPropertyOperator_                , &amp;
+       &amp;                         outputAnalysisPropertyUnoperator_              , &amp;
+       &amp;                         outputAnalysisWeightOperatorCross_             , &amp;
+       &amp;                         outputAnalysisDistributionOperator_            , &amp;
+       &amp;                         outputAnalysisDistributionNormalizerCross_     , &amp;
+       &amp;                         galacticFilter_                                , &amp;
+       &amp;                         outputTimes_                                   , &amp;
+       &amp;                         covarianceModel                                , &amp;
+       &amp;                         covarianceBinomialBinsPerDecade                , &amp;
+       &amp;                         covarianceBinomialMassHaloMinimum              , &amp;
+       &amp;                         covarianceBinomialMassHaloMaximum                &amp;
+       &amp;                        )
+     </constructor>
+    </referenceConstruct>
+    <objectDestructor name="outputAnalysisDistributionNormalizerWeighted_"   />
+    <objectDestructor name="outputAnalysisDistributionNormalizerUnweighted_" />
+    <objectDestructor name="outputAnalysisDistributionNormalizerCross_"      />
+    <objectDestructor name="outputAnalysisWeightOperatorWeighted_"           />
+    <objectDestructor name="outputAnalysisWeightOperatorCross_"              />
+    <objectDestructor name="outputAnalysisWeightOperatorUnweighted_"         />
+    <objectDestructor name="weightOperatorCrossPropertyOperator_"            />
+    <objectDestructor name="weightOperatorUnweightedPropertyOperator_"       />
+    <objectDestructor name="propertyOperatorCrossSquareRoot_"                />
+    <objectDestructor name="propertyOperatorUnweightedBoolean_"              />
+    <objectDestructor name="weightOperatorWeightProperty_"                   />
+    <objectDestructor name="weightOperatorCrossProperty_"                    />
+    <objectDestructor name="weightOperatorUnweightedProperty_"               />
+    !!]
     nullify(weightOperatorWeight_      )
     nullify(weightOperatorCross_       )
     nullify(weightOperatorUnweighted_  )
@@ -575,18 +625,24 @@ contains
   end function meanFunction1DConstructorInternal
 
   subroutine meanFunction1DDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily meanFunction1D} output analysis class.
+    !!{
+    Destructor for the {\normalfont \ttfamily meanFunction1D} output analysis class.
+    !!}
     implicit none
     type(outputAnalysisMeanFunction1D), intent(inout) :: self
 
-    !# <objectDestructor name="self%volumeFunctionUnweighted"/>
-    !# <objectDestructor name="self%volumeFunctionWeighted"  />
-    !# <objectDestructor name="self%volumeFunctionCross"     />
+    !![
+    <objectDestructor name="self%volumeFunctionUnweighted"/>
+    <objectDestructor name="self%volumeFunctionWeighted"  />
+    <objectDestructor name="self%volumeFunctionCross"     />
+    !!]
     return
   end subroutine meanFunction1DDestructor
 
   subroutine meanFunction1DAnalyze(self,node,iOutput)
-    !% Implement a meanFunction1D output analysis.
+    !!{
+    Implement a meanFunction1D output analysis.
+    !!}
     implicit none
     class  (outputAnalysisMeanFunction1D), intent(inout) :: self
     type   (treeNode                    ), intent(inout) :: node
@@ -600,7 +656,9 @@ contains
   end subroutine meanFunction1DAnalyze
 
   subroutine meanFunction1DReduce(self,reduced)
-    !% Implement a volumeFunction1D output analysis reduction.
+    !!{
+    Implement a volumeFunction1D output analysis reduction.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(outputAnalysisMeanFunction1D), intent(inout) :: self
@@ -618,7 +676,9 @@ contains
   end subroutine meanFunction1DReduce
 
   subroutine meanFunction1DFinalizeAnalysis(self)
-    !% Finalize analysis of a {\normalfont \ttfamily meanFunction1D} output analysis.
+    !!{
+    Finalize analysis of a {\normalfont \ttfamily meanFunction1D} output analysis.
+    !!}
     implicit none
     class           (outputAnalysisMeanFunction1D), intent(inout)                 :: self
     double precision                              , allocatable  , dimension(:  ) :: unweightedValue     , weightedValue
@@ -661,7 +721,9 @@ contains
   end subroutine meanFunction1DFinalizeAnalysis
 
   subroutine meanFunction1DFinalize(self)
-    !% Implement a {\normalfont \ttfamily meanFunction1D} output analysis finalization.
+    !!{
+    Implement a {\normalfont \ttfamily meanFunction1D} output analysis finalization.
+    !!}
     use :: Galacticus_HDF5, only : galacticusOutputFile
     use :: IO_HDF5        , only : hdf5Access          , hdf5Object
     implicit none
@@ -720,7 +782,9 @@ contains
   end subroutine meanFunction1DFinalize
 
   subroutine meanFunction1DResults(self,binCenter,meanValue,meanCovariance)
-    !% Implement a meanFunction1D output analysis finalization.
+    !!{
+    Implement a meanFunction1D output analysis finalization.
+    !!}
     use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (outputAnalysisMeanFunction1D)                             , intent(inout)           :: self
@@ -749,7 +813,9 @@ contains
   end subroutine meanFunction1DResults
 
   double precision function meanFunction1DLogLikelihood(self)
-    !% Return the log-likelihood of a meanFunction1D output analysis.
+    !!{
+    Return the log-likelihood of a meanFunction1D output analysis.
+    !!}
     use :: Galacticus_Error            , only : Galacticus_Error_Report
     use :: Linear_Algebra              , only : assignment(=)          , matrix, operator(*), vector
     use :: Numerical_Constants_Math    , only : Pi

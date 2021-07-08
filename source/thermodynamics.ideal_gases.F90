@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements thermodynamic properties of ideal gases.
+!!{
+Contains a module which implements thermodynamic properties of ideal gases.
+!!}
 
 module Ideal_Gases_Thermodynamics
-  !% Implements thermodynamic properties of ideal gases.
+  !!{
+  Implements thermodynamic properties of ideal gases.
+  !!}
   implicit none
   private
   public :: Ideal_Gas_Sound_Speed, Ideal_Gas_Jeans_Length
@@ -28,7 +32,9 @@ module Ideal_Gases_Thermodynamics
 contains
 
   double precision function Ideal_Gas_Jeans_Length(temperature,density)
-    !% Return the Jeans length (in Mpc) for gas of given temperature and density).
+    !!{
+    Return the Jeans length (in Mpc) for gas of given temperature and density).
+    !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: density, temperature
@@ -38,7 +44,9 @@ contains
   end function Ideal_Gas_Jeans_Length
 
   double precision function Ideal_Gas_Sound_Speed(temperature,meanAtomicMass)
-    !% Return the sound speed (in km/s) for an ideal gas of given {\normalfont \ttfamily temperature} and (optionally) {\normalfont \ttfamily meanAtomicMass}.
+    !!{
+    Return the sound speed (in km/s) for an ideal gas of given {\normalfont \ttfamily temperature} and (optionally) {\normalfont \ttfamily meanAtomicMass}.
+    !!}
     use :: Numerical_Constants_Astronomical, only : meanAtomicMassPrimordial
     use :: Numerical_Constants_Atomic      , only : atomicMassUnit
     use :: Numerical_Constants_Physical    , only : boltzmannsConstant

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,45 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module of useful mathematical constants.
+!!{
+Contains a module of useful mathematical constants.
+!!}
 
 module Numerical_Constants_Math
-  !% Contains various useful mathematical constants.
+  !!{
+  Contains various useful mathematical constants.
+  !!}
   use :: Kind_Numbers , only : kind_quad
   implicit none
 
   ! e.
-  !# <gslConstant variable="e" gslSymbol="M_E" gslHeader="gsl_math"/>
+  !![
+  <gslConstant variable="e" gslSymbol="M_E" gslHeader="gsl_math"/>
+  !!]
 
   ! Pi.
-  !# <gslConstant variable="Pi" gslSymbol="M_PI" gslHeader="gsl_math"/>
+  !![
+  <gslConstant variable="Pi" gslSymbol="M_PI" gslHeader="gsl_math"/>
+  !!]
   real(kind=kind_quad), public, parameter :: PiQuadPrecision=3.141592653589793238462643383279502884197_kind_quad
 
   ! ! Natural logarithm of 10.
-  !# <gslConstant variable="ln10" gslSymbol="M_LN10" gslHeader="gsl_math"/>
+  !![
+  <gslConstant variable="ln10" gslSymbol="M_LN10" gslHeader="gsl_math"/>
+  !!]
 
   ! Natural logarithm of 2.
-  !# <gslConstant variable="ln2" gslSymbol="M_LN2" gslHeader="gsl_math"/>
+  !![
+  <gslConstant variable="ln2" gslSymbol="M_LN2" gslHeader="gsl_math"/>
+  !!]
 
   ! Euler's constant.
-  !# <gslConstant variable="eulersConstant" gslSymbol="M_EULER" gslHeader="gsl_math"/>
+  !![
+  <gslConstant variable="eulersConstant" gslSymbol="M_EULER" gslHeader="gsl_math"/>
+  !!]
 
+  ! Riemann zeta-function values.
+  !! ζ(3) - https://oeis.org/A002117
+  double precision, public, parameter :: riemannZeta3=1.20205690315959428539973816151144999076d0
+  
 end module Numerical_Constants_Math

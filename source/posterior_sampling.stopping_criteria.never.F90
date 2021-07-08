@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling stopping class which never stops.
+  !!{
+  Implementation of a posterior sampling stopping class which never stops.
+  !!}
 
-  !# <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionNever">
-  !#  <description>A posterior sampling stopping class which never stops.</description>
-  !# </posteriorSampleStoppingCriterion>
+  !![
+  <posteriorSampleStoppingCriterion name="posteriorSampleStoppingCriterionNever">
+   <description>A posterior sampling stopping class which never stops.</description>
+  </posteriorSampleStoppingCriterion>
+  !!]
   type, extends(posteriorSampleStoppingCriterionClass) :: posteriorSampleStoppingCriterionNever
-     !% Implementation of a posterior sampling convergence class which never converges.
+     !!{
+     Implementation of a posterior sampling convergence class which never converges.
+     !!}
      private
    contains
      procedure :: stop => neverStop
   end type posteriorSampleStoppingCriterionNever
 
   interface posteriorSampleStoppingCriterionNever
-     !% Constructors for the {\normalfont \ttfamily never} posterior sampling convergence class.
+     !!{
+     Constructors for the {\normalfont \ttfamily never} posterior sampling convergence class.
+     !!}
      module procedure neverConstructorParameters
   end interface posteriorSampleStoppingCriterionNever
 
 contains
 
   function neverConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily never} posterior sampling stopping class which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily never} posterior sampling stopping class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(posteriorSampleStoppingCriterionNever)                :: self
@@ -49,7 +59,9 @@ contains
   end function neverConstructorParameters
 
   logical function neverStop(self,simulationState)
-    !% Returns true if the posterior sampling should stop (which it never should).
+    !!{
+    Returns true if the posterior sampling should stop (which it never should).
+    !!}
     implicit none
     class(posteriorSampleStoppingCriterionNever), intent(inout) :: self
     class(posteriorSampleStateClass            ), intent(inout) :: simulationState

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,20 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test quasi-random number functions.
+!!{
+Contains a program to test quasi-random number functions.
+!!}
 
 program Test_Quasi_Random
-  !% Tests that quasi-random number functions work.
-  use :: Galacticus_Display              , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: Numerical_Quasi_Random_Sequences, only : quasiRandomNumberGenerator    , gsl_qrng_sobol
-  use :: Unit_Tests                      , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  !!{
+  Tests that quasi-random number functions work.
+  !!}
+  use :: Display                         , only : displayVerbositySet, verbosityLevelStandard
+  use :: Numerical_Quasi_Random_Sequences, only : gsl_qrng_sobol     , quasiRandomNumberGenerator
+  use :: Unit_Tests                      , only : Assert             , Unit_Tests_Begin_Group    , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (quasiRandomNumberGenerator)               :: quasiRandomSequence
   double precision                            , dimension(7) :: r                  , rSobol
   integer                                                    :: i
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   quasiRandomSequence=quasiRandomNumberGenerator(gsl_qrng_sobol)
   call Unit_Tests_Begin_Group("quasi-random number sequences")

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a gravitational lensing output analysis distribution operator class.
+!!{
+Contains a module which implements a gravitational lensing output analysis distribution operator class.
+!!}
 
   use :: Gravitational_Lensing, only : gravitationalLensingClass
   use :: Locks                , only : ompReadWriteLock
@@ -27,11 +29,15 @@
      double precision, allocatable, dimension(:,:) :: matrix
   end type grvtnlLnsngTransferMatrix
 
-  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorGrvtnlLnsng">
-  !#  <description>A gravitational lensing output analysis distribution operator class.</description>
-  !# </outputAnalysisDistributionOperator>
+  !![
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorGrvtnlLnsng">
+   <description>A gravitational lensing output analysis distribution operator class.</description>
+  </outputAnalysisDistributionOperator>
+  !!]
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorGrvtnlLnsng
-     !% A gravitational lensing output distribution operator class.
+     !!{
+     A gravitational lensing output distribution operator class.
+     !!}
      private
      class           (gravitationalLensingClass), pointer                   :: gravitationalLensing_ => null()
      class           (outputTimesClass         ), pointer                   :: outputTimes_          => null()
@@ -46,7 +52,9 @@
   end type outputAnalysisDistributionOperatorGrvtnlLnsng
 
   interface outputAnalysisDistributionOperatorGrvtnlLnsng
-     !% Constructors for the ``gravitational lensing'' output analysis distribution operator class.
+     !!{
+     Constructors for the ``gravitational lensing'' output analysis distribution operator class.
+     !!}
      module procedure grvtnlLnsngConstructorParameters
      module procedure grvtnlLnsngConstructorInternal
   end interface outputAnalysisDistributionOperatorGrvtnlLnsng
@@ -56,20 +64,24 @@
   class  (gravitationalLensingClass), pointer :: grvtnlLnsngGravitationalLensing_
   !$omp threadprivate(grvtnLnsngK,grvtnlLnsngGravitationalLensing_)
 
-  !# <enumeration>
-  !#  <name>lensedProperty</name>
-  !#  <description>Enumeration of properties affected by gravitational lensing.</description>
-  !#  <visibility>public</visibility>
-  !#  <validator>yes</validator>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <entry label="luminosity"/>
-  !#  <entry label="size"      />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>lensedProperty</name>
+   <description>Enumeration of properties affected by gravitational lensing.</description>
+   <visibility>public</visibility>
+   <validator>yes</validator>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="luminosity"/>
+   <entry label="size"      />
+  </enumeration>
+  !!]
 
 contains
 
   function grvtnlLnsngConstructorParameters(parameters) result(self)
-    !% Constructor for the ``gravitational lensing'' output analysis distribution operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``gravitational lensing'' output analysis distribution operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisDistributionOperatorGrvtnlLnsng)                :: self
@@ -79,30 +91,36 @@ contains
     type            (varying_string                               )                :: lensedProperty
     double precision                                                               :: sizeSource
 
-    !# <inputParameter>
-    !#   <name>lensedProperty</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>var_str('luminosity')</defaultValue>
-    !#   <description>The property (luminosity, or size) to be affected by gravitational lensing.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>sizeSource</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.001d0</defaultValue>
-    !#   <description>The source size to assume for gravitational lensing calculations.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
-    !# <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
+    !![
+    <inputParameter>
+      <name>lensedProperty</name>
+      <source>parameters</source>
+      <defaultValue>var_str('luminosity')</defaultValue>
+      <description>The property (luminosity, or size) to be affected by gravitational lensing.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>sizeSource</name>
+      <source>parameters</source>
+      <defaultValue>0.001d0</defaultValue>
+      <description>The source size to assume for gravitational lensing calculations.</description>
+    </inputParameter>
+    <objectBuilder class="gravitationalLensing" name="gravitationalLensing_" source="parameters"/>
+    <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
+    !!]
     ! Construct the object.
     self=outputAnalysisDistributionOperatorGrvtnlLnsng(gravitationalLensing_,outputTimes_,sizeSource,enumerationLensedPropertyEncode(char(lensedProperty),includesPrefix=.false.))
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="gravitationalLensing_"/>
-    !# <objectDestructor name="outputTimes_"         />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="gravitationalLensing_"/>
+    <objectDestructor name="outputTimes_"         />
+    !!]
     return
   end function grvtnlLnsngConstructorParameters
 
   function grvtnlLnsngConstructorInternal(gravitationalLensing_,outputTimes_,sizeSource,lensedProperty) result(self)
-    !% Internal constructor for the ``gravitational lensing'' output analysis distribution operator class.
+    !!{
+    Internal constructor for the ``gravitational lensing'' output analysis distribution operator class.
+    !!}
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
@@ -112,8 +130,10 @@ contains
     integer                                                        , intent(in   ), optional :: lensedProperty
     double precision                                               , intent(in   )           :: sizeSource
     !$ integer      (c_size_t                                     )                          :: i
-    !# <optionalArgument name="lensedProperty" defaultsTo="lensedPropertyLuminosity" />
-    !# <constructorAssign variables="*gravitationalLensing_, *outputTimes_, sizeSource"/>
+    !![
+    <optionalArgument name="lensedProperty" defaultsTo="lensedPropertyLuminosity" />
+    <constructorAssign variables="*gravitationalLensing_, *outputTimes_, sizeSource"/>
+    !!]
     
     if (.not.enumerationLensedPropertyIsValid(lensedProperty_)) call Galacticus_Error_Report('invalid lensedProperty'//{introspection:location})
     self%lensedProperty=lensedProperty_
@@ -127,17 +147,23 @@ contains
   end function grvtnlLnsngConstructorInternal
 
   subroutine grvtnlLnsngDestructor(self)
-    !% Destructor for the ``gravitational lensing'' output analysis distribution operator class.
+    !!{
+    Destructor for the ``gravitational lensing'' output analysis distribution operator class.
+    !!}
     implicit none
     type(outputAnalysisDistributionOperatorGrvtnlLnsng), intent(inout) :: self
 
-    !# <objectDestructor name="self%gravitationalLensing_"/>
-    !# <objectDestructor name="self%outputTimes_"         />
+    !![
+    <objectDestructor name="self%gravitationalLensing_"/>
+    <objectDestructor name="self%outputTimes_"         />
+    !!]
     return
   end subroutine grvtnlLnsngDestructor
 
   function grvtnlLnsngOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node) result(distributionNew)
-    !% Implement a gravitational lensing output analysis distribution operator.
+    !!{
+    Implement a gravitational lensing output analysis distribution operator.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (outputAnalysisDistributionOperatorGrvtnlLnsng), intent(inout)                                        :: self
@@ -155,7 +181,9 @@ contains
   end function grvtnlLnsngOperateScalar
 
   function grvtnlLnsngOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node) result(distributionNew)
-    !% Implement a gravitational lensing output analysis distribution operator.
+    !!{
+    Implement a gravitational lensing output analysis distribution operator.
+    !!}
     use :: Memory_Management    , only : allocateArray
     use :: Numerical_Integration, only : integrator
     implicit none
@@ -182,8 +210,11 @@ contains
           !$omp parallel private (i,j,k,l,integrator_)
           allocate(grvtnlLnsngGravitationalLensing_,mold=self%gravitationalLensing_)
           !$omp critical(analysesGravitationalLensingDeepCopy)
-          !# <deepCopyReset variables="self%gravitationalLensing_"/>
-          !# <deepCopy source="self%gravitationalLensing_" destination="grvtnlLnsngGravitationalLensing_"/>
+          !![
+          <deepCopyReset variables="self%gravitationalLensing_"/>
+          <deepCopy source="self%gravitationalLensing_" destination="grvtnlLnsngGravitationalLensing_"/>
+          <deepCopyFinalize variables="grvtnlLnsngGravitationalLensing_"/>
+          !!]
           !$omp end critical(analysesGravitationalLensingDeepCopy)
           allocate(integrator_)
           integrator_=integrator(magnificationCDFIntegrand,toleranceRelative=1.0d-3)
@@ -200,7 +231,9 @@ contains
              end do
           end do
           !$omp end do
-          !# <objectDestructor name="grvtnlLnsngGravitationalLensing_"/>
+          !![
+          <objectDestructor name="grvtnlLnsngGravitationalLensing_"/>
+          !!]
           deallocate(integrator_)
           !$omp end parallel
           do j=2,size(propertyValueMinimum)
@@ -221,7 +254,9 @@ contains
   contains
 
     double precision function magnificationCDFIntegrand(propertyValue)
-      !% Integrand over the gravitational lensing magnification cumulative distribution.
+      !!{
+      Integrand over the gravitational lensing magnification cumulative distribution.
+      !!}
       use :: Galacticus_Error       , only : Galacticus_Error_Report
       use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear, outputAnalysisPropertyTypeLog10, outputAnalysisPropertyTypeMagnitude
       implicit none

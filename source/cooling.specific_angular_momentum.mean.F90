@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,34 +17,44 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a specific angular momentum of cooling gas class in which all gas has the mean specific angular momentum of
-  !% the hot gas halo.
+  !!{
+  Implementation of a specific angular momentum of cooling gas class in which all gas has the mean specific angular momentum of
+  the hot gas halo.
+  !!}
 
-  !# <coolingSpecificAngularMomentum name="coolingSpecificAngularMomentumMean">
-  !#  <description>
-  !#   A cooling specific angular momentum class in which the specific angular momentum of cooling gas is given by
-  !# \begin{equation}
-  !#    j_\mathrm{cool} = J_\mathrm{hot}/M_\mathrm{hot},
-  !#   \end{equation}
-  !#   where $J_\mathrm{hot}$ and $M_\mathrm{hot}$ are the total angular momentum and mass of the hot halo respectively.
-  !#  </description>
-  !# </coolingSpecificAngularMomentum>
+  !![
+  <coolingSpecificAngularMomentum name="coolingSpecificAngularMomentumMean">
+   <description>
+    A cooling specific angular momentum class in which the specific angular momentum of cooling gas is given by
+  \begin{equation}
+     j_\mathrm{cool} = J_\mathrm{hot}/M_\mathrm{hot},
+    \end{equation}
+    where $J_\mathrm{hot}$ and $M_\mathrm{hot}$ are the total angular momentum and mass of the hot halo respectively.
+   </description>
+  </coolingSpecificAngularMomentum>
+  !!]
   type, extends(coolingSpecificAngularMomentumClass) :: coolingSpecificAngularMomentumMean
-     !% Implementation of the specific angular momentum of cooling gas class in which all gas has the mean specific angular momentum of the hot gas halo.
+     !!{
+     Implementation of the specific angular momentum of cooling gas class in which all gas has the mean specific angular momentum of the hot gas halo.
+     !!}
      private
    contains
      procedure :: angularMomentumSpecific => meanAngularMomentumSpecific
   end type coolingSpecificAngularMomentumMean
 
   interface coolingSpecificAngularMomentumMean
-     !% Constructors for the mean specific angular momentum of cooling gas class.
+     !!{
+     Constructors for the mean specific angular momentum of cooling gas class.
+     !!}
      module procedure meanConstructorParameters
   end interface coolingSpecificAngularMomentumMean
 
 contains
 
   function meanConstructorParameters(parameters) result(self)
-    !% Constructor for the mean freefall radius class which builds the object from a parameter set.
+    !!{
+    Constructor for the mean freefall radius class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(coolingSpecificAngularMomentumMean)                :: self
@@ -56,7 +66,9 @@ contains
   end function meanConstructorParameters
 
   double precision function meanAngularMomentumSpecific(self,node,radius)
-    !% Return the specific angular momentum of cooling gas in the mean model.
+    !!{
+    Return the specific angular momentum of cooling gas in the mean model.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
     implicit none
     class           (coolingSpecificAngularMomentumMean ), intent(inout) :: self

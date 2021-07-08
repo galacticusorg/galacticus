@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a cooling rate property extractor class.
+!!{
+Contains a module which implements a cooling rate property extractor class.
+!!}
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorVelocityMaximum">
-  !#  <description>A cooling rate property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorVelocityMaximum">
+   <description>A cooling rate property extractor class.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorVelocityMaximum
-     !% A velocityMaximum property extractor class.
+     !!{
+     A velocityMaximum property extractor class.
+     !!}
      private
      class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
    contains
@@ -38,7 +44,9 @@
   end type nodePropertyExtractorVelocityMaximum
 
   interface nodePropertyExtractorVelocityMaximum
-     !% Constructors for the ``velocityMaximum'' output analysis class.
+     !!{
+     Constructors for the ``velocityMaximum'' output analysis class.
+     !!}
      module procedure velocityMaximumConstructorParameters
      module procedure velocityMaximumConstructorInternal
   end interface nodePropertyExtractorVelocityMaximum
@@ -46,41 +54,57 @@
 contains
 
   function velocityMaximumConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily velocityMaximum} property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily velocityMaximum} property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorVelocityMaximum)                :: self
     type (inputParameters                     ), intent(inout) :: parameters
     class(darkMatterProfileDMOClass           ), pointer       :: darkMatterProfileDMO_
 
-    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !![
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !!]
     self=nodePropertyExtractorVelocityMaximum(darkMatterProfileDMO_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterProfileDMO_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterProfileDMO_"/>
+    !!]
     return
   end function velocityMaximumConstructorParameters
 
   function velocityMaximumConstructorInternal(darkMatterProfileDMO_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily velocityMaximum} property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily velocityMaximum} property extractor class.
+    !!}
     implicit none
     type (nodePropertyExtractorVelocityMaximum)                        :: self
     class(darkMatterProfileDMOClass           ), intent(in   ), target :: darkMatterProfileDMO_
-    !# <constructorAssign variables="*darkMatterProfileDMO_"/>
+    !![
+    <constructorAssign variables="*darkMatterProfileDMO_"/>
+    !!]
 
     return
   end function velocityMaximumConstructorInternal
 
   subroutine velocityMaximumDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily velocityMaximum} property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily velocityMaximum} property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorVelocityMaximum), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !![
+    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !!]
     return
   end subroutine velocityMaximumDestructor
 
   double precision function velocityMaximumExtract(self,node,instance)
-    !% Implement a last isolated redshift output analysis.
+    !!{
+    Implement a last isolated redshift output analysis.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(nodePropertyExtractorVelocityMaximum), intent(inout)           :: self
@@ -93,7 +117,9 @@ contains
   end function velocityMaximumExtract
 
   function velocityMaximumName(self)
-    !% Return the name of the last isolated redshift property.
+    !!{
+    Return the name of the last isolated redshift property.
+    !!}
     implicit none
     type (varying_string                      )                :: velocityMaximumName
     class(nodePropertyExtractorVelocityMaximum), intent(inout) :: self
@@ -104,7 +130,9 @@ contains
   end function velocityMaximumName
 
   function velocityMaximumDescription(self)
-    !% Return a description of the velocityMaximum property.
+    !!{
+    Return a description of the velocityMaximum property.
+    !!}
     implicit none
     type (varying_string                      )                :: velocityMaximumDescription
     class(nodePropertyExtractorVelocityMaximum), intent(inout) :: self
@@ -115,7 +143,9 @@ contains
   end function velocityMaximumDescription
 
   double precision function velocityMaximumUnitsInSI(self)
-    !% Return the units of the last isolated redshift property in the SI system.
+    !!{
+    Return the units of the last isolated redshift property in the SI system.
+    !!}
     use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
     class(nodePropertyExtractorVelocityMaximum), intent(inout) :: self
@@ -126,7 +156,9 @@ contains
   end function velocityMaximumUnitsInSI
 
   integer function velocityMaximumType(self)
-    !% Return the type of the last isolated redshift property.
+    !!{
+    Return the type of the last isolated redshift property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorVelocityMaximum), intent(inout) :: self

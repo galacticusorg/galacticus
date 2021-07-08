@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a min-max analysis property operator class.
+!!{
+Contains a module which implements a min-max analysis property operator class.
+!!}
 
-  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorMinMax">
-  !#  <description>A min-max analysis property operator class.</description>
-  !# </outputAnalysisPropertyOperator>
+  !![
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorMinMax">
+   <description>A min-max analysis property operator class.</description>
+  </outputAnalysisPropertyOperator>
+  !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorMinMax
-     !% A high-pass filter property operator class.
+     !!{
+     A high-pass filter property operator class.
+     !!}
      private
      double precision :: thresholdMinimum, thresholdMaximum
    contains
@@ -31,7 +37,9 @@
   end type outputAnalysisPropertyOperatorMinMax
 
   interface outputAnalysisPropertyOperatorMinMax
-     !% Constructors for the ``minMax'' output analysis class.
+     !!{
+     Constructors for the ``minMax'' output analysis class.
+     !!}
      module procedure minMaxConstructorParameters
      module procedure minMaxConstructorInternal
   end interface outputAnalysisPropertyOperatorMinMax
@@ -39,7 +47,9 @@
 contains
 
   function minMaxConstructorParameters(parameters) result(self)
-    !% Constructor for the ``minMax'' output analysis property operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``minMax'' output analysis property operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(outputAnalysisPropertyOperatorMinMax)                :: self
@@ -47,33 +57,43 @@ contains
     double precision                                          :: thresholdMinimum, thresholdMaximum
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>thresholdMinimum</name>
-    !#   <source>parameters</source>
-    !#   <description>Minimum threshold for the min-max property operator.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>thresholdMaximum</name>
-    !#   <source>parameters</source>
-    !#   <description>Maximum threshold for the min-max property operator.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>thresholdMinimum</name>
+      <source>parameters</source>
+      <description>Minimum threshold for the min-max property operator.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>thresholdMaximum</name>
+      <source>parameters</source>
+      <description>Maximum threshold for the min-max property operator.</description>
+    </inputParameter>
+    !!]
     self=outputAnalysisPropertyOperatorMinMax(thresholdMinimum,thresholdMaximum)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function minMaxConstructorParameters
 
   function minMaxConstructorInternal(thresholdMinimum,thresholdMaximum) result (self)
-    !% Internal constructor for the ``minMax'' output analysis distribution operator class.
+    !!{
+    Internal constructor for the ``minMax'' output analysis distribution operator class.
+    !!}
     implicit none
     type            (outputAnalysisPropertyOperatorMinMax)                :: self
     double precision                                      , intent(in   ) :: thresholdMinimum, thresholdMaximum
-    !# <constructorAssign variables="thresholdMinimum, thresholdMaximum"/>
+    !![
+    <constructorAssign variables="thresholdMinimum, thresholdMaximum"/>
+    !!]
 
     return
   end function minMaxConstructorInternal
 
   double precision function minMaxOperate(self,propertyValue,node,propertyType,outputIndex)
-    !% Implement an minMax output analysis property operator.
+    !!{
+    Implement an minMax output analysis property operator.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (outputAnalysisPropertyOperatorMinMax), intent(inout)           :: self

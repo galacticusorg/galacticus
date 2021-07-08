@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements a galactic filter which passes nodes with host halo basic mass within a specified range.
+!!{
+Implements a galactic filter which passes nodes with host halo basic mass within a specified range.
+!!}
 
-  !# <galacticFilter name="galacticFilterHostMassRange">
-  !#  <description>Passes nodes with host halo basic mass, $M_\mathrm{host}$, in the range {\normalfont \ttfamily [massMinimum]}$\le M_\mathrm{host}&lt;${\normalfont \ttfamily [massMaximum]}.</description>
-  !# </galacticFilter>
+  !![
+  <galacticFilter name="galacticFilterHostMassRange">
+   <description>Passes nodes with host halo basic mass, $M_\mathrm{host}$, in the range {\normalfont \ttfamily [massMinimum]}$\le M_\mathrm{host}&lt;${\normalfont \ttfamily [massMaximum]}.</description>
+  </galacticFilter>
+  !!]
   type, extends(galacticFilterClass) :: galacticFilterHostMassRange
-     !% A galactic filter which passes nodes with host halo basic mass within a specified range.
+     !!{
+     A galactic filter which passes nodes with host halo basic mass within a specified range.
+     !!}
      private
      double precision :: massMinimum, massMaximum
    contains
@@ -31,7 +37,9 @@
   end type galacticFilterHostMassRange
 
   interface galacticFilterHostMassRange
-     !% Constructors for the ``hostMassRange'' galactic filter class.
+     !!{
+     Constructors for the ``hostMassRange'' galactic filter class.
+     !!}
      module procedure hostMassRangeConstructorParameters
      module procedure hostMassRangeConstructorInternal
   end interface galacticFilterHostMassRange
@@ -39,39 +47,51 @@
 contains
 
   function hostMassRangeConstructorParameters(parameters) result(self)
-    !% Constructor for the ``hostMassRange'' galactic filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``hostMassRange'' galactic filter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (galacticFilterHostMassRange)                :: self
     type            (inputParameters            ), intent(inout) :: parameters
     double precision                                             :: massMinimum, massMaximum
 
-    !# <inputParameter>
-    !#   <name>massMinimum</name>
-    !#   <source>parameters</source>
-    !#   <description>The minimum mass of host halo to pass.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMaximum</name>
-    !#   <source>parameters</source>
-    !#   <description>The maximum mass of host halo to pass.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>massMinimum</name>
+      <source>parameters</source>
+      <description>The minimum mass of host halo to pass.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massMaximum</name>
+      <source>parameters</source>
+      <description>The maximum mass of host halo to pass.</description>
+    </inputParameter>
+    !!]
     self=galacticFilterHostMassRange(massMinimum,massMaximum)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function hostMassRangeConstructorParameters
 
   function hostMassRangeConstructorInternal(massMinimum,massMaximum) result(self)
-    !% Internal constructor for the ``hostMassRange'' galactic filter class.
+    !!{
+    Internal constructor for the ``hostMassRange'' galactic filter class.
+    !!}
     implicit none
     type            (galacticFilterHostMassRange)                :: self
     double precision                             , intent(in   ) :: massMinimum, massMaximum
-    !# <constructorAssign variables="massMinimum, massMaximum"/>
+    !![
+    <constructorAssign variables="massMinimum, massMaximum"/>
+    !!]
     return
   end function hostMassRangeConstructorInternal
 
   logical function hostMassRangePasses(self,node)
-    !% Implement a filter which passes nodes with host halo basic mass in a specified range.
+    !!{
+    Implement a filter which passes nodes with host halo basic mass in a specified range.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(galacticFilterHostMassRange), intent(inout)         :: self

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements critical overdensity.
+!!{
+Contains a module which provides a class that implements critical overdensity.
+!!}
 
 module Cosmological_Density_Field
-  !% Provides an object that implements critical overdensities and halo environments.
+  !!{
+  Provides an object that implements critical overdensities and halo environments.
+  !!}
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
   use :: Galacticus_Nodes   , only : treeNode
   use :: Linear_Growth      , only : linearGrowthClass
@@ -28,270 +32,281 @@ module Cosmological_Density_Field
 
   private
 
-  !# <functionClass>
-  !#  <name>criticalOverdensity</name>
-  !#  <descriptiveName>Critical Overdensity</descriptiveName>
-  !#  <description>Object providing critical overdensities.</description>
-  !#  <default>sphericalCollapseClsnlssMttrCsmlgclCnstnt</default>
-  !#  <data>integer         (kind_int8                    )          :: lastUniqueID                =  -1_kind_int8                                          </data>
-  !#  <data>double precision                                         :: criticalOverdensityTarget                  , mass                                    </data>
-  !#  <data>double precision                                         :: time                                       , timeNow                    =-huge(0.0d0)</data>
-  !#  <data>double precision                                         :: timeOfCollapsePrevious      =  -huge(0.0d0), criticalOverdensityPrevious=-huge(0.0d0)</data>
-  !#  <data>double precision                                         :: massPrevious                =  -huge(0.0d0)                                          </data>
-  !#  <data>type            (table1DLinearLinear          )          :: collapseThreshold                                                                    </data>
-  !#  <data>double precision                                         :: collapseThresholdMinimum                   , collapseThresholdMaximum                </data>
-  !#  <data>logical                                                  :: collapseThresholdInitialized=.false.                                                 </data>
-  !#  <data>type            (treeNode                     ), pointer :: node                                                                                 </data>
-  !#  <data>logical                                                  :: massPresent                              , nodePresent                               </data>
-  !#  <data>logical                                                  :: dependenciesInitialized   =  .false.     , isMassDependent_                          </data>
-  !#  <data>logical                                                  :: isNodeDependent_                                                                     </data>
-  !#  <data>class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()                                                  </data>
-  !#  <data>class           (linearGrowthClass            ), pointer :: linearGrowth_             => null()                                                  </data>
-  !#  <data>class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()                                                  </data>
-  !#  <data>
-  !#   <scope>module</scope>
-  !#   <threadprivate>yes</threadprivate>
-  !#   <content>class(criticalOverdensityClass), pointer :: globalSelf</content>
-  !#  </data>
-  !#  <method name="value" >
-  !#   <description>Return the critical overdensity at the given time and mass.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision          , intent(in   ), optional :: time      , expansionFactor</argument>
-  !#   <argument>logical                   , intent(in   ), optional :: collapsing                 </argument>
-  !#   <argument>double precision          , intent(in   ), optional :: mass                       </argument>
-  !#   <argument>type            (treeNode), intent(inout), optional :: node                       </argument>
-  !#  </method>
-  !#  <method name="timeOfCollapse" >
-  !#   <description>Returns the time of collapse for a perturbation of linear theory overdensity {\normalfont \ttfamily criticalOverdensity}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <selfTarget>yes</selfTarget>
-  !#   <argument>double precision          , intent(in   )                   :: criticalOverdensity</argument>
-  !#   <argument>double precision          , intent(in   ), optional         :: mass               </argument>
-  !#   <argument>type            (treeNode), intent(inout), optional, target :: node               </argument>
-  !#   <function>criticalOverdensityTimeOfCollapse</function>
-  !#  </method>
-  !#  <method name="collapsingMass" >
-  !#   <description>Return the mass scale just collapsing at the given cosmic time.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <selfTarget>yes</selfTarget>
-  !#   <argument>double precision          , intent(in   ), optional         :: time      , expansionFactor</argument>
-  !#   <argument>logical                   , intent(in   ), optional         :: collapsing                 </argument>
-  !#   <argument>type            (treeNode), intent(inout), optional, target :: node                       </argument>
-  !#   <modules>Root_Finder Galacticus_Error</modules>
-  !#   <code>
-  !#    double precision                               , parameter :: massGuess           =1.0d+13, toleranceAbsolute=0.0d+00, &amp;
-  !#         &amp;                                                    toleranceRelative   =1.0d-06, massTiny         =1.0d-30
-  !#    type            (rootFinder                   ), save      :: finder
-  !#    !$omp threadprivate(finder)
-  !#    integer                                                    :: status
-  !#    double precision                                           :: collapseTime
-  !#    call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=collapseTime)
-  !#    if (.not.finder%isInitialized()) then
-  !#       call finder%rootFunction(collapsingMassRoot                 )
-  !#       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-  !#       call finder%rangeExpand (                                                                 &amp;
-  !#            &amp;                   rangeExpandUpward            =2.0d0                        , &amp;
-  !#            &amp;                   rangeExpandDownward          =0.5d0                        , &amp;
-  !#            &amp;                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &amp;
-  !#            &amp;                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &amp;
-  !#            &amp;                   rangeDownwardLimit           =massTiny                     , &amp;
-  !#            &amp;                   rangeExpandType              =rangeExpandMultiplicative      &amp;
-  !#            &amp;                  )
-  !#    end if
-  !#    globalSelf                           => self
-  !#    self      %time                      =  collapseTime
-  !#    self      %nodePresent               =  present(node)
-  !#    if (self%nodePresent) self%node      =>         node
-  !#    criticalOverdensityCollapsingMass=finder%find(rootGuess=massGuess,status=status)
-  !#    if (status == errorStatusOutOfRange) criticalOverdensityCollapsingMass=0.0d0
-  !#    return
-  !#   </code>
-  !#  </method>
-  !#  <method name="gradientTime" >
-  !#   <description>Return the derivative with respect to time of the linear theory critical overdensity for collapse at the given cosmic time.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision          , intent(in   ), optional :: time      , expansionFactor</argument>
-  !#   <argument>logical                   , intent(in   ), optional :: collapsing                 </argument>
-  !#   <argument>double precision          , intent(in   ), optional :: mass                       </argument>
-  !#   <argument>type            (treeNode), intent(inout), optional :: node                       </argument>
-  !#  </method>
-  !#  <method name="gradientMass" >
-  !#   <description>Return the derivative with respect to mass of the linear theory critical overdensity for collapse at the given cosmic time.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision          , intent(in   ), optional :: time      , expansionFactor</argument>
-  !#   <argument>logical                   , intent(in   ), optional :: collapsing                 </argument>
-  !#   <argument>double precision          , intent(in   ), optional :: mass                       </argument>
-  !#   <argument>type            (treeNode), intent(inout), optional :: node                       </argument>
-  !#  </method>
-  !#  <method name="isMassDependent" >
-  !#   <description>Return true if the critical overdensity is dependent on the mass of the halo.</description>
-  !#   <type>logical</type>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !#  <method name="isNodeDependent" >
-  !#   <description>Return true if the critical overdensity is dependent on the {\normalfont \ttfamily node} object.</description>
-  !#   <type>logical</type>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !#  <autoHook>
-  !#   <modules>
-  !#    <name>Events_Hooks</name>
-  !#    <only>calculationResetEvent, openMPThreadBindingAllLevels</only>
-  !#   </modules>
-  !#   <code>
-  !#    call calculationResetEvent%attach(self,criticalOverdensityCalculationReset,openMPThreadBindingAllLevels)
-  !#    return
-  !#   </code>
-  !#  </autoHook>
-  !#  <destructor>
-  !#   <modules>
-  !#    <name>Events_Hooks</name>
-  !#    <only>calculationResetEvent, openMPThreadBindingAllLevels</only>
-  !#   </modules>
-  !#   <code>
-  !#    if (calculationResetEvent%isAttached(self,criticalOverdensityCalculationReset)) call calculationResetEvent%detach(self,criticalOverdensityCalculationReset)
-  !#    return
-  !#   </code>
-  !#  </destructor>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>criticalOverdensity</name>
+   <descriptiveName>Critical Overdensity</descriptiveName>
+   <description>Object providing critical overdensities.</description>
+   <default>sphericalCollapseClsnlssMttrCsmlgclCnstnt</default>
+   <data>integer         (kind_int8                    )          :: lastUniqueID                =  -1_kind_int8                                          </data>
+   <data>double precision                                         :: criticalOverdensityTarget                  , mass                                    </data>
+   <data>double precision                                         :: time                                       , timeNow                    =-huge(0.0d0)</data>
+   <data>double precision                                         :: timeOfCollapsePrevious      =  -huge(0.0d0), criticalOverdensityPrevious=-huge(0.0d0)</data>
+   <data>double precision                                         :: massPrevious                =  -huge(0.0d0)                                          </data>
+   <data>type            (table1DLinearLinear          )          :: collapseThreshold                                                                    </data>
+   <data>double precision                                         :: collapseThresholdMinimum                   , collapseThresholdMaximum                </data>
+   <data>logical                                                  :: collapseThresholdInitialized=.false.                                                 </data>
+   <data>type            (treeNode                     ), pointer :: node                                                                                 </data>
+   <data>logical                                                  :: massPresent                              , nodePresent                               </data>
+   <data>logical                                                  :: dependenciesInitialized   =  .false.     , isMassDependent_                          </data>
+   <data>logical                                                  :: isNodeDependent_                                                                     </data>
+   <data>class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()                                                  </data>
+   <data>class           (linearGrowthClass            ), pointer :: linearGrowth_             => null()                                                  </data>
+   <data>class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()                                                  </data>
+   <data>
+    <scope>module</scope>
+    <threadprivate>yes</threadprivate>
+    <content>class(criticalOverdensityClass), pointer :: globalSelf</content>
+   </data>
+   <method name="value" >
+    <description>Return the critical overdensity at the given time and mass.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision          , intent(in   ), optional :: time      , expansionFactor</argument>
+    <argument>logical                   , intent(in   ), optional :: collapsing                 </argument>
+    <argument>double precision          , intent(in   ), optional :: mass                       </argument>
+    <argument>type            (treeNode), intent(inout), optional :: node                       </argument>
+   </method>
+   <method name="timeOfCollapse" >
+    <description>Returns the time of collapse for a perturbation of linear theory overdensity {\normalfont \ttfamily criticalOverdensity}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>double precision          , intent(in   )                   :: criticalOverdensity</argument>
+    <argument>double precision          , intent(in   ), optional         :: mass               </argument>
+    <argument>type            (treeNode), intent(inout), optional, target :: node               </argument>
+    <function>criticalOverdensityTimeOfCollapse</function>
+   </method>
+   <method name="collapsingMass" >
+    <description>Return the mass scale just collapsing at the given cosmic time.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>double precision          , intent(in   ), optional         :: time      , expansionFactor</argument>
+    <argument>logical                   , intent(in   ), optional         :: collapsing                 </argument>
+    <argument>type            (treeNode), intent(inout), optional, target :: node                       </argument>
+    <modules>Root_Finder Galacticus_Error</modules>
+    <code>
+     double precision            , parameter :: massGuess        =1.0d+13, toleranceAbsolute=0.0d+00, &amp;
+          &amp;                                 toleranceRelative=1.0d-06, massTiny         =1.0d-30
+     type            (rootFinder), save      :: finder
+     logical                     , save      :: finderInitialized=.false.
+     !$omp threadprivate(finder,finderInitialized)
+     integer                                                    :: status
+     double precision                                           :: collapseTime
+     call self%cosmologyFunctions_%epochValidate(time,expansionFactor,collapsing,timeOut=collapseTime)
+     if (.not.finderInitialized) then
+        finder=rootFinder(                                                             &amp;
+             &amp;        rootFunction                 =collapsingMassRoot           , &amp;
+             &amp;        toleranceAbsolute            =toleranceAbsolute            , &amp;
+             &amp;        toleranceRelative            =toleranceRelative            , &amp;
+             &amp;        rangeExpandUpward            =2.0d0                        , &amp;
+             &amp;        rangeExpandDownward          =0.5d0                        , &amp;
+             &amp;        rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &amp;
+             &amp;        rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &amp;
+             &amp;        rangeDownwardLimit           =massTiny                     , &amp;
+             &amp;        rangeExpandType              =rangeExpandMultiplicative      &amp;
+             &amp;       )
+        finderInitialized=.true.
+     end if
+     globalSelf                           => self
+     self      %time                      =  collapseTime
+     self      %nodePresent               =  present(node)
+     if (self%nodePresent) self%node      =>         node
+     criticalOverdensityCollapsingMass=finder%find(rootGuess=massGuess,status=status)
+     if (status == errorStatusOutOfRange) criticalOverdensityCollapsingMass=0.0d0
+     return
+    </code>
+   </method>
+   <method name="gradientTime" >
+    <description>Return the derivative with respect to time of the linear theory critical overdensity for collapse at the given cosmic time.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision          , intent(in   ), optional :: time      , expansionFactor</argument>
+    <argument>logical                   , intent(in   ), optional :: collapsing                 </argument>
+    <argument>double precision          , intent(in   ), optional :: mass                       </argument>
+    <argument>type            (treeNode), intent(inout), optional :: node                       </argument>
+   </method>
+   <method name="gradientMass" >
+    <description>Return the derivative with respect to mass of the linear theory critical overdensity for collapse at the given cosmic time.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision          , intent(in   ), optional :: time      , expansionFactor</argument>
+    <argument>logical                   , intent(in   ), optional :: collapsing                 </argument>
+    <argument>double precision          , intent(in   ), optional :: mass                       </argument>
+    <argument>type            (treeNode), intent(inout), optional :: node                       </argument>
+   </method>
+   <method name="isMassDependent" >
+    <description>Return true if the critical overdensity is dependent on the mass of the halo.</description>
+    <type>logical</type>
+    <pass>yes</pass>
+   </method>
+   <method name="isNodeDependent" >
+    <description>Return true if the critical overdensity is dependent on the {\normalfont \ttfamily node} object.</description>
+    <type>logical</type>
+    <pass>yes</pass>
+   </method>
+   <autoHook>
+    <modules>
+     <name>Events_Hooks</name>
+     <only>calculationResetEvent, openMPThreadBindingAllLevels</only>
+    </modules>
+    <code>
+     call calculationResetEvent%attach(self,criticalOverdensityCalculationReset,openMPThreadBindingAllLevels)
+     return
+    </code>
+   </autoHook>
+   <destructor>
+    <modules>
+     <name>Events_Hooks</name>
+     <only>calculationResetEvent, openMPThreadBindingAllLevels</only>
+    </modules>
+    <code>
+     if (calculationResetEvent%isAttached(self,criticalOverdensityCalculationReset)) call calculationResetEvent%detach(self,criticalOverdensityCalculationReset)
+     return
+    </code>
+   </destructor>
+  </functionClass>
+  !!]
 
-  !# <functionClass>
-  !#  <name>haloEnvironment</name>
-  !#  <descriptiveName>Halo Environment</descriptiveName>
-  !#  <description>Class providing halo environment.</description>
-  !#  <default>uniform</default>
-  !#  <method name="overdensityLinear" >
-  !#   <description>Return the environmental linear overdensity for the given {\normalfont \ttfamily node}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type   (treeNode), intent(inout)           :: node</argument>
-  !#   <argument>logical          , intent(in   ), optional :: presentDay</argument>
-  !#  </method>
-  !#  <method name="overdensityLinearGradientTime" >
-  !#   <description>Return the gradient with time of the environmental linear overdensity for the given {\normalfont \ttfamily node}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type   (treeNode), intent(inout)           :: node</argument>
-  !#  </method>
-  !#  <method name="overdensityNonLinear" >
-  !#   <description>Return the environmental non-linear overdensity for the given {\normalfont \ttfamily node}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !#  <method name="environmentRadius" >
-  !#   <description>Return the radius of the region used to defined the environment.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !#  <method name="environmentMass" >
-  !#   <description>Return the mean mass contained in the region used to defined the environment.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#  </method>  
-  !#  <method name="overdensityLinearMinimum" >
-  !#   <description>Return the minimum linear overdensity for which the environmental overdensity \gls{pdf} is non-zero.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <code>
-  !#     !$GLC attributes unused :: self
-  !#     haloEnvironmentOverdensityLinearMinimum=-huge(0.0d0)
-  !#   </code>
-  !#  </method>
-  !#  <method name="overdensityLinearMaximum" >
-  !#   <description>Return the maximum linear overdensity for which the environmental overdensity \gls{pdf} is non-zero.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <code>
-  !#     !$GLC attributes unused :: self
-  !#     haloEnvironmentOverdensityLinearMaximum=+huge(0.0d0)
-  !#   </code>
-  !#  </method>
-  !#  <method name="pdf" >
-  !#   <description>Return the \gls{pdf} of the environmental overdensity for the given overdensity.</description>
-  !#   <type>double precision</type>
-  !#   <argument>double precision, intent(in   ) :: overdensity</argument>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !#  <method name="cdf" >
-  !#   <description>Return the \gls{cdf} of the environmental overdensity for the given overdensity.</description>
-  !#   <type>double precision</type>
-  !#   <argument>double precision, intent(in   ) :: overdensity</argument>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !#  <method name="overdensityLinearSet" >
-  !#   <description>Set the environmental overdensity for the give node.</description>
-  !#   <type>void</type>
-  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
-  !#   <argument>double precision          , intent(in   ) :: overdensity</argument>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>haloEnvironment</name>
+   <descriptiveName>Halo Environment</descriptiveName>
+   <description>Class providing halo environment.</description>
+   <default>uniform</default>
+   <method name="overdensityLinear" >
+    <description>Return the environmental linear overdensity for the given {\normalfont \ttfamily node}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type   (treeNode), intent(inout)           :: node</argument>
+    <argument>logical          , intent(in   ), optional :: presentDay</argument>
+   </method>
+   <method name="overdensityLinearGradientTime" >
+    <description>Return the gradient with time of the environmental linear overdensity for the given {\normalfont \ttfamily node}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type   (treeNode), intent(inout)           :: node</argument>
+   </method>
+   <method name="overdensityNonLinear" >
+    <description>Return the environmental non-linear overdensity for the given {\normalfont \ttfamily node}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+   <method name="environmentRadius" >
+    <description>Return the radius of the region used to defined the environment.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+   </method>
+   <method name="environmentMass" >
+    <description>Return the mean mass contained in the region used to defined the environment.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+   </method>  
+   <method name="overdensityLinearMinimum" >
+    <description>Return the minimum linear overdensity for which the environmental overdensity \gls{pdf} is non-zero.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <code>
+      !$GLC attributes unused :: self
+      haloEnvironmentOverdensityLinearMinimum=-huge(0.0d0)
+    </code>
+   </method>
+   <method name="overdensityLinearMaximum" >
+    <description>Return the maximum linear overdensity for which the environmental overdensity \gls{pdf} is non-zero.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <code>
+      !$GLC attributes unused :: self
+      haloEnvironmentOverdensityLinearMaximum=+huge(0.0d0)
+    </code>
+   </method>
+   <method name="pdf" >
+    <description>Return the \gls{pdf} of the environmental overdensity for the given overdensity.</description>
+    <type>double precision</type>
+    <argument>double precision, intent(in   ) :: overdensity</argument>
+    <pass>yes</pass>
+   </method>
+   <method name="cdf" >
+    <description>Return the \gls{cdf} of the environmental overdensity for the given overdensity.</description>
+    <type>double precision</type>
+    <argument>double precision, intent(in   ) :: overdensity</argument>
+    <pass>yes</pass>
+   </method>
+   <method name="overdensityLinearSet" >
+    <description>Set the environmental overdensity for the give node.</description>
+    <type>void</type>
+    <argument>type            (treeNode), intent(inout) :: node</argument>
+    <argument>double precision          , intent(in   ) :: overdensity</argument>
+    <pass>yes</pass>
+   </method>
+  </functionClass>
+  !!]
 
-  !# <functionClass>
-  !#  <name>cosmologicalMassVariance</name>
-  !#  <descriptiveName>Mass Variance of Cosmological Density Field</descriptiveName>
-  !#  <description>
-  !#   A class providing the mass variance, $\sigma(M)$, of the cosmological density field.
-  !#  </description>
-  !#  <default>filteredPower</default>
-  !#  <method name="powerNormalization" >
-  !#   <description>Return the normalization of the power spectrum.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !#  <method name="sigma8" >
-  !#   <description>Return the value of $\sigma_8$.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !#  <method name="rootVariance" >
-  !#   <description>Return the root-variance of the cosmological density field.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: mass, time</argument>
-  !#  </method>
-  !#  <method name="rootVarianceLogarithmicGradient" >
-  !#   <description>Return the logarithmic gradient of the root-variance of the cosmological density field with respect to mass.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: mass, time</argument>
-  !#  </method>
-  !#  <method name="rootVarianceLogarithmicGradientTime" >
-  !#   <description>Return the logarithmic gradient of the root-variance of the cosmological density field with respect to time.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: mass, time</argument>
-  !#  </method>
-  !#  <method name="rootVarianceAndLogarithmicGradient" >
-  !#   <description>Return the value and logarithmic gradient with respect to mass of the root-variance of the cosmological density field.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: mass        , time</argument>
-  !#   <argument>double precision, intent(  out) :: rootVariance, rootVarianceLogarithmicGradient</argument>
-  !#  </method>
-  !#  <method name="mass" >
-  !#   <description>Return the mass corresponding to the given {\normalfont \ttfamily rootVariance} of the cosmological density field.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: rootVariance, time</argument>
-  !#  </method>
-  !#  <method name="growthIsMassDependent" >
-  !#   <description>Return true if the growth of the variance with time is mass-dependent.</description>
-  !#   <type>logical</type>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>cosmologicalMassVariance</name>
+   <descriptiveName>Mass Variance of Cosmological Density Field</descriptiveName>
+   <description>
+    A class providing the mass variance, $\sigma(M)$, of the cosmological density field.
+   </description>
+   <default>filteredPower</default>
+   <method name="powerNormalization" >
+    <description>Return the normalization of the power spectrum.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+   </method>
+   <method name="sigma8" >
+    <description>Return the value of $\sigma_8$.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+   </method>
+   <method name="rootVariance" >
+    <description>Return the root-variance of the cosmological density field.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: mass, time</argument>
+   </method>
+   <method name="rootVarianceLogarithmicGradient" >
+    <description>Return the logarithmic gradient of the root-variance of the cosmological density field with respect to mass.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: mass, time</argument>
+   </method>
+   <method name="rootVarianceLogarithmicGradientTime" >
+    <description>Return the logarithmic gradient of the root-variance of the cosmological density field with respect to time.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: mass, time</argument>
+   </method>
+   <method name="rootVarianceAndLogarithmicGradient" >
+    <description>Return the value and logarithmic gradient with respect to mass of the root-variance of the cosmological density field.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: mass        , time</argument>
+    <argument>double precision, intent(  out) :: rootVariance, rootVarianceLogarithmicGradient</argument>
+   </method>
+   <method name="mass" >
+    <description>Return the mass corresponding to the given {\normalfont \ttfamily rootVariance} of the cosmological density field.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: rootVariance, time</argument>
+   </method>
+   <method name="growthIsMassDependent" >
+    <description>Return true if the growth of the variance with time is mass-dependent.</description>
+    <type>logical</type>
+    <pass>yes</pass>
+   </method>
+  </functionClass>
+  !!]
 
 contains
 
   double precision function criticalOverdensityTimeOfCollapse(self,criticalOverdensity,mass,node)
-    !% Returns the time of collapse for a perturbation of linear theory overdensity {\normalfont \ttfamily criticalOverdensity}.
+    !!{
+    Returns the time of collapse for a perturbation of linear theory overdensity {\normalfont \ttfamily criticalOverdensity}.
+    !!}
     use :: Cosmology_Functions, only : timeToleranceRelativeBigCrunch
     use :: Root_Finder        , only : rangeExpandMultiplicative     , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
@@ -344,8 +359,7 @@ contains
           self%lastUniqueID=-1_kind_int8
        end if
        self%criticalOverdensityPrevious=criticalOverdensity
-       call finder%rootFunction(collapseTimeRoot                   )
-       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+       finder=rootFinder(rootFunction=collapseTimeRoot,toleranceAbsolute=toleranceAbsolute,toleranceRelative=toleranceRelative)
        if (self%timeNow < 0.0d0) self%timeNow=self%cosmologyFunctions_%cosmicTime(1.0d0)
        timeBigCrunch=self%cosmologyFunctions_%timeBigCrunch()
        if (timeBigCrunch < 0.0d0) then
@@ -438,15 +452,17 @@ contains
   end function criticalOverdensityTimeOfCollapse
 
   double precision function collapseTimeRoot(time)
-    !% Function used in root finding for the collapse time at a given critical overdensity. We have some target linear theory
-    !% overdensity, $\delta_0$, extrapolated to the present epoch, $t_0$, and want to know at what epoch is would collapse. In a
-    !% pure dark matter universe, in which modes an all scales grow at the same rate (i.e. the growth factor $D(k,t)$ is
-    !% independent of wavenumber $k$) we would simply have $\delta(t) = \delta_0 D(t)$, and so would solve for
-    !% $\delta_\mathrm{c}(t)/D(t) = \delta_0$. We want to generalize this to cases where the growth factor is scale dependent. In
-    !% these cases we actually want to consider the growth rate for a region of fixed mass. Since modes of a range of different
-    !% wavenumber contribute to the growth of such a region, we write $\delta(t) = \delta_0 \sigma(M,t) / \sigma(M,t_0)$, and
-    !% therefore solve for $\delta_\mathrm{c}(t) \sigma(M,t_0) / \sigma(M,t) = \delta_0$. If no mass argument was provided then we
-    !% revert to assuming that $D(t,k)$ is independent of wavenumber and simply solve for $\delta_\mathrm{c}(t)/D(t) = \delta_0$.
+    !!{
+    Function used in root finding for the collapse time at a given critical overdensity. We have some target linear theory
+    overdensity, $\delta_0$, extrapolated to the present epoch, $t_0$, and want to know at what epoch is would collapse. In a
+    pure dark matter universe, in which modes an all scales grow at the same rate (i.e. the growth factor $D(k,t)$ is
+    independent of wavenumber $k$) we would simply have $\delta(t) = \delta_0 D(t)$, and so would solve for
+    $\delta_\mathrm{c}(t)/D(t) = \delta_0$. We want to generalize this to cases where the growth factor is scale dependent. In
+    these cases we actually want to consider the growth rate for a region of fixed mass. Since modes of a range of different
+    wavenumber contribute to the growth of such a region, we write $\delta(t) = \delta_0 \sigma(M,t) / \sigma(M,t_0)$, and
+    therefore solve for $\delta_\mathrm{c}(t) \sigma(M,t_0) / \sigma(M,t) = \delta_0$. If no mass argument was provided then we
+    revert to assuming that $D(t,k)$ is independent of wavenumber and simply solve for $\delta_\mathrm{c}(t)/D(t) = \delta_0$.
+    !!}
     implicit none
     double precision, intent(in   ) :: time
 
@@ -471,7 +487,9 @@ contains
   end function collapseTimeRoot
 
   double precision function collapsingMassRoot(mass)
-    !% Function used in root finding for the collapsing mass at a given time.
+    !!{
+    Function used in root finding for the collapsing mass at a given time.
+    !!}
     implicit none
     double precision, intent(in   ) :: mass
 
@@ -484,7 +502,9 @@ contains
   end function collapsingMassRoot
 
   subroutine criticalOverdensityCalculationReset(self,node)
-    !% Reset the critical overdensity calculation.
+    !!{
+    Reset the critical overdensity calculation.
+    !!}
     implicit none
     class(criticalOverdensityClass), intent(inout) :: self
     type (treeNode                ), intent(inout) :: node

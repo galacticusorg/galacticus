@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of disparity ratios, i.e. $r(a,b)=\hbox{max}(|a|/|b|,|b|/|a|)$.
+!!{
+Contains a module which implements calculations of disparity ratios, i.e. $r(a,b)=\hbox{max}(|a|/|b|,|b|/|a|)$.
+!!}
 
 module Disparity_Ratios
-  !% Implements calculations of disparity ratios, i.e. $r(a,b)=\hbox{max}(|a|/|b|,|b|/|a|)$.
+  !!{
+  Implements calculations of disparity ratios, i.e. $r(a,b)=\hbox{max}(|a|/|b|,|b|/|a|)$.
+  !!}
   implicit none
   private
   public :: Disparity_Ratio
@@ -28,7 +32,9 @@ module Disparity_Ratios
 contains
 
   double precision function Disparity_Ratio(a,b)
-    !% Computes the disparity ratio, $r(a,b)=\hbox{max}(|a|/|b|,|b|/|a|)$.
+    !!{
+    Computes the disparity ratio, $r(a,b)=\hbox{max}(|a|/|b|,|b|/|a|)$.
+    !!}
     implicit none
     double precision, intent(in   ) :: a       , b
     double precision                :: xMinimum, xMaximum

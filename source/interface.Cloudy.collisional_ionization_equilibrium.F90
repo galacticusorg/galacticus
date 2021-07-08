@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides an interface to the \gls{cloudy} code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
+!!{
+Contains a module which provides an interface to the \gls{cloudy} code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
+!!}
 
 module Interfaces_Cloudy_CIE
-  !% Provides an interface to the \gls{cloudy} code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
+  !!{
+  Provides an interface to the \gls{cloudy} code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
+  !!}
   use :: File_Utilities, only : lockDescriptor
   private
   public :: Interface_Cloudy_CIE_Tabulate
@@ -31,19 +35,21 @@ module Interfaces_Cloudy_CIE
 contains
 
   subroutine Interface_Cloudy_CIE_Tabulate(metallicityMaximumLogarithmic,fileNameCoolingFunction,fileNameChemicalState,versionFileFormat,includeContinuum)
-    !% An interface to the \gls{cloudy} code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
-    use :: File_Utilities                  , only : File_Exists                   , File_Lock                          , File_Remove              , File_Unlock
-    use :: Galacticus_Display              , only : Galacticus_Display_Counter    , Galacticus_Display_Counter_Clear   , Galacticus_Display_Indent, Galacticus_Display_Message, &
-          &                                         Galacticus_Display_Unindent   , verbosityWorking
+    !!{
+    An interface to the \gls{cloudy} code for computing tables of cooling functions and chemical state in collisional ionization equilibrium.
+    !!}
+    use :: Display                         , only : displayCounter                     , displayCounterClear           , displayIndent       , displayMessage, &
+          &                                         displayUnindent                    , verbosityLevelWorking
+    use :: File_Utilities                  , only : File_Exists                        , File_Lock                     , File_Remove         , File_Unlock
     use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: IO_HDF5                         , only : hdf5Access                    , hdf5Object
-    use :: ISO_Varying_String              , only : var_str                       , varying_string                     , operator(//)             , char                      , &
-         &                                          assignment(=)
+    use :: IO_HDF5                         , only : hdf5Access                         , hdf5Object
+    use :: ISO_Varying_String              , only : assignment(=)                      , char                          , operator(//)        , var_str       , &
+          &                                         varying_string
     use :: Interfaces_Cloudy               , only : Interface_Cloudy_Initialize
+    use :: Numerical_Constants_Astronomical, only : heliumToHydrogenAbundancePrimordial, heliumToHydrogenAbundanceSolar
     use :: Numerical_Constants_Prefixes    , only : kilo
     use :: Numerical_Constants_Units       , only : electronVolt
-    use :: Numerical_Constants_Astronomical, only : heliumToHydrogenAbundanceSolar, heliumToHydrogenAbundancePrimordial
-    use :: Numerical_Ranges                , only : Make_Range                    , rangeTypeLinear                    , rangeTypeLogarithmic
+    use :: Numerical_Ranges                , only : Make_Range                         , rangeTypeLinear               , rangeTypeLogarithmic
     use :: String_Handling                 , only : operator(//)
     use :: System_Command                  , only : System_Command_Do
     implicit none
@@ -78,7 +84,9 @@ contains
     double precision                                                  :: dummy                                  , abundanceHelium                      , &
          &                                                               energy                                 , intensity                            , &
          &                                                               powerTotal
-    !# <optionalArgument name="includeContinuum" defaultsTo=".false."/>
+    !![
+    <optionalArgument name="includeContinuum" defaultsTo=".false."/>
+    !!]
     
     !$omp critical(cloudyCIEFileLock)
     ! Ensure the requested file format version is compatible.
@@ -143,15 +151,15 @@ contains
        fileNameTempOverview ="cloudy_overview.tmp"
        fileNameTempContinuum="cloudy_continuum.tmp"
        ! Begin iterating over metallicities.
-       call Galacticus_Display_Indent("Computing cooling functions and chemical states using Cloudy (this may take a long time)....",verbosityWorking)
+       call displayIndent("Computing cooling functions and chemical states using Cloudy (this may take a long time)....",verbosityLevelWorking)
        do iMetallicity=1,metallicityCount+1
           if (metallicitiesLogarithmic(iMetallicity) <= metallicityZeroLogarithmic) then
              write (label,'(a)'   ) '  -∞'
           else
              write (label,'(f8.3)') metallicitiesLogarithmic(iMetallicity)
           end if
-          call Galacticus_Display_Message("Computing for log₁₀(Z/Z☉)="//trim(label),verbosityWorking)
-          call Galacticus_Display_Counter(int(100.0d0*dble(iMetallicity-1)/dble(metallicityCount+1)),iMetallicity==0,verbosityWorking)
+          call displayMessage("Computing for log₁₀(Z/Z☉)="//trim(label),verbosityLevelWorking)
+          call displayCounter(int(100.0d0*dble(iMetallicity-1)/dble(metallicityCount+1)),iMetallicity==0,verbosityLevelWorking)
           ! Generate an input file for Cloudy.
           open(newUnit=cloudyScript,file=char(cloudyPath//'/source/input.in'),status='unknown',form='formatted')
           write (cloudyScript,'(a)') 'print off'
@@ -238,7 +246,7 @@ contains
              call File_Remove(cloudyPath//"/source/"//fileNameTempContinuum)
           end if
        end do
-       call Galacticus_Display_Counter_Clear(verbosityWorking)
+       call displayCounterClear(verbosityLevelWorking)
        ! Output cooling functions to an HDF5 file.
        if (computeCoolingFunctions) then
           !$ call hdf5Access%set()
@@ -302,7 +310,7 @@ contains
        call File_Unlock(fileLockChemicalState  )
        call File_Unlock(fileLockCoolingFunction)
        ! Write message.
-       call Galacticus_Display_Unindent("...done",verbosityWorking)
+       call displayUnindent("...done",verbosityLevelWorking)
     end if
     !$omp end critical(cloudyCIEFileLock)
     return

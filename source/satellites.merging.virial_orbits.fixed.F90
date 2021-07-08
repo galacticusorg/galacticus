@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of virial orbits which assumes fixed orbital parameters.
+  !!{
+  An implementation of virial orbits which assumes fixed orbital parameters.
+  !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
-  !# <virialOrbit name="virialOrbitFixed">
-  !#  <description>
-  !#   A virial orbit class which sets all orbital parameters to fixed values, with $v_\mathrm{r}=${\normalfont \ttfamily
-  !#   [velocityRadial]}$V_\mathrm{virial}$ and $v_\phi=${\normalfont \ttfamily [velocityTangential]}$V_\mathrm{virial}$.
-  !#  </description>
-  !# </virialOrbit>
+  !![
+  <virialOrbit name="virialOrbitFixed">
+   <description>
+    A virial orbit class which sets all orbital parameters to fixed values, with $v_\mathrm{r}=${\normalfont \ttfamily
+    [velocityRadial]}$V_\mathrm{virial}$ and $v_\phi=${\normalfont \ttfamily [velocityTangential]}$V_\mathrm{virial}$.
+   </description>
+  </virialOrbit>
+  !!]
   type, extends(virialOrbitClass) :: virialOrbitFixed
-     !% A virial orbit class that assumes fixed orbital parameters.
+     !!{
+     A virial orbit class that assumes fixed orbital parameters.
+     !!}
      private
      double precision                                      :: velocityRadial                  , velocityTangential
      class           (virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
@@ -46,7 +52,9 @@
   end type virialOrbitFixed
 
   interface virialOrbitFixed
-     !% Constructors for the {\normalfont \ttfamily fixed} virial orbit class.
+     !!{
+     Constructors for the {\normalfont \ttfamily fixed} virial orbit class.
+     !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
   end interface virialOrbitFixed
@@ -54,7 +62,9 @@
 contains
 
   function fixedConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily fixed} satellite virial orbit class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily fixed} satellite virial orbit class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (virialOrbitFixed          )                :: self
@@ -63,54 +73,68 @@ contains
     class           (darkMatterHaloScaleClass  ), pointer       :: darkMatterHaloScale_
     double precision                                            :: velocityRadial        , velocityTangential
 
-    !# <inputParameter>
-    !#   <name>velocityRadial</name>
-    !#   <defaultValue>-0.90d0</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>The radial velocity (in units of the host virial velocity) to used for the fixed virial orbits distribution. Default value matches approximate peak in the distribution of \cite{benson_orbital_2005}.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>velocityTangential</name>
-    !#   <defaultValue>0.75d0</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>The tangential velocity (in units of the host virial velocity) to used for the fixed virial orbits distribution. Default value matches approximate peak in the distribution of \cite{benson_orbital_2005}.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="virialDensityContrast"  name="virialDensityContrast_"  source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale"    name="darkMatterHaloScale_"    source="parameters"/>
+    !![
+    <inputParameter>
+      <name>velocityRadial</name>
+      <defaultValue>-0.90d0</defaultValue>
+      <source>parameters</source>
+      <description>The radial velocity (in units of the host virial velocity) to used for the fixed virial orbits distribution. Default value matches approximate peak in the distribution of \cite{benson_orbital_2005}.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>velocityTangential</name>
+      <defaultValue>0.75d0</defaultValue>
+      <source>parameters</source>
+      <description>The tangential velocity (in units of the host virial velocity) to used for the fixed virial orbits distribution. Default value matches approximate peak in the distribution of \cite{benson_orbital_2005}.</description>
+    </inputParameter>
+    <objectBuilder class="virialDensityContrast"  name="virialDensityContrast_"  source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"    name="darkMatterHaloScale_"    source="parameters"/>
+    !!]
     self=virialOrbitFixed(velocityRadial,velocityTangential,virialDensityContrast_,darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="virialDensityContrast_"/>
-    !# <objectDestructor name="darkMatterHaloScale_"  />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="virialDensityContrast_"/>
+    <objectDestructor name="darkMatterHaloScale_"  />
+    !!]
     return
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(velocityRadial,velocityTangential,virialDensityContrast_,darkMatterHaloScale_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily fixed} virial orbits class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily fixed} virial orbits class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (virialOrbitFixed          )                        :: self
     class           (virialDensityContrastClass), intent(in   ), target :: virialDensityContrast_
     class           (darkMatterHaloScaleClass  ), intent(in   ), target :: darkMatterHaloScale_
     double precision                            , intent(in   )         :: velocityRadial        , velocityTangential
-    !# <constructorAssign variables="velocityRadial, velocityTangential, *virialDensityContrast_, *darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="velocityRadial, velocityTangential, *virialDensityContrast_, *darkMatterHaloScale_"/>
+    !!]
 
     return
   end function fixedConstructorInternal
 
   subroutine fixedDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily fixed} virial orbits class.
+    !!{
+    Destructor for the {\normalfont \ttfamily fixed} virial orbits class.
+    !!}
     implicit none
     type(virialOrbitFixed), intent(inout) :: self
 
-    !# <objectDestructor name="self%virialDensityContrast_"/>
-    !# <objectDestructor name="self%darkMatterHaloScale_"  />
+    !![
+    <objectDestructor name="self%virialDensityContrast_"/>
+    <objectDestructor name="self%darkMatterHaloScale_"  />
+    !!]
     return
   end subroutine fixedDestructor
 
   function fixedOrbit(self,node,host,acceptUnboundOrbits)
-    !% Return fixed orbital parameters for a satellite.
+    !!{
+    Return fixed orbital parameters for a satellite.
+    !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Galacticus_Display                  , only : Galacticus_Display_Indent          , Galacticus_Verbosity_Level_Set, verbosityStandard
+    use :: Display                             , only : displayIndent                      , displayVerbositySet, verbosityLevelStandard
     use :: Galacticus_Error                    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     use :: ISO_Varying_String                  , only : varying_string
@@ -145,12 +169,12 @@ contains
        call fixedOrbit%propagate(radiusHost,infalling=.true.)
        call fixedOrbit%massesSet(min(basic%mass(),hostBasic%mass()),hostBasic%mass())
     else
-       call Galacticus_Verbosity_Level_Set(verbosityStandard)
-       call Galacticus_Display_Indent('Satellite node')
+       call displayVerbositySet(verbosityLevelStandard)
+       call displayIndent('Satellite node')
        call node%serializeASCII()
-       call Galacticus_Display_Indent('Host node'     )
+       call displayIndent('Host node'     )
        call host%serializeASCII()
-       call Galacticus_Display_Indent('Host node'     )
+       call displayIndent('Host node'     )
        message="orbit does not reach halo radius"               //char(10)
        write (label,'(e12.6)') massSatellite
        message=message//"      satellite mass = "//label//" M☉" //char(10)
@@ -168,7 +192,9 @@ contains
   end function fixedOrbit
 
   function fixedDensityContrastDefinition(self)
-    !% Return a virial density contrast object defining that used in the definition of fixed virial orbits.
+    !!{
+    Return a virial density contrast object defining that used in the definition of fixed virial orbits.
+    !!}
     implicit none
     class(virialDensityContrastClass), pointer       :: fixedDensityContrastDefinition
     class(virialOrbitFixed          ), intent(inout) :: self
@@ -178,7 +204,9 @@ contains
   end function fixedDensityContrastDefinition
 
   double precision function fixedVelocityTangentialMagnitudeMean(self,node,host)
-    !% Return the mean magnitude of the tangential velocity.
+    !!{
+    Return the mean magnitude of the tangential velocity.
+    !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
@@ -197,7 +225,9 @@ contains
   end function fixedVelocityTangentialMagnitudeMean
 
   function fixedVelocityTangentialVectorMean(self,node,host)
-    !% Return the mean of the vector tangential velocity.
+    !!{
+    Return the mean of the vector tangential velocity.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                  , dimension(3)  :: fixedVelocityTangentialVectorMean
@@ -211,7 +241,9 @@ contains
   end function fixedVelocityTangentialVectorMean
 
   double precision function fixedAngularMomentumMagnitudeMean(self,node,host)
-    !% Return the mean magnitude of the angular momentum.
+    !!{
+    Return the mean magnitude of the angular momentum.
+    !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
@@ -235,7 +267,9 @@ contains
   end function fixedAngularMomentumMagnitudeMean
 
   function fixedAngularMomentumVectorMean(self,node,host)
-    !% Return the mean of the vector angular momentum.
+    !!{
+    Return the mean of the vector angular momentum.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                  , dimension(3)  :: fixedAngularMomentumVectorMean
@@ -249,7 +283,9 @@ contains
   end function fixedAngularMomentumVectorMean
 
   double precision function fixedVelocityTotalRootMeanSquared(self,node,host)
-    !% Return the root mean squared of the total velocity.
+    !!{
+    Return the root mean squared of the total velocity.
+    !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
@@ -271,10 +307,12 @@ contains
   end function fixedVelocityTotalRootMeanSquared
 
   double precision function fixedEnergyMean(self,node,host)
-    !% Return the mean energy of the orbits.
+    !!{
+    Return the mean energy of the orbits.
+    !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
-    use :: Numerical_Constants_Astronomical        , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
     implicit none
     class           (virialOrbitFixed  ), intent(inout) :: self
     type            (treeNode          ), intent(inout) :: node        , host

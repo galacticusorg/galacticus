@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,13 +19,19 @@
 
 !+    Contributions to this file made by: Andrew Benson, Christoph Behrens, Xiaolong Du.
 
-!% Contains a module which implements a excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.
+!!{
+Contains a module which implements a excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.
+!!}
 
-  !# <excursionSetFirstCrossing name="excursionSetFirstCrossingFarahiMidpoint">
-  !#  <description>An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.</description>
-  !# </excursionSetFirstCrossing>
+  !![
+  <excursionSetFirstCrossing name="excursionSetFirstCrossingFarahiMidpoint">
+   <description>An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.</description>
+  </excursionSetFirstCrossing>
+  !!]
   type, extends(excursionSetFirstCrossingFarahi) :: excursionSetFirstCrossingFarahiMidpoint
-     !% An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.
+     !!{
+     An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.
+     !!}
      private
    contains
      procedure :: probability  => farahiMidpointProbability
@@ -33,7 +39,9 @@
   end type excursionSetFirstCrossingFarahiMidpoint
 
   interface excursionSetFirstCrossingFarahiMidpoint
-     !% Constructors for the Farahi-midpoint excursion set barrier class.
+     !!{
+     Constructors for the Farahi-midpoint excursion set barrier class.
+     !!}
      module procedure farahiMidpointConstructorParameters
      module procedure farahiMidpointConstructorInternal
   end interface excursionSetFirstCrossingFarahiMidpoint
@@ -41,7 +49,9 @@
 contains
 
   function farahiMidpointConstructorParameters(parameters) result(self)
-    !% Constructor for the Farahi-midpoint excursion set class first crossing class which takes a parameter set as input.
+    !!{
+    Constructor for the Farahi-midpoint excursion set class first crossing class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(excursionSetFirstCrossingFarahiMidpoint)                :: self
@@ -52,7 +62,9 @@ contains
   end function farahiMidpointConstructorParameters
 
   function farahiMidpointConstructorInternal(timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_) result(self)
-    !% Internal constructor for the Farahi-midpoint excursion set class first crossing class.
+    !!{
+    Internal constructor for the Farahi-midpoint excursion set class first crossing class.
+    !!}
     implicit none
     type            (excursionSetFirstCrossingFarahiMidpoint)                        :: self
     double precision                                         , intent(in   )         :: timeStepFractional
@@ -68,15 +80,17 @@ contains
   end function farahiMidpointConstructorInternal
 
   double precision function farahiMidpointProbability(self,variance,time,node)
-    !% Return the excursion set barrier at the given variance and time.
-    use :: Error_Functions        , only : erfApproximate
-    use :: File_Utilities         , only : File_Lock                  , File_Unlock                     , lockDescriptor
-    use :: Galacticus_Display     , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
-          &                                Galacticus_Display_Unindent, verbosityWorking
-    use :: Kind_Numbers           , only : kind_dble                  , kind_quad
-    use :: MPI_Utilities          , only : mpiBarrier                 , mpiSelf
-    use :: Memory_Management      , only : allocateArray              , deallocateArray
-    use :: Numerical_Ranges       , only : Make_Range                 , rangeTypeLogarithmic            , rangeTypeLinear
+    !!{
+    Return the excursion set barrier at the given variance and time.
+    !!}
+    use :: Display          , only : displayCounter , displayCounterClear  , displayIndent       , displayMessage, &
+          &                          displayUnindent, verbosityLevelWorking
+    use :: Error_Functions  , only : erfApproximate
+    use :: File_Utilities   , only : File_Lock      , File_Unlock          , lockDescriptor
+    use :: Kind_Numbers     , only : kind_dble      , kind_quad
+    use :: MPI_Utilities    , only : mpiBarrier     , mpiSelf
+    use :: Memory_Management, only : allocateArray  , deallocateArray
+    use :: Numerical_Ranges , only : Make_Range     , rangeTypeLinear      , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                 :: self
     double precision                                         , intent(in   )                 :: variance                     , time
@@ -153,17 +167,17 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-          call Galacticus_Display_Indent("solving for excursion set barrier crossing probabilities",verbosityWorking)
+          call displayIndent("solving for excursion set barrier crossing probabilities",verbosityLevelWorking)
           message="    time: "
           write (label,'(f6.3)') self%timeMinimum
           message=message//label//" to "
           write (label,'(f6.3)') self%timeMaximum
           message=message//label
-          call Galacticus_Display_Message(message,verbosityWorking)
+          call displayMessage(message,verbosityLevelWorking)
           message="variance: "
           write (label,'(f9.3)') self%varianceMaximum
           message=message//label
-          call Galacticus_Display_Message(message,verbosityWorking)
+          call displayMessage(message,verbosityLevelWorking)
 #ifdef USEMPI
        end if
 #endif
@@ -187,10 +201,13 @@ contains
        !$omp parallel private(iTime,i,j,sigma1f,integralKernel,excursionSetBarrier_,barrierTable,barrierMidTable) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
        allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
        !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
-       !# <deepCopyReset variables="self%excursionSetBarrier_"/>
-       !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
+       !![
+       <deepCopyReset variables="self%excursionSetBarrier_"/>
+       <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
+       <deepCopyFinalize variables="excursionSetBarrier_"/>
+       !!]
        !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
-      call allocateArray(barrierTable   ,[1+self%varianceTableCount],lowerBounds=[0])
+       call allocateArray(barrierTable   ,[1+self%varianceTableCount],lowerBounds=[0])
        call allocateArray(barrierMidTable,[1+self%varianceTableCount],lowerBounds=[0])
        !$omp do schedule(dynamic)
        do iTime=1,self%timeTableCount
@@ -227,7 +244,7 @@ contains
 #ifdef USEMPI
              if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-                call Galacticus_Display_Counter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityWorking)
+                call displayCounter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityLevelWorking)
 #ifdef USEMPI
              end if
 #endif
@@ -285,7 +302,9 @@ contains
           self%firstCrossingProbabilityTable(self%varianceTableCount,iTime)=0.0d0
        end do
        !$omp end do
-       !# <objectDestructor name="excursionSetBarrier_"/>
+       !![
+       <objectDestructor name="excursionSetBarrier_"/>
+       !!]
        call deallocateArray(barrierTable   )
        call deallocateArray(barrierMidTable)
        !$omp end parallel
@@ -297,8 +316,8 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-          call Galacticus_Display_Counter_Clear(verbosityWorking)
-          call Galacticus_Display_Unindent("done",verbosityWorking)
+          call displayCounterClear(verbosityLevelWorking)
+          call displayUnindent("done",verbosityLevelWorking)
 #ifdef USEMPI
        end if
        if (self%coordinatedMPI_) then
@@ -347,15 +366,17 @@ contains
   end function farahiMidpointProbability
 
   subroutine farahiMidpointRateTabulate(self,varianceProgenitor,time,node)
-    !% Tabulate the excursion set crossing rate.
-    use :: Error_Functions   , only : erfApproximate
-    use :: File_Utilities    , only : File_Lock                  , File_Unlock                     , lockDescriptor
-    use :: Galacticus_Display, only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
-          &                           Galacticus_Display_Unindent, verbosityWorking
-    use :: Kind_Numbers      , only : kind_dble                  , kind_quad
-    use :: MPI_Utilities     , only : mpiBarrier                 , mpiSelf
-    use :: Memory_Management , only : allocateArray              , deallocateArray
-    use :: Numerical_Ranges  , only : Make_Range                 , rangeTypeLinear                 , rangeTypeLogarithmic
+    !!{
+    Tabulate the excursion set crossing rate.
+    !!}
+    use :: Display          , only : displayCounter , displayCounterClear  , displayIndent       , displayMessage, &
+          &                          displayUnindent, verbosityLevelWorking
+    use :: Error_Functions  , only : erfApproximate
+    use :: File_Utilities   , only : File_Lock      , File_Unlock          , lockDescriptor
+    use :: Kind_Numbers     , only : kind_dble      , kind_quad
+    use :: MPI_Utilities    , only : mpiBarrier     , mpiSelf
+    use :: Memory_Management, only : allocateArray  , deallocateArray
+    use :: Numerical_Ranges , only : Make_Range     , rangeTypeLinear      , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                   :: self
     double precision                                         , intent(in   )                   :: time                             , varianceProgenitor
@@ -453,9 +474,12 @@ contains
           allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
           allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
           !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
-          !# <deepCopyReset variables="self%excursionSetBarrier_ self%cosmologicalMassVariance_"/>
-          !# <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
-          !# <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
+          !![
+          <deepCopyReset variables="self%excursionSetBarrier_ self%cosmologicalMassVariance_"/>
+          <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
+          <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
+          <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
+          !!]
           !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
           growthFactorEffective          =+cosmologicalMassVariance_%rootVariance(massLarge,self%timeMaximumRate                                ) &
                &                          /cosmologicalMassVariance_%rootVariance(massLarge,self%timeMaximumRate*(1.0d0-self%timeStepFractional))
@@ -468,8 +492,10 @@ contains
                &                                -excursionSetBarrier_%barrier(+0.0d0,self%timeMaximumRate                                ,node,rateCompute=.true.)  &
                &                               )**2                                                                                                                 &
                &                             )
-          !# <objectDestructor name="excursionSetBarrier_"     />
-          !# <objectDestructor name="cosmologicalMassVariance_"/>
+          !![
+          <objectDestructor name="excursionSetBarrier_"     />
+          <objectDestructor name="cosmologicalMassVariance_"/>
+          !!]
           self%varianceMaximumRate       =max(self%varianceMaximumRate,varianceProgenitor)
           self%varianceTableCountRate    =int(log10(self%varianceMaximumRate/varianceMinimumRate)*dble(self%varianceNumberPerDecade))+1
           self%varianceTableCountRateBase=int(self%varianceMaximumRate*dble(self%varianceNumberPerUnit))
@@ -516,17 +542,17 @@ contains
 #ifdef USEMPI
           if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-             call Galacticus_Display_Indent("solving for excursion set barrier crossing rates",verbosityWorking)
+             call displayIndent("solving for excursion set barrier crossing rates",verbosityLevelWorking)
              message="    time: "
              write (label,'(f6.3)') self%timeMinimumRate
              message=message//label//" to "
              write (label,'(f6.3)') self%timeMaximumRate
              message=message//label
-             call Galacticus_Display_Message(message,verbosityWorking)
+             call displayMessage(message,verbosityLevelWorking)
              message="variance: "
              write (label,'(f9.3)') self%varianceMaximumRate
              message=message//label
-             call Galacticus_Display_Message(message,verbosityWorking)
+             call displayMessage(message,verbosityLevelWorking)
 #ifdef USEMPI
           end if
 #endif
@@ -557,9 +583,12 @@ contains
           allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
           allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
           !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
-          !# <deepCopyReset variables="self%excursionSetBarrier_ self%cosmologicalMassVariance_"/>
-          !# <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
-          !# <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
+          !![
+          <deepCopyReset variables="self%excursionSetBarrier_ self%cosmologicalMassVariance_"/>
+          <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
+          <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
+          <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
+          !!]
           !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
           call allocateArray(barrierTableRateQuad   ,[self%varianceTableCountRate])
           call allocateArray(barrierMidTableRateQuad,[self%varianceTableCountRate])
@@ -580,7 +609,7 @@ contains
 #ifdef USEMPI
                 if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-                   call Galacticus_Display_Counter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityWorking)
+                   call displayCounter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityLevelWorking)
 #ifdef USEMPI
                 end if
 #endif
@@ -718,8 +747,10 @@ contains
                   &                                 /self%timeStepFractional
              !$omp end single
           end do
-          !# <objectDestructor name="excursionSetBarrier_"     />
-          !# <objectDestructor name="cosmologicalMassVariance_"/>
+          !![
+          <objectDestructor name="excursionSetBarrier_"     />
+          <objectDestructor name="cosmologicalMassVariance_"/>
+          !!]
           call deallocateArray(barrierTableRateQuad   )
           call deallocateArray(barrierMidTableRateQuad)
           !$omp end parallel
@@ -735,8 +766,8 @@ contains
 #ifdef USEMPI
           if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-             call Galacticus_Display_Counter_Clear(       verbosityWorking)
-             call Galacticus_Display_Unindent     ("done",verbosityWorking)
+             call displayCounterClear(       verbosityLevelWorking)
+             call displayUnindent     ("done",verbosityLevelWorking)
 #ifdef USEMPI
           end if
           if (self%coordinatedMPI_) then

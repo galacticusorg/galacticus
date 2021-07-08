@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,21 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a class for applying multiple different timestepping criteria.
+  !!{
+  Implements a class for applying multiple different timestepping criteria.
+  !!}
 
   type, public :: multiMergerTreeEvolveTimestepList
      class(mergerTreeEvolveTimestepClass    ), pointer :: mergerTreeEvolveTimestep_
      type (multiMergerTreeEvolveTimestepList), pointer :: next                      => null()
   end type multiMergerTreeEvolveTimestepList
 
-  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepMulti">
-  !#  <description>A merger tree evolution timestepping class which takes the minimum over multiple other timesteppers.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="multiMergerTreeEvolveTimestepList" variable="mergerTreeEvolveTimesteps" next="next" object="mergerTreeEvolveTimestep_" objectType="mergerTreeEvolveTimestepClass"/>
-  !#  </deepCopy>
-  !# </mergerTreeEvolveTimestep>
+  !![
+  <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepMulti">
+   <description>A merger tree evolution timestepping class which takes the minimum over multiple other timesteppers.</description>
+   <deepCopy>
+    <linkedList type="multiMergerTreeEvolveTimestepList" variable="mergerTreeEvolveTimesteps" next="next" object="mergerTreeEvolveTimestep_" objectType="mergerTreeEvolveTimestepClass"/>
+   </deepCopy>
+   <stateStore>
+    <linkedList type="multiMergerTreeEvolveTimestepList" variable="mergerTreeEvolveTimesteps" next="next" object="mergerTreeEvolveTimestep_"/>
+   </stateStore>
+  </mergerTreeEvolveTimestep>
+  !!]
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepMulti
-     !% Implementation of a merger tree evolution timestepping class which takes the minimum over multiple other timesteppers.
+     !!{
+     Implementation of a merger tree evolution timestepping class which takes the minimum over multiple other timesteppers.
+     !!}
      private
      type(multiMergerTreeEvolveTimestepList), pointer :: mergerTreeEvolveTimesteps => null()
    contains
@@ -40,7 +49,9 @@
   end type mergerTreeEvolveTimestepMulti
 
   interface mergerTreeEvolveTimestepMulti
-     !% Constructors for the {\normalfont \ttfamily multi} mergerTreeEvolveTimestep.
+     !!{
+     Constructors for the {\normalfont \ttfamily multi} mergerTreeEvolveTimestep.
+     !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
   end interface mergerTreeEvolveTimestepMulti
@@ -48,7 +59,9 @@
 contains
 
   function multiConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily multi} merger tree evolution timestep class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily multi} merger tree evolution timestep class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (mergerTreeEvolveTimestepMulti    )                :: self
@@ -58,7 +71,7 @@ contains
 
     self %mergerTreeEvolveTimesteps => null()
     mergerTreeEvolveTimestep_       => null()
-    do i=1,parameters%copiesCount('mergerTreeEvolveTimestepMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('mergerTreeEvolveTimestep',zeroIfNotPresent=.true.)
        if (associated(mergerTreeEvolveTimestep_)) then
           allocate(mergerTreeEvolveTimestep_%next)
           mergerTreeEvolveTimestep_ => mergerTreeEvolveTimestep_%next
@@ -66,13 +79,17 @@ contains
           allocate(self%mergerTreeEvolveTimesteps)
           mergerTreeEvolveTimestep_ => self%mergerTreeEvolveTimesteps
        end if
-       !# <objectBuilder class="mergerTreeEvolveTimestep" name="mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_" source="parameters" copy="i"/>
+       !![
+       <objectBuilder class="mergerTreeEvolveTimestep" name="mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_" source="parameters" copy="i"/>
+       !!]
     end do
     return
   end function multiConstructorParameters
 
   function multiConstructorInternal(mergerTreeEvolveTimesteps) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily multi} merger tree evolution timestep class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily multi} merger tree evolution timestep class.
+    !!}
     implicit none
     type(mergerTreeEvolveTimestepMulti    )                        :: self
     type(multiMergerTreeEvolveTimestepList), target, intent(in   ) :: mergerTreeEvolveTimesteps
@@ -81,14 +98,18 @@ contains
     self                     %mergerTreeEvolveTimesteps => mergerTreeEvolveTimesteps
     mergerTreeEvolveTimestep_                           => mergerTreeEvolveTimesteps
     do while (associated(mergerTreeEvolveTimestep_))
-       !# <referenceCountIncrement owner="mergerTreeEvolveTimestep_" object="mergerTreeEvolveTimestep_"/>
+       !![
+       <referenceCountIncrement owner="mergerTreeEvolveTimestep_" object="mergerTreeEvolveTimestep_"/>
+       !!]
        mergerTreeEvolveTimestep_ => mergerTreeEvolveTimestep_%next
     end do
     return
   end function multiConstructorInternal
 
   subroutine multiDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily multi} merger tree evolution timestep class.
+    !!{
+    Destructor for the {\normalfont \ttfamily multi} merger tree evolution timestep class.
+    !!}
     implicit none
     type(mergerTreeEvolveTimestepMulti    ), intent(inout) :: self
     type(multiMergerTreeEvolveTimestepList), pointer       :: mergerTreeEvolveTimestep_, mergerTreeEvolveTimestepNext
@@ -97,7 +118,9 @@ contains
        mergerTreeEvolveTimestep_ => self%mergerTreeEvolveTimesteps
        do while (associated(mergerTreeEvolveTimestep_))
           mergerTreeEvolveTimestepNext => mergerTreeEvolveTimestep_%next
-          !# <objectDestructor name="mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_"/>
+          !![
+          <objectDestructor name="mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_"/>
+          !!]
           deallocate(mergerTreeEvolveTimestep_)
           mergerTreeEvolveTimestep_ => mergerTreeEvolveTimestepNext
        end do
@@ -105,10 +128,13 @@ contains
     return
   end subroutine multiDestructor
 
-  double precision function multiTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
-    !% Perform all mergerTreeEvolveTimesteps.
+  double precision function multiTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
+    !!{
+    Perform all mergerTreeEvolveTimesteps.
+    !!}
     implicit none
     class           (mergerTreeEvolveTimestepMulti    ), intent(inout), target            :: self
+    double precision                                   , intent(in   )                    :: timeEnd
     type            (treeNode                         ), intent(inout), target            :: node
     procedure       (timestepTask                     ), intent(  out), pointer           :: task
     class           (*                                ), intent(  out), pointer           :: taskSelf
@@ -130,11 +156,13 @@ contains
     mergerTreeEvolveTimestep_ => self%mergerTreeEvolveTimesteps
     do while (associated(mergerTreeEvolveTimestep_))
        timeEvolveTo=huge(0.0d0)
-       !# <conditionalCall>
-       !#  <call>timeEvolveTo=mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_%timeEvolveTo(node,task_,taskSelf_,report{conditions})</call>
-       !#  <argument name="lockNode" value="lockNode_" condition="present(lockNode)"/>
-       !#  <argument name="lockType" value="lockType_" condition="present(lockType)"/>
-       !# </conditionalCall>
+       !![
+       <conditionalCall>
+        <call>timeEvolveTo=mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_%timeEvolveTo(timeEnd,node,task_,taskSelf_,report{conditions})</call>
+        <argument name="lockNode" value="lockNode_" condition="present(lockNode)"/>
+        <argument name="lockType" value="lockType_" condition="present(lockType)"/>
+       </conditionalCall>
+       !!]
        if (timeEvolveTo < multiTimeEvolveTo) then
           multiTimeEvolveTo               =  timeEvolveTo
           task                            => task_

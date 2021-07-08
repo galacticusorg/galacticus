@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,32 +17,38 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a merger tree operator which dumps tree data to a file suitable for 3D rendering.
+!!{
+Contains a module which implements a merger tree operator which dumps tree data to a file suitable for 3D rendering.
+!!}
 
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
-  !# <mergerTreeOperator name="mergerTreeOperatorRender">
-  !#  <description>
-  !#   A merger tree operator which outputs data on the structure of a merger tree and its halos useful for rendering the tree as
-  !#   a 3-D structure to a file named {\normalfont \ttfamily
-  !#   render\_$\langle$treeIndex$\rangle$\_$\langle$outputIndex$\rangle$.hdf5} where $\langle${\normalfont \ttfamily
-  !#   treeIndex}$\rangle$ is the index of the tree and $\langle${\normalfont \ttfamily outputIndex}$\rangle$ is an incremental
-  !#   counter that tracks the number of outputs for this tree. The output is a simple HDF5 file containing the following
-  !#   datasets:
-  !#   \begin{description}
-  !#    \item [{\normalfont \ttfamily nodeIndex}] Index of the node;
-  !#    \item [{\normalfont \ttfamily parentIndex}] Index of the parent node;
-  !#    \item [{\normalfont \ttfamily childIndex}] Index of the child node;
-  !#    \item [{\normalfont \ttfamily time}] Time of the node;
-  !#    \item [{\normalfont \ttfamily expansionFactor}] Corresponding expansion factor;
-  !#    \item [{\normalfont \ttfamily radiusVirial}] Virial radius of the node;
-  !#    \item [{\normalfont \ttfamily position}] $(x,y,z)$ position of the node.
-  !#   \end{description}
-  !#  </description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorRender">
+   <description>
+    A merger tree operator which outputs data on the structure of a merger tree and its halos useful for rendering the tree as
+    a 3-D structure to a file named {\normalfont \ttfamily
+    render\_$\langle$treeIndex$\rangle$\_$\langle$outputIndex$\rangle$.hdf5} where $\langle${\normalfont \ttfamily
+    treeIndex}$\rangle$ is the index of the tree and $\langle${\normalfont \ttfamily outputIndex}$\rangle$ is an incremental
+    counter that tracks the number of outputs for this tree. The output is a simple HDF5 file containing the following
+    datasets:
+    \begin{description}
+     \item [{\normalfont \ttfamily nodeIndex}] Index of the node;
+     \item [{\normalfont \ttfamily parentIndex}] Index of the parent node;
+     \item [{\normalfont \ttfamily childIndex}] Index of the child node;
+     \item [{\normalfont \ttfamily time}] Time of the node;
+     \item [{\normalfont \ttfamily expansionFactor}] Corresponding expansion factor;
+     \item [{\normalfont \ttfamily radiusVirial}] Virial radius of the node;
+     \item [{\normalfont \ttfamily position}] $(x,y,z)$ position of the node.
+    \end{description}
+   </description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorRender
-     !% A merger tree operator which dumps tree data to a file suitable for 3D rendering.
+     !!{
+     A merger tree operator which dumps tree data to a file suitable for 3D rendering.
+     !!}
      private
      class  (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
      class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
@@ -54,7 +60,9 @@
   end type mergerTreeOperatorRender
 
   interface mergerTreeOperatorRender
-     !% Constructors for the ``{\normalfont \ttfamily render}'' merger tree operator class.
+     !!{
+     Constructors for the ``{\normalfont \ttfamily render}'' merger tree operator class.
+     !!}
      module procedure renderConstructorParameters
      module procedure renderConstructorInternal
   end interface mergerTreeOperatorRender
@@ -62,7 +70,9 @@
 contains
 
   function renderConstructorParameters(parameters) result(self)
-    !% Constructor for the ``{\normalfont \ttfamily render}'' merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``{\normalfont \ttfamily render}'' merger tree operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(mergerTreeOperatorRender )                :: self
@@ -70,22 +80,30 @@ contains
     class(darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
     class(cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
     
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !![
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !!]
     self=mergerTreeOperatorRender(cosmologyFunctions_,darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    !!]
     return
   end function renderConstructorParameters
 
   function renderConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_) result(self)
-    !% Internal constructor for the ``{\normalfont \ttfamily render}'' merger tree operator class.
+    !!{
+    Internal constructor for the ``{\normalfont \ttfamily render}'' merger tree operator class.
+    !!}
     implicit none
     type (mergerTreeOperatorRender)                        :: self
     class(darkMatterHaloScaleClass), intent(in   ), target :: darkMatterHaloScale_
     class(cosmologyFunctionsClass ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="*darkMatterHaloScale_, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="*darkMatterHaloScale_, *cosmologyFunctions_"/>
+    !!]
 
     self%treeIndexPrevious=-1_kind_int8
     self%outputCounter    =-1
@@ -93,17 +111,23 @@ contains
   end function renderConstructorInternal
 
   subroutine renderDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily render} merger tree operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily render} merger tree operator class.
+    !!}
     implicit none
     type(mergerTreeOperatorRender), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_" />
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    <objectDestructor name="self%cosmologyFunctions_" />
+    !!]
     return
   end subroutine renderDestructor
   
   subroutine renderOperatePreEvolution(self,tree)
-    !% Output the structure of {\normalfont \ttfamily tree}.
+    !!{
+    Output the structure of {\normalfont \ttfamily tree}.
+    !!}
     use :: Galacticus_Nodes                , only : nodeComponentBasic      , nodeComponentPosition, &
          &                                          treeNode
     use :: IO_HDF5                         , only : hdf5Object

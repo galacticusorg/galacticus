@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the structure tasks for the simple black hole node component.
+!!{
+Contains a module which implements the structure tasks for the simple black hole node component.
+!!}
 
 module Node_Component_Black_Hole_Simple_Structure
-  !% Implements the structure tasks for the simple black hole node component.
+  !!{
+  Implements the structure tasks for the simple black hole node component.
+  !!}
   implicit none
   private
   public :: Node_Component_Black_Hole_Simple_Rotation_Curve, Node_Component_Black_Hole_Simple_Rotation_Curve_Gradient, &
@@ -28,12 +32,16 @@ module Node_Component_Black_Hole_Simple_Structure
 
 contains
 
-  !# <rotationCurveTask>
-  !#  <unitName>Node_Component_Black_Hole_Simple_Rotation_Curve</unitName>
-  !# </rotationCurveTask>
-  double precision function Node_Component_Black_Hole_Simple_Rotation_Curve(thisNode,radius,componentType,massType)
-    !% Computes the rotation curve for the central black hole. Assumes a point mass black hole with a Keplerian rotation curve,
-    !% \emph{except} that the rotation speed is limited to never exceed the speed of light.
+  !![
+  <rotationCurveTask>
+   <unitName>Node_Component_Black_Hole_Simple_Rotation_Curve</unitName>
+  </rotationCurveTask>
+  !!]
+  double precision function Node_Component_Black_Hole_Simple_Rotation_Curve(node,radius,componentType,massType)
+    !!{
+    Computes the rotation curve for the central black hole. Assumes a point mass black hole with a Keplerian rotation curve,
+    \emph{except} that the rotation speed is limited to never exceed the speed of light.
+    !!}
     use :: Black_Hole_Fundamentals         , only : Black_Hole_Gravitational_Radius
     use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole         , nodeComponentBlackHoleSimple, treeNode
@@ -41,22 +49,22 @@ contains
     use :: Numerical_Constants_Physical    , only : speedLight
     use :: Numerical_Constants_Prefixes    , only : milli
     implicit none
-    type            (treeNode              ), intent(inout)           :: thisNode
-    integer                                 , intent(in   )           :: componentType         , massType
+    type            (treeNode              ), intent(inout)           :: node
+    integer                                 , intent(in   )           :: componentType, massType
     double precision                        , intent(in   )           :: radius
-    class           (nodeComponentBlackHole)               , pointer  :: thisBlackHoleComponent
+    class           (nodeComponentBlackHole)               , pointer  :: blackHole
     double precision                                                  :: componentMass
 
     ! Set to zero by default.
     Node_Component_Black_Hole_Simple_Rotation_Curve=0.0d0
     ! Get the black hole component and check that it is of the simple class.
-    thisBlackHoleComponent => thisNode%blackHole()
-    select type (thisBlackHoleComponent)
+    blackHole => node%blackHole()
+    select type (blackHole)
     class is (nodeComponentBlackHoleSimple)
        ! Check if the radius exceeds the gravitational radius.
-       if (radius > Black_Hole_Gravitational_Radius(thisBlackHoleComponent)/(milli*speedLight)**2) then
+       if (radius > Black_Hole_Gravitational_Radius(blackHole)/(milli*speedLight)**2) then
           ! Radius is larger than the gravitational radius - compute the rotation speed.
-          componentMass=thisBlackHoleComponent%enclosedMass(radius,componentType,massType,weightByMass&
+          componentMass=blackHole%enclosedMass(radius,componentType,massType,weightByMass&
                &,weightIndexNull)
           if (componentMass > 0.0d0) Node_Component_Black_Hole_Simple_Rotation_Curve=sqrt(gravitationalConstantGalacticus&
                &*componentMass/radius)
@@ -68,23 +76,27 @@ contains
     return
   end function Node_Component_Black_Hole_Simple_Rotation_Curve
 
-  !# <rotationCurveGradientTask>
-  !#  <unitName>Node_Component_Black_Hole_Simple_Rotation_Curve_Gradient</unitName>
-  !# </rotationCurveGradientTask>
-  double precision function Node_Component_Black_Hole_Simple_Rotation_Curve_Gradient(thisNode,radius,componentType&
+  !![
+  <rotationCurveGradientTask>
+   <unitName>Node_Component_Black_Hole_Simple_Rotation_Curve_Gradient</unitName>
+  </rotationCurveGradientTask>
+  !!]
+  double precision function Node_Component_Black_Hole_Simple_Rotation_Curve_Gradient(node,radius,componentType&
        &,massType)
-    !% Computes the rotation curve gradient for the central black hole. Assumes a point mass black hole with a Keplerian
-    !% rotation curve, \emph{except} that the rotation speed is limited to never exceed the speed of light.
+    !!{
+    Computes the rotation curve gradient for the central black hole. Assumes a point mass black hole with a Keplerian
+    rotation curve, \emph{except} that the rotation speed is limited to never exceed the speed of light.
+    !!}
     use :: Black_Hole_Fundamentals         , only : Black_Hole_Gravitational_Radius
     use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeBlackHole      , massTypeAll, massTypeBlackHole, &
           &                                         weightByMass                   , weightIndexNull
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole         , nodeComponentBlackHoleSimple, treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    type            (treeNode              ), intent(inout)           :: thisNode
-    integer                                 , intent(in   )           :: componentType         , massType
+    type            (treeNode              ), intent(inout)           :: node
+    integer                                 , intent(in   )           :: componentType, massType
     double precision                        , intent(in   )           :: radius
-    class           (nodeComponentBlackHole)               , pointer  :: thisBlackHoleComponent
+    class           (nodeComponentBlackHole)               , pointer  :: blackHole
     double precision                                                  :: componentMass
 
     ! Set to zero by default.
@@ -93,12 +105,12 @@ contains
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeBlackHole     )) return
     if (      radius        <= 0.0d0                                                         ) return
     ! Get the black hole component and check that it is of the simple class.
-    thisBlackHoleComponent => thisNode%blackHole()
-    select type (thisBlackHoleComponent)
+    blackHole => node%blackHole()
+    select type (blackHole)
     class is (nodeComponentBlackHoleSimple)
-       componentMass=thisBlackHoleComponent%enclosedMass(radius,componentType,massType,weightByMass,weightIndexNull)
+       componentMass=blackHole%enclosedMass(radius,componentType,massType,weightByMass,weightIndexNull)
        if (componentMass ==0.0d0 ) return
-       if (radius > Black_Hole_Gravitational_Radius(thisBlackHoleComponent)) then
+       if (radius > Black_Hole_Gravitational_Radius(blackHole)) then
           Node_Component_Black_Hole_Simple_Rotation_Curve_Gradient=       &
                &                         -gravitationalConstantGalacticus &
                &                         *componentMass                   &
@@ -110,22 +122,26 @@ contains
     return
   end function Node_Component_Black_Hole_Simple_Rotation_Curve_Gradient
 
-  !# <potentialTask>
-  !#  <unitName>Node_Component_Black_Hole_Simple_Potential</unitName>
-  !# </potentialTask>
-  double precision function Node_Component_Black_Hole_Simple_Potential(thisNode,radius,componentType,massType,status)
-    !% Compute the gravitational potential due to a black hole.
+  !![
+  <potentialTask>
+   <unitName>Node_Component_Black_Hole_Simple_Potential</unitName>
+  </potentialTask>
+  !!]
+  double precision function Node_Component_Black_Hole_Simple_Potential(node,radius,componentType,massType,status)
+    !!{
+    Compute the gravitational potential due to a black hole.
+    !!}
     use :: Black_Hole_Fundamentals         , only : Black_Hole_Gravitational_Radius
     use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeBlackHole      , massTypeAll, massTypeBlackHole, &
           &                                         weightByMass                   , weightIndexNull
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole         , nodeComponentBlackHoleSimple, treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    type            (treeNode              ), intent(inout)           :: thisNode
-    integer                                 , intent(in   )           :: componentType         , massType
+    type            (treeNode              ), intent(inout)           :: node
+    integer                                 , intent(in   )           :: componentType, massType
     double precision                        , intent(in   )           :: radius
     integer                                 , intent(inout), optional :: status
-    class           (nodeComponentBlackHole)               , pointer  :: thisBlackHoleComponent
+    class           (nodeComponentBlackHole)               , pointer  :: blackHole
     double precision                                                  :: componentMass
     !$GLC attributes unused :: status
 
@@ -134,14 +150,14 @@ contains
     if (.not.(componentType == componentTypeAll .or. componentType == componentTypeBlackHole)) return
     if (.not.(massType      == massTypeAll      .or. massType      == massTypeBlackHole     )) return
     ! Get the black hole component and check that it is of the simple class.
-    thisBlackHoleComponent => thisNode%blackHole()
-    select type (thisBlackHoleComponent)
+    blackHole => node%blackHole()
+    select type (blackHole)
     class is (nodeComponentBlackHoleSimple)
-       if (Black_Hole_Gravitational_Radius(thisBlackHoleComponent) <= 0.0d0) return
+       if (Black_Hole_Gravitational_Radius(blackHole) <= 0.0d0) return
        ! Compute the potential - limit the radius to the gravitational radius to avoid divergent potentials.
-       componentMass=thisBlackHoleComponent%enclosedMass(radius,componentType,massType,weightByMass,weightIndexNull)
+       componentMass=blackHole%enclosedMass(radius,componentType,massType,weightByMass,weightIndexNull)
        Node_Component_Black_Hole_Simple_Potential=-gravitationalConstantGalacticus*componentMass/max(radius &
-            &,Black_Hole_Gravitational_Radius(thisBlackHoleComponent))
+            &,Black_Hole_Gravitational_Radius(blackHole))
     end select
     return
   end function Node_Component_Black_Hole_Simple_Potential

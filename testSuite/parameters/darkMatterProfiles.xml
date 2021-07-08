@@ -3,40 +3,12 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <cosmologyFunctionsMethod value="matterLambda"/>
-  <cosmologyParametersMethod value="simple">
-    <OmegaMatter value="0.2815"/>
-    <OmegaDarkEnergy value="0.7185"/>
-    <OmegaBaryon value="0.0465"/>
-    <HubbleConstant value="69.3"/>
-  </cosmologyParametersMethod>
-  <cosmologicalMassVarianceMethod value="filteredPower">
-    <sigma_8 value="0.82"/>
-  </cosmologicalMassVarianceMethod>
-  <transferFunctionMethod value="eisensteinHu1999"/>
-  <powerSpectrumPrimordialMethod value="powerLaw">
-    <index value="0.971"/>
-    <wavenumberReference value="1.000"/>
-    <running value="0.000"/>
-  </powerSpectrumPrimordialMethod>
-  <nodeOperatorMethod value="multi"><!--Stellar feedback outflows-->
-    <nodeOperatorMethod value="stellarFeedbackDisks">
-      <stellarFeedbackOutflowsMethod value="rateLimit">
-        <timescaleOutflowFractionalMinimum value="0.001"/>
-        <stellarFeedbackOutflowsMethod value="powerLaw">
-          <velocityCharacteristic value="250.0"/>
-          <exponent value="3.5"/>
-        </stellarFeedbackOutflowsMethod>
-      </stellarFeedbackOutflowsMethod>
-    </nodeOperatorMethod>
-    <nodeOperatorMethod value="stellarFeedbackSpheroids">
-      <stellarFeedbackOutflowsMethod value="rateLimit">
-        <timescaleOutflowFractionalMinimum value="0.001"/>
-        <stellarFeedbackOutflowsMethod value="powerLaw">
-          <velocityCharacteristic value="250.0"/>
-          <exponent value="3.5"/>
-        </stellarFeedbackOutflowsMethod>
-      </stellarFeedbackOutflowsMethod>
-    </nodeOperatorMethod>
-  </nodeOperatorMethod>
+  <componentBasic             value="standard"/>
+  <componentDarkMatterProfile value="scale"   />
+  <componentBlackHole         value="null"    />
+  <componentDisk              value="null"    />
+  <componentHotHalo           value="null"    />
+  <componentSatellite         value="null"    />
+  <componentSpheroid          value="null"    />
+  <componentSpin              value="null"    />
 </parameters>

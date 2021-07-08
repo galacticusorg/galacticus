@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which determines the environmental overoverdensity around particles.
+!!{
+Contains a module which implements an N-body data operator which determines the environmental overoverdensity around particles.
+!!}
 
   use, intrinsic :: ISO_C_Binding, only : c_size_t
 
-  !# <nbodyOperator name="nbodyOperatorEnvironmentalOverdensity">
-  !#  <description>An N-body data operator which determines the environmental overoverdensity around particles.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorEnvironmentalOverdensity">
+   <description>An N-body data operator which determines the environmental overoverdensity around particles.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorEnvironmentalOverdensity
-     !% An N-body data operator which determines the environmental overoverdensity around particles.
+     !!{
+     An N-body data operator which determines the environmental overoverdensity around particles.
+     !!}
      private
      double precision           :: radiusSphere     , densityParticleMean, &
           &                        particleCountMean, lengthBox
@@ -36,7 +42,9 @@
   end type nbodyOperatorEnvironmentalOverdensity
 
   interface nbodyOperatorEnvironmentalOverdensity
-     !% Constructors for the ``environmentalOverdensity'' N-body operator class.
+     !!{
+     Constructors for the ``environmentalOverdensity'' N-body operator class.
+     !!}
      module procedure environmentalOverdensityConstructorParameters
      module procedure environmentalOverdensityConstructorInternal
   end interface nbodyOperatorEnvironmentalOverdensity
@@ -44,7 +52,9 @@
 contains
 
   function environmentalOverdensityConstructorParameters(parameters) result (self)
-    !% Constructor for the ``environmentalOverdensity'' N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``environmentalOverdensity'' N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyOperatorEnvironmentalOverdensity)                :: self
@@ -54,41 +64,47 @@ contains
     integer         (c_size_t                             )                :: sampleRate
     logical                                                                :: periodic
 
-    !# <inputParameter>
-    !#   <name>radiusSphere</name>
-    !#   <source>parameters</source>
-    !#   <description>The radius of the sphere within which to measure environmental overdensity.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>densityParticleMean</name>
-    !#   <source>parameters</source>
-    !#   <description>The mean density of particles in the simulation.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>sampleRate</name>
-    !#   <source>parameters</source>
-    !#   <description>One in {\normalfont \ttfamily [sampleRate]} particles will be sampled when computed environmental overdensities.</description>
-    !#   <defaultValue>1_c_size_t</defaultValue>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>lengthBox</name>
-    !#   <source>parameters</source>
-    !#   <description>The length of the periodic box.</description>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>periodic</name>
-    !#   <source>parameters</source>
-    !#   <description>If true, periodic boundary conditions will be used.</description>
-    !#   <defaultValue>.false.</defaultValue>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>radiusSphere</name>
+      <source>parameters</source>
+      <description>The radius of the sphere within which to measure environmental overdensity.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>densityParticleMean</name>
+      <source>parameters</source>
+      <description>The mean density of particles in the simulation.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>sampleRate</name>
+      <source>parameters</source>
+      <description>One in {\normalfont \ttfamily [sampleRate]} particles will be sampled when computed environmental overdensities.</description>
+      <defaultValue>1_c_size_t</defaultValue>
+    </inputParameter>
+    <inputParameter>
+      <name>lengthBox</name>
+      <source>parameters</source>
+      <description>The length of the periodic box.</description>
+      <defaultValue>0.0d0</defaultValue>
+    </inputParameter>
+    <inputParameter>
+      <name>periodic</name>
+      <source>parameters</source>
+      <description>If true, periodic boundary conditions will be used.</description>
+      <defaultValue>.false.</defaultValue>
+    </inputParameter>
+    !!]
     self=nbodyOperatorEnvironmentalOverdensity(radiusSphere,densityParticleMean,sampleRate,lengthBox,periodic)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function environmentalOverdensityConstructorParameters
 
   function environmentalOverdensityConstructorInternal(radiusSphere,densityParticleMean,sampleRate,lengthBox,periodic) result (self)
-    !% Internal constructor for the ``environmentalOverdensity'' N-body operator class.
+    !!{
+    Internal constructor for the ``environmentalOverdensity'' N-body operator class.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (nbodyOperatorEnvironmentalOverdensity)                :: self
@@ -96,7 +112,9 @@ contains
          &                                                                    lengthBox
     integer         (c_size_t                             ), intent(in   ) :: sampleRate
     logical                                                , intent(in   ) :: periodic
-    !# <constructorAssign variables="radiusSphere, densityParticleMean, sampleRate, lengthBox, periodic"/>
+    !![
+    <constructorAssign variables="radiusSphere, densityParticleMean, sampleRate, lengthBox, periodic"/>
+    !!]
 
     ! Evaluate mean number of particles in the sphere.
     self%particleCountMean=+self%densityParticleMean    &
@@ -108,11 +126,13 @@ contains
   end function environmentalOverdensityConstructorInternal
 
   subroutine environmentalOverdensityOperate(self,simulations)
-    !% Determine the mean position and velocity of N-body particles.
-    use    :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear
-    use    :: Memory_Management , only : allocateArray             , deallocateArray
-    use    :: Nearest_Neighbors , only : nearestNeighbors
-    !$ use :: OMP_Lib           , only : omp_get_thread_num
+    !!{
+    Determine the mean position and velocity of N-body particles.
+    !!}
+    use    :: Display          , only : displayCounter    , displayCounterClear
+    use    :: Memory_Management, only : allocateArray     , deallocateArray
+    use    :: Nearest_Neighbors, only : nearestNeighbors
+    !$ use :: OMP_Lib          , only : omp_get_thread_num
     implicit none
     class           (nbodyOperatorEnvironmentalOverdensity), intent(inout)                 :: self
     type            (nBodyData                            ), intent(inout), dimension(:  ) :: simulations
@@ -198,7 +218,7 @@ contains
        call allocateArray(overdensity,[size(position_,dim=2,kind=c_size_t)])
        overdensity=-2.0d0
        ! Iterate over particles.
-       call Galacticus_Display_Counter(0,.true.)
+       call displayCounter(0,.true.)
        j=0_c_size_t
        !$omp parallel do private(neighborCount,neighborIndex,neighborDistance) schedule(dynamic)
        do k=1_c_size_t,size(position_,dim=2,kind=c_size_t),self%sampleRate
@@ -208,11 +228,11 @@ contains
           !$omp atomic
           j=j+self%sampleRate
           !$ if (omp_get_thread_num() == 0) then
-          call Galacticus_Display_Counter(int(100.0d0*float(j)/float(size(position_,dim=2,kind=c_size_t))),.false.)
+          call displayCounter(int(100.0d0*float(j)/float(size(position_,dim=2,kind=c_size_t))),.false.)
           !$ end if
        end do
        !$omp end parallel do
-       call Galacticus_Display_Counter_Clear()
+       call displayCounterClear()
        call deallocateArray(position)
        call simulations(iSimulation)%analysis%writeDataset(overdensity,'overdensityEnvironmental')
     end do
@@ -221,7 +241,9 @@ contains
   contains
 
     double precision function boundLower(l)
-      !% Compute lower bounds for particle inclusion in periodically replicated volumes.
+      !!{
+      Compute lower bounds for particle inclusion in periodically replicated volumes.
+      !!}
       use :: Galacticus_Error, only : Galacticus_Error_Report
       implicit none
       integer, intent(in   ) :: l
@@ -241,7 +263,9 @@ contains
     end function boundLower
 
     double precision function boundUpper(l)
-      !% Compute upper bounds for particle inclusion in periodically replicated volumes.
+      !!{
+      Compute upper bounds for particle inclusion in periodically replicated volumes.
+      !!}
       use :: Galacticus_Error, only : Galacticus_Error_Report
       implicit none
       integer, intent(in   ) :: l

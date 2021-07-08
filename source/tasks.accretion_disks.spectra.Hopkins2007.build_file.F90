@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <task name="taskAGNSpectraHopkins2008BuildFile">
-  !#  <description>A task which evolves galaxies within a set of merger tree forests.</description>
-  !# </task>
+  !![
+  <task name="taskAGNSpectraHopkins2008BuildFile">
+   <description>A task which evolves galaxies within a set of merger tree forests.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskAGNSpectraHopkins2008BuildFile
-     !% Implementation of a task which builds a file containing a tabulation of AGN spectra from the model of \cite{hopkins_observational_2007}.
+     !!{
+     Implementation of a task which builds a file containing a tabulation of AGN spectra from the model of \cite{hopkins_observational_2007}.
+     !!}
      private
    contains
      procedure :: perform            => agnSpectraHopkins2008BuildFilePerform
@@ -29,14 +33,18 @@
   end type taskAGNSpectraHopkins2008BuildFile
 
   interface taskAGNSpectraHopkins2008BuildFile
-     !% Constructors for the {\normalfont \ttfamily agnSpectraHopkins2008BuildFile} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily agnSpectraHopkins2008BuildFile} task.
+     !!}
      module procedure agnSpectraHopkins2008BuildFileParameters
   end interface taskAGNSpectraHopkins2008BuildFile
 
 contains
 
   function agnSpectraHopkins2008BuildFileParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily agnSpectraHopkins2008BuildFile} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily agnSpectraHopkins2008BuildFile} task class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(taskAGNSpectraHopkins2008BuildFile)                :: self
@@ -48,9 +56,11 @@ contains
   end function agnSpectraHopkins2008BuildFileParameters
 
   subroutine agnSpectraHopkins2008BuildFilePerform(self,status)
-    !% Builds the tabulation.
+    !!{
+    Builds the tabulation.
+    !!}
     use :: Accretion_Disk_Spectra, only : accretionDiskSpectraHopkins2007
-    use :: Galacticus_Display    , only : Galacticus_Display_Indent      , Galacticus_Display_Unindent
+    use :: Display               , only : displayIndent                  , displayUnindent
     use :: Galacticus_Error      , only : errorStatusSuccess
     implicit none
     class  (taskAGNSpectraHopkins2008BuildFile), intent(inout), target   :: self
@@ -58,15 +68,17 @@ contains
     type   (accretionDiskSpectraHopkins2007   )                          :: accretionDiskSpectra_
     !$GLC attributes unused :: self
 
-    call Galacticus_Display_Indent  ('Begin task: hopkins2007 AGN spectra file build')
+    call displayIndent  ('Begin task: hopkins2007 AGN spectra file build')
     accretionDiskSpectra_=accretionDiskSpectraHopkins2007()
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: hopkins2007 AGN spectra file build')
+    call displayUnindent('Done task: hopkins2007 AGN spectra file build')
     return
   end subroutine agnSpectraHopkins2008BuildFilePerform
 
   logical function agnSpectraHopkins2008BuildFileRequiresOutputFile(self)
-    !% Specifies that this task does not requires the main output file.
+    !!{
+    Specifies that this task does not requires the main output file.
+    !!}
     implicit none
     class(taskAGNSpectraHopkins2008BuildFile), intent(inout) :: self
     !$GLC attributes unused :: self

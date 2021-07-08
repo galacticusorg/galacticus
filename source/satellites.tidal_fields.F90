@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,26 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements calculations of tidal fields acting on satellites.
+!!{
+Contains a module that implements calculations of tidal fields acting on satellites.
+!!}
 
 module Satellites_Tidal_Fields
-  !% Implements calculations of tidal fields acting on satellites.
+  !!{
+  Implements calculations of tidal fields acting on satellites.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
-  !# <functionClass>
-  !#  <name>satelliteTidalField</name>
-  !#  <descriptiveName>Satellite halo tidal field models.</descriptiveName>
-  !#  <description>
-  !#   Class providing models of tidal fields experienced by satellite halos.
-  !#  </description>
-  !#  <default>null</default>
-  !#  <method name="tidalTensorRadial" >
-  !#   <description>Returns the radial component, $\Phi_\mathrm{rr}$, of the tidal tensor, $\Phi_\mathrm{ab}$.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>satelliteTidalField</name>
+   <descriptiveName>Satellite halo tidal field models.</descriptiveName>
+   <description>
+    Class providing models of tidal fields experienced by satellite halos.
+   </description>
+   <default>null</default>
+   <method name="tidalTensorRadial" >
+    <description>Returns the radial component, $\Phi_\mathrm{rr}$, of the tidal tensor, $\Phi_\mathrm{ab}$.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Satellites_Tidal_Fields

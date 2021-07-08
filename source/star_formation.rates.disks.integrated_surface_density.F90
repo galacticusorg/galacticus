@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,24 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a star formation rate in galactic disks which computes the rate by integrating a star formation rate over
-  !% the disk.
+  !!{
+  Implementation of a star formation rate in galactic disks which computes the rate by integrating a star formation rate over
+  the disk.
+  !!}
 
   use :: Star_Formation_Rate_Surface_Density_Disks, only : starFormationRateSurfaceDensityDisksClass
   
-  !# <starFormationRateDisks name="starFormationRateDisksIntgrtdSurfaceDensity">
-  !#  <description>
-  !#   A star formation rate in galactic disks which computes the rate by integrating a star formation rate over the
-  !#   disk. Specifically, the star formation rate is given by
-  !#   \begin{equation}
-  !#    \dot{M}_\star = \int_0^\infty 2 \pi r \dot{\Sigma}_\star(r) \mathrm{d}r,
-  !#   \end{equation}
-  !#   where $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate.
-  !#  </description>
-  !# </starFormationRateDisks>
+  !![
+  <starFormationRateDisks name="starFormationRateDisksIntgrtdSurfaceDensity">
+   <description>
+    A star formation rate in galactic disks which computes the rate by integrating a star formation rate over the
+    disk. Specifically, the star formation rate is given by
+    \begin{equation}
+     \dot{M}_\star = \int_0^\infty 2 \pi r \dot{\Sigma}_\star(r) \mathrm{d}r,
+    \end{equation}
+    where $\dot{\Sigma}_\star(r)$ is the surface density of star formation rate.
+   </description>
+  </starFormationRateDisks>
+  !!]
   type, extends(starFormationRateDisksClass) :: starFormationRateDisksIntgrtdSurfaceDensity
-     !% Implementation of a rate for star formation in galactic disks which computes the rate by integrating a star formation rate
-     !% over the disk.
+     !!{
+     Implementation of a rate for star formation in galactic disks which computes the rate by integrating a star formation rate
+     over the disk.
+     !!}
      private
      class           (starFormationRateSurfaceDensityDisksClass), pointer :: starFormationRateSurfaceDensityDisks_ => null()
      double precision                                                     :: tolerance                                      , starFormationRatePrevious
@@ -44,7 +50,9 @@
   end type starFormationRateDisksIntgrtdSurfaceDensity
 
   interface starFormationRateDisksIntgrtdSurfaceDensity
-     !% Constructors for the {\normalfont \ttfamily intgrtdSurfaceDensity} star formation rate in disks class.
+     !!{
+     Constructors for the {\normalfont \ttfamily intgrtdSurfaceDensity} star formation rate in disks class.
+     !!}
      module procedure intgrtdSurfaceDensityConstructorParameters
      module procedure intgrtdSurfaceDensityConstructorInternal
   end interface starFormationRateDisksIntgrtdSurfaceDensity
@@ -57,8 +65,10 @@
 contains
 
   function intgrtdSurfaceDensityConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily intgrtdSurfaceDensity} star formation rate in disks class which takes a
-    !% parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily intgrtdSurfaceDensity} star formation rate in disks class which takes a
+    parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (starFormationRateDisksIntgrtdSurfaceDensity)                :: self
@@ -66,42 +76,56 @@ contains
     class           (starFormationRateSurfaceDensityDisksClass  ), pointer       :: starFormationRateSurfaceDensityDisks_
     double precision                                                             :: tolerance
 
-    !# <inputParameter>
-    !#   <name>tolerance</name>
-    !#   <defaultValue>1.0d-3</defaultValue>
-    !#   <description>Relative tolerance to use when integrating star formation rate surface densities over the disk.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="starFormationRateSurfaceDensityDisks" name="starFormationRateSurfaceDensityDisks_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>tolerance</name>
+      <defaultValue>1.0d-3</defaultValue>
+      <description>Relative tolerance to use when integrating star formation rate surface densities over the disk.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="starFormationRateSurfaceDensityDisks" name="starFormationRateSurfaceDensityDisks_" source="parameters"/>
+    !!]
     self=starFormationRateDisksIntgrtdSurfaceDensity(tolerance,starFormationRateSurfaceDensityDisks_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="starFormationRateSurfaceDensityDisks_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="starFormationRateSurfaceDensityDisks_"/>
+    !!]
     return
   end function intgrtdSurfaceDensityConstructorParameters
 
   function intgrtdSurfaceDensityConstructorInternal(tolerance,starFormationRateSurfaceDensityDisks_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily intgrtdSurfaceDensity} star formation rate in disks class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily intgrtdSurfaceDensity} star formation rate in disks class.
+    !!}
     implicit none
     type            (starFormationRateDisksIntgrtdSurfaceDensity)                        :: self
     double precision                                             , intent(in   )         :: tolerance
     class           (starFormationRateSurfaceDensityDisksClass  ), intent(in   ), target :: starFormationRateSurfaceDensityDisks_
-    !# <constructorAssign variables="tolerance, *starFormationRateSurfaceDensityDisks_"/>
+    !![
+    <constructorAssign variables="tolerance, *starFormationRateSurfaceDensityDisks_"/>
+    !!]
 
     return
   end function intgrtdSurfaceDensityConstructorInternal
 
   subroutine intgrtdSurfaceDensityDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily intgrtdSurfaceDensity} star formation rate in disks class.
+    !!{
+    Destructor for the {\normalfont \ttfamily intgrtdSurfaceDensity} star formation rate in disks class.
+    !!}
     implicit none
     type(starFormationRateDisksIntgrtdSurfaceDensity), intent(inout) :: self
 
-    !# <objectDestructor name="self%starFormationRateSurfaceDensityDisks_" />
+    !![
+    <objectDestructor name="self%starFormationRateSurfaceDensityDisks_" />
+    !!]
     return
   end subroutine intgrtdSurfaceDensityDestructor
 
   double precision function intgrtdSurfaceDensityRate(self,node)
-    !% Returns the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the galactic disk of {\normalfont \ttfamily node}, by
-    !% integrating over the surface density of star formation rate.
+    !!{
+    Returns the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the galactic disk of {\normalfont \ttfamily node}, by
+    integrating over the surface density of star formation rate.
+    !!}
     use :: Galacticus_Nodes        , only : nodeComponentDisk, treeNode
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator       , GSL_Integ_Gauss15
@@ -157,7 +181,9 @@ contains
   end function intgrtdSurfaceDensityRate
 
   double precision function intgrtdSurfaceDensityIntegrand(radius)
-    !% Integrand function for the ``integrated surface density'' star formation rate calculation.
+    !!{
+    Integrand function for the ``integrated surface density'' star formation rate calculation.
+    !!}
     implicit none
     double precision, intent(in   ) :: radius
 

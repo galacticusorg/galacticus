@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,16 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a galactic filter class which is the ``all'' combination of a set of other filters.
+!!{
+Contains a module which implements a galactic filter class which is the ``all'' combination of a set of other filters.
+!!}
 
-  !# <galacticFilter name="galacticFilterAll">
-  !#  <description>A galactic filter class which is the ``all'' combination of a set of other filters.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="galacticFilterClass"/>
-  !#  </deepCopy>
-  !# </galacticFilter>
+  !![
+  <galacticFilter name="galacticFilterAll">
+   <description>A galactic filter class which is the ``all'' combination of a set of other filters.</description>
+   <deepCopy>
+    <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="galacticFilterClass"/>
+   </deepCopy>
+   <stateStore>
+    <linkedList type="filterList" variable="filters" next="next" object="filter_"/>
+   </stateStore>
+  </galacticFilter>
+  !!]
   type, extends(galacticFilterClass) :: galacticFilterAll
-     !% A galactic filter class which is the ``all'' combination of a set of other filters.
+     !!{
+     A galactic filter class which is the ``all'' combination of a set of other filters.
+     !!}
      private
      type(filterList), pointer :: filters => null()
   contains
@@ -35,7 +44,9 @@
   end type galacticFilterAll
 
   interface galacticFilterAll
-     !% Constructors for the all galactic filter class.
+     !!{
+     Constructors for the all galactic filter class.
+     !!}
      module procedure allConstructorParameters
      module procedure allConstructorInternal
   end interface galacticFilterAll
@@ -43,7 +54,9 @@
 contains
 
   function allConstructorParameters(parameters) result(self)
-    !% Constructor for the ``all'' galactic filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``all'' galactic filter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (galacticFilterAll)                :: self
@@ -53,7 +66,7 @@ contains
 
     self   %filters => null()
     filter_         => null()
-    do i=1,parameters%copiesCount('galacticFilterMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('galacticFilter',zeroIfNotPresent=.true.)
        if (associated(filter_)) then
           allocate(filter_%next)
           filter_ => filter_%next
@@ -61,13 +74,17 @@ contains
           allocate(self%filters)
           filter_ => self%filters
        end if
-       !# <objectBuilder class="galacticFilter" name="filter_%filter_" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="galacticFilter" name="filter_%filter_" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function allConstructorParameters
 
   function allConstructorInternal(filters) result(self)
-    !% Internal constructor for the ``all'' filter class.
+    !!{
+    Internal constructor for the ``all'' filter class.
+    !!}
     implicit none
     type(galacticFilterAll)                        :: self
     type(filterList       ), target, intent(in   ) :: filters
@@ -76,14 +93,18 @@ contains
     self   %filters => filters
     filter_         => filters
     do while (associated(filter_))
-       !# <referenceCountIncrement owner="filter_" object="filter_"/>
+       !![
+       <referenceCountIncrement owner="filter_" object="filter_"/>
+       !!]
        filter_ => filter_%next
     end do
     return
   end function allConstructorInternal
 
   subroutine allDestructor(self)
-    !% Destructor for the all galactic filter class.
+    !!{
+    Destructor for the all galactic filter class.
+    !!}
     implicit none
     type(galacticFilterAll), intent(inout) :: self
     type(filterList       ), pointer       :: filter_, filterNext
@@ -92,7 +113,9 @@ contains
        filter_ => self%filters
        do while (associated(filter_))
           filterNext => filter_%next
-          !# <objectDestructor name="filter_%filter_"/>
+          !![
+          <objectDestructor name="filter_%filter_"/>
+          !!]
           deallocate(filter_)
           filter_ => filterNext
        end do
@@ -101,7 +124,9 @@ contains
   end subroutine allDestructor
 
   logical function allPasses(self,node)
-    !% Apply a set of filters to a {\normalfont \ttfamily node} combined with ``all'' operations.
+    !!{
+    Apply a set of filters to a {\normalfont \ttfamily node} combined with ``all'' operations.
+    !!}
     implicit none
     class(galacticFilterAll), intent(inout)         :: self
     type (treeNode         ), intent(inout), target :: node

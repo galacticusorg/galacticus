@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,21 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a merger trees analysis class which combines multiple other analyses.
+  !!{
+  Implements a merger trees analysis class which combines multiple other analyses.
+  !!}
 
   type, public :: multiAnalysisList
      class(outputAnalysisClass), pointer :: analysis_
      type (multiAnalysisList  ), pointer :: next      => null()
   end type multiAnalysisList
 
-  !# <outputAnalysis name="outputAnalysisMulti">
-  !#  <description>A merger tree analysis class which combines multiple other analyses.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="multiAnalysisList" variable="analyses" next="next" object="analysis_" objectType="outputAnalysisClass"/>
-  !#  </deepCopy>
-  !# </outputAnalysis>
+  !![
+  <outputAnalysis name="outputAnalysisMulti">
+   <description>A merger tree analysis class which combines multiple other analyses.</description>
+   <deepCopy>
+    <linkedList type="multiAnalysisList" variable="analyses" next="next" object="analysis_" objectType="outputAnalysisClass"/>
+   </deepCopy>
+   <stateStore>
+    <linkedList type="multiAnalysisList" variable="analyses" next="next" object="analysis_"/>
+   </stateStore>
+  </outputAnalysis>
+  !!]
   type, extends(outputAnalysisClass) :: outputAnalysisMulti
-     !% Implementation of a merger tree analysis class which combines multiple other analyses.
+     !!{
+     Implementation of a merger tree analysis class which combines multiple other analyses.
+     !!}
      private
      type(multiAnalysisList), pointer :: analyses => null()
    contains
@@ -44,7 +53,9 @@
   end type outputAnalysisMulti
 
   interface outputAnalysisMulti
-     !% Constructors for the {\normalfont \ttfamily multi} merger tree analysis.
+     !!{
+     Constructors for the {\normalfont \ttfamily multi} merger tree analysis.
+     !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
   end interface outputAnalysisMulti
@@ -52,7 +63,9 @@
 contains
 
   function multiConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily multi} merger tree analysis class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily multi} merger tree analysis class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (outputAnalysisMulti)                :: self
@@ -62,7 +75,7 @@ contains
 
     self      %analyses => null()
     analysis_           => null()
-    do i=1,parameters%copiesCount('outputAnalysisMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('outputAnalysis',zeroIfNotPresent=.true.)
        if (associated(analysis_)) then
           allocate(analysis_%next)
           analysis_ => analysis_%next
@@ -70,13 +83,17 @@ contains
           allocate(self%analyses)
           analysis_ => self%analyses
        end if
-       !# <objectBuilder class="outputAnalysis" name="analysis_%analysis_" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="outputAnalysis" name="analysis_%analysis_" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function multiConstructorParameters
 
   function multiConstructorInternal(analyses) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily multi} analysis class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily multi} analysis class.
+    !!}
     implicit none
     type(outputAnalysisMulti)                        :: self
     type(multiAnalysisList  ), target, intent(in   ) :: analyses
@@ -85,14 +102,18 @@ contains
     self   %analyses => analyses
     analysis_        => analyses
     do while (associated(analysis_))
-       !# <referenceCountIncrement owner="analysis_" object="analysis_"/>
+       !![
+       <referenceCountIncrement owner="analysis_" object="analysis_"/>
+       !!]
        analysis_ => analysis_%next
     end do
     return
   end function multiConstructorInternal
 
   subroutine multiDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily multi} analysis class.
+    !!{
+    Destructor for the {\normalfont \ttfamily multi} analysis class.
+    !!}
     implicit none
     type(outputAnalysisMulti), intent(inout) :: self
     type(multiAnalysisList  ), pointer       :: analysis_, analysisNext
@@ -101,7 +122,9 @@ contains
        analysis_ => self%analyses
        do while (associated(analysis_))
           analysisNext => analysis_%next
-          !# <objectDestructor name="analysis_%analysis_"/>
+          !![
+          <objectDestructor name="analysis_%analysis_"/>
+          !!]
           deallocate(analysis_)
           analysis_ => analysisNext
        end do
@@ -110,7 +133,9 @@ contains
   end subroutine multiDestructor
 
   subroutine multiNewTree(self,tree,iOutput)
-    !% Output from all analyses.
+    !!{
+    Output from all analyses.
+    !!}
     implicit none
     class  (outputAnalysisMulti), intent(inout) :: self
     type   (mergerTree         ), intent(inout) :: tree
@@ -126,7 +151,9 @@ contains
   end subroutine multiNewTree
 
   subroutine multiAnalyze(self,node,iOutput)
-    !% Output from all analyses.
+    !!{
+    Output from all analyses.
+    !!}
     implicit none
     class  (outputAnalysisMulti), intent(inout) :: self
     type   (treeNode           ), intent(inout) :: node
@@ -142,7 +169,9 @@ contains
   end subroutine multiAnalyze
 
   subroutine multiFinalize(self)
-    !% Finalize all analyses.
+    !!{
+    Finalize all analyses.
+    !!}
     implicit none
     class(outputAnalysisMulti), intent(inout) :: self
     type (multiAnalysisList  ), pointer       :: analysis_
@@ -156,7 +185,9 @@ contains
   end subroutine multiFinalize
 
   double precision function multiLogLikelihood(self)
-    !% Find the log-likelihood over all analyses. This asumes that the analyses are independent.
+    !!{
+    Find the log-likelihood over all analyses. This asumes that the analyses are independent.
+    !!}
     implicit none
     class(outputAnalysisMulti), intent(inout) :: self
     type (multiAnalysisList  ), pointer       :: analysis_
@@ -171,7 +202,9 @@ contains
   end function multiLogLikelihood
 
   subroutine multiReduce(self,reduced)
-    !% Reduce over the analysis.
+    !!{
+    Reduce over the analysis.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(outputAnalysisMulti), intent(inout) :: self

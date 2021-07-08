@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,48 +17,64 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements functions utilizing \gls{mangle} survey geometry definitions.
+!!{
+Contains a module which implements functions utilizing \gls{mangle} survey geometry definitions.
+!!}
 
 module Geometry_Mangle
-  !% Implements functions utilizing \gls{mangle} survey geometry definitions.
+  !!{
+  Implements functions utilizing \gls{mangle} survey geometry definitions.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   private
   public :: geometryMangleSolidAngle, geometryMangleAngularPower, &
        &    window
 
   type :: cap
-     !% A class to hold \gls{mangle} caps.
+     !!{
+     A class to hold \gls{mangle} caps.
+     !!}
      double precision, dimension(3) :: x
      double precision               :: c
    contains
-     !# <methods>
-     !#   <method description="Return true if the given point lives inside the {\normalfont \scshape mangle} cap." method="pointIncluded" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return true if the given point lives inside the {\normalfont \scshape mangle} cap." method="pointIncluded" />
+     </methods>
+     !!]
     procedure :: pointIncluded => capPointIncluded
   end type cap
 
   type :: polygon
-     !% A class to hold \gls{mangle} polygons.
+     !!{
+     A class to hold \gls{mangle} polygons.
+     !!}
      integer                                          :: capCount
      double precision                                 :: weight  , solidAngle
      type            (cap), dimension(:), allocatable :: caps
    contains
-     !# <methods>
-     !#   <method description="Return true if the given point lives inside the {\normalfont \scshape mangle} polygon." method="pointIncluded" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return true if the given point lives inside the {\normalfont \scshape mangle} polygon." method="pointIncluded" />
+     </methods>
+     !!]
      procedure :: pointIncluded => polygonPointIncluded
   end type polygon
 
   type :: window
-     !% A class to hold \gls{mangle} windows.
+     !!{
+     A class to hold \gls{mangle} windows.
+     !!}
      integer                                           :: polygonCount
      type   (polygon      ), dimension(:), allocatable :: polygons
      integer(kind=c_size_t), dimension(:), allocatable :: solidAngleIndex
    contains
-     !# <methods>
-     !#   <method description="Read the specified {\normalfont \scshape mangle} polygon file."                        method="read"         />
-     !#   <method description="Return true if the given point lives inside the {\normalfont \scshape mangle} window." method="pointIncluded"/>
-     !# </methods>
+     !![
+     <methods>
+       <method description="Read the specified {\normalfont \scshape mangle} polygon file."                        method="read"         />
+       <method description="Return true if the given point lives inside the {\normalfont \scshape mangle} window." method="pointIncluded"/>
+     </methods>
+     !!]
      procedure :: read          => windowRead
      procedure :: pointIncluded => windowPointIncluded
   end type window
@@ -66,13 +82,15 @@ module Geometry_Mangle
 contains
 
   subroutine windowRead(self,fileName)
-    !% Read a \gls{mangle} window definition from file.
-    use :: Galacticus_Display, only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Message, &
-          &                           Galacticus_Display_Unindent
+    !!{
+    Read a \gls{mangle} window definition from file.
+    !!}
+    use :: Display           , only : displayCounter         , displayCounterClear, displayIndent, displayMessage, &
+          &                           displayUnindent
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)              , operator(//)                    , operator(==)             , varying_string
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)       , operator(==) , varying_string
     use :: Sorting           , only : sortIndex
-    use :: String_Handling   , only : String_Split_Words         , operator(//)
+    use :: String_Handling   , only : String_Split_Words     , operator(//)
     implicit none
     class           (window        ), intent(inout)              :: self
     character       (len=*         ), intent(in   )              :: fileName
@@ -85,7 +103,7 @@ contains
 
     ! Open and parse the file.
     message='Reading mangle window from: '//trim(fileName)
-    call Galacticus_Display_Indent(message)
+    call displayIndent(message)
     open(newUnit=fileUnit,file=fileName,status='old',form='formatted')
     ! Retrieve count of number of polygons.
     self%polygonCount=-1
@@ -95,13 +113,13 @@ contains
     end do
     message='found '
     message=message//self%polygonCount//' polygons'
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
      allocate(self%polygons       (self%polygonCount))
     allocate(solidAngle          (self%polygonCount))
     allocate(self%solidAngleIndex(self%polygonCount))
     ! Read each polygon.
     do i=1,self%polygonCount
-       call Galacticus_Display_Counter(int(100.0d0*dble(i-1)/dble(self%polygonCount)),isNew=(i==1))
+       call displayCounter(int(100.0d0*dble(i-1)/dble(self%polygonCount)),isNew=(i==1))
        ioStatus=0
        do while (ioStatus == 0)
           read (fileUnit,'(a)',iostat=ioStatus) line
@@ -122,17 +140,19 @@ contains
                &            self%polygons(i)%caps(j)%c
        end do
     end do
-    call Galacticus_Display_Counter_Clear()
+    call displayCounterClear()
     close(fileUnit)
     ! Get a sorted index of polygon solid angles.
     self%solidAngleIndex=sortIndex(solidAngle)
     deallocate(solidAngle)
-    call Galacticus_Display_Unindent('done')
+    call displayUnindent('done')
     return
   end subroutine windowRead
 
   logical function windowPointIncluded(self,point)
-    !% Return true if the given Cartesian point lies inside a \gls{mangle} window, i.e. if it lies within any polygon of the window.
+    !!{
+    Return true if the given Cartesian point lies inside a \gls{mangle} window, i.e. if it lies within any polygon of the window.
+    !!}
     implicit none
     class           (window), intent(inout)               :: self
     double precision        , intent(in   ), dimension(3) :: point
@@ -150,7 +170,9 @@ contains
   end function windowPointIncluded
 
   logical function polygonPointIncluded(self,point)
-    !% Return true if a given Cartesian point lies within a \gls{mangle} polygon, i.e. lies within \emph{all} of the polygons caps.
+    !!{
+    Return true if a given Cartesian point lies within a \gls{mangle} polygon, i.e. lies within \emph{all} of the polygons caps.
+    !!}
     implicit none
     class           (polygon), intent(inout)               :: self
     double precision         , intent(in   ), dimension(3) :: point
@@ -165,7 +187,9 @@ contains
   end function polygonPointIncluded
 
   logical function capPointIncluded(self,point)
-    !% Return true if a given Cartesian point lies within a \gls{mangle} cap.
+    !!{
+    Return true if a given Cartesian point lies within a \gls{mangle} cap.
+    !!}
     use :: Vectors, only : Vector_Magnitude
     implicit none
     class           (cap), intent(inout)               :: self
@@ -184,7 +208,9 @@ contains
   end function capPointIncluded
 
   subroutine geometryMangleBuild()
-    !% Download and build the \textsc{mangle} code.
+    !!{
+    Download and build the \textsc{mangle} code.
+    !!}
     use :: File_Utilities    , only : Directory_Make         , File_Exists
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic
@@ -211,7 +237,9 @@ contains
   end subroutine geometryMangleBuild
 
  function geometryMangleSolidAngle(fileNames,solidAngleFileName)
-    !% Compute the solid angle of a \textsc{mangle} geometry.
+    !!{
+    Compute the solid angle of a \textsc{mangle} geometry.
+    !!}
     use :: File_Utilities          , only : File_Exists            , File_Name_Temporary
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Galacticus_Paths        , only : galacticusPath         , pathTypeDataDynamic
@@ -285,7 +313,9 @@ contains
   end function geometryMangleSolidAngle
 
   function geometryMangleAngularPower(fileNames,degreeMaximum,angularPowerFileName)
-    !% Compute the angular power spectra of a \textsc{mangle} geometry.
+    !!{
+    Compute the angular power spectra of a \textsc{mangle} geometry.
+    !!}
     use :: File_Utilities    , only : File_Exists            , File_Name_Temporary
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic

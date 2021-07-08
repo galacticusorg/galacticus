@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,14 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements the standard class for evolving merger trees.
+  !!{
+  Implements the standard class for evolving merger trees.
+  !!}
 
-  use :: Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
-  use :: Galactic_Structure_Solvers, only : galacticStructureSolver , galacticStructureSolverClass
+  use :: Cosmology_Functions       , only : cosmologyFunctions        , cosmologyFunctionsClass
+  use :: Galactic_Structure_Solvers, only : galacticStructureSolver   , galacticStructureSolverClass
   use :: Galacticus_Nodes          , only : treeNode
   use :: Kind_Numbers              , only : kind_int8
-  use :: Merger_Tree_Timesteps     , only : mergerTreeEvolveTimestep, mergerTreeEvolveTimestepClass
-  use :: Merger_Trees_Evolve_Node  , only : mergerTreeNodeEvolver   , mergerTreeNodeEvolverClass
+  use :: Merger_Tree_Initialization, only : mergerTreeInitializorClass
+  use :: Merger_Tree_Timesteps     , only : mergerTreeEvolveTimestep  , mergerTreeEvolveTimestepClass
+  use :: Merger_Trees_Evolve_Node  , only : mergerTreeNodeEvolver     , mergerTreeNodeEvolverClass
 
   ! Structure used to store list of nodes for deadlock reporting.
   type :: deadlockList
@@ -34,95 +37,102 @@
      type   (varying_string)          :: lockType
   end type deadlockList
 
-  !# <mergerTreeEvolver name="mergerTreeEvolverStandard">
-  !#  <description>
-  !#   The standard merger tree evolver. Each merger tree forest is evolved by repeatedly walking the
-  !#   trees and evolving each node forward in time by some timestep $\Delta t$. Nodes are evolved
-  !#   individually such that nodes in different branches of a tree may have reached different cosmic
-  !#   times at any given point in the execution of \glc. Each node is evolved over the interval
-  !#   $\Delta t$ using an adaptive \gls{ode} solver, which adjusts the smaller timesteps, $\delta
-  !#   t$, taken in evolving the system of \glspl{ode} to maintain a specified precision.
-  !#   
-  !#   The choice of $\Delta t$ then depends on other considerations. For example, a node should not
-  !#   be evolved beyond the time at which it is due to merge with another galaxy. Also, we typically
-  !#   don't want satellite nodes to evolve too far ahead of their host node, such that any
-  !#   interactions between satellite and host occur (near) synchronously.
-  !#   
-  !#   The following timestep criteria ensure that tree evolution occurs in a way which correctly
-  !#   preserves tree structure and ordering of interactions between \glspl{node}. All criteria are
-  !#   considered and the largest $\Delta t$ consistent with all criteria is selected.
-  !#   
-  !#   \begin{description}
-  !#    \item[Branch segment criterion] For \glspl{node} which are the \gls{primary progenitor} of
-  !#    their \gls{parent}, the ``branch segment'' criterion asserts that
-  !#     \begin{equation}
-  !#      \Delta t \le t_\mathrm{parent} - t
-  !#     \end{equation}
-  !#    where $t$ is current time in the \gls{node} and $t_\mathrm{parent}$ is the time of the
-  !#    \gls{parent} \gls{node}. This ensures that \gls{primary progenitor} \glspl{node} to not evolve
-  !#    beyond the time at which their \gls{parent} (which they will replace) exists.  If this
-  !#    criterion is the limiting criteria for $\Delta t$ then the \gls{node} will be promoted to
-  !#    replace its \gls{parent} at the end of the timestep.
-  !#   
-  !#    \item[Parent criterion] For \glspl{node} which are satellites in a hosting \gls{node} the
-  !#    ``\gls{parent}'' timestep criterion asserts that
-  !#     \begin{eqnarray}
-  !#      \Delta t &amp;\le&amp; t_\mathrm{host}, \\
-  !#      \Delta t &amp;\le&amp; \epsilon_\mathrm{host} (a/\dot{a}),
-  !#     \end{eqnarray}
-  !#    where $t_\mathrm{host}=${\normalfont \ttfamily [timestepHostAbsolute]},
-  !#    $\epsilon_\mathrm{host}=${\normalfont \ttfamily [timestepHostRelative]}, and $a$ is expansion
-  !#    factor. These criteria are intended to prevent a satellite for evolving too far ahead of the
-  !#    host node before the host is allowed to ``catch up''.
-  !#   
-  !#    \item[Satellite criterion] For \glspl{node} which host satellite \glspl{node}, the
-  !#    ``satellite'' criterion asserts that
-  !#     \begin{equation}
-  !#      \Delta t \le \hbox{min}(t_\mathrm{satellite}) - t,
-  !#     \end{equation}
-  !#    where $t$ is the time of the host \gls{node} and $t_\mathrm{satellite}$ are the times of all
-  !#    satellite \glspl{node} in the host. This criterion prevents a host from evolving ahead of any
-  !#    satellites.
-  !#   
-  !#    \item[Sibling criterion] For \glspl{node} which are \glspl{primary progenitor}, the
-  !#    ``sibling'' criterion asserts that
-  !#     \begin{equation}
-  !#      \Delta t \le \hbox{min}(t_\mathrm{sibling}) - t,
-  !#     \end{equation}
-  !#    where $t$ is the time of the host \gls{node} and $t_\mathrm{sibling}$ are the times of all
-  !#    siblings of the \gls{node}. This criterion prevents a \gls{node} from reaching its
-  !#    \gls{parent} (and being promoted to replace it) before all of its siblings have reach the
-  !#    \gls{parent} and have become satellites within it.
-  !#   
-  !#    \item[Mergee criterion] For \glspl{node} with \gls{mergee} \glspl{node}, the ``\gls{mergee}''
-  !#    criterion asserts that
-  !#     \begin{equation}
-  !#      \Delta t \le \hbox{min}(t_\mathrm{merge}) - t,
-  !#     \end{equation}
-  !#    where $t$ is the time of the host \gls{node} and $t_\mathrm{merge}$ are the times at which
-  !#    the \glspl{mergee} will merge. This criterion prevents a \gls{node} from evolving past the
-  !#    time at which a merger event takes place.
-  !#   \end{description}
-  !#   </description>
-  !# </mergerTreeEvolver>
+  !![
+  <mergerTreeEvolver name="mergerTreeEvolverStandard">
+   <description>
+    The standard merger tree evolver. Each merger tree forest is evolved by repeatedly walking the
+    trees and evolving each node forward in time by some timestep $\Delta t$. Nodes are evolved
+    individually such that nodes in different branches of a tree may have reached different cosmic
+    times at any given point in the execution of \glc. Each node is evolved over the interval
+    $\Delta t$ using an adaptive \gls{ode} solver, which adjusts the smaller timesteps, $\delta
+    t$, taken in evolving the system of \glspl{ode} to maintain a specified precision.
+    
+    The choice of $\Delta t$ then depends on other considerations. For example, a node should not
+    be evolved beyond the time at which it is due to merge with another galaxy. Also, we typically
+    don't want satellite nodes to evolve too far ahead of their host node, such that any
+    interactions between satellite and host occur (near) synchronously.
+    
+    The following timestep criteria ensure that tree evolution occurs in a way which correctly
+    preserves tree structure and ordering of interactions between \glspl{node}. All criteria are
+    considered and the largest $\Delta t$ consistent with all criteria is selected.
+    
+    \begin{description}
+     \item[Branch segment criterion] For \glspl{node} which are the \gls{primary progenitor} of
+     their \gls{parent}, the ``branch segment'' criterion asserts that
+      \begin{equation}
+       \Delta t \le t_\mathrm{parent} - t
+      \end{equation}
+     where $t$ is current time in the \gls{node} and $t_\mathrm{parent}$ is the time of the
+     \gls{parent} \gls{node}. This ensures that \gls{primary progenitor} \glspl{node} to not evolve
+     beyond the time at which their \gls{parent} (which they will replace) exists.  If this
+     criterion is the limiting criteria for $\Delta t$ then the \gls{node} will be promoted to
+     replace its \gls{parent} at the end of the timestep.
+    
+     \item[Parent criterion] For \glspl{node} which are satellites in a hosting \gls{node} the
+     ``\gls{parent}'' timestep criterion asserts that
+      \begin{eqnarray}
+       \Delta t &amp;\le&amp; t_\mathrm{host}, \\
+       \Delta t &amp;\le&amp; \epsilon_\mathrm{host} (a/\dot{a}),
+      \end{eqnarray}
+     where $t_\mathrm{host}=${\normalfont \ttfamily [timestepHostAbsolute]},
+     $\epsilon_\mathrm{host}=${\normalfont \ttfamily [timestepHostRelative]}, and $a$ is expansion
+     factor. These criteria are intended to prevent a satellite for evolving too far ahead of the
+     host node before the host is allowed to ``catch up''.
+    
+     \item[Satellite criterion] For \glspl{node} which host satellite \glspl{node}, the
+     ``satellite'' criterion asserts that
+      \begin{equation}
+       \Delta t \le \hbox{min}(t_\mathrm{satellite}) - t,
+      \end{equation}
+     where $t$ is the time of the host \gls{node} and $t_\mathrm{satellite}$ are the times of all
+     satellite \glspl{node} in the host. This criterion prevents a host from evolving ahead of any
+     satellites.
+    
+     \item[Sibling criterion] For \glspl{node} which are \glspl{primary progenitor}, the
+     ``sibling'' criterion asserts that
+      \begin{equation}
+       \Delta t \le \hbox{min}(t_\mathrm{sibling}) - t,
+      \end{equation}
+     where $t$ is the time of the host \gls{node} and $t_\mathrm{sibling}$ are the times of all
+     siblings of the \gls{node}. This criterion prevents a \gls{node} from reaching its
+     \gls{parent} (and being promoted to replace it) before all of its siblings have reach the
+     \gls{parent} and have become satellites within it.
+    
+     \item[Mergee criterion] For \glspl{node} with \gls{mergee} \glspl{node}, the ``\gls{mergee}''
+     criterion asserts that
+      \begin{equation}
+       \Delta t \le \hbox{min}(t_\mathrm{merge}) - t,
+      \end{equation}
+     where $t$ is the time of the host \gls{node} and $t_\mathrm{merge}$ are the times at which
+     the \glspl{mergee} will merge. This criterion prevents a \gls{node} from evolving past the
+     time at which a merger event takes place.
+    \end{description}
+    </description>
+  </mergerTreeEvolver>
+  !!]
   type, extends(mergerTreeEvolverClass) :: mergerTreeEvolverStandard
-     !% Implementation of the standars merger tree evolver.
+     !!{
+     Implementation of the standars merger tree evolver.
+     !!}
      private
      class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_              => null()
      class           (mergerTreeEvolveTimestepClass), pointer :: mergerTreeEvolveTimestep_        => null()
      class           (galacticStructureSolverClass ), pointer :: galacticStructureSolver_         => null()
      class           (mergerTreeNodeEvolverClass   ), pointer :: mergerTreeNodeEvolver_           => null()
+     class           (mergerTreeInitializorClass   ), pointer :: mergerTreeInitializor_           => null()
      logical                                                  :: allTreesExistAtFinalTime                  , dumpTreeStructure    , &
           &                                                      backtrackToSatellites
      double precision                                         :: timestepHostAbsolute                      , timestepHostRelative , &
           &                                                      fractionTimestepSatelliteMinimum
      type            (deadlockList                 ), pointer :: deadlockHeadNode                 => null()
    contains
-     !# <methods>
-     !#   <method description="Find the time to which a node can be evolved." method="timeEvolveTo" />
-     !#   <method description="Add a node to the deadlock list." method="deadlockAddNode" />
-     !#   <method description="Output a description of a deadlocked tree." method="deadlockOutputTree" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Find the time to which a node can be evolved." method="timeEvolveTo" />
+       <method description="Add a node to the deadlock list." method="deadlockAddNode" />
+       <method description="Output a description of a deadlocked tree." method="deadlockOutputTree" />
+     </methods>
+     !!]
      final     ::                       standardDestructor
      procedure :: evolve             => standardEvolve
      procedure :: timeEvolveTo       => standardTimeEvolveTo
@@ -131,7 +141,9 @@
   end type mergerTreeEvolverStandard
 
   interface mergerTreeEvolverStandard
-     !% Constructors for the {\normalfont \ttfamily standard} merger tree evolver.
+     !!{
+     Constructors for the {\normalfont \ttfamily standard} merger tree evolver.
+     !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
   end interface mergerTreeEvolverStandard
@@ -139,7 +151,9 @@
 contains
 
   function standardConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily standard} merger tree evolver class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily standard} merger tree evolver class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeEvolverStandard    )                :: self
@@ -148,104 +162,125 @@ contains
     class           (mergerTreeEvolveTimestepClass), pointer       :: mergerTreeEvolveTimestep_
     class           (galacticStructureSolverClass ), pointer       :: galacticStructureSolver_
     class           (mergerTreeNodeEvolverClass   ), pointer       :: mergerTreeNodeEvolver_
+    class           (mergerTreeInitializorClass   ), pointer       :: mergerTreeInitializor_
     logical                                                        :: allTreesExistAtFinalTime        , dumpTreeStructure         , &
          &                                                            backtrackToSatellites
     double precision                                               :: timestepHostRelative            , timestepHostAbsolute      , &
          &                                                            fractionTimestepSatelliteMinimum
 
-    !# <inputParameter>
-    !#   <name>allTreesExistAtFinalTime</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether or not all merger trees are expected to exist at the final requested output time. If set to false,
-    !#      then trees which finish before a given output time will be ignored.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>dumpTreeStructure</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Specifies whether merger tree structure should be dumped to a \href{http://www.graphviz.org/}{\normalfont \scshape dot} file.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>timestepHostRelative</name>
-    !#   <defaultValue>0.1d0</defaultValue>
-    !#   <description>The maximum allowed relative timestep for node evolution relative to the time of the host halo.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>timestepHostAbsolute</name>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The maximum allowed absolute timestep (in Gyr) for node evolution relative to the time of the host halo.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>fractionTimestepSatelliteMinimum</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The minimum fraction of the timestep imposed by the ``satellite in host'' criterion to evolve over. If the timestep allowed is smaller than this fraction, the actual timestep will be reduced to zero. This avoids forcing satellites to take a large number of very small timesteps, and instead defers evolving a satellite until a large timestep can be taken.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>backtrackToSatellites</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, after successfully evolving a node with satellites, revisit the satellites and attempt to evolve them again.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>allTreesExistAtFinalTime</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Specifies whether or not all merger trees are expected to exist at the final requested output time. If set to false,
+         then trees which finish before a given output time will be ignored.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>dumpTreeStructure</name>
+      <defaultValue>.false.</defaultValue>
+      <description>Specifies whether merger tree structure should be dumped to a \href{http://www.graphviz.org/}{\normalfont \scshape dot} file.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>timestepHostRelative</name>
+      <defaultValue>0.1d0</defaultValue>
+      <description>The maximum allowed relative timestep for node evolution relative to the time of the host halo.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>timestepHostAbsolute</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The maximum allowed absolute timestep (in Gyr) for node evolution relative to the time of the host halo.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>fractionTimestepSatelliteMinimum</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The minimum fraction of the timestep imposed by the ``satellite in host'' criterion to evolve over. If the timestep allowed is smaller than this fraction, the actual timestep will be reduced to zero. This avoids forcing satellites to take a large number of very small timesteps, and instead defers evolving a satellite until a large timestep can be taken.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>backtrackToSatellites</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, after successfully evolving a node with satellites, revisit the satellites and attempt to evolve them again.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     ! A galacticStructureSolver is built here. Even though this is not called explicitly by this mergerTreeEvolver, the
     ! galacticStructureSolver is expected to hook itself to any events which will trigger a change in galactic structure.
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="mergerTreeEvolveTimestep" name="mergerTreeEvolveTimestep_" source="parameters"/>
-    !# <objectBuilder class="galacticStructureSolver"  name="galacticStructureSolver_"  source="parameters"/>
-    !# <objectBuilder class="mergerTreeNodeEvolver"    name="mergerTreeNodeEvolver_"    source="parameters"/>
-    self=mergerTreeEvolverStandard(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,galacticStructureSolver_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"      />
-    !# <objectDestructor name="mergerTreeEvolveTimestep_"/>
-    !# <objectDestructor name="mergerTreeNodeEvolver_"   />
-    !# <objectDestructor name="galacticStructureSolver_" />
+    !![
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="mergerTreeEvolveTimestep" name="mergerTreeEvolveTimestep_" source="parameters"/>
+    <objectBuilder class="galacticStructureSolver"  name="galacticStructureSolver_"  source="parameters"/>
+    <objectBuilder class="mergerTreeNodeEvolver"    name="mergerTreeNodeEvolver_"    source="parameters"/>
+    <objectBuilder class="mergerTreeInitializor"    name="mergerTreeInitializor_"    source="parameters"/>
+    !!]
+    self=mergerTreeEvolverStandard(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_)
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="mergerTreeEvolveTimestep_"/>
+    <objectDestructor name="mergerTreeNodeEvolver_"   />
+    <objectDestructor name="galacticStructureSolver_" />
+    <objectDestructor name="mergerTreeInitializor_"   />
+    !!]
     return
   end function standardConstructorParameters
 
-  function standardConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,galacticStructureSolver_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily standard} merger tree evolver class.
+  function standardConstructorInternal(allTreesExistAtFinalTime,dumpTreeStructure,timestepHostRelative,timestepHostAbsolute,fractionTimestepSatelliteMinimum,backtrackToSatellites,cosmologyFunctions_,mergerTreeNodeEvolver_,mergerTreeEvolveTimestep_,mergerTreeInitializor_,galacticStructureSolver_) result(self)
+    !!{
+    Internal constructor for the {\normalfont \ttfamily standard} merger tree evolver class.
+    !!}
     implicit none
     type            (mergerTreeEvolverStandard    )                        :: self
     class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
     class           (mergerTreeEvolveTimestepClass), intent(in   ), target :: mergerTreeEvolveTimestep_
     class           (galacticStructureSolverClass ), intent(in   ), target :: galacticStructureSolver_
     class           (mergerTreeNodeEvolverClass   ), intent(in   ), target :: mergerTreeNodeEvolver_
+    class           (mergerTreeInitializorClass   ), intent(in   ), target :: mergerTreeInitializor_
     logical                                        , intent(in   )         :: allTreesExistAtFinalTime        , dumpTreeStructure   , &
          &                                                                    backtrackToSatellites
     double precision                               , intent(in   )         :: timestepHostRelative            , timestepHostAbsolute, &
          &                                                                    fractionTimestepSatelliteMinimum
-    !# <constructorAssign variables="allTreesExistAtFinalTime, dumpTreeStructure, timestepHostRelative, timestepHostAbsolute, fractionTimestepSatelliteMinimum, backtrackToSatellites, *cosmologyFunctions_, *mergerTreeNodeEvolver_, *mergerTreeEvolveTimestep_, *galacticStructureSolver_"/>
+    !![
+    <constructorAssign variables="allTreesExistAtFinalTime, dumpTreeStructure, timestepHostRelative, timestepHostAbsolute, fractionTimestepSatelliteMinimum, backtrackToSatellites, *cosmologyFunctions_, *mergerTreeNodeEvolver_, *mergerTreeEvolveTimestep_, *mergerTreeInitializor_, *galacticStructureSolver_"/>
+    !!]
 
     self%deadlockHeadNode => null()
     return
   end function standardConstructorInternal
 
   subroutine standardDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily standard}m erger tree evolver class.
+    !!{
+    Destructor for the {\normalfont \ttfamily standard}m erger tree evolver class.
+    !!}
     implicit none
     type(mergerTreeEvolverStandard), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"      />
-    !# <objectDestructor name="self%mergerTreeEvolveTimestep_"/>
-    !# <objectDestructor name="self%galacticStructureSolver_" />
-    !# <objectDestructor name="self%mergerTreeNodeEvolver_"   />
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"      />
+    <objectDestructor name="self%mergerTreeEvolveTimestep_"/>
+    <objectDestructor name="self%galacticStructureSolver_" />
+    <objectDestructor name="self%mergerTreeNodeEvolver_"   />
+    <objectDestructor name="self%mergerTreeInitializor_"   />
+    !!]
     return
   end subroutine standardDestructor
 
   subroutine standardEvolve(self,tree,timeEnd,treeDidEvolve,suspendTree,deadlockReporting,systemClockMaximum,initializationLock,status)
-    !% Evolves all properties of a merger tree to the specified time.
-    use    :: Galacticus_Display                 , only : Galacticus_Display_Indent   , Galacticus_Display_Message        , Galacticus_Display_Unindent, Galacticus_Verbosity_Level
+    !!{
+    Evolves all properties of a merger tree to the specified time.
+    !!}
+    use    :: Display                            , only : displayIndent               , displayMessage                    , displayUnindent          , displayVerbosity           , &
+         &                                                displayGreen                , displayReset
     use    :: Galacticus_Error                   , only : Galacticus_Error_Report     , errorStatusSuccess
-    use    :: Galacticus_Nodes                   , only : interruptTask               , mergerTree                        , nodeComponentBasic         , nodeEvent                  , &
+    use    :: Galacticus_Nodes                   , only : interruptTask               , mergerTree                        , nodeComponentBasic       , nodeEvent                  , &
           &                                               nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, treeNode
     use    :: Merger_Tree_Timesteps              , only : timestepTask
     use    :: Merger_Tree_Walkers                , only : mergerTreeWalkerAllNodes
     use    :: Merger_Trees_Dump                  , only : Merger_Tree_Dump
-    use    :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsDeadlocked  , deadlockStatusIsNotDeadlocked     , deadlockStatusIsReporting  , deadlockStatusIsSuspendable
-    use    :: Merger_Trees_Initialize            , only : Merger_Tree_Initialize
+    use    :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsDeadlocked  , deadlockStatusIsNotDeadlocked     , deadlockStatusIsReporting, deadlockStatusIsSuspendable
     !$ use :: OMP_Lib                            , only : OMP_Set_Lock                , OMP_Unset_Lock                    , omp_lock_kind
     use    :: String_Handling                    , only : operator(//)
     implicit none
@@ -295,7 +330,7 @@ contains
        if (associated(currentTree%baseNode)) then
           ! Initialize the tree if necessary.
           !$ if (present(initializationLock)) call OMP_Set_Lock  (initializationLock)
-          call Merger_Tree_Initialize(currentTree,timeEnd)
+          call self%mergerTreeInitializor_%initialize(currentTree,timeEnd)
           !$ if (present(initializationLock)) call OMP_Unset_Lock(initializationLock)
           ! Check that the output time is not after the end time of this tree.
           basicBase => currentTree%baseNode%basic()
@@ -306,10 +341,10 @@ contains
                 if (self%allTreesExistAtFinalTime) then
                    ! It is not, write an error and exit.
                    vMessage='requested time exceeds the final time in the tree'//char(10)
-                   vMessage=vMessage//' HELP: If you expect that not all trees will exist at the latest requested'//char(10)
-                   vMessage=vMessage//'       output time (this can happen when using trees extracted from N-body'//char(10)
-                   vMessage=vMessage//'       simulations for example) set the following in your input parameter file:'//char(10)//char(10)
-                   vMessage=vMessage//'         <allTreesExistAtFinalTime value="false" />'//char(10)
+                   vMessage=vMessage//displayGreen()//' HELP:'//displayReset()//' If you expect that not all trees will exist at the latest requested'//char(10)
+                   vMessage=vMessage//                                         '       output time (this can happen when using trees extracted from N-body'//char(10)
+                   vMessage=vMessage//                                         '       simulations for example) set the following in your input parameter file:'//char(10)//char(10)
+                   vMessage=vMessage//                                         '         <allTreesExistAtFinalTime value="false" />'//char(10)
                    call Galacticus_Error_Report(vMessage//{introspection:location})
                 end if
              else
@@ -327,11 +362,11 @@ contains
                       write (label,'(e24.16)') event%time
                       vMessage=vMessage//'      event time: '//trim(label)//' Gyr'//char(10)
                       vMessage=vMessage//'      event ID  : '//event%ID           //char(10)
-                      vMessage=vMessage//' HELP: if you are reading merger trees from file and are attempting to'//char(10)
-                      vMessage=vMessage//'       output at a "snapshot time" consider setting:'                  //char(10)
-                      vMessage=vMessage//'           <mergerTreeReadOutputTimeSnapTolerance value="1.0e-3"/>'    //char(10)
-                      vMessage=vMessage//'       or similar in your parameter file to ensure that nodes exist'   //char(10)
-                      vMessage=vMessage//'       precisely at the output times you request'
+                      vMessage=vMessage//displayGreen()//' HELP:'//displayReset()//' if you are reading merger trees from file and are attempting to'//char(10)
+                      vMessage=vMessage//                                          '       output at a "snapshot time" consider setting:'                  //char(10)
+                      vMessage=vMessage//                                          '           <mergerTreeReadOutputTimeSnapTolerance value="1.0e-3"/>'    //char(10)
+                      vMessage=vMessage//                                          '       or similar in your parameter file to ensure that nodes exist'   //char(10)
+                      vMessage=vMessage//                                          '       precisely at the output times you request'
                       call Galacticus_Error_Report(vMessage//{introspection:location})
                    end if
                    event => event%next
@@ -392,7 +427,7 @@ contains
        ! Enter loop for deadlock reporting.
        deadlock : do while (statusDeadlock /= deadlockStatusIsNotDeadlocked)
           ! Post a deadlocking message.
-          if (statusDeadlock == deadlockStatusIsReporting) call Galacticus_Display_Indent("Deadlock report follows")
+          if (statusDeadlock == deadlockStatusIsReporting) call displayIndent("Deadlock report follows")
           ! Iterate through all trees.
           currentTree => tree
           treesLoop: do while (associated(currentTree))
@@ -406,7 +441,7 @@ contains
                 if (statusDeadlock == deadlockStatusIsReporting) then
                    vMessage="tree "
                    vMessage=vMessage//currentTree%index
-                   call Galacticus_Display_Indent(vMessage)
+                   call displayIndent(vMessage)
                 end if
                 ! Point to the base of the tree.
                 node => currentTree%baseNode
@@ -501,9 +536,9 @@ contains
                             vMessage=vMessage//node%index()//" (current:target times = "//label
                             write (label,'(e12.6)') timeEnd
                             vMessage=vMessage//":"//label//")"
-                            call Galacticus_Display_Indent(vMessage)
+                            call displayIndent(vMessage)
                             timeEndThisNode=self%timeEvolveTo(node,timeEnd,timestepTask_,timestepSelf,report=.true. ,nodeLock=nodeLock,lockType=lockType)
-                            call Galacticus_Display_Unindent("end node")
+                            call displayUnindent("end node")
                             call self%deadlockAddNode(node,currentTree%index,nodeLock,lockType)
                          else
                             timeEndThisNode=self%timeEvolveTo(node,timeEnd,timestepTask_,timestepSelf,report=.false.                                    )
@@ -584,8 +619,8 @@ contains
                          vMessage=vMessage//node%index()//" (current:target times = "//label
                          write (label,'(e12.6)') timeEnd
                          vMessage=vMessage//":"//label//")"
-                         call Galacticus_Display_Indent(vMessage)
-                         call Galacticus_Display_Unindent("end node")
+                         call displayIndent(vMessage)
+                         call displayUnindent("end node")
                          ! Determine why this node could not be evolved. We check the "has child" condition first as it's the only
                          ! one that provides additional connection between nodes, so leads to the most informative deadlock graph.
                          if      (associated(node%firstChild)) then
@@ -636,10 +671,12 @@ contains
                 end do treeWalkLoop
                 ! Output tree progress information.
                 if (treeWalkCount > int(treeWalkCountPreviousOutput*1.1d0)+1) then
-                   if (Galacticus_Verbosity_Level() >= verbosityLevel) then
-                      !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-                      !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
-                      !# </workaround>
+                   if (displayVerbosity() >= verbosityLevel) then
+                      !![
+                      <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+                       <description>Internal file I/O in gfortran can be non-thread safe.</description>
+                      </workaround>
+                      !!]
 #ifdef THREADSAFEIO
                       !$omp critical(gfortranInternalIO)
 #endif
@@ -647,7 +684,7 @@ contains
 #ifdef THREADSAFEIO
                       !$omp end critical(gfortranInternalIO)
 #endif
-                      call Galacticus_Display_Indent(message,verbosityLevel)
+                      call displayIndent(message,verbosityLevel)
 #ifdef THREADSAFEIO
                       !$omp critical(gfortranInternalIO)
 #endif
@@ -655,7 +692,7 @@ contains
 #ifdef THREADSAFEIO
                       !$omp end critical(gfortranInternalIO)
 #endif
-                      call Galacticus_Display_Message(message,verbosityLevel)
+                      call displayMessage(message,verbosityLevel)
 #ifdef THREADSAFEIO
                       !$omp critical(gfortranInternalIO)
 #endif
@@ -663,7 +700,7 @@ contains
 #ifdef THREADSAFEIO
                       !$omp end critical(gfortranInternalIO)
 #endif
-                      call Galacticus_Display_Message(message,verbosityLevel)
+                      call displayMessage(message,verbosityLevel)
 #ifdef THREADSAFEIO
                       !$omp critical(gfortranInternalIO)
 #endif
@@ -671,13 +708,13 @@ contains
 #ifdef THREADSAFEIO
                       !$omp end critical(gfortranInternalIO)
 #endif
-                      call Galacticus_Display_Message(message,verbosityLevel)
-                      call Galacticus_Display_Unindent('done',verbosityLevel)
+                      call displayMessage(message,verbosityLevel)
+                      call displayUnindent('done',verbosityLevel)
                       treeWalkCountPreviousOutput=treeWalkCount
                    end if
                 end if
                 ! Report on current tree if deadlocked.
-                if (statusDeadlock == deadlockStatusIsReporting) call Galacticus_Display_Unindent('end tree')
+                if (statusDeadlock == deadlockStatusIsReporting) call displayUnindent('end tree')
              end if
              ! Move to the next tree.
              currentTree => currentTree%nextTree
@@ -687,7 +724,7 @@ contains
           ! Check deadlocking.
           if (didEvolve .and. statusDeadlock /= deadlockStatusIsNotDeadlocked) then
              if (statusDeadlock == deadlockStatusIsReporting) then
-                call Galacticus_Display_Unindent("report done")
+                call displayUnindent("report done")
                 call self%deadlockOutputTree(timeEnd)
                 if (.not.deadlockReporting) then
                    call Galacticus_Error_Report('merger tree appears to be deadlocked (see preceding report) - check timestep criteria'//{introspection:location})
@@ -717,12 +754,14 @@ contains
   end subroutine standardEvolve
 
   recursive function standardTimeEvolveTo(self,node,timeEnd,timestepTask_,timestepSelf,report,nodeLock,lockType) result(evolveToTime)
-    !% Determine the time to which {\normalfont \ttfamily node} should be evolved.
+    !!{
+    Determine the time to which {\normalfont \ttfamily node} should be evolved.
+    !!}
+    use :: Display               , only : displayIndent                     , displayMessage        , displayUnindent, verbosityLevelInfo
     use :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
-    use :: Galacticus_Display    , only : Galacticus_Display_Indent         , Galacticus_Display_Message, Galacticus_Display_Unindent, verbosityInfo
     use :: Galacticus_Error      , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes      , only : nodeComponentBasic                , nodeComponentSatellite    , nodeEvent                  , nodeEventBranchJumpInterTree, &
-          &                               nodeEventSubhaloPromotionInterTree, treeEvent                 , treeNode
+    use :: Galacticus_Nodes      , only : nodeComponentBasic                , nodeComponentSatellite, nodeEvent      , nodeEventBranchJumpInterTree, &
+          &                               nodeEventSubhaloPromotionInterTree, treeEvent             , treeNode
     use :: Merger_Tree_Timesteps , only : timestepTask
     use :: String_Handling       , only : operator(//)
     implicit none
@@ -810,8 +849,8 @@ contains
     ! Return early if the timestep is already zero.
     if (evolveToTime == timeNode) return
     ! Also ensure that the timestep taken does not exceed the allowed timestep for this specific node.
-    if (report) call Galacticus_Display_Indent("timestepping criteria")
-    evolveToTimeStep=self%mergerTreeEvolveTimestep_%timeEvolveTo(node,timestepTaskInternal,timestepSelf,report,nodeLock,lockType)
+    if (report) call displayIndent("timestepping criteria")
+    evolveToTimeStep=self%mergerTreeEvolveTimestep_%timeEvolveTo(evolveToTime,node,timestepTaskInternal,timestepSelf,report,nodeLock,lockType)
     if (evolveToTimeStep <= evolveToTime) then
        evolveToTime  =  evolveToTimeStep
        timestepTask_ => timestepTaskInternal
@@ -819,7 +858,7 @@ contains
        timestepTask_ => null()
        timestepSelf  => null()
     end if
-    if (report) call Galacticus_Display_Unindent("done")
+    if (report) call displayUnindent("done")
     if (evolveToTime == timeNode) return
     ! Ensure that this node is not evolved beyond the time of any of its current satellites.
     nodeSatellite => node%firstSatellite
@@ -960,7 +999,7 @@ contains
        else
           ! End time is before current time, but only by a small amount, simply reset the current time to the end time.
           message=message//' Gyr) - this should happen infrequently'
-          call Galacticus_Display_Message(message,verbosityInfo)
+          call displayMessage(message,verbosityLevelInfo)
           call basic%timeSet(evolveToTime)
        end if
     end if
@@ -968,7 +1007,9 @@ contains
   end function standardTimeEvolveTo
 
   subroutine standardDeadlockAddNode(self,node,treeIndex,nodeLock,lockType)
-    !% Add a node to the deadlocked nodes list.
+    !!{
+    Add a node to the deadlocked nodes list.
+    !!}
     implicit none
     class  (mergerTreeEvolverStandard), intent(inout)          :: self
     type   (treeNode                 ), intent(in   ), target  :: nodeLock        , node
@@ -997,7 +1038,9 @@ contains
   end subroutine standardDeadlockAddNode
 
   subroutine standardDeadlockOutputTree(self,timeEnd)
-    !% Output the deadlocked nodes in {\normalfont \ttfamily dot} format.
+    !!{
+    Output the deadlocked nodes in {\normalfont \ttfamily dot} format.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     use :: String_Handling , only : operator(//)
     implicit none
@@ -1113,7 +1156,9 @@ contains
   end subroutine standardDeadlockOutputTree
 
   subroutine standardNodeEventsPerform(self,tree,node,statusDeadlock)
-    !% Perform any events associated with {\normalfont \ttfamily node}.
+    !!{
+    Perform any events associated with {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : mergerTree, nodeComponentBasic, nodeEvent, treeNode
     implicit none
     class           (*                 ), intent(inout)          :: self
@@ -1173,7 +1218,9 @@ contains
   end subroutine standardNodeEventsPerform
 
   subroutine standardTreeEventsPerform(tree,statusDeadlock)
-    !% Perform any events associated with {\normalfont \ttfamily tree}.
+    !!{
+    Perform any events associated with {\normalfont \ttfamily tree}.
+    !!}
     use :: Galacticus_Nodes, only : mergerTree, treeEvent
     implicit none
     type            (mergerTree), intent(inout), target  :: tree

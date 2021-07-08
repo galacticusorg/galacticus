@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,26 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class of merger tree mass resolutions.
+!!{
+Contains a module which provides a class of merger tree mass resolutions.
+!!}
 
 module Merger_Trees_Build_Mass_Resolution
-  !% Provides a class of merger tree mass resolutions.
+  !!{
+  Provides a class of merger tree mass resolutions.
+  !!}
   use :: Galacticus_Nodes, only : mergerTree
   private
 
-  !# <functionClass>
-  !#  <name>mergerTreeMassResolution</name>
-  !#  <descriptiveName>Merger Tree Building Mass Resolutions</descriptiveName>
-  !#  <description>
-  !#   Class providing mass resolutions to use when building merger trees.
-  !#  </description>
-  !#  <default>fixed</default>
-  !#  <method name="resolution" >
-  !#   <description>Gives the mass resolution to use for the given tree.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(mergerTree), intent(in   ) :: tree</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>mergerTreeMassResolution</name>
+   <descriptiveName>Merger Tree Building Mass Resolutions</descriptiveName>
+   <description>
+    Class providing mass resolutions to use when building merger trees.
+   </description>
+   <default>fixed</default>
+   <method name="resolution" >
+    <description>Gives the mass resolution to use for the given tree.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(mergerTree), intent(in   ) :: tree</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Merger_Trees_Build_Mass_Resolution

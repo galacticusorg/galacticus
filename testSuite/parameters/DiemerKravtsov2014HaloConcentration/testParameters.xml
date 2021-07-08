@@ -3,41 +3,5 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <cosmologyFunctionsMethod value="matterLambda"/>
-  <cosmologyParametersMethod value="simple">
-    <OmegaMatter value="0.2743"/>
-    <OmegaDarkEnergy value="0.7257"/>
-    <OmegaBaryon value="0.0458"/>
-    <HubbleConstant value="70.2"/>
-  </cosmologyParametersMethod>
-  <cosmologicalMassVarianceMethod value="filteredPower">
-    <sigma_8 value="0.816"/>
-  </cosmologicalMassVarianceMethod>
-  <transferFunctionMethod value="eisensteinHu1999"/>
-  <powerSpectrumPrimordialMethod value="powerLaw">
-    <index value="0.968"/>
-  </powerSpectrumPrimordialMethod>
-  <criticalOverdensityMethod value="fixed">
-    <criticalOverdensity value="1.686"/>
-  </criticalOverdensityMethod>
-  <nodeOperatorMethod value="multi"><!--Stellar feedback outflows-->
-    <nodeOperatorMethod value="stellarFeedbackDisks">
-      <stellarFeedbackOutflowsMethod value="rateLimit">
-        <timescaleOutflowFractionalMinimum value="0.001"/>
-        <stellarFeedbackOutflowsMethod value="powerLaw">
-          <velocityCharacteristic value="250.0"/>
-          <exponent value="3.5"/>
-        </stellarFeedbackOutflowsMethod>
-      </stellarFeedbackOutflowsMethod>
-    </nodeOperatorMethod>
-    <nodeOperatorMethod value="stellarFeedbackSpheroids">
-      <stellarFeedbackOutflowsMethod value="rateLimit">
-        <timescaleOutflowFractionalMinimum value="0.001"/>
-        <stellarFeedbackOutflowsMethod value="powerLaw">
-          <velocityCharacteristic value="250.0"/>
-          <exponent value="3.5"/>
-        </stellarFeedbackOutflowsMethod>
-      </stellarFeedbackOutflowsMethod>
-    </nodeOperatorMethod>
-  </nodeOperatorMethod>
+  <componentBasic value="standard"/>
 </parameters>

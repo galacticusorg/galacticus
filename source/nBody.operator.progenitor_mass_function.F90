@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which computes progenitor mass functions.
+!!{
+Contains a module which implements an N-body data operator which computes progenitor mass functions.
+!!}
 
-  use, intrinsic :: ISO_C_Binding       , only : c_size_t
   use            :: Cosmology_Parameters, only : cosmologyParametersClass
+  use, intrinsic :: ISO_C_Binding       , only : c_size_t
 
-  !# <nbodyOperator name="nbodyOperatorProgenitorMassFunction">
-  !#  <description>An N-body data operator which computes progenitor mass functions.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorProgenitorMassFunction">
+   <description>An N-body data operator which computes progenitor mass functions.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorProgenitorMassFunction
-     !% An N-body data operator which computes progenitor mass functions.
+     !!{
+     An N-body data operator which computes progenitor mass functions.
+     !!}
      private
      class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_       => null()
      integer         (c_size_t                ), allocatable, dimension(:) :: snapshotsProgenitors
@@ -42,7 +48,9 @@
   end type nbodyOperatorProgenitorMassFunction
 
   interface nbodyOperatorProgenitorMassFunction
-     !% Constructors for the ``progenitorMassFunction'' N-body operator class.
+     !!{
+     Constructors for the ``progenitorMassFunction'' N-body operator class.
+     !!}
      module procedure progenitorMassFunctionConstructorParameters
      module procedure progenitorMassFunctionConstructorInternal
   end interface nbodyOperatorProgenitorMassFunction
@@ -50,7 +58,9 @@
 contains
 
   function progenitorMassFunctionConstructorParameters(parameters) result (self)
-    !% Constructor for the ``progenitorMassFunction'' N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``progenitorMassFunction'' N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyOperatorProgenitorMassFunction)                              :: self
@@ -64,71 +74,79 @@ contains
     type            (varying_string                     )                              :: simulationReference       , simulationURL                    , &
          &                                                                                description
 
-    !# <inputParameter>
-    !#   <name>massParentMinimum</name>
-    !#   <source>parameters</source>
-    !#   <description>The minimum parent mass to consider.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massParentMaximum</name>
-    !#   <source>parameters</source>
-    !#   <description>The maximum parent mass to consider.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massParentCountPerDecade</name>
-    !#   <source>parameters</source>
-    !#   <description>The number of bins per decade of parent mass.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massRatioProgenitorMinimum</name>
-    !#   <source>parameters</source>
-    !#   <description>The minimum mass ratio to consider.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massRatioProgenitorMaximum</name>
-    !#   <source>parameters</source>
-    !#   <description>The maximum mass ratio to consider.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massRatioProgenitorCountPerDecade</name>
-    !#   <source>parameters</source>
-    !#   <description>The number of bins per decade of mass ratio.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>snapshotParents</name>
-    !#   <source>parameters</source>
-    !#   <description>The snapshot at which to select parent halos.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>massParentMinimum</name>
+      <source>parameters</source>
+      <description>The minimum parent mass to consider.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massParentMaximum</name>
+      <source>parameters</source>
+      <description>The maximum parent mass to consider.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massParentCountPerDecade</name>
+      <source>parameters</source>
+      <description>The number of bins per decade of parent mass.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massRatioProgenitorMinimum</name>
+      <source>parameters</source>
+      <description>The minimum mass ratio to consider.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massRatioProgenitorMaximum</name>
+      <source>parameters</source>
+      <description>The maximum mass ratio to consider.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massRatioProgenitorCountPerDecade</name>
+      <source>parameters</source>
+      <description>The number of bins per decade of mass ratio.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>snapshotParents</name>
+      <source>parameters</source>
+      <description>The snapshot at which to select parent halos.</description>
+    </inputParameter>
+    !!]
     allocate(snapshotsProgenitors(parameters%count('snapshotsProgenitors')))
-    !# <inputParameter>
-    !#   <name>snapshotsProgenitors</name>
-    !#   <source>parameters</source>
-    !#   <description>The snapshots at which to select progenitor halos.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>description</name>
-    !#   <source>parameters</source>
-    !#   <description>A description of this mass function.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>simulationReference</name>
-    !#   <source>parameters</source>
-    !#   <description>A reference for the simulation.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>simulationURL</name>
-    !#   <source>parameters</source>
-    !#   <description>A URL for the simulation.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>snapshotsProgenitors</name>
+      <source>parameters</source>
+      <description>The snapshots at which to select progenitor halos.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>description</name>
+      <source>parameters</source>
+      <description>A description of this mass function.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>simulationReference</name>
+      <source>parameters</source>
+      <description>A reference for the simulation.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>simulationURL</name>
+      <source>parameters</source>
+      <description>A URL for the simulation.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !!]
     self=nbodyOperatorProgenitorMassFunction(massParentMinimum,massParentMaximum,massParentCountPerDecade,massRatioProgenitorMinimum,massRatioProgenitorMaximum,massRatioProgenitorCountPerDecade,snapshotParents,snapshotsProgenitors,description,simulationReference,simulationURL,cosmologyParameters_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    !!]
     return
   end function progenitorMassFunctionConstructorParameters
 
   function progenitorMassFunctionConstructorInternal(massParentMinimum,massParentMaximum,massParentCountPerDecade,massRatioProgenitorMinimum,massRatioProgenitorMaximum,massRatioProgenitorCountPerDecade,snapshotParents,snapshotsProgenitors,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
-    !% Internal constructor for the ``progenitorMassFunction'' N-body operator class.
+    !!{
+    Internal constructor for the ``progenitorMassFunction'' N-body operator class.
+    !!}
     implicit none
     type            (nbodyOperatorProgenitorMassFunction)                              :: self
     double precision                                     , intent(in   )               :: massParentMinimum         , massParentMaximum                , &
@@ -139,34 +157,42 @@ contains
          &                                                                                description
     integer         (c_size_t                           ), intent(in   ), dimension(:) :: snapshotsProgenitors
     class           (cosmologyParametersClass           ), intent(in   ), target       :: cosmologyParameters_
-    !# <constructorAssign variables="massParentMinimum, massParentMaximum, massParentCountPerDecade, massRatioProgenitorMinimum, massRatioProgenitorMaximum, massRatioProgenitorCountPerDecade, snapshotParents, snapshotsProgenitors, description, simulationReference, simulationURL, *cosmologyParameters_"/>
+    !![
+    <constructorAssign variables="massParentMinimum, massParentMaximum, massParentCountPerDecade, massRatioProgenitorMinimum, massRatioProgenitorMaximum, massRatioProgenitorCountPerDecade, snapshotParents, snapshotsProgenitors, description, simulationReference, simulationURL, *cosmologyParameters_"/>
+    !!]
 
     return
   end function progenitorMassFunctionConstructorInternal
   
   subroutine progenitorMassFunctionDestructor(self)
-    !% Destructor for the ``progenitorMassFunction'' N-body operator class.
+    !!{
+    Destructor for the ``progenitorMassFunction'' N-body operator class.
+    !!}
     implicit none
     type(nbodyOperatorProgenitorMassFunction), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    !!]
     return
   end subroutine progenitorMassFunctionDestructor
 
   subroutine progenitorMassFunctionOperate(self,simulations)
-    !% Compute mass functions of particles.
-    !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num
-    use    :: Galacticus_Display, only : Galacticus_Display_Indent , Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                               Galacticus_Display_Message, verbosityStandard
-    use    :: IO_HDF5           , only : hdf5Access                , hdf5Object
-    use    :: ISO_Varying_String, only : var_str
-    use    :: Numerical_Ranges  , only : Make_Range                , rangeTypeLogarithmic
-    use    :: Dates_and_Times   , only : Formatted_Date_and_Time
-    use    :: Sorting           , only : sort
+    !!{
+    Compute mass functions of particles.
+    !!}
     use    :: Arrays_Search     , only : searchArray
+    use    :: Dates_and_Times   , only : Formatted_Date_and_Time
+    use    :: Display           , only : displayCounter         , displayCounterClear   , displayIndent, displayMessage, &
+          &                              displayUnindent        , verbosityLevelStandard
+    use    :: IO_HDF5           , only : hdf5Access             , hdf5Object
+    use    :: ISO_Varying_String, only : var_str
 #ifdef USEMPI
     use    :: MPI_Utilities     , only : mpiSelf
 #endif
+    use    :: Numerical_Ranges  , only : Make_Range             , rangeTypeLogarithmic
+    !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num
+    use    :: Sorting           , only : sort
     implicit none
     class           (nbodyOperatorProgenitorMassFunction), intent(inout)                   :: self
     type            (nBodyData                          ), intent(inout), dimension(:    ) :: simulations
@@ -191,7 +217,7 @@ contains
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Indent('compute progenitor mass function',verbosityStandard)
+       call displayIndent('compute progenitor mass function',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif
@@ -214,7 +240,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Message(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityStandard)
+       call displayMessage(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityLevelStandard)
 #ifdef USEMPI
        end if
 #endif
@@ -289,7 +315,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Counter(0,.true.)
+          call displayCounter(0,.true.)
 #ifdef USEMPI
        end if
 #endif
@@ -325,7 +351,7 @@ contains
 #ifdef USEMPI
           if (mpiSelf%isMaster()) then
 #endif
-             call Galacticus_Display_Counter(                                      &
+             call displayCounter(                                      &
                   &                          int(                                  &
                   &                              +100.0d0                          &
                   &                              *float(i                       )  &
@@ -342,7 +368,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Counter_Clear()
+          call displayCounterClear()
 #ifdef USEMPI
        end if
 #endif
@@ -398,7 +424,7 @@ contains
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Unindent('done',verbosityStandard)
+       call displayUnindent('done',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif

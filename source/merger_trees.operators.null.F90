@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,26 +17,36 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a null operator on merger trees.
+!!{
+Contains a module which implements a null operator on merger trees.
+!!}
 
-  !# <mergerTreeOperator name="mergerTreeOperatorNull">
-  !#  <description>Provides a null operator on merger trees.</description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorNull">
+   <description>Provides a null operator on merger trees.</description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorNull
-     !% A null merger tree operator class.
+     !!{
+     A null merger tree operator class.
+     !!}
      private
    contains
   end type mergerTreeOperatorNull
 
   interface mergerTreeOperatorNull
-     !% Constructors for the null merger tree operator class.
+     !!{
+     Constructors for the null merger tree operator class.
+     !!}
      module procedure nullConstructorParameters
   end interface mergerTreeOperatorNull
 
 contains
 
   function nullConstructorParameters(parameters)
-    !% Constructor for the null merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the null merger tree operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeOperatorNull)                :: nullConstructorParameters

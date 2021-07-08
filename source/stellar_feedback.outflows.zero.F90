@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a zero rate stellar feedback model.
+  !!{
+  Implementation of a zero rate stellar feedback model.
+  !!}
 
-  !# <stellarFeedbackOutflows name="stellarFeedbackOutflowsZero">
-  !#  <description>A zero rate stellar feedback model.</description>
-  !# </stellarFeedbackOutflows>
+  !![
+  <stellarFeedbackOutflows name="stellarFeedbackOutflowsZero">
+   <description>A zero rate stellar feedback model.</description>
+  </stellarFeedbackOutflows>
+  !!]
   type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsZero
-     !% Implementation of a zero rate stellar feedback model.
+     !!{
+     Implementation of a zero rate stellar feedback model.
+     !!}
      private
    contains
      procedure :: outflowRate => zeroOutflowRate
   end type stellarFeedbackOutflowsZero
 
   interface stellarFeedbackOutflowsZero
-     !% Constructors for the zero rate stellar feedback model.
+     !!{
+     Constructors for the zero rate stellar feedback model.
+     !!}
      module procedure zeroConstructorParameters
   end interface stellarFeedbackOutflowsZero
 
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !% Constructor for the stellar feedback class which takes a parameter set as input.
+    !!{
+    Constructor for the stellar feedback class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(stellarFeedbackOutflowsZero)                :: self
@@ -49,7 +59,9 @@ contains
   end function zeroConstructorParameters
 
   subroutine zeroOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
-    !% Returns a zero outflow rate from disks
+    !!{
+    Returns a zero outflow rate from disks
+    !!}
     implicit none
     class           (stellarFeedbackOutflowsZero), intent(inout) :: self
     class           (nodeComponent              ), intent(inout) :: component

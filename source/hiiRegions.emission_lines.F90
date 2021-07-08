@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,7 +19,9 @@
 
 !+    Contributions to this file made by:  Alex Merson.
 
-!% Contains a module that provides functions for emission line calculations.
+!!{
+Contains a module that provides functions for emission line calculations.
+!!}
 
 module HII_Region_Emission_Lines
   use :: ISO_Varying_String, only : varying_string
@@ -34,7 +36,9 @@ module HII_Region_Emission_Lines
 contains
 
   double precision function emissionLineWavelength(lineName)
-    !% Return the wavelength of a named emission line.
+    !!{
+    Return the wavelength of a named emission line.
+    !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : operator(==)
     implicit none
@@ -56,10 +60,12 @@ contains
   end function emissionLineWavelength
 
   subroutine emissionLineDatabaseInitialize()
-    !% Initialize a database of emission line properties.
+    !!{
+    Initialize a database of emission line properties.
+    !!}
     use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataStatic
     use :: IO_HDF5           , only : hdf5Object    , hdf5Access
-    use :: ISO_Varying_String, only : char
+    use :: ISO_Varying_String, only : char          , operator(==)
     implicit none
     type   (hdf5Object) :: file   , lines, &
          &                 dataset
@@ -74,9 +80,13 @@ contains
           call lines%datasets(lineNames)
           allocate(wavelengths(size(lineNames)))
           do i=1,size(lineNames)
-             dataset=lines%openDataset(char(lineNames(i)))
-             call dataset%readAttribute("wavelength",wavelengths(i))
-             call dataset%close        (                           )
+             if (lineNames(i) == "status") then
+                wavelengths(i)=-1.0d0
+             else
+                dataset=lines%openDataset(char(lineNames(i)))
+                call dataset%readAttribute("wavelength",wavelengths(i))
+                call dataset%close        (                           )
+             end if
           end do
           call lines%close()
           call file %close()

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements dumping of the structure of a merger tree to a file for plotting with \href{http://www.graphviz.org/}{\normalfont \scshape dot}.
+!!{
+Contains a module which implements dumping of the structure of a merger tree to a file for plotting with \href{http://www.graphviz.org/}{\normalfont \scshape dot}.
+!!}
 
 module Merger_Trees_Dump
-  !% Implements dumping of the structure of a merger tree to a file for plotting with \href{http://www.graphviz.org/}{\normalfont \scshape dot}.
+  !!{
+  Implements dumping of the structure of a merger tree to a file for plotting with \href{http://www.graphviz.org/}{\normalfont \scshape dot}.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   use            :: Kind_Numbers , only : kind_int8
   implicit none
@@ -35,10 +39,12 @@ contains
 
   subroutine Merger_Tree_Dump(tree,highlightNodes,backgroundColor,nodeColor,edgeColor,highlightColor,nodeStyle&
        &,highlightStyle ,edgeStyle ,labelNodes,labelUnique,scaleNodesByLogMass,edgeLengthsToTimes,timeRange,path)
-    !% Dumps the tree structure to a file in a format suitable for processing with \href{http://www.graphviz.org/}{\normalfont \scshape dot}. Nodes
-    !% are shown as circles if isolated or rectangles if satellites. Isolated nodes are connected to their descendent halo, while
-    !% satellites are connected (by red lines) to their host halo. Optionally, a list of node indices to highlight can be
-    !% specified.
+    !!{
+    Dumps the tree structure to a file in a format suitable for processing with \href{http://www.graphviz.org/}{\normalfont \scshape dot}. Nodes
+    are shown as circles if isolated or rectangles if satellites. Isolated nodes are connected to their descendent halo, while
+    satellites are connected (by red lines) to their host halo. Optionally, a list of node indices to highlight can be
+    specified.
+    !!}
     use :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
     use :: ISO_Varying_String , only : assignment(=)           , char              , operator(//), trim, &
           &                            varying_string

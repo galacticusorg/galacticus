@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,27 +19,32 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-!% Contains a module that provides a class to perform calculations of the mass loss rate due to tidal stripping for satellites.
+!!{
+Contains a module that provides a class to perform calculations of the mass loss rate due to tidal stripping for satellites.
+!!}
 
 module Satellite_Tidal_Stripping
-  !% Provides a class to perform calculations of the mass loss rate due to tidal stripping for satellites.
+  !!{
+  Provides a class to perform calculations of the mass loss rate due to tidal stripping for satellites.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
-  !# <functionClass>
-  !#  <name>satelliteTidalStripping</name>
-  !#  <descriptiveName>Tidal stripping models for satellites.</descriptiveName>
-  !#  <description>
-  !#   Class providing models of tidal stripping for satellites.
-  !#  </description>
-  !#  <default>zentner2005</default>
-  !#  <calculationReset>yes</calculationReset>
-  !#  <method name="massLossRate" >
-  !#   <description>Returns the rate of tidal mass loss for {\normalfont \ttfamily node} (in units of $M_\odot$/Gyr).</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>satelliteTidalStripping</name>
+   <descriptiveName>Tidal stripping models for satellites.</descriptiveName>
+   <description>
+    Class providing models of tidal stripping for satellites.
+   </description>
+   <default>zentner2005</default>
+   <method name="massLossRate" >
+    <description>Returns the rate of tidal mass loss for {\normalfont \ttfamily node} (in units of $M_\odot$/Gyr).</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Satellite_Tidal_Stripping

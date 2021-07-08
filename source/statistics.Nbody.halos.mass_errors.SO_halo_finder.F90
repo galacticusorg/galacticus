@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body dark matter halo mass error class which
-!% implements a model for errors in spherical overdensity halo finders.
+!!{
+Contains a module which implements an N-body dark matter halo mass error class which
+implements a model for errors in spherical overdensity halo finders.
+!!}
 
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScale , darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
 
-  !# <nbodyHaloMassError name="nbodyHaloMassErrorSOHaloFinder">
-  !#  <description>An N-body dark matter halo mass error class which implements a model for errors in spherical overdensity halo finders.</description>
-  !# </nbodyHaloMassError>
+  !![
+  <nbodyHaloMassError name="nbodyHaloMassErrorSOHaloFinder">
+   <description>An N-body dark matter halo mass error class which implements a model for errors in spherical overdensity halo finders.</description>
+  </nbodyHaloMassError>
+  !!]
   type, extends(nbodyHaloMassErrorClass) :: nbodyHaloMassErrorSOHaloFinder
-     !% An N-body halo mass error class which implements a model for errors in spherical
-     !% overdensity halo finders.
+     !!{
+     An N-body halo mass error class which implements a model for errors in spherical
+     overdensity halo finders.
+     !!}
      private
      double precision                                     :: massParticle
      class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
@@ -40,7 +46,9 @@
   end type nbodyHaloMassErrorSOHaloFinder
 
   interface nbodyHaloMassErrorSOHaloFinder
-     !% Constructors for the {\normalfont \ttfamily soHaloFinder} N-body halo mass error class.
+     !!{
+     Constructors for the {\normalfont \ttfamily soHaloFinder} N-body halo mass error class.
+     !!}
      module procedure soHaloFinderParameters
      module procedure soHaloFinderInternal
   end interface nbodyHaloMassErrorSOHaloFinder
@@ -48,7 +56,9 @@
 contains
 
   function soHaloFinderParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily soHaloFinder} N-body halo mass error class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily soHaloFinder} N-body halo mass error class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyHaloMassErrorSOHaloFinder)                :: self
@@ -58,44 +68,58 @@ contains
     double precision                                                :: massParticle
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>massParticle</name>
-    !#   <source>parameters</source>
-    !#   <description>Mass of particle in the simulation to which the spherical overdensity algorithm was applied.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>massParticle</name>
+      <source>parameters</source>
+      <description>Mass of particle in the simulation to which the spherical overdensity algorithm was applied.</description>
+    </inputParameter>
+    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !!]
     self=nbodyHaloMassErrorSOHaloFinder(darkMatterHaloScale_,darkMatterProfileDMO_,massParticle)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_" />
-    !# <objectDestructor name="darkMatterProfileDMO_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_" />
+    <objectDestructor name="darkMatterProfileDMO_"/>
+    !!]
     return
   end function soHaloFinderParameters
 
   function soHaloFinderInternal(darkMatterHaloScale_,darkMatterProfileDMO_,massParticle) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily soHaloFinder} N-body halo mass error class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily soHaloFinder} N-body halo mass error class.
+    !!}
     implicit none
     type            (nbodyHaloMassErrorSOHaloFinder)                        :: self
     class           (darkMatterHaloScaleClass      ), target, intent(in   ) :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass     ), target, intent(in   ) :: darkMatterProfileDMO_
     double precision                                        , intent(in   ) :: massParticle
-    !# <constructorAssign variables="*darkMatterHaloScale_, *darkMatterProfileDMO_, massParticle"/>
+    !![
+    <constructorAssign variables="*darkMatterHaloScale_, *darkMatterProfileDMO_, massParticle"/>
+    !!]
 
     return
   end function soHaloFinderInternal
 
   subroutine soHaloFinderDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily soHaloFinder} N-body halo mass error class.
+    !!{
+    Destructor for the {\normalfont \ttfamily soHaloFinder} N-body halo mass error class.
+    !!}
     implicit none
     type(nbodyHaloMassErrorSOHaloFinder), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_" />
-    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_" />
+    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !!]
     return
   end subroutine soHaloFinderDestructor
 
   double precision function soHaloFinderErrorFractional(self,node)
-    !% Return the fractional error on the mass of an N-body halo in the power-law error model.
+    !!{
+    Return the fractional error on the mass of an N-body halo in the power-law error model.
+    !!}
     use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -144,7 +168,9 @@ contains
   end function soHaloFinderErrorFractional
 
   double precision function soHaloFinderCorrelation(self,node1,node2)
-    !% Return the correlation of the masses of a pair of N-body halos.
+    !!{
+    Return the correlation of the masses of a pair of N-body halos.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(nbodyHaloMassErrorSOHaloFinder), intent(inout) :: self

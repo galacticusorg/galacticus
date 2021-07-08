@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,20 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test mass distributions.
+!!{
+Contains a program to test mass distributions.
+!!}
 
 program Test_Mass_Distributions
-  !% Tests mass distributions.
-  use :: Coordinates             , only : assignment(=)                 , coordinateSpherical
+  !!{
+  Tests mass distributions.
+  !!}
+  use :: Coordinates             , only : assignment(=)              , coordinateSpherical
+  use :: Display                 , only : displayVerbositySet        , verbosityLevelStandard
   use :: Error_Functions         , only : Error_Function
-  use :: Galacticus_Display      , only : Galacticus_Verbosity_Level_Set, verbosityStandard
   use :: Galacticus_Error        , only : Galacticus_Error_Report
-  use :: Linear_Algebra          , only : vector                        , assignment(=)
-  use :: Mass_Distributions      , only : massDistributionBetaProfile   , massDistributionClass          , massDistributionHernquist        , massDistributionSersic, &
-          &                               massDistributionSpherical     , massDistributionExponentialDisk, massDistributionGaussianEllipsoid
+  use :: Linear_Algebra          , only : assignment(=)              , vector
+  use :: Mass_Distributions      , only : massDistributionBetaProfile, massDistributionClass , massDistributionExponentialDisk, massDistributionGaussianEllipsoid, &
+          &                               massDistributionHernquist  , massDistributionSersic, massDistributionSpherical
   use :: Numerical_Constants_Math, only : Pi
   use :: Tensors                 , only : assignment(=)
-  use :: Unit_Tests              , only : Assert                        , Unit_Tests_Begin_Group         , Unit_Tests_End_Group             , Unit_Tests_Finish
+  use :: Unit_Tests              , only : Assert                     , Unit_Tests_Begin_Group, Unit_Tests_End_Group           , Unit_Tests_Finish
   implicit none
   class           (massDistributionClass)                             , allocatable :: massDistribution_                                                                                            , massDistributionRotated
   integer                                , parameter                                :: sersicTableCount          =8
@@ -53,7 +57,7 @@ program Test_Mass_Distributions
   type            (vector               ), dimension(:  )             , allocatable :: axes
   
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Mass distributions")
 

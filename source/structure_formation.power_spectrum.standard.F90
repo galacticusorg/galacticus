@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a linear theory power spectrum class in which the power spectrum is just the transferred
-!% primordial power spectrum correctly normalized to $z=0$.
+!!{
+Contains a module which implements a linear theory power spectrum class in which the power spectrum is just the transferred
+primordial power spectrum correctly normalized to $z=0$.
+!!}
 
   use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceClass
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredClass
 
-  !# <powerSpectrum name="powerSpectrumStandard">
-  !#  <description>Provides a linear theory power spectrum class in which the power spectrum is just the transferred primordial power spectrum correctly normalized to $z=0$.</description>
-  !# </powerSpectrum>
+  !![
+  <powerSpectrum name="powerSpectrumStandard">
+   <description>Provides a linear theory power spectrum class in which the power spectrum is just the transferred primordial power spectrum correctly normalized to $z=0$.</description>
+  </powerSpectrum>
+  !!]
   type, extends(powerSpectrumClass) :: powerSpectrumStandard
-     !% A linear theory power spectrum class in which the power spectrum is just the transferred primordial power spectrum
-     !% correctly normalized to $z=0$.
+     !!{
+     A linear theory power spectrum class in which the power spectrum is just the transferred primordial power spectrum
+     correctly normalized to $z=0$.
+     !!}
      private
      class(cosmologicalMassVarianceClass          ), pointer :: cosmologicalMassVariance_           => null()
      class(powerSpectrumPrimordialTransferredClass), pointer :: powerSpectrumPrimordialTransferred_ => null()
@@ -40,7 +46,9 @@
   end type powerSpectrumStandard
 
   interface powerSpectrumStandard
-     !% Constructors for the standard power spectrum class.
+     !!{
+     Constructors for the standard power spectrum class.
+     !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
   end interface powerSpectrumStandard
@@ -48,7 +56,9 @@
 contains
 
   function standardConstructorParameters(parameters) result(self)
-    !% Constructor for the standard nonstandard power spectrum class which takes a parameter set as input.
+    !!{
+    Constructor for the standard nonstandard power spectrum class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (powerSpectrumStandard                  )                :: self
@@ -56,38 +66,52 @@ contains
     class(cosmologicalMassVarianceClass          ), pointer       :: cosmologicalMassVariance_
     class(powerSpectrumPrimordialTransferredClass), pointer       :: powerSpectrumPrimordialTransferred_
 
-    !# <objectBuilder class="cosmologicalMassVariance"           name="cosmologicalMassVariance_"           source="parameters"/>
-    !# <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_" source="parameters"/>
+    !![
+    <objectBuilder class="cosmologicalMassVariance"           name="cosmologicalMassVariance_"           source="parameters"/>
+    <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_" source="parameters"/>
+    !!]
     self=powerSpectrumStandard(cosmologicalMassVariance_,powerSpectrumPrimordialTransferred_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologicalMassVariance_"          />
-    !# <objectDestructor name="powerSpectrumPrimordialTransferred_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologicalMassVariance_"          />
+    <objectDestructor name="powerSpectrumPrimordialTransferred_"/>
+    !!]
     return
   end function standardConstructorParameters
 
   function standardConstructorInternal(cosmologicalMassVariance_,powerSpectrumPrimordialTransferred_) result(self)
-    !% Internal constructor for the standard nonstandard power spectrum class.
+    !!{
+    Internal constructor for the standard nonstandard power spectrum class.
+    !!}
     implicit none
     type (powerSpectrumStandard)                                          :: self
     class(cosmologicalMassVarianceClass          ), intent(in   ), target :: cosmologicalMassVariance_
     class(powerSpectrumPrimordialTransferredClass), intent(in   ), target :: powerSpectrumPrimordialTransferred_
-    !# <constructorAssign variables="*cosmologicalMassVariance_, *powerSpectrumPrimordialTransferred_"/>
+    !![
+    <constructorAssign variables="*cosmologicalMassVariance_, *powerSpectrumPrimordialTransferred_"/>
+    !!]
 
     return
   end function standardConstructorInternal
 
   subroutine standardDestructor(self)
-    !% Destructor for the standard nonstandard power spectrum class.
+    !!{
+    Destructor for the standard nonstandard power spectrum class.
+    !!}
     implicit none
     type(powerSpectrumStandard), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologicalMassVariance_"          />
-    !# <objectDestructor name="self%powerSpectrumPrimordialTransferred_"/>
+    !![
+    <objectDestructor name="self%cosmologicalMassVariance_"          />
+    <objectDestructor name="self%powerSpectrumPrimordialTransferred_"/>
+    !!]
     return
   end subroutine standardDestructor
 
   double precision function standardPower(self,wavenumber,time)
-    !% Return the cosmological power spectrum for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
+    !!{
+    Return the cosmological power spectrum for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
+    !!}
     implicit none
     class           (powerSpectrumStandard), intent(inout) :: self
     double precision                       , intent(in   ) :: wavenumber, time
@@ -99,8 +123,10 @@ contains
   end function standardPower
 
   double precision function standardPowerLogarithmicDerivative(self,wavenumber,time)
-    !% Return the logarithmic derivative of the power spectrum, $\mathrm{d}\ln P(k)/\mathrm{d}\ln k$, for $k=${\normalfont
-    !% \ttfamily wavenumber} [Mpc$^{-1}$].
+    !!{
+    Return the logarithmic derivative of the power spectrum, $\mathrm{d}\ln P(k)/\mathrm{d}\ln k$, for $k=${\normalfont
+    \ttfamily wavenumber} [Mpc$^{-1}$].
+    !!}
     implicit none
     class           (powerSpectrumStandard), intent(inout) :: self
     double precision                       , intent(in   ) :: wavenumber, time
@@ -110,7 +136,9 @@ contains
   end function standardPowerLogarithmicDerivative
 
   double precision function standardPowerDimensionless(self,wavenumber,time)
-    !% Return the dimensionless power spectrum, $\Delta^2(k)$, for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
+    !!{
+    Return the dimensionless power spectrum, $\Delta^2(k)$, for $k=${\normalfont \ttfamily wavenumber} [Mpc$^{-1}$].
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (powerSpectrumStandard), intent(inout) :: self

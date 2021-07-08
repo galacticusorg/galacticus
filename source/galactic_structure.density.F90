@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of the density at a specific position.
+!!{
+Contains a module which implements calculations of the density at a specific position.
+!!}
 
 module Galactic_Structure_Densities
-  !% Implements calculations of the density at a specific position.
+  !!{
+  Implements calculations of the density at a specific position.
+  !!}
   implicit none
   private
   public :: Galactic_Structure_Density
@@ -32,19 +36,25 @@ module Galactic_Structure_Densities
   !$omp threadprivate(positionSphericalShared,massTypeShared,componentTypeShared,weightByShared,weightIndexShared)
 contains
 
-  double precision function Galactic_Structure_Density(thisNode,position,coordinateSystem,componentType,massType,weightBy,weightIndex)
-    !% Compute the density (of given {\normalfont \ttfamily massType}) at the specified {\normalfont \ttfamily position}. Assumes that galactic structure has already
-    !% been computed.
+  double precision function Galactic_Structure_Density(node,position,coordinateSystem,componentType,massType,weightBy,weightIndex)
+    !!{
+    Compute the density (of given {\normalfont \ttfamily massType}) at the specified {\normalfont \ttfamily position}. Assumes that galactic structure has already
+    been computed.
+    !!}
     use :: Coordinate_Systems        , only : Coordinates_Cartesian_To_Spherical, Coordinates_Cylindrical_To_Spherical
     use :: Galactic_Structure_Options, only : componentTypeAll                  , coordinateSystemCartesian           , coordinateSystemCylindrical, coordinateSystemSpherical, &
           &                                   massTypeAll                       , weightByLuminosity                  , weightByMass
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Galacticus_Nodes          , only : optimizeForDensitySummation       , reductionSummation                  , treeNode
-    !# <include directive="densityTask" type="moduleUse">
+    !![
+    <include directive="densityTask" type="moduleUse">
+    !!]
     include 'galactic_structure.density.tasks.modules.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     implicit none
-    type            (treeNode         ), intent(inout)           :: thisNode
+    type            (treeNode         ), intent(inout)           :: node
     integer                            , intent(in   ), optional :: componentType              , coordinateSystem, &
          &                                                          massType                   , weightBy        , &
          &                                                          weightIndex
@@ -95,17 +105,23 @@ contains
 
     ! Call routines to supply the densities for all components.
     componentDensityFunction => Component_Density
-    Galactic_Structure_Density=thisNode%mapDouble0(componentDensityFunction,reductionSummation,optimizeFor=optimizeForDensitySummation)
-    !# <include directive="densityTask" type="functionCall" functionType="function" returnParameter="componentDensity">
-    !#  <functionArgs>thisNode,positionSphericalShared,componentTypeShared,massTypeShared,weightByShared,weightIndexShared</functionArgs>
-    !#  <onReturn>Galactic_Structure_Density=Galactic_Structure_Density+componentDensity</onReturn>
+    Galactic_Structure_Density=node%mapDouble0(componentDensityFunction,reductionSummation,optimizeFor=optimizeForDensitySummation)
+    !![
+    <include directive="densityTask" type="functionCall" functionType="function" returnParameter="componentDensity">
+     <functionArgs>node,positionSphericalShared,componentTypeShared,massTypeShared,weightByShared,weightIndexShared</functionArgs>
+     <onReturn>Galactic_Structure_Density=Galactic_Structure_Density+componentDensity</onReturn>
+    !!]
     include 'galactic_structure.density.tasks.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     return
   end function Galactic_Structure_Density
 
   double precision function Component_Density(component)
-    !% Unary function returning the density in a component. Suitable for mapping over components.
+    !!{
+    Unary function returning the density in a component. Suitable for mapping over components.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponent
     implicit none
     class(nodeComponent), intent(inout) :: component

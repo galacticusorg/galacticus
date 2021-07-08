@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling likelihood class which implements a likelihood for halo spin distributions.
+  !!{
+  Implementation of a posterior sampling likelihood class which implements a likelihood for halo spin distributions.
+  !!}
 
   use :: Cosmology_Functions              , only : cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Scales          , only : darkMatterHaloScaleClass
@@ -26,11 +28,15 @@
   use :: Halo_Mass_Functions              , only : haloMassFunctionClass
   use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
 
-  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodSpinDistribution">
-  !#  <description>A posterior sampling likelihood class which implements a likelihood for halo spin distributions.</description>
-  !# </posteriorSampleLikelihood>
+  !![
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodSpinDistribution">
+   <description>A posterior sampling likelihood class which implements a likelihood for halo spin distributions.</description>
+  </posteriorSampleLikelihood>
+  !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodSpinDistribution
-     !% Implementation of a posterior sampling likelihood class which implements a likelihood for fitting dark matter halo spin distributions.
+     !!{
+     Implementation of a posterior sampling likelihood class which implements a likelihood for fitting dark matter halo spin distributions.
+     !!}
      private
      class           (cosmologyFunctionsClass          ), pointer                     :: cosmologyFunctions_           => null()
      class           (haloMassFunctionClass            ), pointer                     :: haloMassFunction_             => null()
@@ -53,24 +59,30 @@
   end type posteriorSampleLikelihoodSpinDistribution
 
   interface posteriorSampleLikelihoodSpinDistribution
-     !% Constructors for the {\normalfont \ttfamily spinDistribution} posterior sampling convergence class.
+     !!{
+     Constructors for the {\normalfont \ttfamily spinDistribution} posterior sampling convergence class.
+     !!}
      module procedure spinDistributionConstructorParameters
      module procedure spinDistributionConstructorInternal
   end interface posteriorSampleLikelihoodSpinDistribution
 
-  !# <enumeration>
-  !#  <name>spinDistributionType</name>
-  !#  <description>Used to specify the type of intrinsic spin distribution.</description>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <entry label="logNormal"/>
-  !#  <entry label="bett2007" />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>spinDistributionType</name>
+   <description>Used to specify the type of intrinsic spin distribution.</description>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="logNormal"/>
+   <entry label="bett2007" />
+  </enumeration>
+  !!]
 
 contains
 
   function spinDistributionConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily spinDistribution} posterior sampling convergence class which builds the object from a
-    !% parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily spinDistribution} posterior sampling convergence class which builds the object from a
+    parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleLikelihoodSpinDistribution)                :: self
@@ -87,67 +99,73 @@ contains
          &                                                                        logNormalRange
     integer                                                                    :: particleCountMinimum
 
-    !# <inputParameter>
-    !#   <name>fileName</name>
-    !#   <description>The name of the file containing the target spin distribution.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>distributionType</name>
-    !#   <description>The name of the spin distribution to use.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshift</name>
-    !#   <description>The redshift at which to compute the spin distribution.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massParticle</name>
-    !#   <description>The mass of a particle in the N-body simulation.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massHaloMinimum</name>
-    !#   <description>The minimum halo mass over which to integrate.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>particleCountMinimum</name>
-    !#   <description>The minimum particle count used in N-body halos.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>energyEstimateParticleCountMaximum</name>
-    !#   <description>The maximum number of N-body particles used in estimating halo energies.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>logNormalRange</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>100.0d0</defaultValue>
-    !#   <defaultSource>A large range which will include (almost) the entirety of the distribution.</defaultSource>
-    !#   <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=${\normalfont \ttfamily [logNormalRange]}</description>
-    !# </inputParameter>
-     !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
-    !# <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
-    !# <objectBuilder class="nbodyHaloMassError"           name="nbodyHaloMassError_"           source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>fileName</name>
+      <description>The name of the file containing the target spin distribution.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>distributionType</name>
+      <description>The name of the spin distribution to use.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>redshift</name>
+      <description>The redshift at which to compute the spin distribution.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massParticle</name>
+      <description>The mass of a particle in the N-body simulation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massHaloMinimum</name>
+      <description>The minimum halo mass over which to integrate.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>particleCountMinimum</name>
+      <description>The minimum particle count used in N-body halos.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>energyEstimateParticleCountMaximum</name>
+      <description>The maximum number of N-body particles used in estimating halo energies.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>logNormalRange</name>
+      <source>parameters</source>
+      <defaultValue>100.0d0</defaultValue>
+      <defaultSource>A large range which will include (almost) the entirety of the distribution.</defaultSource>
+      <description>The multiplicative range of the log-normal distribution used to model the distribution of the mass and energy terms in the spin parameter. Specifically, the lognormal distribution is truncated outside the range $(\lambda_\mathrm{m}/R,\lambda_\mathrm{m} R$, where $\lambda_\mathrm{m}$ is the measured spin, and $R=${\normalfont \ttfamily [logNormalRange]}</description>
+    </inputParameter>
+     <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
+    <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
+    <objectBuilder class="nbodyHaloMassError"           name="nbodyHaloMassError_"           source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
+    <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
+    !!]
     self=posteriorSampleLikelihoodSpinDistribution(char(fileName),enumerationSpinDistributionTypeEncode(char(distributionType),includesPrefix=.false.),redshift,logNormalRange,massHaloMinimum,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,cosmologyFunctions_,haloMassFunction_,nbodyHaloMassError_,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileScaleRadius_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"          />
-    !# <objectDestructor name="haloMassFunction_"            />
-    !# <objectDestructor name="nbodyHaloMassError_"          />
-    !# <objectDestructor name="darkMatterProfileDMO_"        />
-    !# <objectDestructor name="darkMatterHaloScale_"         />
-    !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"          />
+    <objectDestructor name="haloMassFunction_"            />
+    <objectDestructor name="nbodyHaloMassError_"          />
+    <objectDestructor name="darkMatterProfileDMO_"        />
+    <objectDestructor name="darkMatterHaloScale_"         />
+    <objectDestructor name="darkMatterProfileScaleRadius_"/>
+    !!]
     return
   end function spinDistributionConstructorParameters
 
   function spinDistributionConstructorInternal(fileName,distributionType,redshift,logNormalRange,massHaloMinimum,massParticle,particleCountMinimum,energyEstimateParticleCountMaximum,cosmologyFunctions_,haloMassFunction_,nbodyHaloMassError_,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileScaleRadius_) result(self)
-    !% Constructor for ``spinDistribution'' posterior sampling likelihood class.
+    !!{
+    Constructor for ``spinDistribution'' posterior sampling likelihood class.
+    !!}
     use :: Cosmology_Functions, only : cosmologyFunctionsClass
     use :: Galacticus_Error   , only : Galacticus_Error_Report
     use :: IO_HDF5            , only : hdf5Access             , hdf5Object
@@ -168,7 +186,9 @@ contains
     type            (hdf5Object                               )                        :: spinDistributionFile
     double precision                                                                   :: spinIntervalLogarithmic
     integer                                                                            :: i
-    !# <constructorAssign variables="fileName, distributionType, redshift, logNormalRange, massHaloMinimum, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, *cosmologyFunctions_, *haloMassFunction_, *nbodyHaloMassError_, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_"/>
+    !![
+    <constructorAssign variables="fileName, distributionType, redshift, logNormalRange, massHaloMinimum, massParticle, particleCountMinimum, energyEstimateParticleCountMaximum, *cosmologyFunctions_, *haloMassFunction_, *nbodyHaloMassError_, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileScaleRadius_"/>
+    !!]
 
     ! Convert redshift to time.
     self%time=self%cosmologyFunctions_ %cosmicTime                 (          &
@@ -203,21 +223,27 @@ contains
   end function spinDistributionConstructorInternal
 
   subroutine spinDistributionDestructor(self)
-    !% Destructor for ``spinDistribution'' posterior sampling likelihood class.
+    !!{
+    Destructor for ``spinDistribution'' posterior sampling likelihood class.
+    !!}
     implicit none
     type(posteriorSampleLikelihoodSpinDistribution), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"          />
-    !# <objectDestructor name="self%haloMassFunction_"            />
-    !# <objectDestructor name="self%nbodyHaloMassError_"          />
-    !# <objectDestructor name="self%darkMatterProfileDMO_"        />
-    !# <objectDestructor name="self%darkMatterHaloScale_"         />
-    !# <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"          />
+    <objectDestructor name="self%haloMassFunction_"            />
+    <objectDestructor name="self%nbodyHaloMassError_"          />
+    <objectDestructor name="self%darkMatterProfileDMO_"        />
+    <objectDestructor name="self%darkMatterHaloScale_"         />
+    <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
+    !!]
     return
   end subroutine spinDistributionDestructor
 
   double precision function spinDistributionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
-    !% Return the log-likelihood for the halo spin distribution likelihood function.
+    !!{
+    Return the log-likelihood for the halo spin distribution likelihood function.
+    !!}
     use :: Galacticus_Error              , only : Galacticus_Error_Report
     use :: Galacticus_Nodes              , only : nodeComponentBasic             , nodeComponentSpin            , treeNode
     use :: Halo_Spin_Distributions       , only : haloSpinDistributionBett2007   , haloSpinDistributionLogNormal, haloSpinDistributionNbodyErrors
@@ -341,7 +367,9 @@ contains
   contains
 
     double precision function spinDistributionIntegrate(spinPrime)
-      !% Integrand function used to find cumulative spin distribution over a bin.
+      !!{
+      Integrand function used to find cumulative spin distribution over a bin.
+      !!}
       implicit none
       double precision, intent(in   ) :: spinPrime
 
@@ -353,7 +381,9 @@ contains
   end function spinDistributionEvaluate
 
   subroutine spinDistributionFunctionChanged(self)
-    !% Respond to possible changes in the likelihood function.
+    !!{
+    Respond to possible changes in the likelihood function.
+    !!}
     implicit none
     class(posteriorSampleLikelihoodSpinDistribution), intent(inout) :: self
     !$GLC attributes unused :: self

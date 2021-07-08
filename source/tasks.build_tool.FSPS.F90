@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <task name="taskBuildToolFSPS">
-  !#  <description>A task which builds the FSPS tool.</description>
-  !# </task>
+  !![
+  <task name="taskBuildToolFSPS">
+   <description>A task which builds the FSPS tool.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskBuildToolFSPS
-     !% Implementation of a task which builds the FSPS tool.
+     !!{
+     Implementation of a task which builds the FSPS tool.
+     !!}
      private
    contains
      procedure :: perform            => buildToolFSPSPerform
@@ -29,14 +33,18 @@
   end type taskBuildToolFSPS
 
   interface taskBuildToolFSPS
-     !% Constructors for the {\normalfont \ttfamily buildToolFSPS} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily buildToolFSPS} task.
+     !!}
      module procedure buildToolFSPSParameters
   end interface taskBuildToolFSPS
 
 contains
 
   function buildToolFSPSParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily buildToolFSPS} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily buildToolFSPS} task class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(taskBuildToolFSPS)                :: self
@@ -48,26 +56,30 @@ contains
   end function buildToolFSPSParameters
 
   subroutine buildToolFSPSPerform(self,status)
-    !% Builds the tabulation.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
-    use :: Galacticus_Error  , only : errorStatusSuccess
-    use :: Interfaces_FSPS   , only : Interface_FSPS_Initialize
+    !!{
+    Builds the tabulation.
+    !!}
+    use :: Display         , only : displayIndent            , displayMessage, displayUnindent
+    use :: Galacticus_Error, only : errorStatusSuccess
+    use :: Interfaces_FSPS , only : Interface_FSPS_Initialize
     implicit none
     class  (taskBuildToolFSPS), intent(inout), target   :: self
     integer                   , intent(  out), optional :: status
     type   (varying_string   )                          :: fspsPath, fspsVersion
     !$GLC attributes unused :: self
 
-    call Galacticus_Display_Indent  ('Begin task: FSPS tool build')
+    call displayIndent  ('Begin task: FSPS tool build')
     call Interface_FSPS_Initialize(fspsPath,fspsVersion,static=.true.)
-    call Galacticus_Display_Message('FSPS version '//fspsVersion//' successfully built in: '//fspsPath)
+    call displayMessage('FSPS version '//fspsVersion//' successfully built in: '//fspsPath)
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: FSPS tool build')
+    call displayUnindent('Done task: FSPS tool build')
     return
   end subroutine buildToolFSPSPerform
 
   logical function buildToolFSPSRequiresOutputFile(self)
-    !% Specifies that this task does not requires the main output file.
+    !!{
+    Specifies that this task does not requires the main output file.
+    !!}
     implicit none
     class(taskBuildToolFSPS), intent(inout) :: self
     !$GLC attributes unused :: self

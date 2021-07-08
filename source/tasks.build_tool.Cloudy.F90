@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <task name="taskBuildToolCloudy">
-  !#  <description>A task which builds the Cloudy tool.</description>
-  !# </task>
+  !![
+  <task name="taskBuildToolCloudy">
+   <description>A task which builds the Cloudy tool.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskBuildToolCloudy
-     !% Implementation of a task which builds the Cloudy tool.
+     !!{
+     Implementation of a task which builds the Cloudy tool.
+     !!}
      private
    contains
      procedure :: perform            => buildToolCloudyPerform
@@ -29,14 +33,18 @@
   end type taskBuildToolCloudy
 
   interface taskBuildToolCloudy
-     !% Constructors for the {\normalfont \ttfamily buildToolCloudy} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily buildToolCloudy} task.
+     !!}
      module procedure buildToolCloudyParameters
   end interface taskBuildToolCloudy
 
 contains
 
   function buildToolCloudyParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily buildToolCloudy} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily buildToolCloudy} task class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(taskBuildToolCloudy)                :: self
@@ -48,26 +56,30 @@ contains
   end function buildToolCloudyParameters
 
   subroutine buildToolCloudyPerform(self,status)
-    !% Builds the tabulation.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent  , Galacticus_Display_Message, Galacticus_Display_Unindent
-    use :: Galacticus_Error  , only : errorStatusSuccess
-    use :: Interfaces_Cloudy , only : Interface_Cloudy_Initialize
+    !!{
+    Builds the tabulation.
+    !!}
+    use :: Display          , only : displayIndent              , displayMessage, displayUnindent
+    use :: Galacticus_Error , only : errorStatusSuccess
+    use :: Interfaces_Cloudy, only : Interface_Cloudy_Initialize
     implicit none
     class  (taskBuildToolCloudy), intent(inout), target   :: self
     integer                     , intent(  out), optional :: status
     type   (varying_string     )                          :: cloudyPath, cloudyVersion
     !$GLC attributes unused :: self
 
-    call Galacticus_Display_Indent  ('Begin task: Cloudy tool build')
+    call displayIndent  ('Begin task: Cloudy tool build')
     call Interface_Cloudy_Initialize(cloudyPath,cloudyVersion,static=.true.)
-    call Galacticus_Display_Message('Cloudy version '//cloudyVersion//' successfully built in: '//cloudyPath)
+    call displayMessage('Cloudy version '//cloudyVersion//' successfully built in: '//cloudyPath)
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: Cloudy tool build')
+    call displayUnindent('Done task: Cloudy tool build')
     return
   end subroutine buildToolCloudyPerform
 
   logical function buildToolCloudyRequiresOutputFile(self)
-    !% Specifies that this task does not requires the main output file.
+    !!{
+    Specifies that this task does not requires the main output file.
+    !!}
     implicit none
     class(taskBuildToolCloudy), intent(inout) :: self
     !$GLC attributes unused :: self

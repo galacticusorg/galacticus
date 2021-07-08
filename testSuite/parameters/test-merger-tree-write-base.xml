@@ -2,33 +2,58 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <mergerTreeBuildMassesMethod value="sampledDistributionUniform">
+
+  <mergerTreeBuildMasses value="sampledDistributionUniform">
     <treesPerDecade value="5"/>
     <massTreeMaximum value="1e+12"/>
     <massTreeMinimum value="10000000000"/>
-  </mergerTreeBuildMassesMethod>
-  <mergerTreeEvolverMethod value="standard">
+  </mergerTreeBuildMasses>
+  <mergerTreeEvolver value="standard">
     <allTreesExistAtFinalTime value="false"/>
-  </mergerTreeEvolverMethod>
+  </mergerTreeEvolver>
 
-  <nodeOperatorMethod value="multi"><!--Stellar feedback outflows-->
-    <nodeOperatorMethod value="stellarFeedbackDisks">
-      <stellarFeedbackOutflowsMethod value="rateLimit">
+  <!-- Halo scale radii and concentrations -->
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  4.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="concentration"/>
+  </darkMatterProfileScaleRadius>
+
+  <nodeOperator value="multi">
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Halo spins -->
+    <nodeOperator value="haloSpinRandom">
+      <factorReset value="2.0"/>
+    </nodeOperator>
+    <!-- Star formation -->
+    <nodeOperator value="starFormationDisks"/>
+    <nodeOperator value="starFormationSpheroids"/>
+    <!--Stellar feedback outflows-->
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
         <timescaleOutflowFractionalMinimum value="0.001"/>
-        <stellarFeedbackOutflowsMethod value="powerLaw">
+        <stellarFeedbackOutflows value="powerLaw">
           <velocityCharacteristic value="250.0"/>
           <exponent value="3.5"/>
-        </stellarFeedbackOutflowsMethod>
-      </stellarFeedbackOutflowsMethod>
-    </nodeOperatorMethod>
-    <nodeOperatorMethod value="stellarFeedbackSpheroids">
-      <stellarFeedbackOutflowsMethod value="rateLimit">
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <nodeOperator value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflows value="rateLimit">
         <timescaleOutflowFractionalMinimum value="0.001"/>
-        <stellarFeedbackOutflowsMethod value="powerLaw">
-          <velocityCharacteristic value="250.0"/>
+        <stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="100.0"/>
           <exponent value="3.5"/>
-        </stellarFeedbackOutflowsMethod>
-      </stellarFeedbackOutflowsMethod>
-    </nodeOperatorMethod>
-  </nodeOperatorMethod>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <!-- Bar instability in galactic disks -->
+    <nodeOperator value="barInstability">
+      <galacticDynamicsBarInstability value="efstathiou1982">
+	<stabilityThresholdGaseous value="0.7"/>
+	<stabilityThresholdStellar value="1.1"/>
+      </galacticDynamicsBarInstability>
+    </nodeOperator>
+  </nodeOperator>
 </parameters>

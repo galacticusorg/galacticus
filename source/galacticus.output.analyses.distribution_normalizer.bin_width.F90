@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a bin width output analysis distribution normalizer class.
+  !!{
+  Contains a module which implements a bin width output analysis distribution normalizer class.
+  !!}
 
-  !# <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerBinWidth">
-  !#  <description>A bin width output analysis distribution normalizer class.</description>
-  !# </outputAnalysisDistributionNormalizer>
+  !![
+  <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerBinWidth">
+   <description>A bin width output analysis distribution normalizer class.</description>
+  </outputAnalysisDistributionNormalizer>
+  !!]
   type, extends(outputAnalysisDistributionNormalizerClass) :: outputAnalysisDistributionNormalizerBinWidth
-     !% A bin width output distribution normalizer class.
+     !!{
+     A bin width output distribution normalizer class.
+     !!}
      private
    contains
      procedure :: normalize => binWidthNormalize
   end type outputAnalysisDistributionNormalizerBinWidth
 
   interface outputAnalysisDistributionNormalizerBinWidth
-     !% Constructors for the ``binWidth'' output analysis distribution normalizer class.
+     !!{
+     Constructors for the ``binWidth'' output analysis distribution normalizer class.
+     !!}
      module procedure binWidthConstructorParameters
   end interface outputAnalysisDistributionNormalizerBinWidth
 
 contains
 
   function binWidthConstructorParameters(parameters) result(self)
-    !% Constructor for the ``binWidth'' output analysis distribution normalizer class which takes a parameter set as input.
+    !!{
+    Constructor for the ``binWidth'' output analysis distribution normalizer class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisDistributionNormalizerBinWidth)                :: self
@@ -49,7 +59,9 @@ contains
   end function binWidthConstructorParameters
 
   subroutine binWidthNormalize(self,distribution,covariance,propertyValueMinimum,propertyValueMaximum)
-    !% Implement a bin width output analysis distribution normalizer.
+    !!{
+    Implement a bin width output analysis distribution normalizer.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (outputAnalysisDistributionNormalizerBinWidth), intent(inout)                 :: self

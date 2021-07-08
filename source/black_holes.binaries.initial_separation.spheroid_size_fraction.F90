@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements a class for black hole binary initial separation in which the radius is a fixed fraction of the scale radius of the
-!% larger of the host and satellite spheroids.
+!!{
+Implements a class for black hole binary initial separation in which the radius is a fixed fraction of the scale radius of the
+larger of the host and satellite spheroids.
+!!}
 
-  !# <blackHoleBinaryInitialSeparation name="blackHoleBinaryInitialSeparationSpheroidRadiusFraction">
-  !#  <description>
-  !#   A black hole binary initial separation class that assumes that the initial separation of the binary is equal to a fixed
-  !#   fraction {\normalfont \ttfamily [spheroidRadiusFraction]} of the larger of the spheroid scale radii of the two merging
-  !#   galaxies.
-  !#  </description>
-  !# </blackHoleBinaryInitialSeparation>
+  !![
+  <blackHoleBinaryInitialSeparation name="blackHoleBinaryInitialSeparationSpheroidRadiusFraction">
+   <description>
+    A black hole binary initial separation class that assumes that the initial separation of the binary is equal to a fixed
+    fraction {\normalfont \ttfamily [spheroidRadiusFraction]} of the larger of the spheroid scale radii of the two merging
+    galaxies.
+   </description>
+  </blackHoleBinaryInitialSeparation>
+  !!]
   type, extends(blackHoleBinaryInitialSeparationClass) :: blackHoleBinaryInitialSeparationSpheroidRadiusFraction
-     !% A black hole binary initial separation class in which the radius is a fixed fraction of the scale radius of the larger of the host and satellite spheroids.
+     !!{
+     A black hole binary initial separation class in which the radius is a fixed fraction of the scale radius of the larger of the host and satellite spheroids.
+     !!}
      private
      double precision :: spheroidRadiusFraction
    contains
@@ -36,7 +42,9 @@
   end type blackHoleBinaryInitialSeparationSpheroidRadiusFraction
 
   interface blackHoleBinaryInitialSeparationSpheroidRadiusFraction
-     !% Constructors for the {\normalfont \ttfamily spheroidRadiusFraction} black hole binary initial radius class.
+     !!{
+     Constructors for the {\normalfont \ttfamily spheroidRadiusFraction} black hole binary initial radius class.
+     !!}
      module procedure spheroidRadiusFractionConstructorParameters
      module procedure spheroidRadiusFractionConstructorInternal
   end interface blackHoleBinaryInitialSeparationSpheroidRadiusFraction
@@ -44,39 +52,51 @@
 contains
 
   function spheroidRadiusFractionConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily spheroidRadiusFraction} black hole bianry recoild class which takes a parameter list as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily spheroidRadiusFraction} black hole bianry recoild class which takes a parameter list as
+    input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (blackHoleBinaryInitialSeparationSpheroidRadiusFraction)                :: self
     type            (inputParameters                                       ), intent(inout) :: parameters
     double precision                                                                        :: spheroidRadiusFraction
 
-    !# <inputParameter>
-    !#   <name>spheroidRadiusFraction</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The fraction of the spheroid radius at which merging black holes will be initially placed.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>spheroidRadiusFraction</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The fraction of the spheroid radius at which merging black holes will be initially placed.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=blackHoleBinaryInitialSeparationSpheroidRadiusFraction(spheroidRadiusFraction)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function spheroidRadiusFractionConstructorParameters
 
   function spheroidRadiusFractionConstructorInternal(spheroidRadiusFraction) result(self)
-    !% Constructor for the {\normalfont \ttfamily spheroidRadiusFraction} black hole bianry recoild class which takes a parameter list as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily spheroidRadiusFraction} black hole bianry recoild class which takes a parameter list as
+    input.
+    !!}
     implicit none
     type            (blackHoleBinaryInitialSeparationSpheroidRadiusFraction)                :: self
     double precision                                                        , intent(in   ) :: spheroidRadiusFraction
-    !# <constructorAssign variables="spheroidRadiusFraction"/>
+    !![
+    <constructorAssign variables="spheroidRadiusFraction"/>
+    !!]
 
     return
   end function spheroidRadiusFractionConstructorInternal
 
   double precision function spheroidRadiusFractionSeparationInitial(self,node,nodeHost)
-    !% Returns an initial separation for a binary black holes that is a fixed fraction of the scale radius of the larger of the
-    !% host and satellite spheroids.
+    !!{
+    Returns an initial separation for a binary black holes that is a fixed fraction of the scale radius of the larger of the
+    host and satellite spheroids.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
     class(blackHoleBinaryInitialSeparationSpheroidRadiusFraction), intent(inout)         :: self

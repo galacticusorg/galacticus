@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,30 +17,38 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a stellar initial mass function class for the \cite{kroupa_variation_2001} \gls{imf}.
+  !!{
+  Implements a stellar initial mass function class for the \cite{kroupa_variation_2001} \gls{imf}.
+  !!}
 
-  !# <initialMassFunction name="initialMassFunctionKroupa2001">
-  !#  <description>
-  !#   A stellar initial mass function class for the \cite{kroupa_variation_2001} \gls{imf}.
-  !#   \begin{equation}
-  !#    \phi(M) \propto \left\{ \begin{array}{ll}
-  !#    M^{-0.3} &amp; \hbox{ for } 0.01M_\odot &lt; M &lt; 0.08M_\odot \\
-  !#    M^{-1.8} &amp; \hbox{ for } 0.08M_\odot &lt; M &lt; 0.5M_\odot \\
-  !#    M^{-2.7} &amp; \hbox{ for } 0.5M_\odot &lt; M &lt; 1M_\odot \\
-  !#    M^{-2.3} &amp; \hbox{ for } 1M_\odot &lt; M &lt; 125M_\odot \\
-  !#   0 &amp; \hbox {otherwise.} \end{array} \right.
-  !#   \end{equation}
-  !#  </description>
-  !# </initialMassFunction>
+  !![
+  <initialMassFunction name="initialMassFunctionKroupa2001">
+   <description>
+    A stellar initial mass function class for the \cite{kroupa_variation_2001} \gls{imf}.
+    \begin{equation}
+     \phi(M) \propto \left\{ \begin{array}{ll}
+     M^{-0.3} &amp; \hbox{ for } 0.01M_\odot &lt; M &lt; 0.08M_\odot \\
+     M^{-1.8} &amp; \hbox{ for } 0.08M_\odot &lt; M &lt; 0.5M_\odot \\
+     M^{-2.7} &amp; \hbox{ for } 0.5M_\odot &lt; M &lt; 1M_\odot \\
+     M^{-2.3} &amp; \hbox{ for } 1M_\odot &lt; M &lt; 125M_\odot \\
+    0 &amp; \hbox {otherwise.} \end{array} \right.
+    \end{equation}
+   </description>
+  </initialMassFunction>
+  !!]
   type, extends(initialMassFunctionPiecewisePowerLaw) :: initialMassFunctionKroupa2001
-     !% A stellar initial mass function class for the \cite{kroupa_variation_2001} \gls{imf}.
+     !!{
+     A stellar initial mass function class for the \cite{kroupa_variation_2001} \gls{imf}.
+     !!}
      private
    contains
      procedure :: label => kroupa2001Label
   end type initialMassFunctionKroupa2001
 
   interface initialMassFunctionKroupa2001
-     !% Constructors for the {\normalfont \ttfamily kroupa2001} initial mass function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily kroupa2001} initial mass function class.
+     !!}
      module procedure kroupa2001ConstructorParameters
      module procedure kroupa2001ConstructorInternal
   end interface initialMassFunctionKroupa2001
@@ -48,7 +56,9 @@
 contains
 
   function kroupa2001ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily kroupa2001} initial mass function class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily kroupa2001} initial mass function class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(initialMassFunctionKroupa2001)                :: self
@@ -60,7 +70,9 @@ contains
   end function kroupa2001ConstructorParameters
 
   function kroupa2001ConstructorInternal() result(self)
-    !% Internal constructor for the {\normalfont \ttfamily kroupa2001} initial mass function.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily kroupa2001} initial mass function.
+    !!}
     implicit none
     type(initialMassFunctionKroupa2001):: self
 
@@ -72,7 +84,9 @@ contains
   end function kroupa2001ConstructorInternal
 
   function kroupa2001Label(self)
-    !% Return a label for this \gls{imf}.
+    !!{
+    Return a label for this \gls{imf}.
+    !!}
     implicit none
     class(initialMassFunctionKroupa2001), intent(inout) :: self
     type (varying_string               )                :: kroupa2001Label

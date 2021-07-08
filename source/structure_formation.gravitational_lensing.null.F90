@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements a null gravitational lensing distribution.
+!!{
+Implements a null gravitational lensing distribution.
+!!}
 
-  !# <gravitationalLensing name="gravitationalLensingNull">
-  !#  <description>Implements a null gravitational lensing distribution.</description>
-  !# </gravitationalLensing>
+  !![
+  <gravitationalLensing name="gravitationalLensingNull">
+   <description>Implements a null gravitational lensing distribution.</description>
+  </gravitationalLensing>
+  !!]
   type, extends(gravitationalLensingClass) :: gravitationalLensingNull
      private
    contains
@@ -30,14 +34,18 @@
    end type gravitationalLensingNull
 
   interface gravitationalLensingNull
-     !% Constructors for the null gravitational lensing class.
+     !!{
+     Constructors for the null gravitational lensing class.
+     !!}
      module procedure nullConstructorParameters
   end interface gravitationalLensingNull
 
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !% Constructor for the \cite{takahashi_probability_2011} gravitational lensing class which takes a parameter list as input.
+    !!{
+    Constructor for the \cite{takahashi_probability_2011} gravitational lensing class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(gravitationalLensingNull)                :: self
@@ -49,7 +57,9 @@ contains
   end function nullConstructorParameters
 
   double precision function nullMagnificationPDF(self,magnification,redshift,scaleSource)
-    !% Compute the magnification probability density function for a null lensing case.
+    !!{
+    Compute the magnification probability density function for a null lensing case.
+    !!}
     use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (gravitationalLensingNull), intent(inout) :: self
@@ -62,8 +72,10 @@ contains
   end function nullMagnificationPDF
 
   double precision function nullMagnificationCDF(self,magnification,redshift,scaleSource)
-    !% Compute the magnification probability density function at the given {\normalfont \ttfamily magnification} and {\normalfont
-    !% \ttfamily redshift} for a null lensing case.
+    !!{
+    Compute the magnification probability density function at the given {\normalfont \ttfamily magnification} and {\normalfont
+    \ttfamily redshift} for a null lensing case.
+    !!}
     implicit none
     class           (gravitationalLensingNull), intent(inout) :: self
     double precision                          , intent(in   ) :: magnification, redshift, &

@@ -1,7 +1,8 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use Sort::Topological qw(toposort);
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
+use Sort::Topo;
 use Data::Dumper;
 
 # Output linker options to link required libraries for building an executable.
@@ -85,7 +86,8 @@ delete($libraries{'ANN'})
 delete($libraries{'matheval'})
     if ( exists($libraries{'matheval'}) && ! grep {$_ eq "-DMATHEVALAVAIL"} @compilerOptions );
 # Perform a topological sort on libraries to ensure they are in the correct order for static linking.
-my @sortedLibraries = toposort(sub { @{$staticLinkDependencies{$_[0]} || []}; }, [keys(%libraries)]);
+my @libraryNames = keys(%libraries);
+my @sortedLibraries = &Sort::Topo::sort(\@libraryNames,\%staticLinkDependencies);
 # Add static link options.
 my $staticOptions = ( $isStatic && ! $pthreadIncluded ) ? " -Wl,--whole-archive -lpthread -Wl,--no-whole-archive" : "";
 # Determine glibc version.

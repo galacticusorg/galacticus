@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an interval pass filter on halo merger ratio.
+!!{
+Contains a module which implements an interval pass filter on halo merger ratio.
+!!}
 
-  !# <galacticFilter name="galacticFilterMergerRatio">
-  !#  <description>An interval pass filter on halo merger ratio.</description>
-  !# </galacticFilter>
+  !![
+  <galacticFilter name="galacticFilterMergerRatio">
+   <description>An interval pass filter on halo merger ratio.</description>
+  </galacticFilter>
+  !!]
   type, extends(galacticFilterClass) :: galacticFilterMergerRatio
-     !% an interval pass galactic filter class on merger ratio.
+     !!{
+     an interval pass galactic filter class on merger ratio.
+     !!}
      private
      double precision :: ratioLow, ratioHigh
    contains
@@ -31,7 +37,9 @@
   end type galacticFilterMergerRatio
 
   interface galacticFilterMergerRatio
-     !% Constructors for the ``mergerRatio'' galactic filter class.
+     !!{
+     Constructors for the ``mergerRatio'' galactic filter class.
+     !!}
      module procedure mergerRatioConstructorParameters
      module procedure mergerRatioConstructorInternal
   end interface galacticFilterMergerRatio
@@ -39,40 +47,52 @@
 contains
   
   function mergerRatioConstructorParameters(parameters) result(self)
-    !% Constructor for the ``mergerRatio'' galactic filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``mergerRatio'' galactic filter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (galacticFilterMergerRatio )                :: self
     type            (inputParameters           ), intent(inout) :: parameters
     double precision                                            :: ratioLow  , ratioHigh
     
-    !# <inputParameter>
-    !#   <name>ratioLow</name>
-    !#   <source>parameters</source>
-    !#   <description>The low ratio value above which to pass.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>ratioHigh</name>
-    !#   <source>parameters</source>
-    !#   <description>The high ratio value below which to pass.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>ratioLow</name>
+      <source>parameters</source>
+      <description>The low ratio value above which to pass.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>ratioHigh</name>
+      <source>parameters</source>
+      <description>The high ratio value below which to pass.</description>
+    </inputParameter>
+    !!]
     self=galacticFilterMergerRatio(ratioLow,ratioHigh)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function mergerRatioConstructorParameters
 
   function mergerRatioConstructorInternal(ratioLow,ratioHigh) result(self)
-    !% Internal constructor for the ``mergerRatio'' galactic filter class.
+    !!{
+    Internal constructor for the ``mergerRatio'' galactic filter class.
+    !!}
     implicit none
     type            (galacticFilterMergerRatio)                :: self
     double precision                           , intent(in   ) :: ratioLow, ratioHigh
-    !# <constructorAssign variables="ratioLow, ratioHigh"/>
+    !![
+    <constructorAssign variables="ratioLow, ratioHigh"/>
+    !!]
     
     return
   end function mergerRatioConstructorInternal
 
   logical function mergerRatioPasses(self,node)
-    !% Implement an interval pass galactic filter.
+    !!{
+    Implement an interval pass galactic filter.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (galacticFilterMergerRatio), intent(inout)          :: self

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling convergence class which is always converged.
+  !!{
+  Implementation of a posterior sampling convergence class which is always converged.
+  !!}
 
-  !# <posteriorSampleConvergence name="posteriorSampleConvergenceAlways">
-  !#  <description>A posterior sampling convergence class which is always converged.</description>
-  !# </posteriorSampleConvergence>
+  !![
+  <posteriorSampleConvergence name="posteriorSampleConvergenceAlways">
+   <description>A posterior sampling convergence class which is always converged.</description>
+  </posteriorSampleConvergence>
+  !!]
   type, extends(posteriorSampleConvergenceClass) :: posteriorSampleConvergenceAlways
-     !% Implementation of a posterior sampling convergence class which is always converged.
+     !!{
+     Implementation of a posterior sampling convergence class which is always converged.
+     !!}
      private
    contains
      procedure :: isConverged     => alwaysIsConverged
@@ -34,14 +40,18 @@
   end type posteriorSampleConvergenceAlways
 
   interface posteriorSampleConvergenceAlways
-     !% Constructors for the {\normalfont \ttfamily always} posterior sampling convergence class.
+     !!{
+     Constructors for the {\normalfont \ttfamily always} posterior sampling convergence class.
+     !!}
      module procedure alwaysConstructorParameters
   end interface posteriorSampleConvergenceAlways
 
 contains
 
   function alwaysConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily always} merger tree halo mass function sampling class which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily always} merger tree halo mass function sampling class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(posteriorSampleConvergenceAlways)                :: self
@@ -53,7 +63,9 @@ contains
   end function alwaysConstructorParameters
 
   logical function alwaysIsConverged(self,simulationState,logLikelihood)
-    !% Returns true if the posterior sampling is converged (which it always is).
+    !!{
+    Returns true if the posterior sampling is converged (which it always is).
+    !!}
     implicit none
     class           (posteriorSampleConvergenceAlways), intent(inout)           :: self
     class           (posteriorSampleStateClass       ), intent(inout), optional :: simulationState
@@ -65,7 +77,9 @@ contains
   end function alwaysIsConverged
 
   integer function alwaysConvergedAtStep(self)
-    !% Return the step at which the simulation converged.
+    !!{
+    Return the step at which the simulation converged.
+    !!}
     implicit none
     class(posteriorSampleConvergenceAlways), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -75,7 +89,9 @@ contains
   end function alwaysConvergedAtStep
 
   subroutine alwaysReset(self)
-    !% Reset the convergence object.
+    !!{
+    Reset the convergence object.
+    !!}
     implicit none
     class(posteriorSampleConvergenceAlways), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -84,7 +100,9 @@ contains
   end subroutine alwaysReset
 
   subroutine alwaysLogReport(self,fileUnit)
-    !% Write a convergence report to the given {\normalfont \ttfamily fileUnit}.
+    !!{
+    Write a convergence report to the given {\normalfont \ttfamily fileUnit}.
+    !!}
     implicit none
     class  (posteriorSampleConvergenceAlways), intent(inout) :: self
     integer                                  , intent(in   ) :: fileUnit
@@ -95,7 +113,9 @@ contains
   end subroutine alwaysLogReport
 
   logical function alwaysStateIsOutlier(self,stateIndex)
-    !% Return true if the specified chain is deemed to be an outlier. In this case, chains are never outliers.
+    !!{
+    Return true if the specified chain is deemed to be an outlier. In this case, chains are never outliers.
+    !!}
     implicit none
     class  (posteriorSampleConvergenceAlways), intent(inout) :: self
     integer                                  , intent(in   ) :: stateIndex

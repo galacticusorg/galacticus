@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,10 +19,14 @@
 
 !+    Contributions to this file made by: Andrew Benson, Xiaolong Du.
 
-!% Contains a module which provides various interfaces to the \gls{AxionCamb} code.
+!!{
+Contains a module which provides various interfaces to the \gls{AxionCamb} code.
+!!}
 
 module Interfaces_AxionCAMB
-  !% Provides various interfaces to the \gls{AxionCamb} code.
+  !!{
+  Provides various interfaces to the \gls{AxionCamb} code.
+  !!}
   use :: File_Utilities, only : lockDescriptor
   private
   public :: Interface_AxionCAMB_Initialize, Interface_AxionCAMB_Transfer_Function
@@ -34,30 +38,36 @@ module Interfaces_AxionCAMB
   ! Default maximum wavenumber to tabulate.
   double precision                , parameter :: axionCambLogWavenumberMaximumDefault=log(2500.0d0)
 
-  !# <enumeration>
-  !#  <name>axionCambSpecies</name>
-  !#  <description>Particle species in AxionCAMB.</description>
-  !#  <visibility>public</visibility>
-  !#  <indexing>1</indexing>
-  !#  <entry label="darkMatter"     />
-  !#  <entry label="coldDarkMatter" />
-  !#  <entry label="fuzzyDarkMatter"/>
-  !#  <entry label="baryons"        />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>axionCambSpecies</name>
+   <description>Particle species in AxionCAMB.</description>
+   <visibility>public</visibility>
+   <indexing>1</indexing>
+   <entry label="darkMatter"     />
+   <entry label="coldDarkMatter" />
+   <entry label="fuzzyDarkMatter"/>
+   <entry label="baryons"        />
+  </enumeration>
+  !!]
 
   ! Generate a source digest.
-  !# <sourceDigest name="axionCambSourceDigest"/>
+  !![
+  <sourceDigest name="axionCambSourceDigest"/>
+  !!]
 
 contains
 
   subroutine Interface_AxionCAMB_Initialize(axionCambPath,axionCambVersion,static)
-    !% Initialize the interface with AxionCAMB, including downloading and compiling AxionCAMB if necessary.
-    use :: File_Utilities    , only : File_Exists               , File_Lock          , File_Unlock , lockDescriptor, &
+    !!{
+    Initialize the interface with AxionCAMB, including downloading and compiling AxionCAMB if necessary.
+    !!}
+    use :: File_Utilities    , only : File_Exists               , File_Lock            , File_Unlock , lockDescriptor, &
          &                            Directory_Make
-    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
+    use :: Display           , only : displayMessage            , verbosityLevelWorking
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath            , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : assignment(=)             , char               , operator(//), replace       , &
+    use :: ISO_Varying_String, only : assignment(=)             , char                 , operator(//), replace       , &
           &                           varying_string
     use :: System_Command    , only : System_Command_Do
     implicit none
@@ -67,7 +77,9 @@ contains
     type   (varying_string)                          :: command
     type   (lockDescriptor)                          :: fileLock
     type   (varying_string)                          :: lockPath
-    !# <optionalArgument name="static" defaultsTo=".false." />
+    !![
+    <optionalArgument name="static" defaultsTo=".false." />
+    !!]
 
     ! Set path and version
     axionCambPath   =galacticusPath(pathTypeDataDynamic)//"AxionCAMB/"
@@ -78,11 +90,11 @@ contains
     if (.not.File_Exists(axionCambPath//"camb")) then
        if (.not.File_Exists(axionCambPath)) then
           ! Download AxionCAMB if necessary.
-          call Galacticus_Display_Message("downloading AxionCAMB code....",verbosityWorking)
+          call displayMessage("downloading AxionCAMB code....",verbosityLevelWorking)
           call System_Command_Do("git clone https://github.com/dgrin1/axionCAMB.git "//axionCambPath,status)
           if (status /= 0 .or. .not.File_Exists(axionCambPath)) call Galacticus_Error_Report("unable to download AxionCAMB"//{introspection:location})
        end if
-       call Galacticus_Display_Message("compiling AxionCAMB code",verbosityWorking)
+       call displayMessage("compiling AxionCAMB code",verbosityLevelWorking)
        command='cd '//axionCambPath//'; sed -r -i~ s/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)\/\(P%H0\/100\)\*\*2"/"Ini_Read_Double\('//"'"//'omega_axion'//"'"//'\)"/ inidriver_axion.F90; sed -r -i~ s/"F90C\s*=\s*ifort"/"F90C = gfortran"/ Makefile; sed -r -i~ s/"^FFLAGS\s*\+=\s*\-march=native"/"FFLAGS+="/ Makefile; sed -r -i~ s/"^FFLAGS\s*=\s*.*"/"FFLAGS = -O3 -fopenmp'
        if (static_) then
           ! Include Galacticus compilation flags here - may be necessary for static linking.
@@ -100,7 +112,9 @@ contains
   contains
 
     function flagsRetrieve(flagsLength)
-      !% Retrieve the compiler flags.
+      !!{
+      Retrieve the compiler flags.
+      !!}
       implicit none
       type     (varying_string )                :: flagsRetrieve
       integer                   , intent(in   ) :: flagsLength
@@ -114,7 +128,9 @@ contains
   end subroutine Interface_AxionCAMB_Initialize
 
   subroutine Interface_AxionCAMB_Transfer_Function(cosmologyParameters_,darkMatterParticle_,redshifts,wavenumberRequired,wavenumberMaximum,countPerDecade,fileName,wavenumberMaximumReached,transferFunctionDarkMatter,transferFunctionColdDarkMatter,transferFunctionFuzzyDarkMatter,transferFunctionBaryons)
-    !% Run AxionCAMB as necessary to compute transfer functions.
+    !!{
+    Run AxionCAMB as necessary to compute transfer functions.
+    !!}
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
     use               :: Dark_Matter_Particles           , only : darkMatterParticleClass     , darkMatterParticleFuzzyDarkMatter
     use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make                   , File_Exists , File_Lock     , &
@@ -174,7 +190,9 @@ contains
          &                                                                         transferFileName                        , fileName_
     type            (inputParameters         )                                  :: descriptor
     logical                                                                     :: allEpochsFound
-    !# <optionalArgument name="countPerDecade" defaultsTo="0"/>
+    !![
+    <optionalArgument name="countPerDecade" defaultsTo="0"/>
+    !!]
 
     ! Build a sorted array of all redshift labels.
     allocate(redshiftRanks (size(redshifts)))

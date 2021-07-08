@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of an ``null'' solver for galactic structure.
+  !!{
+  Implementation of an ``null'' solver for galactic structure.
+  !!}
 
-  !# <galacticStructureSolver name="galacticStructureSolverNull">
-  !#  <description>An ``null'' solver for galactic structure.</description>
-  !# </galacticStructureSolver>
+  !![
+  <galacticStructureSolver name="galacticStructureSolverNull">
+   <description>An ``null'' solver for galactic structure.</description>
+  </galacticStructureSolver>
+  !!]
   type, extends(galacticStructureSolverClass) :: galacticStructureSolverNull
-     !% Implementation of an ``null'' solver for galactic structure.
+     !!{
+     Implementation of an ``null'' solver for galactic structure.
+     !!}
      private
    contains
      final     ::             nullDestructor
@@ -32,15 +38,19 @@
   end type galacticStructureSolverNull
 
   interface galacticStructureSolverNull
-     !% Constructors for the {\normalfont \ttfamily null} galactic structure solver class.
+     !!{
+     Constructors for the {\normalfont \ttfamily null} galactic structure solver class.
+     !!}
      module procedure nullConstructorParameters
   end interface galacticStructureSolverNull
 
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily null} galactic structure solver class which takes a
-    !% parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily null} galactic structure solver class which takes a
+    parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(galacticStructureSolverNull)                :: self
@@ -52,7 +62,9 @@ contains
   end function nullConstructorParameters
 
   subroutine nullAutoHook(self)
-    !% Attach to various event hooks.
+    !!{
+    Attach to various event hooks.
+    !!}
     use :: Events_Hooks, only : nodePromotionEvent  , openMPThreadBindingAtLevel, postEvolveEvent, preDerivativeEvent, &
           &                     satelliteMergerEvent
     implicit none
@@ -66,7 +78,9 @@ contains
   end subroutine nullAutoHook
 
   subroutine nullDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily null} galactic structure solver class.
+    !!{
+    Destructor for the {\normalfont \ttfamily null} galactic structure solver class.
+    !!}
     use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none
     type(galacticStructureSolverNull), intent(inout) :: self
@@ -79,7 +93,9 @@ contains
   end subroutine nullDestructor
 
   subroutine nullSolveHook(self,node)
-    !% Hookable wrapper around the solver.
+    !!{
+    Hookable wrapper around the solver.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(*       ), intent(inout)         :: self
@@ -95,7 +111,9 @@ contains
   end subroutine nullSolveHook
 
   subroutine nullSolvePreDeriativeHook(self,node,propertyType)
-    !% Hookable wrapper around the solver.
+    !!{
+    Hookable wrapper around the solver.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (*       ), intent(inout)         :: self
@@ -113,7 +131,9 @@ contains
   end subroutine nullSolvePreDeriativeHook
 
   subroutine nullSolve(self,node)
-    !% Solve for the structure of galactic components.
+    !!{
+    Solve for the structure of galactic components.
+    !!}
     include 'galactic_structure.radius_solver.plausible.modules.inc'
     implicit none
     class(galacticStructureSolverNull), intent(inout)         :: self

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An accretion flow class which models the accretion flow using the 2-halo correlation function.
+  !!{
+  An accretion flow class which models the accretion flow using the 2-halo correlation function.
+  !!}
 
   use :: Correlation_Functions_Two_Point, only : correlationFunctionTwoPointClass
   use :: Cosmology_Functions            , only : cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Biases        , only : darkMatterHaloBiasClass
 
-  !# <accretionFlows name="accretionFlowsCorrelationFunction">
-  !#  <description>An accretion flow class which models the accretion flow using the 2-halo correlation function.</description>
-  !# </accretionFlows>
+  !![
+  <accretionFlows name="accretionFlowsCorrelationFunction">
+   <description>An accretion flow class which models the accretion flow using the 2-halo correlation function.</description>
+  </accretionFlows>
+  !!]
   type, extends(accretionFlowsClass) :: accretionFlowsCorrelationFunction
-     !% An accretion flow class which models the accretion flow using the 2-halo correlation function.
+     !!{
+     An accretion flow class which models the accretion flow using the 2-halo correlation function.
+     !!}
      private
      class(correlationFunctionTwoPointClass), pointer :: correlationFunctionTwoPoint_ => null()
      class(cosmologyFunctionsClass         ), pointer :: cosmologyFunctions_          => null()
@@ -39,7 +45,9 @@
   end type accretionFlowsCorrelationFunction
 
   interface accretionFlowsCorrelationFunction
-     !% Constructors for the {\normalfont \ttfamily correlationFunction} accretion flows class.
+     !!{
+     Constructors for the {\normalfont \ttfamily correlationFunction} accretion flows class.
+     !!}
      module procedure correlationFunctionConstructorParameters
      module procedure correlationFunctionConstructorInternal
   end interface accretionFlowsCorrelationFunction
@@ -47,7 +55,9 @@
 contains
 
   function correlationFunctionConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily correlationFunction} accretion flow class that takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily correlationFunction} accretion flow class that takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (accretionFlowsCorrelationFunction)                :: self
@@ -56,42 +66,56 @@ contains
     class(cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
     class(darkMatterHaloBiasClass          ), pointer       :: darkMatterHaloBias_
 
-    !# <objectBuilder class="correlationFunctionTwoPoint" name="correlationFunctionTwoPoint_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloBias"          name="darkMatterHaloBias_"          source="parameters"/>
+    !![
+    <objectBuilder class="correlationFunctionTwoPoint" name="correlationFunctionTwoPoint_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters"/>
+    <objectBuilder class="darkMatterHaloBias"          name="darkMatterHaloBias_"          source="parameters"/>
+    !!]
     self=accretionFlowsCorrelationFunction(cosmologyFunctions_,correlationFunctionTwoPoint_,darkMatterHaloBias_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"         />
-    !# <objectDestructor name="correlationFunctionTwoPoint_"/>
-    !# <objectDestructor name="darkMatterHaloBias_"         />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"         />
+    <objectDestructor name="correlationFunctionTwoPoint_"/>
+    <objectDestructor name="darkMatterHaloBias_"         />
+    !!]
     return
   end function correlationFunctionConstructorParameters
 
   function correlationFunctionConstructorInternal(cosmologyFunctions_,correlationFunctionTwoPoint_,darkMatterHaloBias_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily correlationFunction} accretion flows class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily correlationFunction} accretion flows class.
+    !!}
     implicit none
     type (accretionFlowsCorrelationFunction)                        :: self
     class(correlationFunctionTwoPointClass ), intent(in   ), target :: correlationFunctionTwoPoint_
     class(cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
     class(darkMatterHaloBiasClass          ), intent(in   ), target :: darkMatterHaloBias_
-    !# <constructorAssign variables="*cosmologyFunctions_, *correlationFunctionTwoPoint_, *darkMatterHaloBias_"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_, *correlationFunctionTwoPoint_, *darkMatterHaloBias_"/>
+    !!]
 
     return
   end function correlationFunctionConstructorInternal
 
   subroutine correlationFunctionDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily correlationFunction} accretion flows class.
+    !!{
+    Destructor for the {\normalfont \ttfamily correlationFunction} accretion flows class.
+    !!}
     implicit none
     type(accretionFlowsCorrelationFunction), intent(inout) :: self
     
-    !# <objectDestructor name="self%correlationFunctionTwoPoint_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_"         />
-    !# <objectDestructor name="self%darkMatterHaloBias_"         />
+    !![
+    <objectDestructor name="self%correlationFunctionTwoPoint_"/>
+    <objectDestructor name="self%cosmologyFunctions_"         />
+    <objectDestructor name="self%darkMatterHaloBias_"         />
+    !!]
     return
   end subroutine correlationFunctionDestructor
   
   double precision function correlationFunctionDensity(self,node,radius)
-    !% Compute the density of the accretion flow at the given radius.
+    !!{
+    Compute the density of the accretion flow at the given radius.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (accretionFlowsCorrelationFunction), intent(inout) :: self
@@ -112,7 +136,9 @@ contains
   end function correlationFunctionDensity
 
   double precision function correlationFunctionVelocity(self,node,radius)
-    !% Compute the velocity of the accretion flow at the given radius.
+    !!{
+    Compute the velocity of the accretion flow at the given radius.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (accretionFlowsCorrelationFunction), intent(inout) :: self

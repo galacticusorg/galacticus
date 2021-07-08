@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an output analysis property extractor class that extracts the bound mass.
+!!{
+Contains a module which implements an output analysis property extractor class that extracts the bound mass.
+!!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorMassBound">
-  !#  <description>An output analysis property extractor class that extracts the bound mass.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorMassBound">
+   <description>An output analysis property extractor class that extracts the bound mass.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassBound
-     !% A property extractor output analysis class that extracts the bound mass.
+     !!{
+     A property extractor output analysis class that extracts the bound mass.
+     !!}
      private
    contains
      procedure :: extract     => massBoundExtract
@@ -34,14 +40,18 @@
   end type nodePropertyExtractorMassBound
 
   interface nodePropertyExtractorMassBound
-     !% Constructors for the ``massBound'' output analysis class.
+     !!{
+     Constructors for the ``massBound'' output analysis class.
+     !!}
      module procedure massBoundConstructorParameters
   end interface nodePropertyExtractorMassBound
 
 contains
 
   function massBoundConstructorParameters(parameters) result(self)
-    !% Constructor for the ``massBound'' output analysis property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``massBound'' output analysis property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodePropertyExtractorMassBound)                :: self
@@ -53,7 +63,9 @@ contains
   end function massBoundConstructorParameters
 
   double precision function massBoundExtract(self,node,instance)
-    !% Implement a massBound output analysis.
+    !!{
+    Implement a massBound output analysis.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
     class(nodePropertyExtractorMassBound), intent(inout)           :: self
@@ -68,7 +80,9 @@ contains
   end function massBoundExtract
 
   integer function massBoundType(self)
-    !% Return the type of the halo mass property.
+    !!{
+    Return the type of the halo mass property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassBound), intent(inout) :: self
@@ -79,7 +93,9 @@ contains
   end function massBoundType
 
   function massBoundName(self)
-    !% Return the name of the massBound property.
+    !!{
+    Return the name of the massBound property.
+    !!}
     implicit none
     type (varying_string                )                :: massBoundName
     class(nodePropertyExtractorMassBound), intent(inout) :: self
@@ -90,7 +106,9 @@ contains
   end function massBoundName
 
   function massBoundDescription(self)
-    !% Return a description of the massBound property.
+    !!{
+    Return a description of the massBound property.
+    !!}
     implicit none
     type (varying_string                )                :: massBoundDescription
     class(nodePropertyExtractorMassBound), intent(inout) :: self
@@ -101,7 +119,9 @@ contains
   end function massBoundDescription
 
   double precision function massBoundUnitsInSI(self)
-    !% Return the units of the massBound property in the SI system.
+    !!{
+    Return the units of the massBound property in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(nodePropertyExtractorMassBound), intent(inout) :: self

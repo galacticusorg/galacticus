@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,43 +17,51 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of the \cite{efstathiou_stability_1982} model for galactic disk bar instability, but including the effects of
-  !% tidal forces.
+  !!{
+  Implementation of the \cite{efstathiou_stability_1982} model for galactic disk bar instability, but including the effects of
+  tidal forces.
+  !!}
 
   use :: Satellites_Tidal_Fields, only : satelliteTidalFieldClass
 
-  !# <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityEfstathiou1982Tidal">
-  !#  <description>
-  !#   A galactic dynamics bar instability class that uses the stability criterion of \cite{efstathiou_stability_1982} to estimate
-  !#   when disks are unstable to bar formation, but includes an additional term due to external tidal forces:
-  !#   \begin{equation}
-  !#    \epsilon \left( \equiv {V_\mathrm{peak} \over \sqrt{\G M_\mathrm{disk}/r_\mathrm{disk}} + \hbox{max}(\mathcal{T},0) }
-  !#    \right) &lt; \epsilon_\mathrm{c},
-  !#   \end{equation}
-  !#   for stability, where $V_\mathrm{peak}$ is the peak velocity in the rotation curve (computed here assuming an isolated
-  !#   exponential disk), $M_\mathrm{disk}$ is the mass of the disk, $r_\mathrm{disk}$ is its scale length (assuming an
-  !#   exponential disk), $\mathcal{T} = \mathcal{F} r_\mathrm{disk}^2$ is the external driving specific torque, and $\mathcal{F}$
-  !#   is the external tidal field (evaluated using the selected method; see \refPhysics{satelliteTidalField}). The value of
-  !#   $\epsilon_\mathrm{c}$ is linearly interpolated in the disk gas fraction between values for purely gaseous and stellar disks
-  !#   as specified by {\normalfont \ttfamily stabilityThresholdStellar} and {\normalfont \ttfamily stabilityThresholdGaseous}
-  !#   respectively. For disks which are judged to be unstable, the timescale for bar formation is estimated to be
-  !#   \begin{equation}
-  !#    t_\mathrm{bar} = t_\mathrm{disk} {\epsilon_\mathrm{c} - \epsilon_\mathrm{iso} \over \epsilon_\mathrm{c} - \epsilon},
-  !#   \end{equation}
-  !#   where $\epsilon_\mathrm{iso}$ is the value of $\epsilon$ for an isolated disk and $t_\mathrm{disk}$ is the disk dynamical
-  !#   time, defined as $r/V$, at one scale length. This form gives an infinite timescale at the stability threshold, reducing to
-  !#   a dynamical time for highly unstable disks.
-  !#  </description>
-  !# </galacticDynamicsBarInstability>
+  !![
+  <galacticDynamicsBarInstability name="galacticDynamicsBarInstabilityEfstathiou1982Tidal">
+   <description>
+    A galactic dynamics bar instability class that uses the stability criterion of \cite{efstathiou_stability_1982} to estimate
+    when disks are unstable to bar formation, but includes an additional term due to external tidal forces:
+    \begin{equation}
+     \epsilon \left( \equiv {V_\mathrm{peak} \over \sqrt{\G M_\mathrm{disk}/r_\mathrm{disk}} + \hbox{max}(\mathcal{T},0) }
+     \right) &lt; \epsilon_\mathrm{c},
+    \end{equation}
+    for stability, where $V_\mathrm{peak}$ is the peak velocity in the rotation curve (computed here assuming an isolated
+    exponential disk), $M_\mathrm{disk}$ is the mass of the disk, $r_\mathrm{disk}$ is its scale length (assuming an
+    exponential disk), $\mathcal{T} = \mathcal{F} r_\mathrm{disk}^2$ is the external driving specific torque, and $\mathcal{F}$
+    is the external tidal field (evaluated using the selected method; see \refPhysics{satelliteTidalField}). The value of
+    $\epsilon_\mathrm{c}$ is linearly interpolated in the disk gas fraction between values for purely gaseous and stellar disks
+    as specified by {\normalfont \ttfamily stabilityThresholdStellar} and {\normalfont \ttfamily stabilityThresholdGaseous}
+    respectively. For disks which are judged to be unstable, the timescale for bar formation is estimated to be
+    \begin{equation}
+     t_\mathrm{bar} = t_\mathrm{disk} {\epsilon_\mathrm{c} - \epsilon_\mathrm{iso} \over \epsilon_\mathrm{c} - \epsilon},
+    \end{equation}
+    where $\epsilon_\mathrm{iso}$ is the value of $\epsilon$ for an isolated disk and $t_\mathrm{disk}$ is the disk dynamical
+    time, defined as $r/V$, at one scale length. This form gives an infinite timescale at the stability threshold, reducing to
+    a dynamical time for highly unstable disks.
+   </description>
+  </galacticDynamicsBarInstability>
+  !!]
   type, extends(galacticDynamicsBarInstabilityEfstathiou1982) :: galacticDynamicsBarInstabilityEfstathiou1982Tidal
-     !% Implementation of the \cite{efstathiou_stability_1982} model for galactic disk bar instability, but include the effects of tidal forces.
+     !!{
+     Implementation of the \cite{efstathiou_stability_1982} model for galactic disk bar instability, but include the effects of tidal forces.
+     !!}
      private
-     class           (satelliteTidalFieldClass), pointer :: satelliteTidalField_ => null()
+     class           (satelliteTidalFieldClass), pointer :: satelliteTidalField_    => null()
      double precision                                    :: massThresholdHarrassment
    contains
-     !# <methods>
-     !#   <method description="Compute the radial term of the tidal tensor." method="tidalTensorRadial" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Compute the radial term of the tidal tensor." method="tidalTensorRadial" />
+     </methods>
+     !!]
      final     ::                      efstathiou1982Destructor
      procedure :: tidalTensorRadial => efstathiou1982TidalTidalTensorRadial
      procedure :: timescale         => efstathiou1982TidalTimescale
@@ -61,7 +69,9 @@
   end type galacticDynamicsBarInstabilityEfstathiou1982Tidal
 
   interface galacticDynamicsBarInstabilityEfstathiou1982Tidal
-     !% Constructors for the {\normalfont \ttfamily efstathiou1982Tidal} model for galactic disk bar instability class.
+     !!{
+     Constructors for the {\normalfont \ttfamily efstathiou1982Tidal} model for galactic disk bar instability class.
+     !!}
      module procedure efstathiou1982TidalConstructorParameters
      module procedure efstathiou1982TidalConstructorInternal
   end interface galacticDynamicsBarInstabilityEfstathiou1982Tidal
@@ -69,59 +79,77 @@
 contains
 
   function efstathiou1982TidalConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily efstathiou1982Tidal} model for galactic disk bar instability class which takes a
-    !% parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily efstathiou1982Tidal} model for galactic disk bar instability class which takes a
+    parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(galacticDynamicsBarInstabilityEfstathiou1982Tidal)                :: self
     type(inputParameters                                  ), intent(inout) :: parameters
 
-    !# <inputParameter>
-    !#   <name>massThresholdHarrassment</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The host halo mass threshold for harrassment to take effect.</description>
-    !#   <source>parameters</source>
-    !# <variable>self%massThresholdHarrassment</variable>
-    !# </inputParameter>
-    !# <objectBuilder class="satelliteTidalField" name="self%satelliteTidalField_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>massThresholdHarrassment</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The host halo mass threshold for harrassment to take effect.</description>
+      <source>parameters</source>
+    <variable>self%massThresholdHarrassment</variable>
+    </inputParameter>
+    <objectBuilder class="satelliteTidalField" name="self%satelliteTidalField_" source="parameters"/>
+    !!]
     self%galacticDynamicsBarInstabilityEfstathiou1982=galacticDynamicsBarInstabilityEfstathiou1982(parameters)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function efstathiou1982TidalConstructorParameters
 
-  function efstathiou1982TidalConstructorInternal(stabilityThresholdStellar,stabilityThresholdGaseous,timescaleMinimum,massThresholdHarrassment,satelliteTidalField_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily efstathiou1982Tidal} model for galactic disk bar instability class.
+  function efstathiou1982TidalConstructorInternal(stabilityThresholdStellar,stabilityThresholdGaseous,timescaleMinimum,fractionAngularMomentumRetained_,massThresholdHarrassment,satelliteTidalField_) result(self)
+    !!{
+    Internal constructor for the {\normalfont \ttfamily efstathiou1982Tidal} model for galactic disk bar instability class.
+    !!}
     implicit none
     type            (galacticDynamicsBarInstabilityEfstathiou1982Tidal)                        :: self
-    double precision                                                   , intent(in   )         :: stabilityThresholdStellar, stabilityThresholdGaseous, &
-         &                                                                                        timescaleMinimum         , massThresholdHarrassment
+    double precision                                                   , intent(in   )         :: stabilityThresholdStellar, stabilityThresholdGaseous       , &
+         &                                                                                        timescaleMinimum         , fractionAngularMomentumRetained_, &
+         &                                                                                        massThresholdHarrassment
     class           (satelliteTidalFieldClass                         ), intent(in   ), target :: satelliteTidalField_
-    !# <constructorAssign variables="massThresholdHarrassment, *satelliteTidalField_"/>
+    !![
+    <constructorAssign variables="massThresholdHarrassment, *satelliteTidalField_"/>
+    !!]
 
-    self%galacticDynamicsBarInstabilityEfstathiou1982=galacticDynamicsBarInstabilityEfstathiou1982(stabilityThresholdStellar,stabilityThresholdGaseous,timescaleMinimum)
+    self%galacticDynamicsBarInstabilityEfstathiou1982=galacticDynamicsBarInstabilityEfstathiou1982(stabilityThresholdStellar,stabilityThresholdGaseous,timescaleMinimum,fractionAngularMomentumRetained_)
     return
   end function efstathiou1982TidalConstructorInternal
 
   subroutine efstathiou1982Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily efstathiou1982} model for galactic disk bar instability class.
+    !!{
+    Destructor for the {\normalfont \ttfamily efstathiou1982} model for galactic disk bar instability class.
+    !!}
     implicit none
     type(galacticDynamicsBarInstabilityEfstathiou1982Tidal), intent(inout) :: self
 
-    !# <objectDestructor name="self%satelliteTidalField_"/>
+    !![
+    <objectDestructor name="self%satelliteTidalField_"/>
+    !!]
     return
   end subroutine efstathiou1982Destructor
 
-  subroutine efstathiou1982TidalTimescale(self,node,timescale,externalDrivingSpecificTorque)
-    !% Computes a timescale for depletion of a disk to a pseudo-bulge via bar instability based on the criterion of
-    !% \cite{efstathiou_stability_1982}.
+  subroutine efstathiou1982TidalTimescale(self,node,timescale,externalDrivingSpecificTorque,fractionAngularMomentumRetained)
+    !!{
+    Computes a timescale for depletion of a disk to a pseudo-bulge via bar instability based on the criterion of
+    \cite{efstathiou_stability_1982}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
     class           (galacticDynamicsBarInstabilityEfstathiou1982Tidal), intent(inout) :: self
     type            (treeNode                                         ), intent(inout) :: node
-    double precision                                                   , intent(  out) :: externalDrivingSpecificTorque, timescale
+    double precision                                                   , intent(  out) :: externalDrivingSpecificTorque  , timescale, &
+         &                                                                                fractionAngularMomentumRetained
     class           (nodeComponentSpheroid                            ), pointer       :: spheroid
 
-    call self%galacticDynamicsBarInstabilityEfstathiou1982%timescale(node,timescale,externalDrivingSpecificTorque)
+    call self%galacticDynamicsBarInstabilityEfstathiou1982%timescale(node,timescale,externalDrivingSpecificTorque,fractionAngularMomentumRetained)
     ! Compute the external torque.
     if (timescale > 0.0d0) then
        spheroid                      =>  node    %spheroid         (    )
@@ -132,7 +160,9 @@ contains
   end subroutine efstathiou1982TidalTimescale
 
   double precision function efstathiou1982TidalEstimator(self,node)
-    !% Compute the stability estimator for the \cite{efstathiou_stability_1982} model for galactic disk bar instability.
+    !!{
+    Compute the stability estimator for the \cite{efstathiou_stability_1982} model for galactic disk bar instability.
+    !!}
     use :: Galacticus_Nodes            , only : nodeComponentDisk              , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
@@ -173,7 +203,9 @@ contains
   end function efstathiou1982TidalEstimator
 
   double precision function efstathiou1982TidalTidalTensorRadial(self,node)
-    !% Compute the radial part of the tidal tensor.
+    !!{
+    Compute the radial part of the tidal tensor.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(galacticDynamicsBarInstabilityEfstathiou1982Tidal), intent(inout) :: self

@@ -95,7 +95,7 @@ sub Process_Constructors {
 			$assignmentSource .= " call ".$returnValueLabel."%".$argumentName."%referenceCountIncrement()\n";
 			if ( $debugging ) {
 			    $assignmentSource .= "   if (debugReporting.and.mpiSelf\%isMaster()) then\n";
-			    $assignmentSource .= "   ".$optional." call Galacticus_Display_Message(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".$argumentName."] : ".$returnValueLabel." : ')//debugStackGet()//' : '//loc(".$returnValueLabel."%".$argumentName.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).",verbositySilent)\n";
+			    $assignmentSource .= "   ".$optional." call displayMessage(var_str('functionClass[own] (class : ownerName : ownerLoc : objectLoc : sourceLoc): [".$argumentName."] : ".$returnValueLabel." : ')//debugStackGet()//' : '//loc(".$returnValueLabel."%".$argumentName.")//' : '//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'},compact => 1).",verbosityLevelSilent)\n";
 			    $assignmentSource .= "   end if\n";
 			}
 			$assignmentSource .= "   end if\n"
@@ -127,7 +127,7 @@ sub Process_Constructors {
 			    intrinsic => 0,
 			    all       => 1
 			},
-			Galacticus_Display =>
+			Display =>
 			{
 			    intrinsic => 0,
 			    all       => 1

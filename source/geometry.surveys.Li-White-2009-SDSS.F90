@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,57 +17,61 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements the survey geometry of the SDSS sample used by \cite{li_distribution_2009}.
+!!{
+Implements the survey geometry of the SDSS sample used by \cite{li_distribution_2009}.
+!!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
-  !# <surveyGeometry name="surveyGeometryLiWhite2009SDSS">
-  !#  <description>
-  !#   A survey geometry class that describes the survey geometry of \cite{li_distribution_2009}. 
-  !#   
-  !#   For the angular mask, we make use of the catalog of random points within the survey footprint provided by the
-  !#   NYU-VAGC\footnote{Specifically,
-  !#   \href{http://sdss.physics.nyu.edu/lss/dr72/random/lss_random-0.dr72.dat}{http://sdss.physics.nyu.edu/lss/dr72/random/lss\_random-0.dr72.dat}.}
-  !#   (\citealt{blanton_new_2005}; see also
-  !#   \citealt{adelman-mccarthy_sixth_2008,padmanabhan_improved_2008}). \cite{li_distribution_2009} consider only the main,
-  !#   contiguous region and so we keep only those points which satisfy RA$>100^\circ$, RA$&lt;300^\circ$, and RA$&lt;247^\circ$ or
-  !#   $\delta&lt; 51^\circ$. When the survey window function is needed, these points are used to determine which elements of a 3D
-  !#   grid fall within the window function.
-  !#   
-  !#   To estimate the depth of the \cite{li_distribution_2009} sample as a function of galaxy stellar mass we make use of
-  !#   semi-analytic models in the Millennium Database. Specifically, we use the \gls{sam} of
-  !#   \citeauthor{de_lucia_hierarchical_2007}~(\citeyear{de_lucia_hierarchical_2007}; specifically the {\normalfont \ttfamily
-  !#   millimil..DeLucia2006a} and {\normalfont \ttfamily millimil..DeLucia2006a\_sdss2mass} tables in the Millennium
-  !#   Database). For each snapshot in the database, we extract the stellar masses and observed-frame SDSS r-band absolute
-  !#   magnitudes (including dust extinction), and determine the median absolute magnitude as a function of stellar mass. Using
-  !#   the limiting apparent magnitude of the \cite{li_distribution_2009} sample, $r=17.6$, we infer the corresponding absolute
-  !#   magnitude at each redshift and, using our derived absolute magnitude--stellar mass relation, infer the corresponding
-  !#   stellar mass.
-  !#   
-  !#   The end result of this procedure is the limiting stellar mass as a function of redshift, accounting for k-corrections,
-  !#   evolution, and the effects of dust. Figure~\ref{fig:SDSSDepthFit} shows the resulting relation between stellar mass and the
-  !#   maximum redshift at which such a galaxy would be included in the sample. Points indicate measurements from the \gls{sam},
-  !#   while the line shows a polynomial fit:
-  !#   \begin{eqnarray}
-  !#    z(M_\star) &amp;=&amp; -5.950 + 2.638 m - 0.4211 m^2 \nonumber \\
-  !#               &amp; &amp; + 2.852\times 10^{-2} m^3 - 6.783 \times 10^{-4} m^4,
-  !#    \label{eq:DepthPolynomial}
-  !#   \end{eqnarray}
-  !#   where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
-  !#   stellar mass. We adopt a solid angle of $2.1901993$~sr \citep{percival_shape_2007} for the sample.
-  !#   
-  !#   \begin{figure}
-  !#    \begin{center}
-  !#    \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/SDSSMassLuminosityRelation.pdf}
-  !#    \end{center}
-  !#    \caption{The maximum redshift at which a galaxy of given stellar mass can be detected in the sample of
-  !#    \protect\cite{li_distribution_2009}. Points show the results obtained using the \protect\cite{de_lucia_hierarchical_2007}
-  !#    model from the Millennium Database, while the lines shows a polynomial fit to these results (given in
-  !#    eqn.~\ref{eq:DepthPolynomial}).}
-  !#    \label{fig:SDSSDepthFit}
-  !#   \end{figure}
-  !#  </description>
-  !# </surveyGeometry>
+  !![
+  <surveyGeometry name="surveyGeometryLiWhite2009SDSS">
+   <description>
+    A survey geometry class that describes the survey geometry of \cite{li_distribution_2009}. 
+    
+    For the angular mask, we make use of the catalog of random points within the survey footprint provided by the
+    NYU-VAGC\footnote{Specifically,
+    \href{http://sdss.physics.nyu.edu/lss/dr72/random/lss_random-0.dr72.dat}{http://sdss.physics.nyu.edu/lss/dr72/random/lss\_random-0.dr72.dat}.}
+    (\citealt{blanton_new_2005}; see also
+    \citealt{adelman-mccarthy_sixth_2008,padmanabhan_improved_2008}). \cite{li_distribution_2009} consider only the main,
+    contiguous region and so we keep only those points which satisfy RA$>100^\circ$, RA$&lt;300^\circ$, and RA$&lt;247^\circ$ or
+    $\delta&lt; 51^\circ$. When the survey window function is needed, these points are used to determine which elements of a 3D
+    grid fall within the window function.
+    
+    To estimate the depth of the \cite{li_distribution_2009} sample as a function of galaxy stellar mass we make use of
+    semi-analytic models in the Millennium Database. Specifically, we use the \gls{sam} of
+    \citeauthor{de_lucia_hierarchical_2007}~(\citeyear{de_lucia_hierarchical_2007}; specifically the {\normalfont \ttfamily
+    millimil..DeLucia2006a} and {\normalfont \ttfamily millimil..DeLucia2006a\_sdss2mass} tables in the Millennium
+    Database). For each snapshot in the database, we extract the stellar masses and observed-frame SDSS r-band absolute
+    magnitudes (including dust extinction), and determine the median absolute magnitude as a function of stellar mass. Using
+    the limiting apparent magnitude of the \cite{li_distribution_2009} sample, $r=17.6$, we infer the corresponding absolute
+    magnitude at each redshift and, using our derived absolute magnitude--stellar mass relation, infer the corresponding
+    stellar mass.
+    
+    The end result of this procedure is the limiting stellar mass as a function of redshift, accounting for k-corrections,
+    evolution, and the effects of dust. Figure~\ref{fig:SDSSDepthFit} shows the resulting relation between stellar mass and the
+    maximum redshift at which such a galaxy would be included in the sample. Points indicate measurements from the \gls{sam},
+    while the line shows a polynomial fit:
+    \begin{eqnarray}
+     z(M_\star) &amp;=&amp; -5.950 + 2.638 m - 0.4211 m^2 \nonumber \\
+                &amp; &amp; + 2.852\times 10^{-2} m^3 - 6.783 \times 10^{-4} m^4,
+     \label{eq:DepthPolynomial}
+    \end{eqnarray}
+    where $m= \log_{10}(M_\star/M_\odot)$. We use this polynomial fit to determine the depth of the sample as a function of
+    stellar mass. We adopt a solid angle of $2.1901993$~sr \citep{percival_shape_2007} for the sample.
+    
+    \begin{figure}
+     \begin{center}
+     \includegraphics[width=85mm,trim=0mm 0mm 0mm 4mm,clip]{Plots/DataAnalysis/SDSSMassLuminosityRelation.pdf}
+     \end{center}
+     \caption{The maximum redshift at which a galaxy of given stellar mass can be detected in the sample of
+     \protect\cite{li_distribution_2009}. Points show the results obtained using the \protect\cite{de_lucia_hierarchical_2007}
+     model from the Millennium Database, while the lines shows a polynomial fit to these results (given in
+     eqn.~\ref{eq:DepthPolynomial}).}
+     \label{fig:SDSSDepthFit}
+    \end{figure}
+   </description>
+  </surveyGeometry>
+  !!]
   type, extends(surveyGeometryRandomPoints) :: surveyGeometryLiWhite2009SDSS
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_  => null()
@@ -82,7 +86,9 @@
   end type surveyGeometryLiWhite2009SDSS
 
   interface surveyGeometryLiWhite2009SDSS
-     !% Constructors for the \cite{li_distribution_2009} survey geometry class.
+     !!{
+     Constructors for the \cite{li_distribution_2009} survey geometry class.
+     !!}
      module procedure liWhite2009SDSSConstructorParameters
      module procedure liWhite2009SDSSConstructorInternal
   end interface surveyGeometryLiWhite2009SDSS
@@ -90,7 +96,9 @@
 contains
 
   function liWhite2009SDSSConstructorParameters(parameters) result(self)
-    !% Constructor for the \cite{li_distribution_2009} survey geometry class which takes a parameter set as input.
+    !!{
+    Constructor for the \cite{li_distribution_2009} survey geometry class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (surveyGeometryLiWhite2009SDSS)                :: self
@@ -99,30 +107,36 @@ contains
     class           (randomNumberGeneratorClass   ), pointer       :: randomNumberGenerator_
     double precision                                               :: redshiftMinimum       , redshiftMaximum
 
-    !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
-    !# <inputParameter>
-    !#   <name>redshiftMinimum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The minimum redshift for the survey.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshiftMaximum</name>
-    !#   <defaultValue>huge(1.0d0)</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>The maximum redshift for the survey.</description>
-    !# </inputParameter>
+    !![
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    <inputParameter>
+      <name>redshiftMinimum</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The minimum redshift for the survey.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>redshiftMaximum</name>
+      <defaultValue>huge(1.0d0)</defaultValue>
+      <source>parameters</source>
+      <description>The maximum redshift for the survey.</description>
+    </inputParameter>
+    !!]
     ! Build the object.
     self=surveyGeometryLiWhite2009SDSS(redshiftMinimum,redshiftMaximum,cosmologyFunctions_,randomNumberGenerator_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"   />
-    !# <objectDestructor name="randomNumberGenerator_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"   />
+    <objectDestructor name="randomNumberGenerator_"/>
+    !!]
     return
   end function liWhite2009SDSSConstructorParameters
 
   function liWhite2009SDSSConstructorInternal(redshiftMinimum,redshiftMaximum,cosmologyFunctions_,randomNumberGenerator_) result(self)
-    !% Constructor for the \cite{li_distribution_2009} survey geometry class which allows specification of minimum and maximum redshifts.
+    !!{
+    Constructor for the \cite{li_distribution_2009} survey geometry class which allows specification of minimum and maximum redshifts.
+    !!}
     use :: Cosmology_Functions        , only : cosmologyFunctionsClass
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
     implicit none
@@ -130,7 +144,9 @@ contains
     double precision                               , intent(in   )                   :: redshiftMinimum    , redshiftMaximum
     class           (cosmologyFunctionsClass      ), intent(in   ), target           :: cosmologyFunctions_
     class           (randomNumberGeneratorClass   ), intent(in   ), target, optional :: randomNumberGenerator_ 
-    !# <constructorAssign variables="*cosmologyFunctions_, *randomNumberGenerator_, redshiftMinimum, redshiftMaximum"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_, *randomNumberGenerator_, redshiftMinimum, redshiftMaximum"/>
+    !!]
 
     self   %geometryInitialized =.false.
     self   %limitDistanceMinimum=self%cosmologyFunctions_%distanceComovingConvert(                               &
@@ -149,17 +165,23 @@ contains
   end function liWhite2009SDSSConstructorInternal
 
   subroutine liWhite2009SDSSDestructor(self)
-    !% Destructor for the ``liWhite2009SDSS'' survey geometry class.
+    !!{
+    Destructor for the ``liWhite2009SDSS'' survey geometry class.
+    !!}
     implicit none
     type(surveyGeometryLiWhite2009SDSS), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"   />
-    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"   />
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
     return
   end subroutine liWhite2009SDSSDestructor
 
   double precision function liWhite2009SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
-    !% Compute the minimum distance at which a galaxy is visible.
+    !!{
+    Compute the minimum distance at which a galaxy is visible.
+    !!}
     implicit none
     class           (surveyGeometryLiWhite2009SDSS), intent(inout)           :: self
     double precision                               , intent(in   ), optional :: mass , magnitudeAbsolute, luminosity
@@ -171,7 +193,9 @@ contains
   end function liWhite2009SDSSDistanceMinimum
 
   double precision function liWhite2009SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
-    !% Compute the maximum distance at which a galaxy is visible.
+    !!{
+    Compute the maximum distance at which a galaxy is visible.
+    !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
     use :: Galacticus_Error           , only : Galacticus_Error_Report
     implicit none
@@ -219,7 +243,9 @@ contains
   end function liWhite2009SDSSDistanceMaximum
 
   double precision function liWhite2009SDSSSolidAngle(self,field)
-    !% Return the solid angle of the \cite{li_distribution_2009} sample.
+    !!{
+    Return the solid angle of the \cite{li_distribution_2009} sample.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryLiWhite2009SDSS), intent(inout)           :: self
@@ -234,13 +260,15 @@ contains
   end function liWhite2009SDSSSolidAngle
 
   subroutine liWhite2009SDSSRandomsInitialize(self)
-    !% Compute the window function for the survey.
-    use :: File_Utilities          , only : Count_Lines_In_File       , Directory_Make     , File_Exists
-    use :: Galacticus_Display      , only : Galacticus_Display_Message
+    !!{
+    Compute the window function for the survey.
+    !!}
+    use :: Display                 , only : displayMessage
+    use :: File_Utilities          , only : Count_Lines_In_File    , Directory_Make     , File_Exists
     use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: Galacticus_Paths        , only : galacticusPath            , pathTypeDataDynamic
+    use :: Galacticus_Paths        , only : galacticusPath         , pathTypeDataDynamic
     use :: ISO_Varying_String      , only : varying_string
-    use :: Memory_Management       , only : allocateArray             , deallocateArray
+    use :: Memory_Management       , only : allocateArray          , deallocateArray
     use :: Numerical_Constants_Math, only : Pi
     use :: String_Handling         , only : operator(//)
     use :: System_Command          , only : System_Command_Do
@@ -290,6 +318,6 @@ contains
     call deallocateArray(angleTmp                       )
     message="Read "
     message=message//randomsCount//" random points and kept "//randomsCount//" of them"
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     return
   end subroutine liWhite2009SDSSRandomsInitialize

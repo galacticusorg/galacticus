@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains custom functions for the very simple spheroid component.
+!!{
+Contains custom functions for the very simple spheroid component.
+!!}
 
 double precision function Node_Component_Spheroid_Very_Simple_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex)
-  !% Computes the mass within a given radius for an very simple spheroid.
+  !!{
+  Computes the mass within a given radius for an very simple spheroid.
+  !!}
   use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeSpheroid, massTypeAll    , massTypeBaryonic, &
           &                                 massTypeGalactic       , massTypeGaseous      , massTypeStellar, radiusLarge     , &
           &                                 weightByMass
@@ -58,7 +62,9 @@ double precision function Node_Component_Spheroid_Very_Simple_Enclosed_Mass(self
 end function Node_Component_Spheroid_Very_Simple_Enclosed_Mass
 
 double precision function Node_Component_Spheroid_Very_Simple_Half_Mass_Radius(self)
-  !% Return the half-mass radius of the very simple spheroid.
+  !!{
+  Return the half-mass radius of the very simple spheroid.
+  !!}
   implicit none
   class(nodeComponentSpheroidVerySimple), intent(inout) :: self
 

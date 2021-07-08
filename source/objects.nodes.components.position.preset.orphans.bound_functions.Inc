@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains custom functions for the preset$+$orphans position component.
+!!{
+Contains custom functions for the preset$+$orphans position component.
+!!}
 
 function PositionPresetOrphansPosition(self)
-  !% Return the position of the node.
+  !!{
+  Return the position of the node.
+  !!}
   implicit none
   double precision                                    , allocatable  , dimension(:) :: PositionPresetOrphansPosition
   class           (nodeComponentPositionPresetOrphans), intent(inout)               :: self
@@ -54,7 +58,9 @@ function PositionPresetOrphansPosition(self)
 end function PositionPresetOrphansPosition
 
 function PositionPresetOrphansVelocity(self)
-  !% Return the velocity of the node.
+  !!{
+  Return the velocity of the node.
+  !!}
   implicit none
   double precision                                    , allocatable  , dimension(:) :: PositionPresetOrphansVelocity
   class           (nodeComponentPositionPresetOrphans), intent(inout)               :: self

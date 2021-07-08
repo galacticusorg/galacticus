@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,22 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides various interfaces to the \gls{cloudy} code.
+!!{
+Contains a module which provides various interfaces to the \gls{cloudy} code.
+!!}
 
 module Interfaces_Cloudy
-  !% Provides various interfaces to the \gls{cloudy} code.
+  !!{
+  Provides various interfaces to the \gls{cloudy} code.
+  !!}
   private
   public :: Interface_Cloudy_Initialize
 
 contains
 
   subroutine Interface_Cloudy_Initialize(cloudyPath,cloudyVersion,static)
-    !% Initialize the interface with Cloudy, including downloading and compiling Cloudy if necessary.
+    !!{
+    Initialize the interface with Cloudy, including downloading and compiling Cloudy if necessary.
+    !!}
+    use :: Display           , only : displayMessage         , verbosityLevelWorking
     use :: File_Utilities    , only : File_Exists
-    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Galacticus_Paths  , only : galacticusPath            , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : varying_string            , operator(//)       , assignment(=), char
+    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : assignment(=)          , char                 , operator(//), varying_string
     use :: System_Command    , only : System_Command_Do
     implicit none
     type     (varying_string), intent(  out)           :: cloudyPath   , cloudyVersion
@@ -42,7 +48,9 @@ contains
     character(len=3         )                          :: staticDefault
     character(len=1024      )                          :: compilerPath
     type     (varying_string)                          :: command
-    !# <optionalArgument name="static" defaultsTo=".false." />
+    !![
+    <optionalArgument name="static" defaultsTo=".false." />
+    !!]
 
     ! Specify Cloudy version.
     cloudyVersion="c17.02"
@@ -54,19 +62,19 @@ contains
        if (.not.File_Exists(cloudyPath)) then
           ! Check for existance of tarball - download the Cloudy code if necessary.
           if (.not.File_Exists(cloudyPath//".tar.gz")) then
-             call Galacticus_Display_Message("downloading Cloudy code....",verbosityWorking)
+             call displayMessage("downloading Cloudy code....",verbosityLevelWorking)
              call System_Command_Do('wget "http://data.nublado.org/cloudy_releases/c17/'//cloudyVersion//'.tar.gz" -O '//cloudyPath//'.tar.gz',status)
              if (status /= 0) call Galacticus_Error_Report("failed to download Cloudy code"//{introspection:location})
           end if
           ! Unpack and patch the code.
-          call Galacticus_Display_Message("unpacking and patching Cloudy code....",verbosityWorking)
+          call displayMessage("unpacking and patching Cloudy code....",verbosityLevelWorking)
           call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//" -f "//cloudyPath//".tar.gz",status)
           if (status /= 0 .or. .not.File_Exists(cloudyPath)) call Galacticus_Error_Report("failed to unpack Cloudy code"//{introspection:location})
           call System_Command_Do('sed -i~ -r s/"\\\$res\s+\.=\s+\"native \""/"print \"skip march=native as it breaks the build\\n\""/ '//cloudyPath//'/source/capabilities.pl',status)
           if (status /= 0                                  ) call Galacticus_Error_Report("failed to patch Cloudy code"//{introspection:location})
        end if
        ! Build the code.
-       call Galacticus_Display_Message("compiling Cloudy code....",verbosityWorking)
+       call displayMessage("compiling Cloudy code....",verbosityLevelWorking)
        if (.not.present(static)) then
           call Get_Environment_Variable('CLOUDY_STATIC_BUILD',staticDefault,status=statusEnvironment)
           if (statusEnvironment <= 0) static_=staticDefault == "yes"

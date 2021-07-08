@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,47 +17,53 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides an object that implements concentrations of dark matter halo profiles.
+!!{
+Contains a module which provides an object that implements concentrations of dark matter halo profiles.
+!!}
 
 module Dark_Matter_Profiles_Concentration
-  !% Provides a class that implements concentrations of dark matter halo profiles.
+  !!{
+  Provides a class that implements concentrations of dark matter halo profiles.
+  !!}
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO , darkMatterProfileDMOClass
   use :: Galacticus_Nodes        , only : treeNode
   use :: Virial_Density_Contrast , only : virialDensityContrast, virialDensityContrastClass
   implicit none
   private
 
-  !# <functionClass>
-  !#  <name>darkMatterProfileConcentration</name>
-  !#  <descriptiveName>Dark Matter Profile Concentrations</descriptiveName>
-  !#  <description>
-  !#   Class providing dark matter profile concentrations.
-  !#  </description>
-  !#  <default>gao2008</default>
-  !#  <method name="concentration" >
-  !#   <description>Returns the concentration parameter for the given {\normalfont \ttfamily node}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <selfTarget>yes</selfTarget>
-  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
-  !#  </method>
-  !#  <method name="concentrationMean" >
-  !#   <description>Returns the mean concentration parameter for a {\normalfont \ttfamily node} of the given mass.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
-  !#   <code>darkMatterProfileConcentrationConcentrationMean=self%concentration(node)</code>
-  !#  </method>
-  !#  <method name="densityContrastDefinition" >
-  !#   <description>Returns a {\normalfont \ttfamily virialDensityContrast} object describing the virial density contrast used to define this concentration.</description>
-  !#   <type>class(virialDensityContrastClass)</type>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !#  <method name="darkMatterProfileDMODefinition" >
-  !#   <description>Returns a {\normalfont \ttfamily darkMatterProfileDMO} object describing the dark matter density profile used to define this concentration.</description>
-  !#   <type>class(darkMatterProfileDMOClass)</type>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>darkMatterProfileConcentration</name>
+   <descriptiveName>Dark Matter Profile Concentrations</descriptiveName>
+   <description>
+    Class providing dark matter profile concentrations.
+   </description>
+   <default>gao2008</default>
+   <method name="concentration" >
+    <description>Returns the concentration parameter for the given {\normalfont \ttfamily node}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>type(treeNode), intent(inout), target :: node</argument>
+   </method>
+   <method name="concentrationMean" >
+    <description>Returns the mean concentration parameter for a {\normalfont \ttfamily node} of the given mass.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout), target :: node</argument>
+    <code>darkMatterProfileConcentrationConcentrationMean=self%concentration(node)</code>
+   </method>
+   <method name="densityContrastDefinition" >
+    <description>Returns a {\normalfont \ttfamily virialDensityContrast} object describing the virial density contrast used to define this concentration.</description>
+    <type>class(virialDensityContrastClass)</type>
+    <pass>yes</pass>
+   </method>
+   <method name="darkMatterProfileDMODefinition" >
+    <description>Returns a {\normalfont \ttfamily darkMatterProfileDMO} object describing the dark matter density profile used to define this concentration.</description>
+    <type>class(darkMatterProfileDMOClass)</type>
+    <pass>yes</pass>
+   </method>
+  </functionClass>
+  !!]
 
 end module Dark_Matter_Profiles_Concentration

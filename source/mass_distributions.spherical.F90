@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,19 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of an abstract mass distribution class for spherically symmetric distributions.
+  !!{
+  Implementation of an abstract mass distribution class for spherically symmetric distributions.
+  !!}
 
-  !# <massDistribution name="massDistributionSpherical" abstract="yes">
-  !#  <description>An abstract mass distribution class for spherically symmetric distributions.</description>
-  !# </massDistribution>
+  !![
+  <massDistribution name="massDistributionSpherical" abstract="yes">
+   <description>An abstract mass distribution class for spherically symmetric distributions.</description>
+  </massDistribution>
+  !!]
   type, extends(massDistributionClass), abstract :: massDistributionSpherical
-     !% Implementation of an abstract mass distribution class for spherically symmetric distributions.
+     !!{
+     Implementation of an abstract mass distribution class for spherically symmetric distributions.
+     !!}
      private
    contains
-     !# <methods>
-     !#   <method description="Returns the radius enclosing half of the mass of the mass distribution." method="radiusHalfMass" />
-     !#   <method description="Returns the radius enclosing the given mass." method="radiusEnclosingMass" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Returns the radius enclosing half of the mass of the mass distribution." method="radiusHalfMass" />
+       <method description="Returns the radius enclosing the given mass." method="radiusEnclosingMass" />
+     </methods>
+     !!]
      procedure :: symmetry             => sphericalSymmetry
      procedure :: massEnclosedBySphere => sphericalMassEnclosedBySphere
      procedure :: radiusHalfMass       => sphericalRadiusHalfMass
@@ -47,7 +55,9 @@
 contains
 
   integer function sphericalSymmetry(self)
-    !% Returns symmetry label for mass dsitributions with spherical symmetry.
+    !!{
+    Returns symmetry label for mass dsitributions with spherical symmetry.
+    !!}
     implicit none
     class(massDistributionSpherical), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -57,8 +67,10 @@ contains
   end function sphericalSymmetry
 
   double precision function sphericalMassEnclosedBySphere(self,radius)
-    !% Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for spherically-symmetric mass
-    !% distributions using numerical integration.
+    !!{
+    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for spherically-symmetric mass
+    distributions using numerical integration.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
     implicit none
@@ -75,7 +87,9 @@ contains
   end function sphericalMassEnclosedBySphere
 
   double precision function sphericalMassEnclosedBySphereIntegrand(radius)
-    !% Enclosed mass integrand for spherical mass distributions.
+    !!{
+    Enclosed mass integrand for spherical mass distributions.
+    !!}
     use :: Coordinates, only : assignment(=), coordinateSpherical
     implicit none
     double precision                     , intent(in   ) :: radius
@@ -88,38 +102,36 @@ contains
   end function sphericalMassEnclosedBySphereIntegrand
 
   double precision function sphericalRadiusEnclosingMass(self,mass)
-    !% Computes the radius enclosing a given mass in a spherically symmetric mass distribution using numerical root finding.
+    !!{
+    Computes the radius enclosing a given mass in a spherically symmetric mass distribution using numerical root finding.
+    !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder, &
          &                     GSL_Root_fSolver_Brent
     implicit none
     class           (massDistributionSpherical), intent(inout), target :: self
     double precision                           , intent(in   )         :: mass
     type            (rootFinder               ), save                  :: finder
-    !$omp threadprivate(finder)
-    double precision                           , parameter             :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
+    logical                                    , save                  :: finderConstructed=.false.
+    !$omp threadprivate(finder,finderConstructed)
+    double precision                           , parameter             :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
 
     if (mass <= 0.0d0) then
        sphericalRadiusEnclosingMass=0.0d0
        return
     end if
-    if (.not.finder%isInitialized()) then
-       call finder%rootFunction(                                                             &
-            &                                                 sphericalMassRoot              &
-            &                  )
-       call finder%tolerance   (                                                             &
-            &                                                 toleranceAbsolute            , &
-            &                                                 toleranceRelative              &
-            &                  )
-       call finder%type        (                                                             &
-            &                                                  GSL_Root_fSolver_Brent        &
-            &                  )
-       call finder%rangeExpand (                                                             &
-            &                   rangeExpandUpward            =2.0d0                        , &
-            &                   rangeExpandDownward          =0.5d0                        , &
-            &                   rangeExpandType              =rangeExpandMultiplicative    , &
-            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
-            &                  )
+    if (.not.finderConstructed) then
+       finder           =rootFinder(                                                             &
+            &                       rootFunction                 =sphericalMassRoot            , &
+            &                       toleranceAbsolute            =toleranceAbsolute            , &
+            &                       toleranceRelative            =toleranceRelative            , &
+            &                       solverType                   =GSL_Root_fSolver_Brent       , &
+            &                       rangeExpandUpward            =2.0d0                        , &
+            &                       rangeExpandDownward          =0.5d0                        , &
+            &                       rangeExpandType              =rangeExpandMultiplicative    , &
+            &                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+            &                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
+            &                      )
+       finderConstructed=.true.
     end if
     sphericalActive              => self
     sphericalMassTarget          =  mass
@@ -128,7 +140,9 @@ contains
   end function sphericalRadiusEnclosingMass
 
   double precision function sphericalRadiusHalfMass(self)
-    !% Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
+    !!{
+    Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
+    !!}
     implicit none
     class(massDistributionSpherical), intent(inout) :: self
 
@@ -137,7 +151,9 @@ contains
   end function sphericalRadiusHalfMass
 
   double precision function sphericalMassRoot(radius)
-    !% Root function used in finding half mass radii of spherically symmetric mass distributions.
+    !!{
+    Root function used in finding half mass radii of spherically symmetric mass distributions.
+    !!}
     implicit none
     double precision, intent(in   ) :: radius
 
@@ -147,8 +163,10 @@ contains
   end function sphericalMassRoot
   
   function sphericalAcceleration(self,coordinates)
-    !% Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for spherically-symmetric mass
-    !% distributions.
+    !!{
+    Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for spherically-symmetric mass
+    distributions.
+    !!}
     use :: Coordinates                     , only : assignment(=), coordinateSpherical, coordinateCartesian
     use :: Numerical_Constants_Astronomical, only : gigaYear     , megaParsec         , gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -180,8 +198,10 @@ contains
   end function sphericalAcceleration
 
   function sphericalTidalTensor(self,coordinates)
-    !% Computes the gravitational tidal tensor at {\normalfont \ttfamily coordinates} for spherically-symmetric mass
-    !% distributions.
+    !!{
+    Computes the gravitational tidal tensor at {\normalfont \ttfamily coordinates} for spherically-symmetric mass
+    distributions.
+    !!}
     use :: Coordinates                     , only : assignment(=)                  , coordinateSpherical, coordinateCartesian
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     use :: Numerical_Constants_Math        , only : Pi
@@ -219,7 +239,9 @@ contains
   end function sphericalTidalTensor
   
   function sphericalPositionSample(self,randomNumberGenerator_)
-    !% Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
+    !!{
+    Computes the half-mass radius of a spherically symmetric mass distribution using numerical root finding.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision                            , dimension(3)  :: sphericalPositionSample

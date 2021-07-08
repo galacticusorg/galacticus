@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is fixed.
+  !!{
+  Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is fixed.
+  !!}
 
-  !# <posteriorSampleDffrntlEvltnProposalSize name="posteriorSampleDffrntlEvltnProposalSizeFixed">
-  !#  <description>
-  !#   A posterior sampling differential evolution proposal size class in which the proposal size is a fixed value
-  !#   $\gamma=${\normalfont \ttfamily [gamma]}.
-  !#  </description>
-  !# </posteriorSampleDffrntlEvltnProposalSize>
+  !![
+  <posteriorSampleDffrntlEvltnProposalSize name="posteriorSampleDffrntlEvltnProposalSizeFixed">
+   <description>
+    A posterior sampling differential evolution proposal size class in which the proposal size is a fixed value
+    $\gamma=${\normalfont \ttfamily [gamma]}.
+   </description>
+  </posteriorSampleDffrntlEvltnProposalSize>
+  !!]
   type, extends(posteriorSampleDffrntlEvltnProposalSizeClass) :: posteriorSampleDffrntlEvltnProposalSizeFixed
-     !% Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is fixed.
+     !!{
+     Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is fixed.
+     !!}
      private
      double precision :: proposalSize
    contains
@@ -34,7 +40,9 @@
   end type posteriorSampleDffrntlEvltnProposalSizeFixed
 
   interface posteriorSampleDffrntlEvltnProposalSizeFixed
-     !% Constructors for the {\normalfont \ttfamily fixed} posterior sampling differential evolution random jump class.
+     !!{
+     Constructors for the {\normalfont \ttfamily fixed} posterior sampling differential evolution random jump class.
+     !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
   end interface posteriorSampleDffrntlEvltnProposalSizeFixed
@@ -42,36 +50,48 @@
 contains
 
   function fixedConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily fixed} posterior sampling differential evolution random jump class which builds
-    !% the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily fixed} posterior sampling differential evolution random jump class which builds
+    the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleDffrntlEvltnProposalSizeFixed)                 :: self
     type            (inputParameters                             ), intent(inout)  :: parameters
     double precision                                                               :: proposalSize
 
-    !# <inputParameter>
-    !#   <name>proposalSize</name>
-    !#   <description>The proposal size, $\gamma$.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>proposalSize</name>
+      <description>The proposal size, $\gamma$.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=posteriorSampleDffrntlEvltnProposalSizeFixed(proposalSize)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(proposalSize) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily fixed} posterior sampling differential evolution random jump class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily fixed} posterior sampling differential evolution random jump class.
+    !!}
     implicit none
     type            (posteriorSampleDffrntlEvltnProposalSizeFixed)                :: self
     double precision                                              , intent(in   ) :: proposalSize
-    !# <constructorAssign variables="proposalSize"/>
+    !![
+    <constructorAssign variables="proposalSize"/>
+    !!]
 
     return
   end function fixedConstructorInternal
 
   double precision function fixedGamma(self,simulationState,simulationConvergence)
-    !% Return the current state.
+    !!{
+    Return the current state.
+    !!}
     implicit none
     class(posteriorSampleDffrntlEvltnProposalSizeFixed), intent(inout) :: self
     class(posteriorSampleStateClass                   ), intent(inout) :: simulationState

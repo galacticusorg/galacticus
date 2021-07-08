@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,21 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements the transfer function fitting function of
-  !% \cite{bardeen_statistics_1986}.
+  !!{
+  Contains a module which implements the transfer function fitting function of
+  \cite{bardeen_statistics_1986}.
+  !!}
 
   use :: Cosmology_Functions  , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters , only : cosmologyParametersClass
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
-  !# <transferFunction name="transferFunctionBBKS">
-  !#  <description>
-  !#   A transfer function class implementing the \cite{bardeen_statistics_1986} fitting function to compute the \gls{cdm}
-  !#   transfer function.
-  !#  </description>
-  !# </transferFunction>
+  !![
+  <transferFunction name="transferFunctionBBKS">
+   <description>
+    A transfer function class implementing the \cite{bardeen_statistics_1986} fitting function to compute the \gls{cdm}
+    transfer function.
+   </description>
+  </transferFunction>
+  !!]
   type, extends(transferFunctionClass) :: transferFunctionBBKS
-     !% A bbks transfer function class.
+     !!{
+     A bbks transfer function class.
+     !!}
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (darkMatterParticleClass ), pointer :: darkMatterParticle_  => null()
@@ -46,7 +52,9 @@
   end type transferFunctionBBKS
 
   interface transferFunctionBBKS
-     !% Constructors for the ``BBKS'' transfer function class.
+     !!{
+     Constructors for the ``BBKS'' transfer function class.
+     !!}
      module procedure bbksConstructorParameters
      module procedure bbksConstructorInternal
   end interface transferFunctionBBKS
@@ -57,7 +65,9 @@
 contains
 
   function bbksConstructorParameters(parameters) result(self)
-    !% Constructor for the ``BBKS'' transfer function class which takes a parameter set as input.
+    !!{
+    Constructor for the ``BBKS'' transfer function class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (transferFunctionBBKS    )                :: self
@@ -66,19 +76,25 @@ contains
     class(darkMatterParticleClass ), pointer       :: darkMatterParticle_
     class(cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
 
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !!]
     self=bbksConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="darkMatterParticle_" />
-    !# <objectDestructor name="cosmologyFunctions_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="darkMatterParticle_" />
+    <objectDestructor name="cosmologyFunctions_" />
+    !!]
     return
   end function bbksConstructorParameters
 
   function bbksConstructorInternal(darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_) result(self)
-    !% Internal constructor for the ``BBKS'' transfer function class.
+    !!{
+    Internal constructor for the ``BBKS'' transfer function class.
+    !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM
     use :: Galacticus_Error     , only : Galacticus_Error_Report
@@ -87,7 +103,9 @@ contains
     class(darkMatterParticleClass ), intent(in   ), target :: darkMatterParticle_
     class(cosmologyParametersClass), intent(in   ), target :: cosmologyParameters_
     class(cosmologyFunctionsClass ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="*darkMatterParticle_, *cosmologyParameters_, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="*darkMatterParticle_, *cosmologyParameters_, *cosmologyFunctions_"/>
+    !!]
 
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)
@@ -120,18 +138,24 @@ contains
   end function bbksConstructorInternal
 
   subroutine bbksDestructor(self)
-    !% Destructor for the ``BBKS'' transfer function class.
+    !!{
+    Destructor for the ``BBKS'' transfer function class.
+    !!}
     implicit none
     type(transferFunctionBBKS), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_" />
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%darkMatterParticle_" />
+    !![
+    <objectDestructor name="self%cosmologyFunctions_" />
+    <objectDestructor name="self%cosmologyParameters_"/>
+    <objectDestructor name="self%darkMatterParticle_" />
+    !!]
     return
   end subroutine bbksDestructor
 
   double precision function bbksValue(self,wavenumber)
-    !% Return the transfer function at the given wavenumber.
+    !!{
+    Return the transfer function at the given wavenumber.
+    !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     implicit none
     class           (transferFunctionBBKS), intent(inout) :: self
@@ -163,7 +187,9 @@ contains
   end function bbksValue
 
   double precision function bbksLogarithmicDerivative(self,wavenumber)
-    !% Return the logarithmic derivative of the transfer function at the given wavenumber.
+    !!{
+    Return the logarithmic derivative of the transfer function at the given wavenumber.
+    !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     implicit none
     class           (transferFunctionBBKS), intent(inout) :: self
@@ -222,8 +248,10 @@ contains
   end function bbksLogarithmicDerivative
 
   double precision function bbksHalfModeMass(self,status)
-    !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
-    !% to a \gls{cdm} transfer function. Not supported in this implementation.
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
+    to a \gls{cdm} transfer function. Not supported in this implementation.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
     implicit none
     class  (transferFunctionBBKS), intent(inout)           :: self
@@ -240,7 +268,9 @@ contains
   end function bbksHalfModeMass
 
   double precision function bbksEpochTime(self)
-    !% Return the cosmic time at the epoch at which this transfer function is defined.
+    !!{
+    Return the cosmic time at the epoch at which this transfer function is defined.
+    !!}
     implicit none
     class(transferFunctionBBKS), intent(inout) :: self
 

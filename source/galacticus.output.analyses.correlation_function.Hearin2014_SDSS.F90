@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,18 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a correlation function output analysis class for the \cite{hearin_dark_2013} analysis.
+!!{
+Contains a module which implements a correlation function output analysis class for the \cite{hearin_dark_2013} analysis.
+!!}
 
-  !# <outputAnalysis name="outputAnalysisCorrelationFunctionHearin2013SDSS">
-  !#  <description>A correlation function output analysis class for the \cite{hearin_dark_2013} analysis.</description>
-  !# </outputAnalysis>
+  !![
+  <outputAnalysis name="outputAnalysisCorrelationFunctionHearin2013SDSS">
+   <description>A correlation function output analysis class for the \cite{hearin_dark_2013} analysis.</description>
+  </outputAnalysis>
+  !!]
   type, extends(outputAnalysisCorrelationFunction) :: outputAnalysisCorrelationFunctionHearin2013SDSS
-     !% A correlation function function output analysis class for the \cite{hearin_dark_2013} analysis.
+     !!{
+     A correlation function function output analysis class for the \cite{hearin_dark_2013} analysis.
+     !!}
      private
   end type outputAnalysisCorrelationFunctionHearin2013SDSS
 
   interface outputAnalysisCorrelationFunctionHearin2013SDSS
-     !% Constructors for the ``correlationFunctionHearin2013SDSS'' output analysis class.
+     !!{
+     Constructors for the ``correlationFunctionHearin2013SDSS'' output analysis class.
+     !!}
      module procedure correlationFunctionHearin2013SDSSConstructorParameters
      module procedure correlationFunctionHearin2013SDSSConstructorInternal
   end interface outputAnalysisCorrelationFunctionHearin2013SDSS
@@ -36,7 +44,9 @@
 contains
 
   function correlationFunctionHearin2013SDSSConstructorParameters(parameters) result (self)
-    !% Constructor for the ``correlationFunctionHearin2013SDSS'' output analysis class which takes a parameter set as input.
+    !!{
+    Constructor for the ``correlationFunctionHearin2013SDSS'' output analysis class which takes a parameter set as input.
+    !!}
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -64,71 +74,77 @@ contains
     else
        allocate(systematicErrorPolynomialCoefficient(1                                                       ))
     end if
-    !# <inputParameter>
-    !#   <name>randomErrorMinimum</name>
-    !#   <source>parameters</source>
-    !#   <variable>randomErrorMinimum</variable>
-    !#   <defaultValue>0.07d0</defaultValue>
-    !#   <description>The minimum random error for SDSS stellar masses.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>randomErrorMaximum</name>
-    !#   <source>parameters</source>
-    !#   <variable>randomErrorMaximum</variable>
-    !#   <defaultValue>0.07d0</defaultValue>
-    !#   <description>The minimum random error for SDSS stellar masses.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>randomErrorPolynomialCoefficient</name>
-    !#   <source>parameters</source>
-    !#   <variable>randomErrorPolynomialCoefficient</variable>
-    !#   <defaultValue>[0.07d0]</defaultValue>
-    !#   <description>The coefficients of the random error polynomial for SDSS stellar masses.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>systematicErrorPolynomialCoefficient</name>
-    !#   <source>parameters</source>
-    !#   <variable>systematicErrorPolynomialCoefficient</variable>
-    !#   <defaultValue>[0.0d0]</defaultValue>
-    !#   <description>The coefficients of the systematic error polynomial for SDSS stellar masses.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massHaloBinsPerDecade</name>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch galaxies.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massHaloMinimum</name>
-    !#   <defaultValue>1.0d8</defaultValue>
-    !#   <description>The minimum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massHaloMaximum</name>
-    !#   <defaultValue>1.0d16</defaultValue>
-    !#   <description>The maximum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"/>
-    !# <objectBuilder class="outputTimes"                    name="outputTimes_"                    source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO"           name="darkMatterProfileDMO_"           source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloBias"             name="darkMatterHaloBias_"             source="parameters"/>
-    !# <objectBuilder class="powerSpectrum"                  name="powerSpectrum_"                  source="parameters"/>
-    !# <objectBuilder class="haloModelPowerSpectrumModifier" name="haloModelPowerSpectrumModifier_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>randomErrorMinimum</name>
+      <source>parameters</source>
+      <variable>randomErrorMinimum</variable>
+      <defaultValue>0.07d0</defaultValue>
+      <description>The minimum random error for SDSS stellar masses.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>randomErrorMaximum</name>
+      <source>parameters</source>
+      <variable>randomErrorMaximum</variable>
+      <defaultValue>0.07d0</defaultValue>
+      <description>The minimum random error for SDSS stellar masses.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>randomErrorPolynomialCoefficient</name>
+      <source>parameters</source>
+      <variable>randomErrorPolynomialCoefficient</variable>
+      <defaultValue>[0.07d0]</defaultValue>
+      <description>The coefficients of the random error polynomial for SDSS stellar masses.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>systematicErrorPolynomialCoefficient</name>
+      <source>parameters</source>
+      <variable>systematicErrorPolynomialCoefficient</variable>
+      <defaultValue>[0.0d0]</defaultValue>
+      <description>The coefficients of the systematic error polynomial for SDSS stellar masses.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massHaloBinsPerDecade</name>
+      <defaultValue>10</defaultValue>
+      <description>The number of bins per decade of halo mass to use when constructing the mass function covariance matrix for main branch galaxies.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massHaloMinimum</name>
+      <defaultValue>1.0d8</defaultValue>
+      <description>The minimum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massHaloMaximum</name>
+      <defaultValue>1.0d16</defaultValue>
+      <description>The maximum halo mass to consider when constructing the mass function covariance matrix for main branch galaxies.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"/>
+    <objectBuilder class="outputTimes"                    name="outputTimes_"                    source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"           name="darkMatterProfileDMO_"           source="parameters"/>
+    <objectBuilder class="darkMatterHaloBias"             name="darkMatterHaloBias_"             source="parameters"/>
+    <objectBuilder class="powerSpectrum"                  name="powerSpectrum_"                  source="parameters"/>
+    <objectBuilder class="haloModelPowerSpectrumModifier" name="haloModelPowerSpectrumModifier_" source="parameters"/>
+    !!]
     self=outputAnalysisCorrelationFunctionHearin2013SDSS(massHaloBinsPerDecade,massHaloMinimum, massHaloMaximum,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"            />
-    !# <objectDestructor name="outputTimes_"                   />
-    !# <objectDestructor name="darkMatterProfileDMO_"          />
-    !# <objectDestructor name="darkMatterHaloBias_"            />
-    !# <objectDestructor name="haloModelPowerSpectrumModifier_"/>
-    !# <objectDestructor name="powerSpectrum_"                 />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"            />
+    <objectDestructor name="outputTimes_"                   />
+    <objectDestructor name="darkMatterProfileDMO_"          />
+    <objectDestructor name="darkMatterHaloBias_"            />
+    <objectDestructor name="haloModelPowerSpectrumModifier_"/>
+    <objectDestructor name="powerSpectrum_"                 />
+    !!]
     return
   end function correlationFunctionHearin2013SDSSConstructorParameters
 
   function correlationFunctionHearin2013SDSSConstructorInternal(massHaloBinsPerDecade,massHaloMinimum,massHaloMaximum,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,cosmologyFunctions_,outputTimes_,darkMatterProfileDMO_,darkMatterHaloBias_,haloModelPowerSpectrumModifier_,powerSpectrum_) result (self)
-    !% Constructor for the ``correlationFunctionHearin2013SDSS'' output analysis class for internal use.
+    !!{
+    Constructor for the ``correlationFunctionHearin2013SDSS'' output analysis class for internal use.
+    !!}
     use            :: Cosmology_Functions                   , only : cosmologyFunctionsClass                            , cosmologyFunctionsMatterLambda
     use            :: Cosmology_Parameters                  , only : cosmologyParametersSimple
     use            :: Galactic_Filters                      , only : galacticFilterStellarMass
@@ -170,42 +186,56 @@ contains
 
     ! Build a filter which selects galaxies above some minimum stellar mass.
     allocate(galacticFilter_         )
-    !# <referenceConstruct object="galacticFilter_" constructor="galacticFilterStellarMass   (                    1.0d8              )"/>
+    !![
+    <referenceConstruct object="galacticFilter_" constructor="galacticFilterStellarMass   (                    1.0d8              )"/>
+    !!]
     ! Build the SDSS survey geometry of Hearin et al. (2013) with their imposed redshift limits.
     allocate(surveyGeometry_         )
-    !# <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryHearin2014SDSS(cosmologyFunctions_=cosmologyFunctions_)"/>
+    !![
+    <referenceConstruct object="surveyGeometry_" constructor="surveyGeometryHearin2014SDSS(cosmologyFunctions_=cosmologyFunctions_)"/>
+    !!]
     ! Create the data cosmology.
     allocate(cosmologyParametersData_)
     allocate(cosmologyFunctionsData_ )
-    !# <referenceConstruct object="cosmologyParametersData_">
-    !#  <constructor>
-    !#    cosmologyParametersSimple     (                         &amp;
-    !#     &amp;                         OmegaMatter    = 0.27d0, &amp;
-    !#     &amp;                         OmegaDarkEnergy= 0.73d0, &amp;
-    !#     &amp;                         HubbleConstant =70.00d0, &amp;
-    !#     &amp;                         temperatureCMB = 0.00d0, &amp;
-    !#     &amp;                         OmegaBaryon    = 0.00d0  &amp;
-    !#     &amp;                        )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <referenceConstruct object="cosmologyFunctionsData_">
-    !#  <constructor>
-    !#    cosmologyFunctionsMatterLambda(                         &amp;
-    !#     &amp;                         cosmologyParametersData_ &amp;
-    !#     &amp;                        )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="cosmologyParametersData_">
+     <constructor>
+       cosmologyParametersSimple     (                         &amp;
+        &amp;                         OmegaMatter    = 0.27d0, &amp;
+        &amp;                         OmegaDarkEnergy= 0.73d0, &amp;
+        &amp;                         HubbleConstant =70.00d0, &amp;
+        &amp;                         temperatureCMB = 0.00d0, &amp;
+        &amp;                         OmegaBaryon    = 0.00d0  &amp;
+        &amp;                        )
+     </constructor>
+    </referenceConstruct>
+    <referenceConstruct object="cosmologyFunctionsData_">
+     <constructor>
+       cosmologyFunctionsMatterLambda(                         &amp;
+        &amp;                         cosmologyParametersData_ &amp;
+        &amp;                        )
+     </constructor>
+    </referenceConstruct>
+    !!]
     ! Stellar mass property extractor.
     allocate(massPropertyExtractor_                )
-    !# <referenceConstruct object="massPropertyExtractor_" constructor="nodePropertyExtractorMassStellar                               (                                                                           )"/>
+    !![
+    <referenceConstruct object="massPropertyExtractor_" constructor="nodePropertyExtractorMassStellar                               (                                                                           )"/>
+    !!]
     ! Sequence of property operators to correct for cosmological model, convert to logarithm, and apply systematic errors.
     allocate(massPropertyOperatorCsmlgyLmnstyDstnc_)
-    !# <referenceConstruct object="massPropertyOperatorCsmlgyLmnstyDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc(cosmologyFunctions_     ,cosmologyFunctionsData_              ,outputTimes_)"/>
+    !![
+    <referenceConstruct object="massPropertyOperatorCsmlgyLmnstyDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc(cosmologyFunctions_     ,cosmologyFunctionsData_              ,outputTimes_)"/>
+    !!]
     allocate(massPropertyOperatorLog10_            )
-    !# <referenceConstruct object="massPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10            (                                                                           )"/>
+    !![
+    <referenceConstruct object="massPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10            (                                                                           )"/>
+    !!]
     ! Systematic error model.
     allocate(massPropertyOperatorSystmtcPolynomial_)
-    !# <referenceConstruct object="massPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient              )"/>
+    !![
+    <referenceConstruct object="massPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(errorPolynomialZeroPoint,systematicErrorPolynomialCoefficient              )"/>
+    !!]
     allocate(propertyOperators_                    )
     allocate(propertyOperators_%next               )
     allocate(propertyOperators_%next%next          )
@@ -213,22 +243,28 @@ contains
     propertyOperators_%next     %operator_ => massPropertyOperatorLog10_
     propertyOperators_%next%next%operator_ => massPropertyOperatorSystmtcPolynomial_
     allocate(massPropertyOperator_                 )
-    !# <referenceConstruct object="massPropertyOperator_"                  constructor="outputAnalysisPropertyOperatorSequence         (propertyOperators_                                                         )"/>
+    !![
+    <referenceConstruct object="massPropertyOperator_"                  constructor="outputAnalysisPropertyOperatorSequence         (propertyOperators_                                                         )"/>
+    !!]
     ! Build a random error distribution operator.
     allocate(massDistributionOperator_)
-    !# <referenceConstruct object="massDistributionOperator_">
-    !#  <constructor>
-    !#   outputAnalysisDistributionOperatorRandomErrorPlynml(                                  &amp;
-    !#     &amp;                                             randomErrorMinimum              , &amp;
-    !#     &amp;                                             randomErrorMaximum              , &amp;
-    !#     &amp;                                             errorPolynomialZeroPoint        , &amp;
-    !#     &amp;                                             randomErrorPolynomialCoefficient  &amp;
-    !#     &amp;                                            )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="massDistributionOperator_">
+     <constructor>
+      outputAnalysisDistributionOperatorRandomErrorPlynml(                                  &amp;
+        &amp;                                             randomErrorMinimum              , &amp;
+        &amp;                                             randomErrorMaximum              , &amp;
+        &amp;                                             errorPolynomialZeroPoint        , &amp;
+        &amp;                                             randomErrorPolynomialCoefficient  &amp;
+        &amp;                                            )
+     </constructor>
+    </referenceConstruct>
+    !!]
     ! Build an operator for separations which corrects for cosmological model.
     allocate(separationPropertyOperator_)
-    !# <referenceConstruct object="separationPropertyOperator_"            constructor="outputAnalysisPropertyOperatorCsmlgyAnglrDstnc (cosmologyFunctions_     ,cosmologyFunctionsData_              ,outputTimes_)"/>
+    !![
+    <referenceConstruct object="separationPropertyOperator_"            constructor="outputAnalysisPropertyOperatorCsmlgyAnglrDstnc (cosmologyFunctions_     ,cosmologyFunctionsData_              ,outputTimes_)"/>
+    !!]
     ! Build the object.
     self%outputAnalysisCorrelationFunction=                                                                                                                                   &
          & outputAnalysisCorrelationFunction(                                                                                                                                 &
@@ -256,17 +292,19 @@ contains
          &                                   massPropertyExtractor_                                                                                                           &
          &                                  )
     ! Clean up.
-    !# <objectDestructor name="surveyGeometry_"                       />
-    !# <objectDestructor name="galacticFilter_"                       />
-    !# <objectDestructor name="cosmologyParametersData_"              />
-    !# <objectDestructor name="cosmologyFunctionsData_"               />
-    !# <objectDestructor name="massPropertyExtractor_"                />
-    !# <objectDestructor name="massPropertyOperatorCsmlgyLmnstyDstnc_"/>
-    !# <objectDestructor name="massPropertyOperatorLog10_"            />
-    !# <objectDestructor name="massPropertyOperatorSystmtcPolynomial_"/>
-    !# <objectDestructor name="massPropertyOperator_"                 />
-    !# <objectDestructor name="massDistributionOperator_"             />
-    !# <objectDestructor name="separationPropertyOperator_"           />
+    !![
+    <objectDestructor name="surveyGeometry_"                       />
+    <objectDestructor name="galacticFilter_"                       />
+    <objectDestructor name="cosmologyParametersData_"              />
+    <objectDestructor name="cosmologyFunctionsData_"               />
+    <objectDestructor name="massPropertyExtractor_"                />
+    <objectDestructor name="massPropertyOperatorCsmlgyLmnstyDstnc_"/>
+    <objectDestructor name="massPropertyOperatorLog10_"            />
+    <objectDestructor name="massPropertyOperatorSystmtcPolynomial_"/>
+    <objectDestructor name="massPropertyOperator_"                 />
+    <objectDestructor name="massDistributionOperator_"             />
+    <objectDestructor name="separationPropertyOperator_"           />
+    !!]
     nullify(propertyOperators_)
     return
   end function correlationFunctionHearin2013SDSSConstructorInternal

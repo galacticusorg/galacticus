@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an ISM mass output analysis property extractor class.
+!!{
+Contains a module which implements an ISM mass output analysis property extractor class.
+!!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorFinalDescendent">
-  !#  <description>An ISM mass output analysis property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorFinalDescendent">
+   <description>An ISM mass output analysis property extractor class.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorFinalDescendent
-     !% A stelalr mass output analysis class.
+     !!{
+     A stelalr mass output analysis class.
+     !!}
      private
    contains
      procedure :: extract     => finalDescendentExtract
@@ -33,14 +39,18 @@
   end type nodePropertyExtractorFinalDescendent
 
   interface nodePropertyExtractorFinalDescendent
-     !% Constructors for the ``finalDescendent'' output analysis class.
+     !!{
+     Constructors for the ``finalDescendent'' output analysis class.
+     !!}
      module procedure finalDescendentConstructorParameters
   end interface nodePropertyExtractorFinalDescendent
 
 contains
 
   function finalDescendentConstructorParameters(parameters)
-    !% Constructor for the {\normalfont \ttfamily finalDescendent} node property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily finalDescendent} node property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorFinalDescendent)                :: finalDescendentConstructorParameters
@@ -52,7 +62,9 @@ contains
   end function finalDescendentConstructorParameters
 
   function finalDescendentExtract(self,node,time,instance)
-    !% Implement a {\normalfont \ttfamily finalDescendent} node property extractor.
+    !!{
+    Implement a {\normalfont \ttfamily finalDescendent} node property extractor.
+    !!}
     implicit none
     integer         (kind_int8                           )                          :: finalDescendentExtract
     class           (nodePropertyExtractorFinalDescendent), intent(inout)           :: self
@@ -75,7 +87,9 @@ contains
   end function finalDescendentExtract
 
   integer function finalDescendentType(self)
-    !% Return the type of the stellar mass property.
+    !!{
+    Return the type of the stellar mass property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorFinalDescendent), intent(inout) :: self
@@ -86,7 +100,9 @@ contains
   end function finalDescendentType
 
   function finalDescendentName(self)
-    !% Return the name of the finalDescendent property.
+    !!{
+    Return the name of the finalDescendent property.
+    !!}
     implicit none
     type (varying_string                      )                :: finalDescendentName
     class(nodePropertyExtractorFinalDescendent), intent(inout) :: self
@@ -97,7 +113,9 @@ contains
   end function finalDescendentName
 
   function finalDescendentDescription(self)
-    !% Return a description of the finalDescendent property.
+    !!{
+    Return a description of the finalDescendent property.
+    !!}
     implicit none
     type (varying_string                      )                :: finalDescendentDescription
     class(nodePropertyExtractorFinalDescendent), intent(inout) :: self

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,19 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test features of cryptographic hashes.
+!!{
+Contains a program to test features of cryptographic hashes.
+!!}
 
 program Test_Hashes_Cryptographic
-  !% Contains a program to test features of cryptographic hashes.
-  use :: Galacticus_Display  , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  !!{
+  Contains a program to test features of cryptographic hashes.
+  !!}
+  use :: Display             , only : displayVerbositySet, verbosityLevelStandard
   use :: Hashes_Cryptographic, only : Hash_MD5
-  use :: ISO_Varying_String  , only : varying_string                , assignment(=)         , char
-  use :: Unit_Tests          , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: ISO_Varying_String  , only : assignment(=)      , char                  , varying_string
+  use :: Unit_Tests          , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type(varying_string) :: myHash, myText
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Cryptographic hashes")
 

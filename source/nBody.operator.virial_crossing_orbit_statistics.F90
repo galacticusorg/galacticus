@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,19 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which computes virial crossing orbit statistics in bins of separation.
+!!{
+Contains a module which implements an N-body data operator which computes virial crossing orbit statistics in bins of separation.
+!!}
   
-  use, intrinsic :: ISO_C_Binding           , only : c_size_t
   use            :: Cosmology_Functions     , only : cosmologyFunctionsClass
   use            :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  use, intrinsic :: ISO_C_Binding           , only : c_size_t
   use            :: Input_Parameters        , only : inputParameters
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
-  !# <nbodyOperator name="nbodyOperatorVirialCrossingOrbitStatistics">
-  !#  <description>An N-body data operator which computes virial crossing orbit statistics in bins of separation.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorVirialCrossingOrbitStatistics">
+   <description>An N-body data operator which computes virial crossing orbit statistics in bins of separation.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorVirialCrossingOrbitStatistics
-     !% An N-body data operator which computes virial crossing orbit statistics in bins of separation.
+     !!{
+     An N-body data operator which computes virial crossing orbit statistics in bins of separation.
+     !!}
      private
      double precision                                      :: velocityMinimum                 , velocityMaximum     , &
           &                                                   separationMinimum               , separationMaximum   , &
@@ -48,7 +54,9 @@
   end type nbodyOperatorVirialCrossingOrbitStatistics
 
   interface nbodyOperatorVirialCrossingOrbitStatistics
-     !% Constructors for the ``virialCrossingOrbitStatistics'' N-body operator class.
+     !!{
+     Constructors for the ``virialCrossingOrbitStatistics'' N-body operator class.
+     !!}
      module procedure virialCrossingOrbitStatisticsConstructorParameters
      module procedure virialCrossingOrbitStatisticsConstructorInternal
   end interface nbodyOperatorVirialCrossingOrbitStatistics
@@ -56,9 +64,11 @@
 contains
 
   function virialCrossingOrbitStatisticsConstructorParameters(parameters) result (self)
-    !% Constructor for the ``virialCrossingOrbitStatistics'' N-body operator class which takes a parameter set as input.
-    use :: Input_Parameters   , only : inputParameter
+    !!{
+    Constructor for the ``virialCrossingOrbitStatistics'' N-body operator class which takes a parameter set as input.
+    !!}
     use :: Cosmology_Functions, only : cosmologyFunctionsClass
+    use :: Input_Parameters   , only : inputParameter
     implicit none
     type            (nbodyOperatorVirialCrossingOrbitStatistics)                :: self
     type            (inputParameters                           ), intent(inout) :: parameters
@@ -74,76 +84,78 @@ contains
     logical                                                                     :: includeUnbootstrapped , crossCount          , &
          &                                                                         addHubbleFlow
 
-    !# <inputParameter>
-    !#   <name>crossCount</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, compute cross-simulation virial crossing orbit statistics between the first and all simulations. Otherwise, compute virial crossing orbit statistics within each simulation.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>addHubbleFlow</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, add Hubble flow to velocities.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshift</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The redshift.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>bootstrapSampleCount</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>30_c_size_t</defaultValue>
-    !#   <description>The number of bootstrap resamples of the particles that should be used.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>bootstrapSampleRate</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The sampling rate for particles.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>velocityMinimum</name>
-    !#   <source>parameters</source>
-    !#   <description>The minimum velocity to consider for virial crossing orbit statistics.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>velocityMaximum</name>
-    !#   <source>parameters</source>
-    !#   <description>The maximum velocity to consider for virial crossing orbit statistics.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>velocityCount</name>
-    !#   <source>parameters</source>
-    !#   <description>The number of bins in separation for virial crossing orbit statistics.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>separationMinimum</name>
-    !#   <source>parameters</source>
-    !#   <description>The minimum separation (in units of virial radii) to consider for virial crossing orbit statistics.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>separationMaximum</name>
-    !#   <source>parameters</source>
-    !#   <description>The maximum separation (in units of virial radii) to consider for virial crossing orbit statistics.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>includeUnbootstrapped</name>
-    !#   <source>parameters</source>
-    !#   <description>If true, include results for the unbootstrapped (i.e. original) sample.</description>
-    !#   <defaultValue>.true.</defaultValue>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>velocityCut</name>
-    !#   <source>parameters</source>
-    !#   <description>Pairs with (radial or tangential) velocities in excess of this value (in virial units) are cut from the sample.</description>
-    !#   <defaultValue>huge(0.0d0)</defaultValue>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    !![
+    <inputParameter>
+      <name>crossCount</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, compute cross-simulation virial crossing orbit statistics between the first and all simulations. Otherwise, compute virial crossing orbit statistics within each simulation.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>addHubbleFlow</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, add Hubble flow to velocities.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>redshift</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The redshift.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>bootstrapSampleCount</name>
+      <source>parameters</source>
+      <defaultValue>30_c_size_t</defaultValue>
+      <description>The number of bootstrap resamples of the particles that should be used.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>bootstrapSampleRate</name>
+      <source>parameters</source>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The sampling rate for particles.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>velocityMinimum</name>
+      <source>parameters</source>
+      <description>The minimum velocity to consider for virial crossing orbit statistics.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>velocityMaximum</name>
+      <source>parameters</source>
+      <description>The maximum velocity to consider for virial crossing orbit statistics.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>velocityCount</name>
+      <source>parameters</source>
+      <description>The number of bins in separation for virial crossing orbit statistics.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>separationMinimum</name>
+      <source>parameters</source>
+      <description>The minimum separation (in units of virial radii) to consider for virial crossing orbit statistics.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>separationMaximum</name>
+      <source>parameters</source>
+      <description>The maximum separation (in units of virial radii) to consider for virial crossing orbit statistics.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>includeUnbootstrapped</name>
+      <source>parameters</source>
+      <description>If true, include results for the unbootstrapped (i.e. original) sample.</description>
+      <defaultValue>.true.</defaultValue>
+    </inputParameter>
+    <inputParameter>
+      <name>velocityCut</name>
+      <source>parameters</source>
+      <description>Pairs with (radial or tangential) velocities in excess of this value (in virial units) are cut from the sample.</description>
+      <defaultValue>huge(0.0d0)</defaultValue>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    !!]
     time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift))
     if (associated(parameters%parent)) then
        parametersRoot => parameters%parent
@@ -154,15 +166,19 @@ contains
     else
        self=nbodyOperatorVirialCrossingOrbitStatistics(velocityMinimum,velocityMaximum,velocityCount,separationMinimum,separationMaximum,time,crossCount,addHubbleFlow,velocityCut,includeUnbootstrapped,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_,darkMatterHaloScale_,cosmologyFunctions_,parameters    )
     end if
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="randomNumberGenerator_"/>
-    !# <objectDestructor name="darkMatterHaloScale_"  />
-    !# <objectDestructor name="cosmologyFunctions_"   />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="randomNumberGenerator_"/>
+    <objectDestructor name="darkMatterHaloScale_"  />
+    <objectDestructor name="cosmologyFunctions_"   />
+    !!]
     return
   end function virialCrossingOrbitStatisticsConstructorParameters
 
   function virialCrossingOrbitStatisticsConstructorInternal(velocityMinimum,velocityMaximum,velocityCount,separationMinimum,separationMaximum,time,crossCount,addHubbleFlow,velocityCut,includeUnbootstrapped,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_,darkMatterHaloScale_,cosmologyFunctions_,parameters) result (self)
-    !% Internal constructor for the ``virialCrossingOrbitStatistics'' N-body operator class.
+    !!{
+    Internal constructor for the ``virialCrossingOrbitStatistics'' N-body operator class.
+    !!}
     implicit none
     type            (nbodyOperatorVirialCrossingOrbitStatistics)                        :: self
     double precision                                            , intent(in   )         :: velocityMinimum       , velocityMaximum     , &
@@ -176,39 +192,47 @@ contains
     class           (darkMatterHaloScaleClass                  ), intent(in   ), target :: darkMatterHaloScale_
     class           (cosmologyFunctionsClass                   ), intent(in   ), target :: cosmologyFunctions_
     type            (inputParameters                           ), intent(in   ), target :: parameters
-    !# <constructorAssign variables="velocityMinimum, velocityMaximum, velocityCount, separationMinimum, separationMaximum, time, crossCount, addHubbleFlow, velocityCut, includeUnbootstrapped, bootstrapSampleCount, bootstrapSampleRate, *randomNumberGenerator_, *darkMatterHaloScale_, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="velocityMinimum, velocityMaximum, velocityCount, separationMinimum, separationMaximum, time, crossCount, addHubbleFlow, velocityCut, includeUnbootstrapped, bootstrapSampleCount, bootstrapSampleRate, *randomNumberGenerator_, *darkMatterHaloScale_, *cosmologyFunctions_"/>
+    !!]
 
     self%parameters=inputParameters(parameters)
     return
   end function virialCrossingOrbitStatisticsConstructorInternal
 
   subroutine virialCrossingOrbitStatisticsDestructor(self)
-    !% Destructor for the ``virialCrossingOrbitStatistics'' N-body operator class.
+    !!{
+    Destructor for the ``virialCrossingOrbitStatistics'' N-body operator class.
+    !!}
     implicit none
     type(nbodyOperatorVirialCrossingOrbitStatistics), intent(inout) :: self
 
-    !# <objectDestructor name="self%randomNumberGenerator_"/>
-    !# <objectDestructor name="self%darkMatterHaloScale_"  />
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    <objectDestructor name="self%darkMatterHaloScale_"  />
+    !!]
     return
   end subroutine virialCrossingOrbitStatisticsDestructor
 
   subroutine virialCrossingOrbitStatisticsOperate(self,simulations)
-    !% Compute virial crossing orbit statistics in bins of separation.
-    !$ use :: OMP_Lib                       , only : OMP_Get_Thread_Num
+    !!{
+    Compute virial crossing orbit statistics in bins of separation.
+    !!}
     use    :: Arrays_Search                 , only : searchArray
+    use    :: Display                       , only : displayCounter                   , displayCounterClear                , displayIndent, displayMessage, &
+          &                                          displayUnindent                  , verbosityLevelStandard
     use    :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
-    use    :: Galacticus_Display            , only : Galacticus_Display_Indent        , Galacticus_Display_Unindent        , Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                                           Galacticus_Display_Message       , verbosityStandard
-    use    :: Galacticus_Nodes              , only : treeNode                         , nodeComponentBasic
+    use    :: Galacticus_Nodes              , only : nodeComponentBasic               , treeNode
     use    :: IO_HDF5                       , only : hdf5Access
     use    :: ISO_Varying_String            , only : var_str
+#ifdef USEMPI
+    use    :: MPI_Utilities                 , only : mpiSelf
+#endif
     use    :: Memory_Management             , only : deallocateArray
     use    :: Nearest_Neighbors             , only : nearestNeighbors
     use    :: Node_Components               , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use    :: Numerical_Ranges              , only : Make_Range                       , rangeTypeLinear
-#ifdef USEMPI
-    use    :: MPI_Utilities                 , only : mpiSelf
-#endif
+    !$ use :: OMP_Lib                       , only : OMP_Get_Thread_Num
     implicit none
     class           (nbodyOperatorVirialCrossingOrbitStatistics), intent(inout)                 :: self
     type            (nBodyData                                 ), intent(inout), dimension(:  ) :: simulations
@@ -246,7 +270,7 @@ contains
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Indent('compute virial crossing orbit statistics',verbosityStandard)
+       call displayIndent('compute virial crossing orbit statistics',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif
@@ -273,7 +297,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Message(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityStandard)
+          call displayMessage(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityLevelStandard)
 #ifdef USEMPI
        end if
 #endif
@@ -322,7 +346,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Counter(0,.true.)
+          call displayCounter(0,.true.)
 #ifdef USEMPI
        end if
 #endif
@@ -509,7 +533,7 @@ contains
 #ifdef USEMPI
           if (mpiSelf%isMaster()) then
 #endif
-             call Galacticus_Display_Counter(                                                 &
+             call displayCounter(                                                 &
                   &                          int(                                             &
                   &                              +100.0d0                                     &
                   &                              *float(i                                  )  &
@@ -529,13 +553,12 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Counter_Clear()
+          call displayCounterClear()
 #ifdef USEMPI
        end if
 #endif
        deallocate(weight1   )
        deallocate(weight2   )
-       deallocate(massVirial)
 #ifdef USEMPI
        ! Reduce across MPI processes.
        distributionVelocityRadialBin    =mpiSelf%sum(distributionVelocityRadialBin    )
@@ -590,7 +613,7 @@ contains
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Unindent('done',verbosityStandard)
+       call displayUnindent('done',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif

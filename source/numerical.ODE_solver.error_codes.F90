@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which defines internal error codes for the \glc\ ODE solver.
+!!{
+Contains a module which defines internal error codes for the \glc\ ODE solver.
+!!}
 
 module ODE_Solver_Error_Codes
-  !% Defines internal error codes for the \glc\ ODE solver.
+  !!{
+  Defines internal error codes for the \glc\ ODE solver.
+  !!}
   use :: Interface_GSL, only : GSL_EBadFunc
   implicit none
   public

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a stellar mass output analysis property extractor class.
+!!{
+Contains a module which implements a stellar mass output analysis property extractor class.
+!!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorMassStellar">
-  !#  <description>A stellar mass output analysis property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorMassStellar">
+   <description>A stellar mass output analysis property extractor class.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassStellar
-     !% A stelalr mass output analysis class.
+     !!{
+     A stelalr mass output analysis class.
+     !!}
      private
    contains
      procedure :: extract     => massStellarExtract
@@ -35,14 +41,18 @@
   end type nodePropertyExtractorMassStellar
 
   interface nodePropertyExtractorMassStellar
-     !% Constructors for the ``massStellar'' output analysis class.
+     !!{
+     Constructors for the ``massStellar'' output analysis class.
+     !!}
      module procedure massStellarConstructorParameters
   end interface nodePropertyExtractorMassStellar
 
 contains
 
   function massStellarConstructorParameters(parameters)
-    !% Constructor for the ``massStellar'' output analysis property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``massStellar'' output analysis property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorMassStellar)                :: massStellarConstructorParameters
@@ -54,7 +64,9 @@ contains
   end function massStellarConstructorParameters
 
   double precision function massStellarExtract(self,node,instance)
-    !% Implement a massStellar output analysis.
+    !!{
+    Implement a massStellar output analysis.
+    !!}
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : massTypeStellar                 , radiusLarge
     implicit none
@@ -68,7 +80,9 @@ contains
   end function massStellarExtract
 
   function massStellarName(self)
-    !% Return the name of the massStellar property.
+    !!{
+    Return the name of the massStellar property.
+    !!}
     implicit none
     type (varying_string                            )                :: massStellarName
     class(nodePropertyExtractorMassStellar), intent(inout) :: self
@@ -79,7 +93,9 @@ contains
   end function massStellarName
 
   function massStellarDescription(self)
-    !% Return a description of the massStellar property.
+    !!{
+    Return a description of the massStellar property.
+    !!}
     implicit none
     type (varying_string                  )                :: massStellarDescription
     class(nodePropertyExtractorMassStellar), intent(inout) :: self
@@ -90,7 +106,9 @@ contains
   end function massStellarDescription
 
   double precision function massStellarUnitsInSI(self)
-    !% Return the units of the massStellar property in the SI system.
+    !!{
+    Return the units of the massStellar property in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(nodePropertyExtractorMassStellar), intent(inout) :: self
@@ -101,7 +119,9 @@ contains
   end function massStellarUnitsInSI
 
   integer function massStellarType(self)
-    !% Return the type of the stellar mass property.
+    !!{
+    Return the type of the stellar mass property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassStellar), intent(inout) :: self
@@ -112,7 +132,9 @@ contains
   end function massStellarType
 
   integer function massStellarQuantity(self)
-    !% Return the class of the stellar luminosity property.
+    !!{
+    Return the class of the stellar luminosity property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityMass
     implicit none
     class(nodePropertyExtractorMassStellar), intent(inout) :: self

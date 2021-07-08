@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,34 +17,40 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a class for computing radii of galactic components (or more general components).
+!!{
+Contains a module which implements a class for computing radii of galactic components (or more general components).
+!!}
 
 module Galactic_Structure_Solvers
-  !% Implements a class for calculations of sizes of galactic components (or more general components).
+  !!{
+  Implements a class for calculations of sizes of galactic components (or more general components).
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
 
-  !# <functionClass>
-  !#  <name>galacticStructureSolver</name>
-  !#  <descriptiveName>Solvers for galactic structure</descriptiveName>
-  !#  <description>
-  !#   Class providing solvers for galactic structure---specifically, finding radii of galactic components.
-  !#  </description>
-  !#  <default>equilibrium</default>
-  !#  <method name="solve" >
-  !#   <description>Solves for the structure of components in the given {\normalfont \ttfamily node}.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
-  !#  </method>
-  !#  <method name="revert" >
-  !#   <description>Revert the structure of components in the given {\normalfont \ttfamily node} (if necessary to ensure that the structure solver will give the same result when called consecutively).</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>galacticStructureSolver</name>
+   <descriptiveName>Solvers for galactic structure</descriptiveName>
+   <description>
+    Class providing solvers for galactic structure---specifically, finding radii of galactic components.
+   </description>
+   <default>equilibrium</default>
+   <method name="solve" >
+    <description>Solves for the structure of components in the given {\normalfont \ttfamily node}.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout), target :: node</argument>
+   </method>
+   <method name="revert" >
+    <description>Revert the structure of components in the given {\normalfont \ttfamily node} (if necessary to ensure that the structure solver will give the same result when called consecutively).</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+  </functionClass>
+  !!]
 
   abstract interface
      double precision function solverGet(node)

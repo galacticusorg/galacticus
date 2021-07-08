@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of the dark matter halo spin distribution which assumes a
-  !% log-normal distribution.
+  !!{
+  An implementation of the dark matter halo spin distribution which assumes a
+  log-normal distribution.
+  !!}
 
-  !# <haloSpinDistribution name="haloSpinDistributionLogNormal">
-  !#  <description>
-  !#   A halo spin distribution class in which the spin is drawn from a lognormal distribution with median {\normalfont \ttfamily
-  !#   [median]} and width {\normalfont \ttfamily [sigma]}.
-  !#  </description>
-  !# </haloSpinDistribution>
+  !![
+  <haloSpinDistribution name="haloSpinDistributionLogNormal">
+   <description>
+    A halo spin distribution class in which the spin is drawn from a lognormal distribution with median {\normalfont \ttfamily
+    [median]} and width {\normalfont \ttfamily [sigma]}.
+   </description>
+  </haloSpinDistribution>
+  !!]
   type, extends(haloSpinDistributionClass) :: haloSpinDistributionLogNormal
-     !% A dark matter halo spin distribution concentration class which assumes a
-     !% log-normal distribution.
+     !!{
+     A dark matter halo spin distribution concentration class which assumes a
+     log-normal distribution.
+     !!}
      private
      double precision :: median, sigma
    contains
@@ -37,8 +43,10 @@
   end type haloSpinDistributionLogNormal
 
   interface haloSpinDistributionLogNormal
-     !% Constructors for the {\normalfont \ttfamily logNormal} dark matter halo spin
-     !% distribution class.
+     !!{
+     Constructors for the {\normalfont \ttfamily logNormal} dark matter halo spin
+     distribution class.
+     !!}
      module procedure logNormalConstructorParameters
      module procedure logNormalConstructorInternal
   end interface haloSpinDistributionLogNormal
@@ -46,38 +54,46 @@
 contains
 
   function logNormalConstructorParameters(parameters)
-    !% Constructor for the {\normalfont \ttfamily logNormal} dark matter halo spin
-    !% distribution class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily logNormal} dark matter halo spin
+    distribution class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(haloSpinDistributionLogNormal)                :: logNormalConstructorParameters
     type(inputParameters              ), intent(inout) :: parameters
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>median</name>
-    !#   <source>parameters</source>
-    !#   <variable>logNormalConstructorParameters%median</variable>
-    !#   <defaultValue>0.03687d0</defaultValue>
-    !#   <defaultSource>\citep{bett_spin_2007}</defaultSource>
-    !#   <description>The median spin in a log-normal spin distribution.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>sigma</name>
-    !#   <source>parameters</source>
-    !#   <variable>logNormalConstructorParameters%sigma</variable>
-    !#   <defaultValue>0.5102d0</defaultValue>
-    !#   <defaultSource>(\citealt{bett_spin_2007}; note that in this reference the value of $\sigma$ quoted is for $\log_{10}\lambda$, while here we use $\log\lambda$)</defaultSource>
-    !#   <description>The width of a log-normal spin distribution.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>median</name>
+      <source>parameters</source>
+      <variable>logNormalConstructorParameters%median</variable>
+      <defaultValue>0.03687d0</defaultValue>
+      <defaultSource>\citep{bett_spin_2007}</defaultSource>
+      <description>The median spin in a log-normal spin distribution.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>sigma</name>
+      <source>parameters</source>
+      <variable>logNormalConstructorParameters%sigma</variable>
+      <defaultValue>0.5102d0</defaultValue>
+      <defaultSource>(\citealt{bett_spin_2007}; note that in this reference the value of $\sigma$ quoted is for $\log_{10}\lambda$, while here we use $\log\lambda$)</defaultSource>
+      <description>The width of a log-normal spin distribution.</description>
+    </inputParameter>
+    !!]
     logNormalConstructorParameters%median=log(logNormalConstructorParameters%median)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function logNormalConstructorParameters
 
   function logNormalConstructorInternal(median,sigma)
-    !% Internal constructor for the {\normalfont \ttfamily logNormal} dark matter halo spin
-    !% distribution class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily logNormal} dark matter halo spin
+    distribution class.
+    !!}
     implicit none
     type            (haloSpinDistributionLogNormal)                :: logNormalConstructorInternal
     double precision                               , intent(in   ) :: median                      , sigma
@@ -88,8 +104,10 @@ contains
   end function logNormalConstructorInternal
 
   double precision function logNormalSample(self,node)
-    !% Sample from a log-normal spin parameter distribution for the given {\normalfont
-    !% \ttfamily node}.
+    !!{
+    Sample from a log-normal spin parameter distribution for the given {\normalfont
+    \ttfamily node}.
+    !!}
     implicit none
     class(haloSpinDistributionLogNormal), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
@@ -104,8 +122,10 @@ contains
   end function logNormalSample
 
   double precision function logNormalDistribution(self,node)
-    !% Return the spin parameter distribution for the given {\normalfont \ttfamily node}
-    !% assuming a log-normal distribution.
+    !!{
+    Return the spin parameter distribution for the given {\normalfont \ttfamily node}
+    assuming a log-normal distribution.
+    !!}
     use :: Galacticus_Nodes        , only : nodeComponentSpin, treeNode
     use :: Numerical_Constants_Math, only : Pi
     implicit none

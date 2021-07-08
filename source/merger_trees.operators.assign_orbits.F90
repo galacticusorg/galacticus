@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a merger tree operator which assigns orbits to non-primary progenitor nodes.
+!!{
+Contains a module which implements a merger tree operator which assigns orbits to non-primary progenitor nodes.
+!!}
 
   use :: Satellite_Merging_Timescales, only : satelliteMergingTimescales, satelliteMergingTimescalesClass
   use :: Virial_Orbits               , only : virialOrbit               , virialOrbitClass
 
-  !# <mergerTreeOperator name="mergerTreeOperatorAssignOrbits">
-  !#  <description>Provides a merger tree operator which assigns orbits to non-primary progenitor nodes.</description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorAssignOrbits">
+   <description>Provides a merger tree operator which assigns orbits to non-primary progenitor nodes.</description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorAssignOrbits
-     !% An orbit assigning merger tree operator class.
+     !!{
+     An orbit assigning merger tree operator class.
+     !!}
      private
      class(virialOrbitClass               ), pointer :: virialOrbit_ => null()
      class(satelliteMergingTimescalesClass), pointer :: satelliteMergingTimescales_ => null()
@@ -36,7 +42,9 @@
   end type mergerTreeOperatorAssignOrbits
 
   interface mergerTreeOperatorAssignOrbits
-     !% Constructors for the orbit assigning merger tree operator class.
+     !!{
+     Constructors for the orbit assigning merger tree operator class.
+     !!}
      module procedure assignOrbitsConstructorParameters
      module procedure assignOrbitsConstructorInternal
   end interface mergerTreeOperatorAssignOrbits
@@ -44,7 +52,9 @@
 contains
 
   function assignOrbitsConstructorParameters(parameters) result(self)
-    !% Constructor for the orbit assigning merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the orbit assigning merger tree operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (mergerTreeOperatorAssignOrbits )                :: self
@@ -52,38 +62,52 @@ contains
     class(virialOrbitClass               ), pointer       :: virialOrbit_
     class(satelliteMergingTimescalesClass), pointer       :: satelliteMergingTimescales_
 
-    !# <objectBuilder class="satelliteMergingTimescales" name="satelliteMergingTimescales_" source="parameters"/>
-    !# <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="parameters"/>
+    !![
+    <objectBuilder class="satelliteMergingTimescales" name="satelliteMergingTimescales_" source="parameters"/>
+    <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="parameters"/>
+    !!]
     self=mergerTreeOperatorAssignOrbits(satelliteMergingTimescales_,virialOrbit_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="satelliteMergingTimescales_"/>
-    !# <objectDestructor name="virialOrbit_"               />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="satelliteMergingTimescales_"/>
+    <objectDestructor name="virialOrbit_"               />
+    !!]
     return
   end function assignOrbitsConstructorParameters
 
   function assignOrbitsConstructorInternal(satelliteMergingTimescales_,virialOrbit_) result(self)
-    !% Constructor for the orbit assigning merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the orbit assigning merger tree operator class which takes a parameter set as input.
+    !!}
     implicit none
     type (mergerTreeOperatorAssignOrbits )                        :: self
     class(virialOrbitClass               ), intent(in   ), target :: virialOrbit_
     class(satelliteMergingTimescalesClass), intent(in   ), target :: satelliteMergingTimescales_
-    !# <constructorAssign variables="*satelliteMergingTimescales_, *virialOrbit_"/>
+    !![
+    <constructorAssign variables="*satelliteMergingTimescales_, *virialOrbit_"/>
+    !!]
 
     return
   end function assignOrbitsConstructorInternal
 
   subroutine assignOrbitsDestructor(self)
-    !% Destructor for the merger tree operator function class.
+    !!{
+    Destructor for the merger tree operator function class.
+    !!}
     implicit none
     type(mergerTreeOperatorAssignOrbits), intent(inout) :: self
 
-    !# <objectDestructor name="self%satelliteMergingTimescales_"/>
-    !# <objectDestructor name="self%virialOrbit_"               />
+    !![
+    <objectDestructor name="self%satelliteMergingTimescales_"/>
+    <objectDestructor name="self%virialOrbit_"               />
+    !!]
     return
   end subroutine assignOrbitsDestructor
 
   subroutine assignOrbitsOperatePreEvolution(self,tree)
-    !% Perform a orbit assigning operation on a merger tree.
+    !!{
+    Perform a orbit assigning operation on a merger tree.
+    !!}
     use :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, nodeComponentSatellite, treeNode
     use :: Kepler_Orbits      , only : keplerOrbit
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes

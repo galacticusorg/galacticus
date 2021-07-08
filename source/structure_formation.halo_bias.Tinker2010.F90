@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,19 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of halo bias using the algorithm of \cite{tinker_large_2010}.
+  !!{
+  Implementation of halo bias using the algorithm of \cite{tinker_large_2010}.
+  !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
   use :: Virial_Density_Contrast   , only : virialDensityContrastClass
 
-  !# <darkMatterHaloBias name="darkMatterHaloBiasTinker2010">
-  !#  <description>
-  !#   A dark matter halo mass bias class utilizing the algorithm of \cite{tinker_large_2010}. The bias is computed at the
-  !#   appropriate virial overdensity (see \refPhysics{virialDensityContrast}).
-  !#  </description>
-  !# </darkMatterHaloBias>
+  !![
+  <darkMatterHaloBias name="darkMatterHaloBiasTinker2010">
+   <description>
+    A dark matter halo mass bias class utilizing the algorithm of \cite{tinker_large_2010}. The bias is computed at the
+    appropriate virial overdensity (see \refPhysics{virialDensityContrast}).
+   </description>
+  </darkMatterHaloBias>
+  !!]
   type, extends(darkMatterHaloBiasClass) :: darkMatterHaloBiasTinker2010
-     !% Implementation of a dark matter halo mass utilizing the algorithm of \cite{tinker_large_2010}.
+     !!{
+     Implementation of a dark matter halo mass utilizing the algorithm of \cite{tinker_large_2010}.
+     !!}
      private
      class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
@@ -43,7 +49,9 @@
   end type darkMatterHaloBiasTinker2010
 
   interface darkMatterHaloBiasTinker2010
-     !% Constructors for the {\normalfont \ttfamily tinker2010} dark matter halo bias class.
+     !!{
+     Constructors for the {\normalfont \ttfamily tinker2010} dark matter halo bias class.
+     !!}
      module procedure tinker2010ConstructorParameters
      module procedure tinker2010ConstructorInternal
   end interface darkMatterHaloBiasTinker2010
@@ -51,7 +59,9 @@
 contains
 
   function tinker2010ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily tinker2010} dark matter halo mass bias which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily tinker2010} dark matter halo mass bias which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(darkMatterHaloBiasTinker2010  )                :: self
@@ -60,25 +70,33 @@ contains
     class(cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
     class(virialDensityContrastClass   ), pointer       :: virialDensityContrast_
 
-    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
-    !# <objectBuilder class="virialDensityContrast"    name="virialDensityContrast_"   source="parameters"/>
+    !![
+    <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    <objectBuilder class="virialDensityContrast"    name="virialDensityContrast_"   source="parameters"/>
+    !!]
     self=darkMatterHaloBiasTinker2010(criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="criticalOverdensity_"     />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
-    !# <objectDestructor name="virialDensityContrast_"   />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="criticalOverdensity_"     />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    <objectDestructor name="virialDensityContrast_"   />
+    !!]
     return
   end function tinker2010ConstructorParameters
 
   function tinker2010ConstructorInternal(criticalOverdensity_,cosmologicalMassVariance_,virialDensityContrast_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily tinker2010} dark matter halo bias class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily tinker2010} dark matter halo bias class.
+    !!}
     implicit none
     type (darkMatterHaloBiasTinker2010 )                        :: self
     class(criticalOverdensityClass     ), intent(in   ), target :: criticalOverdensity_
     class(cosmologicalMassVarianceClass), intent(in   ), target :: cosmologicalMassVariance_
     class(virialDensityContrastClass   ), intent(in   ), target :: virialDensityContrast_
-    !# <constructorAssign variables="*criticalOverdensity_, *cosmologicalMassVariance_, *virialDensityContrast_"/>
+    !![
+    <constructorAssign variables="*criticalOverdensity_, *cosmologicalMassVariance_, *virialDensityContrast_"/>
+    !!]
 
     self%timePrevious=-1.0d0
     self%massPrevious=-1.0d0
@@ -86,18 +104,24 @@ contains
   end function tinker2010ConstructorInternal
 
   subroutine tinker2010Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily tinker2010} dark matter halo bias class.
+    !!{
+    Destructor for the {\normalfont \ttfamily tinker2010} dark matter halo bias class.
+    !!}
     implicit none
     type(darkMatterHaloBiasTinker2010), intent(inout) :: self
 
-    !# <objectDestructor name="self%criticalOverdensity_"     />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
-    !# <objectDestructor name="self%virialDensityContrast_"   />
+    !![
+    <objectDestructor name="self%criticalOverdensity_"     />
+    <objectDestructor name="self%cosmologicalMassVariance_"/>
+    <objectDestructor name="self%virialDensityContrast_"   />
+    !!]
     return
   end subroutine tinker2010Destructor
 
   double precision function tinker2010BiasByMass(self,mass,time,radius)
-    !% Returns the bias of a dark matter halo given the mass and time.
+    !!{
+    Returns the bias of a dark matter halo given the mass and time.
+    !!}
     implicit none
     class           (darkMatterHaloBiasTinker2010), intent(inout)           :: self
     double precision                              , intent(in   )           :: mass                 , time

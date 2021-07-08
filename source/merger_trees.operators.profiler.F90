@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a merger tree operator which profiles tree structure.
+  !!{
+  Contains a module which implements a merger tree operator which profiles tree structure.
+  !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
   use :: Kind_Numbers       , only : kind_int8
 
-  !# <mergerTreeOperator name="mergerTreeOperatorProfiler">
-  !#  <description>
-  !#   A merger tree operator which profiles merger tree structure.
-  !# </description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorProfiler">
+   <description>
+    A merger tree operator which profiles merger tree structure.
+  </description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorProfiler
-     !% A merger tree operator class which profiles merger tree structure.
+     !!{
+     A merger tree operator class which profiles merger tree structure.
+     !!}
      private
      class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_ => null()
      integer         (kind_int8              )                              :: nodeCount                  , singleProgenitorCount
@@ -44,7 +50,9 @@
   end type mergerTreeOperatorProfiler
 
   interface mergerTreeOperatorProfiler
-     !% Constructors for the prune-hierarchy merger tree operator class.
+     !!{
+     Constructors for the prune-hierarchy merger tree operator class.
+     !!}
      module procedure profilerConstructorParameters
      module procedure profilerConstructorInternal
   end interface mergerTreeOperatorProfiler
@@ -52,7 +60,9 @@
 contains
 
   function profilerConstructorParameters(parameters) result(self)
-    !% Constructor for the information content merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the information content merger tree operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeOperatorProfiler)                :: self
@@ -62,51 +72,57 @@ contains
          &                                                         redshiftMinimum    , redshiftMaximum
     integer                                                     :: massBinsPerDecade  , timeBinsPerDecade
 
-    !# <inputParameter>
-    !#   <name>massMinimum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d10</defaultValue>
-    !#   <description>The minimum mass of non-primary progenitor to count.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMaximum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d15</defaultValue>
-    !#   <description>The maximum mass of non-primary progenitor to count.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massBinsPerDecade</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of bins per decade of non-primary progenitor mass.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshiftMinimum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The minimum redshift at which to count non-primary progenitors.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshiftMaximum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>10.0d0</defaultValue>
-    !#   <description>The maximum redshift at which to count non-primary progenitors.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>timeBinsPerDecade</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of bins per decade of time at which to count non-primary progenitors.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>massMinimum</name>
+      <source>parameters</source>
+      <defaultValue>1.0d10</defaultValue>
+      <description>The minimum mass of non-primary progenitor to count.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massMaximum</name>
+      <source>parameters</source>
+      <defaultValue>1.0d15</defaultValue>
+      <description>The maximum mass of non-primary progenitor to count.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massBinsPerDecade</name>
+      <source>parameters</source>
+      <defaultValue>10</defaultValue>
+      <description>The number of bins per decade of non-primary progenitor mass.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>redshiftMinimum</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The minimum redshift at which to count non-primary progenitors.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>redshiftMaximum</name>
+      <source>parameters</source>
+      <defaultValue>10.0d0</defaultValue>
+      <description>The maximum redshift at which to count non-primary progenitors.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>timeBinsPerDecade</name>
+      <source>parameters</source>
+      <defaultValue>10</defaultValue>
+      <description>The number of bins per decade of time at which to count non-primary progenitors.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !!]
     self=mergerTreeOperatorProfiler(massMinimum,massMaximum,massBinsPerDecade,redshiftMinimum,redshiftMaximum,timeBinsPerDecade,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    !!]
     return
   end function profilerConstructorParameters
 
   function profilerConstructorInternal(massMinimum,massMaximum,massBinsPerDecade,redshiftMinimum,redshiftMaximum,timeBinsPerDecade,cosmologyFunctions_) result(self)
-    !% Internal constructor for the information content merger tree operator class.
+    !!{
+    Internal constructor for the information content merger tree operator class.
+    !!}
     use :: Memory_Management, only : allocateArray
     use :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
     implicit none
@@ -116,7 +132,9 @@ contains
     integer                                     , intent(in   )         :: massBinsPerDecade  , timeBinsPerDecade
     class           (cosmologyFunctionsClass   ), intent(in   ), target :: cosmologyFunctions_
     double precision                                                    :: timeMinimum        , timeMaximum
-    !# <constructorAssign variables="*cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_"/>
+    !!]
 
     ! Construct bins in mass and time.
     timeMinimum                     =self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
@@ -139,16 +157,22 @@ contains
   end function profilerConstructorInternal
 
   subroutine profilerDestructor(self)
-    !% Destructor for the profiler merger tree operator function class.
+    !!{
+    Destructor for the profiler merger tree operator function class.
+    !!}
     implicit none
     type(mergerTreeOperatorProfiler), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    !!]
     return
   end subroutine profilerDestructor
 
   subroutine profilerOperatePreEvolution(self,tree)
-    !% Perform a information content operation on a merger tree.
+    !!{
+    Perform a information content operation on a merger tree.
+    !!}
     use :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, treeNode
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
     implicit none
@@ -186,7 +210,9 @@ contains
   end subroutine profilerOperatePreEvolution
 
   subroutine profilerFinalize(self)
-    !% Outputs tree information content function.
+    !!{
+    Outputs tree information content function.
+    !!}
     use :: Galacticus_HDF5, only : galacticusOutputFile
     use :: IO_HDF5        , only : hdf5Access          , hdf5Object
     implicit none

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of critical overdensity for collapse based on spherical collapse accounting for non-clustering of baryons.
+  !!{
+  An implementation of critical overdensity for collapse based on spherical collapse accounting for non-clustering of baryons.
+  !!}
 
   use :: Cosmology_Parameters                 , only : cosmologyParameters                               , cosmologyParametersClass
   use :: Dark_Matter_Particles                , only : darkMatterParticle                                , darkMatterParticleClass
@@ -25,17 +27,21 @@
   use :: Spherical_Collapse_Solvers           , only : sphericalCollapseSolverBaryonsDarkMatterDarkEnergy
   use :: Tables                               , only : table1D
 
-  !# <criticalOverdensity name="criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy">
-  !#  <description>Critical overdensity for collapse based on the spherical collapse accounting for non-clustering of baryons.</description>
-  !#  <deepCopy>
-  !#   <functionClass variables="sphericalCollapseSolverClustered_, sphericalCollapseSolverUnclustered_"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="sphericalCollapseSolverClustered_, sphericalCollapseSolverUnclustered_"/>
-  !#  </stateStorable>
-  !# </criticalOverdensity>
+  !![
+  <criticalOverdensity name="criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy">
+   <description>Critical overdensity for collapse based on the spherical collapse accounting for non-clustering of baryons.</description>
+   <deepCopy>
+    <functionClass variables="sphericalCollapseSolverClustered_, sphericalCollapseSolverUnclustered_"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="sphericalCollapseSolverClustered_, sphericalCollapseSolverUnclustered_"/>
+   </stateStorable>
+  </criticalOverdensity>
+  !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy
-     !% A critical overdensity class based on spherical collapse accounting for non-clustering of baryons.
+     !!{
+     A critical overdensity class based on spherical collapse accounting for non-clustering of baryons.
+     !!}
      private
      logical                                                                           :: tableInitialized
      double precision                                                                  :: tableClusteredTimeMinimum                  , tableClusteredTimeMaximum                    , &
@@ -48,9 +54,11 @@
      class           (intergalacticMediumFilteringMassClass             ), pointer     :: intergalacticMediumFilteringMass_ => null()
      type            (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy), pointer     :: sphericalCollapseSolverClustered_ => null(), sphericalCollapseSolverUnclustered_ => null()
    contains
-     !# <methods>
-     !#   <method description="Tabulate spherical collapse critical overdensity." method="retabulate" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Tabulate spherical collapse critical overdensity." method="retabulate" />
+     </methods>
+     !!]
      final     ::                    sphericalCollapseBrynsDrkMttrDrkEnrgyDestructor
      procedure :: value           => sphericalCollapseBrynsDrkMttrDrkEnrgyValue
      procedure :: gradientTime    => sphericalCollapseBrynsDrkMttrDrkEnrgyGradientTime
@@ -61,7 +69,9 @@
   end type criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy
 
   interface criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy
-     !% Constructors for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity for collapse class.
+     !!{
+     Constructors for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity for collapse class.
+     !!}
      module procedure sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorParameters
      module procedure sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal
   end interface criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy
@@ -69,8 +79,10 @@
 contains
 
   function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity class
-    !% which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity class
+    which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy)                :: self
@@ -83,35 +95,41 @@ contains
     double precision                                                                          :: normalization
     logical                                                                                   :: tableStore
 
-    !# <inputParameter>
-    !#   <name>normalization</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>A normalizing factor to be applied to the critical overdensity.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>tableStore</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true, store/restore the tabulated solution to/from file when possible.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"               name="cosmologyFunctions_"               source="parameters"/>
-    !# <objectBuilder class="cosmologyParameters"              name="cosmologyParameters_"              source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance"         name="cosmologicalMassVariance_"         source="parameters"/>
-    !# <objectBuilder class="darkMatterParticle"               name="darkMatterParticle_"               source="parameters"/>
-    !# <objectBuilder class="intergalacticMediumFilteringMass" name="intergalacticMediumFilteringMass_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>normalization</name>
+      <source>parameters</source>
+      <defaultValue>1.0d0</defaultValue>
+      <description>A normalizing factor to be applied to the critical overdensity.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>tableStore</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, store/restore the tabulated solution to/from file when possible.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions"               name="cosmologyFunctions_"               source="parameters"/>
+    <objectBuilder class="cosmologyParameters"              name="cosmologyParameters_"              source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance"         name="cosmologicalMassVariance_"         source="parameters"/>
+    <objectBuilder class="darkMatterParticle"               name="darkMatterParticle_"               source="parameters"/>
+    <objectBuilder class="intergalacticMediumFilteringMass" name="intergalacticMediumFilteringMass_" source="parameters"/>
+    !!]
     self=criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,intergalacticMediumFilteringMass_,tableStore,normalization)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"             />
-    !# <objectDestructor name="cosmologyFunctions_"              />
-    !# <objectDestructor name="cosmologicalMassVariance_"        />
-    !# <objectDestructor name="darkMatterParticle_"              />
-    !# <objectDestructor name="intergalacticMediumFilteringMass_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"             />
+    <objectDestructor name="cosmologyFunctions_"              />
+    <objectDestructor name="cosmologicalMassVariance_"        />
+    <objectDestructor name="darkMatterParticle_"              />
+    <objectDestructor name="intergalacticMediumFilteringMass_"/>
+    !!]
     return
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorParameters
 
   function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,darkMatterParticle_,intergalacticMediumFilteringMass_,tableStore,normalization) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity class.
+    !!}
     use :: Dark_Matter_Particles     , only : darkMatterParticleCDM
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Spherical_Collapse_Solvers, only : cllsnlssMttrDarkEnergyFixedAtUndefined
@@ -124,14 +142,18 @@ contains
     class           (intergalacticMediumFilteringMassClass                   ), target  , intent(in   ) :: intergalacticMediumFilteringMass_
     logical                                                                             , intent(in   ) :: tableStore
     double precision                                                          , optional, intent(in   ) :: normalization
-    !# <optionalArgument name="normalization" defaultsTo="1.0d0" />
-    !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_, *intergalacticMediumFilteringMass_, tableStore, normalization"/>
+    !![
+    <optionalArgument name="normalization" defaultsTo="1.0d0" />
+    <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_, *intergalacticMediumFilteringMass_, tableStore, normalization"/>
+    !!]
 
     self%tableInitialized=.false.
     allocate(self%sphericalCollapseSolverClustered_  )
     allocate(self%sphericalCollapseSolverUnclustered_)
-    !# <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverClustered_"   constructor="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(.true. ,cllsnlssMttrDarkEnergyFixedAtUndefined,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
-    !# <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverUnclustered_" constructor="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(.false.,cllsnlssMttrDarkEnergyFixedAtUndefined,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    !![
+    <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverClustered_"   constructor="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(.true. ,cllsnlssMttrDarkEnergyFixedAtUndefined,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    <referenceConstruct isResult="yes" owner="self" object="sphericalCollapseSolverUnclustered_" constructor="sphericalCollapseSolverBaryonsDarkMatterDarkEnergy(.false.,cllsnlssMttrDarkEnergyFixedAtUndefined,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
+    !!]
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)
     class is (darkMatterParticleCDM)
@@ -143,17 +165,21 @@ contains
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyConstructorInternal
 
   subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity for collapse class.
+    !!{
+    Destructor for the {\normalfont \ttfamily sphericalCollapseBrynsDrkMttrDrkEnrgy} critical overdensity for collapse class.
+    !!}
     implicit none
     type(criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"               />
-    !# <objectDestructor name="self%cosmologyFunctions_"                />
-    !# <objectDestructor name="self%darkMatterParticle_"                />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"          />
-    !# <objectDestructor name="self%intergalacticMediumFilteringMass_"  />
-    !# <objectDestructor name="self%sphericalCollapseSolverClustered_"  />
-    !# <objectDestructor name="self%sphericalCollapseSolverUnclustered_"/>
+    !![
+    <objectDestructor name="self%cosmologyParameters_"               />
+    <objectDestructor name="self%cosmologyFunctions_"                />
+    <objectDestructor name="self%darkMatterParticle_"                />
+    <objectDestructor name="self%cosmologicalMassVariance_"          />
+    <objectDestructor name="self%intergalacticMediumFilteringMass_"  />
+    <objectDestructor name="self%sphericalCollapseSolverClustered_"  />
+    <objectDestructor name="self%sphericalCollapseSolverUnclustered_"/>
+    !!]
     if (self%tableInitialized) then
        call self%overdensityCriticalClustered  %destroy()
        call self%overdensityCriticalUnclustered%destroy()
@@ -164,7 +190,9 @@ contains
   end subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyDestructor
 
   subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyRetabulate(self,time)
-    !% Recompute the look-up tables for critical overdensity for collapse.
+    !!{
+    Recompute the look-up tables for critical overdensity for collapse.
+    !!}
     implicit none
     class           (criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout) :: self
     double precision                                                          , intent(in   ) :: time
@@ -189,7 +217,9 @@ contains
   end subroutine sphericalCollapseBrynsDrkMttrDrkEnrgyRetabulate
 
   double precision function sphericalCollapseBrynsDrkMttrDrkEnrgyValue(self,time,expansionFactor,collapsing,mass,node)
-    !% Return the critical overdensity at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
+    !!{
+    Return the critical overdensity at the given epoch, based spherical collapse in a matter plus cosmological constant universe.
+    !!}
     implicit none
     class           (criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout)           :: self
     double precision                                                          , intent(in   ), optional :: time      , expansionFactor, &
@@ -217,8 +247,10 @@ contains
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyValue
 
   double precision function sphericalCollapseBrynsDrkMttrDrkEnrgyGradientTime(self,time,expansionFactor,collapsing,mass,node)
-    !% Return the time derivative of the critical overdensity at the given epoch, based spherical collapse in a matter plus
-    !% cosmological constant universe.
+    !!{
+    Return the time derivative of the critical overdensity at the given epoch, based spherical collapse in a matter plus
+    cosmological constant universe.
+    !!}
     implicit none
     class           (criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout)           :: self
     double precision                                                          , intent(in   ), optional :: time                    , expansionFactor, &
@@ -252,7 +284,9 @@ contains
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyGradientTime
 
   double precision function sphericalCollapseBrynsDrkMttrDrkEnrgyGradientMass(self,time,expansionFactor,collapsing,mass,node)
-    !% Return the gradient with respect to mass of critical overdensity at the given time and mass.
+    !!{
+    Return the gradient with respect to mass of critical overdensity at the given time and mass.
+    !!}
     implicit none
     class           (criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout)           :: self
     double precision                                                          , intent(in   ), optional :: time      , expansionFactor
@@ -274,7 +308,9 @@ contains
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyGradientMass
 
   logical function sphericalCollapseBrynsDrkMttrDrkEnrgyIsMassDependent(self)
-    !% Return whether the critical overdensity is mass dependent.
+    !!{
+    Return whether the critical overdensity is mass dependent.
+    !!}
     implicit none
     class(criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -284,7 +320,9 @@ contains
   end function sphericalCollapseBrynsDrkMttrDrkEnrgyIsMassDependent
 
   logical function sphericalCollapseBrynsDrkMttrDrkEnrgyIsNodeDependent(self)
-    !% Return whether the critical overdensity is node dependent.
+    !!{
+    Return whether the critical overdensity is node dependent.
+    !!}
     implicit none
     class(criticalOverdensitySphericalCollapseBrynsDrkMttrDrkEnrgy), intent(inout) :: self
     !$GLC attributes unused :: self

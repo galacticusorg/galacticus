@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,312 +17,119 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a dark matter profile method that provides a scale radius.
+!!{
+Contains a module which implements a dark matter profile method that provides a scale radius.
+!!}
 
 module Node_Component_Dark_Matter_Profile_Scale
-  !% Implements a dark matter profile method that provides a scale radius.
-  use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScaleClass
-  use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadiusClass
-  use :: Galacticus_Nodes          , only : nodeComponentDarkMatterProfileScale
+  !!{
+  Implements a dark matter profile method that provides a scale radius.
+  !!}
   implicit none
   private
-  public :: Node_Component_Dark_Matter_Profile_Scale_Rate_Compute     , Node_Component_Dark_Matter_Profile_Scale_Tree_Initialize    , &
-       &    Node_Component_Dark_Matter_Profile_Scale_Scale_Set        , Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize, &
-       &    Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize, Node_Component_Dark_Matter_Profile_Scale_Plausibility       , &
-       &    Node_Component_Dark_Matter_Profile_Scale_Initialize
+  public :: Node_Component_Dark_Matter_Profile_Scale_Scale_Set        , Node_Component_Dark_Matter_Profile_Scale_Plausibility       , &
+       &    Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize, Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize
 
-  !# <component>
-  !#  <class>darkMatterProfile</class>
-  !#  <name>scale</name>
-  !#  <isDefault>true</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>scale</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="get" />
-  !#     <output unitsInSI="megaParsec" comment="Scale radius of the dark matter profile [Mpc]."/>
-  !#     <classDefault>-1.0d0</classDefault>
-  !#   </property>
-  !#   <property>
-  !#     <name>scaleGrowthRate</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#   <property>
-  !#     <name>scaleIsLimited</name>
-  !#     <type>logical</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <classDefault>.true.</classDefault>
-  !#   </property>
-  !#  </properties>
-  !# </component>
-
-  ! Objects used by this component.
-  class           (darkMatterHaloScaleClass           ), pointer :: darkMatterHaloScale_
-  class           (darkMatterProfileScaleRadiusClass  ), pointer :: darkMatterProfileScaleRadius_
-  !$omp threadprivate(darkMatterHaloScale_,darkMatterProfileScaleRadius_)
-
-  ! Parameters of the method.
-  double precision                                               :: darkMatterProfileMaximumConcentration                  , darkMatterProfileMinimumConcentration
-
-  ! Flag indicating whether scale radius data should be output when full merger trees are output.
-  logical                                                        :: mergerTreeStructureOutputDarkMatterProfileScale
-
-  ! Queriable dark matter profile object.
-  type            (nodeComponentDarkMatterProfileScale)          :: darkMatterProfile
-
-  ! Tree-initializing status.
-  logical :: treeInitializing=.false.
-  !$omp threadprivate(treeInitializing)
+  !![
+  <component>
+   <class>darkMatterProfile</class>
+   <name>scale</name>
+   <isDefault>true</isDefault>
+   <properties>
+    <property>
+      <name>scale</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <output unitsInSI="megaParsec" comment="Scale radius of the dark matter profile [Mpc]."/>
+      <classDefault>-1.0d0</classDefault>
+    </property>
+    <property>
+      <name>scaleGrowthRate</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+   </properties>
+  </component>
+  !!]
 
 contains
 
-  !# <nodeComponentInitializationTask>
-  !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Initialize</unitName>
-  !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Initialize(parameters_)
-    !% Initializes the ``scale'' implementation of the dark matter halo profile component.
-    use :: Input_Parameters, only : inputParameter, inputParameters
-    implicit none
-    type(inputParameters), intent(inout) :: parameters_
-
-    ! Get parameters.
-    !# <inputParameter>
-    !#   <name>darkMatterProfileMinimumConcentration</name>
-    !#   <defaultValue>4.0d0</defaultValue>
-    !#   <description>The minimum concentration allowed for dark matter profiles.</description>
-    !#   <source>parameters_</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>darkMatterProfileMaximumConcentration</name>
-    !#   <defaultValue>100.0d0</defaultValue>
-    !#   <description>The maximum concentration allowed for dark matter profiles.</description>
-    !#   <source>parameters_</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>mergerTreeStructureOutputDarkMatterProfileScale</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Determines whether or not dark matter halo scale radius is included in outputs of merger trees.</description>
-    !#   <source>parameters_</source>
-    !# </inputParameter>
-    ! Bind the scale get function.
-    call darkMatterProfile%scaleFunction(Node_Component_Dark_Matter_Profile_Scale_Scale)
-    return
-  end subroutine Node_Component_Dark_Matter_Profile_Scale_Initialize
-
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize(parameters_)
-    !% Initializes the tree node scale dark matter profile module.
+    !!{
+    Initializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent               , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     use :: Input_Parameters, only : inputParameter                   , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
+    !$GLC attributes unused :: parameters_
 
-    if (defaultDarkMatterProfileComponent%scaleIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters_"/>
-       !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters_"/>
-       call nodePromotionEvent%attach(defaultDarkMatterProfileComponent,nodePromotion,openMPThreadBindingAtLevel,label="nodeComponentDarkMatterProfileScale")
-    end if
+    if (defaultDarkMatterProfileComponent%scaleIsActive()) &
+         & call nodePromotionEvent%attach(defaultDarkMatterProfileComponent,nodePromotion,openMPThreadBindingAtLevel,label="nodeComponentDarkMatterProfileScale")
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize()
-    !% Uninitializes the tree node scale dark matter profile module.
+    !!{
+    Uninitializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
 
-    if (defaultDarkMatterProfileComponent%scaleIsActive()) then
-       !# <objectDestructor name="darkMatterHaloScale_"         />
-       !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
-       call nodePromotionEvent%detach(defaultDarkMatterProfileComponent,nodePromotion)
-    end if
+    if (defaultDarkMatterProfileComponent%scaleIsActive()) &
+         & call nodePromotionEvent%detach(defaultDarkMatterProfileComponent,nodePromotion)
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize
 
-  double precision function Node_Component_Dark_Matter_Profile_Scale_Scale(self)
-    !% Return the scale radius in the dark matter halo profile.
-    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfileScale, treeNode
-    implicit none
-    class           (nodeComponentDarkMatterProfileScale), intent(inout) :: self
-    type            (treeNode                           ), pointer       :: selfNode
-    double precision                                                     :: scaleLengthMaximum  , scaleLengthMinimum, &
-         &                                                                  radiusVirial
-
-    ! Set the scale if it isn't already set.
-    selfNode => self%host()
-   
-
-    ! Initialize scale radii if necessary. We do this by calling the tree initialization function (which ensures that nodes are
-    ! visited in depth first order), unless tree initialization is alredy underway in which case depth-first ordering is
-    ! guaranteed and we can go ahead and set the scale radius directly.
-    if (self%scaleValue() < 0.0d0) then
-       if (treeInitializing) then
-          call self%scaleSet(darkMatterProfileScaleRadius_%radius(selfNode))
-       else
-          call Node_Component_Dark_Matter_Profile_Scale_Tree_Initialize(selfNode)
-       end if
-    end if
-    if (self%scaleIsLimited()) then
-       radiusVirial      =darkMatterHaloScale_%virialRadius(selfNode)
-       scaleLengthMaximum=radiusVirial/darkMatterProfileMinimumConcentration
-       scaleLengthMinimum=radiusVirial/darkMatterProfileMaximumConcentration
-       Node_Component_Dark_Matter_Profile_Scale_Scale= &
-            & min(                                     &
-            &     scaleLengthMaximum    ,              &
-            &     max(                                 &
-            &         scaleLengthMinimum,              &
-            &         self%scaleValue()                &
-            &        )                                 &
-            &    )
-    else
-       Node_Component_Dark_Matter_Profile_Scale_Scale=self%scaleValue()
-    end if
-    return
-  end function Node_Component_Dark_Matter_Profile_Scale_Scale
-
-  !# <rateComputeTask>
-  !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Rate_Compute</unitName>
-  !# </rateComputeTask>
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
-    !% Compute the rate of change of the scale radius.
-    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale, propertyTypeInactive, treeNode
-    implicit none
-    type            (treeNode                      ), intent(inout)          :: node
-    logical                                         , intent(inout)          :: interrupt
-    procedure       (                              ), intent(inout), pointer :: interruptProcedure
-    integer                                         , intent(in   )          :: propertyType
-    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
-    double precision                                                         :: concentration       , growthRate
-    !$GLC attributes unused :: interrupt, interruptProcedure
-
-    ! Return immediately if inactive variables are requested.
-    if (propertyType == propertyTypeInactive) return
-     ! Get the dark matter profile component.
-    darkMatterProfile => node%darkMatterProfile()
-    ! Ensure that it is of the scale class.
-    select type (darkMatterProfile)
-    class is (nodeComponentDarkMatterProfileScale)
-       ! Find the concentration of this halo.
-       concentration=darkMatterHaloScale_%virialRadius(node)/darkMatterProfile%scale()
-       ! Find the growth rate and limit to ensure minimum and maximum concentrations are not exceeded.
-       growthRate=darkMatterProfile%scaleGrowthRate()
-       if (concentration <= darkMatterProfileMinimumConcentration) growthRate=min(growthRate,darkMatterHaloScale_%virialRadiusGrowthRate(node)/darkMatterProfileMinimumConcentration)
-       if (concentration >= darkMatterProfileMaximumConcentration) growthRate=max(growthRate,darkMatterHaloScale_%virialRadiusGrowthRate(node)/darkMatterProfileMaximumConcentration)
-       call darkMatterProfile%scaleRate(growthRate)
-    end select
-    return
-  end subroutine Node_Component_Dark_Matter_Profile_Scale_Rate_Compute
-
-  !# <radiusSolverPlausibility>
-  !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Plausibility</unitName>
-  !#  <after>Node_Component_Basic_Standard_Plausibility</after>
-  !# </radiusSolverPlausibility>
+  !![
+  <radiusSolverPlausibility>
+   <unitName>Node_Component_Dark_Matter_Profile_Scale_Plausibility</unitName>
+   <after>Node_Component_Basic_Standard_Plausibility</after>
+  </radiusSolverPlausibility>
+  !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Plausibility(node)
-    !% Determines whether the dark matter profile is physically plausible for radius solving tasks.
+    !!{
+    Determines whether the dark matter profile is physically plausible for radius solving tasks.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale, treeNode
     implicit none
     type   (treeNode                      ), intent(inout) :: node
     class  (nodeComponentDarkMatterProfile), pointer       :: darkMatterProfile
 
     ! Return immediately if already non-plausible.
-    if (.not.(node%isPhysicallyPlausible.and.node%isSolvable)) return
+    if (.not.node%isPhysicallyPlausible.and..not.node%isSolvable) return
     ! Get the dark matter profile component.
     darkMatterProfile => node%darkMatterProfile()
     ! Ensure that it is of the scale class.
     select type (darkMatterProfile)
     class is (nodeComponentDarkMatterProfileScale)
-       if (darkMatterProfile%scale() <= 0.0d0) node%isPhysicallyPlausible=.false.
+       if (darkMatterProfile%scale() <= 0.0d0) then
+          node%isPhysicallyPlausible=.false.
+          node%isSolvable           =.false.
+       end if
     end select
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Plausibility
 
-  !# <mergerTreeInitializeTask>
-  !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Tree_Initialize</unitName>
-  !#  <sortName>darkMatterProfile</sortName>
-  !# </mergerTreeInitializeTask>
-  subroutine Node_Component_Dark_Matter_Profile_Scale_Tree_Initialize(node)
-    !% Initialize the scale radius of {\normalfont \ttfamily node}.
-    use :: Galacticus_Error   , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes   , only : defaultDarkMatterProfileComponent, nodeComponentBasic, nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale, &
-          &                            treeNode
-    use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
-    implicit none
-    type            (treeNode                      ), intent(inout), pointer :: node
-    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfileParent, darkMatterProfile, &
-         &                                                                      darkMatterProfileWork
-    class           (nodeComponentBasic            )               , pointer :: basicParent            , basic
-    type            (treeNode                      )               , pointer :: nodeWork
-    type            (mergerTreeWalkerAllNodes      )                         :: treeWalker
-    double precision                                                         :: deltaTime              , radiusScale
-
-    if (defaultDarkMatterProfileComponent%scaleIsActive()) then
-       ! Get the dark matter profile component - creating if if necessary.
-       darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
-       ! If the scale has already been initialized, no need to repeat this part.
-       select type (darkMatterProfile)
-       class is (nodeComponentDarkMatterProfileScale)
-          if (darkMatterProfile%scaleValue() < 0.0d0) then
-             ! Perform our own depth-first tree walk to set scales in all nodes of the tree. This is necessary as we require access
-             ! to the parent scale to set scale growth rates, but must initialize scales in a strictly depth-first manner as some
-             ! algorithms rely on knowing the progenitor structure of the tree to compute scale radii.
-             !
-             ! Record that we are performing tree initalization. During tree intialization the scale get function, which normally
-             ! calls this tree initialization function if scale radii need to be initialized, will instead initialize
-             ! directly. This avoids infinite recursion, and is safe as the scale get function is guaranteed to be called in
-             ! depth-first order by this tree initialization function.
-             treeInitializing=.true.
-             treeWalker=mergerTreeWalkerAllNodes(node%hostTree,spanForest=.false.)
-             do while (treeWalker%next(nodeWork))
-                ! Get the scale radius - this will initialize the radius if necessary.
-                darkMatterProfileWork => nodeWork             %darkMatterProfile(autoCreate=.true.)
-                radiusScale           =  darkMatterProfileWork%scale            (                 )
-             end do
-             treeInitializing=.false.
-          end if
-       class default
-          call Galacticus_Error_Report('unexpected class'//{introspection:location})
-       end select
-       ! Check if this node is the primary progenitor.
-       if (node%isPrimaryProgenitor()) then
-          ! It is, so compute the scale radius growth rate.
-          ! Now compute the growth rate.
-          basic       =>  node              %basic()
-          basicParent =>  node       %parent%basic()
-          deltaTime   =  +basicParent       %time () &
-               &         -basic             %time ()
-          if (deltaTime > 0.0d0) then
-             darkMatterProfileParent => node%parent%darkMatterProfile(autoCreate=.true.)
-             call darkMatterProfile%scaleGrowthRateSet(                                  &
-                  &                                    (                                 &
-                  &                                      darkMatterProfileParent%scale() &
-                  &                                     -darkMatterProfile      %scale() &
-                  &                                    )                                 &
-                  &                                    /deltaTime                        &
-                  &                                   )
-          else
-             call darkMatterProfile%scaleGrowthRateSet(0.0d0)
-          end if
-       else
-          ! It is not, so set scale radius growth rate to zero.
-          call    darkMatterProfile%scaleGrowthRateSet(0.0d0)
-       end if
-    end if
-    return
-  end subroutine Node_Component_Dark_Matter_Profile_Scale_Tree_Initialize
-
   subroutine nodePromotion(self,node)
-    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the growth rate of {\normalfont \ttfamily node}
-    !% to be that of its parent.
+    !!{
+    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the growth rate of {\normalfont \ttfamily node}
+    to be that of its parent.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale, treeNode
     implicit none
@@ -343,11 +150,15 @@ contains
     return
   end subroutine nodePromotion
   
-  !# <scaleSetTask>
-  !#  <unitName>Node_Component_Dark_Matter_Profile_Scale_Scale_Set</unitName>
-  !# </scaleSetTask>
+  !![
+  <scaleSetTask>
+   <unitName>Node_Component_Dark_Matter_Profile_Scale_Scale_Set</unitName>
+  </scaleSetTask>
+  !!]
   subroutine Node_Component_Dark_Matter_Profile_Scale_Scale_Set(node)
-    !% Set scales for properties of {\normalfont \ttfamily node}.
+    !!{
+    Set scales for properties of {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale, treeNode
     implicit none
     type (treeNode                      ), intent(inout), pointer :: node

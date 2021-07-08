@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,11 +19,15 @@
 
   use :: Kepler_Orbits, only : keplerOrbit
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorKeplerOrbit" abstract="yes">
-  !#  <description>A property extractor class for {\normalfont \ttfamily keplerOrbit} objects.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorKeplerOrbit" abstract="yes">
+   <description>A property extractor class for {\normalfont \ttfamily keplerOrbit} objects.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorTuple), abstract :: nodePropertyExtractorKeplerOrbit
-     !% A property extractor for {\normalfont \ttfamily keplerOrbit} objects.
+     !!{
+     A property extractor for {\normalfont \ttfamily keplerOrbit} objects.
+     !!}
      private
      type            (varying_string), allocatable, dimension(:) :: properties   , names_, &
           &                                                         descriptions_
@@ -32,10 +36,12 @@
      integer                                                     :: count_
      type            (varying_string)                            :: prefix
    contains
-     !# <methods>
-     !#   <method description="Initialize the properties to be extracted." method="initialize" />
-     !#   <method description="Extract properties from a {\normalfont \ttfamily keplerOrbit} object." method="extractFromOrbit" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Initialize the properties to be extracted." method="initialize" />
+       <method description="Extract properties from a {\normalfont \ttfamily keplerOrbit} object." method="extractFromOrbit" />
+     </methods>
+     !!]
      procedure :: initialize       => keplerOrbitInitialize
      procedure :: elementCount     => keplerOrbitElementCount
      procedure :: extractFromOrbit => keplerOrbitExtractFromOrbit
@@ -48,7 +54,9 @@
 contains
 
   subroutine keplerOrbitInitialize(self,properties,prefix)
-    !% Initializor for the {\normalfont \ttfamily keplerOrbit} output extractor property extractor class.
+    !!{
+    Initializor for the {\normalfont \ttfamily keplerOrbit} output extractor property extractor class.
+    !!}
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: ISO_Varying_String              , only : trim
     use :: Numerical_Constants_Astronomical, only : megaParsec               , massSolar
@@ -140,7 +148,9 @@ contains
   end subroutine keplerOrbitInitialize
 
   integer function keplerOrbitElementCount(self,time)
-    !% Return the number of elements in the {\normalfont \ttfamily keplerOrbit} property extractors.
+    !!{
+    Return the number of elements in the {\normalfont \ttfamily keplerOrbit} property extractors.
+    !!}
     implicit none
     class           (nodePropertyExtractorKeplerOrbit), intent(inout) :: self
     double precision                                  , intent(in   ) :: time
@@ -151,7 +161,9 @@ contains
   end function keplerOrbitElementCount
 
   function keplerOrbitExtractFromOrbit(self,orbit)
-    !% Extract properties from a {\normalfont \ttfamily keplerOrbit} object.
+    !!{
+    Extract properties from a {\normalfont \ttfamily keplerOrbit} object.
+    !!}
     use :: Kepler_Orbits, only : keplerOrbitHostMass      , keplerOrbitSpecificReducedMass, keplerOrbitRadius          , keplerOrbitTheta          , &
          &                       keplerOrbitPhi           , keplerOrbitEpsilon            , keplerOrbitRadiusPericenter, keplerOrbitRadiusApocenter, &
          &                       keplerOrbitVelocityRadial, keplerOrbitVelocityTangential , keplerOrbitEnergy          , keplerOrbitAngularMomentum, &
@@ -205,7 +217,9 @@ contains
   end function keplerOrbitExtractFromOrbit
 
   function keplerOrbitNames(self,time)
-    !% Return the names of the {\normalfont \ttfamily keplerOrbit} properties.
+    !!{
+    Return the names of the {\normalfont \ttfamily keplerOrbit} properties.
+    !!}
     implicit none
     type            (varying_string                  ), dimension(:) , allocatable :: keplerOrbitNames
     class           (nodePropertyExtractorKeplerOrbit), intent(inout)              :: self
@@ -218,7 +232,9 @@ contains
   end function keplerOrbitNames
 
   function keplerOrbitDescriptions(self,time)
-    !% Return the descriptions of the {\normalfont \ttfamily virialProperies} properties.
+    !!{
+    Return the descriptions of the {\normalfont \ttfamily virialProperies} properties.
+    !!}
     implicit none
     type            (varying_string                  ), dimension(:) , allocatable :: keplerOrbitDescriptions
     class           (nodePropertyExtractorKeplerOrbit), intent(inout)              :: self
@@ -231,7 +247,9 @@ contains
   end function keplerOrbitDescriptions
 
   function keplerOrbitUnitsInSI(self,time)
-    !% Return the units of the {\normalfont \ttfamily virialProperies} properties in the SI system.
+    !!{
+    Return the units of the {\normalfont \ttfamily virialProperies} properties in the SI system.
+    !!}
     implicit none
     double precision                                  , dimension(:) , allocatable :: keplerOrbitUnitsInSI
     class           (nodePropertyExtractorKeplerOrbit), intent(inout)              :: self
@@ -244,7 +262,9 @@ contains
   end function keplerOrbitUnitsInSI
 
   integer function keplerOrbitType(self)
-    !% Return the type of the keplerOrbit property.
+    !!{
+    Return the type of the keplerOrbit property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorKeplerOrbit), intent(inout) :: self

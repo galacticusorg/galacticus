@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,24 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which computes correlation statistics from point distributions.
+!!{
+Contains a module which computes correlation statistics from point distributions.
+!!}
 
 module Statistics_Points_Correlations
-  !% Compute correlation statistics from point distributions.
+  !!{
+  Compute correlation statistics from point distributions.
+  !!}
   private
   public :: Statistics_Points_Correlation
 
 contains
 
   subroutine Statistics_Points_Correlation(dataPosition,randomPosition,separationMinimum,separationMaximum,separationCount,separation,correlation,projected,radialSeparationMaximum,halfIntegral)
-    !% Compute the correlation function from a set of points.
-    use :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Kind_Numbers      , only : kind_int8
-    use :: Memory_Management , only : allocateArray             , deallocateArray
-    use :: Nearest_Neighbors , only : nearestNeighbors
-    use :: Numerical_Ranges  , only : Make_Range                , rangeTypeLogarithmic
-    use :: Vectors           , only : Vector_Magnitude
+    !!{
+    Compute the correlation function from a set of points.
+    !!}
+    use :: Display          , only : displayCounter         , displayCounterClear , displayIndent, displayUnindent
+    use :: Galacticus_Error , only : Galacticus_Error_Report
+    use :: Kind_Numbers     , only : kind_int8
+    use :: Memory_Management, only : allocateArray          , deallocateArray
+    use :: Nearest_Neighbors, only : nearestNeighbors
+    use :: Numerical_Ranges , only : Make_Range             , rangeTypeLogarithmic
+    use :: Vectors          , only : Vector_Magnitude
     implicit none
     double precision                  , intent(in   ), dimension(:,:), target      :: dataPosition                    , randomPosition
     double precision                  , intent(in   )                              :: separationMinimum               , separationMaximum
@@ -121,17 +127,17 @@ contains
        select case (iPass)
        case (1)
           ! Data-data pairs.
-          call Galacticus_Display_Indent('Counting data-data pairs')
+          call displayIndent('Counting data-data pairs')
           fromPoints => dataPosition
           toPoints   => dataPosition
       case (2)
           ! Data-random pairs.
-          call Galacticus_Display_Indent('Counting data-random pairs')
+          call displayIndent('Counting data-random pairs')
           fromPoints => dataPosition
           toPoints   => randomPosition
       case (3)
           ! Random-random pairs.
-          call Galacticus_Display_Indent('Counting random-random pairs')
+          call displayIndent('Counting random-random pairs')
           fromPoints => randomPosition
           toPoints   => randomPosition
        end select
@@ -148,7 +154,7 @@ contains
        do iPoint=1,size(fromPoints,dim=2)
           !$omp atomic
           pointCount=pointCount+1
-          call Galacticus_Display_Counter(int(100.0d0*dble(pointCount-1)/dble(size(fromPoints,dim=2))),isNew=(iPoint==1))
+          call displayCounter(int(100.0d0*dble(pointCount-1)/dble(size(fromPoints,dim=2))),isNew=(iPoint==1))
           ! Get neighbors within the maximum separation.
           call neighborFinder%searchFixedRadius(fromPoints(:,iPoint),separationLimit,toleranceZero,neighborCount,neighborIndex,neighborDistance)
           select case (projectedActual)
@@ -216,8 +222,8 @@ contains
           randomRandomCount=pairCount
        end select
        !$omp end parallel
-       call Galacticus_Display_Counter_Clear()
-       call Galacticus_Display_Unindent('done')
+       call displayCounterClear()
+       call displayUnindent('done')
     end do
     ! Normalize counts.
     dataData    =dble(dataDataCount    )/dble(size(dataPosition,dim=2))                                 **2

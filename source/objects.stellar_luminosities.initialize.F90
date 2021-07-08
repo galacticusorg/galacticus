@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,21 +19,29 @@
 
 !+    Contributions to this file made by:  Alex Merson.
 
-!% Contains a module which initializes data for the stellar luminosities class.
+!!{
+Contains a module which initializes data for the stellar luminosities class.
+!!}
 
 module Stellar_Luminosities_Initialization
-  !% Initializes data for the stellar luminosities class.
+  !!{
+  Initializes data for the stellar luminosities class.
+  !!}
   implicit none
   private
   public :: Stellar_Luminosities_Initialize
   
 contains
 
-  !# <nodeComponentInitializationTask>
-  !#  <unitName>Stellar_Luminosities_Initialize</unitName>
-  !# </nodeComponentInitializationTask>
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>Stellar_Luminosities_Initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
   subroutine Stellar_Luminosities_Initialize(parameters_)
-    !% Extract and store a list of output redshifts.
+    !!{
+    Extract and store a list of output redshifts.
+    !!}
     use, intrinsic :: ISO_C_Binding            , only : c_size_t
     use            :: Input_Parameters         , only : inputParameter, inputParameters
     use            :: Output_Times             , only : outputTimes   , outputTimesClass
@@ -43,13 +51,18 @@ contains
     class  (outputTimesClass), pointer       :: outputTimes_
     integer(c_size_t        )                :: i
     
-    !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters_"/>
+    !![
+    <objectBuilder class="outputTimes" name="outputTimes_" source="parameters_"/>
+    !!]
     outputCount=outputTimes_%count()
+    if (allocated(outputRedshifts)) deallocate(outputRedshifts)
     allocate(outputRedshifts(outputCount))
     do i=1,outputCount
        outputRedshifts(i)=outputTimes_%redshift(i)
     end do
-    !# <objectDestructor name="outputTimes_"/>
+    !![
+    <objectDestructor name="outputTimes_"/>
+    !!]
     return
   end subroutine Stellar_Luminosities_Initialize
 

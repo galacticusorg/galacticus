@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of Bondi-Hoyle-Lyttleton accretion (see \citealt{edgar_review_2004}).
+!!{
+Contains a module which implements calculations of Bondi-Hoyle-Lyttleton accretion (see \citealt{edgar_review_2004}).
+!!}
 
 module Bondi_Hoyle_Lyttleton_Accretion
-  !% Implements calculations of Bondi-Hoyle-Lyttleton accretion (see \citealt{edgar_review_2004}).
+  !!{
+  Implements calculations of Bondi-Hoyle-Lyttleton accretion (see \citealt{edgar_review_2004}).
+  !!}
   implicit none
   private
   public :: Bondi_Hoyle_Lyttleton_Accretion_Rate, Bondi_Hoyle_Lyttleton_Accretion_Radius
@@ -28,7 +32,9 @@ module Bondi_Hoyle_Lyttleton_Accretion
 contains
 
   double precision function Bondi_Hoyle_Lyttleton_Accretion_Rate(mass,density,velocity,temperature,radius)
-    !% Computes the Bondi-Hoyle-Lyttleton accretion rate (in $M_\odot$ Gyr$^{-1}$; \citealt{edgar_review_2004}).
+    !!{
+    Computes the Bondi-Hoyle-Lyttleton accretion rate (in $M_\odot$ Gyr$^{-1}$; \citealt{edgar_review_2004}).
+    !!}
     use :: Ideal_Gases_Thermodynamics      , only : Ideal_Gas_Sound_Speed
     use :: Numerical_Constants_Astronomical, only : gigaYear             , megaParsec, gravitationalConstantGalacticus
     use :: Numerical_Constants_Math        , only : Pi
@@ -53,7 +59,9 @@ contains
   end function Bondi_Hoyle_Lyttleton_Accretion_Rate
 
   double precision function Bondi_Hoyle_Lyttleton_Accretion_Radius(mass,temperature)
-    !% Computes the Bondi-Hoyle-Lyttleton accretion radius (in Mpc; \citealt{edgar_review_2004}).
+    !!{
+    Computes the Bondi-Hoyle-Lyttleton accretion radius (in Mpc; \citealt{edgar_review_2004}).
+    !!}
     use :: Ideal_Gases_Thermodynamics      , only : Ideal_Gas_Sound_Speed
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none

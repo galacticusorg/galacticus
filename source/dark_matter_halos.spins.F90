@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of dark matter halo angular momentum.
+!!{
+Contains a module which implements calculations of dark matter halo angular momentum.
+!!}
 
 module Dark_Matter_Halo_Spins
-  !% Implements calculations of dark matter halo angular momentum.
+  !!{
+  Implements calculations of dark matter halo angular momentum.
+  !!}
   implicit none
   private
   public :: Dark_Matter_Halo_Angular_Momentum, Dark_Matter_Halo_Spin, Dark_Matter_Halo_Angular_Momentum_Growth_Rate
@@ -31,7 +35,9 @@ module Dark_Matter_Halo_Spins
 contains
 
   subroutine assertPropertiesGettable()
-    !% Assert that properties required for spin calculations are gettable.
+    !!{
+    Assert that properties required for spin calculations are gettable.
+    !!}
     use :: Galacticus_Error  , only : Galacticus_Component_List, Galacticus_Error_Report
     use :: Galacticus_Nodes  , only : defaultBasicComponent    , defaultSpinComponent
     use :: ISO_Varying_String, only : operator(//)
@@ -70,7 +76,9 @@ contains
   end subroutine assertPropertiesGettable
 
   double precision function Dark_Matter_Halo_Angular_Momentum(node,darkMatterProfileDMO_)
-    !% Returns the total anuglar momentum of {\normalfont \ttfamily node} based on its mass, energy and spin parameter.
+    !!{
+    Returns the total anuglar momentum of {\normalfont \ttfamily node} based on its mass, energy and spin parameter.
+    !!}
     use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMOClass
     use :: Galacticus_Nodes            , only : nodeComponentBasic             , nodeComponentSpin, treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
@@ -91,7 +99,9 @@ contains
   end function Dark_Matter_Halo_Angular_Momentum
 
   double precision function Dark_Matter_Halo_Angular_Momentum_Growth_Rate(node,darkMatterProfileDMO_)
-    !% Returns the rate of change of the total anuglar momentum of {\normalfont \ttfamily node} based on its mass, energy and spin parameter.
+    !!{
+    Returns the rate of change of the total anuglar momentum of {\normalfont \ttfamily node} based on its mass, energy and spin parameter.
+    !!}
     use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Galacticus_Nodes        , only : nodeComponentBasic       , nodeComponentSpin, treeNode
@@ -137,7 +147,9 @@ contains
   end function Dark_Matter_Halo_Angular_Momentum_Growth_Rate
 
   double precision function Dark_Matter_Halo_Spin(node,angularMomentum,darkMatterProfileDMO_)
-    !% Returns the spin of {\normalfont \ttfamily node} given its angular momentum.
+    !!{
+    Returns the spin of {\normalfont \ttfamily node} given its angular momentum.
+    !!}
     use :: Dark_Matter_Profiles_DMO    , only : darkMatterProfileDMOClass
     use :: Galacticus_Nodes            , only : nodeComponentBasic             , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus

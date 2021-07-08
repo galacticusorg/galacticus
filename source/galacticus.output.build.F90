@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements writing of \glc\ build information to the \glc\ output file.
+!!{
+Contains a module which implements writing of \glc\ build information to the \glc\ output file.
+!!}
 
 ! Specify an explicit dependence on the gsl_Version.o object file.
 !: $(BUILDPATH)/gsl_Version.o
 
 module Galacticus_Build
-  !% Implements writing of \glc\ build information to the \glc\ output file.
+  !!{
+  Implements writing of \glc\ build information to the \glc\ output file.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_ptr
   implicit none
   private
@@ -31,7 +35,9 @@ module Galacticus_Build
 
   interface
      function GSL_Get_Version() bind(c,name='GSL_Get_Version')
-       !% Template for a C function that returns the GSL version string.
+       !!{
+       Template for a C function that returns the GSL version string.
+       !!}
        import
        type(c_ptr) :: GSL_Get_Version
      end function GSL_Get_Version
@@ -40,7 +46,9 @@ module Galacticus_Build
 contains
 
   function Galacticus_Build_String()
-    !% Returns a string describing the build environment of \glc.
+    !!{
+    Returns a string describing the build environment of \glc.
+    !!}
     use            :: FoX_Common        , only : Fox_Version
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use            :: HDF5              , only : h5get_libversion_f
@@ -103,11 +111,15 @@ contains
     return
   end function Galacticus_Build_String
 
-  !# <outputFileOpenTask>
-  !#  <unitName>Galacticus_Build_Output</unitName>
-  !# </outputFileOpenTask>
+  !![
+  <outputFileOpenTask>
+   <unitName>Galacticus_Build_Output</unitName>
+  </outputFileOpenTask>
+  !!]
   subroutine Galacticus_Build_Output
-    !% Output build information to the main output file.
+    !!{
+    Output build information to the main output file.
+    !!}
     use            :: File_Utilities    , only : File_Exists
     use            :: FoX_Common        , only : Fox_Version
     use            :: Galacticus_Error  , only : Galacticus_Error_Report

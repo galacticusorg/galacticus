@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of projected correlation functions using the halo model.
+!!{
+Contains a module which implements calculations of projected correlation functions using the halo model.
+!!}
 
 module Halo_Model_Projected_Correlations
-  !% Implements calculations of projected correlation functions using the halo model.
+  !!{
+  Implements calculations of projected correlation functions using the halo model.
+  !!}
   private
   public :: Halo_Model_Projected_Correlation
 
@@ -51,7 +55,9 @@ contains
        &                                      projectedCorrelationFunctionHalfIntegral    , &
        &                                      projectedCorrelationBinned                    &
        &                                     )
-    !% Compute the projected correlation function of galaxies above a specified mass using the halo model.
+    !!{
+    Compute the projected correlation function of galaxies above a specified mass using the halo model.
+    !!}
     use :: Conditional_Mass_Functions, only : conditionalMassFunctionClass
     use :: Cosmology_Functions       , only : cosmologyFunctionsClass
     use :: Dark_Matter_Halo_Biases   , only : darkMatterHaloBiasClass
@@ -66,7 +72,7 @@ contains
     use :: Linear_Growth             , only : linearGrowthClass
     use :: Memory_Management         , only : allocateArray
     use :: Numerical_Constants_Math  , only : Pi
-    use :: Numerical_Integration     , only : integrator                       , GSL_Integ_Gauss61
+    use :: Numerical_Integration     , only : GSL_Integ_Gauss61                , integrator
     use :: Numerical_Ranges          , only : Make_Range                       , rangeTypeLogarithmic
     use :: Power_Spectra             , only : powerSpectrumClass
     use :: Table_Labels              , only : extrapolationTypeExtrapolate
@@ -239,7 +245,9 @@ contains
   contains
 
     double precision function projectionIntegrandWeight(separation)
-      !% The weight function applied to the correlation function when integrating to get the projected correlation function.
+      !!{
+      The weight function applied to the correlation function when integrating to get the projected correlation function.
+      !!}
       implicit none
       double precision, intent(in   ) :: separation
 
@@ -252,7 +260,9 @@ contains
     end function projectionIntegrandWeight
 
     double precision function binningIntegrandWeight(separation)
-      !% The weight function applied to the projected correlation function when integrating into bins.
+      !!{
+      The weight function applied to the projected correlation function when integrating into bins.
+      !!}
       implicit none
       double precision, intent(in   ) :: separation
 
@@ -261,9 +271,12 @@ contains
     end function binningIntegrandWeight
 
     double precision function powerSpectrumOneHaloTimeIntegrand(timePrime)
-      !% Time integrand for the one-halo term in the power spectrum.
-      use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWarn
-      use :: Galacticus_Error  , only : errorStatusSuccess
+      !!{
+      Time integrand for the one-halo term in the power spectrum.
+      !!}
+      use :: Display         , only : displayMessage    , verbosityLevelWarn, displayMagenta, displayReset
+
+      use :: Galacticus_Error, only : errorStatusSuccess
       implicit none
       double precision            , intent(in   ) :: timePrime
       type            (integrator)                :: integratorTime
@@ -281,14 +294,16 @@ contains
            &                                                                          )                                                    &
            &                            *cosmologyFunctions_%comovingVolumeElementTime(time)
       if (errorStatus /= errorStatusSuccess .and. .not.integrationWarningIssued) then
-         call Galacticus_Display_Message('WARNING: [powerSpectrumOneHaloTimeIntegrand] integration failed - likely due to oscillatory nature of integrand - proceeding anyway',verbosity=verbosityWarn)
+         call displayMessage(displayMagenta()//'WARNING:'//displayReset()//' [powerSpectrumOneHaloTimeIntegrand] integration failed - likely due to oscillatory nature of integrand - proceeding anyway',verbosity=verbosityLevelWarn)
          integrationWarningIssued=.true.
       end if
       return
     end function powerSpectrumOneHaloTimeIntegrand
 
     double precision function powerSpectrumOneHaloIntegrand(massHalo)
-      !% Integrand for the one-halo term in the power spectrum.
+      !!{
+      Integrand for the one-halo term in the power spectrum.
+      !!}
       use :: Conditional_Mass_Functions    , only : haloModelGalaxyTypeCentral   , haloModelGalaxyTypeSatellite
       use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
       implicit none
@@ -335,9 +350,11 @@ contains
     end function powerSpectrumOneHaloIntegrand
 
     double precision function powerSpectrumTwoHaloTimeIntegrand(timePrime)
-      !% Time integrand for the two-halo term in the power spectrum.
-      use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWarn
-      use :: Galacticus_Error  , only : errorStatusSuccess
+      !!{
+      Time integrand for the two-halo term in the power spectrum.
+      !!}
+      use :: Display         , only : displayMessage    , verbosityLevelWarn, displayMagenta, displayReset
+      use :: Galacticus_Error, only : errorStatusSuccess
       implicit none
       double precision            , intent(in   ) :: timePrime
       type            (integrator)                :: integratorTime
@@ -360,14 +377,16 @@ contains
            &                            *sqrt(powerSpectrum_     %power                    (wavenumber(iWavenumber),time))                                 &
            &                            *     cosmologyFunctions_%comovingVolumeElementTime(                        time)
       if (errorStatus /= errorStatusSuccess .and. .not.integrationWarningIssued) then
-         call Galacticus_Display_Message('WARNING: [powerSpectrumTwoHaloTimeIntegrand] integration failed - likely due to oscillatory nature of integrand - proceeding anyway',verbosity=verbosityWarn)
+         call displayMessage(displayMagenta()//'WARNING:'//displayReset()//' [powerSpectrumTwoHaloTimeIntegrand] integration failed - likely due to oscillatory nature of integrand - proceeding anyway',verbosity=verbosityLevelWarn)
          integrationWarningIssued=.true.
       end if
       return
     end function powerSpectrumTwoHaloTimeIntegrand
 
     double precision function powerSpectrumTwoHaloIntegrand(massHalo)
-      !% Integrand for the two-halo term in the power spectrum.
+      !!{
+      Integrand for the two-halo term in the power spectrum.
+      !!}
       use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
       implicit none
       double precision, intent(in   ) :: massHalo
@@ -397,7 +416,9 @@ contains
     end function powerSpectrumTwoHaloIntegrand
 
     double precision function normalizationTimeIntegrand(timePrime)
-      !% Time integrand for the normalization term in the power spectrum.
+      !!{
+      Time integrand for the normalization term in the power spectrum.
+      !!}
       implicit none
       double precision            , intent(in   ) :: timePrime
       type            (integrator)                :: integratorTime
@@ -413,7 +434,9 @@ contains
     end function normalizationTimeIntegrand
 
     double precision function normalizationIntegrand(massHalo)
-      !% Integrand for the normalization term in the power spectrum.
+      !!{
+      Integrand for the normalization term in the power spectrum.
+      !!}
       implicit none
       double precision, intent(in   ) :: massHalo
 
@@ -428,7 +451,9 @@ contains
     end function normalizationIntegrand
 
     double precision function volumeTimeIntegrand(timePrime)
-      !% Volume integrand for the normalization term in the power spectrum.
+      !!{
+      Volume integrand for the normalization term in the power spectrum.
+      !!}
       implicit none
       double precision, intent(in   ) :: timePrime
 

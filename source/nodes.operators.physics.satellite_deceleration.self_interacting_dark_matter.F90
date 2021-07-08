@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that performs deceleration of satellites due to dark matter self-interactions.
+  !!{
+  Implements a node operator class that performs deceleration of satellites due to dark matter self-interactions.
+  !!}
 
   use :: Satellite_Deceleration_SIDM, only : satelliteDecelerationSIDMClass
 
-  !# <nodeOperator name="nodeOperatorSatelliteDecelerationSIDM">
-  !#  <description>A node operator class that performs deceleration of satellites due to dark matter self-interactions.</description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorSatelliteDecelerationSIDM">
+   <description>A node operator class that performs deceleration of satellites due to dark matter self-interactions.</description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteDecelerationSIDM
-     !% A node operator class that performs deceleration of satellites due to dark matter self-interactions.
+     !!{
+     A node operator class that performs deceleration of satellites due to dark matter self-interactions.
+     !!}
      private
      class(satelliteDecelerationSIDMClass), pointer :: satelliteDecelerationSIDM_ => null()
    contains
@@ -34,7 +40,9 @@
   end type nodeOperatorSatelliteDecelerationSIDM
   
   interface nodeOperatorSatelliteDecelerationSIDM
-     !% Constructors for the {\normalfont \ttfamily satelliteDecelerationSIDM} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily satelliteDecelerationSIDM} node operator class.
+     !!}
      module procedure satelliteDecelerationSIDMConstructorParameters
      module procedure satelliteDecelerationSIDMConstructorInternal
   end interface nodeOperatorSatelliteDecelerationSIDM
@@ -42,41 +50,57 @@
 contains
 
   function satelliteDecelerationSIDMConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily satelliteDecelerationSIDM} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily satelliteDecelerationSIDM} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodeOperatorSatelliteDecelerationSIDM)                :: self
     type (inputParameters                      ), intent(inout) :: parameters
     class(satelliteDecelerationSIDMClass       ), pointer       :: satelliteDecelerationSIDM_
     
-    !# <objectBuilder class="satelliteDecelerationSIDM" name="satelliteDecelerationSIDM_" source="parameters"/>
+    !![
+    <objectBuilder class="satelliteDecelerationSIDM" name="satelliteDecelerationSIDM_" source="parameters"/>
+    !!]
     self=nodeOperatorSatelliteDecelerationSIDM(satelliteDecelerationSIDM_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="satelliteDecelerationSIDM_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="satelliteDecelerationSIDM_"/>
+    !!]
     return
   end function satelliteDecelerationSIDMConstructorParameters
 
   function satelliteDecelerationSIDMConstructorInternal(satelliteDecelerationSIDM_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily satelliteDecelerationSIDM} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily satelliteDecelerationSIDM} node operator class.
+    !!}
     implicit none
     type (nodeOperatorSatelliteDecelerationSIDM)                        :: self
     class(satelliteDecelerationSIDMClass       ), intent(in   ), target :: satelliteDecelerationSIDM_
-    !# <constructorAssign variables="*satelliteDecelerationSIDM_"/>
+    !![
+    <constructorAssign variables="*satelliteDecelerationSIDM_"/>
+    !!]
 
     return
   end function satelliteDecelerationSIDMConstructorInternal
 
   subroutine satelliteDecelerationSIDMDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily satelliteDecelerationSIDM} node operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily satelliteDecelerationSIDM} node operator class.
+    !!}
     implicit none
     type(nodeOperatorSatelliteDecelerationSIDM), intent(inout) :: self
 
-    !# <objectDestructor name="self%satelliteDecelerationSIDM_"/>
+    !![
+    <objectDestructor name="self%satelliteDecelerationSIDM_"/>
+    !!]
     return
   end subroutine satelliteDecelerationSIDMDestructor
   
   subroutine satelliteDecelerationSIDMDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Perform deceleration of a satellite due to dark matter self-interactions.
+    !!{
+    Perform deceleration of a satellite due to dark matter self-interactions.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
     class    (nodeOperatorSatelliteDecelerationSIDM), intent(inout), target  :: self

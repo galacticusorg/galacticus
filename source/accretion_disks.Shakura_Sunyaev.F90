@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,21 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a \cite{shakura_black_1973} accretion disk.
+  !!{
+  Implementation of a \cite{shakura_black_1973} accretion disk.
+  !!}
 
-  !# <accretionDisks name="accretionDisksShakuraSunyaev">
-  !#  <description>
-  !#   A circumnuclear accretion disk class, in which the accretion disks are always described by a radiatively efficient,
-  !#   geometrically thin accretion disk as described by \cite{shakura_black_1973}. The radiative efficiency of the flow is
-  !#   computed assuming that material falls into the black hole without further energy loss from the \gls{isco}, while the
-  !#   spin-up rate of the black hole is computed assuming that the material enters the black hole with the specific angular
-  !#   momentum of the \gls{isco} (i.e. there are no torques on the material once it begins to fall in from the \gls{isco};
-  !#   \citealt{bardeen_kerr_1970}). For these thin disks, jet power is computed, using the expressions from
-  !#   \citeauthor{meier_association_2001}~(\citeyear{meier_association_2001}; his equations 4 and 5).
-  !#  </description>
-  !# </accretionDisks>
+  !![
+  <accretionDisks name="accretionDisksShakuraSunyaev">
+   <description>
+    A circumnuclear accretion disk class, in which the accretion disks are always described by a radiatively efficient,
+    geometrically thin accretion disk as described by \cite{shakura_black_1973}. The radiative efficiency of the flow is
+    computed assuming that material falls into the black hole without further energy loss from the \gls{isco}, while the
+    spin-up rate of the black hole is computed assuming that the material enters the black hole with the specific angular
+    momentum of the \gls{isco} (i.e. there are no torques on the material once it begins to fall in from the \gls{isco};
+    \citealt{bardeen_kerr_1970}). For these thin disks, jet power is computed, using the expressions from
+    \citeauthor{meier_association_2001}~(\citeyear{meier_association_2001}; his equations 4 and 5).
+   </description>
+  </accretionDisks>
+  !!]
   type, extends(accretionDisksClass) :: accretionDisksShakuraSunyaev
-     !% Implementation of a \cite{shakura_black_1973} accretion disk class.
+     !!{
+     Implementation of a \cite{shakura_black_1973} accretion disk class.
+     !!}
      private
    contains
      procedure :: efficiencyRadiative => shakuraSunyaevEfficiencyRadiative
@@ -40,14 +46,18 @@
   end type accretionDisksShakuraSunyaev
 
   interface accretionDisksShakuraSunyaev
-     !% Constructors for the Eddington-limited accretion disk class.
+     !!{
+     Constructors for the Eddington-limited accretion disk class.
+     !!}
      module procedure shakuraSunyaevConstructorParameters
   end interface accretionDisksShakuraSunyaev
 
 contains
 
   function shakuraSunyaevConstructorParameters(parameters) result(self)
-    !% Constructor for the \cite{shakura_black_1973} accretion disk class which takes a parameter set as input.
+    !!{
+    Constructor for the \cite{shakura_black_1973} accretion disk class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(accretionDisksShakuraSunyaev)                :: self
@@ -59,7 +69,9 @@ contains
   end function shakuraSunyaevConstructorParameters
 
   double precision function shakuraSunyaevEfficiencyRadiative(self,blackHole,accretionRateMass)
-    !% Return the radiative efficiency of a \cite{shakura_black_1973} accretion disk.
+    !!{
+    Return the radiative efficiency of a \cite{shakura_black_1973} accretion disk.
+    !!}
     use :: Black_Hole_Fundamentals, only : Black_Hole_ISCO_Specific_Energy, orbitPrograde, unitsGravitational
     implicit none
     class           (accretionDisksShakuraSunyaev), intent(inout) :: self
@@ -73,8 +85,10 @@ contains
   end function shakuraSunyaevEfficiencyRadiative
 
   double precision function shakuraSunyaevPowerJet(self,blackHole,accretionRateMass)
-    !% Computes the jet power for a \cite{shakura_black_1973} (thin) accretion disk, using the expressions from
-    !% \citeauthor{meier_association_2001}~(\citeyear{meier_association_2001}; his equations 4 and 5).
+    !!{
+    Computes the jet power for a \cite{shakura_black_1973} (thin) accretion disk, using the expressions from
+    \citeauthor{meier_association_2001}~(\citeyear{meier_association_2001}; his equations 4 and 5).
+    !!}
     use :: Black_Hole_Fundamentals         , only : Black_Hole_Eddington_Accretion_Rate
     use :: Numerical_Constants_Astronomical, only : gigaYear                           , massSolar
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -135,7 +149,9 @@ contains
   end function shakuraSunyaevPowerJet
 
   double precision function shakuraSunyaevRateSpinUp(self,blackHole,accretionRateMass)
-    !% Compute the rate of spin up of a black hole by a \cite{shakura_black_1973} accretion disk.
+    !!{
+    Compute the rate of spin up of a black hole by a \cite{shakura_black_1973} accretion disk.
+    !!}
     use :: Black_Hole_Fundamentals, only : Black_Hole_ISCO_Specific_Angular_Momentum, Black_Hole_ISCO_Specific_Energy, orbitPrograde, unitsGravitational
     implicit none
     class           (accretionDisksShakuraSunyaev), intent(inout) :: self

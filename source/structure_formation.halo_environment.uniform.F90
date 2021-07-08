@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a uniform halo environment.
+!!{
+Contains a module which implements a uniform halo environment.
+!!}
 
-  !# <haloEnvironment name="haloEnvironmentUniform">
-  !#  <description>Implements a uniform halo environment.</description>
-  !# </haloEnvironment>
+  !![
+  <haloEnvironment name="haloEnvironmentUniform">
+   <description>Implements a uniform halo environment.</description>
+  </haloEnvironment>
+  !!]
   type, extends(haloEnvironmentClass) :: haloEnvironmentUniform
-     !% A uniform halo environment class.
+     !!{
+     A uniform halo environment class.
+     !!}
      private
    contains
      procedure :: overdensityLinear             => uniformOverdensityLinear
@@ -37,14 +43,18 @@
   end type haloEnvironmentUniform
 
   interface haloEnvironmentUniform
-     !% Constructors for the {\normalfont \ttfamily uniform} halo environment class.
+     !!{
+     Constructors for the {\normalfont \ttfamily uniform} halo environment class.
+     !!}
      module procedure uniformConstructorParameters
   end interface haloEnvironmentUniform
 
 contains
 
   function uniformConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily uniform} halo environment class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily uniform} halo environment class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(haloEnvironmentUniform)                :: self
@@ -56,7 +66,9 @@ contains
   end function uniformConstructorParameters
 
   double precision function uniformOverdensityLinear(self,node,presentDay)
-    !% Return the environment of the given {\normalfont \ttfamily node}.
+    !!{
+    Return the environment of the given {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class  (haloEnvironmentUniform), intent(inout)           :: self
     type   (treeNode              ), intent(inout)           :: node
@@ -68,7 +80,9 @@ contains
   end function uniformOverdensityLinear
 
   double precision function uniformOverdensityLinearGradientTime(self,node)
-    !% Return the time gradient of the environment of the given {\normalfont \ttfamily node}.
+    !!{
+    Return the time gradient of the environment of the given {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class(haloEnvironmentUniform), intent(inout) :: self
     type (treeNode              ), intent(inout) :: node
@@ -79,7 +93,9 @@ contains
   end function uniformOverdensityLinearGradientTime
 
   double precision function uniformOverdensityNonLinear(self,node)
-    !% Return the environment of the given {\normalfont \ttfamily node}.
+    !!{
+    Return the environment of the given {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class(haloEnvironmentUniform), intent(inout) :: self
     type (treeNode              ), intent(inout) :: node
@@ -90,7 +106,9 @@ contains
   end function uniformOverdensityNonLinear
 
   double precision function uniformEnvironmentRadius(self)
-    !% Return the radius of the environment.
+    !!{
+    Return the radius of the environment.
+    !!}
     implicit none
     class(haloEnvironmentUniform), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -100,7 +118,9 @@ contains
   end function uniformEnvironmentRadius
 
   double precision function uniformEnvironmentMass(self)
-    !% Return the mass of the environment.
+    !!{
+    Return the mass of the environment.
+    !!}
     implicit none
     class(haloEnvironmentUniform), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -110,7 +130,9 @@ contains
   end function uniformEnvironmentMass
 
   double precision function uniformPDF(self,overdensity)
-    !% Return the PDF of the environmental overdensity.
+    !!{
+    Return the PDF of the environmental overdensity.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (haloEnvironmentUniform), intent(inout) :: self
@@ -123,7 +145,9 @@ contains
   end function uniformPDF
 
   double precision function uniformCDF(self,overdensity)
-    !% Return the CDF of the environmental overdensity.
+    !!{
+    Return the CDF of the environmental overdensity.
+    !!}
     implicit none
     class           (haloEnvironmentUniform), intent(inout) :: self
     double precision                        , intent(in   ) :: overdensity
@@ -138,7 +162,9 @@ contains
   end function uniformCDF
 
   subroutine uniformOverdensityLinearSet(self,node,overdensity)
-    !% Return the CDF of the environmental overdensity.
+    !!{
+    Return the CDF of the environmental overdensity.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (haloEnvironmentUniform), intent(inout) :: self

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module of integrands for unit tests.
+!!{
+Contains a module of integrands for unit tests.
+!!}
 
 module Test_Integration_Functions
-  !% Contains integrands for unit tests.
+  !!{
+  Contains integrands for unit tests.
+  !!}
   implicit none
   private
   public :: Integrand1, Integrand2, Integrand3, Integrand4
@@ -28,7 +32,9 @@ module Test_Integration_Functions
 contains
 
   double precision function Integrand1(x)
-    !% Integral for unit testing.
+    !!{
+    Integral for unit testing.
+    !!}
     implicit none
     double precision, intent(in   ) :: x
 
@@ -37,7 +43,9 @@ contains
   end function Integrand1
 
   double precision function Integrand2(x)
-    !% Integral for unit testing.
+    !!{
+    Integral for unit testing.
+    !!}
     implicit none
     double precision, intent(in   ) :: x
 
@@ -46,7 +54,9 @@ contains
   end function Integrand2
 
   double precision function Integrand3(x)
-    !% Integral for unit testing.
+    !!{
+    Integral for unit testing.
+    !!}
     implicit none
     double precision, intent(in   ) :: x
 
@@ -55,7 +65,9 @@ contains
   end function Integrand3
 
   double precision function Integrand4(x)
-    !% Integral for unit testing.
+    !!{
+    Integral for unit testing.
+    !!}
     use :: Numerical_Integration, only : integrator
     implicit none
     double precision            , intent(in   ) :: x

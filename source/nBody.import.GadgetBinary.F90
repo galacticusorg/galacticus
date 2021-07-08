@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data importer for Gadget binary files.
+!!{
+Contains a module which implements an N-body data importer for Gadget binary files.
+!!}
 
   use :: ISO_Varying_String, only : varying_string
 
-  !# <nbodyImporter name="nbodyImporterGadgetBinary">
-  !#  <description>An importer for Gadget binary files.</description>
-  !# </nbodyImporter>
+  !![
+  <nbodyImporter name="nbodyImporterGadgetBinary">
+   <description>An importer for Gadget binary files.</description>
+  </nbodyImporter>
+  !!]
   type, extends(nbodyImporterClass) :: nbodyImporterGadgetBinary
-     !% An importer for Gadget HDF5 files.
+     !!{
+     An importer for Gadget HDF5 files.
+     !!}
      private
      type            (varying_string) :: fileName       , label
      integer                          :: particleType
@@ -37,7 +43,9 @@
   end type nbodyImporterGadgetBinary
 
   interface nbodyImporterGadgetBinary
-     !% Constructors for the ``gadgetBinary'' N-body importer class.
+     !!{
+     Constructors for the ``gadgetBinary'' N-body importer class.
+     !!}
      module procedure gadgetBinaryConstructorParameters
      module procedure gadgetBinaryConstructorInternal
   end interface nbodyImporterGadgetBinary
@@ -45,7 +53,9 @@
 contains
 
   function gadgetBinaryConstructorParameters(parameters) result (self)
-    !% Constructor for the ``gadgetBinary'' N-body importer class which takes a parameter set as input.
+    !!{
+    Constructor for the ``gadgetBinary'' N-body importer class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyImporterGadgetBinary)                :: self
@@ -55,67 +65,77 @@ contains
     double precision                                           :: lengthSoftening, unitMassInSI    , &
          &                                                        unitLengthInSI , unitVelocityInSI
 
-    !# <inputParameter>
-    !#   <name>fileName</name>
-    !#   <source>parameters</source>
-    !#   <description>The name of the file to read.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>label</name>
-    !#   <source>parameters</source>
-    !#   <description>A label for the simulation</description>
-    !#   <defaultValue>var_str('primary')</defaultValue>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>particleType</name>
-    !#   <source>parameters</source>
-    !#   <description>The particle type to read from the Gadget bianry file.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>lengthSoftening</name>
-    !#   <source>parameters</source>
-    !#   <description>The softening length.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>unitMassInSI</name>
-    !#   <source>parameters</source>
-    !#   <description>The mass unit expressed in the SI system.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>unitLengthInSI</name>
-    !#   <source>parameters</source>
-    !#   <description>The length unit expressed in the SI system.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>unitVelocityInSI</name>
-    !#   <source>parameters</source>
-    !#   <description>The velocity unit expressed in the SI system.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>unitVelocityInSI</name>
-    !#   <source>parameters</source>
-    !#   <description>The velocity unit expressed in the SI system.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>fileName</name>
+      <source>parameters</source>
+      <description>The name of the file to read.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>label</name>
+      <source>parameters</source>
+      <description>A label for the simulation</description>
+      <defaultValue>var_str('primary')</defaultValue>
+    </inputParameter>
+    <inputParameter>
+      <name>particleType</name>
+      <source>parameters</source>
+      <description>The particle type to read from the Gadget bianry file.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>lengthSoftening</name>
+      <source>parameters</source>
+      <description>The softening length.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>unitMassInSI</name>
+      <source>parameters</source>
+      <description>The mass unit expressed in the SI system.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>unitLengthInSI</name>
+      <source>parameters</source>
+      <description>The length unit expressed in the SI system.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>unitVelocityInSI</name>
+      <source>parameters</source>
+      <description>The velocity unit expressed in the SI system.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>unitVelocityInSI</name>
+      <source>parameters</source>
+      <description>The velocity unit expressed in the SI system.</description>
+    </inputParameter>
+    !!]
     self=nbodyImporterGadgetBinary(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function gadgetBinaryConstructorParameters
 
   function gadgetBinaryConstructorInternal(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI) result (self)
-    !% Internal constructor for the ``gadgetBinary'' N-body importer class.
+    !!{
+    Internal constructor for the ``gadgetBinary'' N-body importer class.
+    !!}
     implicit none
     type            (nbodyImporterGadgetBinary)                :: self
     type            (varying_string           ), intent(in   ) :: fileName       , label
     integer                                    , intent(in   ) :: particleType
     double precision                           , intent(in   ) :: lengthSoftening, unitMassInSI   , &
          &                                                        unitLengthInSI ,unitVelocityInSI
-    !# <constructorAssign variables="fileName, label, particleType, lengthSoftening, unitMassInSI, unitLengthInSI, unitVelocityInSI"/>
+    !![
+    <constructorAssign variables="fileName, label, particleType, lengthSoftening, unitMassInSI, unitLengthInSI, unitVelocityInSI"/>
+    !!]
 
     return
   end function gadgetBinaryConstructorInternal
 
   subroutine gadgetBinaryImport(self,simulations)
-    !% Import data from a Gadget HDF5 file.
+    !!{
+    Import data from a Gadget HDF5 file.
+    !!}
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Hashes                          , only : rank1IntegerSizeTPtrHash, rank1DoublePtrHash
     use :: Memory_Management               , only : allocateArray
@@ -184,7 +204,9 @@ contains
   end subroutine gadgetBinaryImport
 
   logical function gadgetBinaryIsHDF5(self)
-    !% Return whether or not the imported data is from an HDF5 file.
+    !!{
+    Return whether or not the imported data is from an HDF5 file.
+    !!}
     implicit none
     class(nbodyImporterGadgetBinary), intent(inout) :: self
 

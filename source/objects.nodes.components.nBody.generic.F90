@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module with the standard implementation of N-body component method.
+!!{
+Contains a module with the standard implementation of N-body component method.
+!!}
 
 module Node_Component_NBody_Generic
-  !% An implementation of the N-body component which supports generic properties.
+  !!{
+  An implementation of the N-body component which supports generic properties.
+  !!}
   use :: ISO_Varying_String, only : varying_string
   implicit none
   private
@@ -28,70 +32,76 @@ module Node_Component_NBody_Generic
        &    Node_Component_NBody_Generic_Output_Names     , Node_Component_NBody_Generic_Output_Count       , &
        &    Node_Component_NBody_Generic_Output           , Node_Component_NBody_Generic_Thread_Uninitialize
 
-  !# <component>
-  !#  <class>nBody</class>
-  !#  <name>generic</name>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>reals</name>
-  !#     <type>double</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#   <property>
-  !#     <name>integers</name>
-  !#     <type>longInteger</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#  </properties>
-  !#  <bindings>
-  !#    <binding method="addRealProperty" bindsTo="component" isDeferred="true" >
-  !#     <interface>
-  !#      <type>integer</type>
-  !#      <rank>0</rank>
-  !#      <self pass="true" intent="inout" />
-  !#      <argument>character(len=*), intent(in   ) :: propertyName</argument>
-  !#     </interface>
-  !#    </binding>
-  !#    <binding method="addIntegerProperty" bindsTo="component" isDeferred="true" >
-  !#     <interface>
-  !#      <type>integer</type>
-  !#      <rank>0</rank>
-  !#      <self pass="true" intent="inout" />
-  !#      <argument>character(len=*), intent(in   ) :: propertyName</argument>
-  !#     </interface>
-  !#    </binding>
-  !#    <binding method="setRealProperty" bindsTo="component" isDeferred="true" >
-  !#     <interface>
-  !#      <type>void</type>
-  !#      <self pass="true" intent="inout" />
-  !#      <argument>integer         , intent(in   ) :: propertyIndex</argument>
-  !#      <argument>double precision, intent(in   ) :: propertyValue</argument>
-  !#     </interface>
-  !#    </binding>
-  !#    <binding method="setIntegerProperty" bindsTo="component" isDeferred="true" >
-  !#     <interface>
-  !#      <type>void</type>
-  !#      <self pass="true" intent="inout" />
-  !#      <argument>integer           , intent(in   ) :: propertyIndex</argument>
-  !#      <argument>integer(kind_int8), intent(in   ) :: propertyValue</argument>
-  !#     </interface>
-  !#    </binding>
-  !#  </bindings>
-  !# </component>
+  !![
+  <component>
+   <class>nBody</class>
+   <name>generic</name>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>reals</name>
+      <type>double</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+    <property>
+      <name>integers</name>
+      <type>longInteger</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+   </properties>
+   <bindings>
+     <binding method="addRealProperty" bindsTo="component" isDeferred="true" >
+      <interface>
+       <type>integer</type>
+       <rank>0</rank>
+       <self pass="true" intent="inout" />
+       <argument>character(len=*), intent(in   ) :: propertyName</argument>
+      </interface>
+     </binding>
+     <binding method="addIntegerProperty" bindsTo="component" isDeferred="true" >
+      <interface>
+       <type>integer</type>
+       <rank>0</rank>
+       <self pass="true" intent="inout" />
+       <argument>character(len=*), intent(in   ) :: propertyName</argument>
+      </interface>
+     </binding>
+     <binding method="setRealProperty" bindsTo="component" isDeferred="true" >
+      <interface>
+       <type>void</type>
+       <self pass="true" intent="inout" />
+       <argument>integer         , intent(in   ) :: propertyIndex</argument>
+       <argument>double precision, intent(in   ) :: propertyValue</argument>
+      </interface>
+     </binding>
+     <binding method="setIntegerProperty" bindsTo="component" isDeferred="true" >
+      <interface>
+       <type>void</type>
+       <self pass="true" intent="inout" />
+       <argument>integer           , intent(in   ) :: propertyIndex</argument>
+       <argument>integer(kind_int8), intent(in   ) :: propertyValue</argument>
+      </interface>
+     </binding>
+   </bindings>
+  </component>
+  !!]
   
   ! Property names.
   type   (varying_string), allocatable, dimension(:) :: propertyNamesReal        , propertyNamesInteger
 
 contains
 
-  !# <nodeComponentInitializationTask>
-  !#  <unitName>Node_Component_NBody_Generic_Initialize</unitName>
-  !# </nodeComponentInitializationTask>
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>Node_Component_NBody_Generic_Initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
   subroutine Node_Component_NBody_Generic_Initialize(parameters_)
-    !% Initializes the generic N-body component module.
+    !!{
+    Initializes the generic N-body component module.
+    !!}
     use :: Galacticus_Nodes, only : defaultNBodyComponent, nodeComponentNBodyGeneric
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -109,11 +119,15 @@ contains
     return
   end subroutine Node_Component_NBody_Generic_Initialize
 
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_NBody_Generic_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_NBody_Generic_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_NBody_Generic_Thread_Initialize(parameters_)
-    !% Initializes the tree node scale dark matter profile module.
+    !!{
+    Initializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent   , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultNBodyComponent
     use :: Input_Parameters, only : inputParameters
@@ -126,11 +140,15 @@ contains
     return
   end subroutine Node_Component_NBody_Generic_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_NBody_Generic_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_NBody_Generic_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_NBody_Generic_Thread_Uninitialize()
-    !% Uninitializes the tree node scale dark matter profile module.
+    !!{
+    Uninitializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent
     use :: Galacticus_Nodes, only : defaultNBodyComponent
     implicit none
@@ -141,8 +159,10 @@ contains
   end subroutine Node_Component_NBody_Generic_Thread_Uninitialize
 
   subroutine nodePromotion(self,node)
-    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the
-    !% properties of {\normalfont \ttfamily node} to be those of its parent.
+    !!{
+    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the
+    properties of {\normalfont \ttfamily node} to be those of its parent.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentNBody, nodeComponentNBodyGeneric, treeNode
     implicit none
     class(*                 ), intent(inout)          :: self
@@ -161,7 +181,9 @@ contains
   end subroutine nodePromotion
 
   function Node_Component_NBody_Generic_Add_Real_Property(self,propertyName) result(propertyIndex)
-    !% Add a new real-valued property to this component, and return the index of the property.
+    !!{
+    Add a new real-valued property to this component, and return the index of the property.
+    !!}
     use :: Galacticus_Nodes  , only : nodeComponentNBodyGeneric
     use :: ISO_Varying_String, only : operator(==)             , assignment(=)
     integer                                                         :: propertyIndex
@@ -202,7 +224,9 @@ contains
   end function Node_Component_NBody_Generic_Add_Real_Property
 
   function Node_Component_NBody_Generic_Add_Integer_Property(self,propertyName) result(propertyIndex)
-    !% Add a new real-valued property to this component, and return the index of the property.
+    !!{
+    Add a new real-valued property to this component, and return the index of the property.
+    !!}
     use :: Galacticus_Nodes  , only : nodeComponentNBodyGeneric
     use :: ISO_Varying_String, only : operator(==)             , assignment(=)
     implicit none
@@ -244,7 +268,9 @@ contains
   end function Node_Component_NBody_Generic_Add_Integer_Property
 
   subroutine Node_Component_NBody_Generic_Set_Real_Property(self,propertyIndex,propertyValue)
-    !% Set the value of the indexed real property.
+    !!{
+    Set the value of the indexed real property.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentNBodyGeneric
     implicit none
@@ -263,7 +289,9 @@ contains
   end subroutine Node_Component_NBody_Generic_Set_Real_Property
 
   subroutine Node_Component_NBody_Generic_Set_Integer_Property(self,propertyIndex,propertyValue)
-    !% Set the value of the indexed real property.
+    !!{
+    Set the value of the indexed real property.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentNBodyGeneric
     use :: Kind_Numbers    , only : kind_int8
@@ -282,55 +310,60 @@ contains
     return
   end subroutine Node_Component_NBody_Generic_Set_Integer_Property
 
-  !# <mergerTreeOutputNames>
-  !#  <unitName>Node_Component_NBody_Generic_Output_Names</unitName>
-  !#  <sortName>Node_Component_NBody_Generic_Output</sortName>
-  !# </mergerTreeOutputNames>
-  subroutine Node_Component_NBody_Generic_Output_Names(node,integerProperty,integerPropertyNames&
-       &,integerPropertyComments,integerPropertyUnitsSI ,doubleProperty,doublePropertyNames,doublePropertyComments&
-       &,doublePropertyUnitsSI,time)
-    !% Set names of black hole properties to be written to the \glc\ output file.
-    use :: Galacticus_Nodes  , only : treeNode
-    use :: ISO_Varying_String, only : char
-    use :: String_Handling   , only : String_Upper_Case_First, char
+  !![
+  <mergerTreeOutputNames>
+   <unitName>Node_Component_NBody_Generic_Output_Names</unitName>
+   <sortName>Node_Component_NBody_Generic_Output</sortName>
+  </mergerTreeOutputNames>
+  !!]
+  subroutine Node_Component_NBody_Generic_Output_Names(node,integerProperty,integerProperties,doubleProperty,doubleProperties,time)
+    !!{
+    Set names of black hole properties to be written to the \glc\ output file.
+    !!}
+    use :: Galacticus_Nodes                  , only : treeNode
+    use :: ISO_Varying_String                , only : char
+    use :: String_Handling                   , only : String_Upper_Case_First, char
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger  , outputPropertyDouble
     implicit none
-    type            (treeNode)              , intent(inout) :: node
-    double precision                        , intent(in   ) :: time
-    integer                                 , intent(inout) :: doubleProperty         , integerProperty
-    character       (len=*   ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
-         &                                                     integerPropertyComments, integerPropertyNames
-    double precision          , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    integer                                                 :: i
+    type            (treeNode             )              , intent(inout) :: node
+    double precision                                     , intent(in   ) :: time
+    integer                                              , intent(inout) :: doubleProperty   , integerProperty
+    type            (outputPropertyInteger), dimension(:), intent(inout) :: integerProperties
+    type            (outputPropertyDouble ), dimension(:), intent(inout) :: doubleProperties
+    integer                                                              :: i
     !$GLC attributes unused :: node, time
-
 
     !$omp critical(nbodyGenericAccess)
     if (allocated(propertyNamesInteger)) then
        do i=1,size(propertyNamesInteger)
-          integerProperty                         =integerProperty+1
-          integerPropertyNames   (integerProperty)='nBody'//String_Upper_Case_First(char(propertyNamesInteger(i)))
-          integerPropertyComments(integerProperty)=''
-          integerPropertyUnitsSI (integerProperty)=0.0d0
+          integerProperty                             =integerProperty+1
+          integerProperties(integerProperty)%name     ='nBody'//String_Upper_Case_First(char(propertyNamesInteger(i)))
+          integerProperties(integerProperty)%comment  =''
+          integerProperties(integerProperty)%unitsInSI=0.0d0
        end do
     end if
-    if (allocated(propertyNamesReal)) then
-       do i=1,size(propertyNamesReal)
-          doubleProperty                        =doubleProperty+1
-          doublePropertyNames   (doubleProperty)='nBody'//String_Upper_Case_First(char(propertyNamesReal(i)))
-          doublePropertyComments(doubleProperty)=''
-          doublePropertyUnitsSI (doubleProperty)=0.0d0
+    if (allocated(propertyNamesReal   )) then
+       do i=1,size(propertyNamesReal   )
+          doubleProperty                              =doubleProperty +1
+          doubleProperties (doubleProperty )%name     ='nBody'//String_Upper_Case_First(char(propertyNamesReal   (i)))
+          doubleProperties (doubleProperty )%comment  =''
+          doubleProperties (doubleProperty )%unitsInSI=0.0d0
        end do
     end if
     !$omp end critical(nbodyGenericAccess)
     return
   end subroutine Node_Component_NBody_Generic_Output_Names
 
-  !# <mergerTreeOutputPropertyCount>
-  !#  <unitName>Node_Component_NBody_Generic_Output_Count</unitName>
-  !#  <sortName>Node_Component_NBody_Generic_Output</sortName>
-  !# </mergerTreeOutputPropertyCount>
+  !![
+  <mergerTreeOutputPropertyCount>
+   <unitName>Node_Component_NBody_Generic_Output_Count</unitName>
+   <sortName>Node_Component_NBody_Generic_Output</sortName>
+  </mergerTreeOutputPropertyCount>
+  !!]
   subroutine Node_Component_NBody_Generic_Output_Count(node,integerPropertyCount,doublePropertyCount,time)
-    !% Account for the number of black hole properties to be written to the the \glc\ output file.
+    !!{
+    Account for the number of black hole properties to be written to the the \glc\ output file.
+    !!}
     use :: Galacticus_Nodes, only : treeNode
     implicit none
     type            (treeNode), intent(inout) :: node
@@ -345,27 +378,32 @@ contains
     return
   end subroutine Node_Component_NBody_Generic_Output_Count
 
-  !# <mergerTreeOutputTask>
-  !#  <unitName>Node_Component_NBody_Generic_Output</unitName>
-  !#  <sortName>Node_Component_NBody_Generic_Output</sortName>
-  !# </mergerTreeOutputTask>
-  subroutine Node_Component_NBody_Generic_Output(node,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time,instance)
-    !% Store black hole properties in the \glc\ output file buffers.
-    use :: Galacticus_Nodes, only : nodeComponentNBody, treeNode
-    use :: Kind_Numbers    , only : kind_int8
-    use :: Multi_Counters  , only : multiCounter
+  !![
+  <mergerTreeOutputTask>
+   <unitName>Node_Component_NBody_Generic_Output</unitName>
+   <sortName>Node_Component_NBody_Generic_Output</sortName>
+  </mergerTreeOutputTask>
+  !!]
+  subroutine Node_Component_NBody_Generic_Output(node,integerProperty,integerBufferCount,integerProperties,doubleProperty,doubleBufferCount,doubleProperties,time,instance)
+    !!{
+    Store black hole properties in the \glc\ output file buffers.
+    !!}
+    use :: Galacticus_Nodes                  , only : nodeComponentNBody   , treeNode
+    use :: Kind_Numbers                      , only : kind_int8
+    use :: Multi_Counters                    , only : multiCounter
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
     implicit none
-    double precision                    , intent(in   )               :: time
-    type            (treeNode          ), intent(inout), pointer      :: node
-    integer                             , intent(inout)               :: doubleBufferCount          , doubleProperty, integerBufferCount, &
-         &                                                               integerProperty
-    integer         (kind=kind_int8    ), intent(inout)               :: integerBuffer         (:,:)
-    double precision                    , intent(inout)               :: doubleBuffer          (:,:)
-    type            (multiCounter      ), intent(inout )              :: instance
-    class           (nodeComponentNBody)               , pointer      :: nBody
-    integer         (kind=kind_int8    ), allocatable  , dimension(:) :: propertyValuesInteger
-    double precision                    , allocatable  , dimension(:) :: propertyValuesReal
-    integer                                                           :: i
+    double precision                       , intent(in   )               :: time
+    type            (treeNode             ), intent(inout)               :: node
+    integer                                , intent(inout)               :: doubleBufferCount    , doubleProperty , &
+         &                                                                  integerBufferCount   , integerProperty
+    type            (outputPropertyInteger), intent(inout), dimension(:) :: integerProperties
+    type            (outputPropertyDouble ), intent(inout), dimension(:) :: doubleProperties
+    type            (multiCounter         ), intent(inout )              :: instance
+    class           (nodeComponentNBody   )               , pointer      :: nBody
+    integer         (kind=kind_int8       ), allocatable  , dimension(:) :: propertyValuesInteger
+    double precision                       , allocatable  , dimension(:) :: propertyValuesReal
+    integer                                                              :: i
     !$GLC attributes unused :: time, instance
 
     nBody => node%nBody()
@@ -375,20 +413,20 @@ contains
        do i=1,size(propertyNamesInteger)
           integerProperty=integerProperty+1
           if (i > size(propertyValuesInteger)) then
-             integerBuffer(integerBufferCount,integerProperty)=0_kind_int8
+             integerProperties(integerProperty)%scalar(integerBufferCount)=0_kind_int8
           else
-             integerBuffer(integerBufferCount,integerProperty)=propertyValuesInteger(i)
+             integerProperties(integerProperty)%scalar(integerBufferCount)=propertyValuesInteger(i)
           end if
        end do
     end if
-    if (allocated(propertyNamesReal)) then
-       propertyValuesReal=nBody%reals()
-       do i=1,size(propertyNamesReal)
-          doubleProperty=doubleProperty+1
-          if (i > size(propertyValuesReal)) then
-             doubleBuffer(doubleBufferCount,doubleProperty)=0.0d0
+    if (allocated(propertyNamesReal   )) then
+       propertyValuesReal   =nBody%reals   ()
+       do i=1,size(propertyNamesReal   )
+          doubleProperty =doubleProperty +1
+          if (i > size(propertyValuesReal   )) then
+             doubleProperties (doubleProperty )%scalar(doubleBufferCount )=0.0d0
           else
-             doubleBuffer(doubleBufferCount,doubleProperty)=propertyValuesReal(i)
+             doubleProperties (doubleProperty )%scalar(doubleBufferCount )=propertyValuesReal   (i)
           end if
        end do
     end if

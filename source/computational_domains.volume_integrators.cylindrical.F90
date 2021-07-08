@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <computationalDomainVolumeIntegrator name="computationalDomainVolumeIntegratorCylindrical">
-  !#  <description>A computational domain volume integrator for cylindrical cells.</description>
-  !# </computationalDomainVolumeIntegrator>
+  !![
+  <computationalDomainVolumeIntegrator name="computationalDomainVolumeIntegratorCylindrical">
+   <description>A computational domain volume integrator for cylindrical cells.</description>
+  </computationalDomainVolumeIntegrator>
+  !!]
   type, extends(computationalDomainVolumeIntegratorClass) :: computationalDomainVolumeIntegratorCylindrical
-     !% Implementation of a computational domain for cylindrical cells.
+     !!{
+     Implementation of a computational domain for cylindrical cells.
+     !!}
      private
      double precision, dimension(2,2) :: boundaries
      double precision                 :: volume_
@@ -31,7 +35,9 @@
   end type computationalDomainVolumeIntegratorCylindrical
 
   interface computationalDomainVolumeIntegratorCylindrical
-     !% Constructors for the {\normalfont \ttfamily cylindrical} computational domain.
+     !!{
+     Constructors for the {\normalfont \ttfamily cylindrical} computational domain.
+     !!}
      module procedure cylindricalConstructorParameters
      module procedure cylindricalConstructorInternal
   end interface computationalDomainVolumeIntegratorCylindrical
@@ -39,8 +45,10 @@
 contains
 
   function cylindricalConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily cylindrical} computational domain volume integrator class which takes a
-    !% parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily cylindrical} computational domain volume integrator class which takes a
+    parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (computationalDomainVolumeIntegratorCylindrical)                 :: self
@@ -48,32 +56,40 @@ contains
     double precision                                                , dimension(  2) :: rBoundaries, zBoundaries
     double precision                                                , dimension(2,2) :: boundaries
 
-    !# <inputParameter>
-    !#   <name>rBoundaries</name>
-    !#   <defaultValue>[0.0d0,1.0d0]</defaultValue>
-    !#   <description>The $r$-interval spanned by the computational domain.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>zBoundaries</name>
-    !#   <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
-    !#   <description>The $z$-interval spanned by the computational domain.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>rBoundaries</name>
+      <defaultValue>[0.0d0,1.0d0]</defaultValue>
+      <description>The $r$-interval spanned by the computational domain.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>zBoundaries</name>
+      <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
+      <description>The $z$-interval spanned by the computational domain.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     boundaries(1,:)=rBoundaries
     boundaries(2,:)=zBoundaries
     self=computationalDomainVolumeIntegratorCylindrical(boundaries)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function cylindricalConstructorParameters
 
   function cylindricalConstructorInternal(boundaries) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily cylindrical} computational domain volume integrator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily cylindrical} computational domain volume integrator class.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (computationalDomainVolumeIntegratorCylindrical)                              :: self
     double precision                                              , dimension(2,2), intent(in   ) :: boundaries
-    !# <constructorAssign variables="boundaries"/>
+    !![
+    <constructorAssign variables="boundaries"/>
+    !!]
 
     self%volume_=+2.0d0                                   &
          &       *Pi                                      &
@@ -83,7 +99,9 @@ contains
   end function cylindricalConstructorInternal
 
   double precision function cylindricalVolume(self)
-    !% Return the volume of the computational domain cell.
+    !!{
+    Return the volume of the computational domain cell.
+    !!}
     implicit none
     class(computationalDomainVolumeIntegratorCylindrical), intent(inout) :: self
 
@@ -92,7 +110,9 @@ contains
   end function cylindricalVolume
 
   double precision function cylindricalIntegrate(self,integrand)
-    !% Integrate over the computational domain cell.
+    !!{
+    Integrate over the computational domain cell.
+    !!}
     use :: Numerical_Integration, only : integrator
     use :: Coordinates          , only : coordinateCylindrical
     implicit none
@@ -114,7 +134,9 @@ contains
   contains
     
     double precision function cylindricalIntegrandR(r)
-      !% $r$-integrand over cylindrical computational domain cells.
+      !!{
+      $r$-integrand over cylindrical computational domain cells.
+      !!}
       use :: Numerical_Constants_Math, only : Pi
       implicit none
       double precision            , intent(in   ) :: r
@@ -128,7 +150,9 @@ contains
     end function cylindricalIntegrandR
 
     double precision function cylindricalIntegrandPhi(phi)
-      !% $\phi$-integrand over cylindrical computational domain cells.
+      !!{
+      $\phi$-integrand over cylindrical computational domain cells.
+      !!}
       implicit none
       double precision            , intent(in   ) :: phi
       type            (integrator)                :: integrator_
@@ -146,7 +170,9 @@ contains
     end function cylindricalIntegrandPhi
 
     double precision function cylindricalIntegrandZ(z)
-      !% $z$-integrand over cylindrical computational domain cells.
+      !!{
+      $z$-integrand over cylindrical computational domain cells.
+      !!}
       implicit none
       double precision, intent(in   ) :: z
 

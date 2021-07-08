@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,23 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a model likelihood class which combines other likelihoods assumed to be independent.
+  !!{
+  Implementation of a model likelihood class which combines other likelihoods assumed to be independent.
+  !!}
 
-  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodIndpndntLklhdsSqntl">
-  !#  <description>
-  !#   A posterior sampling likelihood class which sequentially combines other likelihoods assumed to be independent. This class
-  !#   begins by evaluating the first likelihood. If the likelihood is negative, then it is immediately returned, without
-  !#   evaluation of any further likelihoods. If it is positive, then the next likelihood is evaluated and the same conditions
-  !#   applied. This process repeats until either a negative likelihood is found, or all likelihoods are evaluated. Once a given
-  !#   likelihood has been evaluated it will be evaluated on all subsequent calls. Additionally, when a new likelihood is
-  !#   evaluated for the first time, acceptance of the proposed state will be forced. This class therefore allows a sequence of
-  !#   likelihoods to be specified which must be sequentially made sufficiently ``good'' before evaluating the next. The approach
-  !#   is intended to allow crude, but rapid constraints to be placed on parameters before progressing to more detailed, but slow
-  !#   to evaluate constraints.
-  !#  </description>
-  !# </posteriorSampleLikelihood>
+  !![
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodIndpndntLklhdsSqntl">
+   <description>
+    A posterior sampling likelihood class which sequentially combines other likelihoods assumed to be independent. This class
+    begins by evaluating the first likelihood. If the likelihood is negative, then it is immediately returned, without
+    evaluation of any further likelihoods. If it is positive, then the next likelihood is evaluated and the same conditions
+    applied. This process repeats until either a negative likelihood is found, or all likelihoods are evaluated. Once a given
+    likelihood has been evaluated it will be evaluated on all subsequent calls. Additionally, when a new likelihood is
+    evaluated for the first time, acceptance of the proposed state will be forced. This class therefore allows a sequence of
+    likelihoods to be specified which must be sequentially made sufficiently ``good'' before evaluating the next. The approach
+    is intended to allow crude, but rapid constraints to be placed on parameters before progressing to more detailed, but slow
+    to evaluate constraints.
+   </description>
+  </posteriorSampleLikelihood>
+  !!]
   type, extends(posteriorSampleLikelihoodIndependentLikelihoods) :: posteriorSampleLikelihoodIndpndntLklhdsSqntl
-     !% Implementation of a posterior sampling likelihood class which sequanetially combines other likelihoods assumed to be independent.
+     !!{
+     Implementation of a posterior sampling likelihood class which sequanetially combines other likelihoods assumed to be independent.
+     !!}
      private
      integer                                     :: evaluateCount                , evaluateCountGlobal, &
           &                                         forceCount
@@ -46,7 +52,9 @@
   end type posteriorSampleLikelihoodIndpndntLklhdsSqntl
 
   interface posteriorSampleLikelihoodIndpndntLklhdsSqntl
-     !% Constructors for the {\normalfont \ttfamily independentLikelihoods} posterior sampling convergence class.
+     !!{
+     Constructors for the {\normalfont \ttfamily independentLikelihoods} posterior sampling convergence class.
+     !!}
      module procedure independentLikelihoodsSequentialConstructorParameters
      module procedure independentLikelihoodsSequentialConstructorInternal
   end interface posteriorSampleLikelihoodIndpndntLklhdsSqntl
@@ -56,8 +64,10 @@
 contains
 
   function independentLikelihoodsSequentialConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily independentLikelihoods} posterior sampling convergence class which builds the object from a
-    !% parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily independentLikelihoods} posterior sampling convergence class which builds the object from a
+    parameter set.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
@@ -65,36 +75,38 @@ contains
     type   (inputParameters                             ), intent(inout) :: parameters
     integer                                                              :: i
 
-    !# <inputParameter>
-    !#   <name>finalLikelihoodFullEvaluation</name>
-    !#   <variable>self%finalLikelihoodFullEvaluation</variable>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true the final likelihood is evaluated fully, and not treated as a ``lock in'' likelihood.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>restoreLevels</name>
-    !#   <variable>self%restoreLevels</variable>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true the level reached by each chain is restored on restarts. Otherwise, the level is initialized to zero (which may be useful for stochastic likelihoods).</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>finalLikelihoodFullEvaluation</name>
+      <variable>self%finalLikelihoodFullEvaluation</variable>
+      <defaultValue>.true.</defaultValue>
+      <description>If true the final likelihood is evaluated fully, and not treated as a ``lock in'' likelihood.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>restoreLevels</name>
+      <variable>self%restoreLevels</variable>
+      <defaultValue>.true.</defaultValue>
+      <description>If true the level reached by each chain is restored on restarts. Otherwise, the level is initialized to zero (which may be useful for stochastic likelihoods).</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     ! Initialize the parent class.
     self%posteriorSampleLikelihoodIndependentLikelihoods=posteriorSampleLikelihoodIndependentLikelihoods(parameters)
     ! Get likelihood multipliers and acceptances.
-    if     (                                                                                   &
-         &   parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.) &
-         &  /=                                                                                 &
-         &   parameters%copiesCount('likelihoodMultiplier'           ,zeroIfNotPresent=.true.) &
+    if     (                                                                             &
+         &   parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.) &
+         &  /=                                                                           &
+         &   parameters%copiesCount('likelihoodMultiplier'     ,zeroIfNotPresent=.true.) &
          & ) call Galacticus_Error_Report('number of likelihood multipliers must match number of likelihoods'//{introspection:location})
-    if     (                                                                                   &
-         &   parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.) &
-         &  /=                                                                                 &
-         &   parameters%copiesCount('likelihoodAccept'               ,zeroIfNotPresent=.true.) &
+    if     (                                                                             &
+         &   parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.) &
+         &  /=                                                                           &
+         &   parameters%copiesCount('likelihoodAccept'         ,zeroIfNotPresent=.true.) &
          & ) call Galacticus_Error_Report('number of likelihood accepts must match number of likelihoods'    //{introspection:location})
-    allocate(self%likelihoodMultiplier(parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.)))
-    allocate(self%likelihoodAccept    (parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.)))
-    do i=1,parameters%copiesCount('posteriorSampleLikelihoodMethod',zeroIfNotPresent=.true.)
+    allocate(self%likelihoodMultiplier(parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.)))
+    allocate(self%likelihoodAccept    (parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.)))
+    do i=1,parameters%copiesCount('posteriorSampleLikelihood',zeroIfNotPresent=.true.)
        call parameters%value('likelihoodMultiplier',self%likelihoodMultiplier(i),copyInstance=i)
        call parameters%value('likelihoodAccept'    ,self%likelihoodAccept    (i),copyInstance=i)
     end do
@@ -106,13 +118,17 @@ contains
   end function independentLikelihoodsSequentialConstructorParameters
 
   function independentLikelihoodsSequentialConstructorInternal(modelLikelihoods,finalLikelihoodFullEvaluation,restoreLevels,likelihoodMultiplier,likelihoodAccept) result(self)
-    !% Constructor for ``independentLikelihoods'' posterior sampling likelihood class.
+    !!{
+    Constructor for ``independentLikelihoods'' posterior sampling likelihood class.
+    !!}
     implicit none
     type            (posteriorSampleLikelihoodIndpndntLklhdsSqntl)                              :: self
     type            (posteriorSampleLikelihoodList               ), intent(in   ), target       :: modelLikelihoods
     logical                                                       , intent(in   )               :: finalLikelihoodFullEvaluation, restoreLevels
     double precision                                              , intent(in   ), dimension(:) :: likelihoodMultiplier         , likelihoodAccept
-    !# <constructorAssign variables="*modelLikelihoods, finalLikelihoodFullEvaluation, restoreLevels, likelihoodMultiplier, likelihoodAccept"/>
+    !![
+    <constructorAssign variables="*modelLikelihoods, finalLikelihoodFullEvaluation, restoreLevels, likelihoodMultiplier, likelihoodAccept"/>
+    !!]
 
     ! The evaluateCount value is the likelihood number at which we have achieved success so far.
     self%evaluateCount      =0
@@ -123,12 +139,14 @@ contains
   end function independentLikelihoodsSequentialConstructorInternal
 
   double precision function independentLikelihoodsSequantialEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
-    !% Return the log-likelihood for the halo mass function likelihood function.
-    use :: Galacticus_Display          , only : Galacticus_Display_Message
+    !!{
+    Return the log-likelihood for the halo mass function likelihood function.
+    !!}
+    use :: Display                     , only : displayMessage
     use :: Galacticus_Error            , only : Galacticus_Error_Report
     use :: ISO_Varying_String          , only : varying_string
     use :: MPI_Utilities               , only : mpiSelf
-    use :: Models_Likelihoods_Constants, only : logImpossible             , logImprobable
+    use :: Models_Likelihoods_Constants, only : logImpossible          , logImprobable
     use :: String_Handling             , only : operator(//)
     implicit none
     class           (posteriorSampleLikelihoodIndpndntLklhdsSqntl), intent(inout)               :: self
@@ -172,7 +190,7 @@ contains
        self%evaluateCountGlobal=evaluateCount
        message="sequential likelihood number "
        message=message//evaluateCount//" has been reached globally"
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     ! Initialize a local copy of the proposed log prior. In order to ensure MPI synchronization between processes we must always
     ! call evaluate on each independent likelihood. For example, the "Galacticus" likelihood class runs each chain under MPI
@@ -206,8 +224,11 @@ contains
              if (modelLikelihood_%parameterMap(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNames(i))//']'//{introspection:location})
              ! Copy the model parameter definition.
              allocate(modelLikelihood_%modelParametersActive_(i)%modelParameter_,mold=modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_)
-             !# <deepCopyReset variables="modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_"/>
-             !# <deepCopy source="modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_" destination="modelLikelihood_%modelParametersActive_(i)%modelParameter_"/>
+             !![
+             <deepCopyReset variables="modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_"/>
+             <deepCopy source="modelParametersActive_(modelLikelihood_%parameterMap(i))%modelParameter_" destination="modelLikelihood_%modelParametersActive_(i)%modelParameter_"/>
+             <deepCopyFinalize variables="modelLikelihood_%modelParametersActive_(i)%modelParameter_"/>
+             !!]
           end do
           if (allocated(modelLikelihood_%parameterMapInactive)) then
              do i=1,size(modelLikelihood_%parameterMapInactive)
@@ -222,8 +243,11 @@ contains
                 if (modelLikelihood_%parameterMapInactive(i) == -1) call Galacticus_Error_Report('failed to find matching parameter ['//char(modelLikelihood_%parameterMapNamesInactive(i))//']'//{introspection:location})
                 ! Copy the model parameter definition.
                 allocate(modelLikelihood_%modelParametersInactive_(i)%modelParameter_,mold=modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_)
-                !# <deepCopyReset variables="modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_"/>
-                !# <deepCopy source="modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_" destination="modelLikelihood_%modelParametersInactive_(i)%modelParameter_"/>
+                !![
+                <deepCopyReset variables="modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_"/>
+                <deepCopy source="modelParametersInactive_(modelLikelihood_%parameterMapInactive(i))%modelParameter_" destination="modelLikelihood_%modelParametersInactive_(i)%modelParameter_"/>
+                <deepCopyFinalize variables="modelLikelihood_%modelParametersInactive_(i)%modelParameter_"/>
+                !!]
              end do
           end if
           ! Mark the likelihood as initialized.
@@ -313,7 +337,9 @@ contains
   end function independentLikelihoodsSequantialEvaluate
 
   subroutine independentLikelihoodsSequentialRestore(self,simulationState,logLikelihood)
-    !% Process a previous state to restore progress state.
+    !!{
+    Process a previous state to restore progress state.
+    !!}
     implicit none
     class           (posteriorSampleLikelihoodIndpndntLklhdsSqntl), intent(inout)               :: self
     double precision                                              , intent(in   ), dimension(:) :: simulationState

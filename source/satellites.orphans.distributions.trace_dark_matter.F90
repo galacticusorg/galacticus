@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An abstract implementation of the orphan satellite distribution which assumes an isotropic distribution with randomly
-  !% assigned positions.
+  !!{
+  An abstract implementation of the orphan satellite distribution which assumes an isotropic distribution with randomly
+  assigned positions.
+  !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
-  !# <satelliteOrphanDistribution name="satelliteOrphanDistributionTraceDarkMatter">
-  !#  <description>An orphan satellite distribution which assumes an isotropic, random distribution with orphans tracing the radial distribution of dark matter.</description>
-  !# </satelliteOrphanDistribution>
+  !![
+  <satelliteOrphanDistribution name="satelliteOrphanDistributionTraceDarkMatter">
+   <description>An orphan satellite distribution which assumes an isotropic, random distribution with orphans tracing the radial distribution of dark matter.</description>
+  </satelliteOrphanDistribution>
+  !!]
   type, extends(satelliteOrphanDistributionRandomIsotropic) :: satelliteOrphanDistributionTraceDarkMatter
-     !% An orphan satellite distribution which assumes an isotropic, random distribution with orphans tracing the radial distribution of dark matter.
+     !!{
+     An orphan satellite distribution which assumes an isotropic, random distribution with orphans tracing the radial distribution of dark matter.
+     !!}
      private
      class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
@@ -37,7 +43,9 @@
   end type satelliteOrphanDistributionTraceDarkMatter
 
   interface satelliteOrphanDistributionTraceDarkMatter
-     !% Constructors for the {\normalfont \ttfamily traceDarkMatter} orphan satellite distribution class.
+     !!{
+     Constructors for the {\normalfont \ttfamily traceDarkMatter} orphan satellite distribution class.
+     !!}
      module procedure traceDarkMatterConstructorParameters
      module procedure traceDarkMatterConstructorInternal
   end interface satelliteOrphanDistributionTraceDarkMatter
@@ -45,8 +53,10 @@
 contains
 
   function traceDarkMatterConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily traceDarkMatter} orphan satellite distribution class which takes a parameter
-    !% list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily traceDarkMatter} orphan satellite distribution class which takes a parameter
+    list as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (satelliteOrphanDistributionTraceDarkMatter)                :: self
@@ -54,36 +64,50 @@ contains
     class(darkMatterHaloScaleClass                  ), pointer       :: darkMatterHaloScale_
 
     ! Check and read parameters.
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !![
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !!]
     self=satelliteOrphanDistributionTraceDarkMatter(darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
+    !!]
     return
   end function traceDarkMatterConstructorParameters
 
   function traceDarkMatterConstructorInternal(darkMatterHaloScale_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily traceDarkMatter} orphan satellite distribution class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily traceDarkMatter} orphan satellite distribution class.
+    !!}
     implicit none
     type (satelliteOrphanDistributionTraceDarkMatter)                        :: self
     class(darkMatterHaloScaleClass                  ), intent(in   ), target :: darkMatterHaloScale_
-    !# <constructorAssign variables="*darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="*darkMatterHaloScale_"/>
+    !!]
 
     call self%initialize()
     return
   end function traceDarkMatterConstructorInternal
 
   subroutine traceDarkMatterDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily traceDarkMatter} orphan satellite distribution class.
+    !!{
+    Destructor for the {\normalfont \ttfamily traceDarkMatter} orphan satellite distribution class.
+    !!}
     implicit none
     type(satelliteOrphanDistributionTraceDarkMatter), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    !!]
     return
   end subroutine traceDarkMatterDestructor
 
   double precision function traceDarkMatterExtent(self,node)
-    !% Return the maximum extent of the orphan satellite population for the {\normalfont \ttfamily traceDarkMatter} orphan
-    !% satellite distribution class.
+    !!{
+    Return the maximum extent of the orphan satellite population for the {\normalfont \ttfamily traceDarkMatter} orphan
+    satellite distribution class.
+    !!}
     implicit none
     class(satelliteOrphanDistributionTraceDarkMatter), intent(inout) :: self
     type (treeNode                                  ), intent(inout) :: node
@@ -94,7 +118,9 @@ contains
   end function traceDarkMatterExtent
 
   double precision function traceDarkMatterInverseCMFRadial(self,node,fraction)
-    !% Return the radial coordinate within which the given {\normalfont \ttfamily fraction} of orphan satellites are found.
+    !!{
+    Return the radial coordinate within which the given {\normalfont \ttfamily fraction} of orphan satellites are found.
+    !!}
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options        , only : componentTypeAll                        , massTypeDark
     implicit none
@@ -115,7 +141,9 @@ contains
   end function traceDarkMatterInverseCMFRadial
 
   double precision function traceDarkMatterVelocityDispersion(self,node)
-    !% Return the velocity dispersion of the orphan satellite population.
+    !!{
+    Return the velocity dispersion of the orphan satellite population.
+    !!}
     implicit none
     class(satelliteOrphanDistributionTraceDarkMatter), intent(inout) :: self
     type (treeNode                                  ), intent(inout) :: node

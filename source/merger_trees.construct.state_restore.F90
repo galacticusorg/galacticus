@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,45 +17,51 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a merger tree constructor class which constructs a merger tree by restoring state from file.
+  !!{
+  Implements a merger tree constructor class which constructs a merger tree by restoring state from file.
+  !!}
 
   public :: mergerTreeStateStore, mergerTreeStateFromFile
 
-  !# <mergerTreeConstructor name="mergerTreeConstructorStateRestored">
-  !#  <description>
-  !#   A merger tree constructor class which will restore a merger tree whose complete internal state was written to file. It is
-  !#   intended primarily for debugging purposes to allow a tree to begin processing just prior to the point of failure. To use
-  !#   this method, the following procedure should be followed:
-  !#   \begin{enumerate}
-  !#    \item Identify a point in the evolution of the tree suitably close to, but before, the point of failure;
-  !#    \item Insert approrpiate code into \glc\ to have it call the function to store the state of the file and then stop, e.g.:
-  !#    \begin{verbatim}
-  !#     use :: Merger_Tree_Construction, only : mergerTreeStateStore
-  !#     .
-  !#     .
-  !#     .
-  !#     if (&lt;conditions are met&gt;) then
-  !#        call mergerTreeStateStore(thisTree,'storedTree.dat')
-  !#        stop 'tree internal state was stored'
-  !#     end if
-  !#    \end{verbatim}
-  !#    \item Run the model ensuring that {\normalfont \ttfamily [stateFileRoot]} is set to a suitable file root name to allow the
-  !#    internal state of \glc\ to be stored;
-  !#    \item Remove the code inserted above and recompile;
-  !#    \item Run \glc\ with an input parameter file identical to the one used previously except with {\normalfont \ttfamily
-  !#    [mergerTreeConstructMethod]}$=${\normalfont \ttfamily stateRestore}, {\normalfont \ttfamily [stateFileRoot]} removed,
-  !#    {\normalfont \ttfamily [stateRetrieveFileRoot]} set to the value previously used for {\normalfont \ttfamily
-  !#    [stateFileRoot]} and {\normalfont \ttfamily [fileName]}$=${\normalfont \ttfamily storedTree.dat}.
-  !#   \end{enumerate}
-  !#   This should restore the tree and the internal state of \glc\ precisely from the point where they were saved and produce the
-  !#   same subsequent evolution.
-  !#   
-  !#   Note that currently this method does not support storing and restoring of trees which contain components that have more
-  !#   than one instance.
-  !#  </description>
-  !# </mergerTreeConstructor>
+  !![
+  <mergerTreeConstructor name="mergerTreeConstructorStateRestored">
+   <description>
+    A merger tree constructor class which will restore a merger tree whose complete internal state was written to file. It is
+    intended primarily for debugging purposes to allow a tree to begin processing just prior to the point of failure. To use
+    this method, the following procedure should be followed:
+    \begin{enumerate}
+     \item Identify a point in the evolution of the tree suitably close to, but before, the point of failure;
+     \item Insert approrpiate code into \glc\ to have it call the function to store the state of the file and then stop, e.g.:
+     \begin{verbatim}
+      use :: Merger_Tree_Construction, only : mergerTreeStateStore
+      .
+      .
+      .
+      if (&lt;conditions are met&gt;) then
+         call mergerTreeStateStore(tree,'storedTree.dat')
+         stop 'tree internal state was stored'
+      end if
+     \end{verbatim}
+     \item Run the model ensuring that {\normalfont \ttfamily [stateFileRoot]} is set to a suitable file root name to allow the
+     internal state of \glc\ to be stored;
+     \item Remove the code inserted above and recompile;
+     \item Run \glc\ with an input parameter file identical to the one used previously except with {\normalfont \ttfamily
+     [mergerTreeConstruct]}$=${\normalfont \ttfamily stateRestore}, {\normalfont \ttfamily [stateFileRoot]} removed,
+     {\normalfont \ttfamily [stateRetrieveFileRoot]} set to the value previously used for {\normalfont \ttfamily
+     [stateFileRoot]} and {\normalfont \ttfamily [fileName]}$=${\normalfont \ttfamily storedTree.dat}.
+    \end{enumerate}
+    This should restore the tree and the internal state of \glc\ precisely from the point where they were saved and produce the
+    same subsequent evolution.
+    
+    Note that currently this method does not support storing and restoring of trees which contain components that have more
+    than one instance.
+   </description>
+  </mergerTreeConstructor>
+  !!]
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorStateRestored
-     !% A class implementing merger tree construction via restoring state from file.
+     !!{
+     A class implementing merger tree construction via restoring state from file.
+     !!}
      private
      type(varying_string) :: fileName
    contains
@@ -63,7 +69,9 @@
   end type mergerTreeConstructorStateRestored
 
   interface mergerTreeConstructorStateRestored
-     !% Constructors for the {\normalfont \ttfamily stateRestored} merger tree constructor class.
+     !!{
+     Constructors for the {\normalfont \ttfamily stateRestored} merger tree constructor class.
+     !!}
      module procedure stateRestoredConstructorParameters
      module procedure stateRestoredConstructorInternal
   end interface mergerTreeConstructorStateRestored
@@ -71,36 +79,48 @@
 contains
 
   function stateRestoredConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily stateRestored} merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily stateRestored} merger tree operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(mergerTreeConstructorStateRestored)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
     type(varying_string                    )                :: fileName
 
-    !# <inputParameter>
-    !#   <name>fileName</name>
-    !#   <description>The name of the file containing the stored merger tree.</description>
-    !#   <defaultValue>var_str('storedTree.dat')</defaultValue>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>fileName</name>
+      <description>The name of the file containing the stored merger tree.</description>
+      <defaultValue>var_str('storedTree.dat')</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=mergerTreeConstructorStateRestored(fileName)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function stateRestoredConstructorParameters
 
   function stateRestoredConstructorInternal(fileName) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily stateRestored} merger tree operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily stateRestored} merger tree operator class.
+    !!}
     implicit none
     type(mergerTreeConstructorStateRestored)                :: self
     type(varying_string                    ), intent(in   ) :: fileName
-    !# <constructorAssign variables="fileName"/>
+    !![
+    <constructorAssign variables="fileName"/>
+    !!]
 
     return
   end function stateRestoredConstructorInternal
 
   function stateRestoredConstruct(self,treeNumber,finished) result(tree)
-    !% Restores the state of a merger tree from file.
+    !!{
+    Restores the state of a merger tree from file.
+    !!}
     use            :: Functions_Global, only : Galacticus_State_Retrieve_
     use            :: Galacticus_Nodes, only : mergerTree
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
@@ -125,7 +145,9 @@ contains
   end function stateRestoredConstruct
 
   subroutine mergerTreeStateStore(tree,storeFile,snapshot,append)
-    !% Store the complete internal state of a merger tree to file.
+    !!{
+    Store the complete internal state of a merger tree to file.
+    !!}
     use            :: Functions_Global   , only : Galacticus_State_Store_
     use            :: Galacticus_Error   , only : Galacticus_Error_Report
     use            :: Galacticus_Nodes   , only : mergerTree                          , nodeEvent, nodeEventBuildFromRaw, treeNode
@@ -146,8 +168,10 @@ contains
     integer  (c_size_t                            )                              :: nodeCount
     integer                                                                      :: fileUnit         , eventCount, &
          &                                                                          treeCount        , iTree
-    !# <optionalArgument name="snapshot" defaultsTo=".true." />
-    !# <optionalArgument name="append"   defaultsTo=".true." />
+    !![
+    <optionalArgument name="snapshot" defaultsTo=".true." />
+    <optionalArgument name="append"   defaultsTo=".true." />
+    !!]
 
     ! Store internal state.
     if (snapshot_) call Galacticus_State_Store_()
@@ -244,7 +268,9 @@ contains
   contains
 
     integer function nodeArrayPosition(nodeIndex,nodeIndices)
-      !% Returns the position of a node in the output list given its index.
+      !!{
+      Returns the position of a node in the output list given its index.
+      !!}
       use :: Galacticus_Error  , only : Galacticus_Error_Report
       use :: ISO_Varying_String, only : varying_string
       use :: Kind_Numbers      , only : kind_int8
@@ -273,7 +299,9 @@ contains
   end subroutine mergerTreeStateStore
 
   subroutine mergerTreeStateFromFile(tree,fileName,deleteAfterRead)
-    !% Read the state of a merger tree from file.
+    !!{
+    Read the state of a merger tree from file.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : Galacticus_Nodes_Unique_ID_Set, mergerTree  , nodeEvent, nodeEventBuildFromRaw, &
           &                         treeNode                      , treeNodeList
@@ -297,7 +325,9 @@ contains
     integer  (kind_int8     )                              :: nodeIndex          , nodeUniqueID      , nodeUniqueIDMaximum
     type     (varying_string)                              :: message
 
-    !# <optionalArgument name="deleteAfterRead" defaultsTo=".false." />
+    !![
+    <optionalArgument name="deleteAfterRead" defaultsTo=".false." />
+    !!]
 
     ! Open the file.
     open(newUnit=treeUnit,file=fileName,status='old',form='unformatted',iostat=ioStatus)
@@ -407,7 +437,9 @@ contains
   contains
 
     function nodePointer(nodeArrayIndex,nodes)
-      !% Return a pointer to a node, given its position in the array of nodes. Return a null pointer if the array index is $-1$.
+      !!{
+      Return a pointer to a node, given its position in the array of nodes. Return a null pointer if the array index is $-1$.
+      !!}
       use :: Galacticus_Nodes, only : treeNode, treeNodeList
       type   (treeNode    ), pointer                     :: nodePointer
       integer                            , intent(in   ) :: nodeArrayIndex

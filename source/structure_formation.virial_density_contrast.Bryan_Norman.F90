@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,20 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of \cite{bryan_statistical_1998} dark matter halo virial density contrasts.
+  !!{
+  An implementation of \cite{bryan_statistical_1998} dark matter halo virial density contrasts.
+  !!}
 
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
-  !# <virialDensityContrast name="virialDensityContrastBryanNorman1998">
-  !#  <description>
-  !#   A dark matter halo virial density contrast class using the fitting functions given by \cite{bryan_statistical_1998}. As
-  !#   such, it is valid only for $\Omega_\Lambda=0$ or $\Omega_\mathrm{M}+\Omega_\Lambda=1$ cosmologies and will abort on other
-  !#   cosmologies.
-  !#  </description>
-  !# </virialDensityContrast>
+  !![
+  <virialDensityContrast name="virialDensityContrastBryanNorman1998">
+   <description>
+    A dark matter halo virial density contrast class using the fitting functions given by \cite{bryan_statistical_1998}. As
+    such, it is valid only for $\Omega_\Lambda=0$ or $\Omega_\mathrm{M}+\Omega_\Lambda=1$ cosmologies and will abort on other
+    cosmologies.
+   </description>
+  </virialDensityContrast>
+  !!]
   type, extends(virialDensityContrastClass) :: virialDensityContrastBryanNorman1998
-     !% A dark matter halo virial density contrast class using the fitting functions of \cite{bryan_statistical_1998}.
+     !!{
+     A dark matter halo virial density contrast class using the fitting functions of \cite{bryan_statistical_1998}.
+     !!}
      private
      class (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
@@ -43,23 +49,29 @@
   end type virialDensityContrastBryanNorman1998
 
   interface virialDensityContrastBryanNorman1998
-     !% Constructors for the {\normalfont \ttfamily bryanNorman1998} dark matter halo virial density contrast class.
+     !!{
+     Constructors for the {\normalfont \ttfamily bryanNorman1998} dark matter halo virial density contrast class.
+     !!}
      module procedure bryanNorman1998ConstructorParameters
      module procedure bryanNorman1998ConstructorInternal
   end interface virialDensityContrastBryanNorman1998
 
   ! Enumeration for different fitting function types.
-  !# <enumeration>
-  !#  <name>bryanNorman1998Fit</name>
-  !#  <description>Specifies fit type for \cite{bryan_statistical_1998} virial density contrast.</description>
-  !#  <entry label="flatUniverse" />
-  !#  <entry label="zeroLambda"   />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>bryanNorman1998Fit</name>
+   <description>Specifies fit type for \cite{bryan_statistical_1998} virial density contrast.</description>
+   <entry label="flatUniverse" />
+   <entry label="zeroLambda"   />
+  </enumeration>
+  !!]
 
 contains
 
   function bryanNorman1998ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily bryanNorman1998} dark matter halo virial density contrast class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily bryanNorman1998} dark matter halo virial density contrast class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (virialDensityContrastBryanNorman1998)                :: self
@@ -67,24 +79,32 @@ contains
     class(cosmologyParametersClass            ), pointer       :: cosmologyParameters_
     class(cosmologyFunctionsClass             ), pointer       :: cosmologyFunctions_
 
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !!]
     self=virialDensityContrastBryanNorman1998(cosmologyParameters_,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    !!]
     return
   end function bryanNorman1998ConstructorParameters
 
   function bryanNorman1998ConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily bryanNorman1998} dark matter halo virial density contrast class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily bryanNorman1998} dark matter halo virial density contrast class.
+    !!}
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
     type (virialDensityContrastBryanNorman1998)                        :: self
     class(cosmologyParametersClass            ), intent(in   ), target :: cosmologyParameters_
     class(cosmologyFunctionsClass             ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_"/>
+    !!]
 
     ! Check that fitting formulae are applicable to this cosmology.
     if (self%cosmologyParameters_%OmegaDarkEnergy() == 0.0d0) then
@@ -98,17 +118,23 @@ contains
   end function bryanNorman1998ConstructorInternal
 
   subroutine bryanNorman1998Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily bryanNorman1998} virial density contrast class.
+    !!{
+    Destructor for the {\normalfont \ttfamily bryanNorman1998} virial density contrast class.
+    !!}
     implicit none
     type(virialDensityContrastBryanNorman1998), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_" />
-    !# <objectDestructor name="self%cosmologyFunctions_"  />
+    !![
+    <objectDestructor name="self%cosmologyParameters_" />
+    <objectDestructor name="self%cosmologyFunctions_"  />
+    !!]
     return
   end subroutine bryanNorman1998Destructor
 
   double precision function bryanNorman1998DensityContrast(self,mass,time,expansionFactor,collapsing)
-    !% Return the virial density contrast at the given epoch, assuming the fitting function of \cite{bryan_statistical_1998}.
+    !!{
+    Return the virial density contrast at the given epoch, assuming the fitting function of \cite{bryan_statistical_1998}.
+    !!}
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -133,7 +159,9 @@ contains
   end function bryanNorman1998DensityContrast
 
   double precision function bryanNorman1998DensityContrastRateOfChange(self,mass,time,expansionFactor,collapsing)
-    !% Return the virial density contrast at the given epoch, assuming the fitting function of \cite{bryan_statistical_1998}.
+    !!{
+    Return the virial density contrast at the given epoch, assuming the fitting function of \cite{bryan_statistical_1998}.
+    !!}
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -172,8 +200,10 @@ contains
   end function bryanNorman1998DensityContrastRateOfChange
 
   double precision function bryanNorman1998TurnAroundOverVirialRadii(self,mass,time,expansionFactor,collapsing)
-    !% Return the ratio of turnaround and virial radii at the given epoch, based spherical collapse in a matter plus cosmological
-    !% constant universe.
+    !!{
+    Return the ratio of turnaround and virial radii at the given epoch, based spherical collapse in a matter plus cosmological
+    constant universe.
+    !!}
     implicit none
     class           (virialDensityContrastBryanNorman1998), intent(inout)           :: self
     double precision                                      , intent(in   )           :: mass

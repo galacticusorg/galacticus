@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,19 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements an output analysis class that computes mass functions for Local Group satellite galaxies.
+  !!{
+  Contains a module which implements an output analysis class that computes mass functions for Local Group satellite galaxies.
+  !!}
 
-  !# <outputAnalysis name="outputAnalysisLocalGroupMassFunction">
-  !#  <description>An output analysis class for Local Group satellite galaxy mass functions.</description>
-  !#  <deepCopy>
-  !#   <functionClass variables="volumeFunctionSatellites, volumeFunctionCentrals"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="volumeFunctionSatellites, volumeFunctionCentrals"/>
-  !#  </stateStorable>
-  !# </outputAnalysis>
+  !![
+  <outputAnalysis name="outputAnalysisLocalGroupMassFunction">
+   <description>An output analysis class for Local Group satellite galaxy mass functions.</description>
+   <deepCopy>
+    <functionClass variables="volumeFunctionSatellites, volumeFunctionCentrals"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="volumeFunctionSatellites, volumeFunctionCentrals"/>
+   </stateStorable>
+  </outputAnalysis>
+  !!]
   type, extends(outputAnalysisClass) :: outputAnalysisLocalGroupMassFunction
-     !% An output analysis class for Local Group satellite galaxy mass functions.
+     !!{
+     An output analysis class for Local Group satellite galaxy mass functions.
+     !!}
      private
      type            (outputAnalysisVolumeFunction1D), pointer                     :: volumeFunctionSatellites          => null(), volumeFunctionCentrals => null()
      double precision                                , allocatable, dimension(:  ) :: masses                                     , massFunction                    , &
@@ -38,9 +44,11 @@
      double precision                                                              :: negativeBinomialScatterFractional          , countFailures
      logical                                                                       :: finalized
    contains
-     !# <methods>
-     !#   <method description="Finalize analysis." method="finalizeAnalysis" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Finalize analysis." method="finalizeAnalysis" />
+     </methods>
+     !!]
      final     ::                     localGroupMassFunctionDestructor
      procedure :: analyze          => localGroupMassFunctionAnalyze
      procedure :: finalize         => localGroupMassFunctionFinalize
@@ -50,7 +58,9 @@
   end type outputAnalysisLocalGroupMassFunction
 
   interface outputAnalysisLocalGroupMassFunction
-     !% Constructors for the ``localGroupMassFunction'' output analysis class.
+     !!{
+     Constructors for the ``localGroupMassFunction'' output analysis class.
+     !!}
      module procedure localGroupMassFunctionConstructorParameters
      module procedure localGroupMassFunctionConstructorInternal
   end interface outputAnalysisLocalGroupMassFunction
@@ -58,7 +68,9 @@
 contains
 
   function localGroupMassFunctionConstructorParameters(parameters) result(self)
-    !% Constructor for the ``localGroupMassFunction'' output analysis class which takes a parameter set as input.
+    !!{
+    Constructor for the ``localGroupMassFunction'' output analysis class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     use :: Output_Times    , only : outputTimes   , outputTimesClass
     implicit none
@@ -82,71 +94,77 @@ contains
     else
        allocate(systematicErrorPolynomialCoefficient(1                                                   ))
     end if
-    !# <inputParameter>
-    !#   <name>negativeBinomialScatterFractional</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.18d0</defaultValue>
-    !#   <defaultSource>\citep{boylan-kolchin_theres_2010}</defaultSource>
-    !#   <description>The fractional scatter (relative to the Poisson scatter) in the negative binomial distribution used in likelihood calculations.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>randomErrorMinimum</name>
-    !#   <source>parameters</source>
-    !#   <variable>randomErrorMinimum</variable>
-    !#   <defaultValue>0.1d0</defaultValue>
-    !#   <description>The minimum random error for stellar masses.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>randomErrorMaximum</name>
-    !#   <source>parameters</source>
-    !#   <variable>randomErrorMaximum</variable>
-    !#   <defaultValue>0.1d0</defaultValue>
-    !#   <description>The minimum random error for stellar masses.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>randomErrorPolynomialCoefficient</name>
-    !#   <source>parameters</source>
-    !#   <variable>randomErrorPolynomialCoefficient</variable>
-    !#   <defaultValue>[0.07d0]</defaultValue>
-    !#   <description>The coefficients of the random error polynomial for stellar masses.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>systematicErrorPolynomialCoefficient</name>
-    !#   <source>parameters</source>
-    !#   <variable>systematicErrorPolynomialCoefficient</variable>
-    !#   <defaultValue>[0.0d0]</defaultValue>
-    !#   <description>The coefficients of the systematic error polynomial for stellar masses.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceBinomialBinsPerDecade</name>
-    !#   <source>parameters</source>
-    !#   <variable>covarianceBinomialBinsPerDecade</variable>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of bins per decade of halo mass to use when constructing Local Group stellar mass function covariance matrices for main branch galaxies.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceBinomialMassHaloMinimum</name>
-    !#   <source>parameters</source>
-    !#   <variable>covarianceBinomialMassHaloMinimum</variable>
-    !#   <defaultValue>1.0d8</defaultValue>
-    !#   <description>The minimum halo mass to consider when constructing Local Group stellar mass function covariance matrices for main branch galaxies.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceBinomialMassHaloMaximum</name>
-    !#   <source>parameters</source>
-    !#   <variable>covarianceBinomialMassHaloMaximum</variable>
-    !#   <defaultValue>1.0d16</defaultValue>
-    !#   <description>The maximum halo mass to consider when constructing Local Group stellar mass function covariance matrices for main branch galaxies.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>negativeBinomialScatterFractional</name>
+      <source>parameters</source>
+      <defaultValue>0.18d0</defaultValue>
+      <defaultSource>\citep{boylan-kolchin_theres_2010}</defaultSource>
+      <description>The fractional scatter (relative to the Poisson scatter) in the negative binomial distribution used in likelihood calculations.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>randomErrorMinimum</name>
+      <source>parameters</source>
+      <variable>randomErrorMinimum</variable>
+      <defaultValue>0.1d0</defaultValue>
+      <description>The minimum random error for stellar masses.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>randomErrorMaximum</name>
+      <source>parameters</source>
+      <variable>randomErrorMaximum</variable>
+      <defaultValue>0.1d0</defaultValue>
+      <description>The minimum random error for stellar masses.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>randomErrorPolynomialCoefficient</name>
+      <source>parameters</source>
+      <variable>randomErrorPolynomialCoefficient</variable>
+      <defaultValue>[0.07d0]</defaultValue>
+      <description>The coefficients of the random error polynomial for stellar masses.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>systematicErrorPolynomialCoefficient</name>
+      <source>parameters</source>
+      <variable>systematicErrorPolynomialCoefficient</variable>
+      <defaultValue>[0.0d0]</defaultValue>
+      <description>The coefficients of the systematic error polynomial for stellar masses.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>covarianceBinomialBinsPerDecade</name>
+      <source>parameters</source>
+      <variable>covarianceBinomialBinsPerDecade</variable>
+      <defaultValue>10</defaultValue>
+      <description>The number of bins per decade of halo mass to use when constructing Local Group stellar mass function covariance matrices for main branch galaxies.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>covarianceBinomialMassHaloMinimum</name>
+      <source>parameters</source>
+      <variable>covarianceBinomialMassHaloMinimum</variable>
+      <defaultValue>1.0d8</defaultValue>
+      <description>The minimum halo mass to consider when constructing Local Group stellar mass function covariance matrices for main branch galaxies.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>covarianceBinomialMassHaloMaximum</name>
+      <source>parameters</source>
+      <variable>covarianceBinomialMassHaloMaximum</variable>
+      <defaultValue>1.0d16</defaultValue>
+      <description>The maximum halo mass to consider when constructing Local Group stellar mass function covariance matrices for main branch galaxies.</description>
+    </inputParameter>
+    <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
+    !!]
     self=outputAnalysisLocalGroupMassFunction(outputTimes_,negativeBinomialScatterFractional,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="outputTimes_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="outputTimes_"/>
+    !!]
     return
   end function localGroupMassFunctionConstructorParameters
 
   function localGroupMassFunctionConstructorInternal(outputTimes_,negativeBinomialScatterFractional,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
-    !% Constructor for the ``localGroupMassFunction'' output analysis class for internal use.
+    !!{
+    Constructor for the ``localGroupMassFunction'' output analysis class for internal use.
+    !!}
     use :: Galactic_Filters                        , only : filterList                                         , galacticFilterAll                  , galacticFilterHaloIsolated            , galacticFilterHaloNotIsolated                  , &
           &                                                 galacticFilterHostMassRange                        , galacticFilterSurveyGeometry
     use :: Geometry_Surveys                        , only : surveyGeometryCombined                             , surveyGeometryList                 , surveyGeometryLocalGroupClassical     , surveyGeometryLocalGroupDES                    , &
@@ -204,7 +222,9 @@ contains
     integer         (c_size_t                                           )                                :: i                                                          , j                                                          , &
          &                                                                                                  bufferCountSatellites
     type            (localGroupDB                                       )                                :: localGroupDB_
-    !# <constructorAssign variables="negativeBinomialScatterFractional"/>
+    !![
+    <constructorAssign variables="negativeBinomialScatterFractional"/>
+    !!]
 
     ! Initialize.
     self%finalized=.false.
@@ -235,44 +255,64 @@ contains
     end do
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_                )
-    !# <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassStellar     (                                                   )"/>
+    !![
+    <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassStellar     (                                                   )"/>
+    !!]
     ! Create property operators and unoperators to perform conversion to/from logarithmic mass.
     allocate(outputAnalysisPropertyOperatorLog10_            )
-    !# <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10            (                                                   )"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10            (                                                   )"/>
+    !!]
     allocate(outputAnalysisPropertyOperatorSystmtcPolynomial_)
-    !# <referenceConstruct object="outputAnalysisPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(errorZeroPoint,systematicErrorPolynomialCoefficient)"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyOperatorSystmtcPolynomial_" constructor="outputAnalysisPropertyOperatorSystmtcPolynomial(errorZeroPoint,systematicErrorPolynomialCoefficient)"/>
+    !!]
     allocate(operators_     )
     allocate(operators_%next)
     operators_     %operator_ => outputAnalysisPropertyOperatorLog10_
     operators_%next%operator_ => outputAnalysisPropertyOperatorSystmtcPolynomial_
     allocate(outputAnalysisPropertyOperator_                 )
-    !# <referenceConstruct object="outputAnalysisPropertyOperator_"                  constructor="outputAnalysisPropertyOperatorSequence         (operators_                                         )"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyOperator_"                  constructor="outputAnalysisPropertyOperatorSequence         (operators_                                         )"/>
+    !!]
     allocate(outputAnalysisPropertyUnoperator_               )
-    !# <referenceConstruct object="outputAnalysisPropertyUnoperator_"                constructor="outputAnalysisPropertyOperatorAntiLog10        (                                                   )"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyUnoperator_"                constructor="outputAnalysisPropertyOperatorAntiLog10        (                                                   )"/>
+    !!]
     ! Create an identity weight operator.
     allocate(outputAnalysisWeightOperator_                   )
-    !# <referenceConstruct object="outputAnalysisWeightOperator_"                    constructor="outputAnalysisWeightOperatorIdentity           (                                                   )"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightOperator_"                    constructor="outputAnalysisWeightOperatorIdentity           (                                                   )"/>
+    !!]
     ! Build a random error distribution operator.
     allocate(outputAnalysisDistributionOperator_             )
-    !# <referenceConstruct object="outputAnalysisDistributionOperator_">
-    !# <constructor>
-    !# outputAnalysisDistributionOperatorRandomErrorPlynml (                                  &amp;
-    !#      &amp;                                           randomErrorMinimum              , &amp;
-    !#      &amp;                                           randomErrorMaximum              , &amp;
-    !#      &amp;                                           errorZeroPoint                  , &amp;
-    !#      &amp;                                           randomErrorPolynomialCoefficient  &amp;
-    !#      &amp;                                          )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="outputAnalysisDistributionOperator_">
+    <constructor>
+    outputAnalysisDistributionOperatorRandomErrorPlynml (                                  &amp;
+         &amp;                                           randomErrorMinimum              , &amp;
+         &amp;                                           randomErrorMaximum              , &amp;
+         &amp;                                           errorZeroPoint                  , &amp;
+         &amp;                                           randomErrorPolynomialCoefficient  &amp;
+         &amp;                                          )
+     </constructor>
+    </referenceConstruct>
+    !!]
     ! Build survey geometry.
     !! For classical satellites use the corresponding geometry (which excludes the Zone of Avoidance) and assume they are detected out to the outer radius considered (300 kpc).
     allocate(surveyGeometryClassical_               )
-    !# <referenceConstruct object="surveyGeometryClassical_"       constructor="surveyGeometryLocalGroupClassical(radiusOuter       ,massThresholdClassical)"/>
+    !![
+    <referenceConstruct object="surveyGeometryClassical_"       constructor="surveyGeometryLocalGroupClassical(radiusOuter       ,massThresholdClassical)"/>
+    !!]
     !! For SDSS satellites use the corresponding geometry and assume they are detected out to at most the outer radius considered (300 kpc).
     allocate(surveyGeometrySDSS_                    )
-    !# <referenceConstruct object="surveyGeometrySDSS_"            constructor="surveyGeometryLocalGroupSDSS     (radiusOuter                              )"/>
+    !![
+    <referenceConstruct object="surveyGeometrySDSS_"            constructor="surveyGeometryLocalGroupSDSS     (radiusOuter                              )"/>
+    !!]
     allocate(surveyGeometryDES_                     )
-    !# <referenceConstruct object="surveyGeometryDES_"             constructor="surveyGeometryLocalGroupDES      (radiusOuter                              )"/>
+    !![
+    <referenceConstruct object="surveyGeometryDES_"             constructor="surveyGeometryLocalGroupDES      (radiusOuter                              )"/>
+    !!]
     !! Combine the survey geometries.
     allocate(surveyGeometryList_            )
     allocate(surveyGeometryList_  %next     )
@@ -281,29 +321,41 @@ contains
     surveyGeometryList_%next     %surveyGeometry_ => surveyGeometrySDSS_
     surveyGeometryList_%next%next%surveyGeometry_ => surveyGeometryDES_
     allocate(surveyGeometry_                )
-    !# <referenceConstruct object="surveyGeometry_"                constructor="surveyGeometryCombined           (surveyGeometryList_                       )"/>
+    !![
+    <referenceConstruct object="surveyGeometry_"                constructor="surveyGeometryCombined           (surveyGeometryList_                       )"/>
+    !!]
     ! Build filters which select satellites/centrals in a specified range of host halo mass, and applies a survey geometry.
     allocate(galacticFilterHaloIsolated_   )
-    !# <referenceConstruct object="galacticFilterHaloIsolated_"    constructor="galacticFilterHaloIsolated       (                                          )"/>
+    !![
+    <referenceConstruct object="galacticFilterHaloIsolated_"    constructor="galacticFilterHaloIsolated       (                                          )"/>
+    !!]
     allocate(galacticFilterHaloNotIsolated_)
-    !# <referenceConstruct object="galacticFilterHaloNotIsolated_" constructor="galacticFilterHaloNotIsolated    (                                          )"/>
+    !![
+    <referenceConstruct object="galacticFilterHaloNotIsolated_" constructor="galacticFilterHaloNotIsolated    (                                          )"/>
+    !!]
     allocate(galacticFilterSurveyGeometry_ )
-    !# <referenceConstruct object="galacticFilterSurveyGeometry_"  constructor="galacticFilterSurveyGeometry     (surveyGeometry_                           )"/>
+    !![
+    <referenceConstruct object="galacticFilterSurveyGeometry_"  constructor="galacticFilterSurveyGeometry     (surveyGeometry_                           )"/>
+    !!]
     allocate(galacticFilterHostMassRange_  )
-    !# <referenceConstruct object="galacticFilterHostMassRange_">
-    !#  <constructor>
-    !#   galacticFilterHostMassRange(                     &amp;
-    !#     &amp;                     massMinimum=1.00d12, &amp;
-    !#     &amp;                     massMaximum=2.00d12  &amp;
-    !#     &amp;                    )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="galacticFilterHostMassRange_">
+     <constructor>
+      galacticFilterHostMassRange(                     &amp;
+        &amp;                     massMinimum=1.00d12, &amp;
+        &amp;                     massMaximum=2.00d12  &amp;
+        &amp;                    )
+     </constructor>
+    </referenceConstruct>
+    !!]
     allocate(filtersCentrals_            )
     allocate(filtersCentrals_  %next     )
     filtersCentrals_            %filter_ => galacticFilterHaloIsolated_
     filtersCentrals_       %next%filter_ => galacticFilterHostMassRange_
     allocate(galacticFilterCentrals_  )
-    !# <referenceConstruct object="galacticFilterCentrals_"   constructor="galacticFilterAll(filtersCentrals_  )"/>
+    !![
+    <referenceConstruct object="galacticFilterCentrals_"   constructor="galacticFilterAll(filtersCentrals_  )"/>
+    !!]
     allocate(filtersSatellites_          )
     allocate(filtersSatellites_%next     )
     allocate(filtersSatellites_%next%next)
@@ -311,12 +363,16 @@ contains
     filtersSatellites_%next     %filter_ => galacticFilterHostMassRange_
     filtersSatellites_%next%next%filter_ => galacticFilterSurveyGeometry_
     allocate(galacticFilterSatellites_)
-    !# <referenceConstruct object="galacticFilterSatellites_" constructor="galacticFilterAll(filtersSatellites_)"/>
+    !![
+    <referenceConstruct object="galacticFilterSatellites_" constructor="galacticFilterAll(filtersSatellites_)"/>
+    !!]
     ! Build an identity distribution normalizers for centrals and satellites.
     allocate(outputAnalysisDistributionNormalizerCentrals_  )
     allocate(outputAnalysisDistributionNormalizerSatellites_)
-    !# <referenceConstruct object="outputAnalysisDistributionNormalizerCentrals_"   constructor="outputAnalysisDistributionNormalizerIdentity()"/>
-    !# <referenceConstruct object="outputAnalysisDistributionNormalizerSatellites_" constructor="outputAnalysisDistributionNormalizerIdentity()"/>
+    !![
+    <referenceConstruct object="outputAnalysisDistributionNormalizerCentrals_"   constructor="outputAnalysisDistributionNormalizerIdentity()"/>
+    <referenceConstruct object="outputAnalysisDistributionNormalizerSatellites_" constructor="outputAnalysisDistributionNormalizerIdentity()"/>
+    !!]
     ! Compute weights that apply to each output redshift.
     allocate(outputWeightSatellites(binCountSatellites,outputTimes_%count()))
     allocate(outputWeightCentrals  (binCountCentrals  ,outputTimes_%count()))
@@ -337,86 +393,88 @@ contains
     ! Construct the volume function 1D objects.
     allocate(self%volumeFunctionSatellites)
     allocate(self%volumeFunctionCentrals  )
-    !# <referenceConstruct isResult="yes" owner="self" object="volumeFunctionSatellites">
-    !#  <constructor>
-    !#   outputAnalysisVolumeFunction1D(                                                         &amp;
-    !#    &amp;                         var_str('localGroupMassFunction')                      , &amp;
-    !#    &amp;                         var_str('Mass function of Local Group satellites')     , &amp;
-    !#    &amp;                         var_str('massStellar')                                 , &amp;
-    !#    &amp;                         var_str('Stellar mass at the bin center')              , &amp;
-    !#    &amp;                         var_str('M☉')                                          , &amp;
-    !#    &amp;                         massSolar                                              , &amp;
-    !#    &amp;                         var_str('massFunction')                                , &amp;
-    !#    &amp;                         var_str('Differential satellite stellar mass function'), &amp;
-    !#    &amp;                         var_str(' ')                                           , &amp;
-    !#    &amp;                         0.0d0                                                  , &amp;
-    !#    &amp;                         massesSatellites                                       , &amp;
-    !#    &amp;                         bufferCountSatellites                                  , &amp;
-    !#    &amp;                         outputWeightSatellites                                 , &amp;
-    !#    &amp;                         nodePropertyExtractor_                                 , &amp;
-    !#    &amp;                         outputAnalysisPropertyOperator_                        , &amp;
-    !#    &amp;                         outputAnalysisPropertyUnoperator_                      , &amp;
-    !#    &amp;                         outputAnalysisWeightOperator_                          , &amp;
-    !#    &amp;                         outputAnalysisDistributionOperator_                    , &amp;
-    !#    &amp;                         outputAnalysisDistributionNormalizerSatellites_        , &amp;
-    !#    &amp;                         galacticFilterSatellites_                              , &amp;
-    !#    &amp;                         outputTimes_                                           , &amp;
-    !#    &amp;                         outputAnalysisCovarianceModelBinomial                  , &amp;
-    !#    &amp;                         covarianceBinomialBinsPerDecade                        , &amp;
-    !#    &amp;                         covarianceBinomialMassHaloMinimum                      , &amp;
-    !#    &amp;                         covarianceBinomialMassHaloMaximum                        &amp;
-    !#    &amp;                        )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <referenceConstruct isResult="yes" owner="self" object="volumeFunctionCentrals">
-    !#  <constructor>
-    !#   outputAnalysisVolumeFunction1D(                                                        &amp;
-    !#    &amp;                         var_str(' ')                                          , &amp;
-    !#    &amp;                         var_str(' ')                                          , &amp;
-    !#    &amp;                         var_str(' ')                                          , &amp;
-    !#    &amp;                         var_str(' ')                                          , &amp;
-    !#    &amp;                         var_str(' ')                                          , &amp;
-    !#    &amp;                         0.0d0                                                 , &amp;
-    !#    &amp;                         var_str(' ')                                          , &amp;
-    !#    &amp;                         var_str(' ')                                          , &amp;
-    !#    &amp;                         var_str(' ')                                          , &amp;
-    !#    &amp;                         0.0d0                                                 , &amp;
-    !#    &amp;                         massesCentrals                                        , &amp;
-    !#    &amp;                         bufferCountCentrals                                   , &amp;
-    !#    &amp;                         outputWeightCentrals                                  , &amp;
-    !#    &amp;                         nodePropertyExtractor_                      , &amp;
-    !#    &amp;                         outputAnalysisPropertyOperator_                       , &amp;
-    !#    &amp;                         outputAnalysisPropertyUnoperator_                     , &amp;
-    !#    &amp;                         outputAnalysisWeightOperator_                         , &amp;
-    !#    &amp;                         outputAnalysisDistributionOperator_                   , &amp;
-    !#    &amp;                         outputAnalysisDistributionNormalizerCentrals_         , &amp;
-    !#    &amp;                         galacticFilterCentrals_                               , &amp;
-    !#    &amp;                         outputTimes_                                          , &amp;
-    !#    &amp;                         outputAnalysisCovarianceModelBinomial                 , &amp;
-    !#    &amp;                         covarianceBinomialBinsPerDecade                       , &amp;
-    !#    &amp;                         covarianceBinomialMassHaloMinimum                     , &amp;
-    !#    &amp;                         covarianceBinomialMassHaloMaximum                       &amp;
-    !#    &amp;                        )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <objectDestructor name="nodePropertyExtractor_"                />
-    !# <objectDestructor name="outputAnalysisPropertyOperator_"                 />
-    !# <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
-    !# <objectDestructor name="outputAnalysisPropertyOperatorSystmtcPolynomial_"/>
-    !# <objectDestructor name="outputAnalysisPropertyUnoperator_"               />
-    !# <objectDestructor name="outputAnalysisWeightOperator_"                   />
-    !# <objectDestructor name="outputAnalysisDistributionOperator_"             />
-    !# <objectDestructor name="galacticFilterHaloIsolated_"                     />
-    !# <objectDestructor name="galacticFilterHaloNotIsolated_"                  />
-    !# <objectDestructor name="galacticFilterHostMassRange_"                    />
-    !# <objectDestructor name="galacticFilterCentrals_"                         />
-    !# <objectDestructor name="galacticFilterSatellites_"                       />
-    !# <objectDestructor name="outputAnalysisDistributionNormalizerSatellites_" />
-    !# <objectDestructor name="outputAnalysisDistributionNormalizerCentrals_"   />
-    !# <objectDestructor name="surveyGeometryClassical_"                        />
-    !# <objectDestructor name="surveyGeometrySDSS_"                             />
-    !# <objectDestructor name="surveyGeometryDES_"                              />
-    !# <objectDestructor name="surveyGeometry_"                                 />
+    !![
+    <referenceConstruct isResult="yes" owner="self" object="volumeFunctionSatellites">
+     <constructor>
+      outputAnalysisVolumeFunction1D(                                                         &amp;
+       &amp;                         var_str('localGroupMassFunction')                      , &amp;
+       &amp;                         var_str('Mass function of Local Group satellites')     , &amp;
+       &amp;                         var_str('massStellar')                                 , &amp;
+       &amp;                         var_str('Stellar mass at the bin center')              , &amp;
+       &amp;                         var_str('M☉')                                          , &amp;
+       &amp;                         massSolar                                              , &amp;
+       &amp;                         var_str('massFunction')                                , &amp;
+       &amp;                         var_str('Differential satellite stellar mass function'), &amp;
+       &amp;                         var_str(' ')                                           , &amp;
+       &amp;                         0.0d0                                                  , &amp;
+       &amp;                         massesSatellites                                       , &amp;
+       &amp;                         bufferCountSatellites                                  , &amp;
+       &amp;                         outputWeightSatellites                                 , &amp;
+       &amp;                         nodePropertyExtractor_                                 , &amp;
+       &amp;                         outputAnalysisPropertyOperator_                        , &amp;
+       &amp;                         outputAnalysisPropertyUnoperator_                      , &amp;
+       &amp;                         outputAnalysisWeightOperator_                          , &amp;
+       &amp;                         outputAnalysisDistributionOperator_                    , &amp;
+       &amp;                         outputAnalysisDistributionNormalizerSatellites_        , &amp;
+       &amp;                         galacticFilterSatellites_                              , &amp;
+       &amp;                         outputTimes_                                           , &amp;
+       &amp;                         outputAnalysisCovarianceModelBinomial                  , &amp;
+       &amp;                         covarianceBinomialBinsPerDecade                        , &amp;
+       &amp;                         covarianceBinomialMassHaloMinimum                      , &amp;
+       &amp;                         covarianceBinomialMassHaloMaximum                        &amp;
+       &amp;                        )
+     </constructor>
+    </referenceConstruct>
+    <referenceConstruct isResult="yes" owner="self" object="volumeFunctionCentrals">
+     <constructor>
+      outputAnalysisVolumeFunction1D(                                                        &amp;
+       &amp;                         var_str(' ')                                          , &amp;
+       &amp;                         var_str(' ')                                          , &amp;
+       &amp;                         var_str(' ')                                          , &amp;
+       &amp;                         var_str(' ')                                          , &amp;
+       &amp;                         var_str(' ')                                          , &amp;
+       &amp;                         0.0d0                                                 , &amp;
+       &amp;                         var_str(' ')                                          , &amp;
+       &amp;                         var_str(' ')                                          , &amp;
+       &amp;                         var_str(' ')                                          , &amp;
+       &amp;                         0.0d0                                                 , &amp;
+       &amp;                         massesCentrals                                        , &amp;
+       &amp;                         bufferCountCentrals                                   , &amp;
+       &amp;                         outputWeightCentrals                                  , &amp;
+       &amp;                         nodePropertyExtractor_                      , &amp;
+       &amp;                         outputAnalysisPropertyOperator_                       , &amp;
+       &amp;                         outputAnalysisPropertyUnoperator_                     , &amp;
+       &amp;                         outputAnalysisWeightOperator_                         , &amp;
+       &amp;                         outputAnalysisDistributionOperator_                   , &amp;
+       &amp;                         outputAnalysisDistributionNormalizerCentrals_         , &amp;
+       &amp;                         galacticFilterCentrals_                               , &amp;
+       &amp;                         outputTimes_                                          , &amp;
+       &amp;                         outputAnalysisCovarianceModelBinomial                 , &amp;
+       &amp;                         covarianceBinomialBinsPerDecade                       , &amp;
+       &amp;                         covarianceBinomialMassHaloMinimum                     , &amp;
+       &amp;                         covarianceBinomialMassHaloMaximum                       &amp;
+       &amp;                        )
+     </constructor>
+    </referenceConstruct>
+    <objectDestructor name="nodePropertyExtractor_"                />
+    <objectDestructor name="outputAnalysisPropertyOperator_"                 />
+    <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
+    <objectDestructor name="outputAnalysisPropertyOperatorSystmtcPolynomial_"/>
+    <objectDestructor name="outputAnalysisPropertyUnoperator_"               />
+    <objectDestructor name="outputAnalysisWeightOperator_"                   />
+    <objectDestructor name="outputAnalysisDistributionOperator_"             />
+    <objectDestructor name="galacticFilterHaloIsolated_"                     />
+    <objectDestructor name="galacticFilterHaloNotIsolated_"                  />
+    <objectDestructor name="galacticFilterHostMassRange_"                    />
+    <objectDestructor name="galacticFilterCentrals_"                         />
+    <objectDestructor name="galacticFilterSatellites_"                       />
+    <objectDestructor name="outputAnalysisDistributionNormalizerSatellites_" />
+    <objectDestructor name="outputAnalysisDistributionNormalizerCentrals_"   />
+    <objectDestructor name="surveyGeometryClassical_"                        />
+    <objectDestructor name="surveyGeometrySDSS_"                             />
+    <objectDestructor name="surveyGeometryDES_"                              />
+    <objectDestructor name="surveyGeometry_"                                 />
+    !!]
     nullify(filtersSatellites_ )
     nullify(filtersCentrals_   )
     nullify(operators_         )
@@ -425,17 +483,23 @@ contains
   end function localGroupMassFunctionConstructorInternal
 
   subroutine localGroupMassFunctionDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily localGroupMassFunction} output analysis class.
+    !!{
+    Destructor for the {\normalfont \ttfamily localGroupMassFunction} output analysis class.
+    !!}
     implicit none
     type(outputAnalysisLocalGroupMassFunction), intent(inout) :: self
 
-    !# <objectDestructor name="self%volumeFunctionSatellites"/>
-    !# <objectDestructor name="self%volumeFunctionCentrals"  />
+    !![
+    <objectDestructor name="self%volumeFunctionSatellites"/>
+    <objectDestructor name="self%volumeFunctionCentrals"  />
+    !!]
     return
   end subroutine localGroupMassFunctionDestructor
 
   subroutine localGroupMassFunctionAnalyze(self,node,iOutput)
-    !% Implement a {\normalfont \ttfamily localGroupMassFunction} output analysis.
+    !!{
+    Implement a {\normalfont \ttfamily localGroupMassFunction} output analysis.
+    !!}
     implicit none
     class  (outputAnalysisLocalGroupMassFunction), intent(inout) :: self
     type   (treeNode                            ), intent(inout) :: node
@@ -448,7 +512,9 @@ contains
   end subroutine localGroupMassFunctionAnalyze
 
   subroutine localGroupMassFunctionReduce(self,reduced)
-    !% Implement a {\normalfont \ttfamily localGroupMassFunction} output analysis reduction.
+    !!{
+    Implement a {\normalfont \ttfamily localGroupMassFunction} output analysis reduction.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(outputAnalysisLocalGroupMassFunction), intent(inout) :: self
@@ -465,7 +531,9 @@ contains
   end subroutine localGroupMassFunctionReduce
 
   subroutine localGroupMassFunctionFinalizeAnalysis(self)
-    !% Finalize analysis of a {\normalfont \ttfamily localGroupMassFunction} output analysis.
+    !!{
+    Finalize analysis of a {\normalfont \ttfamily localGroupMassFunction} output analysis.
+    !!}
     implicit none
     class           (outputAnalysisLocalGroupMassFunction), intent(inout)                 :: self
     double precision                                      , allocatable  , dimension(:  ) :: massFunctionCentrals
@@ -497,7 +565,9 @@ contains
   end subroutine localGroupMassFunctionFinalizeAnalysis
 
   subroutine localGroupMassFunctionFinalize(self)
-    !% Implement a {\normalfont \ttfamily localGroupMassFunction} output analysis finalization.
+    !!{
+    Implement a {\normalfont \ttfamily localGroupMassFunction} output analysis finalization.
+    !!}
     use :: Galacticus_HDF5                 , only : galacticusOutputFile
     use :: IO_HDF5                         , only : hdf5Access          , hdf5Object
     use :: Numerical_Constants_Astronomical, only : massSolar
@@ -537,11 +607,13 @@ contains
   end subroutine localGroupMassFunctionFinalize
 
   double precision function localGroupMassFunctionLogLikelihood(self)
-    !% Return the log-likelihood of a {\normalfont \ttfamily localGroupMassFunction} output analysis. The likelihood function
-    !% assumes that the model prediction for the number of satellite galaxies in any given mass bin follows a negative binomial
-    !% distribution as was found for dark matter subhalos \citep[][see also
-    !% \protect\citealt{lu_connection_2016}]{boylan-kolchin_theres_2010}. This has been confirmed by examining the results of many
-    !% tree realizations, although it in principal could be model-dependent.
+    !!{
+    Return the log-likelihood of a {\normalfont \ttfamily localGroupMassFunction} output analysis. The likelihood function
+    assumes that the model prediction for the number of satellite galaxies in any given mass bin follows a negative binomial
+    distribution as was found for dark matter subhalos \citep[][see also
+    \protect\citealt{lu_connection_2016}]{boylan-kolchin_theres_2010}. This has been confirmed by examining the results of many
+    tree realizations, although it in principal could be model-dependent.
+    !!}
     use :: Models_Likelihoods_Constants     , only : logImpossible
     use :: Statistics_Distributions_Discrete, only : distributionFunctionDiscrete1DNegativeBinomial
     implicit none

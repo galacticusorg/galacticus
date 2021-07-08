@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,25 +17,35 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that triggers destruction of satellites based on their bound mass.
+  !!{
+  Implements a node operator class that triggers destruction of satellites based on their bound mass.
+  !!}
 
-  !# <nodeOperator name="nodeOperatorSatelliteDestructionMassThreshold">
-  !#  <description>A node operator class that triggers destruction of satellites based on their bound mass.</description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorSatelliteDestructionMassThreshold">
+   <description>A node operator class that triggers destruction of satellites based on their bound mass.</description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteDestructionMassThreshold
-     !% A node operator class that triggers destruction of satellites based on their mass.
+     !!{
+     A node operator class that triggers destruction of satellites based on their mass.
+     !!}
      private
      double precision :: massDestruction, massDestructionFractional
    contains
-     !# <methods>
-     !#   <method description="Compute the mass at which the satellite will be destroyed." method="massDestroy" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Compute the mass at which the satellite will be destroyed." method="massDestroy" />
+     </methods>
+     !!]
      procedure :: differentialEvolution => satelliteDestructionMassThresholdDifferentialEvolution
      procedure :: massDestroy           => satelliteDestructionMassThresholdMassDestroy
   end type nodeOperatorSatelliteDestructionMassThreshold
   
   interface nodeOperatorSatelliteDestructionMassThreshold
-     !% Constructors for the {\normalfont \ttfamily satelliteDestructionMassThreshold} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily satelliteDestructionMassThreshold} node operator class.
+     !!}
      module procedure satelliteDestructionMassThresholdConstructorParameters
      module procedure satelliteDestructionMassThresholdConstructorInternal
   end interface nodeOperatorSatelliteDestructionMassThreshold
@@ -47,42 +57,54 @@
 contains
 
   function satelliteDestructionMassThresholdConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily satelliteDestructionMassThreshold} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily satelliteDestructionMassThreshold} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (nodeOperatorSatelliteDestructionMassThreshold)                :: self
     type            (inputParameters                              ), intent(inout) :: parameters
     double precision                                                               :: massDestruction, massDestructionFractional
 
-    !# <inputParameter>
-    !#   <name>massDestruction</name>
-    !#   <defaultValue>0.00d0</defaultValue>
-    !#   <description>The absolute mass below which satellites are destroyed.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massDestructionFractional</name>
-    !#   <defaultValue>0.01d0</defaultValue>
-    !#   <description>The fraction of the infall mass below which satellites are destroyed.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>massDestruction</name>
+      <defaultValue>0.00d0</defaultValue>
+      <description>The absolute mass below which satellites are destroyed.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massDestructionFractional</name>
+      <defaultValue>0.01d0</defaultValue>
+      <description>The fraction of the infall mass below which satellites are destroyed.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=nodeOperatorSatelliteDestructionMassThreshold(massDestruction, massDestructionFractional)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function satelliteDestructionMassThresholdConstructorParameters
 
   function satelliteDestructionMassThresholdConstructorInternal(massDestruction, massDestructionFractional) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily satelliteDestructionMassThreshold} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily satelliteDestructionMassThreshold} node operator class.
+    !!}
     implicit none
     type            (nodeOperatorSatelliteDestructionMassThreshold)                        :: self
     double precision                                               , intent(in   )         :: massDestruction, massDestructionFractional
-    !# <constructorAssign variables="massDestruction, massDestructionFractional"/>
+    !![
+    <constructorAssign variables="massDestruction, massDestructionFractional"/>
+    !!]
     
     return
   end function satelliteDestructionMassThresholdConstructorInternal
 
   subroutine satelliteDestructionMassThresholdDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Trigger destruction of a satellite halo based on its bound mass.
+    !!{
+    Trigger destruction of a satellite halo based on its bound mass.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
     class           (nodeOperatorSatelliteDestructionMassThreshold), intent(inout), target  :: self
@@ -112,7 +134,9 @@ contains
   end subroutine satelliteDestructionMassThresholdDifferentialEvolution
   
   subroutine destructionTrigger(node)
-    !% Trigger destruction of the satellite by setting the time until destruction to zero.
+    !!{
+    Trigger destruction of the satellite by setting the time until destruction to zero.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
     implicit none
     type (treeNode              ), intent(inout), target  :: node
@@ -125,7 +149,9 @@ contains
   end subroutine destructionTrigger
 
   double precision function satelliteDestructionMassThresholdMassDestroy(self,node)
-    !% Compute the detruction mass for a node.
+    !!{
+    Compute the detruction mass for a node.
+    !!}
     use :: Galacticus_Nodes, only : treeNode, nodeComponentBasic
     implicit none
     class(nodeOperatorSatelliteDestructionMassThreshold), intent(inout) :: self

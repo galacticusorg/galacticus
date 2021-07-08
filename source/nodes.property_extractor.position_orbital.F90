@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an orbital position output analysis property extractor class.
+!!{
+Contains a module which implements an orbital position output analysis property extractor class.
+!!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorPositionOrbital">
-  !#  <description>An orbital position output analysis property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorPositionOrbital">
+   <description>
+    An orbital position output analysis property extractor class. Specifically, the orbital position is defined relative to the
+    top-level halo in any sub-halo hierarchy. That is, relative to the host halo which is itself not a sub-halo of any other
+    halo. If the position of a (sub)$^i$-halo with respect to the center of its (sub)$^{i-1}$-halo host is $\mathbf{x}_i$ then
+    the orbital potision computed by this class is
+    \begin{equation}
+     \mathbf{x} = sum_{i=1}^N \mathbf{x}_i,
+    \end{equation}
+    where $N$ is the depth of the node in the sub-halo hierarchy.
+   </description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorPositionOrbital
-     !% An orbital position property extractor output analysis class.
+     !!{
+     An orbital position property extractor output analysis class.
+     !!}
      private
    contains
      procedure :: elementCount => positionOrbitalElementCount
@@ -35,14 +50,18 @@
   end type nodePropertyExtractorPositionOrbital
 
   interface nodePropertyExtractorPositionOrbital
-     !% Constructors for the ``positionOrbital'' output analysis class.
+     !!{
+     Constructors for the ``positionOrbital'' output analysis class.
+     !!}
      module procedure positionOrbitalConstructorParameters
   end interface nodePropertyExtractorPositionOrbital
 
 contains
 
   function positionOrbitalConstructorParameters(parameters) result(self)
-    !% Constructor for the ``positionOrbital'' output analysis property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``positionOrbital'' output analysis property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorPositionOrbital)                :: self
@@ -54,7 +73,9 @@ contains
   end function positionOrbitalConstructorParameters
 
   integer function positionOrbitalElementCount(self,time)
-    !% Return the number of elements in the {\normalfont \ttfamily positionOrbital} property extractors.
+    !!{
+    Return the number of elements in the {\normalfont \ttfamily positionOrbital} property extractors.
+    !!}
     implicit none
     class           (nodePropertyExtractorPositionOrbital), intent(inout) :: self
     double precision                                      , intent(in   ) :: time
@@ -65,7 +86,9 @@ contains
   end function positionOrbitalElementCount
 
   function positionOrbitalExtract(self,node,time,instance)
-    !% Implement a positionOrbital output analysis.
+    !!{
+    Implement a positionOrbital output analysis.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
     double precision                                      , dimension(:) , allocatable :: positionOrbitalExtract
@@ -95,7 +118,9 @@ contains
   end function positionOrbitalExtract
 
   integer function positionOrbitalType(self)
-    !% Return the type of the orbital position property.
+    !!{
+    Return the type of the orbital position property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorPositionOrbital), intent(inout) :: self
@@ -106,7 +131,9 @@ contains
   end function positionOrbitalType
   
   function positionOrbitalNames(self,time)
-    !% Return the name of the positionOrbital property.
+    !!{
+    Return the name of the positionOrbital property.
+    !!}
     implicit none
     type (varying_string                      ), dimension(:) , allocatable :: positionOrbitalNames
     class(nodePropertyExtractorPositionOrbital), intent(inout)              :: self
@@ -123,7 +150,9 @@ contains
   end function positionOrbitalNames
 
   function positionOrbitalDescriptions(self,time)
-    !% Return a description of the positionOrbital property.
+    !!{
+    Return a description of the positionOrbital property.
+    !!}
     implicit none
     type (varying_string                      ), dimension(:) , allocatable :: positionOrbitalDescriptions
     class(nodePropertyExtractorPositionOrbital), intent(inout)              :: self
@@ -131,16 +160,18 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(positionOrbitalDescriptions(3))
-    positionOrbitalDescriptions=[                                                &
-         &                       var_str('The orbital x-position of the halo.'), &
-         &                       var_str('The orbital y-position of the halo.'), &
-         &                       var_str('The orbital z-position of the halo.')  &
+    positionOrbitalDescriptions=[                                                                                                                                              &
+         &                       var_str('The orbital x-position of the halo relative to the top-level host halo (i.e. the host which is not a sub-halo of any other halo).'), &
+         &                       var_str('The orbital y-position of the halo relative to the top-level host halo (i.e. the host which is not a sub-halo of any other halo).'), &
+         &                       var_str('The orbital z-position of the halo relative to the top-level host halo (i.e. the host which is not a sub-halo of any other halo).')  &
          &                      ]
     return
   end function positionOrbitalDescriptions
 
   function positionOrbitalUnitsInSI(self,time)
-    !% Return the units of the positionOrbital property in the SI system.
+    !!{
+    Return the units of the positionOrbital property in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     implicit none
     double precision                                      , dimension(:) , allocatable :: positionOrbitalUnitsInSI

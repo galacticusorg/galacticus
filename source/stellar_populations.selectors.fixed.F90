@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a stellar population selector class which returns a fixed population.
+  !!{
+  Implements a stellar population selector class which returns a fixed population.
+  !!}
 
-  !# <stellarPopulationSelector name="stellarPopulationSelectorFixed">
-  !#  <description>
-  !#   A stellar population selector class which selects a fixed population irrespective of physical conditions.
-  !#  </description>
-  !# </stellarPopulationSelector>
+  !![
+  <stellarPopulationSelector name="stellarPopulationSelectorFixed">
+   <description>
+    A stellar population selector class which selects a fixed population irrespective of physical conditions.
+   </description>
+  </stellarPopulationSelector>
+  !!]
   type, extends(stellarPopulationSelectorClass) :: stellarPopulationSelectorFixed
-     !% A fixed stellar population selector class.
+     !!{
+     A fixed stellar population selector class.
+     !!}
      private
      class(stellarPopulationClass), pointer :: stellarPopulation_ => null()
    contains
@@ -35,7 +41,9 @@
   end type stellarPopulationSelectorFixed
 
   interface stellarPopulationSelectorFixed
-     !% Constructors for the {\normalfont \ttfamily fixed} stellar population selector class.
+     !!{
+     Constructors for the {\normalfont \ttfamily fixed} stellar population selector class.
+     !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
   end interface stellarPopulationSelectorFixed
@@ -43,7 +51,9 @@
 contains
 
   function fixedConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily fixed} stellar population class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily fixed} stellar population class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters   , only : inputParameter   , inputParameters
     use :: Stellar_Populations, only : stellarPopulation, stellarPopulationClass
     implicit none
@@ -51,34 +61,48 @@ contains
     type (inputParameters               ), intent(inout) :: parameters
     class(stellarPopulationClass        ), pointer       :: stellarPopulation_
 
-    !# <objectBuilder class="stellarPopulation" name="stellarPopulation_" source="parameters"/>
+    !![
+    <objectBuilder class="stellarPopulation" name="stellarPopulation_" source="parameters"/>
+    !!]
     self=stellarPopulationSelectorFixed(stellarPopulation_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="stellarPopulation_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="stellarPopulation_"/>
+    !!]
     return
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(stellarPopulation_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily fixed} stellar population selector class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily fixed} stellar population selector class.
+    !!}
     implicit none
     type (stellarPopulationSelectorFixed)                        :: self
     class(stellarPopulationClass        ), intent(in   ), target :: stellarPopulation_
-    !# <constructorAssign variables="*stellarPopulation_"/>
+    !![
+    <constructorAssign variables="*stellarPopulation_"/>
+    !!]
 
     return
   end function fixedConstructorInternal
 
   subroutine fixedDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily fixed} stellar population selector class.
+    !!{
+    Destructor for the {\normalfont \ttfamily fixed} stellar population selector class.
+    !!}
     implicit none
     type(stellarPopulationSelectorFixed), intent(inout) :: self
 
-    !# <objectDestructor name="self%stellarPopulation_"/>
+    !![
+    <objectDestructor name="self%stellarPopulation_"/>
+    !!]
     return
   end subroutine fixedDestructor
 
   function fixedSelect(self,rateStarFormation,abundances_,component)
-    !% Return a fixed stellar population.
+    !!{
+    Return a fixed stellar population.
+    !!}
     implicit none
     class           (stellarPopulationClass        ), pointer       :: fixedSelect
     class           (stellarPopulationSelectorFixed), intent(inout) :: self
@@ -92,7 +116,9 @@ contains
   end function fixedSelect
 
   logical function fixedIsStarFormationRateDependent(self)
-    !% Return false indicating that stellar population selection is not dependent on star formation rate.
+    !!{
+    Return false indicating that stellar population selection is not dependent on star formation rate.
+    !!}
     implicit none
     class(stellarPopulationSelectorFixed), intent(inout) :: self
     !$GLC attributes unused :: self

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a half-light radii property extractor class.
+!!{
+Contains a module which implements a half-light radii property extractor class.
+!!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorRadiiHalfLightProperties">
-  !#  <description>
-  !#   A node property extractor which extracts half-light radii and the masses enclosed within them. The half-light radius in
-  !#   each specified luminosity band is extracted as {\normalfont \ttfamily [halfLightRadius\{luminosityID\}]} (in Mpc), where
-  !#   {\normalfont \ttfamily\{luminosityID\}} is the usual luminosity identifier suffix, and the total (dark + baryonic) mass
-  !#   within that radius is extracted as {\normalfont \ttfamily [halfLightMass\{luminosityID\}]} (in $M_\odot$).
-  !#  </description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorRadiiHalfLightProperties">
+   <description>
+    A node property extractor which extracts half-light radii and the masses enclosed within them. The half-light radius in
+    each specified luminosity band is extracted as {\normalfont \ttfamily [halfLightRadius\{luminosityID\}]} (in Mpc), where
+    {\normalfont \ttfamily\{luminosityID\}} is the usual luminosity identifier suffix, and the total (dark + baryonic) mass
+    within that radius is extracted as {\normalfont \ttfamily [halfLightMass\{luminosityID\}]} (in $M_\odot$).
+   </description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorRadiiHalfLightProperties
-     !% A half-light radii property extractor class.
+     !!{
+     A half-light radii property extractor class.
+     !!}
      private
    contains
      procedure :: elementCount => radiiHalfLightPropertiesElementCount
@@ -40,14 +46,18 @@
   end type nodePropertyExtractorRadiiHalfLightProperties
 
   interface nodePropertyExtractorRadiiHalfLightProperties
-     !% Constructors for the ``radiiHalfLightProperties'' output analysis class.
+     !!{
+     Constructors for the ``radiiHalfLightProperties'' output analysis class.
+     !!}
      module procedure radiiHalfLightPropertiesConstructorParameters
   end interface nodePropertyExtractorRadiiHalfLightProperties
 
 contains
 
   function radiiHalfLightPropertiesConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily radiiHalfLightProperties} property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily radiiHalfLightProperties} property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorRadiiHalfLightProperties)                :: self
@@ -59,7 +69,9 @@ contains
   end function radiiHalfLightPropertiesConstructorParameters
 
   integer function radiiHalfLightPropertiesElementCount(self,time)
-    !% Return the number of elements in the {\normalfont \ttfamily radiiHalfLightProperties} property extractor class.
+    !!{
+    Return the number of elements in the {\normalfont \ttfamily radiiHalfLightProperties} property extractor class.
+    !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
     class           (nodePropertyExtractorRadiiHalfLightProperties), intent(inout) :: self
@@ -71,7 +83,9 @@ contains
   end function radiiHalfLightPropertiesElementCount
 
   function radiiHalfLightPropertiesExtract(self,node,time,instance)
-    !% Implement a {\normalfont \ttfamily radiiHalfLightProperties} property extractor.
+    !!{
+    Implement a {\normalfont \ttfamily radiiHalfLightProperties} property extractor.
+    !!}
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options        , only : componentTypeAll                , massTypeAll                             , massTypeStellar, weightByLuminosity
     use :: Stellar_Luminosities_Structure    , only : unitStellarLuminosities
@@ -99,7 +113,9 @@ contains
   end function radiiHalfLightPropertiesExtract
 
   function radiiHalfLightPropertiesNames(self,time)
-    !% Return the names of the {\normalfont \ttfamily radiiHalfLightProperties} properties.
+    !!{
+    Return the names of the {\normalfont \ttfamily radiiHalfLightProperties} properties.
+    !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
     type            (varying_string                               ), dimension(:) , allocatable :: radiiHalfLightPropertiesNames
@@ -123,7 +139,9 @@ contains
   end function radiiHalfLightPropertiesNames
 
   function radiiHalfLightPropertiesDescriptions(self,time)
-    !% Return descriptions of the {\normalfont \ttfamily radiiHalfLightProperties} property extractor class.
+    !!{
+    Return descriptions of the {\normalfont \ttfamily radiiHalfLightProperties} property extractor class.
+    !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
     type            (varying_string                               ), dimension(:) , allocatable :: radiiHalfLightPropertiesDescriptions
@@ -143,7 +161,9 @@ contains
   end function radiiHalfLightPropertiesDescriptions
 
   function radiiHalfLightPropertiesUnitsInSI(self,time)
-    !% Return the units of the last isolated redshift property in the SI system.
+    !!{
+    Return the units of the last isolated redshift property in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : massSolar              , megaParsec
     use :: Stellar_Luminosities_Structure  , only : unitStellarLuminosities
     implicit none
@@ -161,7 +181,9 @@ contains
   end function radiiHalfLightPropertiesUnitsInSI
 
   integer function radiiHalfLightPropertiesType(self)
-    !% Return the type of the last isolated redshift property.
+    !!{
+    Return the type of the last isolated redshift property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRadiiHalfLightProperties), intent(inout) :: self

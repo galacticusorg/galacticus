@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,16 +19,22 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-!% Contains a submodule which provides implementations of functions for rank-2, dimension-3, symmetric tensors.
+!!{
+Contains a submodule which provides implementations of functions for rank-2, dimension-3, symmetric tensors.
+!!}
 
 submodule (Tensors) Tensor_R2_D3_Sym
-  !% Provides implementations of functions for rank-2, dimension-3, symmetric tensors.
+  !!{
+  Provides implementations of functions for rank-2, dimension-3, symmetric tensors.
+  !!}
   implicit none
 
 contains
 
   module procedure tensorRank2Dimension3SymmetricNull
-    !% Constructor for {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects which sets all components to zero.
+    !!{
+    Constructor for {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects which sets all components to zero.
+    !!}
 
     self%x00=0.0d0
     self%x01=0.0d0
@@ -40,19 +46,25 @@ contains
   end procedure tensorRank2Dimension3SymmetricNull
   
   function tensorRank2Dimension3SymmetricInternal(x00,x01,x02,x11,x12,x22) result(self)
-    !% Constructor for {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects.
+    !!{
+    Constructor for {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects.
+    !!}
     implicit none
     type            (tensorRank2Dimension3Symmetric)                :: self
     double precision                                , intent(in   ) :: x00 , x01, &
          &                                                             x02 , x11, &
          &                                                             x12 , x22
-    !# <constructorAssign variables="x00, x01, x02, x11, x12, x22"/>
+    !![
+    <constructorAssign variables="x00, x01, x02, x11, x12, x22"/>
+    !!]
     
     return
   end function tensorRank2Dimension3SymmetricInternal
   
   module procedure Tensor_R2_D3_Sym_Destroy
-    !% Destroy a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} symmetric object.
+    !!{
+    Destroy a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} symmetric object.
+    !!}
     implicit none
     !$GLC attributes unused :: self
 
@@ -60,7 +72,9 @@ contains
   end procedure Tensor_R2_D3_Sym_Destroy
 
   module procedure Tensor_R2_D3_Sym_Builder
-    !% Build a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from the given XML {\normalfont \ttfamily tensorDefinition}.
+    !!{
+    Build a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from the given XML {\normalfont \ttfamily tensorDefinition}.
+    !!}
     use :: FoX_DOM         , only : node
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name, xmlNodeList, extractDataContent => extractDataContentTS
@@ -95,36 +109,40 @@ contains
   end procedure Tensor_R2_D3_Sym_Builder
 
   module procedure Tensor_R2_D3_Sym_Dump
-    !% Reset a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} symmetric object.
-    use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: ISO_Varying_String, only : varying_string            , assignment(=)
+    !!{
+    Reset a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} symmetric object.
+    !!}
+    use :: Display           , only : displayMessage
+    use :: ISO_Varying_String, only : assignment(=) , varying_string
     implicit none
     character(len=22        ) :: label
     type     (varying_string):: message
 
     write (label,'(e22.16)') self%x00
     message='x00: '//label
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     write (label,'(e22.16)') self%x01
     message='x01: '//label
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     write (label,'(e22.16)') self%x02
     message='x02: '//label
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     write (label,'(e22.16)') self%x11
     message='x11: '//label
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     write (label,'(e22.16)') self%x12
     message='x12: '//label
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     write (label,'(e22.16)') self%x22
     message='x22: '//label
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     return
   end procedure Tensor_R2_D3_Sym_Dump
 
   module procedure Tensor_R2_D3_Sym_Dump_Raw
-    !% Dump a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object to binary.
+    !!{
+    Dump a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object to binary.
+    !!}
     implicit none
 
     ! Dump the content.
@@ -138,7 +156,9 @@ contains
   end procedure Tensor_R2_D3_Sym_Dump_Raw
 
   module procedure Tensor_R2_D3_Sym_Read_Raw
-    !% Read a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from binary.
+    !!{
+    Read a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from binary.
+    !!}
     implicit none
 
     ! Read the content.
@@ -152,7 +172,9 @@ contains
   end procedure Tensor_R2_D3_Sym_Read_Raw
 
   module procedure Tensor_R2_D3_Sym_Reset
-    !% Reset a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object.
+    !!{
+    Reset a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object.
+    !!}
     implicit none
 
     ! Zero all elements.
@@ -166,7 +188,9 @@ contains
   end procedure Tensor_R2_D3_Sym_Reset
 
   module procedure Tensor_R2_D3_Sym_Set_To_Unity
-    !% Set a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object to unity.
+    !!{
+    Set a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object to unity.
+    !!}
     implicit none
 
     ! Set values to unity.
@@ -180,7 +204,9 @@ contains
   end procedure Tensor_R2_D3_Sym_Set_To_Unity
 
   module procedure Tensor_R2_D3_Sym_Set_To_Identity
-    !% Set a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object to the identity matrix.
+    !!{
+    Set a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object to the identity matrix.
+    !!}
     implicit none
 
     ! Set values to unity.
@@ -194,7 +220,9 @@ contains
   end procedure Tensor_R2_D3_Sym_Set_To_Identity
 
   module procedure Tensor_R2_D3_Sym_Is_Zero
-    !% Test whether a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object is zero.
+    !!{
+    Test whether a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object is zero.
+    !!}
     implicit none
 
     ! Detect if all tensor elements are zero.
@@ -216,7 +244,9 @@ contains
   end procedure Tensor_R2_D3_Sym_Is_Zero
 
   module procedure Tensor_R2_D3_Sym_Add
-    !% Add two {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects.
+    !!{
+    Add two {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects.
+    !!}
     implicit none
 
     Tensor_R2_D3_Sym_Add%x00=tensor1%x00
@@ -237,7 +267,9 @@ contains
   end procedure Tensor_R2_D3_Sym_Add
 
   module procedure Tensor_R2_D3_Sym_Increment
-    !% Increment a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object.
+    !!{
+    Increment a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object.
+    !!}
     implicit none
 
     self%x00=self%x00+increment%x00
@@ -250,7 +282,9 @@ contains
   end procedure Tensor_R2_D3_Sym_Increment
 
   module procedure Tensor_R2_D3_Sym_Subtract
-    !% Subtract two {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects.
+    !!{
+    Subtract two {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects.
+    !!}
     implicit none
 
     if (present(tensor2)) then
@@ -272,7 +306,9 @@ contains
   end procedure Tensor_R2_D3_Sym_Subtract
 
   module procedure Tensor_R2_D3_Sym_Scalar_Multiply
-    !% Multiply a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object by a scalar.
+    !!{
+    Multiply a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object by a scalar.
+    !!}
     implicit none
 
     Tensor_R2_D3_Sym_Scalar_Multiply%x00=tensor1%x00*multiplier
@@ -285,7 +321,9 @@ contains
   end procedure Tensor_R2_D3_Sym_Scalar_Multiply
 
   module procedure Tensor_R2_D3_Sym_Scalar_Multiply_Switched
-    !% Multiply a scalar by a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object.
+    !!{
+    Multiply a scalar by a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object.
+    !!}
     implicit none
 
     Tensor_R2_D3_Sym_Scalar_Multiply_Switched=Tensor_R2_D3_Sym_Scalar_Multiply(tensor1,multiplier)
@@ -293,7 +331,9 @@ contains
   end procedure Tensor_R2_D3_Sym_Scalar_Multiply_Switched
 
   module procedure Tensor_R2_D3_Sym_Max
-    !% Return an element-by-element {\normalfont \ttfamily max()} on two {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects.
+    !!{
+    Return an element-by-element {\normalfont \ttfamily max()} on two {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects.
+    !!}
     implicit none
 
     Tensor_R2_D3_Sym_Max%x00=max(tensor1%x00,tensor2%x00)
@@ -306,7 +346,9 @@ contains
   end procedure Tensor_R2_D3_Sym_Max
 
   module procedure Tensor_R2_D3_Sym_Scalar_Divide
-    !% Multiply a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object by a scalar.
+    !!{
+    Multiply a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object by a scalar.
+    !!}
     implicit none
 
     Tensor_R2_D3_Sym_Scalar_Divide%x00=tensor1%x00/divisor
@@ -319,8 +361,10 @@ contains
   end procedure Tensor_R2_D3_Sym_Scalar_Divide
   
   module procedure Tensor_R2_D3_Sym_Vector_Project
-    !%  Find the magnitude of the projection of a {\normalfont \ttfamily tensorRank2Dimension3Symmetric}/vector dot product onto
-    !% the same vector, $\mathbf{x} \cdot \mathbf{A} \cdot \mathbf{x}$.
+    !!{
+     Find the magnitude of the projection of a {\normalfont \ttfamily tensorRank2Dimension3Symmetric}/vector dot product onto
+    the same vector, $\mathbf{x} \cdot \mathbf{A} \cdot \mathbf{x}$.
+    !!}
 
     Tensor_R2_D3_Sym_Vector_Project=           &
          & +      self%x00*vector(1)*vector(1) &
@@ -333,7 +377,9 @@ contains
   end procedure Tensor_R2_D3_Sym_Vector_Project
 
   module procedure Tensor_R2_D3_Sym_Double_Contract
-    !% Find the double contraction of two {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects, $\mathbf{A}:\mathbf{B}$.
+    !!{
+    Find the double contraction of two {\normalfont \ttfamily tensorRank2Dimension3Symmetric} objects, $\mathbf{A}:\mathbf{B}$.
+    !!}
     implicit none
 
     Tensor_R2_D3_Sym_Double_Contract=  &
@@ -347,7 +393,9 @@ contains
   end procedure Tensor_R2_D3_Sym_Double_Contract
 
  module procedure Tensor_R2_D3_Sym_Contract
-    !% Return the contraction (trace) of a {\normalfont \ttfamily tensorRank2Dimension3Symmetric}.
+    !!{
+    Return the contraction (trace) of a {\normalfont \ttfamily tensorRank2Dimension3Symmetric}.
+    !!}
     implicit none
 
     Tensor_R2_D3_Sym_Contract=self%x00+self%x11+self%x22
@@ -355,7 +403,9 @@ contains
   end procedure Tensor_R2_D3_Sym_Contract
 
   module procedure Tensor_R2_D3_Sym_Property_Count
-    !% Return the number of properties required to track a rank 2, 3 dimensional, symmetric tensor. This is equal to 6.
+    !!{
+    Return the number of properties required to track a rank 2, 3 dimensional, symmetric tensor. This is equal to 6.
+    !!}
     implicit none
     integer, parameter :: propertyCount=6
 
@@ -364,7 +414,9 @@ contains
   end procedure Tensor_R2_D3_Sym_Property_Count
 
   module procedure Tensor_R2_D3_Sym_Deserialize
-    !% Pack an array into a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} symmetric structure.
+    !!{
+    Pack an array into a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} symmetric structure.
+    !!}
     implicit none
 
     self%x00=tensorArray(1)
@@ -377,7 +429,9 @@ contains
   end procedure Tensor_R2_D3_Sym_Deserialize
 
   module procedure Tensor_R2_D3_Sym_Serialize
-    !% Pack a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} into an array.
+    !!{
+    Pack a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} into an array.
+    !!}
     implicit none
 
     ! Place tensor into array.
@@ -391,7 +445,9 @@ contains
   end procedure Tensor_R2_D3_Sym_Serialize
 
   module procedure Tensor_R2_D3_Sym_From_Matrix
-    !% Construct a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from a matrix.
+    !!{
+    Construct a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object from a matrix.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
 
@@ -414,7 +470,9 @@ contains
   end procedure Tensor_R2_D3_Sym_From_Matrix
 
   module procedure Tensor_R2_D3_Sym_To_Matrix
-    !% Construct a matrix from a {\normalfont \ttfamily tensorRank2Dimension3Symmetric}.
+    !!{
+    Construct a matrix from a {\normalfont \ttfamily tensorRank2Dimension3Symmetric}.
+    !!}
     implicit none
 
     Tensor_R2_D3_Sym_To_Matrix(1,1)=self%x00
@@ -430,7 +488,9 @@ contains
   end procedure Tensor_R2_D3_Sym_To_Matrix
 
   module procedure Tensor_R2_D3_Sym_Assign_To
-    !% Assign a matrix to a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object.
+    !!{
+    Assign a matrix to a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} object.
+    !!}
     implicit none
 
     call tensor%fromMatrix(matrix)
@@ -438,7 +498,9 @@ contains
   end procedure Tensor_R2_D3_Sym_Assign_To
 
   module procedure Tensor_R2_D3_Sym_Assign_From
-    !% Assign a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} to a matrix.
+    !!{
+    Assign a {\normalfont \ttfamily tensorRank2Dimension3Symmetric} to a matrix.
+    !!}
     implicit none
 
     matrix(1,1)=tensor%x00
@@ -454,7 +516,9 @@ contains
   end procedure Tensor_R2_D3_Sym_Assign_From
 
   module procedure Tensor_R2_D3_Sym_Matrix_Equality
-    !% Return true if the supplied tensor and matrix are equal.
+    !!{
+    Return true if the supplied tensor and matrix are equal.
+    !!}
     implicit none
 
     Tensor_R2_D3_Sym_Matrix_Equality= &
@@ -479,7 +543,9 @@ contains
   end procedure Tensor_R2_D3_Sym_Matrix_Equality
 
   module procedure Tensor_R2_D3_Sym_Non_Static_Size_Of
-    !% Return the size of any non-static components of the object.
+    !!{
+    Return the size of any non-static components of the object.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     !$GLC attributes unused :: self

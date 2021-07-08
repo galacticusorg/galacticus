@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a \cite{hernquist_analytical_1990} mass distribution class.
+  !!{
+  Implementation of a \cite{hernquist_analytical_1990} mass distribution class.
+  !!}
 
-  !# <massDistribution name="massDistributionHernquist">
-  !#  <description>A \cite{hernquist_analytical_1990} mass distribution class.</description>
-  !# </massDistribution>
+  !![
+  <massDistribution name="massDistributionHernquist">
+   <description>A \cite{hernquist_analytical_1990} mass distribution class.</description>
+  </massDistribution>
+  !!]
   type, public, extends(massDistributionSpherical) :: massDistributionHernquist
-     !% The Hernquist \citep{hernquist_analytical_1990} mass distribution.
+     !!{
+     The Hernquist \citep{hernquist_analytical_1990} mass distribution.
+     !!}
      private
      double precision :: densityNormalization, mass, &
           &              scaleLength
@@ -36,7 +42,9 @@
   end type massDistributionHernquist
 
   interface massDistributionHernquist
-     !% Constructors for the {\normalfont \ttfamily hernquist} mass distribution class.
+     !!{
+     Constructors for the {\normalfont \ttfamily hernquist} mass distribution class.
+     !!}
      module procedure hernquistConstructorParameters
      module procedure hernquistConstructorInternal
   end interface massDistributionHernquist
@@ -44,8 +52,10 @@
 contains
 
   function hernquistConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily hernquist} mass distribution class which builds the object from a parameter
-    !% set.
+    !!{
+    Constructor for the {\normalfont \ttfamily hernquist} mass distribution class which builds the object from a parameter
+    set.
+    !!}
     use :: Input_Parameters        , only : inputParameter, inputParameters
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -55,43 +65,47 @@ contains
          &                                                        densityNormalization
     logical                                                    :: dimensionless
 
-    !# <inputParameter>
-    !#   <name>densityNormalization</name>
-    !#   <defaultValue>0.5d0/Pi</defaultValue>
-    !#   <description>The density normalization of the Hernquist profile.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>scaleLength</name>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The scale radius of the Hernquist profile.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>mass</name>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The mass of the Hernquist profile.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>dimensionless</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true the Hernquist profile is considered to be dimensionless.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <conditionalCall>
-    !#  <call>self=massDistributionHernquist({conditions})</call>
-    !#  <argument name="densityNormalization" value="densityNormalization" parameterPresent="parameters"/>
-    !#  <argument name="mass"                 value="mass"                 parameterPresent="parameters"/>
-    !#  <argument name="scaleLength"          value="scaleLength"          parameterPresent="parameters"/>
-    !#  <argument name="dimensionless"        value="dimensionless"        parameterPresent="parameters"/>
-    !# </conditionalCall>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParameter>
+      <name>densityNormalization</name>
+      <defaultValue>0.5d0/Pi</defaultValue>
+      <description>The density normalization of the Hernquist profile.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>scaleLength</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The scale radius of the Hernquist profile.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>mass</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The mass of the Hernquist profile.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>dimensionless</name>
+      <defaultValue>.true.</defaultValue>
+      <description>If true the Hernquist profile is considered to be dimensionless.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <conditionalCall>
+     <call>self=massDistributionHernquist({conditions})</call>
+     <argument name="densityNormalization" value="densityNormalization" parameterPresent="parameters"/>
+     <argument name="mass"                 value="mass"                 parameterPresent="parameters"/>
+     <argument name="scaleLength"          value="scaleLength"          parameterPresent="parameters"/>
+     <argument name="dimensionless"        value="dimensionless"        parameterPresent="parameters"/>
+    </conditionalCall>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function hernquistConstructorParameters
 
   function hernquistConstructorInternal(densityNormalization,mass,scaleLength,dimensionless) result(self)
-    !% Internal constructor for ``hernquist'' mass distribution class.
+    !!{
+    Internal constructor for ``hernquist'' mass distribution class.
+    !!}
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Numerical_Comparison    , only : Values_Differ
     use :: Numerical_Constants_Math, only : Pi
@@ -137,7 +151,9 @@ contains
   end function hernquistConstructorInternal
 
   double precision function hernquistDensity(self,coordinates)
-    !% Return the density at the specified {\normalfont \ttfamily coordinates} in a Hernquist mass distribution.
+    !!{
+    Return the density at the specified {\normalfont \ttfamily coordinates} in a Hernquist mass distribution.
+    !!}
     use :: Coordinates, only : assignment(=), coordinateSpherical
     implicit none
     class           (massDistributionHernquist), intent(inout) :: self
@@ -157,7 +173,9 @@ contains
   end function hernquistDensity
 
   double precision function hernquistDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
-    !% Returns a radial density moment for the Hernquist mass distribution.
+    !!{
+    Returns a radial density moment for the Hernquist mass distribution.
+    !!}
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Numerical_Comparison    , only : Values_Agree
     use :: Numerical_Constants_Math, only : Pi
@@ -198,7 +216,9 @@ contains
   end function hernquistDensityRadialMoment
 
   double precision function hernquistMassEnclosedBySphere(self,radius)
-    !% Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for Hernquist mass distributions.
+    !!{
+    Computes the mass enclosed within a sphere of given {\normalfont \ttfamily radius} for Hernquist mass distributions.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (massDistributionHernquist), intent(inout), target :: self
@@ -217,7 +237,9 @@ contains
   end function hernquistMassEnclosedBySphere
 
   double precision function hernquistPotential(self,coordinates)
-    !% Return the potential at the specified {\normalfont \ttfamily coordinates} in a Hernquist mass distribution.
+    !!{
+    Return the potential at the specified {\normalfont \ttfamily coordinates} in a Hernquist mass distribution.
+    !!}
     use :: Coordinates                 , only : assignment(=)                  , coordinateSpherical
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
@@ -235,7 +257,9 @@ contains
   end function hernquistPotential
 
   double precision function hernquistRadiusHalfMass(self)
-    !% Return the half-mass radius of a Hernquist mass distribution.
+    !!{
+    Return the half-mass radius of a Hernquist mass distribution.
+    !!}
     implicit none
     class           (massDistributionHernquist), intent(inout) :: self
     double precision                           , parameter     :: radiusHalfMassToScaleRadius=1.0d0/(sqrt(2.0d0)-1.0d0)

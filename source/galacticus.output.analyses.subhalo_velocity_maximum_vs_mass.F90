@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,19 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements an output analysis class that computes subhalo mean maximum velocity as a function of mass.
+  !!{
+  Contains a module which implements an output analysis class that computes subhalo mean maximum velocity as a function of mass.
+  !!}
   
-  !# <outputAnalysis name="outputAnalysisSubhaloVMaxVsMass">
-  !#  <description>An output analysis class that computes subhalo mean maximum velocity as a function of mass.</description>
-  !# </outputAnalysis>
+  !![
+  <outputAnalysis name="outputAnalysisSubhaloVMaxVsMass">
+   <description>An output analysis class that computes subhalo mean maximum velocity as a function of mass.</description>
+  </outputAnalysis>
+  !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisSubhaloVMaxVsMass
-     !% An output analysis class that computes subhalo mean maximum velocity as a function of mass.
+     !!{
+     An output analysis class that computes subhalo mean maximum velocity as a function of mass.
+     !!}
      private
    contains
   end type outputAnalysisSubhaloVMaxVsMass
 
   interface outputAnalysisSubhaloVMaxVsMass
-     !% Constructors for the ``subhaloVMaxVsMass'' output analysis class.
+     !!{
+     Constructors for the ``subhaloVMaxVsMass'' output analysis class.
+     !!}
      module procedure subhaloVMaxVsMassConstructorParameters
      module procedure subhaloVMaxVsMassConstructorFile
      module procedure subhaloVMaxVsMassConstructorInternal
@@ -38,7 +46,9 @@
 contains
 
   function subhaloVMaxVsMassConstructorParameters(parameters) result(self)
-    !% Constructor for the ``subhaloVMaxVsMass'' output analysis class which takes a parameter set as input.
+    !!{
+    Constructor for the ``subhaloVMaxVsMass'' output analysis class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters        , only : inputParameter            , inputParameters
     use :: Output_Times            , only : outputTimesClass
     use :: Cosmology_Functions     , only : cosmologyFunctionsClass
@@ -51,88 +61,77 @@ contains
     class           (outputTimesClass               ), pointer       :: outputTimes_
     class           (virialDensityContrastClass     ), pointer       :: virialDensityContrast_
     class           (darkMatterProfileDMOClass      ), pointer       :: darkMatterProfileDMO_
-    integer                                                          :: covarianceBinomialBinsPerDecade
-    double precision                                                 :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, &
-         &                                                              massMinimum                      , massMaximum                      , &
+    double precision                                                 :: massMinimum            , massMaximum, &
          &                                                              redshift
     integer         (c_size_t                       )                :: countMasses
     type            (varying_string                 )                :: fileName
 
     if (parameters%isPresent('fileName')) then
-       !# <inputParameter>
-       !#   <name>fileName</name>
-       !#   <source>parameters</source>
-       !#   <description>The name of the file from which to read the target dataset.</description>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>fileName</name>
+         <source>parameters</source>
+         <description>The name of the file from which to read the target dataset.</description>
+       </inputParameter>
+       !!]
     else
-       !# <inputParameter>
-       !#   <name>massMinimum</name>
-       !#   <source>parameters</source>
-       !#   <defaultValue>1.0d6</defaultValue>
-       !#   <description>The minimum mass to consider.</description>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>massMaximum</name>
-       !#   <source>parameters</source>
-       !#   <defaultValue>1.0d12</defaultValue>
-       !#   <description>The maximum mass to consider.</description>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>countMasses</name>
-       !#   <source>parameters</source>
-       !#   <defaultValue>12_c_size_t</defaultValue>
-       !#   <description>The number of bins in mass to use.</description>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>massMinimum</name>
+         <source>parameters</source>
+         <defaultValue>1.0d6</defaultValue>
+         <description>The minimum mass to consider.</description>
+       </inputParameter>
+       <inputParameter>
+         <name>massMaximum</name>
+         <source>parameters</source>
+         <defaultValue>1.0d12</defaultValue>
+         <description>The maximum mass to consider.</description>
+       </inputParameter>
+       <inputParameter>
+         <name>countMasses</name>
+         <source>parameters</source>
+         <defaultValue>12_c_size_t</defaultValue>
+         <description>The number of bins in mass to use.</description>
+       </inputParameter>
+       !!]
     end if
-    !# <inputParameter>
-    !#   <name>redshift</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The redshift at which to compute the subhalo $V_\mathrm{max}$--$M$ relation.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceBinomialBinsPerDecade</name>
-    !#   <source>parameters</source>
-    !#   <variable>covarianceBinomialBinsPerDecade</variable>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of bins per decade of halo mass to use when constructing subhalo mass function covariance matrices for main branch galaxies.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceBinomialMassHaloMinimum</name>
-    !#   <source>parameters</source>
-    !#   <variable>covarianceBinomialMassHaloMinimum</variable>
-    !#   <defaultValue>1.0d8</defaultValue>
-    !#   <description>The minimum halo mass to consider when constructing subhalo mass function covariance matrices for main branch galaxies.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceBinomialMassHaloMaximum</name>
-    !#   <source>parameters</source>
-    !#   <variable>covarianceBinomialMassHaloMaximum</variable>
-    !#   <defaultValue>1.0d16</defaultValue>
-    !#   <description>The maximum halo mass to consider when constructing subhalo mass function covariance matrices for main branch galaxies.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
-    !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
+    !![
+    <inputParameter>
+      <name>redshift</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The redshift at which to compute the subhalo $V_\mathrm{max}$--$M$ relation.</description>
+    </inputParameter>
+    <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
+    !!]
     if (parameters%isPresent('fileName')) then
-       !# <conditionalCall>
-       !#  <call>self=outputAnalysisSubhaloVMaxVsMass(outputTimes_,virialDensityContrast_,darkMatterProfileDMO_,cosmologyFunctions_                                                                      ,fileName                           ,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum{conditions})</call>
-       !#   <argument name="redshift" value="redshift" parameterPresent="parameters"/>
-       !# </conditionalCall>
+       !![
+       <conditionalCall>
+        <call>self=outputAnalysisSubhaloVMaxVsMass(outputTimes_,virialDensityContrast_,darkMatterProfileDMO_,cosmologyFunctions_                                                                      ,fileName                 {conditions})</call>
+         <argument name="redshift" value="redshift" parameterPresent="parameters"/>
+       </conditionalCall>
+       !!]
     else
-       self=outputAnalysisSubhaloVMaxVsMass(outputTimes_,virialDensityContrast_,darkMatterProfileDMO_,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),massMinimum,massMaximum,countMasses,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum)
+       self=outputAnalysisSubhaloVMaxVsMass(outputTimes_,virialDensityContrast_,darkMatterProfileDMO_,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),massMinimum,massMaximum,countMasses)
     end if
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="outputTimes_"          />
-    !# <objectDestructor name="cosmologyFunctions_"   />
-    !# <objectDestructor name="virialDensityContrast_"/>
-    !# <objectDestructor name="darkMatterProfileDMO_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="outputTimes_"          />
+    <objectDestructor name="cosmologyFunctions_"   />
+    <objectDestructor name="virialDensityContrast_"/>
+    <objectDestructor name="darkMatterProfileDMO_" />
+    !!]
     return
   end function subhaloVMaxVsMassConstructorParameters
   
-  function subhaloVMaxVsMassConstructorFile(outputTimes_,virialDensityContrast_,darkMatterProfileDMO_,cosmologyFunctions_,fileName,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,redshift) result (self)
-    !% Constructor for the ``subhaloVMaxVsMass'' output analysis class for internal use.
+  function subhaloVMaxVsMassConstructorFile(outputTimes_,virialDensityContrast_,darkMatterProfileDMO_,cosmologyFunctions_,fileName,redshift) result (self)
+    !!{
+    Constructor for the ``subhaloVMaxVsMass'' output analysis class for internal use.
+    !!}
     use :: IO_HDF5                 , only : hdf5Object                , hdf5Access
     use :: Output_Times            , only : outputTimesClass
     use :: Cosmology_Functions     , only : cosmologyFunctionsClass
@@ -142,21 +141,19 @@ contains
     implicit none
     type            (outputAnalysisSubhaloVMaxVsMass)                                :: self
     type            (varying_string                 ), intent(in   )                 :: fileName
-    integer                                          , intent(in   )                 :: covarianceBinomialBinsPerDecade
-    double precision                                 , intent(in   )                 :: covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum
     class           (outputTimesClass               ), intent(inout)                 :: outputTimes_
     class           (virialDensityContrastClass     ), intent(in   )                 :: virialDensityContrast_
     class           (cosmologyFunctionsClass        ), intent(inout)                 :: cosmologyFunctions_
     class           (darkMatterProfileDMOClass      ), intent(in   )                 :: darkMatterProfileDMO_
     double precision                                 , intent(in   ), optional       :: redshift
-    double precision                                 , allocatable  , dimension(:  ) :: massesTarget                     , functionTarget                   , &
+    double precision                                 , allocatable  , dimension(:  ) :: massesTarget            , functionTarget            , &
          &                                                                            functionErrorTarget
     double precision                                 , allocatable  , dimension(:,:) :: functionCovarianceTarget
-    double precision                                                                 :: massMinimum                      , massMaximum                      , &
-         &                                                                              time                             , redshift_
-    integer         (c_size_t                         )                              :: countMasses                      , i
+    double precision                                                                 :: massMinimum             , massMaximum               , &
+         &                                                                              time                    , redshift_
+    integer         (c_size_t                         )                              :: countMasses             , i
     type            (varying_string                   )                              :: labelTarget
-    type            (hdf5Object                       )                              :: file                             , velocityMaximumVsMassGroup
+    type            (hdf5Object                       )                              :: file                    , velocityMaximumVsMassGroup
 
     ! Read properties from the file.
     !$ call hdf5Access%set()
@@ -182,12 +179,14 @@ contains
     do i=1_c_size_t,countMasses
        functionCovarianceTarget(i,i)=functionErrorTarget(i)**2
     end do
-    self=outputAnalysisSubhaloVMaxVsMass(outputTimes_,virialDensityContrast_,darkMatterProfileDMO_,time,massMinimum,massMaximum,countMasses,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,functionTarget,functionCovarianceTarget,labelTarget)
+    self=outputAnalysisSubhaloVMaxVsMass(outputTimes_,virialDensityContrast_,darkMatterProfileDMO_,time,massMinimum,massMaximum,countMasses,functionTarget,functionCovarianceTarget,labelTarget)
     return
   end function subhaloVMaxVsMassConstructorFile
 
-  function subhaloVMaxVsMassConstructorInternal(outputTimes_,virialDensityContrast_,darkMatterProfileDMO_,time,massMinimum,massMaximum,countMasses,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,functionTarget,functionCovarianceTarget,labelTarget) result (self)
-    !% Constructor for the ``subhaloVMaxVsMass'' output analysis class for internal use.
+  function subhaloVMaxVsMassConstructorInternal(outputTimes_,virialDensityContrast_,darkMatterProfileDMO_,time,massMinimum,massMaximum,countMasses,functionTarget,functionCovarianceTarget,labelTarget) result (self)
+    !!{
+    Constructor for the ``subhaloVMaxVsMass'' output analysis class for internal use.
+    !!}
     use :: Galactic_Filters                      , only : galacticFilterHaloIsolated                , galacticFilterHaloNotIsolated      , galacticFilterLowPass                 , galacticFilterAll                , &
          &                                                filterList
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassBound            , nodePropertyExtractorRadiusOrbital , nodePropertyExtractorRatio            , nodePropertyExtractorRadiusVirial, &
@@ -196,7 +195,7 @@ contains
     use :: Numerical_Constants_Prefixes          , only : kilo
     use :: Numerical_Constants_Astronomical      , only : massSolar
     use :: Numerical_Ranges                      , only : Make_Range                                , rangeTypeLinear
-    use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelBinomial
+    use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorIdentity
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10   , outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorIdentity
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
@@ -205,9 +204,7 @@ contains
     use :: Dark_Matter_Profiles_DMO              , only : darkMatterProfileDMOClass
     implicit none
     type            (outputAnalysisSubhaloVMaxVsMass           )                                          :: self
-    integer                                                     , intent(in   )                           :: covarianceBinomialBinsPerDecade
-    double precision                                            , intent(in   )                           :: covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum, &
-         &                                                                                                   massMinimum                          , massMaximum                      , &
+    double precision                                            , intent(in   )                           :: massMinimum                          , massMaximum, &
          &                                                                                                   time
     integer         (c_size_t                                  ), intent(in   )                           :: countMasses
     class           (outputTimesClass                          ), intent(inout)                           :: outputTimes_
@@ -245,36 +242,54 @@ contains
     allocate(nodePropertyExtractorRadiusVirialHost_)
     allocate(nodePropertyExtractorRadiusFractional_)
     allocate(nodeWeightPropertyExtractor_          )
-    !# <referenceConstruct object="nodePropertyExtractorMassBound_"        constructor="nodePropertyExtractorMassBound      (                                                                                                                                                   )"/>
-    !# <referenceConstruct object="nodePropertyExtractorRadiusOrbital_"    constructor="nodePropertyExtractorRadiusOrbital  (                                                                                                                                                   )"/>
-    !# <referenceConstruct object="nodePropertyExtractorRadiusVirial_"     constructor="nodePropertyExtractorRadiusVirial   (virialDensityContrast_                                                                                                                             )"/>
-    !# <referenceConstruct object="nodePropertyExtractorRadiusVirialHost_" constructor="nodePropertyExtractorHostNode       (nodePropertyExtractorRadiusVirial_                                                                                                                 )"/>
-    !# <referenceConstruct object="nodePropertyExtractorRadiusFractional_" constructor="nodePropertyExtractorRatio          ('radiusFraction','Ratio of subhalo orbital radius to host virial radius',nodePropertyExtractorRadiusOrbital_,nodePropertyExtractorRadiusVirialHost_)"/>
-    !# <referenceConstruct object="nodeWeightPropertyExtractor_"           constructor="nodePropertyExtractorVelocityMaximum(darkMatterProfileDMO_                                                                                                                              )"/>
+    !![
+    <referenceConstruct object="nodePropertyExtractorMassBound_"        constructor="nodePropertyExtractorMassBound      (                                                                                                                                                   )"/>
+    <referenceConstruct object="nodePropertyExtractorRadiusOrbital_"    constructor="nodePropertyExtractorRadiusOrbital  (                                                                                                                                                   )"/>
+    <referenceConstruct object="nodePropertyExtractorRadiusVirial_"     constructor="nodePropertyExtractorRadiusVirial   (virialDensityContrast_                                                                                                                             )"/>
+    <referenceConstruct object="nodePropertyExtractorRadiusVirialHost_" constructor="nodePropertyExtractorHostNode       (nodePropertyExtractorRadiusVirial_                                                                                                                 )"/>
+    <referenceConstruct object="nodePropertyExtractorRadiusFractional_" constructor="nodePropertyExtractorRatio          ('radiusFraction','Ratio of subhalo orbital radius to host virial radius',nodePropertyExtractorRadiusOrbital_,nodePropertyExtractorRadiusVirialHost_)"/>
+    <referenceConstruct object="nodeWeightPropertyExtractor_"           constructor="nodePropertyExtractorVelocityMaximum(darkMatterProfileDMO_                                                                                                                              )"/>
+    !!]
     ! Create property operators and unoperators to perform conversion to/from logarithmic mass.
     allocate(outputAnalysisPropertyOperator_  )
-    !# <referenceConstruct object="outputAnalysisPropertyOperator_"       constructor="outputAnalysisPropertyOperatorLog10       (                                            )"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyOperator_"       constructor="outputAnalysisPropertyOperatorLog10       (                                            )"/>
+    !!]
     allocate(outputAnalysisPropertyUnoperator_)
-    !# <referenceConstruct object="outputAnalysisPropertyUnoperator_"     constructor="outputAnalysisPropertyOperatorAntiLog10   (                                            )"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyUnoperator_"     constructor="outputAnalysisPropertyOperatorAntiLog10   (                                            )"/>
+    !!]
     allocate(outputAnalysisWeightPropertyOperator_)
-    !# <referenceConstruct object="outputAnalysisWeightPropertyOperator_" constructor="outputAnalysisPropertyOperatorIdentity    (                                            )"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightPropertyOperator_" constructor="outputAnalysisPropertyOperatorIdentity    (                                            )"/>
+    !!]
     ! Create an identity weight operator.
     allocate(outputAnalysisWeightOperator_)
-    !# <referenceConstruct object="outputAnalysisWeightOperator_"         constructor="outputAnalysisWeightOperatorIdentity      (                                            )"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightOperator_"         constructor="outputAnalysisWeightOperatorIdentity      (                                            )"/>
+    !!]
     ! Build filters which select subhalos/hosts.
     allocate(galacticFilterIsSubhalo_)
-    !# <referenceConstruct object="galacticFilterIsSubhalo_"              constructor="galacticFilterHaloNotIsolated             (                                            )"/>
+    !![
+    <referenceConstruct object="galacticFilterIsSubhalo_"              constructor="galacticFilterHaloNotIsolated             (                                            )"/>
+    !!]
     allocate(galacticFilterVirialRadius_)
-    !# <referenceConstruct object="galacticFilterVirialRadius_"           constructor="galacticFilterLowPass                     (1.0d0,nodePropertyExtractorRadiusFractional_)"/>
+    !![
+    <referenceConstruct object="galacticFilterVirialRadius_"           constructor="galacticFilterLowPass                     (1.0d0,nodePropertyExtractorRadiusFractional_)"/>
+    !!]
     allocate(galacticFilterSubhalos_     )
     allocate(filters_                    )
     allocate(filters_               %next)
     filters_     %filter_ => galacticFilterIsSubhalo_
     filters_%next%filter_ => galacticFilterVirialRadius_
-    !# <referenceConstruct object="galacticFilterSubhalos_"               constructor="galacticFilterAll                         (filters_                                    )"/>
+    !![
+    <referenceConstruct object="galacticFilterSubhalos_"               constructor="galacticFilterAll                         (filters_                                    )"/>
+    !!]
     ! Build an identity distribution operator.
     allocate(outputAnalysisDistributionOperator_)
-    !# <referenceConstruct object="outputAnalysisDistributionOperator_"   constructor="outputAnalysisDistributionOperatorIdentity(                                            )"/>
+    !![
+    <referenceConstruct object="outputAnalysisDistributionOperator_"   constructor="outputAnalysisDistributionOperatorIdentity(                                            )"/>
+    !!]
     ! Compute weights that apply to each output redshift.
     allocate(outputWeight(countMasses,outputTimes_%count()))
     do i=1_c_size_t,outputTimes_%count()
@@ -308,10 +323,7 @@ contains
          &                                                                              outputAnalysisDistributionOperator_                             , &
          &                                                                              galacticFilterSubhalos_                                         , &
          &                                                                              outputTimes_                                                    , &
-         &                                                                              outputAnalysisCovarianceModelBinomial                           , &
-         &                                                                              covarianceBinomialBinsPerDecade                                 , &
-         &                                                                              covarianceBinomialMassHaloMinimum                               , &
-         &                                                                              covarianceBinomialMassHaloMaximum                               , &
+         &                                                                              outputAnalysisCovarianceModelPoisson                            , &
          &                                                         likelihoodNormalize =.true.                                                          , &
          &                                                         xAxisLabel          =var_str('$M_\mathrm{bound}/\mathrm{M}_\odot$'                  ), &
          &                                                         yAxisLabel          =var_str('$\langle V_\mathrm{max} \rangle / \hbox{km s}^{-1}$'  ), &
@@ -321,20 +333,22 @@ contains
          &                                                         meanValueTarget     =functionTarget                                                  , &
          &                                                         meanCovarianceTarget=functionCovarianceTarget                                          &
          &                                                        )
-    !# <objectDestructor name="nodePropertyExtractorMassBound_"       />
-    !# <objectDestructor name="nodePropertyExtractorRadiusOrbital_"   />
-    !# <objectDestructor name="nodePropertyExtractorRadiusVirial_"    />
-    !# <objectDestructor name="nodePropertyExtractorRadiusVirialHost_"/>
-    !# <objectDestructor name="nodePropertyExtractorRadiusFractional_"/>
-    !# <objectDestructor name="nodeWeightPropertyExtractor_"          />
-    !# <objectDestructor name="outputAnalysisPropertyOperator_"       />
-    !# <objectDestructor name="outputAnalysisPropertyUnoperator_"     />
-    !# <objectDestructor name="outputAnalysisWeightPropertyOperator_" />
-    !# <objectDestructor name="outputAnalysisWeightOperator_"         />
-    !# <objectDestructor name="outputAnalysisDistributionOperator_"   />
-    !# <objectDestructor name="galacticFilterSubhalos_"               />
-    !# <objectDestructor name="galacticFilterIsSubhalo_"              />
-    !# <objectDestructor name="galacticFilterVirialRadius_"           />
+    !![
+    <objectDestructor name="nodePropertyExtractorMassBound_"       />
+    <objectDestructor name="nodePropertyExtractorRadiusOrbital_"   />
+    <objectDestructor name="nodePropertyExtractorRadiusVirial_"    />
+    <objectDestructor name="nodePropertyExtractorRadiusVirialHost_"/>
+    <objectDestructor name="nodePropertyExtractorRadiusFractional_"/>
+    <objectDestructor name="nodeWeightPropertyExtractor_"          />
+    <objectDestructor name="outputAnalysisPropertyOperator_"       />
+    <objectDestructor name="outputAnalysisPropertyUnoperator_"     />
+    <objectDestructor name="outputAnalysisWeightPropertyOperator_" />
+    <objectDestructor name="outputAnalysisWeightOperator_"         />
+    <objectDestructor name="outputAnalysisDistributionOperator_"   />
+    <objectDestructor name="galacticFilterSubhalos_"               />
+    <objectDestructor name="galacticFilterIsSubhalo_"              />
+    <objectDestructor name="galacticFilterVirialRadius_"           />
+    !!]
     nullify(filters_)
     return
   end function subhaloVMaxVsMassConstructorInternal

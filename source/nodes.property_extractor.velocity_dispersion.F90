@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,51 +17,60 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a property extractor class for the velocity dispersion at a set of radii.
+  !!{
+  Contains a module which implements a property extractor class for the velocity dispersion at a set of radii.
+  !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale, darkMatterHaloScaleClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorVelocityDispersion">
-  !#  <description>
-  !#   A property extractor class for the velocity dispersion at a set of radii. The radii and types of projected density to output
-  !#   is specified by the {\normalfont \ttfamily radiusSpecifiers} parameter. This parameter's value can contain multiple
-  !#   entries, each of which should be a valid
-  !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
-  !#   specifier}, but with an additional, colon-separated, value at the end indicating the direction in which the velocity
-  !#   dispersion should be computed. This direction should be one of {\normalfont \ttfamily radial} (computes the radial
-  !#   component of velocity dispersion), {\normalfont \ttfamily lineOfSight\{\textless luminosity\textgreater\}} (computes the
-  !#   line-of-sight velocity dispersion), {\normalfont \ttfamily lineOfSightInteriorAverage\{\textless luminosity\textgreater\}}
-  !#   (computes the line-of-sight velocity dispersion averaged interior to the given radius), or {\normalfont \ttfamily
-  !#   lambdaR\{\textless luminosity\textgreater\}} (computes the $\lambda_\mathrm{R}$ statistic of
-  !#   \citealt{cappellari_sauron_2007})---in the latter three cases {\normalfont \ttfamily \{\textless luminosity\textgreater\}}
-  !#   specifies which band should be used to weight the velocity dispersion, alternatively setting {\normalfont \ttfamily
-  !#   \{\textless luminosity\textgreater\}}$=${\normalfont \ttfamily mass} (or just leaving off this specifier entirely) will use
-  !#   mass weighting instead.
-  !#  </description>
-  !# </nodePropertyExtractor>
-  type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorVelocityDispersion
-     !% A property extractor class for the velocity dispersion at a set of radii.
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorVelocityDispersion">
+   <description>
+    A property extractor class for the velocity dispersion at a set of radii. The radii and types of projected density to output
+    is specified by the {\normalfont \ttfamily radiusSpecifiers} parameter. This parameter's value can contain multiple
+    entries, each of which should be a valid
+    \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
+    specifier}, but with an additional, colon-separated, value at the end indicating the direction in which the velocity
+    dispersion should be computed. This direction should be one of {\normalfont \ttfamily radial} (computes the radial
+    component of velocity dispersion), {\normalfont \ttfamily lineOfSight\{\textless luminosity\textgreater\}} (computes the
+    line-of-sight velocity dispersion), {\normalfont \ttfamily lineOfSightInteriorAverage\{\textless luminosity\textgreater\}}
+    (computes the line-of-sight velocity dispersion averaged interior to the given radius), or {\normalfont \ttfamily
+    lambdaR\{\textless luminosity\textgreater\}} (computes the $\lambda_\mathrm{R}$ statistic of
+    \citealt{cappellari_sauron_2007})---in the latter three cases {\normalfont \ttfamily \{\textless luminosity\textgreater\}}
+    specifies which band should be used to weight the velocity dispersion, alternatively setting {\normalfont \ttfamily
+    \{\textless luminosity\textgreater\}}$=${\normalfont \ttfamily mass} (or just leaving off this specifier entirely) will use
+    mass weighting instead.
+   </description>
+  </nodePropertyExtractor>
+  !!]
+  type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorVelocityDispersion
+     !!{
+     A property extractor class for the velocity dispersion at a set of radii.
+     !!}
      private
      class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_
-     integer                                                      :: radiiCount                   , elementCount_       , &
-          &                                                          step
+     integer                                                      :: radiiCount                   , elementCount_
      logical                                                      :: includeRadii
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
      logical                                                      :: darkMatterScaleRadiusIsNeeded, diskIsNeeded        , &
           &                                                          spheroidIsNeeded             , virialRadiusIsNeeded
    contains
-     final     ::                 velocityDispersionDestructor
-     procedure :: elementCount => velocityDispersionElementCount
-     procedure :: extract      => velocityDispersionExtract
-     procedure :: names        => velocityDispersionNames
-     procedure :: descriptions => velocityDispersionDescriptions
-     procedure :: unitsInSI    => velocityDispersionUnitsInSI
-     procedure :: type         => velocityDispersionType
+     final     ::                       velocityDispersionDestructor
+     procedure :: columnDescriptions => velocityDispersionColumnDescriptions
+     procedure :: size               => velocityDispersionSize
+     procedure :: elementCount       => velocityDispersionElementCount
+     procedure :: extract            => velocityDispersionExtract
+     procedure :: names              => velocityDispersionNames
+     procedure :: descriptions       => velocityDispersionDescriptions
+     procedure :: unitsInSI          => velocityDispersionUnitsInSI
+     procedure :: type               => velocityDispersionType
   end type nodePropertyExtractorVelocityDispersion
 
   interface nodePropertyExtractorVelocityDispersion
-     !% Constructors for the ``velocityDispersion'' output analysis class.
+     !!{
+     Constructors for the ``velocityDispersion'' output analysis class.
+     !!}
      module procedure velocityDispersionConstructorParameters
      module procedure velocityDispersionConstructorInternal
   end interface nodePropertyExtractorVelocityDispersion
@@ -75,7 +84,9 @@
 contains
 
   function velocityDispersionConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily velocityDispersion} property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily velocityDispersion} property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nodePropertyExtractorVelocityDispersion)                              :: self
@@ -85,41 +96,48 @@ contains
     logical                                                                       :: includeRadii
 
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
-    !# <inputParameter>
-    !#   <name>radiusSpecifiers</name>
-    !#   <description>A list of radius specifiers at which to output the velocity dispersion.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>includeRadii</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Specifies whether or not the radii at which velocity dispersion data are output should also be included in the output file.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>radiusSpecifiers</name>
+      <description>A list of radius specifiers at which to output the velocity dispersion.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>includeRadii</name>
+      <defaultValue>.false.</defaultValue>
+      <description>Specifies whether or not the radii at which velocity dispersion data are output should also be included in the output file.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !!]
     self=nodePropertyExtractorVelocityDispersion(radiusSpecifiers,includeRadii,darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_" />
+    !!]
     return
   end function velocityDispersionConstructorParameters
 
   function velocityDispersionConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily velocityDispersion} property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily velocityDispersion} property extractor class.
+    !!}
     use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
     type   (nodePropertyExtractorVelocityDispersion)                              :: self
     type   (varying_string                         ), intent(in   ), dimension(:) :: radiusSpecifiers
     class  (darkMatterHaloScaleClass               ), intent(in   ), target       :: darkMatterHaloScale_
     logical                                         , intent(in   )               :: includeRadii
-    !# <constructorAssign variables="radiusSpecifiers, includeRadii, *darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="radiusSpecifiers, includeRadii, *darkMatterHaloScale_"/>
+    !!]
 
     if (includeRadii) then
-       self%step=2
+       self%elementCount_=2
     else
-       self%step=1
+       self%elementCount_=1
     end if
-    self%radiiCount   =size(radiusSpecifiers)
-    self%elementCount_=self%step*self%radiiCount
+    self%radiiCount      =size(radiusSpecifiers)
     call Galactic_Structure_Radii_Definition_Decode(                                    &
          &                                          radiusSpecifiers                  , &
          &                                          self%radii                        , &
@@ -132,16 +150,22 @@ contains
   end function velocityDispersionConstructorInternal
 
   subroutine velocityDispersionDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily velocityDispersion} property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily velocityDispersion} property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorVelocityDispersion), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    !!]
     return
   end subroutine velocityDispersionDestructor
 
   integer function velocityDispersionElementCount(self,time)
-    !% Return the number of elements in the {\normalfont \ttfamily velocityDispersion} property extractors.
+    !!{
+    Return the number of elements in the {\normalfont \ttfamily velocityDispersion} property extractors.
+    !!}
     implicit none
     class           (nodePropertyExtractorVelocityDispersion), intent(inout) :: self
     double precision                                         , intent(in   ) :: time
@@ -151,8 +175,24 @@ contains
     return
   end function velocityDispersionElementCount
 
+  function velocityDispersionSize(self,time)
+    !!{
+    Return the number of array alements in the {\normalfont \ttfamily velocityDispersion} property extractors.
+    !!}
+    implicit none
+    integer         (c_size_t                               )                :: velocityDispersionSize
+    class           (nodePropertyExtractorVelocityDispersion), intent(inout) :: self
+    double precision                                         , intent(in   ) :: time
+    !$GLC attributes unused :: time
+
+    velocityDispersionSize=self%radiiCount
+    return
+  end function velocityDispersionSize
+
   function velocityDispersionExtract(self,node,time,instance)
-    !% Implement a {\normalfont \ttfamily velocityDispersion} property extractor.
+    !!{
+    Implement a {\normalfont \ttfamily velocityDispersion} property extractor.
+    !!}
     use :: Galactic_Structure_Enclosed_Masses     , only : Galactic_Structure_Enclosed_Mass      , Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options             , only : componentTypeAll                      , componentTypeDisk                       , componentTypeSpheroid              , massTypeGalactic               , &
           &                                                massTypeStellar                       , radiusLarge
@@ -164,31 +204,31 @@ contains
     use :: Galacticus_Nodes                       , only : nodeComponentDarkMatterProfile        , nodeComponentDisk                       , nodeComponentSpheroid              , treeNode
     use :: Numerical_Integration                  , only : integrator
     implicit none
-    double precision                                         , dimension(:) , allocatable :: velocityDispersionExtract
-    class           (nodePropertyExtractorVelocityDispersion), intent(inout), target      :: self
-    type            (treeNode                               ), intent(inout), target      :: node
-    double precision                                         , intent(in   )              :: time
-    type            (multiCounter                           ), intent(inout), optional    :: instance
-    class           (nodeComponentDisk                      ), pointer                    :: disk
-    class           (nodeComponentSpheroid                  ), pointer                    :: spheroid
-    class           (nodeComponentDarkMatterProfile         ), pointer                    :: darkMatterProfile
-    double precision                                         , parameter                  :: outerRadiusMultiplier           =10.0d0
-    integer                                                                               :: i
-    double precision                                                                      :: radius                                 , radiusVirial            , &
-         &                                                                                   radiusFromFraction                     , densityIntegrand        , &
-         &                                                                                   radiusZero                             , velocityDensityIntegrand, &
-         &                                                                                   numerator                              , denominator             , &
-         &                                                                                   massDisk                               , massSpheroid
-    logical                                                                               :: scaleIsZero
-    type            (integrator                             )                             :: integratorVelocitySurfaceDensity       , integratorSurfaceDensity, &
-         &                                                                                   integratorLambdaR2                     , integratorLambdaR1
+    double precision                                         , dimension(:,:), allocatable :: velocityDispersionExtract
+    class           (nodePropertyExtractorVelocityDispersion), intent(inout) , target      :: self
+    type            (treeNode                               ), intent(inout) , target      :: node
+    double precision                                         , intent(in   )               :: time
+    type            (multiCounter                           ), intent(inout) , optional    :: instance
+    class           (nodeComponentDisk                      ), pointer                     :: disk
+    class           (nodeComponentSpheroid                  ), pointer                     :: spheroid
+    class           (nodeComponentDarkMatterProfile         ), pointer                     :: darkMatterProfile
+    double precision                                         , parameter                   :: outerRadiusMultiplier           =10.0d0
+    integer                                                                                :: i
+    double precision                                                                       :: radius                                 , radiusVirial            , &
+         &                                                                                    radiusFromFraction                     , densityIntegrand        , &
+         &                                                                                    radiusZero                             , velocityDensityIntegrand, &
+         &                                                                                    numerator                              , denominator             , &
+         &                                                                                    massDisk                               , massSpheroid
+    logical                                                                                :: scaleIsZero
+    type            (integrator                             )                              :: integratorVelocitySurfaceDensity       , integratorSurfaceDensity, &
+         &                                                                                    integratorLambdaR2                     , integratorLambdaR1
     !$GLC attributes unused :: time, instance
 
     integratorVelocitySurfaceDensity=integrator(velocityDispersionVelocitySurfaceDensityIntegrand,toleranceRelative=1.0d-3)
     integratorSurfaceDensity        =integrator(velocityDispersionSurfaceDensityIntegrand        ,toleranceRelative=1.0d-3)
     integratorLambdaR1              =integrator(velocityDispersionLambdaRIntegrand1              ,toleranceRelative=1.0d-2)
     integratorLambdaR2              =integrator(velocityDispersionLambdaRIntegrand2              ,toleranceRelative=1.0d-2)
-    allocate(velocityDispersionExtract(self%elementCount_))
+    allocate(velocityDispersionExtract(self%radiiCount,self%elementCount_))
     radiusVirial                                         =  0.0d0
     if (self%         virialRadiusIsNeeded) radiusVirial      =  self%darkMatterHaloScale_%virialRadius(node                    )
     if (self%                 diskIsNeeded) disk              =>                                        node%disk             ()
@@ -237,27 +277,27 @@ contains
        end select
        if (scaleIsZero) then
           ! Do not compute dispersions if the component scale is zero.
-          velocityDispersionExtract((i-1)*self%step+1)=0.0d0
+          velocityDispersionExtract(i,1)=0.0d0
        else
           select case (self%radii(i)%direction)
           case (directionRadial                    )
              ! Radial velocity dispersion.
-             velocityDispersionExtract((i-1)*self%step+1)=Galactic_Structure_Velocity_Dispersion(                                             &
-                  &                                                                                            node                         , &
-                  &                                                                                            radius                       , &
-                  &                                                                                            velocityDispersionRadiusOuter, &
-                  &                                                                              massType     =self%radii(i)%mass           , &
-                  &                                                                              componentType=self%radii(i)%component        &
-                  &                                                                            )
+             velocityDispersionExtract(i,1)=Galactic_Structure_Velocity_Dispersion(                                             &
+                  &                                                                              node                         , &
+                  &                                                                              radius                       , &
+                  &                                                                              velocityDispersionRadiusOuter, &
+                  &                                                                massType     =self%radii(i)%mass           , &
+                  &                                                                componentType=self%radii(i)%component        &
+                  &                                                               )
           case (directionLineOfSight               )
              ! Line-of-sight velocity dispersion.
-             velocityDispersionNode                       => node
-             velocityDispersionMassType                   =  self%radii(i)%mass
-             velocityDispersionComponentType              =  self%radii(i)%component
-             velocityDispersionWeightBy                   =  self%radii(i)%integralWeightBy
-             velocityDispersionWeightIndex                =  self%radii(i)%integralWeightByIndex
-             velocityDispersionRadiusImpact               =  radius
-             velocityDispersionExtract((i-1)*self%step+1) =  velocityDispersionLineOfSightVelocityDispersionIntegrand(radius)
+             velocityDispersionNode               => node
+             velocityDispersionMassType           =  self%radii(i)%mass
+             velocityDispersionComponentType      =  self%radii(i)%component
+             velocityDispersionWeightBy           =  self%radii(i)%integralWeightBy
+             velocityDispersionWeightIndex        =  self%radii(i)%integralWeightByIndex
+             velocityDispersionRadiusImpact       =  radius
+             velocityDispersionExtract      (i,i) =  velocityDispersionLineOfSightVelocityDispersionIntegrand(radius)
           case (directionLineOfSightInteriorAverage)
              ! Average over the line-of-sight velocity dispersion within the radius.
              velocityDispersionNode          => node
@@ -270,9 +310,9 @@ contains
              velocityDensityIntegrand        =integratorVelocitySurfaceDensity%integrate(radiusZero,velocityDispersionRadiusOuter)
              densityIntegrand                =integratorSurfaceDensity        %integrate(radiusZero,velocityDispersionRadiusOuter)
              if (velocityDensityIntegrand <= 0.0d0) then
-                velocityDispersionExtract((i-1)*self%step+1)=0.0d0
+                velocityDispersionExtract(i,1)=0.0d0
              else
-                velocityDispersionExtract((i-1)*self%step+1)=sqrt(velocityDensityIntegrand/densityIntegrand)
+                velocityDispersionExtract(i,1)=sqrt(velocityDensityIntegrand/densityIntegrand)
              end if
           case (directionLambdaR                   )
              ! The "lambdaR" parameter of Cappellari et al. (2007; MNRAS; 379; 418)
@@ -300,86 +340,100 @@ contains
                   &                                        weightIndex  =velocityDispersionWeightIndex  &
                   &                                       )
              if      (massDisk     <= 0.0d0) then
-                velocityDispersionExtract((i-1)*self%step+1)=0.0d0
+                velocityDispersionExtract(i,1)=0.0d0
              else if (massSpheroid <= 0.0d0) then
-                velocityDispersionExtract((i-1)*self%step+1)=1.0d0
+                velocityDispersionExtract(i,1)=1.0d0
              else
                 ! Full calculation is required.
                 radiusZero=0.0d0
                 numerator  =integratorLambdaR2%integrate(radiusZero,radius)
                 denominator=integratorLambdaR1%integrate(radiusZero,radius)
                 if (denominator <= 0.0d0) then
-                   velocityDispersionExtract((i-1)*self%step+1)=0.0d0
+                   velocityDispersionExtract(i,1)=0.0d0
                 else
-                   velocityDispersionExtract((i-1)*self%step+1)=numerator/denominator
+                   velocityDispersionExtract(i,1)=numerator/denominator
                 end if
              end if
           end select
        end if
-       if (self%includeRadii)                                     &
-            & velocityDispersionExtract((i-1)*self%step+2)=radius
+       if (self%includeRadii)                       &
+            & velocityDispersionExtract(i,2)=radius
     end do
     return
   end function velocityDispersionExtract
 
   function velocityDispersionNames(self,time)
-    !% Return the names of the {\normalfont \ttfamily velocityDispersion} properties.
+    !!{
+    Return the names of the {\normalfont \ttfamily velocityDispersion} properties.
+    !!}
     implicit none
     type            (varying_string                         ), dimension(:) , allocatable :: velocityDispersionNames
     class           (nodePropertyExtractorVelocityDispersion), intent(inout)              :: self
     double precision                                         , intent(in   )              :: time
-    integer                                                                               :: i
     !$GLC attributes unused :: time
-
+    
     allocate(velocityDispersionNames(self%elementCount_))
-    do i=1,size(self%radii)
-       velocityDispersionNames       ((i-1)*self%step+1)="velocityDispersion:"      //char(self%radii(i)%name)
-       if (self%includeRadii)                                                                                  &
-            & velocityDispersionNames((i-1)*self%step+2)="velocityDispersionRadius:"//char(self%radii(i)%name)
-    end do
+    velocityDispersionNames       (1)="velocityDispersion"
+    if (self%includeRadii)                                       &
+         & velocityDispersionNames(2)="velocityDispersionRadius"
     return
   end function velocityDispersionNames
 
   function velocityDispersionDescriptions(self,time)
-    !% Return descriptions of the {\normalfont \ttfamily velocityDispersion} property.
+    !!{
+    Return descriptions of the {\normalfont \ttfamily velocityDispersion} property.
+    !!}
     implicit none
     type            (varying_string                         ), dimension(:) , allocatable :: velocityDispersionDescriptions
     class           (nodePropertyExtractorVelocityDispersion), intent(inout)              :: self
     double precision                                         , intent(in   )              :: time
-    integer                                                                               :: i
     !$GLC attributes unused :: time
 
     allocate(velocityDispersionDescriptions(self%elementCount_))
-    do i=1,size(self%radii)
-       velocityDispersionDescriptions       ((i-1)*self%step+1)="Velocity dispersion at a given radius [km s⁻¹]."
-       if (self%includeRadii)                                                                                          &
-            & velocityDispersionDescriptions((i-1)*self%step+2)="Radius at which velocity dispersion is output [Mpc]."
-    end do
+    velocityDispersionDescriptions       (1)="Velocity dispersion at a given radius [km s⁻¹]."
+    if (self%includeRadii)                                                                          &
+         & velocityDispersionDescriptions(2)="Radius at which velocity dispersion is output [Mpc]."
     return
   end function velocityDispersionDescriptions
 
+  function velocityDispersionColumnDescriptions(self,time)
+    !!{
+    Return column descriptions of the {\normalfont \ttfamily velocityDispersion} property.
+    !!}
+    implicit none
+    type            (varying_string                         ), dimension(:) , allocatable :: velocityDispersionColumnDescriptions
+    class           (nodePropertyExtractorVelocityDispersion), intent(inout)              :: self
+    double precision                                         , intent(in   )              :: time
+    !$GLC attributes unused :: time
+
+    allocate(velocityDispersionColumnDescriptions(self%radiiCount))
+    velocityDispersionColumnDescriptions=self%radii%name
+    return
+  end function velocityDispersionColumnDescriptions
+
   function velocityDispersionUnitsInSI(self,time)
-    !% Return the units of the {\normalfont \ttfamily velocityDispersion} properties in the SI system.
+    !!{
+    Return the units of the {\normalfont \ttfamily velocityDispersion} properties in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     double precision                                         , allocatable  , dimension(:) :: velocityDispersionUnitsInSI
     class           (nodePropertyExtractorVelocityDispersion), intent(inout)               :: self
     double precision                                         , intent(in   )               :: time
-    integer                                                                                :: i
     !$GLC attributes unused :: time
 
     allocate(velocityDispersionUnitsInSI(self%elementCount_))
-    do i=1,size(self%radii)
-       velocityDispersionUnitsInSI       ((i-1)*self%step+1)=kilo
-       if (self%includeRadii)                                           &
-            & velocityDispersionUnitsInSI((i-1)*self%step+2)=megaParsec
-    end do
+    velocityDispersionUnitsInSI       (1)=kilo
+    if (self%includeRadii)                           &
+         & velocityDispersionUnitsInSI(2)=megaParsec
     return
   end function velocityDispersionUnitsInSI
 
   integer function velocityDispersionType(self)
-    !% Return the type of the {\normalfont \ttfamily velocityDispersion} properties.
+    !!{
+    Return the type of the {\normalfont \ttfamily velocityDispersion} properties.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorVelocityDispersion), intent(inout) :: self
@@ -390,24 +444,26 @@ contains
   end function velocityDispersionType
 
   double precision function velocityDispersionLambdaRIntegrand1(radius)
-    !% Integrand function used for integrating the $\lambda_\mathrm{R}$ statistic of \cite{cappellari_sauron_2007}. In this case we
-    !% want to evaluate
-    !% \begin{equation}
-    !% \int_0^r 2 \pi r^\prime \Sigma(r^\prime) \sqrt{\sigma^2(r^\prime)+V^2(r^\prime)} \mathrm{d}r^\prime,
-    !% \end{equation}
-    !% where $\Sigma(r)$ is the projected surface density (in mass or light) of the galaxy at radius $r$, $\sigma^2(r)$ is the
-    !% measured velocity dispersion and $V(r)$ the measured rotation speed. Assuming that the selected component is purely
-    !% dispersion dominated with velocity dispersion $\sigma_\mathrm{s}(r)$, and that rotation is present in only the disk component
-    !% with rotation curve $V_\mathrm{d}(r)$ then we can model the velocity distribution, $P(V)$, at $r$ as the sum of a Gaussian of
-    !% width $\sigma_\mathrm{s}(r)$ and normalized area $\Sigma_\mathrm{s}(r)$, and a delta function at $V_\mathrm{d}(r)$ with normalized
-    !% area $\Sigma_\mathrm{d}(r)$. The measured rotation speed is then:
-    !% \begin{equation}
-    !% V(r) = \left. \int_{-\infty}^{+\infty} P(V) V \mathrm{d}V \right/ \int_{-\infty}^{+\infty} P(V) \mathrm{d}V = {\Sigma_\mathrm{d}(r) V_\mathrm{d}(r) \over [\Sigma_\mathrm{d}(r)+\Sigma_\mathrm{s}(r)]},
-    !% \end{equation}
-    !% and the measured velocity dispersion is:
-    !% \begin{equation}
-    !% \sigma^2(r) = \left. \int_{-\infty}^{+\infty} P(V) [V-V(r)]^2 \mathrm{d}V \right/ \int_{-\infty}^{+\infty} P(V) \mathrm{d}V = {  \Sigma_\mathrm{s}(r) [\sigma_\mathrm{s}^2(r)] + \Sigma_\mathrm{d}(r) [V_\mathrm{d}(r)-V(r)]^2  \over [\Sigma_\mathrm{d}(r)+\Sigma_\mathrm{s}(r)]}.
-    !% \end{equation}
+    !!{
+    Integrand function used for integrating the $\lambda_\mathrm{R}$ statistic of \cite{cappellari_sauron_2007}. In this case we
+    want to evaluate
+    \begin{equation}
+    \int_0^r 2 \pi r^\prime \Sigma(r^\prime) \sqrt{\sigma^2(r^\prime)+V^2(r^\prime)} \mathrm{d}r^\prime,
+    \end{equation}
+    where $\Sigma(r)$ is the projected surface density (in mass or light) of the galaxy at radius $r$, $\sigma^2(r)$ is the
+    measured velocity dispersion and $V(r)$ the measured rotation speed. Assuming that the selected component is purely
+    dispersion dominated with velocity dispersion $\sigma_\mathrm{s}(r)$, and that rotation is present in only the disk component
+    with rotation curve $V_\mathrm{d}(r)$ then we can model the velocity distribution, $P(V)$, at $r$ as the sum of a Gaussian of
+    width $\sigma_\mathrm{s}(r)$ and normalized area $\Sigma_\mathrm{s}(r)$, and a delta function at $V_\mathrm{d}(r)$ with normalized
+    area $\Sigma_\mathrm{d}(r)$. The measured rotation speed is then:
+    \begin{equation}
+    V(r) = \left. \int_{-\infty}^{+\infty} P(V) V \mathrm{d}V \right/ \int_{-\infty}^{+\infty} P(V) \mathrm{d}V = {\Sigma_\mathrm{d}(r) V_\mathrm{d}(r) \over [\Sigma_\mathrm{d}(r)+\Sigma_\mathrm{s}(r)]},
+    \end{equation}
+    and the measured velocity dispersion is:
+    \begin{equation}
+    \sigma^2(r) = \left. \int_{-\infty}^{+\infty} P(V) [V-V(r)]^2 \mathrm{d}V \right/ \int_{-\infty}^{+\infty} P(V) \mathrm{d}V = {  \Sigma_\mathrm{s}(r) [\sigma_\mathrm{s}^2(r)] + \Sigma_\mathrm{d}(r) [V_\mathrm{d}(r)-V(r)]^2  \over [\Sigma_\mathrm{d}(r)+\Sigma_\mathrm{s}(r)]}.
+    \end{equation}
+    !!}
     use :: Galactic_Structure_Options          , only : componentTypeAll                  , componentTypeDisk, massTypeAll, massTypeStellar
     use :: Galactic_Structure_Rotation_Curves  , only : Galactic_Structure_Rotation_Curve
     use :: Galactic_Structure_Surface_Densities, only : Galactic_Structure_Surface_Density
@@ -478,20 +534,22 @@ contains
   end function velocityDispersionLambdaRIntegrand1
 
   double precision function velocityDispersionLambdaRIntegrand2(radius)
-    !% Integrand function used for integrating the $\lambda_\mathrm{R}$ statistic of \cite{cappellari_sauron_2007}. In this case we
-    !% want to evaluate
-    !% \begin{equation}
-    !% \int_0^r 2 \pi r^\prime \Sigma(r^\prime) V(r^\prime) \mathrm{d}r^\prime,
-    !% \end{equation}
-    !% where $\Sigma(r)$ is the projected surface density (in mass or light) of the galaxy at radius $r$, and $V(r)$ the measured
-    !% rotation speed. Assuming that the selected component is purely dispersion dominated with velocity dispersion $\sigma_\mathrm{
-    !% s}(r)$, and that rotation is present in only the disk component with rotation curve $V_\mathrm{d}(r)$ then we can model the
-    !% velocity distribution, $P(V)$, at $r$ as the sum of a Gaussian of width $\sigma_\mathrm{s}(r)$ and normalized area
-    !% $\Sigma_\mathrm{s}(r)$, and a delta function at $V_\mathrm{d}(r)$ with normalized area $\Sigma_\mathrm{d}(r)$. The measured rotation
-    !% speed is then:
-    !% \begin{equation}
-    !% V(r) = \left. \int_{-\infty}^{+\infty} P(V) V \mathrm{d}V \right/ \int_{-\infty}^{+\infty} P(V) \mathrm{d}V = {\Sigma_\mathrm{d}(r) V_\mathrm{d}(r) \over [\Sigma_\mathrm{d}(r)+\Sigma_\mathrm{s}(r)]}.
-    !% \end{equation}
+    !!{
+    Integrand function used for integrating the $\lambda_\mathrm{R}$ statistic of \cite{cappellari_sauron_2007}. In this case we
+    want to evaluate
+    \begin{equation}
+    \int_0^r 2 \pi r^\prime \Sigma(r^\prime) V(r^\prime) \mathrm{d}r^\prime,
+    \end{equation}
+    where $\Sigma(r)$ is the projected surface density (in mass or light) of the galaxy at radius $r$, and $V(r)$ the measured
+    rotation speed. Assuming that the selected component is purely dispersion dominated with velocity dispersion $\sigma_\mathrm{
+    s}(r)$, and that rotation is present in only the disk component with rotation curve $V_\mathrm{d}(r)$ then we can model the
+    velocity distribution, $P(V)$, at $r$ as the sum of a Gaussian of width $\sigma_\mathrm{s}(r)$ and normalized area
+    $\Sigma_\mathrm{s}(r)$, and a delta function at $V_\mathrm{d}(r)$ with normalized area $\Sigma_\mathrm{d}(r)$. The measured rotation
+    speed is then:
+    \begin{equation}
+    V(r) = \left. \int_{-\infty}^{+\infty} P(V) V \mathrm{d}V \right/ \int_{-\infty}^{+\infty} P(V) \mathrm{d}V = {\Sigma_\mathrm{d}(r) V_\mathrm{d}(r) \over [\Sigma_\mathrm{d}(r)+\Sigma_\mathrm{s}(r)]}.
+    \end{equation}
+    !!}
     use :: Galactic_Structure_Options          , only : componentTypeAll                  , componentTypeDisk, massTypeAll, massTypeStellar
     use :: Galactic_Structure_Rotation_Curves  , only : Galactic_Structure_Rotation_Curve
     use :: Galactic_Structure_Surface_Densities, only : Galactic_Structure_Surface_Density
@@ -527,7 +585,9 @@ contains
   end function velocityDispersionLambdaRIntegrand2
 
   double precision function velocityDispersionVelocitySurfaceDensityIntegrand(radius)
-    !% Integrand function used for integrating line-of-sight velocity dispersion over surface density.
+    !!{
+    Integrand function used for integrating line-of-sight velocity dispersion over surface density.
+    !!}
     use :: Galactic_Structure_Densities           , only : Galactic_Structure_Density
     use :: Galactic_Structure_Velocity_Dispersions, only : Galactic_Structure_Velocity_Dispersion
     implicit none
@@ -560,7 +620,9 @@ contains
   end function velocityDispersionVelocitySurfaceDensityIntegrand
 
   double precision function velocityDispersionSurfaceDensityIntegrand(radius)
-    !% Integrand function used for integrating line-of-sight surface density dispersion over area.
+    !!{
+    Integrand function used for integrating line-of-sight surface density dispersion over area.
+    !!}
     use :: Galactic_Structure_Densities, only : Galactic_Structure_Density
     implicit none
     double precision, intent(in   ) :: radius
@@ -585,8 +647,10 @@ contains
   end function velocityDispersionSurfaceDensityIntegrand
 
   double precision function velocityDispersionSolidAngleInCylinder(radius)
-    !% Computes the solid angle of a spherical shelll of given {\normalfont \ttfamily radius} that lies within a cylinder of radius {\normalfont \ttfamily
-    !% radiusImpact}.
+    !!{
+    Computes the solid angle of a spherical shelll of given {\normalfont \ttfamily radius} that lies within a cylinder of radius {\normalfont \ttfamily
+    radiusImpact}.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: radius
@@ -603,7 +667,9 @@ contains
   end function velocityDispersionSolidAngleInCylinder
 
   double precision function velocityDispersionLineOfSightVelocityDispersionIntegrand(radius)
-    !% Compute the line-of-sight velocity dispersion at the given {\normalfont \ttfamily radius}.
+    !!{
+    Compute the line-of-sight velocity dispersion at the given {\normalfont \ttfamily radius}.
+    !!}
     use :: Numerical_Integration, only : integrator
     implicit none
     double precision            , intent(in   ) :: radius
@@ -623,7 +689,9 @@ contains
   end function velocityDispersionLineOfSightVelocityDispersionIntegrand
 
   double precision function velocityDispersionDensityIntegrand(radius)
-    !% Integrand function used for computing line-of-sight velocity dispersions.
+    !!{
+    Integrand function used for computing line-of-sight velocity dispersions.
+    !!}
     use :: Galactic_Structure_Densities, only : Galactic_Structure_Density
     implicit none
     double precision, intent(in   ) :: radius
@@ -646,30 +714,32 @@ contains
   end function velocityDispersionDensityIntegrand
 
   double precision function velocityDispersionVelocityDensityIntegrand(radius)
-    !% Integrand function used for computing line-of-sight velocity dispersions. Specifically, we wish to evaluate the integral:
-    !% \begin{equation}
-    !% \int_{r_\mathrm{i}}^{r_\mathrm{o}} \sigma^2(r) \rho(r) {r \over \sqrt{r^2-r_\mathrm{i}^2}} \mathrm{d}r,
-    !% \label{eq:velocityDispersionDensityIntegral}
-    !% \end{equation}
-    !% where $r_\mathrm{i}$ is the impact parameter, $r_\mathrm{o}$ is an outer radius at which we assume $\rho(r_\mathrm{
-    !% o})\sigma^2(r_\mathrm{o}) = 0$ (i.e. it is the radius at which we begin integrating the Jeans equation), $\rho(r)$ is density,
-    !% and $\sigma(r)$ is the velocity dispersion at radius $r$. Assuming spherical symmetry and isotropic velocity dispersion,
-    !% the Jeans equation tells us
-    !% \begin{equation}
-    !% \rho(r) \sigma^2(r) = \int^{r_\mathrm{o}}_r {\mathrm{G} M(<r^\prime) \over r^{\prime 2}} \rho(r^\prime) \mathrm{d}r^\prime,
-    !% \label{eq:sphericalIsotropicJeans}
-    !% \end{equation}
-    !% where $\mathrm{G}$ is the gravitational constant, and $M(<r)$ is the total mass contained within radius
-    !% $r$. Equation~(\ref{eq:velocityDispersionDensityIntegral}) can then be simplified using integration by parts to give:
-    !% \begin{equation}
-    !% \left[ \sigma^2(r)\rho(r)\sqrt{r^2-r_\mathrm{i}^2}\right]_{r_\mathrm{i}}^{r_\mathrm{o}} + \int_{r_\mathrm{i}}^{r_\mathrm{o}} {\mathrm{d}\over \mathrm{d}r} \left[ \sigma^2(r) \rho(r) \right] \sqrt{r^2-r_\mathrm{i}^2} \mathrm{d}r.
-    !% \end{equation}
-    !% The first term is zero at both limits (due to the constraint $\rho(r_\mathrm{o})\sigma^2(r_\mathrm{o}) = 0$ at $r_\mathrm{o}$ and
-    !% due to $sqrt{r^2-r_\mathrm{i}^2}=0$ at $r_\mathrm{i}$), and the second term can be simplified using
-    !% eqn.~(\ref{eq:sphericalIsotropicJeans}) to give
-    !% \begin{equation}
-    !% \int_{r_\mathrm{i}}^{r_\mathrm{o}} {\mathrm{G} M(<r) \over r^2} \rho(r) \sqrt{r^2-r_\mathrm{i}^2} \mathrm{d}r.
-    !% \end{equation}
+    !!{
+    Integrand function used for computing line-of-sight velocity dispersions. Specifically, we wish to evaluate the integral:
+    \begin{equation}
+    \int_{r_\mathrm{i}}^{r_\mathrm{o}} \sigma^2(r) \rho(r) {r \over \sqrt{r^2-r_\mathrm{i}^2}} \mathrm{d}r,
+    \label{eq:velocityDispersionDensityIntegral}
+    \end{equation}
+    where $r_\mathrm{i}$ is the impact parameter, $r_\mathrm{o}$ is an outer radius at which we assume $\rho(r_\mathrm{
+    o})\sigma^2(r_\mathrm{o}) = 0$ (i.e. it is the radius at which we begin integrating the Jeans equation), $\rho(r)$ is density,
+    and $\sigma(r)$ is the velocity dispersion at radius $r$. Assuming spherical symmetry and isotropic velocity dispersion,
+    the Jeans equation tells us
+    \begin{equation}
+    \rho(r) \sigma^2(r) = \int^{r_\mathrm{o}}_r {\mathrm{G} M(<r^\prime) \over r^{\prime 2}} \rho(r^\prime) \mathrm{d}r^\prime,
+    \label{eq:sphericalIsotropicJeans}
+    \end{equation}
+    where $\mathrm{G}$ is the gravitational constant, and $M(<r)$ is the total mass contained within radius
+    $r$. Equation~(\ref{eq:velocityDispersionDensityIntegral}) can then be simplified using integration by parts to give:
+    \begin{equation}
+    \left[ \sigma^2(r)\rho(r)\sqrt{r^2-r_\mathrm{i}^2}\right]_{r_\mathrm{i}}^{r_\mathrm{o}} + \int_{r_\mathrm{i}}^{r_\mathrm{o}} {\mathrm{d}\over \mathrm{d}r} \left[ \sigma^2(r) \rho(r) \right] \sqrt{r^2-r_\mathrm{i}^2} \mathrm{d}r.
+    \end{equation}
+    The first term is zero at both limits (due to the constraint $\rho(r_\mathrm{o})\sigma^2(r_\mathrm{o}) = 0$ at $r_\mathrm{o}$ and
+    due to $sqrt{r^2-r_\mathrm{i}^2}=0$ at $r_\mathrm{i}$), and the second term can be simplified using
+    eqn.~(\ref{eq:sphericalIsotropicJeans}) to give
+    \begin{equation}
+    \int_{r_\mathrm{i}}^{r_\mathrm{o}} {\mathrm{G} M(<r) \over r^2} \rho(r) \sqrt{r^2-r_\mathrm{i}^2} \mathrm{d}r.
+    \end{equation}
+    !!}
     use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : componentTypeAll                , massTypeAll

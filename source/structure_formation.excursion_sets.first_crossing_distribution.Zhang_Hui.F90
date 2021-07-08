@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,19 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}.
+  !!{
+  Contains a module which implements a excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}.
+  !!}
 
   use :: Excursion_Sets_Barriers, only : excursionSetBarrierClass
   use :: Numerical_Interpolation, only : interpolator
 
-  !# <excursionSetFirstCrossing name="excursionSetFirstCrossingZhangHui">
-  !#  <description>
-  !#   An excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}. First crossing (and
-  !#   non-crossing) rates are not supported by this method.
-  !#  </description>
-  !# </excursionSetFirstCrossing>
+  !![
+  <excursionSetFirstCrossing name="excursionSetFirstCrossingZhangHui">
+   <description>
+    An excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}. First crossing (and
+    non-crossing) rates are not supported by this method.
+   </description>
+  </excursionSetFirstCrossing>
+  !!]
   type, extends(excursionSetFirstCrossingClass) :: excursionSetFirstCrossingZhangHui
-     !% An excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}.
+     !!{
+     An excursion set first crossing statistics class utilizing the algorithm of \cite{zhang_random_2006}.
+     !!}
      private
      class           (excursionSetBarrierClass), pointer                     :: excursionSetBarrier_         => null()
      double precision                                                        :: timeMaximum                  =  0.0d0  , timeMinimum             =0.0d0 , &
@@ -50,12 +56,14 @@
      double precision                                                        :: barrierIntegrand                       , barrierGradientIntegrand       , &
           &                                                                     timeIntegrand                          , varianceIntegrand
    contains
-     !# <methods>
-     !#   <method description="Returns the function $g_1(S)$ \citep{zhang_random_2006}." method="g1" />
-     !#   <method description="Returns the function $g_2(S,S^\prime)$ \citep{zhang_random_2006}." method="g2" />
-     !#   <method description="Returns the function $g_2(S,S^\prime)$ integrated over a range $\Delta S$ \citep{zhang_random_2006}." method="g2Integrated" />
-     !#   <method description="Returns the function $g_2(S,S^\prime)$ integrated over a range $\Delta S$ \citep{zhang_random_2006}." method="delta" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Returns the function $g_1(S)$ \citep{zhang_random_2006}." method="g1" />
+       <method description="Returns the function $g_2(S,S^\prime)$ \citep{zhang_random_2006}." method="g2" />
+       <method description="Returns the function $g_2(S,S^\prime)$ integrated over a range $\Delta S$ \citep{zhang_random_2006}." method="g2Integrated" />
+       <method description="Returns the function $g_2(S,S^\prime)$ integrated over a range $\Delta S$ \citep{zhang_random_2006}." method="delta" />
+     </methods>
+     !!]
      final     ::                    zhangHuiDestructor
      procedure :: probability     => zhangHuiProbability
      procedure :: rate            => zhangHuiRate
@@ -67,7 +75,9 @@
   end type excursionSetFirstCrossingZhangHui
 
   interface excursionSetFirstCrossingZhangHui
-     !% Constructors for the \cite{zhang_random_2006} excursion set barrier class.
+     !!{
+     Constructors for the \cite{zhang_random_2006} excursion set barrier class.
+     !!}
      module procedure zhangHuiConstructorParameters
      module procedure zhangHuiConstructorInternal
   end interface excursionSetFirstCrossingZhangHui
@@ -78,26 +88,36 @@
 contains
 
   function zhangHuiConstructorParameters(parameters) result(self)
-    !% Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
+    !!{
+    Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (excursionSetFirstCrossingZhangHui)                :: self
     type (inputParameters                  ), intent(inout) :: parameters
     class(excursionSetBarrierClass         ), pointer       :: excursionSetBarrier_
 
-    !# <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
+    !![
+    <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
+    !!]
     self=excursionSetFirstCrossingZhangHui(excursionSetBarrier_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="excursionSetBarrier_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="excursionSetBarrier_"/>
+    !!]
     return
   end function zhangHuiConstructorParameters
 
   function zhangHuiConstructorInternal(excursionSetBarrier_) result(self)
-    !% Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
+    !!{
+    Constructor for the linear barrier excursion set class first crossing class which takes a parameter set as input.
+    !!}
     implicit none
     type (excursionSetFirstCrossingZhangHui)                        :: self
     class(excursionSetBarrierClass         ), intent(in   ), target :: excursionSetBarrier_
-    !# <constructorAssign variables="*excursionSetBarrier_"/>
+    !![
+    <constructorAssign variables="*excursionSetBarrier_"/>
+    !!]
 
     self% tableInitialized=.false.
     self%  varianceMaximum=-huge(0.0d0)
@@ -112,21 +132,27 @@ contains
   end function zhangHuiConstructorInternal
 
   subroutine zhangHuiDestructor(self)
-    !% Destructor for the critical overdensity excursion set barrier class.
+    !!{
+    Destructor for the critical overdensity excursion set barrier class.
+    !!}
     implicit none
     type(excursionSetFirstCrossingZhangHui), intent(inout) :: self
 
-    !# <objectDestructor name="self%excursionSetBarrier_" />
+    !![
+    <objectDestructor name="self%excursionSetBarrier_" />
+    !!]
     return
   end subroutine zhangHuiDestructor
 
   double precision function zhangHuiProbability(self,variance,time,node)
-    !% Return the excursion set barrier at the given variance and time.
-    use            :: Galacticus_Display, only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-          &                                      verbosityWorking
-    use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: Memory_Management , only : allocateArray             , deallocateArray
-    use            :: Numerical_Ranges  , only : Make_Range                , rangeTypeLinear                 , rangeTypeLogarithmic
+    !!{
+    Return the excursion set barrier at the given variance and time.
+    !!}
+    use            :: Display          , only : displayCounter       , displayCounterClear, displayIndent       , displayUnindent, &
+          &                                     verbosityLevelWorking
+    use, intrinsic :: ISO_C_Binding    , only : c_size_t
+    use            :: Memory_Management, only : allocateArray        , deallocateArray
+    use            :: Numerical_Ranges , only : Make_Range           , rangeTypeLinear    , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout)  :: self
     double precision                                   , intent(in   )  :: variance         , time
@@ -169,10 +195,10 @@ contains
        self%varianceTableStep=+self%varianceTable(1) &
             &                 -self%varianceTable(0)
        ! Loop through the table and solve for the first crossing distribution.
-       call Galacticus_Display_Indent("solving for excursion set barrier crossing probabilities",verbosityWorking)
+       call displayIndent("solving for excursion set barrier crossing probabilities",verbosityLevelWorking)
        do iTime=1,self%timeTableCount
           do i=0,self%varianceTableCount
-             call Galacticus_Display_Counter(int(100.0d0*dble(i+(iTime-1)*self%varianceTableCount)/dble(self%varianceTableCount*self%timeTableCount)),i==0 .and. iTime==1,verbosityWorking)
+             call displayCounter(int(100.0d0*dble(i+(iTime-1)*self%varianceTableCount)/dble(self%varianceTableCount*self%timeTableCount)),i==0 .and. iTime==1,verbosityLevelWorking)
              if      (i  > 2) then
                 summedProbability=0.0d0
                 do j=1,i-1
@@ -215,8 +241,8 @@ contains
              end if
           end do
        end do
-       call Galacticus_Display_Counter_Clear(verbosityWorking)
-       call Galacticus_Display_Unindent("done",verbosityWorking)
+       call displayCounterClear(verbosityLevelWorking)
+       call displayUnindent("done",verbosityLevelWorking)
        ! Build the interpolators.
        if (allocated(self%interpolatorVariance)) deallocate(self%interpolatorVariance)
        if (allocated(self%interpolatorTime    )) deallocate(self%interpolatorTime    )
@@ -241,7 +267,9 @@ contains
   end function zhangHuiProbability
 
   double precision function zhangHuiRate(self,variance,varianceProgenitor,time,node)
-    !% Return the excursion set barrier at the given variance and time. This method is not implemented.
+    !!{
+    Return the excursion set barrier at the given variance and time. This method is not implemented.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout) :: self
@@ -256,7 +284,9 @@ contains
   end function zhangHuiRate
 
   double precision function zhangHuiRateNonCrossing(self,variance,time,node)
-    !% Return the rate for excursion set non-crossing. This method is not implemented.
+    !!{
+    Return the rate for excursion set non-crossing. This method is not implemented.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout) :: self
@@ -270,7 +300,9 @@ contains
   end function zhangHuiRateNonCrossing
 
   double precision function zhangHuiG1(self,variance,time,node)
-    !% Returns the function $g_1(S)$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
+    !!{
+    Returns the function $g_1(S)$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
+    !!}
     use :: Math_Distributions_Gaussian, only : Gaussian_Distribution
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout) :: self
@@ -290,7 +322,9 @@ contains
   end function zhangHuiG1
 
   double precision function zhangHuiG2(self,variance,variancePrimed,time,node)
-    !% Returns the function $g_2(S,S^\prime)$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
+    !!{
+    Returns the function $g_2(S,S^\prime)$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
+    !!}
     use :: Math_Distributions_Gaussian, only : Gaussian_Distribution
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout) :: self
@@ -318,7 +352,9 @@ contains
   end function zhangHuiG2
 
   double precision function zhangHuiDelta(self,i,j,iVariance,jVariance,deltaVariance,time,node)
-    !% Returns the factor $\Delta{i,j}$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
+    !!{
+    Returns the factor $\Delta{i,j}$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
+    !!}
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout) :: self
     integer                                            , intent(in   ) :: i               , j
@@ -343,9 +379,11 @@ contains
   end function zhangHuiDelta
 
   double precision function zhangHuiG2Integrated(self,variance,deltaVariance,time,node)
-    !% Integrated function $g_2(S,S^\prime)$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
+    !!{
+    Integrated function $g_2(S,S^\prime)$ in the \cite{zhang_random_2006} algorithm for excursion set barrier crossing probabilities.
+    !!}
     use :: Numerical_Comparison , only : Values_Differ
-    use :: Numerical_Integration, only : integrator   , GSL_Integ_Gauss15
+    use :: Numerical_Integration, only : GSL_Integ_Gauss15, integrator
     implicit none
     class           (excursionSetFirstCrossingZhangHui), intent(inout) :: self
     double precision                                   , intent(in   ) :: deltaVariance                 , time           , &
@@ -392,8 +430,10 @@ contains
   contains
 
     double precision function zhangHuiG2Integrand(variancePrimed)
-      !% Integrand function used in computing $\Delta_{i,i}$ in the \cite{zhang_random_2006} algorithm for excursion set barrier
-      !% crossing probabilities.
+      !!{
+      Integrand function used in computing $\Delta_{i,i}$ in the \cite{zhang_random_2006} algorithm for excursion set barrier
+      crossing probabilities.
+      !!}
       use :: Math_Distributions_Gaussian, only : Gaussian_Distribution
       implicit none
       double precision, intent(in   ) :: variancePrimed

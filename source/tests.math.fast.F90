@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,14 +17,18 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test mathematical special functions.
+!!{
+Contains a program to test mathematical special functions.
+!!}
 
 program Test_Math_Fast
-  !% Tests of mathematical fast functions.
-  use :: Galacticus_Display , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  !!{
+  Tests of mathematical fast functions.
+  !!}
+  use :: Display            , only : displayVerbositySet, verbosityLevelStandard
   use :: Kind_Numbers       , only : kind_int8
-  use :: Math_Exponentiation, only : cubeRoot                      , fastExponentiator
-  use :: Unit_Tests         , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Math_Exponentiation, only : cubeRoot           , fastExponentiator
+  use :: Unit_Tests         , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   integer                            , parameter             :: pointCount  =10000
   double precision                   , dimension(pointCount) :: exact                  , fast                , &
@@ -38,7 +42,7 @@ program Test_Math_Fast
   character       (len=7            )                        :: label
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Math: fast functions")

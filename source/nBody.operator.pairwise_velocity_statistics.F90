@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which computes pairwise velocity statistics in bins of separation.
+!!{
+Contains a module which implements an N-body data operator which computes pairwise velocity statistics in bins of separation.
+!!}
 
-  use, intrinsic :: ISO_C_Binding           , only : c_size_t
-  use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
   use            :: Cosmology_Functions     , only : cosmologyFunctionsClass
   use            :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  use, intrinsic :: ISO_C_Binding           , only : c_size_t
+  use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
-  !# <nbodyOperator name="nbodyOperatorPairwiseVelocityStatistics">
-  !#  <description>An N-body data operator which computes pairwise velocity statistics in bins of separation.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorPairwiseVelocityStatistics">
+   <description>An N-body data operator which computes pairwise velocity statistics in bins of separation.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorPairwiseVelocityStatistics
-     !% An N-body data operator which computes pairwise velocity statistics in bins of separation.
+     !!{
+     An N-body data operator which computes pairwise velocity statistics in bins of separation.
+     !!}
      private
      double precision                                      :: separationMinimum               , separationMaximum   , &
           &                                                   bootstrapSampleRate             , time
@@ -45,7 +51,9 @@
   end type nbodyOperatorPairwiseVelocityStatistics
 
   interface nbodyOperatorPairwiseVelocityStatistics
-     !% Constructors for the ``pairwiseVelocityStatistics'' N-body operator class.
+     !!{
+     Constructors for the ``pairwiseVelocityStatistics'' N-body operator class.
+     !!}
      module procedure pairwiseVelocityStatisticsConstructorParameters
      module procedure pairwiseVelocityStatisticsConstructorInternal
   end interface nbodyOperatorPairwiseVelocityStatistics
@@ -53,7 +61,9 @@
 contains
 
   function pairwiseVelocityStatisticsConstructorParameters(parameters) result (self)
-    !% Constructor for the ``pairwiseVelocityStatistics'' N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``pairwiseVelocityStatistics'' N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyOperatorPairwiseVelocityStatistics)                :: self
@@ -69,60 +79,62 @@ contains
     logical                                                                  :: includeUnbootstrapped , crossCount          , &
          &                                                                      addHubbleFlow
 
-    !# <inputParameter>
-    !#   <name>crossCount</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, compute cross-simulation pairwise velocity statistics between the first and all simulations. Otherwise, compute pairwise velocity statistics within each simulation.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>addHubbleFlow</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, add Hubble flow to velocities.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshift</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The redshift.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>bootstrapSampleCount</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>30_c_size_t</defaultValue>
-    !#   <description>The number of bootstrap resamples of the particles that should be used.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>bootstrapSampleRate</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The sampling rate for particles.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>separationMinimum</name>
-    !#   <source>parameters</source>
-    !#   <description>The minimum separation to consider for pairwise velocity statistics.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>separationMaximum</name>
-    !#   <source>parameters</source>
-    !#   <description>The maximum separation to consider for pairwise velocity statistics.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>separationCount</name>
-    !#   <source>parameters</source>
-    !#   <description>The number of bins in separation for pairwise velocity statistics.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>includeUnbootstrapped</name>
-    !#   <source>parameters</source>
-    !#   <description>If true, include results for the unbootstrapped (i.e. original) sample.</description>
-    !#   <defaultValue>.true.</defaultValue>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters"/>
+    !![
+    <inputParameter>
+      <name>crossCount</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, compute cross-simulation pairwise velocity statistics between the first and all simulations. Otherwise, compute pairwise velocity statistics within each simulation.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>addHubbleFlow</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, add Hubble flow to velocities.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>redshift</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The redshift.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>bootstrapSampleCount</name>
+      <source>parameters</source>
+      <defaultValue>30_c_size_t</defaultValue>
+      <description>The number of bootstrap resamples of the particles that should be used.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>bootstrapSampleRate</name>
+      <source>parameters</source>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The sampling rate for particles.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>separationMinimum</name>
+      <source>parameters</source>
+      <description>The minimum separation to consider for pairwise velocity statistics.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>separationMaximum</name>
+      <source>parameters</source>
+      <description>The maximum separation to consider for pairwise velocity statistics.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>separationCount</name>
+      <source>parameters</source>
+      <description>The number of bins in separation for pairwise velocity statistics.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>includeUnbootstrapped</name>
+      <source>parameters</source>
+      <description>If true, include results for the unbootstrapped (i.e. original) sample.</description>
+      <defaultValue>.true.</defaultValue>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters"/>
+    !!]
     time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift))
     if (associated(parameters%parent)) then
        parametersRoot => parameters%parent
@@ -133,15 +145,19 @@ contains
     else
        self=nbodyOperatorPairwiseVelocityStatistics(separationMinimum,separationMaximum,separationCount,time,crossCount,addHubbleFlow,includeUnbootstrapped,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_,cosmologyFunctions_,darkMatterHaloScale_,parameters    )
     end if
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="randomNumberGenerator_"/>
-    !# <objectDestructor name="cosmologyFunctions_"   />
-    !# <objectDestructor name="darkMatterHaloScale_"  />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="randomNumberGenerator_"/>
+    <objectDestructor name="cosmologyFunctions_"   />
+    <objectDestructor name="darkMatterHaloScale_"  />
+    !!]
     return
   end function pairwiseVelocityStatisticsConstructorParameters
 
   function pairwiseVelocityStatisticsConstructorInternal(separationMinimum,separationMaximum,separationCount,time,crossCount,addHubbleFlow,includeUnbootstrapped,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_,cosmologyFunctions_,darkMatterHaloScale_,parameters) result (self)
-    !% Internal constructor for the ``pairwiseVelocityStatistics'' N-body operator class.
+    !!{
+    Internal constructor for the ``pairwiseVelocityStatistics'' N-body operator class.
+    !!}
     implicit none
     type            (nbodyOperatorPairwiseVelocityStatistics)                        :: self
     double precision                                         , intent(in   )         :: separationMinimum     , separationMaximum   , &
@@ -153,40 +169,48 @@ contains
     class           (darkMatterHaloScaleClass               ), intent(in   ), target :: darkMatterHaloScale_
     class           (cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
     type            (inputParameters                        ), intent(in   ), target :: parameters
-    !# <constructorAssign variables="separationMinimum, separationMaximum, separationCount, time, crossCount, addHubbleFlow, includeUnbootstrapped, bootstrapSampleCount, bootstrapSampleRate, *randomNumberGenerator_, *cosmologyFunctions_, *darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="separationMinimum, separationMaximum, separationCount, time, crossCount, addHubbleFlow, includeUnbootstrapped, bootstrapSampleCount, bootstrapSampleRate, *randomNumberGenerator_, *cosmologyFunctions_, *darkMatterHaloScale_"/>
+    !!]
 
     self%parameters=inputParameters(parameters)
     return
   end function pairwiseVelocityStatisticsConstructorInternal
 
   subroutine pairwiseVelocityStatisticsDestructor(self)
-    !% Destructor for the ``pairwiseVelocityStatistics'' N-body operator class.
+    !!{
+    Destructor for the ``pairwiseVelocityStatistics'' N-body operator class.
+    !!}
     implicit none
     type(nbodyOperatorPairwiseVelocityStatistics), intent(inout) :: self
 
-    !# <objectDestructor name="self%randomNumberGenerator_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_"   />
-    !# <objectDestructor name="self%darkMatterHaloScale_"  />
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    <objectDestructor name="self%cosmologyFunctions_"   />
+    <objectDestructor name="self%darkMatterHaloScale_"  />
+    !!]
     return
   end subroutine pairwiseVelocityStatisticsDestructor
   
   subroutine pairwiseVelocityStatisticsOperate(self,simulations)
-    !% Compute pairwise velocity statistics in bins of separation.
-    !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num
+    !!{
+    Compute pairwise velocity statistics in bins of separation.
+    !!}
     use    :: Arrays_Search                 , only : searchArray
+    use    :: Display                       , only : displayCounter                   , displayCounterClear                , displayIndent, displayMessage, &
+          &                                          displayUnindent                  , verbosityLevelStandard
     use    :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
-    use    :: Galacticus_Display            , only : Galacticus_Display_Indent        , Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                                           Galacticus_Display_Message       , verbosityStandard
-    use    :: Galacticus_Nodes              , only : treeNode                         , nodeComponentBasic
+    use    :: Galacticus_Nodes              , only : nodeComponentBasic               , treeNode
     use    :: IO_HDF5                       , only : hdf5Access
     use    :: ISO_Varying_String            , only : var_str
+#ifdef USEMPI
+    use    :: MPI_Utilities                 , only : mpiSelf
+#endif
     use    :: Memory_Management             , only : deallocateArray
     use    :: Nearest_Neighbors             , only : nearestNeighbors
     use    :: Node_Components               , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use    :: Numerical_Ranges              , only : Make_Range                       , rangeTypeLogarithmic
-#ifdef USEMPI
-    use    :: MPI_Utilities                 , only : mpiSelf
-#endif
+    !$ use :: OMP_Lib                       , only : OMP_Get_Thread_Num
     implicit none
     class           (nbodyOperatorPairwiseVelocityStatistics), intent(inout)                 :: self
     type            (nBodyData                              ), intent(inout), dimension(:  ) :: simulations
@@ -222,7 +246,7 @@ contains
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Indent('compute pairwise velocity statistics',verbosityStandard)
+       call displayIndent('compute pairwise velocity statistics',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif
@@ -244,11 +268,11 @@ contains
     separationSquaredMinimumBin=(separationCentralBin/sqrt(separationCentralBin(2)/separationCentralBin(1)))**2
     separationSquaredMaximumBin=(separationCentralBin*sqrt(separationCentralBin(2)/separationCentralBin(1)))**2
     ! Iterate over simulations.
-    do iSimulation=2_c_size_t,2_c_size_t !! AJB HACK 1_c_size_t,size(simulations)
+    do iSimulation=1_c_size_t,size(simulations)
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Message(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityStandard)
+          call displayMessage(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityLevelStandard)
 #ifdef USEMPI
        end if
 #endif
@@ -294,7 +318,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Counter(0,.true.)
+          call displayCounter(0,.true.)
 #ifdef USEMPI
        end if
 #endif
@@ -427,7 +451,7 @@ contains
 #ifdef USEMPI
           if (mpiSelf%isMaster()) then
 #endif
-             call Galacticus_Display_Counter(                                                 &
+             call displayCounter(                                                 &
                   &                          int(                                             &
                   &                              +100.0d0                                     &
                   &                              *float(i                                  )  &
@@ -447,7 +471,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Counter_Clear()
+          call displayCounterClear()
 #ifdef USEMPI
        end if
 #endif
@@ -536,7 +560,7 @@ contains
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Unindent('done',verbosityStandard)
+       call displayUnindent('done',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif

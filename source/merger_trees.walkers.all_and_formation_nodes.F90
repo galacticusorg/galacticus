@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a depth-first merger tree walker over all nodes including formation nodes.
+!!{
+Contains a module which implements a depth-first merger tree walker over all nodes including formation nodes.
+!!}
 
-  !# <mergerTreeWalker name="mergerTreeWalkerAllAndFormationNodes">
-  !#  <description>Provides a merger tree walker which iterates depth-first over all nodes including formation nodes.</description>
-  !# </mergerTreeWalker>
+  !![
+  <mergerTreeWalker name="mergerTreeWalkerAllAndFormationNodes">
+   <description>Provides a merger tree walker which iterates depth-first over all nodes including formation nodes.</description>
+  </mergerTreeWalker>
+  !!]
   type, extends(mergerTreeWalkerAllNodes) :: mergerTreeWalkerAllAndFormationNodes
-     !% A merger tree walker which iterates depth-first over all nodes including formation nodes.
+     !!{
+     A merger tree walker which iterates depth-first over all nodes including formation nodes.
+     !!}
      private
      type(treeNode), pointer :: nodeNonFormation => null()
    contains
@@ -32,7 +38,9 @@
   end type mergerTreeWalkerAllAndFormationNodes
 
   interface mergerTreeWalkerAllAndFormationNodes
-     !% Constructors for the {\normalfont \ttfamily allAndFormationNodes} merger tree walker class.
+     !!{
+     Constructors for the {\normalfont \ttfamily allAndFormationNodes} merger tree walker class.
+     !!}
      module procedure allAndFormationNodesParameters
      module procedure allAndFormationNodesInternal
   end interface mergerTreeWalkerAllAndFormationNodes
@@ -40,7 +48,9 @@
 contains
 
   function allAndFormationNodesParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily allAndFormationNodes} merger tree walker class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily allAndFormationNodes} merger tree walker class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -53,7 +63,9 @@ contains
   end function allAndFormationNodesParameters
 
   function allAndFormationNodesInternal(tree,spanForest) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily allAndFormationNodes} merger tree walker class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily allAndFormationNodes} merger tree walker class.
+    !!}
     implicit none
     type   (mergerTreeWalkerAllAndFormationNodes)                          :: self
     type   (mergerTree                          ), intent(in   ), target   :: tree
@@ -64,7 +76,9 @@ contains
   end function allAndFormationNodesInternal
 
   logical function allAndFormationNodesNext(self,node)
-    !% Walk nodes of a tree including formation nodes.
+    !!{
+    Walk nodes of a tree including formation nodes.
+    !!}
     implicit none
     class(mergerTreeWalkerAllAndFormationNodes), intent(inout)          :: self
     type (treeNode                            ), intent(inout), pointer :: node
@@ -92,7 +106,9 @@ contains
   end function allAndFormationNodesNext
 
   subroutine allAndFormationNodesPrevious(self,node)
-    !% Step back to the previously visited node.
+    !!{
+    Step back to the previously visited node.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(mergerTreeWalkerAllAndFormationNodes), intent(inout)          :: self

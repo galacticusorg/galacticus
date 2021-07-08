@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a convenient interface to the {\normalfont \ttfamily BIVAR} 2D interpolation on irregularly spaced points
-!% package.
+!!{
+Contains a module which implements a convenient interface to the {\normalfont \ttfamily BIVAR} 2D interpolation on irregularly spaced points
+package.
+!!}
 
 module Numerical_Interpolation_2D_Irregular
-  !% Implements a convenient interface to the {\normalfont \ttfamily BIVAR} 2D interpolation on irregularly spaced points package.
+  !!{
+  Implements a convenient interface to the {\normalfont \ttfamily BIVAR} 2D interpolation on irregularly spaced points package.
+  !!}
   implicit none
   private
   public :: Interpolate_2D_Irregular, interp2dIrregularObject
@@ -40,7 +44,9 @@ module Numerical_Interpolation_2D_Irregular
 contains
 
   function Interpolate_2D_Irregular_Array(dataX,dataY,dataZ,interpolateX,interpolateY,workspace,numberComputePoints,reset)
-    !% Perform interpolation on a set of points irregularly spaced on a 2D surface.
+    !!{
+    Perform interpolation on a set of points irregularly spaced on a 2D surface.
+    !!}
     use :: Bivar            , only : idbvip
     use :: Memory_Management, only : Memory_Usage_Record
     implicit none
@@ -120,8 +126,10 @@ contains
   end function Interpolate_2D_Irregular_Array
 
   double precision function Interpolate_2D_Irregular_Scalar(dataX,dataY,dataZ,interpolateX,interpolateY,workspace,numberComputePoints,reset)
-    !% Perform interpolation on a set of points irregularly spaced on a 2D surface. This version is simply a wrapper that does
-    !% look up for a scalar point by calling the array-based version.
+    !!{
+    Perform interpolation on a set of points irregularly spaced on a 2D surface. This version is simply a wrapper that does
+    look up for a scalar point by calling the array-based version.
+    !!}
     implicit none
     type            (interp2dIrregularObject)              , intent(inout)           :: workspace
     double precision                         , dimension(:), intent(in   )           :: dataX              , dataY            , dataZ

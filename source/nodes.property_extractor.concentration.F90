@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,19 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a concentration output analysis property extractor class.
+!!{
+Contains a module which implements a concentration output analysis property extractor class.
+!!}
 
   use :: Virial_Density_Contrast, only : virialDensityContrastClass
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorConcentration">
-  !#  <description>A concentration output analysis property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorConcentration">
+   <description>A concentration output analysis property extractor class.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorConcentration
-     !% A concentration property extractor output analysis class. The property extracted is the ''\gls{dmou}'' concentration of
-     !% the halo with a radius defined by a density contrast as given by the supplied {\normalfont \ttfamily
-     !% virialDensityContrast} class object. Note that the density contrast is defined here at the time at which the halo
-     !% presently exists, \emph{not} at the time at which is was last isolated (as is used for standard definition of
-     !% concentration).
+     !!{
+     A concentration property extractor output analysis class. The property extracted is the ''\gls{dmou}'' concentration of
+     the halo with a radius defined by a density contrast as given by the supplied {\normalfont \ttfamily
+     virialDensityContrast} class object. Note that the density contrast is defined here at the time at which the halo
+     presently exists, \emph{not} at the time at which is was last isolated (as is used for standard definition of
+     concentration).
+     !!}
      private
      class(virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
    contains
@@ -42,7 +48,9 @@
   end type nodePropertyExtractorConcentration
 
   interface nodePropertyExtractorConcentration
-     !% Constructors for the ``concentration'' output analysis class.
+     !!{
+     Constructors for the ``concentration'' output analysis class.
+     !!}
      module procedure concentrationConstructorParameters
      module procedure concentrationConstructorInternal
   end interface nodePropertyExtractorConcentration
@@ -50,41 +58,57 @@
 contains
 
   function concentrationConstructorParameters(parameters) result(self)
-    !% Constructor for the ``concentration'' output analysis property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``concentration'' output analysis property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorConcentration)                :: self
     type (inputParameters                   ), intent(inout) :: parameters
     class(virialDensityContrastClass        ), pointer       :: virialDensityContrast_
 
-    !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    !![
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    !!]
     self=nodePropertyExtractorConcentration(virialDensityContrast_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="virialDensityContrast_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="virialDensityContrast_"/>
+    !!]
     return
   end function concentrationConstructorParameters
 
   function concentrationConstructorInternal(virialDensityContrast_) result(self)
-    !% Internal constructor for the ``concentration'' output analysis property extractor class.
+    !!{
+    Internal constructor for the ``concentration'' output analysis property extractor class.
+    !!}
     implicit none
     type (nodePropertyExtractorConcentration)                        :: self
     class(virialDensityContrastClass        ), intent(in   ), target :: virialDensityContrast_
-    !# <constructorAssign variables="*virialDensityContrast_"/>
+    !![
+    <constructorAssign variables="*virialDensityContrast_"/>
+    !!]
 
     return
   end function concentrationConstructorInternal
 
   subroutine concentrationDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily concentration} output analysis property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily concentration} output analysis property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorConcentration), intent(inout) :: self
 
-    !# <objectDestructor name="self%virialDensityContrast_"/>
+    !![
+    <objectDestructor name="self%virialDensityContrast_"/>
+    !!]
     return
   end subroutine concentrationDestructor
 
   double precision function concentrationExtract(self,node,instance)
-    !% Implement a concentration output analysis.
+    !!{
+    Implement a concentration output analysis.
+    !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , nodeComponentDarkMatterProfile, treeNode
     implicit none
@@ -109,7 +133,9 @@ contains
   end function concentrationExtract
 
   function concentrationName(self)
-    !% Return the name of the concentration property.
+    !!{
+    Return the name of the concentration property.
+    !!}
     implicit none
     type (varying_string                    )                :: concentrationName
     class(nodePropertyExtractorConcentration), intent(inout) :: self
@@ -120,7 +146,9 @@ contains
   end function concentrationName
 
   function concentrationDescription(self)
-    !% Return a description of the concentration property.
+    !!{
+    Return a description of the concentration property.
+    !!}
     implicit none
     type (varying_string                    )                :: concentrationDescription
     class(nodePropertyExtractorConcentration), intent(inout) :: self
@@ -131,7 +159,9 @@ contains
   end function concentrationDescription
 
   double precision function concentrationUnitsInSI(self)
-    !% Return the units of the concentration property in the SI system.
+    !!{
+    Return the units of the concentration property in the SI system.
+    !!}
     implicit none
     class(nodePropertyExtractorConcentration), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -141,7 +171,9 @@ contains
   end function concentrationUnitsInSI
 
   integer function concentrationType(self)
-    !% Return the type of the concentration property.
+    !!{
+    Return the type of the concentration property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorConcentration), intent(inout) :: self

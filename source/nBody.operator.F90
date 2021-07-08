@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,24 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements operators on data from N-body simulations.
+!!{
+Contains a module which provides a class that implements operators on data from N-body simulations.
+!!}
 
 module NBody_Operators
-  !% Provides a class that implements operators on data from N-body simulations.
+  !!{
+  Provides a class that implements operators on data from N-body simulations.
+  !!}
   use :: NBody_Simulation_Data, only : nBodyData
   private
 
-  !# <functionClass>
-  !#  <name>nbodyOperator</name>
-  !#  <descriptiveName>N-Body Simulation Data Operators</descriptiveName>
-  !#  <description>Class providing operators on data from N-body simulations.</description>
-  !#  <default>null</default>
-  !#  <method name="operate" >
-  !#   <description>Operate on the provided N-body simulation.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(nBodyData), intent(inout), dimension(:) :: simulations</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>nbodyOperator</name>
+   <descriptiveName>N-Body Simulation Data Operators</descriptiveName>
+   <description>Class providing operators on data from N-body simulations.</description>
+   <default>null</default>
+   <method name="operate" >
+    <description>Operate on the provided N-body simulation.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>type(nBodyData), intent(inout), dimension(:) :: simulations</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module NBody_Operators

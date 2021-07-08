@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,21 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a radiative transfer outputter class which combines multiple other outputters.
+  !!{
+  Implements a radiative transfer outputter class which combines multiple other outputters.
+  !!}
 
   type, public :: multiOutputterList
      class(radiativeTransferOutputterClass), pointer :: outputter_
      type (multiOutputterList             ), pointer :: next       => null()
   end type multiOutputterList
 
-  !# <radiativeTransferOutputter name="radiativeTransferOutputterMulti">
-  !#  <description>A radiative transfer outputter class which combines multiple other outputters.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_" objectType="radiativeTransferOutputterClass"/>
-  !#  </deepCopy>
-  !# </radiativeTransferOutputter>
+  !![
+  <radiativeTransferOutputter name="radiativeTransferOutputterMulti">
+   <description>A radiative transfer outputter class which combines multiple other outputters.</description>
+   <deepCopy>
+    <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_" objectType="radiativeTransferOutputterClass"/>
+   </deepCopy>
+   <stateStore>
+    <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_"/>
+   </stateStore>
+  </radiativeTransferOutputter>
+  !!]
   type, extends(radiativeTransferOutputterClass) :: radiativeTransferOutputterMulti
-     !% Implementation of a radiative transfer outputter class which combines multiple other outputters.
+     !!{
+     Implementation of a radiative transfer outputter class which combines multiple other outputters.
+     !!}
      private
      type(multiOutputterList), pointer :: outputters => null()
    contains
@@ -44,7 +53,9 @@
   end type radiativeTransferOutputterMulti
 
   interface radiativeTransferOutputterMulti
-     !% Constructors for the {\normalfont \ttfamily multi} radiative transfer outputter class.
+     !!{
+     Constructors for the {\normalfont \ttfamily multi} radiative transfer outputter class.
+     !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
   end interface radiativeTransferOutputterMulti
@@ -52,7 +63,9 @@
 contains
 
   function multiConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily multi} radiative transfer outputter class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily multi} radiative transfer outputter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (radiativeTransferOutputterMulti)                :: self
@@ -62,7 +75,7 @@ contains
 
     self      %outputters => null()
     outputter_            => null()
-    do i=1,parameters%copiesCount('radiativeTransferOutputterMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('radiativeTransferOutputter',zeroIfNotPresent=.true.)
        if (associated(outputter_)) then
           allocate(outputter_%next)
           outputter_ => outputter_%next
@@ -70,13 +83,17 @@ contains
           allocate(self%outputters)
           outputter_ => self%outputters
        end if
-       !# <objectBuilder class="radiativeTransferOutputter" name="outputter_%outputter_" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="radiativeTransferOutputter" name="outputter_%outputter_" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function multiConstructorParameters
 
   function multiConstructorInternal(outputters) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily multi} analysis class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily multi} analysis class.
+    !!}
     implicit none
     type(radiativeTransferOutputterMulti)                        :: self
     type(multiOutputterList             ), target, intent(in   ) :: outputters
@@ -85,14 +102,18 @@ contains
     self      %outputters => outputters
     outputter_            => outputters
     do while (associated(outputter_))
-       !# <referenceCountIncrement owner="outputter_" object="outputter_"/>
+       !![
+       <referenceCountIncrement owner="outputter_" object="outputter_"/>
+       !!]
        outputter_ => outputter_%next
     end do
     return
   end function multiConstructorInternal
 
   subroutine multiDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily multi} analysis class.
+    !!{
+    Destructor for the {\normalfont \ttfamily multi} analysis class.
+    !!}
     implicit none
     type(radiativeTransferOutputterMulti), intent(inout) :: self
     type(multiOutputterList             ), pointer       :: outputter_, analysisNext
@@ -101,7 +122,9 @@ contains
        outputter_ => self%outputters
        do while (associated(outputter_))
           analysisNext => outputter_%next
-          !# <objectDestructor name="outputter_%outputter_"/>
+          !![
+          <objectDestructor name="outputter_%outputter_"/>
+          !!]
           deallocate(outputter_)
           outputter_ => analysisNext
        end do
@@ -110,7 +133,9 @@ contains
   end subroutine multiDestructor
 
   subroutine multiReset(self)
-    !% Reset all outputters.
+    !!{
+    Reset all outputters.
+    !!}
     implicit none
     class(radiativeTransferOutputterMulti), intent(inout) :: self
     type (multiOutputterList             ), pointer       :: outputter_
@@ -124,7 +149,9 @@ contains
   end subroutine multiReset
 
   subroutine multiSourceProperties(self,radiativeTransferSource_,outputGroup)
-    !% Compute and output all source properties.
+    !!{
+    Compute and output all source properties.
+    !!}
     implicit none
     class(radiativeTransferOutputterMulti), intent(inout) :: self
     class(radiativeTransferSourceClass   ), intent(inout) :: radiativeTransferSource_
@@ -140,7 +167,9 @@ contains
   end subroutine multiSourceProperties
 
   subroutine multiPhotonPacketEscapes(self,photonPacket)
-    !% Process an escaping photon packet.
+    !!{
+    Process an escaping photon packet.
+    !!}
     implicit none
     class(radiativeTransferOutputterMulti   ), intent(inout) :: self
     class(radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket
@@ -155,7 +184,9 @@ contains
   end subroutine multiPhotonPacketEscapes
 
   subroutine multiFinalize(self)
-    !% Finalize the results.
+    !!{
+    Finalize the results.
+    !!}
     implicit none
     class(radiativeTransferOutputterMulti), intent(inout) :: self
     type (multiOutputterList             ), pointer       :: outputter_
@@ -169,7 +200,9 @@ contains
   end subroutine multiFinalize
   
   subroutine multiOutput(self,outputGroup)
-    !% Output the results.
+    !!{
+    Output the results.
+    !!}
     implicit none
     class(radiativeTransferOutputterMulti), intent(inout) :: self
     type (hdf5Object                     ), intent(inout) :: outputGroup

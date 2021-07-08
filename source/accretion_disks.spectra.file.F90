@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,25 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of the accretion disk spectra class for tabulated spectra read from file.
+  !!{
+  An implementation of the accretion disk spectra class for tabulated spectra read from file.
+  !!}
 
-  !# <accretionDiskSpectra name="accretionDiskSpectraFile">
-  !#  <description>Accretion disk spectra are interpolated from tables read from file.</description>
-  !# </accretionDiskSpectra>
+  !![
+  <accretionDiskSpectra name="accretionDiskSpectraFile">
+   <description>Accretion disk spectra are interpolated from tables read from file.</description>
+  </accretionDiskSpectra>
+  !!]
 
   use :: Numerical_Interpolation, only : interpolator
 
   type, extends(accretionDiskSpectraClass) :: accretionDiskSpectraFile
-     !% An accretion disk spectra class which interpolates in spectra read from file.
+     !!{
+     An accretion disk spectra class which interpolates in spectra read from file.
+     !!}
      private
      type            (varying_string)                              :: fileName
      double precision                , allocatable, dimension(:  ) :: luminosity            , wavelength
      double precision                , allocatable, dimension(:,:) :: SED
      type            (interpolator  )                              :: interpolatorLuminosity, interpolatorWavelength
    contains
-     !# <methods>
-     !#   <method description="Load a file of AGN spectra." method="loadFile" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Load a file of AGN spectra." method="loadFile" />
+     </methods>
+     !!]
      final     ::                     fileDestructor
      procedure :: spectrumNode     => fileSpectrumNode
      procedure :: spectrumMassRate => fileSpectrumMassRate
@@ -43,7 +51,9 @@
   end type accretionDiskSpectraFile
 
   interface accretionDiskSpectraFile
-     !% Constructors for the {\normalfont \ttfamily file} accretion disk spectra class.
+     !!{
+     Constructors for the {\normalfont \ttfamily file} accretion disk spectra class.
+     !!}
      module procedure fileConstructorParameters
      module procedure fileConstructorInternal
   end interface accretionDiskSpectraFile
@@ -54,24 +64,32 @@
 contains
 
   function fileConstructorParameters(parameters)
-    !% Constructor for the {\normalfont \ttfamily file} accretion disk spectra class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily file} accretion disk spectra class which takes a parameter set as input.
+    !!}
     implicit none
     type(accretionDiskSpectraFile)                :: fileConstructorParameters
     type(inputParameters         ), intent(inout) :: parameters
     type(varying_string          )                :: fileName
 
-    !# <inputParameter>
-    !#   <name>fileName</name>
-    !#   <source>parameters</source>
-    !#   <description>The name of a file from which to read tabulated spectra of accretion disks.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>fileName</name>
+      <source>parameters</source>
+      <description>The name of a file from which to read tabulated spectra of accretion disks.</description>
+    </inputParameter>
+    !!]
     fileConstructorParameters=fileConstructorInternal(char(fileName))
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function fileConstructorParameters
 
   function fileConstructorInternal(fileName)
-    !% Internal constructor for the {\normalfont \ttfamily file} accretion disk spectra class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily file} accretion disk spectra class.
+    !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultBlackHoleComponent
@@ -104,7 +122,9 @@ contains
   end function fileConstructorInternal
 
   subroutine fileDestructor(self)
-    !% Default destructor for the {\normalfont \ttfamily file} accretion disk spectra class.
+    !!{
+    Default destructor for the {\normalfont \ttfamily file} accretion disk spectra class.
+    !!}
     use :: Memory_Management, only : deallocateArray
     implicit none
     type(accretionDiskSpectraFile), intent(inout) :: self
@@ -120,7 +140,9 @@ contains
   end subroutine fileDestructor
 
   subroutine fileLoadFile(self,fileName)
-    !% Load a file of AGN spectra.
+    !!{
+    Load a file of AGN spectra.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: IO_HDF5         , only : hdf5Access             , hdf5Object
     implicit none
@@ -151,7 +173,9 @@ contains
   end subroutine fileLoadFile
 
   double precision function fileSpectrumNode(self,node,wavelength)
-    !% Return the accretion disk spectrum for tabulated spectra.
+    !!{
+    Return the accretion disk spectrum for tabulated spectra.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBlackHole, treeNode
     implicit none
     class           (accretionDiskSpectraFile), intent(inout)  :: self
@@ -165,7 +189,9 @@ contains
   end function fileSpectrumNode
 
   double precision function fileSpectrumMassRate(self,accretionRate,efficiencyRadiative,wavelength)
-    !% Return the accretion disk spectrum for tabulated spectra.
+    !!{
+    Return the accretion disk spectrum for tabulated spectra.
+    !!}
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Constants_Astronomical, only : gigaYear  , luminositySolar   , massSolar
     use            :: Numerical_Constants_Physical    , only : speedLight

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains custom functions for the prest satellite component.
+!!{
+Contains custom functions for the prest satellite component.
+!!}
 
 double precision function Node_Component_Satellite_Preset_Merge_Time(self)
-  !% Return the {\normalfont \ttfamily mergeTime} property of the {\normalfont \ttfamily satellitePreset} component class.
+  !!{
+  Return the {\normalfont \ttfamily mergeTime} property of the {\normalfont \ttfamily satellitePreset} component class.
+  !!}
   implicit none
   class(nodeComponentSatellitePreset), intent(inout) :: self
   type (treeNode                    ), pointer       :: selfNode
@@ -37,7 +41,9 @@ double precision function Node_Component_Satellite_Preset_Merge_Time(self)
 end function Node_Component_Satellite_Preset_Merge_Time
 
 subroutine Node_Component_Satellite_Preset_Merge_Time_Set(self,setValue)
-  !% Sets the {\normalfont \ttfamily mergeTime} property of the {\normalfont \ttfamily satellitePreset} component class.
+  !!{
+  Sets the {\normalfont \ttfamily mergeTime} property of the {\normalfont \ttfamily satellitePreset} component class.
+  !!}
   implicit none
   class           (nodeComponentSatellitePreset)         , intent(inout) :: self
   double precision                                       , intent(in   ) :: setValue
@@ -51,7 +57,9 @@ subroutine Node_Component_Satellite_Preset_Merge_Time_Set(self,setValue)
 end subroutine Node_Component_Satellite_Preset_Merge_Time_Set
 
 double precision function SatellitePresetMergeBoundMass(self)
-  !% Return the satellite bound mass at the current time.
+  !!{
+  Return the satellite bound mass at the current time.
+  !!}
   use            :: Histories              , only : history
   use, intrinsic :: ISO_C_Binding          , only : c_size_t
   use            :: Numerical_Interpolation, only : interpolator
@@ -89,7 +97,9 @@ double precision function SatellitePresetMergeBoundMass(self)
 end function SatellitePresetMergeBoundMass
 
 function SatellitePresetNodeIndex(self)
-  !% Return the satellite node index.
+  !!{
+  Return the satellite node index.
+  !!}
   use            :: Histories              , only : longIntegerHistory
   use, intrinsic :: ISO_C_Binding          , only : c_size_t
   use            :: Kind_Numbers           , only : kind_int8

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,30 +17,40 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of a spectrum postprocessor that does nothing.
+  !!{
+  An implementation of a spectrum postprocessor that does nothing.
+  !!}
 
-  !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorIdentity">
-  !#  <description>
-  !#   A stellar population postprocessing class which leaves the spectrum unchanged.
-  !#  </description>
-  !# </stellarPopulationSpectraPostprocessor>
+  !![
+  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorIdentity">
+   <description>
+    A stellar population postprocessing class which leaves the spectrum unchanged.
+   </description>
+  </stellarPopulationSpectraPostprocessor>
+  !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorIdentity
-     !% An identity spectrum postprocessor.
+     !!{
+     An identity spectrum postprocessor.
+     !!}
      private
    contains
      procedure :: multiplier => identityMultiplier
   end type stellarPopulationSpectraPostprocessorIdentity
 
   interface stellarPopulationSpectraPostprocessorIdentity
-     !% Constructors for the {\normalfont \ttfamily identity} stellar population spectra postprocessor class.
+     !!{
+     Constructors for the {\normalfont \ttfamily identity} stellar population spectra postprocessor class.
+     !!}
      module procedure identityConstructorParameters
   end interface stellarPopulationSpectraPostprocessorIdentity
 
 contains
 
   function identityConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily identity} stellar population spectra postprocessor class which takes a
-    !% parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily identity} stellar population spectra postprocessor class which takes a
+    parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(stellarPopulationSpectraPostprocessorIdentity)                :: self
@@ -52,7 +62,9 @@ contains
   end function identityConstructorParameters
 
   double precision function identityMultiplier(self,wavelength,age,redshift)
-    !% Perform an identity postprocessing on a spectrum.
+    !!{
+    Perform an identity postprocessing on a spectrum.
+    !!}
     implicit none
     class           (stellarPopulationSpectraPostprocessorIdentity), intent(inout) :: self
     double precision                                               , intent(in   ) :: age , redshift, wavelength

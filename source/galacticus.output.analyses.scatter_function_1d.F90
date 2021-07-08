@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,22 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a generic 1D scatter function (i.e. the scatter of some property weighted by number density of
-  !% objects binned by some property) output analysis class.
+  !!{
+  Contains a module which implements a generic 1D scatter function (i.e. the scatter of some property weighted by number density of
+  objects binned by some property) output analysis class.
+  !!}
 
   use :: ISO_Varying_String, only : varying_string
 
-  !# <outputAnalysis name="outputAnalysisScatterFunction1D">
-  !#  <description>A generic 1D scatter function (i.e. the scatter of some property weighted by number density of objects binned by some property) output analysis class.</description>
-  !#  <deepCopy>
-  !#   <functionClass variables="meanFunction, meanSquaredFunction"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="meanFunction, meanSquaredFunction"/>
-  !#  </stateStorable>
-  !# </outputAnalysis>
+  !![
+  <outputAnalysis name="outputAnalysisScatterFunction1D">
+   <description>A generic 1D scatter function (i.e. the scatter of some property weighted by number density of objects binned by some property) output analysis class.</description>
+   <deepCopy>
+    <functionClass variables="meanFunction, meanSquaredFunction"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="meanFunction, meanSquaredFunction"/>
+   </stateStorable>
+  </outputAnalysis>
+  !!]
   type, extends(outputAnalysisClass) :: outputAnalysisScatterFunction1D
-     !% A generic 1D scatter function (i.e. scatter of some property weighted by number density of objects binned by some property) output analysis class.
+     !!{
+     A generic 1D scatter function (i.e. scatter of some property weighted by number density of objects binned by some property) output analysis class.
+     !!}
      private
      type            (varying_string              )                              :: label                       , comment                          , &
           &                                                                         propertyLabel               , propertyComment                  , &
@@ -56,7 +62,9 @@
   end type outputAnalysisScatterFunction1D
 
   interface outputAnalysisScatterFunction1D
-     !% Constructors for the ``scatterFunction1D'' output analysis class.
+     !!{
+     Constructors for the ``scatterFunction1D'' output analysis class.
+     !!}
      module procedure scatterFunction1DConstructorParameters
      module procedure scatterFunction1DConstructorInternal
   end interface outputAnalysisScatterFunction1D
@@ -64,7 +72,9 @@
 contains
 
   function scatterFunction1DConstructorParameters(parameters) result(self)
-    !% Constructor for the ``scatterFunction1D'' output analysis class which takes a parameter set as input.
+    !!{
+    Constructor for the ``scatterFunction1D'' output analysis class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error       , only : Galacticus_Error_Report
     use :: Input_Parameters       , only : inputParameter                                , inputParameters
     use :: Memory_Management      , only : allocateArray
@@ -97,162 +107,168 @@ contains
     logical                                                                                :: likelihoodNormalize                  , xAxisIsLog                            , &
          &                                                                                    yAxisIsLog
 
-    !# <objectBuilder class="nodePropertyExtractor"    name="nodePropertyExtractor_"       source="parameters"          />
-    !# <objectBuilder class="nodePropertyExtractor"    name="outputAnalysisWeightPropertyExtractor_" source="weightParameters"    />
-    !# <objectBuilder class="outputAnalysisPropertyOperator"     name="outputAnalysisPropertyOperator_"        source="parameters"          />
-    !# <objectBuilder class="outputAnalysisPropertyOperator"     name="outputAnalysisWeightPropertyOperator_"  source="weightParameters"    />
-    !# <objectBuilder class="outputAnalysisPropertyOperator"     name="outputAnalysisPropertyUnoperator_"      source="unoperatorParameters"/>
-    !# <objectBuilder class="outputAnalysisWeightOperator"       name="outputAnalysisWeightOperator_"          source="parameters"          />
-    !# <objectBuilder class="outputAnalysisDistributionOperator" name="outputAnalysisDistributionOperator_"    source="parameters"          />
-    !# <objectBuilder class="galacticFilter"                     name="galacticFilter_"                        source="parameters"          />
-    !# <objectBuilder class="outputTimes"                        name="outputTimes_"                           source="parameters"          />
+    !![
+    <objectBuilder class="nodePropertyExtractor"    name="nodePropertyExtractor_"       source="parameters"          />
+    <objectBuilder class="nodePropertyExtractor"    name="outputAnalysisWeightPropertyExtractor_" source="weightParameters"    />
+    <objectBuilder class="outputAnalysisPropertyOperator"     name="outputAnalysisPropertyOperator_"        source="parameters"          />
+    <objectBuilder class="outputAnalysisPropertyOperator"     name="outputAnalysisWeightPropertyOperator_"  source="weightParameters"    />
+    <objectBuilder class="outputAnalysisPropertyOperator"     name="outputAnalysisPropertyUnoperator_"      source="unoperatorParameters"/>
+    <objectBuilder class="outputAnalysisWeightOperator"       name="outputAnalysisWeightOperator_"          source="parameters"          />
+    <objectBuilder class="outputAnalysisDistributionOperator" name="outputAnalysisDistributionOperator_"    source="parameters"          />
+    <objectBuilder class="galacticFilter"                     name="galacticFilter_"                        source="parameters"          />
+    <objectBuilder class="outputTimes"                        name="outputTimes_"                           source="parameters"          />
+    !!]
     unoperatorParameters=parameters%subParameters('unoperator',requireValue=.false.)
     weightParameters    =parameters%subParameters('weight'    ,requireValue=.false.)
     call allocateArray(binCenter   ,[int(parameters%count('binCenter'),kind=c_size_t)                     ])
     call allocateArray(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t)*outputTimes_%count()])
     if (parameters%count('outputWeight') /= parameters%count('binCenter')*outputTimes_%count()) &
          & call Galacticus_Error_Report('incorrect number of output weights provided'//{introspection:location})
-    !# <inputParameter>
-    !#   <name>label</name>
-    !#   <source>parameters</source>
-    !#   <variable>label</variable>
-    !#   <description>A label for the analysis.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>xAxisLabel</name>
-    !#   <source>parameters</source>
-    !#   <description>A label for the $x$-axis in a plot of this analysis.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>yAxisLabel</name>
-    !#   <source>parameters</source>
-    !#   <description>A label for the $y$-axis in a plot of this analysis.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>xAxisIsLog</name>
-    !#   <source>parameters</source>
-    !#   <description>If true, indicates that the $x$-axis should be logarithmic in a plot of this analysis.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>yAxisIsLog</name>
-    !#   <source>parameters</source>
-    !#   <description>If true, indicates that the $y$-axis should be logarithmic in a plot of this analysis.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>comment</name>
-    !#   <source>parameters</source>
-    !#   <variable>comment</variable>
-    !#   <description>A descriptive comment for the analysis.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>propertyLabel</name>
-    !#   <source>parameters</source>
-    !#   <variable>propertyLabel</variable>
-    !#   <description>A label for the property variable.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>propertyComment</name>
-    !#   <source>parameters</source>
-    !#   <variable>propertyComment</variable>
-    !#   <description>A descriptive comment for the property variable.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>propertyUnits</name>
-    !#   <source>parameters</source>
-    !#   <variable>propertyUnits</variable>
-    !#   <description>A human-readable description of the units for the property.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>propertyUnitsInSI</name>
-    !#   <source>parameters</source>
-    !#   <variable>propertyUnitsInSI</variable>
-    !#   <description>A units for the property in the SI system.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>scatterLabel</name>
-    !#   <source>parameters</source>
-    !#   <variable>scatterLabel</variable>
-    !#   <description>A label for the scatter.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>scatterComment</name>
-    !#   <source>parameters</source>
-    !#   <variable>scatterComment</variable>
-    !#   <description>A descriptive comment for the scatter.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>scatterUnits</name>
-    !#   <source>parameters</source>
-    !#   <variable>scatterUnits</variable>
-    !#   <description>A human-readable description of the units for the scatter.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>scatterUnitsInSI</name>
-    !#   <source>parameters</source>
-    !#   <variable>scatterUnitsInSI</variable>
-    !#   <description>A units for the scatter in the SI system.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>binCenter</name>
-    !#   <source>parameters</source>
-    !#   <variable>binCenter</variable>
-    !#   <description>The value of the property at the center of each bin.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>bufferCount</name>
-    !#   <source>parameters</source>
-    !#   <variable>bufferCount</variable>
-    !#   <description>The number of buffer bins to include below and above the range of actual bins.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>outputWeight</name>
-    !#   <source>parameters</source>
-    !#   <variable>outputWeight</variable>
-    !#   <description>The weight to assign to each bin at each output.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceModel</name>
-    !#   <source>parameters</source>
-    !#   <variable>covarianceModel</variable>
-    !#   <description>The model to use for computing covariances.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceBinomialBinsPerDecade</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of bins per decade of halo mass to use when constructing volume function covariance matrices for main branch galaxies.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceBinomialMassHaloMinimum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d8</defaultValue>
-    !#   <description>The minimum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceBinomialMassHaloMaximum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d16</defaultValue>
-    !#   <description>The maximum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>likelihoodNormalize</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true then normalize the likelihood to make it a probability density.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>label</name>
+      <source>parameters</source>
+      <variable>label</variable>
+      <description>A label for the analysis.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>xAxisLabel</name>
+      <source>parameters</source>
+      <description>A label for the $x$-axis in a plot of this analysis.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>yAxisLabel</name>
+      <source>parameters</source>
+      <description>A label for the $y$-axis in a plot of this analysis.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>xAxisIsLog</name>
+      <source>parameters</source>
+      <description>If true, indicates that the $x$-axis should be logarithmic in a plot of this analysis.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>yAxisIsLog</name>
+      <source>parameters</source>
+      <description>If true, indicates that the $y$-axis should be logarithmic in a plot of this analysis.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>comment</name>
+      <source>parameters</source>
+      <variable>comment</variable>
+      <description>A descriptive comment for the analysis.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>propertyLabel</name>
+      <source>parameters</source>
+      <variable>propertyLabel</variable>
+      <description>A label for the property variable.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>propertyComment</name>
+      <source>parameters</source>
+      <variable>propertyComment</variable>
+      <description>A descriptive comment for the property variable.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>propertyUnits</name>
+      <source>parameters</source>
+      <variable>propertyUnits</variable>
+      <description>A human-readable description of the units for the property.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>propertyUnitsInSI</name>
+      <source>parameters</source>
+      <variable>propertyUnitsInSI</variable>
+      <description>A units for the property in the SI system.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>scatterLabel</name>
+      <source>parameters</source>
+      <variable>scatterLabel</variable>
+      <description>A label for the scatter.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>scatterComment</name>
+      <source>parameters</source>
+      <variable>scatterComment</variable>
+      <description>A descriptive comment for the scatter.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>scatterUnits</name>
+      <source>parameters</source>
+      <variable>scatterUnits</variable>
+      <description>A human-readable description of the units for the scatter.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>scatterUnitsInSI</name>
+      <source>parameters</source>
+      <variable>scatterUnitsInSI</variable>
+      <description>A units for the scatter in the SI system.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>binCenter</name>
+      <source>parameters</source>
+      <variable>binCenter</variable>
+      <description>The value of the property at the center of each bin.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>bufferCount</name>
+      <source>parameters</source>
+      <variable>bufferCount</variable>
+      <description>The number of buffer bins to include below and above the range of actual bins.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>outputWeight</name>
+      <source>parameters</source>
+      <variable>outputWeight</variable>
+      <description>The weight to assign to each bin at each output.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>covarianceModel</name>
+      <source>parameters</source>
+      <variable>covarianceModel</variable>
+      <description>The model to use for computing covariances.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>covarianceBinomialBinsPerDecade</name>
+      <source>parameters</source>
+      <defaultValue>10</defaultValue>
+      <description>The number of bins per decade of halo mass to use when constructing volume function covariance matrices for main branch galaxies.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>covarianceBinomialMassHaloMinimum</name>
+      <source>parameters</source>
+      <defaultValue>1.0d8</defaultValue>
+      <description>The minimum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>covarianceBinomialMassHaloMaximum</name>
+      <source>parameters</source>
+      <defaultValue>1.0d16</defaultValue>
+      <description>The maximum halo mass to consider when constructing volume function covariance matrices for main branch galaxies.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>likelihoodNormalize</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true then normalize the likelihood to make it a probability density.</description>
+    </inputParameter>
+    !!]
     if (parameters%isPresent('scatterValueTarget')) then
        if (parameters%isPresent('scatterCovarianceTarget')) then
-          !# <inputParameter>
-          !#   <name>scatterValueTarget</name>
-          !#   <source>parameters</source>
-          !#   <description>The target function for likelihood calculations.</description>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>scatterCovarianceTarget</name>
-          !#   <source>parameters</source>
-          !#   <variable>scatterCovarianceTarget1D</variable>
-          !#   <description>The target function covariance for likelihood calculations.</description>
-          !# </inputParameter>
+          !![
+          <inputParameter>
+            <name>scatterValueTarget</name>
+            <source>parameters</source>
+            <description>The target function for likelihood calculations.</description>
+          </inputParameter>
+          <inputParameter>
+            <name>scatterCovarianceTarget</name>
+            <source>parameters</source>
+            <variable>scatterCovarianceTarget1D</variable>
+            <description>The target function covariance for likelihood calculations.</description>
+          </inputParameter>
+          !!]
           if (size(scatterCovarianceTarget1D) == size(scatterValueTarget)**2) then
              allocate(scatterCovarianceTarget(size(scatterValueTarget),size(scatterValueTarget)))
              scatterCovarianceTarget=reshape(scatterCovarianceTarget1D,shape(scatterCovarianceTarget))
@@ -265,69 +281,75 @@ contains
     else
        if (parameters%isPresent('scatterCovariance')) call Galacticus_Error_Report('scatterTarget must be specified if scatterCovariance is present'//{introspection:location})
     end if
-    !# <inputParameter>
-    !#   <name>targetLabel</name>
-    !#   <source>parameters</source>
-    !#   <description>A label for the target dataset in a plot of this analysis.</description>
-    !#   <defaultValue>var_str('')</defaultValue>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>targetLabel</name>
+      <source>parameters</source>
+      <description>A label for the target dataset in a plot of this analysis.</description>
+      <defaultValue>var_str('')</defaultValue>
+    </inputParameter>
+    !!]
     ! Build the object.
-    !# <conditionalCall>
-    !#  <call>
-    !#   self=outputAnalysisScatterFunction1D(                                                                                            &amp;
-    !#        &amp;                        label                                                                                        , &amp;
-    !#        &amp;                        comment                                                                                      , &amp;
-    !#        &amp;                        propertyLabel                                                                                , &amp;
-    !#        &amp;                        propertyComment                                                                              , &amp;
-    !#        &amp;                        propertyUnits                                                                                , &amp;
-    !#        &amp;                        propertyUnitsInSI                                                                            , &amp;
-    !#        &amp;                        scatterLabel                                                                                 , &amp;
-    !#        &amp;                        scatterComment                                                                               , &amp;
-    !#        &amp;                        scatterUnits                                                                                 , &amp;
-    !#        &amp;                        scatterUnitsInSI                                                                             , &amp;
-    !#        &amp;                        binCenter                                                                                    , &amp;
-    !#        &amp;                        bufferCount                                                                                  , &amp;
-    !#        &amp;                        reshape(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t),outputTimes_%count()]), &amp;
-    !#        &amp;                        nodePropertyExtractor_                                                             , &amp;
-    !#        &amp;                        outputAnalysisWeightPropertyExtractor_                                                       , &amp;
-    !#        &amp;                        outputAnalysisPropertyOperator_                                                              , &amp;
-    !#        &amp;                        outputAnalysisWeightPropertyOperator_                                                        , &amp;
-    !#        &amp;                        outputAnalysisPropertyUnoperator_                                                            , &amp;
-    !#        &amp;                        outputAnalysisWeightOperator_                                                                , &amp;
-    !#        &amp;                        outputAnalysisDistributionOperator_                                                          , &amp;
-    !#        &amp;                        galacticFilter_                                                                              , &amp;
-    !#        &amp;                        outputTimes_                                                                                 , &amp;
-    !#        &amp;                        enumerationOutputAnalysisCovarianceModelEncode(char(covarianceModel),includesPrefix=.false.) , &amp;
-    !#        &amp;                        covarianceBinomialBinsPerDecade                                                              , &amp;
-    !#        &amp;                        covarianceBinomialMassHaloMinimum                                                            , &amp;
-    !#        &amp;                        covarianceBinomialMassHaloMaximum                                                            , &amp;
-    !#        &amp;                        likelihoodNormalize                                                                          , &amp;
-    !#        &amp;                        xAxisLabel                                                                                   , &amp;
-    !#        &amp;                        yAxisLabel                                                                                   , &amp;
-    !#        &amp;                        xAxisIsLog                                                                                   , &amp;
-    !#        &amp;                        yAxisIsLog                                                                                   , &amp;
-    !#        &amp;                        targetLabel                                                                                    &amp;
-    !#        &amp;                        {conditions}                                                                                   &amp;
-    !#        &amp;                       )
-    !#  </call>
-    !#  <argument name="scatterValueTarget"      value="scatterValueTarget"      parameterPresent="parameters"/>
-    !#  <argument name="scatterCovarianceTarget" value="scatterCovarianceTarget" parameterPresent="parameters"/>
-    !# </conditionalCall>
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="nodePropertyExtractor_"      />
-    !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"/>
-    !# <objectDestructor name="outputAnalysisPropertyOperator_"       />
-    !# <objectDestructor name="outputAnalysisWeightPropertyOperator_" />
-    !# <objectDestructor name="outputAnalysisPropertyUnoperator_"     />
-    !# <objectDestructor name="outputAnalysisWeightOperator_"         />
-    !# <objectDestructor name="outputAnalysisDistributionOperator_"   />
-    !# <objectDestructor name="galacticFilter_"                       />
-    !# <objectDestructor name="outputTimes_"                          />
+    !![
+    <conditionalCall>
+     <call>
+      self=outputAnalysisScatterFunction1D(                                                                                            &amp;
+           &amp;                        label                                                                                        , &amp;
+           &amp;                        comment                                                                                      , &amp;
+           &amp;                        propertyLabel                                                                                , &amp;
+           &amp;                        propertyComment                                                                              , &amp;
+           &amp;                        propertyUnits                                                                                , &amp;
+           &amp;                        propertyUnitsInSI                                                                            , &amp;
+           &amp;                        scatterLabel                                                                                 , &amp;
+           &amp;                        scatterComment                                                                               , &amp;
+           &amp;                        scatterUnits                                                                                 , &amp;
+           &amp;                        scatterUnitsInSI                                                                             , &amp;
+           &amp;                        binCenter                                                                                    , &amp;
+           &amp;                        bufferCount                                                                                  , &amp;
+           &amp;                        reshape(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t),outputTimes_%count()]), &amp;
+           &amp;                        nodePropertyExtractor_                                                             , &amp;
+           &amp;                        outputAnalysisWeightPropertyExtractor_                                                       , &amp;
+           &amp;                        outputAnalysisPropertyOperator_                                                              , &amp;
+           &amp;                        outputAnalysisWeightPropertyOperator_                                                        , &amp;
+           &amp;                        outputAnalysisPropertyUnoperator_                                                            , &amp;
+           &amp;                        outputAnalysisWeightOperator_                                                                , &amp;
+           &amp;                        outputAnalysisDistributionOperator_                                                          , &amp;
+           &amp;                        galacticFilter_                                                                              , &amp;
+           &amp;                        outputTimes_                                                                                 , &amp;
+           &amp;                        enumerationOutputAnalysisCovarianceModelEncode(char(covarianceModel),includesPrefix=.false.) , &amp;
+           &amp;                        covarianceBinomialBinsPerDecade                                                              , &amp;
+           &amp;                        covarianceBinomialMassHaloMinimum                                                            , &amp;
+           &amp;                        covarianceBinomialMassHaloMaximum                                                            , &amp;
+           &amp;                        likelihoodNormalize                                                                          , &amp;
+           &amp;                        xAxisLabel                                                                                   , &amp;
+           &amp;                        yAxisLabel                                                                                   , &amp;
+           &amp;                        xAxisIsLog                                                                                   , &amp;
+           &amp;                        yAxisIsLog                                                                                   , &amp;
+           &amp;                        targetLabel                                                                                    &amp;
+           &amp;                        {conditions}                                                                                   &amp;
+           &amp;                       )
+     </call>
+     <argument name="scatterValueTarget"      value="scatterValueTarget"      parameterPresent="parameters"/>
+     <argument name="scatterCovarianceTarget" value="scatterCovarianceTarget" parameterPresent="parameters"/>
+    </conditionalCall>
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="nodePropertyExtractor_"      />
+    <objectDestructor name="outputAnalysisWeightPropertyExtractor_"/>
+    <objectDestructor name="outputAnalysisPropertyOperator_"       />
+    <objectDestructor name="outputAnalysisWeightPropertyOperator_" />
+    <objectDestructor name="outputAnalysisPropertyUnoperator_"     />
+    <objectDestructor name="outputAnalysisWeightOperator_"         />
+    <objectDestructor name="outputAnalysisDistributionOperator_"   />
+    <objectDestructor name="galacticFilter_"                       />
+    <objectDestructor name="outputTimes_"                          />
+    !!]
     return
   end function scatterFunction1DConstructorParameters
 
   function scatterFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,scatterLabel,scatterComment,scatterUnits,scatterUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,scatterValueTarget,scatterCovarianceTarget) result (self)
-    !% Constructor for the ``scatterFunction1D'' output analysis class for internal use.
+    !!{
+    Constructor for the ``scatterFunction1D'' output analysis class for internal use.
+    !!}
     use :: Output_Analysis_Property_Operators, only : outputAnalysisPropertyOperatorClass, outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSquare, propertyOperatorList
     use :: Output_Analysis_Weight_Operators  , only : outputAnalysisWeightOperatorClass  , weightOperatorList
     implicit none
@@ -360,7 +382,9 @@ contains
     type            (propertyOperatorList                   ), pointer                                 :: propertyOperators_
     type            (outputAnalysisPropertyOperatorSequence ), pointer                                 :: outputAnalysisWeightPropertyOperatorSquaring_
     type            (outputAnalysisPropertyOperatorSquare   ), pointer                                 :: outputAnalysisWeightPropertyOperatorSquare_
-    !# <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, scatterLabel, scatterComment, scatterUnits, scatterUnitsInSI, xAxisLabel, yAxisLabel, xAxisIsLog, yAxisIsLog, targetLabel, scatterValueTarget, scatterCovarianceTarget"/>
+    !![
+    <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, scatterLabel, scatterComment, scatterUnits, scatterUnitsInSI, xAxisLabel, yAxisLabel, xAxisIsLog, yAxisIsLog, targetLabel, scatterValueTarget, scatterCovarianceTarget"/>
+    !!]
 
     ! Mark as unfinalized.
     self%finalized=.false.
@@ -372,97 +396,111 @@ contains
     allocate(propertyOperators_                           %next)
     allocate(outputAnalysisWeightPropertyOperatorSquaring_     )
     allocate(outputAnalysisWeightPropertyOperatorSquare_       )
-    !# <referenceConstruct object="outputAnalysisWeightPropertyOperatorSquare_"   constructor="outputAnalysisPropertyOperatorSquare  (                  )"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorSquare_"   constructor="outputAnalysisPropertyOperatorSquare  (                  )"/>
+    !!]
     propertyOperators_     %operator_ => outputAnalysisWeightPropertyOperator_
     propertyOperators_%next%operator_ => outputAnalysisWeightPropertyOperatorSquare_
-    !# <referenceConstruct object="outputAnalysisWeightPropertyOperatorSquaring_" constructor="outputAnalysisPropertyOperatorSequence(propertyOperators_)"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightPropertyOperatorSquaring_" constructor="outputAnalysisPropertyOperatorSequence(propertyOperators_)"/>
+    !!]
     ! Build normal and squared mean function 1D objects.
     allocate(self%meanFunction       )
     allocate(self%meanSquaredFunction)
-    !# <referenceConstruct isResult="yes" owner="self" object="meanFunction">
-    !#  <constructor>
-    !#   outputAnalysisMeanFunction1D(                                               &amp;
-    !#    &amp;                       label                                        , &amp;
-    !#    &amp;                       comment                                      , &amp;
-    !#    &amp;                       propertyLabel                                , &amp;
-    !#    &amp;                       propertyComment                              , &amp;
-    !#    &amp;                       propertyUnits                                , &amp;
-    !#    &amp;                       propertyUnitsInSI                            , &amp;
-    !#    &amp;                       scatterLabel                                 , &amp;
-    !#    &amp;                       scatterComment                               , &amp;
-    !#    &amp;                       scatterUnits                                 , &amp;
-    !#    &amp;                       scatterUnitsInSI                             , &amp;
-    !#    &amp;                       binCenter                                    , &amp;
-    !#    &amp;                       bufferCount                                  , &amp;
-    !#    &amp;                       outputWeight                                 , &amp;
-    !#    &amp;                       nodePropertyExtractor_             , &amp;
-    !#    &amp;                       outputAnalysisWeightPropertyExtractor_       , &amp;
-    !#    &amp;                       outputAnalysisPropertyOperator_              , &amp;
-    !#    &amp;                       outputAnalysisWeightPropertyOperator_        , &amp;
-    !#    &amp;                       outputAnalysisPropertyUnoperator_            , &amp;
-    !#    &amp;                       outputAnalysisWeightOperator_                , &amp;
-    !#    &amp;                       outputAnalysisDistributionOperator_          , &amp;
-    !#    &amp;                       galacticFilter_                              , &amp;
-    !#    &amp;                       outputTimes_                                 , &amp;
-    !#    &amp;                       covarianceModel                              , &amp;
-    !#    &amp;                       covarianceBinomialBinsPerDecade              , &amp;
-    !#    &amp;                       covarianceBinomialMassHaloMinimum            , &amp;
-    !#    &amp;                       covarianceBinomialMassHaloMaximum              &amp;
-    !#    &amp;                      )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <referenceConstruct isResult="yes" owner="self" object="meanSquaredFunction">
-    !#  <constructor>
-    !#   outputAnalysisMeanFunction1D(                                               &amp;
-    !#    &amp;                       label                                        , &amp;
-    !#    &amp;                       comment                                      , &amp;
-    !#    &amp;                       propertyLabel                                , &amp;
-    !#    &amp;                       propertyComment                              , &amp;
-    !#    &amp;                       propertyUnits                                , &amp;
-    !#    &amp;                       propertyUnitsInSI                            , &amp;
-    !#    &amp;                       scatterLabel                                 , &amp;
-    !#    &amp;                       scatterComment                               , &amp;
-    !#    &amp;                       scatterUnits                                 , &amp;
-    !#    &amp;                       scatterUnitsInSI                             , &amp;
-    !#    &amp;                       binCenter                                    , &amp;
-    !#    &amp;                       bufferCount                                  , &amp;
-    !#    &amp;                       outputWeight                                 , &amp;
-    !#    &amp;                       nodePropertyExtractor_             , &amp;
-    !#    &amp;                       outputAnalysisWeightPropertyExtractor_       , &amp;
-    !#    &amp;                       outputAnalysisPropertyOperator_              , &amp;
-    !#    &amp;                       outputAnalysisWeightPropertyOperatorSquaring_, &amp;
-    !#    &amp;                       outputAnalysisPropertyUnoperator_            , &amp;
-    !#    &amp;                       outputAnalysisWeightOperator_                , &amp;
-    !#    &amp;                       outputAnalysisDistributionOperator_          , &amp;
-    !#    &amp;                       galacticFilter_                              , &amp;
-    !#    &amp;                       outputTimes_                                 , &amp;
-    !#    &amp;                       covarianceModel                              , &amp;
-    !#    &amp;                       covarianceBinomialBinsPerDecade              , &amp;
-    !#    &amp;                       covarianceBinomialMassHaloMinimum            , &amp;
-    !#    &amp;                       covarianceBinomialMassHaloMaximum              &amp;
-    !#    &amp;                      )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct isResult="yes" owner="self" object="meanFunction">
+     <constructor>
+      outputAnalysisMeanFunction1D(                                               &amp;
+       &amp;                       label                                        , &amp;
+       &amp;                       comment                                      , &amp;
+       &amp;                       propertyLabel                                , &amp;
+       &amp;                       propertyComment                              , &amp;
+       &amp;                       propertyUnits                                , &amp;
+       &amp;                       propertyUnitsInSI                            , &amp;
+       &amp;                       scatterLabel                                 , &amp;
+       &amp;                       scatterComment                               , &amp;
+       &amp;                       scatterUnits                                 , &amp;
+       &amp;                       scatterUnitsInSI                             , &amp;
+       &amp;                       binCenter                                    , &amp;
+       &amp;                       bufferCount                                  , &amp;
+       &amp;                       outputWeight                                 , &amp;
+       &amp;                       nodePropertyExtractor_             , &amp;
+       &amp;                       outputAnalysisWeightPropertyExtractor_       , &amp;
+       &amp;                       outputAnalysisPropertyOperator_              , &amp;
+       &amp;                       outputAnalysisWeightPropertyOperator_        , &amp;
+       &amp;                       outputAnalysisPropertyUnoperator_            , &amp;
+       &amp;                       outputAnalysisWeightOperator_                , &amp;
+       &amp;                       outputAnalysisDistributionOperator_          , &amp;
+       &amp;                       galacticFilter_                              , &amp;
+       &amp;                       outputTimes_                                 , &amp;
+       &amp;                       covarianceModel                              , &amp;
+       &amp;                       covarianceBinomialBinsPerDecade              , &amp;
+       &amp;                       covarianceBinomialMassHaloMinimum            , &amp;
+       &amp;                       covarianceBinomialMassHaloMaximum              &amp;
+       &amp;                      )
+     </constructor>
+    </referenceConstruct>
+    <referenceConstruct isResult="yes" owner="self" object="meanSquaredFunction">
+     <constructor>
+      outputAnalysisMeanFunction1D(                                               &amp;
+       &amp;                       label                                        , &amp;
+       &amp;                       comment                                      , &amp;
+       &amp;                       propertyLabel                                , &amp;
+       &amp;                       propertyComment                              , &amp;
+       &amp;                       propertyUnits                                , &amp;
+       &amp;                       propertyUnitsInSI                            , &amp;
+       &amp;                       scatterLabel                                 , &amp;
+       &amp;                       scatterComment                               , &amp;
+       &amp;                       scatterUnits                                 , &amp;
+       &amp;                       scatterUnitsInSI                             , &amp;
+       &amp;                       binCenter                                    , &amp;
+       &amp;                       bufferCount                                  , &amp;
+       &amp;                       outputWeight                                 , &amp;
+       &amp;                       nodePropertyExtractor_             , &amp;
+       &amp;                       outputAnalysisWeightPropertyExtractor_       , &amp;
+       &amp;                       outputAnalysisPropertyOperator_              , &amp;
+       &amp;                       outputAnalysisWeightPropertyOperatorSquaring_, &amp;
+       &amp;                       outputAnalysisPropertyUnoperator_            , &amp;
+       &amp;                       outputAnalysisWeightOperator_                , &amp;
+       &amp;                       outputAnalysisDistributionOperator_          , &amp;
+       &amp;                       galacticFilter_                              , &amp;
+       &amp;                       outputTimes_                                 , &amp;
+       &amp;                       covarianceModel                              , &amp;
+       &amp;                       covarianceBinomialBinsPerDecade              , &amp;
+       &amp;                       covarianceBinomialMassHaloMinimum            , &amp;
+       &amp;                       covarianceBinomialMassHaloMaximum              &amp;
+       &amp;                      )
+     </constructor>
+    </referenceConstruct>
+    !!]
     ! Clean up.
-    !# <objectDestructor name="outputAnalysisWeightPropertyOperatorSquare_"  />
-    !# <objectDestructor name="outputAnalysisWeightPropertyOperatorSquaring_"/>
+    !![
+    <objectDestructor name="outputAnalysisWeightPropertyOperatorSquare_"  />
+    <objectDestructor name="outputAnalysisWeightPropertyOperatorSquaring_"/>
+    !!]
     nullify(weightOperatorWeight_ )
     nullify(weightOperatorSquared_)
     return
   end function scatterFunction1DConstructorInternal
 
   subroutine scatterFunction1DDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily scatterFunction1D} output analysis class.
+    !!{
+    Destructor for the {\normalfont \ttfamily scatterFunction1D} output analysis class.
+    !!}
     implicit none
     type(outputAnalysisScatterFunction1D), intent(inout) :: self
 
-    !# <objectDestructor name="self%meanFunction"       />
-    !# <objectDestructor name="self%meanSquaredFunction"/>
+    !![
+    <objectDestructor name="self%meanFunction"       />
+    <objectDestructor name="self%meanSquaredFunction"/>
+    !!]
     return
   end subroutine scatterFunction1DDestructor
 
   subroutine scatterFunction1DAnalyze(self,node,iOutput)
-    !% Implement a scatterFunction1D output analysis.
+    !!{
+    Implement a scatterFunction1D output analysis.
+    !!}
     implicit none
     class  (outputAnalysisScatterFunction1D), intent(inout) :: self
     type   (treeNode                       ), intent(inout) :: node
@@ -475,7 +513,9 @@ contains
   end subroutine scatterFunction1DAnalyze
 
   subroutine scatterFunction1DReduce(self,reduced)
-    !% Implement a scatterFunction1D output analysis reduction.
+    !!{
+    Implement a scatterFunction1D output analysis reduction.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(outputAnalysisScatterFunction1D), intent(inout) :: self
@@ -492,7 +532,9 @@ contains
   end subroutine scatterFunction1DReduce
 
   subroutine scatterFunction1DFinalizeAnalysis(self)
-    !% Finalize analysis of a {\normalfont \ttfamily scatterFunction1D} output analysis.
+    !!{
+    Finalize analysis of a {\normalfont \ttfamily scatterFunction1D} output analysis.
+    !!}
     implicit none
     class           (outputAnalysisScatterFunction1D), intent(inout)                 :: self
     integer                                                                          :: i
@@ -528,7 +570,9 @@ contains
   end subroutine scatterFunction1DFinalizeAnalysis
 
   subroutine scatterFunction1DFinalize(self)
-    !% Implement a {\normalfont \ttfamily scatterFunction1D} output analysis finalization.
+    !!{
+    Implement a {\normalfont \ttfamily scatterFunction1D} output analysis finalization.
+    !!}
     use :: Galacticus_HDF5, only : galacticusOutputFile
     use :: IO_HDF5        , only : hdf5Access          , hdf5Object
     implicit none
@@ -587,7 +631,9 @@ contains
   end subroutine scatterFunction1DFinalize
 
   double precision function scatterFunction1DLogLikelihood(self)
-    !% Return the log-likelihood of a scatterFunction1D output analysis.
+    !!{
+    Return the log-likelihood of a scatterFunction1D output analysis.
+    !!}
     use :: Galacticus_Error            , only : Galacticus_Error_Report
     use :: Linear_Algebra              , only : assignment(=)          , matrix, operator(*), vector
     use :: Numerical_Constants_Math    , only : Pi

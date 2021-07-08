@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,22 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements survey geometries defined by random points.
+!!{
+Implements survey geometries defined by random points.
+!!}
 
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
-  !# <surveyGeometry name="surveyGeometryRandomPoints" abstract="yes">
-  !#  <description>Implements survey geometries defined by random points.</description>
-  !# </surveyGeometry>
+  !![
+  <surveyGeometry name="surveyGeometryRandomPoints" abstract="yes">
+   <description>Implements survey geometries defined by random points.</description>
+  </surveyGeometry>
+  !!]
   type, abstract, extends(surveyGeometryClass) :: surveyGeometryRandomPoints
      private
      logical                                                                 :: geometryInitialized
      double precision                            , allocatable, dimension(:) :: randomTheta                     , randomPhi
      class           (randomNumberGeneratorClass), pointer                   :: randomNumberGenerator_ => null()
    contains
-     !# <methods>
-     !#   <method description="Initialize arrays of random points to define the survey angular geometry." method="randomsInitialize" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Initialize arrays of random points to define the survey angular geometry." method="randomsInitialize" />
+     </methods>
+     !!]
      procedure                                          :: windowFunctionAvailable => randomPointsWindowFunctionAvailable
      procedure                                          :: angularPowerAvailable   => randomPointsAngularPowerAvailable
      procedure                                          :: windowFunctions         => randomPointsWindowFunctions
@@ -51,7 +57,9 @@
 contains
 
   logical function randomPointsWindowFunctionAvailable(self)
-    !% Return true to indicate that survey window function is available.
+    !!{
+    Return true to indicate that survey window function is available.
+    !!}
     implicit none
     class(surveyGeometryRandomPoints), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -61,7 +69,9 @@ contains
   end function randomPointsWindowFunctionAvailable
 
   logical function randomPointsAngularPowerAvailable(self)
-    !% Return false to indicate that survey angular power is not available.
+    !!{
+    Return false to indicate that survey angular power is not available.
+    !!}
     implicit none
     class(surveyGeometryRandomPoints), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -71,7 +81,9 @@ contains
   end function randomPointsAngularPowerAvailable
 
   subroutine randomPointsWindowFunctions(self,mass1,mass2,gridCount,boxLength,windowFunction1,windowFunction2)
-    !% Compute the window function for the survey.
+    !!{
+    Compute the window function for the survey.
+    !!}
     use            :: FFTW3           , only : fftw_plan_dft_3d       , FFTW_FORWARD       , FFTW_ESTIMATE, fftw_execute_dft, &
          &                                     fftw_destroy_plan
     use            :: Galacticus_Error, only : Galacticus_Error_Report
@@ -166,7 +178,9 @@ contains
   end subroutine randomPointsWindowFunctions
 
   double precision function randomPointsAngularPower(self,i,j,l)
-    !% Angular power is not available, so simply aborts.
+    !!{
+    Angular power is not available, so simply aborts.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (surveyGeometryRandomPoints), intent(inout) :: self
@@ -179,7 +193,9 @@ contains
   end function randomPointsAngularPower
 
   logical function randomPointIncluded(self,point,mass)
-    !% Return true if a point is included in the survey geometry.
+    !!{
+    Return true if a point is included in the survey geometry.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryRandomPoints), intent(inout)               :: self

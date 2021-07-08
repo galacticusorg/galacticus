@@ -66,6 +66,7 @@ sub Parse_Declarations {
 			    variableNames => \@variableNames
 			};
 			$isDeclaration = 1;
+			last;
 		    }
 		}
 		# Accumulate raw text.
@@ -231,6 +232,8 @@ sub AddAttributes {
 		    last;
 		}
 	    }
+	    last
+		if ( $declarationFound );
 	}
  	$childNode = $childNode->{'sibling'};
     }

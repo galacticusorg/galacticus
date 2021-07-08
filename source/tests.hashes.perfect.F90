@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test perfect hashing algorithms.
+!!{
+Contains a program to test perfect hashing algorithms.
+!!}
 
 program Test_Perfect_Hashes
-  !% Tests perfect hashing algorithms.
-  use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: Hashes_Perfect    , only : hashPerfect
-  use :: Kind_Numbers      , only : kind_int8
-  use :: Memory_Management , only : allocateArray
-  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  !!{
+  Tests perfect hashing algorithms.
+  !!}
+  use :: Display          , only : displayVerbositySet, verbosityLevelStandard
+  use :: Hashes_Perfect   , only : hashPerfect
+  use :: Kind_Numbers     , only : kind_int8
+  use :: Memory_Management, only : allocateArray
+  use :: Unit_Tests       , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   integer                , parameter                        :: keyCount   =11
   integer(kind=kind_int8)                                   :: i
@@ -35,7 +39,7 @@ program Test_Perfect_Hashes
   type   (hashPerfect   )                                   :: hash
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Perfect hashes")
 

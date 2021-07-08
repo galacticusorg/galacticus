@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,14 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a sequence of operators on merger trees.
+!!{
+Contains a module which implements a sequence of operators on merger trees.
+!!}
 
-  !# <mergerTreeOperator name="mergerTreeOperatorSequence">
-  !#  <description>Provides a sequence of operators on merger trees.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="operatorList" variable="operators" next="next" object="operator_" objectType="mergerTreeOperatorClass"/>
-  !#  </deepCopy>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorSequence">
+   <description>Provides a sequence of operators on merger trees.</description>
+   <deepCopy>
+    <linkedList type="operatorList" variable="operators" next="next" object="operator_" objectType="mergerTreeOperatorClass"/>
+   </deepCopy>
+   <stateStore>
+    <linkedList type="operatorList" variable="operators" next="next" object="operator_"/>
+   </stateStore>
+  </mergerTreeOperator>
+  !!]
 
   type, public :: operatorList
      class(mergerTreeOperatorClass), pointer :: operator_
@@ -32,7 +39,9 @@
   end type operatorList
 
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorSequence
-     !% A sequence merger tree operator class.
+     !!{
+     A sequence merger tree operator class.
+     !!}
      private
      type(operatorList), pointer :: operators => null()
   contains
@@ -42,7 +51,9 @@
   end type mergerTreeOperatorSequence
 
   interface mergerTreeOperatorSequence
-     !% Constructors for the sequence merger tree operator class.
+     !!{
+     Constructors for the sequence merger tree operator class.
+     !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal
   end interface mergerTreeOperatorSequence
@@ -50,7 +61,9 @@
 contains
 
   function sequenceConstructorParameters(parameters) result(self)
-    !% Constructor for the sequence merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the sequence merger tree operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (mergerTreeOperatorSequence)                :: self
@@ -60,7 +73,7 @@ contains
 
     self     %operators => null()
     operator_           => null()
-    do i=1,parameters%copiesCount('mergerTreeOperatorMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('mergerTreeOperator',zeroIfNotPresent=.true.)
        if (associated(operator_)) then
           allocate(operator_%next)
           operator_ => operator_%next
@@ -68,13 +81,17 @@ contains
           allocate(self%operators)
           operator_ => self%operators
        end if
-       !# <objectBuilder class="mergerTreeOperator" name="operator_%operator_" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="mergerTreeOperator" name="operator_%operator_" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function sequenceConstructorParameters
 
   function sequenceConstructorInternal(operators) result(self)
-    !% Internal constructor for the sequence merger tree operator class.
+    !!{
+    Internal constructor for the sequence merger tree operator class.
+    !!}
     implicit none
     type(mergerTreeOperatorSequence)                        :: self
     type(operatorList              ), target, intent(in   ) :: operators
@@ -83,14 +100,18 @@ contains
     self     %operators => operators
     operator_           => operators
     do while (associated(operator_))
-       !# <referenceCountIncrement owner="operator_" object="operator_"/>
+       !![
+       <referenceCountIncrement owner="operator_" object="operator_"/>
+       !!]
        operator_ => operator_%next
     end do
     return
   end function sequenceConstructorInternal
 
   subroutine sequenceDestructor(self)
-    !% Destructor for the merger tree operator function class.
+    !!{
+    Destructor for the merger tree operator function class.
+    !!}
     implicit none
     type(mergerTreeOperatorSequence), intent(inout) :: self
     type(operatorList              ), pointer       :: operator_, operatorNext
@@ -99,7 +120,9 @@ contains
        operator_ => self%operators
        do while (associated(operator_))
           operatorNext => operator_%next
-          !# <objectDestructor name="operator_%operator_"/>
+          !![
+          <objectDestructor name="operator_%operator_"/>
+          !!]
           deallocate(operator_)
           operator_ => operatorNext
        end do
@@ -108,7 +131,9 @@ contains
   end subroutine sequenceDestructor
 
   subroutine sequenceOperatePreEvolution(self,tree)
-    !% Perform a sequence operation on a merger tree.
+    !!{
+    Perform a sequence operation on a merger tree.
+    !!}
     implicit none
     class(mergerTreeOperatorSequence), intent(inout), target :: self
     type (mergerTree                ), intent(inout), target :: tree
@@ -123,7 +148,9 @@ contains
   end subroutine sequenceOperatePreEvolution
 
   subroutine sequenceFinalize(self)
-    !% Perform a finalization on a sequence of operators on a merger tree.
+    !!{
+    Perform a finalization on a sequence of operators on a merger tree.
+    !!}
     implicit none
     class(mergerTreeOperatorSequence), intent(inout) :: self
     type (operatorList              ), pointer       :: operator_

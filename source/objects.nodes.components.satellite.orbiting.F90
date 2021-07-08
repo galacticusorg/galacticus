@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,9 +19,13 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-!% Contains a module of satellite orbit tree node methods.
+!!{
+Contains a module of satellite orbit tree node methods.
+!!}
 module Node_Component_Satellite_Orbiting
-  !% Implements the orbiting satellite component.
+  !!{
+  Implements the orbiting satellite component.
+  !!}
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   use :: Kepler_Orbits          , only : keplerOrbit
   use :: Tensors                , only : tensorRank2Dimension3Symmetric
@@ -33,88 +37,92 @@ module Node_Component_Satellite_Orbiting
        &    Node_Component_Satellite_Orbiting_Thread_Initialize, Node_Component_Satellite_Orbiting_Thread_Uninitialize, &
        &    Node_Component_Satellite_Orbiting_Tree_Initialize
   
-  !# <component>
-  !#  <class>satellite</class>
-  !#  <name>orbiting</name>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>position</name>
-  !#     <type>double</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Orbital position of the node."/>
-  !#     <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
-  !#   </property>
-  !#   <property>
-  !#     <name>velocity</name>
-  !#     <type>double</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <output labels="[X,Y,Z]" unitsInSI="kilo" comment="Orbital velocity of the node."/>
-  !#     <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
-  !#   </property>
-  !#   <property>
-  !#     <name>mergeTime</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <classDefault>-1.0d0</classDefault>
-  !#   </property>
-  !#   <property>
-  !#     <name>timeOfMerging</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
-  !#     <classDefault>-1.0d0</classDefault>
-  !#     <getFunction>Node_Component_Satellite_Orbiting_Time_Of_Merging</getFunction>
-  !#   </property>
-  !#   <property>
-  !#     <name>destructionTime</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <classDefault>-1.0d0</classDefault>
-  !#   </property>
-  !#   <property>
-  !#     <name>boundMass</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <classDefault>selfBasicComponent%mass()</classDefault>
-  !#     <output unitsInSI="massSolar" comment="Bound mass of the node."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>virialOrbit</name>
-  !#     <type>keplerOrbit</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="set:get" />
-  !#   </property>
-  !#   <property>
-  !#     <name>tidalTensorPathIntegrated</name>
-  !#     <type>tensorRank2Dimension3Symmetric</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#   </property>
-  !#   <property>
-  !#     <name>tidalHeatingNormalized</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <output unitsInSI="kilo**2/megaParsec**2" comment="Energy/radius^2 of satellite."/>
-  !#   </property>
-  !#  </properties>
-  !#  <functions>objects.nodes.components.satellite.orbiting.bound_functions.inc</functions>
-  !# </component>
+  !![
+  <component>
+   <class>satellite</class>
+   <name>orbiting</name>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>position</name>
+      <type>double</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Orbital position of the node relative to its immediate host (sub-)halo."/>
+      <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
+    </property>
+    <property>
+      <name>velocity</name>
+      <type>double</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <output labels="[X,Y,Z]" unitsInSI="kilo" comment="Orbital velocity of the node relative to its immediate host (sub-)halo."/>
+      <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
+    </property>
+    <property>
+      <name>mergeTime</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <classDefault>-1.0d0</classDefault>
+    </property>
+    <property>
+      <name>timeOfMerging</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
+      <classDefault>-1.0d0</classDefault>
+      <getFunction>Node_Component_Satellite_Orbiting_Time_Of_Merging</getFunction>
+    </property>
+    <property>
+      <name>destructionTime</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <classDefault>-1.0d0</classDefault>
+    </property>
+    <property>
+      <name>boundMass</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <classDefault>selfBasicComponent%mass()</classDefault>
+      <output unitsInSI="massSolar" comment="Bound mass of the node."/>
+    </property>
+    <property>
+      <name>virialOrbit</name>
+      <type>keplerOrbit</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="set:get" />
+    </property>
+    <property>
+      <name>tidalTensorPathIntegrated</name>
+      <type>tensorRank2Dimension3Symmetric</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+    </property>
+    <property>
+      <name>tidalHeatingNormalized</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <output unitsInSI="kilo**2/megaParsec**2" comment="Energy/radius^2 of satellite."/>
+    </property>
+   </properties>
+   <functions>objects.nodes.components.satellite.orbiting.bound_functions.inc</functions>
+  </component>
+  !!]
 
-  !# <enumeration>
-  !#  <name>satelliteBoundMassInitializeType</name>
-  !#  <description>Specify how to initialize the bound mass of a satellite halo.</description>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <entry label="basicMass"      />
-  !#  <entry label="maximumRadius"  />
-  !#  <entry label="densityContrast"/>
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>satelliteBoundMassInitializeType</name>
+   <description>Specify how to initialize the bound mass of a satellite halo.</description>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="basicMass"      />
+   <entry label="maximumRadius"  />
+   <entry label="densityContrast"/>
+  </enumeration>
+  !!]
 
   ! Objects used by this module.
   class(darkMatterHaloScaleClass      ), pointer :: darkMatterHaloScale_
@@ -130,11 +138,15 @@ module Node_Component_Satellite_Orbiting
 
 contains
 
-  !# <nodeComponentInitializationTask>
-  !#  <unitName>Node_Component_Satellite_Orbiting_Initialize</unitName>
-  !# </nodeComponentInitializationTask>
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>Node_Component_Satellite_Orbiting_Initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
   subroutine Node_Component_Satellite_Orbiting_Initialize(parameters_)
-    !% Initializes the orbiting satellite methods module.
+    !!{
+    Initializes the orbiting satellite methods module.
+    !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Nodes  , only : defaultSatelliteComponent, nodeComponentSatelliteOrbiting
     use :: ISO_Varying_String, only : char                     , var_str                       , varying_string
@@ -147,26 +159,30 @@ contains
     ! Initialize the module if necessary.
     if (defaultSatelliteComponent%orbitingIsActive()) then
        ! Create the spheroid mass distribution.
-       !# <inputParameter>
-       !#   <name>satelliteBoundMassInitializeType</name>
-       !#   <defaultValue>var_str('basicMass')</defaultValue>
-       !#   <description>Specify how to initialize the bound mass of a satellite halo. By default, the initial bound mass of a satellite halo is set to the node mass.</description>
-       !#   <source>parameters_</source>
-       !#   <variable>satelliteBoundMassInitializeTypeText</variable>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>satelliteBoundMassInitializeType</name>
+         <defaultValue>var_str('basicMass')</defaultValue>
+         <description>Specify how to initialize the bound mass of a satellite halo. By default, the initial bound mass of a satellite halo is set to the node mass.</description>
+         <source>parameters_</source>
+         <variable>satelliteBoundMassInitializeTypeText</variable>
+       </inputParameter>
+       !!]
        satelliteBoundMassInitializeType=enumerationSatelliteBoundMassInitializeTypeEncode(char(satelliteBoundMassInitializeTypeText),includesPrefix=.false.)
-       !# <inputParameter>
-       !#   <name>satelliteMaximumRadiusOverVirialRadius</name>
-       !#   <defaultValue>1.0d0</defaultValue>
-       !#   <description>The maximum radius of the satellite halo in units of its virial radius. If {\normalfont \ttfamily [satelliteBoundMassInitializeType]} is set to 'maximumRadius', this value will be used to compute the initial bound mass of the satellite halo assuming that its density profile is 0 beyond this maximum radius.</description>
-       !#   <source>parameters_</source>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>satelliteDensityContrast</name>
-       !#   <defaultValue>200.0d0</defaultValue>
-       !#   <description>The density contrast of the satellite halo. If {\normalfont \ttfamily [satelliteBoundMassInitializeType]} is set to 'densityContrast', this value will be used to compute the initial bound mass of the satellite halo.</description>
-       !#   <source>parameters_</source>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>satelliteMaximumRadiusOverVirialRadius</name>
+         <defaultValue>1.0d0</defaultValue>
+         <description>The maximum radius of the satellite halo in units of its virial radius. If {\normalfont \ttfamily [satelliteBoundMassInitializeType]} is set to 'maximumRadius', this value will be used to compute the initial bound mass of the satellite halo assuming that its density profile is 0 beyond this maximum radius.</description>
+         <source>parameters_</source>
+       </inputParameter>
+       <inputParameter>
+         <name>satelliteDensityContrast</name>
+         <defaultValue>200.0d0</defaultValue>
+         <description>The density contrast of the satellite halo. If {\normalfont \ttfamily [satelliteBoundMassInitializeType]} is set to 'densityContrast', this value will be used to compute the initial bound mass of the satellite halo.</description>
+         <source>parameters_</source>
+       </inputParameter>
+       !!]
        ! Validate the parameters.
        select case (satelliteBoundMassInitializeType)
        case (satelliteBoundMassInitializeTypeMaximumRadius  )
@@ -187,58 +203,87 @@ contains
     return
   end subroutine Node_Component_Satellite_Orbiting_Initialize
 
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Satellite_Orbiting_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Satellite_Orbiting_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Satellite_Orbiting_Thread_Initialize(parameters_)
-    !% Initializes the tree node orbiting satellite module.
+    !!{
+    Initializes the tree node orbiting satellite module.
+    !!}
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
 
     if (defaultSatelliteComponent%orbitingIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
-       !# <objectBuilder class="virialOrbit"         name="virialOrbit_"         source="parameters_"/>
+       !![
+       <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
+       <objectBuilder class="virialOrbit"         name="virialOrbit_"         source="parameters_"/>
+       !!]
+       ! Check that the virial orbit class supports setting of angular coordinates.
+       if (.not.virialOrbit_%isAngularlyResolved()) call Galacticus_Error_Report('"orbiting" satellite component requires a virialOrbit class which provides angularly-resolved orbits'//{introspection:location})
     end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Satellite_Orbiting_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Satellite_Orbiting_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Satellite_Orbiting_Thread_Uninitialize()
-    !% Uninitializes the tree node orbiting satellite module.
+    !!{
+    Uninitializes the tree node orbiting satellite module.
+    !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none
 
     if (defaultSatelliteComponent%orbitingIsActive()) then
-       !# <objectDestructor name="darkMatterHaloScale_"/>
-       !# <objectDestructor name="virialOrbit_"        />
+       !![
+       <objectDestructor name="darkMatterHaloScale_"/>
+       <objectDestructor name="virialOrbit_"        />
+       !!]
     end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Thread_Uninitialize
 
-  !# <mergerTreeInitializeTask>
-  !#  <unitName>Node_Component_Satellite_Orbiting_Tree_Initialize</unitName>
-  !#  <after>darkMatterProfile</after>
-  !#  <after>spin</after>
-  !# </mergerTreeInitializeTask>
-  subroutine Node_Component_Satellite_Orbiting_Tree_Initialize(thisNode)
-    !% Initialize the orbiting satellite component.
-    use :: Galacticus_Nodes, only : treeNode
+  !![
+  <mergerTreeInitializeTask>
+   <unitName>Node_Component_Satellite_Orbiting_Tree_Initialize</unitName>
+   <after>darkMatterProfile</after>
+  </mergerTreeInitializeTask>
+  !!]
+  subroutine Node_Component_Satellite_Orbiting_Tree_Initialize(node)
+    !!{
+    Initialize the orbiting satellite component.
+    !!}
+    use :: Galacticus_Nodes, only : treeNode, nodeComponentSatellite
     implicit none
-    type(treeNode), pointer, intent(inout) :: thisNode
+    type (treeNode              ), pointer, intent(inout) :: node
+    class(nodeComponentSatellite), pointer                :: satellite
 
-    if (thisNode%isSatellite()) call Node_Component_Satellite_Orbiting_Create(thisNode)
+    if (node%isSatellite()) then
+       satellite => node%satellite()
+       select type (satellite)
+       type is (nodeComponentSatellite)
+          call Node_Component_Satellite_Orbiting_Create(node)
+       end select
+    end if
     return
   end subroutine Node_Component_Satellite_Orbiting_Tree_Initialize
 
-  !# <scaleSetTask>
-  !#  <unitName>Node_Component_Satellite_Orbiting_Scale_Set</unitName>
-  !# </scaleSetTask>
+  !![
+  <scaleSetTask>
+   <unitName>Node_Component_Satellite_Orbiting_Scale_Set</unitName>
+  </scaleSetTask>
+  !!]
   subroutine Node_Component_Satellite_Orbiting_Scale_Set(node)
-    !% Set scales for properties of {\normalfont \ttfamily node}.
+    !!{
+    Set scales for properties of {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes                , only : nodeComponentSatellite, nodeComponentSatelliteOrbiting, nodeComponentBasic, treeNode
     use :: Numerical_Constants_Astronomical, only : gigaYear              , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -294,12 +339,16 @@ contains
     return
   end subroutine Node_Component_Satellite_Orbiting_Scale_Set
 
-  !# <nodeMergerTask>
-  !#  <unitName>Node_Component_Satellite_Orbiting_Create</unitName>
-  !# </nodeMergerTask>
+  !![
+  <nodeMergerTask>
+   <unitName>Node_Component_Satellite_Orbiting_Create</unitName>
+  </nodeMergerTask>
+  !!]
   subroutine Node_Component_Satellite_Orbiting_Create(node)
-    !% Create a satellite orbit component and assign initial position, velocity, orbit, and tidal heating quantities. (The initial
-    !% bound mass is automatically set to the original halo mass by virtue of that being the class default).
+    !!{
+    Create a satellite orbit component and assign initial position, velocity, orbit, and tidal heating quantities. (The initial
+    bound mass is automatically set to the original halo mass by virtue of that being the class default).
+    !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatellite, nodeComponentSatelliteOrbiting, treeNode
     implicit none
     type            (treeNode              ), intent(inout) :: node
@@ -340,11 +389,15 @@ contains
     return
   end subroutine Node_Component_Satellite_Orbiting_Create
   
-  !# <satellitePreHostChangeTask>
-  !#  <unitName>Node_Component_Satellite_Orbiting_Pre_Host_Change</unitName>
-  !# </satellitePreHostChangeTask>
+  !![
+  <satellitePreHostChangeTask>
+   <unitName>Node_Component_Satellite_Orbiting_Pre_Host_Change</unitName>
+  </satellitePreHostChangeTask>
+  !!]
   subroutine Node_Component_Satellite_Orbiting_Pre_Host_Change(node,nodeHostNew)
-    !% A satellite is about to move to a new host, adjust its position and velocity appopriately
+    !!{
+    A satellite is about to move to a new host, adjust its position and velocity appopriately
+    !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatellite, treeNode
     implicit none
     type            (treeNode              ), intent(inout), target :: node             , nodeHostNew
@@ -381,7 +434,9 @@ contains
   end subroutine Node_Component_Satellite_Orbiting_Pre_Host_Change
   
   function Node_Component_Satellite_Orbiting_Virial_Orbit(self) result(orbit)
-    !% Return the orbit of the satellite at the virial radius.
+    !!{
+    Return the orbit of the satellite at the virial radius.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSatelliteOrbiting, treeNode
     implicit none
     type (keplerOrbit                   )                :: orbit
@@ -402,25 +457,27 @@ contains
     return
   end function Node_Component_Satellite_Orbiting_Virial_Orbit
   
-  subroutine Node_Component_Satellite_Orbiting_Virial_Orbit_Set(self,thisOrbit)
-    !% Set the orbit of the satellite at the virial radius.
+  subroutine Node_Component_Satellite_Orbiting_Virial_Orbit_Set(self,orbit)
+    !!{
+    Set the orbit of the satellite at the virial radius.
+    !!}
     use :: Coordinates     , only : assignment(=)
     use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentSatelliteOrbiting
     use :: Tensors         , only : tensorNullR2D3Sym
     implicit none
     class           (nodeComponentSatellite), intent(inout) :: self
-    type            (keplerOrbit           ), intent(in   ) :: thisOrbit
+    type            (keplerOrbit           ), intent(in   ) :: orbit
     double precision                        , dimension(3)  :: position   , velocity
     type            (keplerOrbit           )                :: virialOrbit
 
     select type (self)
     class is (nodeComponentSatelliteOrbiting)
        ! Ensure the orbit is defined.
-       call thisOrbit%assertIsDefined()
+       call orbit%assertIsDefined()
        ! Store the orbit.
-       call self%virialOrbitSetValue(thisOrbit)
+       call self%virialOrbitSetValue(orbit)
        ! Store orbitial position and velocity.
-       virialOrbit=thisOrbit
+       virialOrbit=orbit
        position   =virialOrbit%position()
        velocity   =virialOrbit%velocity()
        call self%positionSet(position)
@@ -434,33 +491,35 @@ contains
     return
   end subroutine Node_Component_Satellite_Orbiting_Virial_Orbit_Set
 
-  subroutine Node_Component_Satellite_Orbiting_Bound_Mass_Initialize(satelliteComponent,thisNode)
-    !% Set the initial bound mass of the satellite.
+  subroutine Node_Component_Satellite_Orbiting_Bound_Mass_Initialize(satellite,node)
+    !!{
+    Set the initial bound mass of the satellite.
+    !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galactic_Structure_Enclosed_Masses  , only : Galactic_Structure_Enclosed_Mass
     use :: Galacticus_Error                    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentSatellite             , nodeComponentSatelliteOrbiting, treeNode
     implicit none
-    class           (nodeComponentSatellite), intent(inout) :: satelliteComponent
-    type            (treeNode              ), intent(inout) :: thisNode
-    double precision                                        :: virialRadius      , maximumRadius, &
+    class           (nodeComponentSatellite), intent(inout) :: satellite
+    type            (treeNode              ), intent(inout) :: node
+    double precision                                        :: virialRadius , maximumRadius, &
          &                                                     satelliteMass
 
-    select type (satelliteComponent)
+    select type (satellite)
     class is (nodeComponentSatelliteOrbiting)
        select case (satelliteBoundMassInitializeType)
        case (satelliteBoundMassInitializeTypeBasicMass      )
           ! Do nothing. The bound mass of this satellite is set to the node mass by default.
        case (satelliteBoundMassInitializeTypeMaximumRadius  )
           ! Set the initial bound mass of this satellite by integrating the density profile up to a maximum radius.
-          virialRadius =darkMatterHaloScale_%virialRadius  (thisNode                         )
+          virialRadius =darkMatterHaloScale_%virialRadius  (node                         )
           maximumRadius=satelliteMaximumRadiusOverVirialRadius*virialRadius
-          satelliteMass=Galactic_Structure_Enclosed_Mass   (thisNode,maximumRadius           )
-          call satelliteComponent%boundMassSet(satelliteMass)
+          satelliteMass=Galactic_Structure_Enclosed_Mass   (node,maximumRadius           )
+          call satellite%boundMassSet(satelliteMass)
        case (satelliteBoundMassInitializeTypeDensityContrast)
           ! Set the initial bound mass of this satellite by assuming a specified density contrast.
-          satelliteMass=Dark_Matter_Profile_Mass_Definition(thisNode,satelliteDensityContrast)
-          call satelliteComponent%boundMassSet(satelliteMass)
+          satelliteMass=Dark_Matter_Profile_Mass_Definition(node,satelliteDensityContrast)
+          call satellite%boundMassSet(satelliteMass)
        case default
           call Galacticus_Error_Report('type of method to initialize the bound mass of satellites can not be recognized. Available options are "basicMass", "maximumRadius", "densityContrast"'//{introspection:location})
        end select

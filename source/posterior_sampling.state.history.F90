@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling state class which stores history.
+  !!{
+  Implementation of a posterior sampling state class which stores history.
+  !!}
 
-  !# <posteriorSampleState name="posteriorSampleStateHistory">
-  !#  <description>
-  !#   An extension of the {\normalfont \ttfamily simple} state, this class also records the mean and variance of each parameter over the
-  !#   history of the simulation.
-  !#  </description>
-  !# </posteriorSampleState>
+  !![
+  <posteriorSampleState name="posteriorSampleStateHistory">
+   <description>
+    An extension of the {\normalfont \ttfamily simple} state, this class also records the mean and variance of each parameter over the
+    history of the simulation.
+   </description>
+  </posteriorSampleState>
+  !!]
   type, extends(posteriorSampleStateSimple) :: posteriorSampleStateHistory
-     !% Implementation of a posterior sampling state class which stores history.
+     !!{
+     Implementation of a posterior sampling state class which stores history.
+     !!}
      private
      double precision, allocatable, dimension(:) :: stateSum, stateSquaredSum
    contains
@@ -39,7 +45,9 @@
   end type posteriorSampleStateHistory
 
   interface posteriorSampleStateHistory
-     !% Constructors for the {\normalfont \ttfamily history} posterior sampling state class.
+     !!{
+     Constructors for the {\normalfont \ttfamily history} posterior sampling state class.
+     !!}
      module procedure historyConstructorParameters
      module procedure historyConstructorInternal
   end interface posteriorSampleStateHistory
@@ -47,33 +55,43 @@
 contains
 
   function historyConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily history} posterior sampling state class which builds the object from a
-    !% parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily history} posterior sampling state class which builds the object from a
+    parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (posteriorSampleStateHistory)                :: self
     type   (inputParameters            ), intent(inout) :: parameters
     integer                                             :: acceptedStateCount
 
-    !# <inputParameter>
-    !#   <name>acceptedStateCount</name>
-    !#   <description>The number of states to use in acceptance rate statistics.</description>
-    !#   <defaultValue>100</defaultValue>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>acceptedStateCount</name>
+      <description>The number of states to use in acceptance rate statistics.</description>
+      <defaultValue>100</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=posteriorSampleStateHistory(acceptedStateCount)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function historyConstructorParameters
 
   function historyConstructorInternal(acceptedStateCount) result(self)
-    !% Constructor for the {\normalfont \ttfamily history} posterior sampling state class which builds the object from a
-    !% parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily history} posterior sampling state class which builds the object from a
+    parameter set.
+    !!}
     use :: MPI_Utilities, only : mpiSelf
     implicit none
     type   (posteriorSampleStateHistory)                :: self
     integer                             , intent(in   ) :: acceptedStateCount
-    !# <constructorAssign variables="acceptedStateCount"/>
+    !![
+    <constructorAssign variables="acceptedStateCount"/>
+    !!]
 
     allocate(self%accepted(acceptedStateCount))
     self%stepCount      =0
@@ -83,7 +101,9 @@ contains
   end function historyConstructorInternal
 
   subroutine historyParameterCountSet(self,parameterCount)
-    !% Set the number of parameters in this state.
+    !!{
+    Set the number of parameters in this state.
+    !!}
     implicit none
     class  (posteriorSampleStateHistory), intent(inout) :: self
     integer                             , intent(in   ) :: parameterCount
@@ -96,7 +116,9 @@ contains
   end subroutine historyParameterCountSet
 
   subroutine historyUpdate(self,stateNew,logState,isConverged,outlierMask)
-    !% Update the current state.
+    !!{
+    Update the current state.
+    !!}
     implicit none
     class           (posteriorSampleStateHistory), intent(inout)                         :: self
     double precision                             , intent(in   ), dimension(:)           :: stateNew
@@ -113,7 +135,9 @@ contains
   end subroutine historyUpdate
 
   function historyMean(self)
-    !% Return the mean over state history.
+    !!{
+    Return the mean over state history.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (posteriorSampleStateHistory), intent(inout)                  :: self
@@ -124,7 +148,9 @@ contains
   end function historyMean
 
   function historyVariance(self)
-    !% Return the mean over state history.
+    !!{
+    Return the mean over state history.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (posteriorSampleStateHistory), intent(inout)                  :: self
@@ -135,7 +161,9 @@ contains
   end function historyVariance
 
   subroutine historyReset(self)
-    !% Reset the state object.
+    !!{
+    Reset the state object.
+    !!}
     implicit none
     class(posteriorSampleStateHistory), intent(inout) :: self
 
@@ -146,7 +174,9 @@ contains
   end subroutine historyReset
 
   subroutine historyRestore(self,stateVector,first)
-    !% Restore the state object from file.
+    !!{
+    Restore the state object from file.
+    !!}
     implicit none
     class           (posteriorSampleStateHistory), intent(inout)               :: self
     double precision                             , intent(in   ), dimension(:) :: stateVector

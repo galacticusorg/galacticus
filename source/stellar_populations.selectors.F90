@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,36 +17,42 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a class for selecting stellar populations.
+!!{
+Contains a module which implements a class for selecting stellar populations.
+!!}
 
 module Stellar_Population_Selectors
-  !% Implements a class for selecting stellar populations.
+  !!{
+  Implements a class for selecting stellar populations.
+  !!}
   use :: Abundances_Structure, only : abundances
   use :: Galacticus_Nodes    , only : nodeComponent
   use :: Stellar_Populations , only : stellarPopulationClass
   implicit none
   private
 
-  !# <functionClass>
-  !#  <name>stellarPopulationSelector</name>
-  !#  <descriptiveName>Stellar Population Selectors</descriptiveName>
-  !#  <description>
-  !#   Class providing selectors for stellar populations.
-  !#  </description>
-  !#  <default>fixed</default>
-  !#  <method name="select" >
-  !#   <description>Return a stellar population.</description>
-  !#   <type>class(stellarPopulationClass)</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision               , intent(in   ) :: rateStarFormation</argument>
-  !#   <argument>type            (abundances   ), intent(in   ) :: abundances_      </argument>
-  !#   <argument>class           (nodeComponent), intent(in   ) :: component        </argument>
-  !#  </method>
-  !#  <method name="isStarFormationRateDependent" >
-  !#   <description>Return true if the selection of stellar population is dependent on star formation rate.</description>
-  !#   <type>logical</type>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>stellarPopulationSelector</name>
+   <descriptiveName>Stellar Population Selectors</descriptiveName>
+   <description>
+    Class providing selectors for stellar populations.
+   </description>
+   <default>fixed</default>
+   <method name="select" >
+    <description>Return a stellar population.</description>
+    <type>class(stellarPopulationClass)</type>
+    <pass>yes</pass>
+    <argument>double precision               , intent(in   ) :: rateStarFormation</argument>
+    <argument>type            (abundances   ), intent(in   ) :: abundances_      </argument>
+    <argument>class           (nodeComponent), intent(in   ) :: component        </argument>
+   </method>
+   <method name="isStarFormationRateDependent" >
+    <description>Return true if the selection of stellar population is dependent on star formation rate.</description>
+    <type>logical</type>
+    <pass>yes</pass>
+   </method>
+  </functionClass>
+  !!]
 
 end module Stellar_Population_Selectors

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of radial dependence of halo bias using the fitting function of \citep{tinker_mass--light_2005}.
+  !!{
+  Implementation of radial dependence of halo bias using the fitting function of \citep{tinker_mass--light_2005}.
+  !!}
 
   use :: Correlation_Functions_Two_Point, only : correlationFunctionTwoPointClass
 
-  !# <darkMatterHaloBias name="darkMatterHaloBiasTinker2005">
-  !#  <description>
-  !#  A dark matter halo bias class which applies the radial dependence fitting function of \citep{tinker_mass--light_2005} to
-  !#  another bias class.
-  !#  </description>
-  !# </darkMatterHaloBias>
+  !![
+  <darkMatterHaloBias name="darkMatterHaloBiasTinker2005">
+   <description>
+   A dark matter halo bias class which applies the radial dependence fitting function of \citep{tinker_mass--light_2005} to
+   another bias class.
+   </description>
+  </darkMatterHaloBias>
+  !!]
   type, extends(darkMatterHaloBiasClass) :: darkMatterHaloBiasTinker2005
-     !% Implementation of radial dependence of halo bias using the fitting function of \citep{tinker_mass--light_2005}.
+     !!{
+     Implementation of radial dependence of halo bias using the fitting function of \citep{tinker_mass--light_2005}.
+     !!}
      private
      class(darkMatterHaloBiasClass         ), pointer :: darkMatterHaloBias_                   => null()
      class(correlationFunctionTwoPointClass), pointer :: correlationFunctionTwoPointNonLinear_ => null()
@@ -38,7 +44,9 @@
   end type darkMatterHaloBiasTinker2005
 
   interface darkMatterHaloBiasTinker2005
-     !% Constructors for the {\normalfont \ttfamily tinker2005} dark matter halo bias class.
+     !!{
+     Constructors for the {\normalfont \ttfamily tinker2005} dark matter halo bias class.
+     !!}
      module procedure tinker2005ConstructorParameters
      module procedure tinker2005ConstructorInternal
   end interface darkMatterHaloBiasTinker2005
@@ -46,7 +54,9 @@
 contains
 
   function tinker2005ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily tinker2005} dark matter halo mass bias which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily tinker2005} dark matter halo mass bias which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (darkMatterHaloBiasTinker2005    )                :: self
@@ -54,37 +64,51 @@ contains
     class(darkMatterHaloBiasClass         ), pointer       :: darkMatterHaloBias_
     class(correlationFunctionTwoPointClass), pointer       :: correlationFunctionTwoPointNonLinear_
 
-    !# <objectBuilder class="darkMatterHaloBias"          name="darkMatterHaloBias_"                                                                        source="parameters"/>
-    !# <objectBuilder class="correlationFunctionTwoPoint" name="correlationFunctionTwoPointNonlinear_" parameterName="correlationFunctionTwoPointNonlinear" source="parameters"/>
+    !![
+    <objectBuilder class="darkMatterHaloBias"          name="darkMatterHaloBias_"                                                                        source="parameters"/>
+    <objectBuilder class="correlationFunctionTwoPoint" name="correlationFunctionTwoPointNonlinear_" parameterName="correlationFunctionTwoPointNonlinear" source="parameters"/>
+    !!]
     self=darkMatterHaloBiasTinker2005(darkMatterHaloBias_,correlationFunctionTwoPointNonLinear_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloBias_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloBias_"/>
+    !!]
     return
   end function tinker2005ConstructorParameters
 
   function tinker2005ConstructorInternal(darkMatterHaloBias_,correlationFunctionTwoPointNonLinear_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily tinker2005} dark matter halo bias class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily tinker2005} dark matter halo bias class.
+    !!}
     implicit none
     type (darkMatterHaloBiasTinker2005    )                        :: self
     class(darkMatterHaloBiasClass         ), intent(in   ), target :: darkMatterHaloBias_
     class(correlationFunctionTwoPointClass), intent(in   ), target :: correlationFunctionTwoPointNonLinear_
-    !# <constructorAssign variables="*correlationFunctionTwoPointNonLinear_, *darkMatterHaloBias_"/>
+    !![
+    <constructorAssign variables="*correlationFunctionTwoPointNonLinear_, *darkMatterHaloBias_"/>
+    !!]
 
     return
   end function tinker2005ConstructorInternal
 
   subroutine tinker2005Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily tinker2005} dark matter halo bias class.
+    !!{
+    Destructor for the {\normalfont \ttfamily tinker2005} dark matter halo bias class.
+    !!}
     implicit none
     type(darkMatterHaloBiasTinker2005), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloBias_"                  />
-    !# <objectDestructor name="self%correlationFunctionTwoPointNonlinear_"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloBias_"                  />
+    <objectDestructor name="self%correlationFunctionTwoPointNonlinear_"/>
+    !!]
     return
   end subroutine tinker2005Destructor
 
   double precision function tinker2005BiasByMass(self,mass,time,radius)
-    !% Returns the bias of a dark matter halo given the mass and time.
+    !!{
+    Returns the bias of a dark matter halo given the mass and time.
+    !!}
     implicit none
     class           (darkMatterHaloBiasTinker2005), intent(inout)           :: self
     double precision                              , intent(in   )           :: mass               , time

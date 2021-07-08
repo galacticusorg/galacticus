@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements Gaussian distributions.
+!!{
+Contains a module which implements Gaussian distributions.
+!!}
 
 module Math_Distributions_Gaussian
-  !% Implements Gaussian distributions.
+  !!{
+  Implements Gaussian distributions.
+  !!}
   private
   public :: Gaussian_Distribution
 
 contains
 
   double precision function Gaussian_Distribution(x,sigma)
-    !% Computes the Gaussian distribution with dispersion {\normalfont \ttfamily sigma} at argument {\normalfont \ttfamily x}.
+    !!{
+    Computes the Gaussian distribution with dispersion {\normalfont \ttfamily sigma} at argument {\normalfont \ttfamily x}.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: sigma, x

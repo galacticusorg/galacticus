@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,14 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% A null dark matter halo profile heating class.
+  !!{
+  A null dark matter halo profile heating class.
+  !!}
 
-  !# <darkMatterProfileHeating name="darkMatterProfileHeatingNull">
-  !#  <description>A dark matter profile heating model in which the heating is always zero.</description>
-  !# </darkMatterProfileHeating>
+  !![
+  <darkMatterProfileHeating name="darkMatterProfileHeatingNull">
+   <description>A dark matter profile heating model in which the heating is always zero.</description>
+  </darkMatterProfileHeating>
+  !!]
 
   type, extends(darkMatterProfileHeatingClass) :: darkMatterProfileHeatingNull
-     !% A dark matter profile heating class with zero heating.
+     !!{
+     A dark matter profile heating class with zero heating.
+     !!}
      private
    contains
      procedure :: specificEnergy                 => nullSpecificEnergy
@@ -33,14 +39,18 @@
   end type darkMatterProfileHeatingNull
 
   interface darkMatterProfileHeatingNull
-     !% Constructors for the {\normalfont \ttfamily null} dark matter profile heating class.
+     !!{
+     Constructors for the {\normalfont \ttfamily null} dark matter profile heating class.
+     !!}
      module procedure nullConstructorParameters
   end interface darkMatterProfileHeatingNull
 
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily null} dark matter profile heating scales class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily null} dark matter profile heating scales class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(darkMatterProfileHeatingNull), target        :: self
@@ -52,7 +62,9 @@ contains
   end function nullConstructorParameters
 
   double precision function nullSpecificEnergy(self,node,darkMatterProfileDMO_,radius)
-    !% Returns the specific energy of heating in the given {\normalfont \ttfamily node}.
+    !!{
+    Returns the specific energy of heating in the given {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class           (darkMatterProfileHeatingNull), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
@@ -65,7 +77,9 @@ contains
   end function nullSpecificEnergy
 
   double precision function nullSpecificEnergyGradient(self,node,darkMatterProfileDMO_,radius)
-    !% Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
+    !!{
+    Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class           (darkMatterProfileHeatingNull), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
@@ -78,7 +92,9 @@ contains
   end function nullSpecificEnergyGradient
 
   logical function nullSpecificEnergyIsEverywhereZero(self,node,darkMatterProfileDMO_)
-    !% Returns true if the specific energy is everywhere zero in the given {\normalfont \ttfamily node}.
+    !!{
+    Returns true if the specific energy is everywhere zero in the given {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class(darkMatterProfileHeatingNull), intent(inout) :: self
     type (treeNode                    ), intent(inout) :: node

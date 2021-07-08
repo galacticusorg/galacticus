@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module implementing a 
+!!{
+Contains a module implementing a 
+!!}
 
 module Node_Component_Scale_Virial_Theorem
-  !% Implements a
+  !!{
+  Implements a
+  !!}
   use Galacticus_Nodes                  , only : treeNode                         , nodeComponentDarkMatterProfile  
   use Dark_Matter_Profile_Scales        , only : darkMatterProfileScaleRadiusClass
   use Dark_Matter_Profiles              , only : darkMatterProfileClass
@@ -34,34 +38,29 @@ module Node_Component_Scale_Virial_Theorem
        &    Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Initialize, Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Uninitialize, &
        &    Node_Component_Dark_Matter_Profile_Vrl_Thrm_Plausibility
 
-  !# <component>
-  !#  <class>darkMatterProfile</class>
-  !#  <name>virialTheorem</name>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>scale</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <output unitsInSI="megaParsec" comment="Scale radius of the dark matter profile [Mpc]."/>
-  !#     <classDefault>-1.0d0</classDefault>
-  !#   </property>
-  !#   <property>
-  !#     <name>scaleGrowthRate</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#   <property>
-  !#     <name>scaleIsLimited</name>
-  !#     <type>logical</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <classDefault>.true.</classDefault>
-  !#   </property>
-  !#  </properties>
-  !# </component>
+  !![
+  <component>
+   <class>darkMatterProfile</class>
+   <name>virialTheorem</name>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>scale</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <output unitsInSI="megaParsec" comment="Scale radius of the dark matter profile [Mpc]."/>
+      <classDefault>-1.0d0</classDefault>
+    </property>
+    <property>
+      <name>scaleGrowthRate</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+   </properties>
+  </component>
+  !!]
 
   ! Module-scope variables used in solving for the scale radius as a function of energy.
   type            (treeNode                         ), pointer :: nodeActive
@@ -82,41 +81,51 @@ module Node_Component_Scale_Virial_Theorem
   
 contains
 
-  !# <nodeComponentInitializationTask>
-  !#  <unitName>Node_Component_Dark_Matter_Profile_Vrl_Thrm_Initialize</unitName>
-  !# </nodeComponentInitializationTask>
-  subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Initialize(globalParameters_)
-    !% Initializes the ``virialTheorem'' implementation of the dark matter profile component.
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>Node_Component_Dark_Matter_Profile_Vrl_Thrm_Initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
+  subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Initialize(parameters_)
+    !!{
+    Initializes the ``virialTheorem'' implementation of the dark matter profile component.
+    !!}
     use Input_Parameters
     implicit none
-    type(inputParameters), intent(inout) :: globalParameters_
+    type(inputParameters), intent(inout) :: parameters_
 
-    !# <inputParameter>
-    !#   <name>darkMatterProfileScaleVirialTheoremEnergyBoost</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <source>globalParameters_</source>
-    !#   <description>A boost to the energy</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>darkMatterProfileScaleVirialTheoremMassExponent</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <source>globalParameters_</source>
-    !#   <description>The exponent of mass ratio appearing in the orbital energy term in the ``virial theorem'' dark matter profile scale model.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>darkMatterProfileScaleVirialTheoremUnresolvedEnergy</name>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <source>globalParameters_</source>
-    !#   <description>Factor multiplying the estimate of the internal energy of unresolved accretion in the ``virial theorem'' dark matter profile scale model.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>darkMatterProfileScaleVirialTheoremEnergyBoost</name>
+      <defaultValue>0.0d0</defaultValue>
+      <source>parameters_</source>
+      <description>A boost to the energy</description>
+    </inputParameter>
+    <inputParameter>
+      <name>darkMatterProfileScaleVirialTheoremMassExponent</name>
+      <defaultValue>0.0d0</defaultValue>
+      <source>parameters_</source>
+      <description>The exponent of mass ratio appearing in the orbital energy term in the ``virial theorem'' dark matter profile scale model.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>darkMatterProfileScaleVirialTheoremUnresolvedEnergy</name>
+      <defaultValue>1.0d0</defaultValue>
+      <source>parameters_</source>
+      <description>Factor multiplying the estimate of the internal energy of unresolved accretion in the ``virial theorem'' dark matter profile scale model.</description>
+    </inputParameter>
+    !!]
    return
   end subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Initialize
   
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Initialize(parameters)
-    !% Initializes the tree node scale dark matter profile module.
+    !!{
+    Initializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks                      , only : nodePromotionEvent               , openMPThreadBindingAtLevel
     use :: Input_Parameters                  , only : inputParameters                  , inputParameter
     use :: Galacticus_Nodes                  , only : defaultDarkMatterProfileComponent
@@ -129,41 +138,53 @@ contains
     type(inputParameters), intent(inout) :: parameters
 
     if (defaultDarkMatterProfileComponent%virialTheoremIsActive()) then
-       !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
-       !# <objectBuilder class="darkMatterProfile"            name="darkMatterProfile_"            source="parameters"/>
-       !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
-       !# <objectBuilder class="virialOrbit"                  name="virialOrbit_"                  source="parameters"/>
-       !# <objectBuilder class="mergerTreeMassResolution"     name="mergerTreeMassResolution_"     source="parameters"/>
+       !![
+       <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
+       <objectBuilder class="darkMatterProfile"            name="darkMatterProfile_"            source="parameters"/>
+       <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
+       <objectBuilder class="virialOrbit"                  name="virialOrbit_"                  source="parameters"/>
+       <objectBuilder class="mergerTreeMassResolution"     name="mergerTreeMassResolution_"     source="parameters"/>
+       !!]
        call nodePromotionEvent%attach(defaultDarkMatterProfileComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentDarkMatterProfileVirialTheorem')
     end if
     return
   end subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Uninitialize()
-    !% Uninitializes the tree node scale dark matter profile module.
+    !!{
+    Uninitializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
 
     if (defaultDarkMatterProfileComponent%virialTheoremIsActive()) then
-       !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
-       !# <objectDestructor name="darkMatterProfile_"           />
-       !# <objectDestructor name="darkMatterHaloScale_"         />
-       !# <objectDestructor name="virialOrbit_"                 />
-       !# <objectDestructor name="mergerTreeMassResolution_"    />
+       !![
+       <objectDestructor name="darkMatterProfileScaleRadius_"/>
+       <objectDestructor name="darkMatterProfile_"           />
+       <objectDestructor name="darkMatterHaloScale_"         />
+       <objectDestructor name="virialOrbit_"                 />
+       <objectDestructor name="mergerTreeMassResolution_"    />
+       !!]
         call nodePromotionEvent%detach(defaultDarkMatterProfileComponent,nodePromotion)
    end if
     return
   end subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Uninitialize
 
-  !# <rateComputeTask>
-  !#  <unitName>Node_Component_Dark_Matter_Profile_Vrl_Thrm_Rate_Compute</unitName>
-  !# </rateComputeTask>
+  !![
+  <rateComputeTask>
+   <unitName>Node_Component_Dark_Matter_Profile_Vrl_Thrm_Rate_Compute</unitName>
+  </rateComputeTask>
+  !!]
   subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
-    !% Compute the rate of change of the scale radius.
+    !!{
+    Compute the rate of change of the scale radius.
+    !!}
     use Galacticus_Nodes, only : treeNode, nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileVirialTheorem, propertyTypeInactive
     implicit none
     type            (treeNode                      ), intent(inout)          :: node
@@ -187,12 +208,16 @@ contains
     return
   end subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Rate_Compute
 
-  !# <radiusSolverPlausibility>
-  !#  <unitName>Node_Component_Dark_Matter_Profile_Vrl_Thrm_Plausibility</unitName>
-  !#  <after>Node_Component_Basic_Standard_Plausibility</after>
-  !# </radiusSolverPlausibility>
+  !![
+  <radiusSolverPlausibility>
+   <unitName>Node_Component_Dark_Matter_Profile_Vrl_Thrm_Plausibility</unitName>
+   <after>Node_Component_Basic_Standard_Plausibility</after>
+  </radiusSolverPlausibility>
+  !!]
   subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Plausibility(node)
-    !% Determines whether the dark matter profile is physically plausible for radius solving tasks.
+    !!{
+    Determines whether the dark matter profile is physically plausible for radius solving tasks.
+    !!}
     use Galacticus_Nodes, only : treeNode, nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileVirialTheorem
     implicit none
     type (treeNode                      ), intent(inout) :: node
@@ -210,12 +235,16 @@ contains
     return
   end subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Plausibility
 
-  !# <mergerTreeInitializeTask>
-  !#  <unitName>Node_Component_Dark_Matter_Profile_Vrl_Thrm_Tree_Initialize</unitName>
-  !#  <sortName>darkMatterProfile</sortName>
-  !# </mergerTreeInitializeTask>
+  !![
+  <mergerTreeInitializeTask>
+   <unitName>Node_Component_Dark_Matter_Profile_Vrl_Thrm_Tree_Initialize</unitName>
+   <sortName>darkMatterProfile</sortName>
+  </mergerTreeInitializeTask>
+  !!]
   subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Tree_Initialize(node)
-    !% Initialize the scale radius of {\normalfont \ttfamily node}.
+    !!{
+    Initialize the scale radius of {\normalfont \ttfamily node}.
+    !!}
     use Galacticus_Nodes                , only : nodeComponentBasic                         , nodeComponentDarkMatterProfile     , nodeComponentSatellite       , defaultDarkMatterProfileComponent, &
          &                                       nodeComponentDarkMatterProfileVirialTheorem
     use Root_Finder                     , only : rootFinder                                 , rangeExpandMultiplicative          , rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
@@ -256,6 +285,17 @@ contains
        if (darkMatterProfile%scale() <= 0.0d0) then
           ! Get the resolution of the tree.
           massResolution=mergerTreeMassResolution_%resolution(node%hostTree)
+          ! Build a root finder to find scale radii.
+          finder=rootFinder(                                                             &
+               &            rootFunction                 =radiusScaleRoot              , &
+               &            toleranceAbsolute            =1.0d-6                       , &
+               &            toleranceRelative            =1.0d-3                       , &
+               &            rangeExpandDownward          =0.5d+0                       , &
+               &            rangeExpandUpward            =2.0d+0                       , &
+               &            rangeExpandType              =rangeExpandMultiplicative    , &
+               &            rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+               &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &
+               &           )
           ! Perform our own depth-first tree walk to set scales in all nodes of the tree. This is necessary as we require access
           ! to the parent scale to set scale growth rates, but must initialize scales in a strictly depth-first manner as some
           ! algorithms rely on knowing the progenitor structure of the tree to compute scale radii.
@@ -404,18 +444,7 @@ contains
                 ! Convert energy back to scale radius.
                 nodeActive              => nodeWork
                 darkMatterProfileActive => darkMatterProfile
-                if (.not.finder%isInitialized()) then
-                   call finder%rootFunction(radiusScaleRoot                                  )
-                   call finder%tolerance   (toleranceAbsolute=1.0d-6,toleranceRelative=1.0d-3)
-                   call finder%rangeExpand (                                                             &
-                        &                   rangeExpandDownward          =0.5d0                        , &
-                        &                   rangeExpandUpward            =2.0d0                        , &
-                        &                   rangeExpandType              =rangeExpandMultiplicative    , &
-                        &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-                        &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative  &
-                        &                  )
-                end if
-                radiusScale=finder%find(rootGuess=radiusScaleChild)
+                radiusScale             =  finder%find(rootGuess=radiusScaleChild)
              end if
              call darkMatterProfile%scaleSet(radiusScale)             
           end do
@@ -454,7 +483,9 @@ contains
   end subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Tree_Initialize
 
   double precision function radiusScaleRoot(radiusScale)
-    !% Function used in root-finding to compute the scale radius of a dark matter profile as a given energy.
+    !!{
+    Function used in root-finding to compute the scale radius of a dark matter profile as a given energy.
+    !!}
     implicit none
     double precision, intent(in   ) :: radiusScale
 
@@ -465,8 +496,10 @@ contains
   end function radiusScaleRoot
   
   subroutine nodePromotion(self,node)
-    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the growth rate of {\normalfont \ttfamily node}
-    !% to be that of its parent.
+    !!{
+    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the growth rate of {\normalfont \ttfamily node}
+    to be that of its parent.
+    !!}
     use Galacticus_Error, only : Galacticus_Error_Report
     use Galacticus_Nodes, only : treeNode               , nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileVirialTheorem, nodeComponentBasic
     implicit none
@@ -493,11 +526,15 @@ contains
     return
   end subroutine nodePromotion
 
-  !# <scaleSetTask>
-  !#  <unitName>Node_Component_Dark_Matter_Profile_Vrl_Thrm_Scale_Set</unitName>
-  !# </scaleSetTask>
+  !![
+  <scaleSetTask>
+   <unitName>Node_Component_Dark_Matter_Profile_Vrl_Thrm_Scale_Set</unitName>
+  </scaleSetTask>
+  !!]
   subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Scale_Set(node)
-    !% Set scales for properties of {\normalfont \ttfamily node}.
+    !!{
+    Set scales for properties of {\normalfont \ttfamily node}.
+    !!}
     use Galacticus_Nodes, only : treeNode, nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileVirialTheorem
     implicit none
     type (treeNode                      ), intent(inout), pointer :: node

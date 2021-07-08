@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains custom functions for the standard basic component.
+!!{
+Contains custom functions for the standard basic component.
+!!}
 
 double precision function BasicStandardTimeLastIsolated(self)
-  !% Return the {\normalfont \ttfamily timeLastIsolated} property of the {\normalfont \ttfamily Basic} component class.
+  !!{
+  Return the {\normalfont \ttfamily timeLastIsolated} property of the {\normalfont \ttfamily Basic} component class.
+  !!}
   implicit none
   class(nodeComponentBasicStandard), intent(inout) :: self
   type (treeNode                  ), pointer       :: selfNode

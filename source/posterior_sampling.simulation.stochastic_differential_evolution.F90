@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,44 +17,54 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling simulation class which implements a stochastic differential evolution algorithm.
+  !!{
+  Implementation of a posterior sampling simulation class which implements a stochastic differential evolution algorithm.
+  !!}
 
-  !# <posteriorSampleSimulation name="posteriorSampleSimulationStochasticDffrntlEvltn">
-  !#  <description>
-  !#   This option extends the {\normalfont \ttfamily differentialEvolution} option to run chains at a temperature matched to the
-  !#   uncertainty in the log-likelihood. This is designed to work with stochastic likelihood functions where an estimate of the
-  !#   uncertainty in the log-likelihood is available, and prevents the chains from becoming trapped in local maxima arising purely from
-  !#   random fluctuations.  In addition to the options for the {\normalfont \ttfamily differentialEvolution} algorithm, the details of
-  !#   the algorithm are controlled by the following parameters:
-  !#   \begin{description}
-  !#   \item[{\normalfont \ttfamily temperatureScale}] The temperature scaling factor, $alpha$, described below.
-  !#   \end{description}
-  !#   In computing the acceptance probability for transitions between states, the chain temperature is set to
-  !#   \begin{equation}
-  !#     T = 1 + \alpha C \sqrt{\sigma^2_\mathrm{current}+\sigma^2_\mathrm{proposed}},
-  !#   \end{equation}
-  !#   where $C = \log(\hat{R}/\hat{R}_\mathrm{t})$, $\hat{R}$ is the current maximum (across all parameters) Gelman-Rubin convergence
-  !#   statistic, $\hat{R}_\mathrm{t}$ is the target Gelman-Rubin convergence statistic at which convergence will be declared, and
-  !#   $\sigma^2_\mathrm{current}$ and $\sigma^2_\mathrm{proposed}$ are the variances in the log-likelihood of the current and proposed
-  !#   states respectively. This form ensures that the temperature declines to unity once the chains are converged (such that they will
-  !#   sample from the true posterior distribution), while ensuring that $T$ is of order the size of the expected random fluctuations in
-  !#   the difference in log-likelihoods between states prior to chain convergence.
-  !#  </description>
-  !# </posteriorSampleSimulation>
+  !![
+  <posteriorSampleSimulation name="posteriorSampleSimulationStochasticDffrntlEvltn">
+   <description>
+    This option extends the {\normalfont \ttfamily differentialEvolution} option to run chains at a temperature matched to the
+    uncertainty in the log-likelihood. This is designed to work with stochastic likelihood functions where an estimate of the
+    uncertainty in the log-likelihood is available, and prevents the chains from becoming trapped in local maxima arising purely from
+    random fluctuations.  In addition to the options for the {\normalfont \ttfamily differentialEvolution} algorithm, the details of
+    the algorithm are controlled by the following parameters:
+    \begin{description}
+    \item[{\normalfont \ttfamily temperatureScale}] The temperature scaling factor, $alpha$, described below.
+    \end{description}
+    In computing the acceptance probability for transitions between states, the chain temperature is set to
+    \begin{equation}
+      T = 1 + \alpha C \sqrt{\sigma^2_\mathrm{current}+\sigma^2_\mathrm{proposed}},
+    \end{equation}
+    where $C = \log(\hat{R}/\hat{R}_\mathrm{t})$, $\hat{R}$ is the current maximum (across all parameters) Gelman-Rubin convergence
+    statistic, $\hat{R}_\mathrm{t}$ is the target Gelman-Rubin convergence statistic at which convergence will be declared, and
+    $\sigma^2_\mathrm{current}$ and $\sigma^2_\mathrm{proposed}$ are the variances in the log-likelihood of the current and proposed
+    states respectively. This form ensures that the temperature declines to unity once the chains are converged (such that they will
+    sample from the true posterior distribution), while ensuring that $T$ is of order the size of the expected random fluctuations in
+    the difference in log-likelihoods between states prior to chain convergence.
+   </description>
+  </posteriorSampleSimulation>
+  !!]
   type, extends(posteriorSampleSimulationDifferentialEvolution) :: posteriorSampleSimulationStochasticDffrntlEvltn
-     !% Implementation of a posterior sampling simulation class which implements a stochastic differential evolution algorithm.
+     !!{
+     Implementation of a posterior sampling simulation class which implements a stochastic differential evolution algorithm.
+     !!}
      private
      double precision :: temperatureScale
    contains
-     !# <methods>
-     !#   <method description="Initialize the object." method="initialize" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Initialize the object." method="initialize" />
+     </methods>
+     !!]
      procedure :: acceptProposal => stochasticDifferentialEvolutionAcceptProposal
      procedure :: initialize     => stochasticDifferentialEvolutionInitialize
   end type posteriorSampleSimulationStochasticDffrntlEvltn
 
   interface posteriorSampleSimulationStochasticDffrntlEvltn
-     !% Constructors for the {\normalfont \ttfamily stochasticDifferentialEvolution} posterior sampling convergence class.
+     !!{
+     Constructors for the {\normalfont \ttfamily stochasticDifferentialEvolution} posterior sampling convergence class.
+     !!}
      module procedure stochasticDifferentialEvolutionConstructorParameters
      module procedure stochasticDifferentialEvolutionConstructorInternal
   end interface posteriorSampleSimulationStochasticDffrntlEvltn
@@ -62,8 +72,10 @@
 contains
 
   function stochasticDifferentialEvolutionConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily stochasticDifferentialEvolution} posterior sampling simulation class which builds the object from a
-    !% parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily stochasticDifferentialEvolution} posterior sampling simulation class which builds the object from a
+    parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleSimulationStochasticDffrntlEvltn)                :: self
@@ -71,18 +83,24 @@ contains
     double precision                                                                 :: temperatureScale
 
     self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(parameters)
-    !# <inputParameter>
-    !#   <name>temperatureScale</name>
-    !#   <description>The temperature scale.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>temperatureScale</name>
+      <description>The temperature scale.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     call self%initialize(temperatureScale)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function stochasticDifferentialEvolutionConstructorParameters
 
   function stochasticDifferentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice,temperatureScale) result(self)
-    !% Internal constructor for the ``stochasticDifferentialEvolution'' simulation class.
+    !!{
+    Internal constructor for the ``stochasticDifferentialEvolution'' simulation class.
+    !!}
     implicit none
     type            (posteriorSampleSimulationStochasticDffrntlEvltn)                                      :: self
     type            (modelParameterList                             ), intent(in   ), target, dimension(:) :: modelParametersActive_                  , modelParametersInactive_
@@ -108,7 +126,9 @@ contains
   end function stochasticDifferentialEvolutionConstructorInternal
 
   subroutine stochasticDifferentialEvolutionInitialize(self,temperatureScale)
-    !% Finished initialization of stochastic differential evolution simulation objects during construction.
+    !!{
+    Finished initialization of stochastic differential evolution simulation objects during construction.
+    !!}
     implicit none
     class           (posteriorSampleSimulationStochasticDffrntlEvltn), intent(inout) :: self
     double precision                                                 , intent(in   ) :: temperatureScale
@@ -118,7 +138,9 @@ contains
   end subroutine stochasticDifferentialEvolutionInitialize
   
   logical function stochasticDifferentialEvolutionAcceptProposal(self,logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed)
-    !% Return whether or not to accept a proposal.
+    !!{
+    Return whether or not to accept a proposal.
+    !!}
     use :: Galacticus_Error              , only : Galacticus_Error_Report
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceGelmanRubin
     implicit none

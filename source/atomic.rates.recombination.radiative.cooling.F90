@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class implenting cooling rats due to atomic recombination.
+!!{
+Contains a module which provides a class implenting cooling rats due to atomic recombination.
+!!}
 
 module Atomic_Rates_Recombination_Radiative_Cooling
-  !% Provides a class implenting recombination cooling rates.
+  !!{
+  Provides a class implenting recombination cooling rates.
+  !!}
   private
 
-  !# <functionClass>
-  !#  <name>atomicRecombinationRateRadiativeCooling</name>
-  !#  <descriptiveName>Atomic Recombination Cooling</descriptiveName>
-  !#  <description>
-  !#   Class providing atomic recombination cooling rates.
-  !#  </description>
-  !#  <default>hummer</default>
-  !#  <method name="rate" >
-  !#   <description>Returns the recombination cooling rate coefficient in units of cm$^3$ s$^{-1}$.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>integer         , intent(in   )           :: atomicNumber, ionizationState</argument>
-  !#   <argument>double precision, intent(in   )           :: temperature</argument>
-  !#   <argument>integer         , intent(in   ), optional :: level</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>atomicRecombinationRateRadiativeCooling</name>
+   <descriptiveName>Atomic Recombination Cooling</descriptiveName>
+   <description>
+    Class providing atomic recombination cooling rates.
+   </description>
+   <default>hummer</default>
+   <method name="rate" >
+    <description>Returns the recombination cooling rate coefficient in units of cm$^3$ s$^{-1}$.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>integer         , intent(in   )           :: atomicNumber, ionizationState</argument>
+    <argument>double precision, intent(in   )           :: temperature</argument>
+    <argument>integer         , intent(in   ), optional :: level</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Atomic_Rates_Recombination_Radiative_Cooling

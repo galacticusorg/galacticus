@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,11 +25,15 @@
   use :: Halo_Mass_Functions           , only : haloMassFunctionClass
   use :: Power_Spectra                 , only : powerSpectrumClass
 
-  !# <task name="taskExcursionSets">
-  !#  <description>A task which computes and outputs the halo mass function and related quantities.</description>
-  !# </task>
+  !![
+  <task name="taskExcursionSets">
+   <description>A task which computes and outputs the halo mass function and related quantities.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskExcursionSets
-     !% Implementation of a task which computes and outputs the halo mass function and related quantities.
+     !!{
+     Implementation of a task which computes and outputs the halo mass function and related quantities.
+     !!}
      private
      type            (varying_string                )          :: outputGroup
      integer                                                   :: massesPerDecade           , timesPerDecade
@@ -48,7 +52,9 @@
   end type taskExcursionSets
 
   interface taskExcursionSets
-     !% Constructors for the {\normalfont \ttfamily excursionSets} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily excursionSets} task.
+     !!}
      module procedure excursionSetsConstructorParameters
      module procedure excursionSetsConstructorInternal
   end interface taskExcursionSets
@@ -56,7 +62,9 @@
 contains
 
   function excursionSetsConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily excursionSets} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily excursionSets} task class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Input_Parameters, only : inputParameter              , inputParameters
     use :: Node_Components , only : Node_Components_Initialize
@@ -90,55 +98,57 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
-    !# <inputParameter>
-    !#   <name>massMinimum</name>
-    !#   <defaultValue>1.0d10</defaultValue>
-    !#   <description>The minimum mass at which to tabulate excursion set solutions.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMaximum</name>
-    !#   <defaultValue>1.0d15</defaultValue>
-    !#   <description>The maximum mass at which to tabulate excursion set solutions.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massesPerDecade</name>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of points per decade of mass at which to tabulate excursion set solutions.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshiftMinimum</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The minimum redshift at which to tabulate excursion set solutions.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshiftMaximum</name>
-    !#   <defaultValue>10.0d0</defaultValue>
-    !#   <description>The maximum redshift at which to tabulate excursion set solutions.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>timesPerDecade</name>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of points per decade of time at which to tabulate excursion set solutions.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>outputGroup</name>
-    !#   <defaultValue>var_str('excursionSets')</defaultValue>
-    !#   <description>The HDF5 output group within which to write excursion set solution data.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"       name="cosmologyParameters_"       source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance"  name="cosmologicalMassVariance_"  source="parameters"/>
-    !# <objectBuilder class="haloMassFunction"          name="haloMassFunction_"          source="parameters"/>
-    !# <objectBuilder class="excursionSetBarrier"       name="excursionSetBarrier_"       source="parameters"/>
-    !# <objectBuilder class="excursionSetFirstCrossing" name="excursionSetFirstCrossing_" source="parameters"/>
-    !# <objectBuilder class="powerSpectrum"             name="powerSpectrum_"             source="parameters"/>
+    !![
+    <inputParameter>
+      <name>massMinimum</name>
+      <defaultValue>1.0d10</defaultValue>
+      <description>The minimum mass at which to tabulate excursion set solutions.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massMaximum</name>
+      <defaultValue>1.0d15</defaultValue>
+      <description>The maximum mass at which to tabulate excursion set solutions.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massesPerDecade</name>
+      <defaultValue>10</defaultValue>
+      <description>The number of points per decade of mass at which to tabulate excursion set solutions.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>redshiftMinimum</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The minimum redshift at which to tabulate excursion set solutions.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>redshiftMaximum</name>
+      <defaultValue>10.0d0</defaultValue>
+      <description>The maximum redshift at which to tabulate excursion set solutions.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>timesPerDecade</name>
+      <defaultValue>10</defaultValue>
+      <description>The number of points per decade of time at which to tabulate excursion set solutions.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>outputGroup</name>
+      <defaultValue>var_str('excursionSets')</defaultValue>
+      <description>The HDF5 output group within which to write excursion set solution data.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters"       name="cosmologyParameters_"       source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance"  name="cosmologicalMassVariance_"  source="parameters"/>
+    <objectBuilder class="haloMassFunction"          name="haloMassFunction_"          source="parameters"/>
+    <objectBuilder class="excursionSetBarrier"       name="excursionSetBarrier_"       source="parameters"/>
+    <objectBuilder class="excursionSetFirstCrossing" name="excursionSetFirstCrossing_" source="parameters"/>
+    <objectBuilder class="powerSpectrum"             name="powerSpectrum_"             source="parameters"/>
+    !!]
     ! Convert redshifts to times.
     timeMinimum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMaximum))
     timeMaximum=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftMinimum))
@@ -158,14 +168,16 @@ contains
          &                 excursionSetFirstCrossing_, &
          &                 powerSpectrum_              &
          &                )
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"      />
-    !# <objectDestructor name="cosmologyFunctions_"       />
-    !# <objectDestructor name="cosmologicalMassVariance_" />
-    !# <objectDestructor name="haloMassFunction_"         />
-    !# <objectDestructor name="excursionSetBarrier_"      />
-    !# <objectDestructor name="excursionSetFirstCrossing_"/>
-    !# <objectDestructor name="powerSpectrum_"            />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"      />
+    <objectDestructor name="cosmologyFunctions_"       />
+    <objectDestructor name="cosmologicalMassVariance_" />
+    <objectDestructor name="haloMassFunction_"         />
+    <objectDestructor name="excursionSetBarrier_"      />
+    <objectDestructor name="excursionSetFirstCrossing_"/>
+    <objectDestructor name="powerSpectrum_"            />
+    !!]
     return
   end function excursionSetsConstructorParameters
 
@@ -185,7 +197,9 @@ contains
        &                                    excursionSetFirstCrossing_, &
        &                                    powerSpectrum_              &
        &                                   ) result(self)
-    !% Constructor for the {\normalfont \ttfamily excursionSets} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily excursionSets} task class which takes a parameter set as input.
+    !!}
     implicit none
     type            (taskExcursionSets             )                        :: self
     class           (cosmologyParametersClass      ), intent(in   ), target :: cosmologyParameters_
@@ -199,39 +213,47 @@ contains
     double precision                                , intent(in   )         :: massMaximum               , massMinimum   , &
          &                                                                     timeMinimum               , timeMaximum
     type            (varying_string                ), intent(in   )         :: outputGroup
-    !# <constructorAssign variables="massMinimum, massMaximum, massesPerDecade, timeMinimum, timeMaximum, timesPerDecade, outputGroup, *cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_, *haloMassFunction_, *excursionSetBarrier_, *excursionSetFirstCrossing_, *powerSpectrum_"/>
+    !![
+    <constructorAssign variables="massMinimum, massMaximum, massesPerDecade, timeMinimum, timeMaximum, timesPerDecade, outputGroup, *cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_, *haloMassFunction_, *excursionSetBarrier_, *excursionSetFirstCrossing_, *powerSpectrum_"/>
+    !!]
 
     return
   end function excursionSetsConstructorInternal
 
   subroutine excursionSetsDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily excursionSets} task class.
+    !!{
+    Destructor for the {\normalfont \ttfamily excursionSets} task class.
+    !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
     type(taskExcursionSets), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"      />
-    !# <objectDestructor name="self%cosmologyFunctions_"       />
-    !# <objectDestructor name="self%cosmologicalMassVariance_" />
-    !# <objectDestructor name="self%haloMassFunction_"         />
-    !# <objectDestructor name="self%excursionSetBarrier_"      />
-    !# <objectDestructor name="self%excursionSetFirstCrossing_"/>
-    !# <objectDestructor name="self%powerSpectrum_"            />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"      />
+    <objectDestructor name="self%cosmologyFunctions_"       />
+    <objectDestructor name="self%cosmologicalMassVariance_" />
+    <objectDestructor name="self%haloMassFunction_"         />
+    <objectDestructor name="self%excursionSetBarrier_"      />
+    <objectDestructor name="self%excursionSetFirstCrossing_"/>
+    <objectDestructor name="self%powerSpectrum_"            />
+    !!]
     call self%outputGroup%destroy()
     call Node_Components_Uninitialize()
     return
   end subroutine excursionSetsDestructor
 
   subroutine excursionSetsPerform(self,status)
-    !% Compute and output the halo mass function.
-    use :: Galacticus_Display      , only : Galacticus_Display_Indent, Galacticus_Display_Unindent
+    !!{
+    Compute and output the halo mass function.
+    !!}
+    use :: Display                 , only : displayIndent       , displayUnindent
     use :: Galacticus_Error        , only : errorStatusSuccess
     use :: Galacticus_HDF5         , only : galacticusOutputFile
     use :: Galacticus_Nodes        , only : treeNode
     use :: IO_HDF5                 , only : hdf5Object
-    use :: Memory_Management       , only : allocateArray            , deallocateArray
+    use :: Memory_Management       , only : allocateArray       , deallocateArray
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Ranges        , only : Make_Range               , rangeTypeLogarithmic
+    use :: Numerical_Ranges        , only : Make_Range          , rangeTypeLogarithmic
     implicit none
     class           (taskExcursionSets), intent(inout), target           :: self
     integer                            , intent(  out), optional         :: status
@@ -248,7 +270,7 @@ contains
     double precision                                                     :: varianceProgenitor
     type            (hdf5Object       )                                  :: outputGroup
 
-    call Galacticus_Display_Indent('Begin task: excursion sets')
+    call displayIndent('Begin task: excursion sets')
 #ifdef USEMPI
     ! Indicate that all MPI processes are coordinated in their work.
     call self%excursionSetFirstCrossing_%coordinatedMPI(.true.)
@@ -321,6 +343,6 @@ contains
     call deallocateArray(powerSpectrumValue      )
     call deallocateArray(firstCrossingRate       )
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: excursion sets' )
+    call displayUnindent('Done task: excursion sets' )
     return
   end subroutine excursionSetsPerform

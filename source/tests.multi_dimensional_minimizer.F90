@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,16 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test multidimensional minimizers.
+!!{
+Contains a program to test multidimensional minimizers.
+!!}
 
 program Test_Multidimensional_Minimizer
-  !% Tests of multidimensional minimizers.
-  use            :: Galacticus_Display                       , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use            :: Multidimensional_Minimizer               , only : multiDMinimizer
-  use            :: Test_Multidimensional_Minimizer_Functions, only : minimizerFunction_            , minimizeFunctionDerivative_, minimizeFunctionBoth_
-  use            :: Unit_Tests                               , only : Assert                        , Unit_Tests_Begin_Group     , Unit_Tests_End_Group, Unit_Tests_Finish, &
-       &                                                              compareLessThan
+  !!{
+  Tests of multidimensional minimizers.
+  !!}
+  use            :: Display                                  , only : displayVerbositySet  , verbosityLevelStandard
   use, intrinsic :: ISO_C_Binding                            , only : c_size_t
+  use            :: Multidimensional_Minimizer               , only : multiDMinimizer
+  use            :: Test_Multidimensional_Minimizer_Functions, only : minimizeFunctionBoth_, minimizeFunctionDerivative_, minimizerFunction_
+  use            :: Unit_Tests                               , only : Assert               , Unit_Tests_Begin_Group     , Unit_Tests_End_Group, Unit_Tests_Finish, &
+          &                                                           compareLessThan
   implicit none
   type            (multiDMinimizer), allocatable  :: minimizer_
   double precision                 , dimension(2) :: x
@@ -34,7 +38,7 @@ program Test_Multidimensional_Minimizer
   logical                                         :: converged
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Multidimensional minimizer")
   !! Build the minimizer.

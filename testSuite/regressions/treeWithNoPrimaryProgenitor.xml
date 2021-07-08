@@ -56,7 +56,7 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <mergerTreeConstructorMethod value="read">
+  <mergerTreeConstructor value="read">
     <fileNames value="testSuite/data/mergerTrees/treeWithNoPrimaryProgenitor.hdf5"/>
     <presetPositions value="false"/>
     <presetOrbits value="false"/>
@@ -65,50 +65,64 @@
     <presetSubhaloMasses value="false"/>
     <presetSpins value="false"/>
     <presetScaleRadii value="false"/>
-  </mergerTreeConstructorMethod>
-  <mergerTreeEvolverMethod value="standard">
+  </mergerTreeConstructor>
+  <mergerTreeEvolver value="standard">
     <allTreesExistAtFinalTime value="false"/>
-  </mergerTreeEvolverMethod>
+  </mergerTreeEvolver>
 
-  <treeNodeMethodSatellite value="preset"/>
-  <cosmologyParametersMethod value="simple">
+  <componentSatellite value="preset"/>
+  <cosmologyParameters value="simple">
     <HubbleConstant value="70.0"/>
     <OmegaMatter value="0.3"/>
     <OmegaDarkEnergy value="0.7"/>
     <OmegaBaryon value="0.04"/>
-  </cosmologyParametersMethod>
+  </cosmologyParameters>
 
-  <cosmologicalMassVarianceMethod value="filteredPower">
+  <cosmologicalMassVariance value="filteredPower">
     <sigma_8 value="0.93"/>
-  </cosmologicalMassVarianceMethod>
+  </cosmologicalMassVariance>
 
-  <hotHaloRamPressureStrippingMethod value="virialRadius"/>
+  <hotHaloRamPressureStripping value="virialRadius"/>
   <hotHaloTrackStrippedGas value="false"/>
   <satelliteOrbitStoreOrbitalParameters value="false"/>
 
+  <!-- Halo scale radii and concentrations -->
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  4.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="concentration"/>
+  </darkMatterProfileScaleRadius>
+
   <!-- Node evolution and physics -->
-  <nodeOperatorMethod value="multi">
-    <nodeOperatorMethod value="starFormationDisks"/>
-    <nodeOperatorMethod value="starFormationSpheroids"/>
+  <nodeOperator value="multi">
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Halo spins -->
+    <nodeOperator value="haloSpinRandom">
+      <factorReset value="2.0"/>
+    </nodeOperator>
+    <!-- Star formation -->
+    <nodeOperator value="starFormationDisks"/>
+    <nodeOperator value="starFormationSpheroids"/>
     <!--Stellar feedback outflows-->
-    <nodeOperatorMethod value="stellarFeedbackDisks">
-      <stellarFeedbackOutflowsMethod value="rateLimit">
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
         <timescaleOutflowFractionalMinimum value="0.001"/>
-        <stellarFeedbackOutflowsMethod value="powerLaw">
+        <stellarFeedbackOutflows value="powerLaw">
           <velocityCharacteristic value="250.0"/>
           <exponent value="3.5"/>
-        </stellarFeedbackOutflowsMethod>
-      </stellarFeedbackOutflowsMethod>
-    </nodeOperatorMethod>
-    <nodeOperatorMethod value="stellarFeedbackSpheroids">
-      <stellarFeedbackOutflowsMethod value="rateLimit">
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <nodeOperator value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflows value="rateLimit">
         <timescaleOutflowFractionalMinimum value="0.001"/>
-        <stellarFeedbackOutflowsMethod value="powerLaw">
+        <stellarFeedbackOutflows value="powerLaw">
           <velocityCharacteristic value="250.0"/>
           <exponent value="3.5"/>
-        </stellarFeedbackOutflowsMethod>
-      </stellarFeedbackOutflowsMethod>
-    </nodeOperatorMethod>
-  </nodeOperatorMethod>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+  </nodeOperator>
 
 </parameters>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a class for null radiation fields.
+  !!{
+  Implements a class for null radiation fields.
+  !!}
 
-  !# <radiationField name="radiationFieldNull">
-  !#  <description>A radiation field class for null fields.</description>
-  !# </radiationField>
+  !![
+  <radiationField name="radiationFieldNull">
+   <description>A radiation field class for null fields.</description>
+  </radiationField>
+  !!]
   type, extends(radiationFieldClass) :: radiationFieldNull
-     !% A radiation field class for null fields.
+     !!{
+     A radiation field class for null fields.
+     !!}
      private
    contains
      procedure :: flux => nullFlux
   end type radiationFieldNull
 
   interface radiationFieldNull
-     !% Constructors for the {\normalfont \ttfamily null} radiation field class.
+     !!{
+     Constructors for the {\normalfont \ttfamily null} radiation field class.
+     !!}
      module procedure nullConstructorParameters
   end interface radiationFieldNull
 
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily null} radiation field class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily null} radiation field class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(radiationFieldNull)                :: self
@@ -49,7 +59,9 @@ contains
   end function nullConstructorParameters
 
   double precision function nullFlux(self,wavelength,node)
-    !% Return the flux of a null radiation field.
+    !!{
+    Return the flux of a null radiation field.
+    !!}
     implicit none
     class           (radiationFieldNull), intent(inout) :: self
     double precision                    , intent(in   ) :: wavelength

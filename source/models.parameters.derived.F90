@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,24 +17,34 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a model parameter class in which the parameter value is derived from other parameters.
+  !!{
+  Implementation of a model parameter class in which the parameter value is derived from other parameters.
+  !!}
 
-  !# <modelParameter name="modelParameterDerived">
-  !#  <description>A model parameter class in which the parameter value is derived from other parameters.</description>
-  !# </modelParameter>
+  !![
+  <modelParameter name="modelParameterDerived">
+   <description>A model parameter class in which the parameter value is derived from other parameters.</description>
+  </modelParameter>
+  !!]
   type, extends(modelParameterInactive) :: modelParameterDerived
-     !% Implementation of a model parameter class in which the parameter value is derived from other parameters.
+     !!{
+     Implementation of a model parameter class in which the parameter value is derived from other parameters.
+     !!}
      private
      type(varying_string) :: definition_
    contains
-     !# <methods>
-     !#   <method description="Return the definition for this parameter." method="definition" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return the definition for this parameter." method="definition" />
+     </methods>
+     !!]
      procedure :: definition => derivedDefinition
   end type modelParameterDerived
 
   interface modelParameterDerived
-     !% Constructors for the {\normalfont \ttfamily derived} 1D distribution function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily derived} 1D distribution function class.
+     !!}
      module procedure derivedConstructorParameters
      module procedure derivedConstructorInternal
   end interface modelParameterDerived
@@ -42,40 +52,52 @@
 contains
 
   function derivedConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily derived} model parameter class which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily derived} model parameter class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(modelParameterDerived)                :: self
     type(inputParameters      ), intent(inout) :: parameters
     type(varying_string       )                :: name      , definition
 
-    !# <inputParameter>
-    !#   <name>name</name>
-    !#   <description>The name of the parameter.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>definition</name>
-    !#   <description>The definition of the parameter.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>name</name>
+      <description>The name of the parameter.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>definition</name>
+      <description>The definition of the parameter.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=modelParameterDerived(name,definition)
-     !# <inputParametersValidate source="parameters"/>
+     !![
+     <inputParametersValidate source="parameters"/>
+     !!]
    return
   end function derivedConstructorParameters
 
   function derivedConstructorInternal(name_,definition_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily derived} model parameter class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily derived} model parameter class.
+    !!}
     implicit none
     type(modelParameterDerived)                :: self
     type(varying_string       ), intent(in   ) :: name_, definition_
-    !# <constructorAssign variables="name_, definition_"/>
+    !![
+    <constructorAssign variables="name_, definition_"/>
+    !!]
 
     return
   end function derivedConstructorInternal
 
   function derivedDefinition(self)
-    !% Return the definition of this parameter.
+    !!{
+    Return the definition of this parameter.
+    !!}
     implicit none
     type (varying_string       )                :: derivedDefinition
     class(modelParameterDerived), intent(inout) :: self

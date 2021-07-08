@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a null N-body dark matter halo mass error class.
+!!{
+Contains a module which implements a null N-body dark matter halo mass error class.
+!!}
 
-  !# <nbodyHaloMassError name="nbodyHaloMassErrorNull">
-  !#  <description>A null N-body dark matter halo mass error class. Errors are always zero.</description>
-  !# </nbodyHaloMassError>
+  !![
+  <nbodyHaloMassError name="nbodyHaloMassErrorNull">
+   <description>A null N-body dark matter halo mass error class. Errors are always zero.</description>
+  </nbodyHaloMassError>
+  !!]
   type, extends(nbodyHaloMassErrorClass) :: nbodyHaloMassErrorNull
-     !% A null N-body halo mass error class.
+     !!{
+     A null N-body halo mass error class.
+     !!}
      private
     contains
      procedure :: errorFractional => nullErrorFractional
@@ -32,14 +38,18 @@
   end type nbodyHaloMassErrorNull
 
   interface nbodyHaloMassErrorNull
-     !% Constructors for the {\normalfont \ttfamily null} N-body halo mass error class.
+     !!{
+     Constructors for the {\normalfont \ttfamily null} N-body halo mass error class.
+     !!}
      module procedure nbodyHaloMassErrorNullParameters
   end interface nbodyHaloMassErrorNull
 
 contains
 
   function nbodyHaloMassErrorNullParameters(parameters)
-    !% Constructor for the {\normalfont \ttfamily null} N-body halo mass error class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily null} N-body halo mass error class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(nbodyHaloMassErrorNull)                :: nbodyHaloMassErrorNullParameters
@@ -47,12 +57,16 @@ contains
 
     ! Check and read parameters.
     nbodyHaloMassErrorNullParameters=nbodyHaloMassErrorNull()
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function nbodyHaloMassErrorNullParameters
 
   double precision function nullErrorFractional(self,node)
-    !% Return the fractional error on the mass of an N-body halo.
+    !!{
+    Return the fractional error on the mass of an N-body halo.
+    !!}
     implicit none
     class(nbodyHaloMassErrorNull), intent(inout) :: self
     type (treeNode              ), intent(inout) :: node
@@ -63,7 +77,9 @@ contains
   end function nullErrorFractional
 
   double precision function nullCorrelation(self,node1,node2)
-    !% Return the correlation of the masses of a pair of N-body halos.
+    !!{
+    Return the correlation of the masses of a pair of N-body halos.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(nbodyHaloMassErrorNull), intent(inout) :: self
@@ -86,7 +102,9 @@ contains
   end function nullCorrelation
 
   logical function nullErrorZeroAlways(self)
-    !% Return true since errors are always zero in this model.
+    !!{
+    Return true since errors are always zero in this model.
+    !!}
     implicit none
     class(nbodyHaloMassErrorNull), intent(inout) :: self
     !$GLC attributes unused :: self

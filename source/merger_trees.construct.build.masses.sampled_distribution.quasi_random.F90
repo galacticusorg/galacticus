@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a merger tree masses class which samples masses from a distribution using quasi-random sampling.
+  !!{
+  Implementation of a merger tree masses class which samples masses from a distribution using quasi-random sampling.
+  !!}
 
-  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistributionQuasiRandom">
-  !#  <description>A merger tree masses class which samples masses from a distribution using quasi-random sampling.</description>
-  !# </mergerTreeBuildMasses>
+  !![
+  <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistributionQuasiRandom">
+   <description>A merger tree masses class which samples masses from a distribution using quasi-random sampling.</description>
+  </mergerTreeBuildMasses>
+  !!]
   type, extends(mergerTreeBuildMassesSampledDistribution) :: mergerTreeBuildMassesSampledDistributionQuasiRandom
-     !% Implementation of a merger tree masses class which samples masses from a distribution with pseudi-random sampling.
+     !!{
+     Implementation of a merger tree masses class which samples masses from a distribution with pseudi-random sampling.
+     !!}
      private
    contains
      final     ::              sampledDistributionQuasiRandomDestructor
@@ -38,8 +44,10 @@
 contains
 
   function sampledDistributionQuasiRandomConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily sampledDistributionQuasiRandom} merger tree masses class which takes a parameter set
-    !% as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily sampledDistributionQuasiRandom} merger tree masses class which takes a parameter set
+    as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeBuildMassesSampledDistributionQuasiRandom)                :: self
@@ -50,28 +58,38 @@ contains
   end function sampledDistributionQuasiRandomConstructorParameters
 
   function sampledDistributionQuasiRandomConstructorInternal(massTreeMinimum,massTreeMaximum,treesPerDecade,mergerTreeBuildMassDistribution_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily sampledDistributionQuasiRandom} merger tree masses class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily sampledDistributionQuasiRandom} merger tree masses class.
+    !!}
     implicit none
     type            (mergerTreeBuildMassesSampledDistributionQuasiRandom)                        :: self
     class           (mergerTreeBuildMassDistributionClass               ), intent(in   ), target :: mergerTreeBuildMassDistribution_
     double precision                                                     , intent(in   )         :: massTreeMinimum                 , massTreeMaximum, &
          &                                                                                          treesPerDecade
-    !# <constructorAssign variables="massTreeMinimum, massTreeMaximum, treesPerDecade, *mergerTreeBuildMassDistribution_"/>
+    !![
+    <constructorAssign variables="massTreeMinimum, massTreeMaximum, treesPerDecade, *mergerTreeBuildMassDistribution_"/>
+    !!]
 
     return
   end function sampledDistributionQuasiRandomConstructorInternal
 
   subroutine sampledDistributionQuasiRandomDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily sampledDistributionQuasiRandom} merger tree masses class.
+    !!{
+    Destructor for the {\normalfont \ttfamily sampledDistributionQuasiRandom} merger tree masses class.
+    !!}
     implicit none
     type(mergerTreeBuildMassesSampledDistributionQuasiRandom), intent(inout) :: self
 
-    !# <objectDestructor name="self%mergerTreeBuildMassDistribution_"/>
+    !![
+    <objectDestructor name="self%mergerTreeBuildMassDistribution_"/>
+    !!]
     return
   end subroutine sampledDistributionQuasiRandomDestructor
 
   subroutine sampledDistributionQuasiRandomSampleCMF(self,x)
-    !% Generate a quasiRandom sample of points from the merger tree mass distribution.
+    !!{
+    Generate a quasiRandom sample of points from the merger tree mass distribution.
+    !!}
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Numerical_Quasi_Random_Sequences, only : quasiRandomNumberGenerator, gsl_qrng_sobol
     implicit none

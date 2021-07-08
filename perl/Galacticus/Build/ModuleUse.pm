@@ -35,7 +35,19 @@ sub ModuleUse_Parse_Directive {
 	    $include = 0
 		if ( $buildData->{'exclude'} eq $buildData->{'moduleName'} );
 	}
-	push(@{$buildData->{'moduleUses'}->{$buildData->{'moduleName'}}},exists($buildData->{'currentDocument'}->{'unitName'}) ? $buildData->{'currentDocument'}->{'unitName'} : "__all__")
+	my $unitName;
+	my $moduleName = $buildData->{'moduleName'};
+	if ( exists($buildData->{'currentDocument'}->{'unitName'}) ) {
+	    $unitName = $buildData->{'currentDocument'}->{'unitName'};
+	    # If a globalized-version is to be called, append the suffix.
+	    if ( exists($buildData->{'currentDocument'}->{'useGlobal'}) && $buildData->{'currentDocument'}->{'useGlobal'} eq "yes" ) {
+		$unitName   .= "_";
+		$moduleName  = "Functions_Global";
+	    }
+	} else {
+	    $unitName = "__all__";
+	}
+	push(@{$buildData->{'moduleUses'}->{$moduleName}},$unitName)
 	    if ( $include == 1 );	
     } elsif ( $buildData->{'codeType'} eq "c" ) {
 	(my $leafName = $buildData->{'currentFileName'}) =~ s/.*?([^\/]+)\.c(pp)??$/$1.o/;

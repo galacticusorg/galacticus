@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements topological sorting.
+!!{
+Contains a module which implements topological sorting.
+!!}
 
 module Sorting_Topological
-  !% Implements topological sorting.
+  !!{
+  Implements topological sorting.
+  !!}
   implicit none
   private
   public :: Sort_Topological
@@ -28,15 +32,17 @@ module Sorting_Topological
 contains
 
   subroutine Sort_Topological(countObjects,countDependencies,dependencies,order,countOrdered,status)
-    !% Topological sorting function. Based on the example from \href{https://rosettacode.org/wiki/Topological_sort\#Modern_Fortran}{Rosetta Code}. Arguments are:
-    !% \begin{description}
-    !%  \item[{\normalfont \ttfamily countObjects}\argin] the number of objects to be sorted;
-    !%  \item[{\normalfont \ttfamily countDependencies}\argin] the number of dependencies;
-    !%  \item[{\normalfont \ttfamily dependencies}\argin] an array of dependencies, such that {\normalfont \ttfamily dependencies(:,1)} depends on {\normalfont \ttfamily dependencies(:,2)};
-    !%  \item[{\normalfont \ttfamily order}\argout] an array giving the order of the objects after sorting;
-    !%  \item[{\normalfont \ttfamily countOrdered}\argout] a count of the objects which were ordered by the sort, such that {\normalfont \ttfamily order(1:countOrdered)} contains the ordered objects, while the remainder of {\normalfont \ttfamily order()} contains objects that were unordered (i.e. had no dependencies).
-    !% \end{description}
-    !% The unordered objects are those for which no solution is available---i.e. the graph is not acyclic. So, if {\normalfont \ttfamily order}$<${\normalfont \ttfamily countObjects} then one or more circular dependencies existed in the graph.
+    !!{
+    Topological sorting function. Based on the example from \href{https://rosettacode.org/wiki/Topological_sort\#Modern_Fortran}{Rosetta Code}. Arguments are:
+    \begin{description}
+     \item[{\normalfont \ttfamily countObjects}\argin] the number of objects to be sorted;
+     \item[{\normalfont \ttfamily countDependencies}\argin] the number of dependencies;
+     \item[{\normalfont \ttfamily dependencies}\argin] an array of dependencies, such that {\normalfont \ttfamily dependencies(:,1)} depends on {\normalfont \ttfamily dependencies(:,2)};
+     \item[{\normalfont \ttfamily order}\argout] an array giving the order of the objects after sorting;
+     \item[{\normalfont \ttfamily countOrdered}\argout] a count of the objects which were ordered by the sort, such that {\normalfont \ttfamily order(1:countOrdered)} contains the ordered objects, while the remainder of {\normalfont \ttfamily order()} contains objects that were unordered (i.e. had no dependencies).
+    \end{description}
+    The unordered objects are those for which no solution is available---i.e. the graph is not acyclic. So, if {\normalfont \ttfamily order}$<${\normalfont \ttfamily countObjects} then one or more circular dependencies existed in the graph.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail, errorStatusSuccess
     implicit none
     integer                                , intent(in   ) :: countObjects

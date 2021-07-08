@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module for storing and reporting memory usage by the code.
+!!{
+Contains a module for storing and reporting memory usage by the code.
+!!}
 
 module Memory_Management
-  !% Routines and data type for storing and reporting on memory usage. Also contains routines for allocating and deallocating
-  !% arrays with automatic error checking and deallocation at program termination and memory usage reporting.
+  !!{
+  Routines and data type for storing and reporting on memory usage. Also contains routines for allocating and deallocating
+  arrays with automatic error checking and deallocation at program termination and memory usage reporting.
+  !!}
   use            :: Galacticus_Error, only : Galacticus_Error_Report
-  use, intrinsic :: ISO_C_Binding   , only : c_long                 , c_int    , c_double_complex
+  use, intrinsic :: ISO_C_Binding   , only : c_double_complex       , c_int    , c_long
   use            :: Kind_Numbers    , only : kind_int8              , kind_quad
   implicit none
   private
@@ -42,8 +46,10 @@ module Memory_Management
   integer(kind=kind_int8) :: usageAtPreviousReport  =0
 
   type memoryUsage
-     !% Dervied type variable for storing the properties of a single class of memory storage (memory usage, divisor for outputting
-     !% and suffix for outputting)
+     !!{
+     Dervied type variable for storing the properties of a single class of memory storage (memory usage, divisor for outputting
+     and suffix for outputting)
+     !!}
      integer  (kind=kind_int8) :: divisor, usage
      character(len=20        ) :: name
      character(len=3         ) :: suffix
@@ -56,7 +62,9 @@ module Memory_Management
   integer, parameter, public :: memoryTypeTotal=4
 
   type memoryUsageList
-     !% Dervied type variable for storing all memory usage in the code.
+     !!{
+     Dervied type variable for storing all memory usage in the code.
+     !!}
      type(memoryUsage) :: memoryType(4)
   end type memoryUsageList
 
@@ -75,7 +83,9 @@ module Memory_Management
   interface
      !: $(BUILDPATH)/utility.memory_usage.o
      function Memory_Usage_Get_C() bind(c,name='Memory_Usage_Get_C')
-       !% Template for a C function that returns the current memory usage.
+       !!{
+       Template for a C function that returns the current memory usage.
+       !!}
        import
        integer(kind=c_long) :: Memory_Usage_Get_C
      end function Memory_Usage_Get_C
@@ -96,10 +106,12 @@ module Memory_Management
 contains
 
   subroutine Memory_Usage_Report()
-    !% Writes a report on the current memory usage. The total memory use is evaluated and all usages are scaled into convenient
-    !% units prior to output.
-    use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: ISO_Varying_String, only : varying_string            , assignment(=)
+    !!{
+    Writes a report on the current memory usage. The total memory use is evaluated and all usages are scaled into convenient
+    units prior to output.
+    !!}
+    use :: Display           , only : displayMessage
+    use :: ISO_Varying_String, only : assignment(=) , varying_string
     implicit none
     double precision                , parameter :: newReportChangeFactor=1.2d0
     logical                                     :: issueNewReport
@@ -144,18 +156,21 @@ contains
        call Add_Memory_Component(usedMemory%memoryType(memoryTypeMisc) ,headerText,usageText,join)
        join='='
        call Add_Memory_Component(usedMemory%memoryType(memoryTypeTotal),headerText,usageText,join)
-       call Galacticus_Display_Message(headerText)
-       call Galacticus_Display_Message(usageText )
+       call displayMessage(headerText)
+       call displayMessage(usageText )
     end if
     !$omp end critical(memoryUsageReport)
     return
   end subroutine Memory_Usage_Report
 
-  subroutine Add_Memory_Component(thisMemoryUsage,headerText,usageText,join)
-    !% Add a memory type to the memory reporting strings.
-    use :: ISO_Varying_String, only : varying_string, trim, assignment(=), operator(//), char, len
+  subroutine Add_Memory_Component(memoryUsage_,headerText,usageText,join)
+    !!{
+    Add a memory type to the memory reporting strings.
+    !!}
+    use :: ISO_Varying_String, only : assignment(=), char          , len, operator(//), &
+          &                           trim         , varying_string
     implicit none
-    type     (memoryUsage           ), intent(in   ) :: thisMemoryUsage
+    type     (memoryUsage           ), intent(in   ) :: memoryUsage_
     type     (varying_string        ), intent(inout) :: headerText     , usageText
     character(len=1                 ), intent(inout) :: join
     integer                                          :: spaceCount
@@ -163,18 +178,20 @@ contains
     character(len=len(headerText)+40)                :: temporaryString
     character(len=13                )                :: usageString
     
-    if (thisMemoryUsage%usage > 0) then
-       !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-       !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
-       !# </workaround>
+    if (memoryUsage_%usage > 0) then
+       !![
+       <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+        <description>Internal file I/O in gfortran can be non-thread safe.</description>
+       </workaround>
+       !!]
 #ifdef THREADSAFEIO
        !$omp critical(gfortranInternalIO)
 #endif
-       spaceCount=max(0,11-len_trim(thisMemoryUsage%name))
+       spaceCount=max(0,11-len_trim(memoryUsage_%name))
        write (formatString,'(a,i1,a)') '(a,1x,a1,',spaceCount,'x,a)'
-       write (temporaryString,formatString) trim(char(headerText)),join,trim(thisMemoryUsage%name)
+       write (temporaryString,formatString) trim(char(headerText)),join,trim(memoryUsage_%name)
        headerText=trim(temporaryString)
-       write (usageString,'(1x,a1,1x,f7.3,a3)') join,dble(thisMemoryUsage%usage)/dble(thisMemoryUsage%divisor),thisMemoryUsage%suffix
+       write (usageString,'(1x,a1,1x,f7.3,a3)') join,dble(memoryUsage_%usage)/dble(memoryUsage_%divisor),memoryUsage_%suffix
        usageText=trim(usageText)//usageString
        join='+'
 #ifdef THREADSAFEIO
@@ -184,39 +201,43 @@ contains
     return
   end subroutine Add_Memory_Component
 
-  subroutine Set_Memory_Prefix(thisMemoryUsage)
-    !% Given a memory variable, sets the divisor and suffix required to put the memory usage into convenient units for output.
+  subroutine Set_Memory_Prefix(memoryUsage_)
+    !!{
+    Given a memory variable, sets the divisor and suffix required to put the memory usage into convenient units for output.
+    !!}
     implicit none
-    type            (memoryUsage   ), intent(inout) :: thisMemoryUsage
-    integer         (kind=kind_int8), parameter     :: kilo           =1024
-    double precision                , parameter     :: log10kilo      =log10(dble(kilo))
+    type            (memoryUsage   ), intent(inout) :: memoryUsage_
+    integer         (kind=kind_int8), parameter     :: kilo        =1024
+    double precision                , parameter     :: log10kilo   =log10(dble(kilo))
     integer                                         :: usageDecade
 
-    if (thisMemoryUsage%usage > 0) then
-       usageDecade=int(log10(dble(thisMemoryUsage%usage))/log10kilo+0.01d0)
+    if (memoryUsage_%usage > 0) then
+       usageDecade=int(log10(dble(memoryUsage_%usage))/log10kilo+0.01d0)
        select case (usageDecade)
        case (:0)
-          thisMemoryUsage%divisor=1
-          thisMemoryUsage%suffix='  b'
+          memoryUsage_%divisor=1
+          memoryUsage_%suffix='  b'
        case (1)
-          thisMemoryUsage%divisor=kilo
-          thisMemoryUsage%suffix='kib'
+          memoryUsage_%divisor=kilo
+          memoryUsage_%suffix='kib'
        case (2)
-          thisMemoryUsage%divisor=kilo**2
-          thisMemoryUsage%suffix='Mib'
+          memoryUsage_%divisor=kilo**2
+          memoryUsage_%suffix='Mib'
        case (3:)
-          thisMemoryUsage%divisor=kilo**3
-          thisMemoryUsage%suffix='Gib'
+          memoryUsage_%divisor=kilo**3
+          memoryUsage_%suffix='Gib'
        end select
     else
-       thisMemoryUsage%divisor=1
-       thisMemoryUsage%suffix='  b'
+       memoryUsage_%divisor=1
+       memoryUsage_%suffix='  b'
     end if
     return
   end subroutine Set_Memory_Prefix
 
   subroutine Code_Memory_Usage()
-    !% Determines the size of the ``text'' (i.e. code) size.
+    !!{
+    Determines the size of the ``text'' (i.e. code) size.
+    !!}
     implicit none
     character(len=80) :: procFileName, pid
     integer           :: ioStatus    , proc         , &
@@ -241,10 +262,12 @@ contains
   end subroutine Code_Memory_Usage
 
   subroutine Memory_Usage_Record(elementsUsed,memoryType,addRemove,blockCount,file,line)
-    !% Record a change in memory usage.
-    use            :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityDebug
+    !!{
+    Record a change in memory usage.
+    !!}
+    use            :: Display           , only : displayMessage, displayVerbosity, verbosityLevelDebug
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: ISO_Varying_String, only : varying_string            , assignment(=)             , operator(//)
+    use            :: ISO_Varying_String, only : assignment(=) , operator(//)    , varying_string
     use            :: String_Handling   , only : operator(//)
     implicit none
     integer  (kind=c_size_t ), intent(in   )           :: elementsUsed
@@ -272,12 +295,12 @@ contains
     accumulation=elementsUsed*addRemoveActual+sign(blockCountActual,addRemoveActual)*allocationOverhead
     !$omp atomic
     usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage+accumulation
-    if (Galacticus_Verbosity_Level() >= verbosityDebug) then
+    if (displayVerbosity() >= verbosityLevelDebug) then
        if (present(file).and.present(line)) then
           message='memory record: '
           message=message//elementsUsed*addRemoveActual+sign(blockCountActual,addRemoveActual)*allocationOverhead
           message=message//' ['//file//':'//line//']'
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end if
     end if
     return

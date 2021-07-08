@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements binomial coefficients.
+!!{
+Contains a module which implements binomial coefficients.
+!!}
 
 ! Add dependency on GSL library.
 !; gsl
 
 module Binomial_Coefficients
-  !% Implements binomial coefficients.
+  !!{
+  Implements binomial coefficients.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_double, c_int
   implicit none
   private
@@ -31,7 +35,9 @@ module Binomial_Coefficients
 
   interface
      function gsl_sf_choose(n,m) bind(c,name='gsl_sf_choose')
-       !% Template for the GSL choose C function.
+       !!{
+       Template for the GSL choose C function.
+       !!}
        import
        real   (c_double)        :: gsl_sf_choose
        integer(c_int   ), value :: n            , m
@@ -41,7 +47,9 @@ module Binomial_Coefficients
 contains
 
   double precision function Binomial_Coefficient(n,m)
-    !% Evaluate the binomial coefficint, $\left({n \over m}\right)$.
+    !!{
+    Evaluate the binomial coefficint, $\left({n \over m}\right)$.
+    !!}
     implicit none
     integer, intent(in   ) :: n,m
     integer :: n_, m_, prefactor

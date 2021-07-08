@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a Gaussian ellipsoid mass distribution class.
+  !!{
+  Implementation of a Gaussian ellipsoid mass distribution class.
+  !!}
 
   use :: Linear_Algebra, only : matrix
   
-  !# <massDistribution name="massDistributionGaussianEllipsoid">
-  !#  <description>A mass distribution class for Gaussian ellipsoids.</description>
-  !# </massDistribution>
+  !![
+  <massDistribution name="massDistributionGaussianEllipsoid">
+   <description>A mass distribution class for Gaussian ellipsoids.</description>
+  </massDistribution>
+  !!]
   type, public, extends(massDistributionClass) :: massDistributionGaussianEllipsoid
-     !% A Gaussian ellipsoid mass distribution. The formulation and calculations follow the parameterizations and approach of
-     !% \cite[][chapter 3]{chandrasekhar_ellipsoidal_1987}. The ellipsoidal has scale lengths $a_\mathrm{i}$ along each of the
-     !% three perpendicular axes (which are assumed to be aligned with the Cartesian $(x,y,z)$ axes).
+     !!{
+     A Gaussian ellipsoid mass distribution. The formulation and calculations follow the parameterizations and approach of
+     \cite[][chapter 3]{chandrasekhar_ellipsoidal_1987}. The ellipsoidal has scale lengths $a_\mathrm{i}$ along each of the
+     three perpendicular axes (which are assumed to be aligned with the Cartesian $(x,y,z)$ axes).
+     !!}
      double precision                     , dimension(3          ) :: scaleLength
      double precision                                              :: mass                             , density_
      logical                                                       :: accelerationInitialized
@@ -41,12 +47,14 @@
      double precision                     , dimension(2          ) :: axisRatio
      type            (matrix)                                      :: rotationIn                       , rotationOut
    contains
-     !# <methods>
-     !#   <method description="Compute the density on the isodensity surface defined by the parameter $m^2$2." method="densityEllipsoidal" />
-     !#   <method description="Tabulate the gravitational acceleration due to the ellipsoid." method="accelerationTabulate" />
-     !#   <method description="Interpolate in the tabulated gravitational acceleration due to the ellipsoid." method="accelerationInterpolate" />
-     !#   <method description="(Re)initialize the structural properties of the Gaussian ellispoid." method="initialize" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Compute the density on the isodensity surface defined by the parameter $m^2$2." method="densityEllipsoidal" />
+       <method description="Tabulate the gravitational acceleration due to the ellipsoid." method="accelerationTabulate" />
+       <method description="Interpolate in the tabulated gravitational acceleration due to the ellipsoid." method="accelerationInterpolate" />
+       <method description="(Re)initialize the structural properties of the Gaussian ellispoid." method="initialize" />
+     </methods>
+     !!]
      procedure :: density                 => gaussianEllipsoidDensity
      procedure :: densityEllipsoidal      => gaussianEllipsoidDensityEllipsoidal
      procedure :: acceleration            => gaussianEllipsoidAcceleration
@@ -56,7 +64,9 @@
   end type massDistributionGaussianEllipsoid
 
   interface massDistributionGaussianEllipsoid
-     !% Constructors for the {\normalfont \ttfamily gaussianEllipsoid} mass distribution class.
+     !!{
+     Constructors for the {\normalfont \ttfamily gaussianEllipsoid} mass distribution class.
+     !!}
      module procedure gaussianEllipsoidConstructorParameters
      module procedure gaussianEllipsoidConstructorInternal
   end interface massDistributionGaussianEllipsoid
@@ -64,10 +74,12 @@
 contains
 
   function gaussianEllipsoidConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily gaussianEllipsoid} mass distribution class which builds the object from a parameter
-    !% set.
+    !!{
+    Constructor for the {\normalfont \ttfamily gaussianEllipsoid} mass distribution class which builds the object from a parameter
+    set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
-    use :: Linear_Algebra  , only : vector        , assignment(=)
+    use :: Linear_Algebra  , only : assignment(=) , vector
     implicit none
     type            (massDistributionGaussianEllipsoid)                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
@@ -77,54 +89,60 @@ contains
     logical                                                            :: dimensionless
     type            (vector                           ), dimension(3)  :: axes
 
-    !# <inputParameter>
-    !#   <name>mass</name>
-    !#   <description>The mass of the ellipsoid.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>scaleLength</name>
-    !#   <description>The scale lengths of the ellipsoid along each axis.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>axis1</name>
-    !#   <defaultValue>[1.0d0,0.0d0,0.0d0]</defaultValue>
-    !#   <description>The unit vector defining the first axis of the ellipsoid.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>axis2</name>
-    !#   <defaultValue>[0.0d0,1.0d0,0.0d0]</defaultValue>
-    !#   <description>The unit vector defining the second axis of the ellipsoid.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>axis3</name>
-    !#   <defaultValue>[0.0d0,0.0d0,1.0d0]</defaultValue>
-    !#   <description>The unit vector defining the third axis of the ellipsoid.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>dimensionless</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true the Gaussian ellipsoid profile is considered to be dimensionless.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>mass</name>
+      <description>The mass of the ellipsoid.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>scaleLength</name>
+      <description>The scale lengths of the ellipsoid along each axis.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>axis1</name>
+      <defaultValue>[1.0d0,0.0d0,0.0d0]</defaultValue>
+      <description>The unit vector defining the first axis of the ellipsoid.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>axis2</name>
+      <defaultValue>[0.0d0,1.0d0,0.0d0]</defaultValue>
+      <description>The unit vector defining the second axis of the ellipsoid.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>axis3</name>
+      <defaultValue>[0.0d0,0.0d0,1.0d0]</defaultValue>
+      <description>The unit vector defining the third axis of the ellipsoid.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>dimensionless</name>
+      <defaultValue>.true.</defaultValue>
+      <description>If true the Gaussian ellipsoid profile is considered to be dimensionless.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     axes(1)=axis1
     axes(2)=axis2
     axes(3)=axis3    
-    !# <conditionalCall>
-    !#  <call>self=massDistributionGaussianEllipsoid(scaleLength=scaleLength,axes=axes{conditions})</call>
-    !#  <argument name="mass"          value="mass"          parameterPresent="parameters"/>
-    !#  <argument name="dimensionless" value="dimensionless" parameterPresent="parameters"/>
-    !# </conditionalCall>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <conditionalCall>
+     <call>self=massDistributionGaussianEllipsoid(scaleLength=scaleLength,axes=axes{conditions})</call>
+     <argument name="mass"          value="mass"          parameterPresent="parameters"/>
+     <argument name="dimensionless" value="dimensionless" parameterPresent="parameters"/>
+    </conditionalCall>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function gaussianEllipsoidConstructorParameters
   
   function gaussianEllipsoidConstructorInternal(scaleLength,axes,rotation,mass,dimensionless) result(self)
-    !% Constructor for ``gaussianEllipsoid'' convergence class.
+    !!{
+    Constructor for ``gaussianEllipsoid'' convergence class.
+    !!}
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     use :: Linear_Algebra      , only : vector
     use :: Numerical_Comparison, only : Values_Differ
@@ -135,7 +153,9 @@ contains
     type            (matrix                           ), intent(in   )              , optional :: rotation
     double precision                                   , intent(in   ), optional               :: mass
     logical                                            , intent(in   ), optional               :: dimensionless
-    !# <constructorAssign variables="mass, dimensionless"/>
+    !![
+    <constructorAssign variables="mass, dimensionless"/>
+    !!]
 
     ! Determine if profile is dimensionless.
     if (present(dimensionless)) then
@@ -158,9 +178,11 @@ contains
   end function gaussianEllipsoidConstructorInternal
 
   subroutine gaussianEllipsoidInitialize(self,scaleLength,axes,rotation)
-    !% (Re)initialize properties of a Gaussian ellipsoid mass distribution.
+    !!{
+    (Re)initialize properties of a Gaussian ellipsoid mass distribution.
+    !!}
     use :: Galacticus_Error        , only : Galacticus_Error_Report
-    use :: Linear_Algebra          , only : vector                 , matrixRotation, assignment(=)
+    use :: Linear_Algebra          , only : assignment(=)          , matrixRotation, vector
     use :: Numerical_Comparison    , only : Values_Differ
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -219,9 +241,11 @@ contains
   end subroutine gaussianEllipsoidInitialize
   
   double precision function gaussianEllipsoidDensity(self,coordinates)
-    !% Return the density at the specified {\normalfont \ttfamily coordinates} in a Gaussian ellipsoid mass distribution.
+    !!{
+    Return the density at the specified {\normalfont \ttfamily coordinates} in a Gaussian ellipsoid mass distribution.
+    !!}
     use :: Coordinates   , only : assignment(=), coordinateCartesian
-    use :: Linear_Algebra, only : vector       , assignment(=)      , operator(*)
+    use :: Linear_Algebra, only : assignment(=), operator(*)        , vector
     implicit none
     class           (massDistributionGaussianEllipsoid), intent(inout) :: self
     class           (coordinate                       ), intent(in   ) :: coordinates
@@ -246,7 +270,9 @@ contains
   end function gaussianEllipsoidDensity
 
   double precision function gaussianEllipsoidDensityEllipsoidal(self,mSquared)
-    !% Return the density on the isodensity surface defined by $m^2 = \sum_{\mathrm{i}=1}^3 (x_\mathrm{i}/a_\mathrm{i})^2$.
+    !!{
+    Return the density on the isodensity surface defined by $m^2 = \sum_{\mathrm{i}=1}^3 (x_\mathrm{i}/a_\mathrm{i})^2$.
+    !!}
     use :: Coordinates, only : assignment(=), coordinateCartesian
     implicit none
     class           (massDistributionGaussianEllipsoid), intent(inout) :: self
@@ -261,9 +287,11 @@ contains
   end function gaussianEllipsoidDensityEllipsoidal
 
   function gaussianEllipsoidAcceleration(self,coordinates)
-    !% Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for Gaussian ellipsoid mass distributions.
-    use :: Coordinates                 , only : assignment(=)                  , coordinateCartesian
-    use :: Linear_Algebra              , only : vector                         , assignment(=)      , operator(*)
+    !!{
+    Computes the gravitational acceleration at {\normalfont \ttfamily coordinates} for Gaussian ellipsoid mass distributions.
+    !!}
+    use :: Coordinates                     , only : assignment(=)                  , coordinateCartesian
+    use :: Linear_Algebra                  , only : assignment(=)                  , operator(*)        , vector
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     double precision                                   , dimension(3  ) :: gaussianEllipsoidAcceleration
@@ -306,7 +334,9 @@ contains
   end function gaussianEllipsoidAcceleration
   
   function gaussianEllipsoidAccelerationInterpolate(self,positionCartesian)
-    !% Interpolate gravitational acceleration in the tabulated solutions for a Gaussian ellipsoid.
+    !!{
+    Interpolate gravitational acceleration in the tabulated solutions for a Gaussian ellipsoid.
+    !!}
     use :: Trigonometric_Functions, only : hypotenuse
     implicit none
     double precision                                   , dimension(    3)                :: gaussianEllipsoidAccelerationInterpolate
@@ -404,36 +434,38 @@ contains
   end function gaussianEllipsoidAccelerationInterpolate
 
   subroutine gaussianEllipsoidAccelerationTabulate(self)
-    !% Tabulate the gravitational acceleration due to a Gaussian ellipsoid. Follows the approach of \cite[][chapter
-    !% 3]{chandrasekhar_ellipsoidal_1987}. Specifically, using his eqn.~(93) for the gravitational potential
-    !% of a heterogeneous ellipsoid:
-    !% \begin{equation}
-    !%  \mathfrak{B} = \pi \mathrm{G} a_1 a_2 a_3 \int_0^\infty {\mathrm{d} u \over \Delta(u)} \left[ \psi(1)-\psi(m^2(u)) \right],
-    !% \end{equation}
-    !% where $a_1 \le a_2 \le a_3$ are the semi-axes of the ellipsoid, $\Delta^2(u) = \prod_{i=1}^3 (a_i^2 + u)$,
-    !% $m^2(u)=\sum_{i=1}^3 x_i^2/(a_i^2+u)$, and
-    !% \begin{equation}
-    !%  \psi(m^2) = \int_1^{m^2} \mathrm{d}m^2 \rho(m^2),
-    !% \end{equation}
-    !% such that
-    !% \begin{equation}
-    !%  {\mathrm{d} \psi(m^2) \over \mathrm{d} m^2} = \rho(m^2).
-    !% \end{equation}
-    !% Then the acceleration is given by
-    !% \begin{equation}
-    !%  a_i = - 2 \pi \mathrm{G} a_1 a_2 a_3 x_i \int_0^\infty {\mathrm{d} u \over \Delta(u)} {\rho(m^2) \over (a_i^2+u)}.
-    !% \end{equation}
-    !% We take $a_3=1$ in all cases in order to construct the scale-free solution.
-    use :: Galacticus_Display      , only : Galacticus_Display_Counter , Galacticus_Display_Counter_Clear, Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-         &                                  verbosityWorking
-    use :: Galacticus_Paths        , only : galacticusPath             , pathTypeDataDynamic
-    use :: File_Utilities          , only : File_Exists                , File_Lock                       , File_Unlock              , File_Path                  , &
-         &                                  Directory_Make             , lockDescriptor
-    use :: Numerical_Integration   , only : integrator
+    !!{
+    Tabulate the gravitational acceleration due to a Gaussian ellipsoid. Follows the approach of \cite[][chapter
+    3]{chandrasekhar_ellipsoidal_1987}. Specifically, using his eqn.~(93) for the gravitational potential
+    of a heterogeneous ellipsoid:
+    \begin{equation}
+     \mathfrak{B} = \pi \mathrm{G} a_1 a_2 a_3 \int_0^\infty {\mathrm{d} u \over \Delta(u)} \left[ \psi(1)-\psi(m^2(u)) \right],
+    \end{equation}
+    where $a_1 \le a_2 \le a_3$ are the semi-axes of the ellipsoid, $\Delta^2(u) = \prod_{i=1}^3 (a_i^2 + u)$,
+    $m^2(u)=\sum_{i=1}^3 x_i^2/(a_i^2+u)$, and
+    \begin{equation}
+     \psi(m^2) = \int_1^{m^2} \mathrm{d}m^2 \rho(m^2),
+    \end{equation}
+    such that
+    \begin{equation}
+     {\mathrm{d} \psi(m^2) \over \mathrm{d} m^2} = \rho(m^2).
+    \end{equation}
+    Then the acceleration is given by
+    \begin{equation}
+     a_i = - 2 \pi \mathrm{G} a_1 a_2 a_3 x_i \int_0^\infty {\mathrm{d} u \over \Delta(u)} {\rho(m^2) \over (a_i^2+u)}.
+    \end{equation}
+    We take $a_3=1$ in all cases in order to construct the scale-free solution.
+    !!}
+    use :: Display                 , only : displayCounter       , displayCounterClear , displayIndent , displayUnindent, &
+          &                                 verbosityLevelWorking
+    use :: File_Utilities          , only : Directory_Make       , File_Exists         , File_Lock     , File_Path      , &
+          &                                 File_Unlock          , lockDescriptor
+    use :: Galacticus_Paths        , only : galacticusPath       , pathTypeDataDynamic
+    use :: IO_HDF5                 , only : hdf5Access           , hdf5Object
+    use :: ISO_Varying_String      , only : char                 , operator(//)        , varying_string
     use :: Numerical_Constants_Math, only : Pi
-    use :: Numerical_Ranges        , only : Make_Range                 , rangeTypeLogarithmic
-    use :: ISO_Varying_String      , only : operator(//)               , char                            , varying_string
-    use :: IO_HDF5                 , only : hdf5Access                 , hdf5Object
+    use :: Numerical_Integration   , only : integrator
+    use :: Numerical_Ranges        , only : Make_Range           , rangeTypeLogarithmic
     implicit none
     class           (massDistributionGaussianEllipsoid), intent(inout)       :: self
     double precision                                   , dimension(3) , save :: positionCartesian          , scaleLength
@@ -481,7 +513,7 @@ contains
        self%accelerationX          =Make_Range(          xMinimum,          xMaximum,countX          ,rangeTypeLogarithmic)
        self%accelerationScaleLength=Make_Range(scaleLengthMinimum,scaleLengthMaximum,countScaleLength,rangeTypeLogarithmic)
        ! Iterate over all positions and scale lengths, computing the accelerations.
-       call Galacticus_Display_Indent("tabulating gravitational accelerations for Gaussian ellipsoids",verbosityWorking)
+       call displayIndent("tabulating gravitational accelerations for Gaussian ellipsoids",verbosityLevelWorking)
        countWork=0
        do i=1,countX
           do j=1,countX
@@ -491,7 +523,7 @@ contains
              do k=1,countX
                 !$omp atomic
                 countWork=countWork+1
-                call Galacticus_Display_Counter(int(100.0d0*dble(countWork)/dble(countX**3)),i == 1 .and. j == 1 .and. k == 1,verbosityWorking)
+                call displayCounter(int(100.0d0*dble(countWork)/dble(countX**3)),i == 1 .and. j == 1 .and. k == 1,verbosityLevelWorking)
                 positionCartesian=[self%accelerationX          (i),self%accelerationX          (j),self%accelerationX(k)]
                 do l=1,countScaleLength
                    do m=1,countScaleLength
@@ -515,8 +547,8 @@ contains
              !$omp end parallel
           end do
        end do
-       call Galacticus_Display_Counter_Clear(       verbosityWorking)
-       call Galacticus_Display_Unindent     ("done",verbosityWorking)
+       call displayCounterClear(       verbosityLevelWorking)
+       call displayUnindent     ("done",verbosityLevelWorking)
        !$ call hdf5Access%set()
        call file%openFile    (char   (fileName                    )               ,overWrite=.true.,readOnly=.false.)
        call file%writeDataset(        self%accelerationX           ,'x'                                             )
@@ -540,7 +572,9 @@ contains
   contains
 
     double precision function accelerationIntegrand(u)
-      !% Integrand for the gravitational acceleration.
+      !!{
+      Integrand for the gravitational acceleration.
+      !!}
       implicit none
       double precision, intent(in   ) :: u
 
@@ -554,7 +588,9 @@ contains
     end function accelerationIntegrand
 
     double precision function densityMSquared(mSquared)
-      !% Density as a function of $m^2$.
+      !!{
+      Density as a function of $m^2$.
+      !!}
       implicit none
       double precision, intent(in   ) :: mSquared
       
@@ -564,7 +600,9 @@ contains
     end function densityMSquared
 
     double precision function Delta(u)
-      !% The function $\Delta^2(u) = \prod_{i=1}^3 (a_i^2 + u)$.
+      !!{
+      The function $\Delta^2(u) = \prod_{i=1}^3 (a_i^2 + u)$.
+      !!}
       implicit none
       double precision, intent(in   ) :: u
 
@@ -573,7 +611,9 @@ contains
     end function Delta
 
     double precision function mSquared(u,x)
-      !% The function $m^2(u)=\sum_{i=1}^3 x_i^2/(a_i^2+u)$.
+      !!{
+      The function $m^2(u)=\sum_{i=1}^3 x_i^2/(a_i^2+u)$.
+      !!}
       implicit none
       double precision, intent(in   )               :: u
       double precision, intent(in   ), dimension(3) :: x

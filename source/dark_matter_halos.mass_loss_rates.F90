@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of mass loss rates from dark matter halos.
+!!{
+Contains a module which implements calculations of mass loss rates from dark matter halos.
+!!}
 
 module Dark_Matter_Halos_Mass_Loss_Rates
-  !% Implements calculations of mass loss rates from dark matter halos.
+  !!{
+  Implements calculations of mass loss rates from dark matter halos.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
 
-  !# <functionClass>
-  !#  <name>darkMatterHaloMassLossRate</name>
-  !#  <descriptiveName>Dark matter halo mass loss rates.</descriptiveName>
-  !#  <description>
-  !#   Class providing models of the mass loss rate from dark matter (sub)halos.
-  !#  </description>
-  !#  <default>zero</default>
-  !#  <method name="rate" >
-  !#   <description>Returns the rate of mass loss (in $M_\odot$/Gyr) from {\normalfont \ttfamily node}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>darkMatterHaloMassLossRate</name>
+   <descriptiveName>Dark matter halo mass loss rates.</descriptiveName>
+   <description>
+    Class providing models of the mass loss rate from dark matter (sub)halos.
+   </description>
+   <default>zero</default>
+   <method name="rate" >
+    <description>Returns the rate of mass loss (in $M_\odot$/Gyr) from {\normalfont \ttfamily node}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Dark_Matter_Halos_Mass_Loss_Rates

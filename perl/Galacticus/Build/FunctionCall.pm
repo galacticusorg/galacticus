@@ -39,6 +39,10 @@ sub Function_Calls_Parse_Directive {
     # Extract the unit name.
     my $unitName = $buildData->{'currentDocument'}->{'unitName'};
 
+    # If a globalized-version is to be called, append the suffix.
+    $unitName .= "_"
+	if ( exists($buildData->{'currentDocument'}->{'useGlobal'}) && $buildData->{'currentDocument'}->{'useGlobal'} eq "yes" );
+    
     # Determine the type of function call.
     my $include = 1;
     if ( $buildData->{'functionType'} eq "pointer" ) {
@@ -51,7 +55,7 @@ sub Function_Calls_Parse_Directive {
 		if ( $buildData->{'exclude'} eq $buildData->{'currentDocument'}->{'unitName'} );
 	}
 	if ( $include == 1 ) {
-	    $buildData->{'functionCall'}->{$unitName}->{'code'} = "call ".$buildData->{'currentDocument'}->{'unitName'}."(";
+	    $buildData->{'functionCall'}->{$unitName}->{'code'} = "call ".$unitName."(";
 	    # If we have function arguments, append them to the call.
 	    my $arguments = "";
 	    if ( exists($buildData->{'functionArgs'}) ) {

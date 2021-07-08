@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the coordinates class.
+!!{
+Contains a module which implements the coordinates class.
+!!}
 
 module Coordinates
-  !% Implements the coordinates class.
+  !!{
+  Implements the coordinates class.
+  !!}
   implicit none
   private
   public :: assignment(=)
@@ -33,16 +37,20 @@ module Coordinates
   end interface assignment(=)
 
   type, abstract, public :: coordinate
-     !% The base coordinate object class.
+     !!{
+     The base coordinate object class.
+     !!}
      double precision :: position(3)
    contains
-     !# <methods>
-     !#   <method description="Return the coordinates in a Cartesian system as a 3-element array." method="toCartesian" />
-     !#   <method description="Set the coordinates from a Cartesian system specified as a 3-element array." method="fromCartesian" />
-     !#   <method description="Return the cylindrical radial coordinate." method="rCylindrical" />
-     !#   <method description="Return the spherical radial coordinate." method="rSpherical" />
-     !#   <method description="Return the square of the spherical radial coordinate." method="rSphericalSquared" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return the coordinates in a Cartesian system as a 3-element array." method="toCartesian" />
+       <method description="Set the coordinates from a Cartesian system specified as a 3-element array." method="fromCartesian" />
+       <method description="Return the cylindrical radial coordinate." method="rCylindrical" />
+       <method description="Return the spherical radial coordinate." method="rSpherical" />
+       <method description="Return the square of the spherical radial coordinate." method="rSphericalSquared" />
+     </methods>
+     !!]
      procedure                                      :: toCartesian       => Coordinates_Null_To
      procedure                                      :: fromCartesian     => Coordinates_Null_From
      procedure                                      :: rCylindrical      => Coordinates_Radius_Cylindrical
@@ -51,16 +59,20 @@ module Coordinates
   end type coordinate
 
   type, public, extends(coordinate) :: coordinateCartesian
-     !% A Cartesian coordinate object class.
+     !!{
+     A Cartesian coordinate object class.
+     !!}
    contains
-     !# <methods>
-     !#   <method description="Get the $x$-coordinate." method="x" />
-     !#   <method description="Get the $y$-coordinate." method="y" />
-     !#   <method description="Get the $z$-coordinate." method="z" />
-     !#   <method description="set the $x$-coordinate." method="xSet" />
-     !#   <method description="set the $y$-coordinate." method="ySet" />
-     !#   <method description="set the $z$-coordinate." method="zSet" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Get the $x$-coordinate." method="x" />
+       <method description="Get the $y$-coordinate." method="y" />
+       <method description="Get the $z$-coordinate." method="z" />
+       <method description="set the $x$-coordinate." method="xSet" />
+       <method description="set the $y$-coordinate." method="ySet" />
+       <method description="set the $z$-coordinate." method="zSet" />
+     </methods>
+     !!]
      procedure :: toCartesian       => Coordinates_Cartesian_To_Cartesian
      procedure :: fromCartesian     => Coordinates_Cartesian_From_Cartesian
      procedure :: x                 => Coordinates_Cartesian_X
@@ -73,16 +85,20 @@ module Coordinates
   end type coordinateCartesian
 
   type, public, extends(coordinate) :: coordinateSpherical
-     !% A spherical coordinate object class.
+     !!{
+     A spherical coordinate object class.
+     !!}
    contains
-     !# <methods>
-     !#   <method description="Get the $r$-coordinate." method="r" />
-     !#   <method description="Get the $\theta$-coordinate." method="theta" />
-     !#   <method description="Get the $\phi$-coordinate." method="phi" />
-     !#   <method description="set the $r$-coordinate." method="rSet" />
-     !#   <method description="set the $\theta$-coordinate." method="thetaSet" />
-     !#   <method description="set the $\phi$-coordinate." method="phiSet" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Get the $r$-coordinate." method="r" />
+       <method description="Get the $\theta$-coordinate." method="theta" />
+       <method description="Get the $\phi$-coordinate." method="phi" />
+       <method description="set the $r$-coordinate." method="rSet" />
+       <method description="set the $\theta$-coordinate." method="thetaSet" />
+       <method description="set the $\phi$-coordinate." method="phiSet" />
+     </methods>
+     !!]
      procedure :: toCartesian       => Coordinates_Spherical_To_Cartesian
      procedure :: fromCartesian     => Coordinates_Spherical_From_Cartesian
      procedure :: r                 => Coordinates_Spherical_R
@@ -96,16 +112,20 @@ module Coordinates
   end type coordinateSpherical
 
   type, public, extends(coordinate) :: coordinateCylindrical
-     !% A cylindrical coordinate object class.
+     !!{
+     A cylindrical coordinate object class.
+     !!}
    contains
-     !# <methods>
-     !#   <method description="Get the $r$-coordinate." method="r" />
-     !#   <method description="Get the $\phi$-coordinate." method="phi" />
-     !#   <method description="Get the $z$-coordinate." method="z" />
-     !#   <method description="set the $r$-coordinate." method="rSet" />
-     !#   <method description="set the $\phi$-coordinate." method="phiSet" />
-     !#   <method description="set the $z$-coordinate." method="zSet" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Get the $r$-coordinate." method="r" />
+       <method description="Get the $\phi$-coordinate." method="phi" />
+       <method description="Get the $z$-coordinate." method="z" />
+       <method description="set the $r$-coordinate." method="rSet" />
+       <method description="set the $\phi$-coordinate." method="phiSet" />
+       <method description="set the $z$-coordinate." method="zSet" />
+     </methods>
+     !!]
      procedure :: toCartesian       => Coordinates_Cylindrical_To_Cartesian
      procedure :: fromCartesian     => Coordinates_Cylindrical_From_Cartesian
      procedure :: r                 => Coordinates_Cylindrical_R
@@ -127,7 +147,9 @@ module Coordinates
 contains
 
   subroutine Coordinates_Null_From(self,x)
-    !% Set generic coordinate object from Cartesian point. Simply quits with an error.
+    !!{
+    Set generic coordinate object from Cartesian point. Simply quits with an error.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (coordinate)              , intent(  out) :: self
@@ -139,7 +161,9 @@ contains
   end subroutine Coordinates_Null_From
 
   function Coordinates_Null_To(self)
-    !% Convert generic coordinate object to Cartesian point. Simply quits with an error.
+    !!{
+    Convert generic coordinate object to Cartesian point. Simply quits with an error.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (coordinate), intent(in   ) :: self
@@ -152,7 +176,9 @@ contains
   end function Coordinates_Null_To
 
   subroutine Coordinates_Assign(coordinatesTo,coordinatesFrom)
-    !% Assign one coordinate object to another, automatically handling the conversion between coordinate systems.
+    !!{
+    Assign one coordinate object to another, automatically handling the conversion between coordinate systems.
+    !!}
     implicit none
     class           (coordinate), intent(  out) :: coordinatesTo
     class           (coordinate), intent(in   ) :: coordinatesFrom
@@ -170,7 +196,9 @@ contains
   end subroutine Coordinates_Assign
 
   subroutine Coordinates_Assign_To(coordinates,x)
-    !% Assign a 3-component vector to a {\normalfont \ttfamily coordinate} object.
+    !!{
+    Assign a 3-component vector to a {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class           (coordinate)              , intent(  out) :: coordinates
     double precision            , dimension(3), intent(in   ) :: x
@@ -180,7 +208,9 @@ contains
   end subroutine Coordinates_Assign_To
 
   subroutine Coordinates_Assign_From(x,coordinates)
-    !% Return a 3-component vector from a {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return a 3-component vector from a {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class           (coordinate)              , intent(in   ) :: coordinates
     double precision            , dimension(3), intent(  out) :: x
@@ -191,7 +221,9 @@ contains
 
   ! Cartesian coordinate object.
   subroutine Coordinates_Cartesian_From_Cartesian(self,x)
-    !% Create a Cartesian {\normalfont \ttfamily coordinate} object from a Cartesian vector.
+    !!{
+    Create a Cartesian {\normalfont \ttfamily coordinate} object from a Cartesian vector.
+    !!}
     implicit none
     class           (coordinateCartesian)              , intent(  out) :: self
     double precision                     , dimension(3), intent(in   ) :: x
@@ -201,7 +233,9 @@ contains
   end subroutine Coordinates_Cartesian_From_Cartesian
 
   function Coordinates_Cartesian_To_Cartesian(self)
-    !% Return a Cartesian vector from a Cartesian {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return a Cartesian vector from a Cartesian {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class           (coordinateCartesian), intent(in   ) :: self
     double precision                     , dimension(3)  :: Coordinates_Cartesian_To_Cartesian
@@ -211,7 +245,9 @@ contains
   end function Coordinates_Cartesian_To_Cartesian
 
   double precision function Coordinates_Cartesian_X(self)
-    !% Return the $x$-component of a Cartesian {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return the $x$-component of a Cartesian {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class(coordinateCartesian), intent(in   ) :: self
 
@@ -220,7 +256,9 @@ contains
   end function Coordinates_Cartesian_X
 
   double precision function Coordinates_Cartesian_Y(self)
-    !% Return the $y$-component of a Cartesian {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return the $y$-component of a Cartesian {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class(coordinateCartesian), intent(in   ) :: self
 
@@ -229,7 +267,9 @@ contains
   end function Coordinates_Cartesian_Y
 
   double precision function Coordinates_Cartesian_Z(self)
-    !% Return the $z$-component of a Cartesian {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return the $z$-component of a Cartesian {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class(coordinateCartesian), intent(in   ) :: self
 
@@ -238,7 +278,9 @@ contains
   end function Coordinates_Cartesian_Z
 
   subroutine Coordinates_Cartesian_Set_X(self,x)
-    !% Return the $x$-component of a Cartesian {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return the $x$-component of a Cartesian {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class           (coordinateCartesian), intent(inout) :: self
     double precision                     , intent(in   ) :: x
@@ -248,7 +290,9 @@ contains
   end subroutine Coordinates_Cartesian_Set_X
 
   subroutine Coordinates_Cartesian_Set_Y(self,y)
-    !% Return the $y$-component of a Cartesian {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return the $y$-component of a Cartesian {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class           (coordinateCartesian), intent(inout) :: self
     double precision                     , intent(in   ) :: y
@@ -258,7 +302,9 @@ contains
   end subroutine Coordinates_Cartesian_Set_Y
 
   subroutine Coordinates_Cartesian_Set_Z(self,z)
-    !% Return the $z$-component of a Cartesian {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return the $z$-component of a Cartesian {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class           (coordinateCartesian), intent(inout) :: self
     double precision                     , intent(in   ) :: z
@@ -268,7 +314,9 @@ contains
   end subroutine Coordinates_Cartesian_Set_Z
 
   double precision function Coordinates_Cartesian_R_Spherical_Squared(self)
-    !% Return the squared spherical radius, $r^2$ of a Cartesian {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return the squared spherical radius, $r^2$ of a Cartesian {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class(coordinateCartesian), intent(in   ) :: self
 
@@ -278,7 +326,9 @@ contains
 
   ! Spherical coordinate object.
   subroutine Coordinates_Spherical_From_Cartesian(self,x)
-    !% Create a spherical {\normalfont \ttfamily coordinate} object from a Cartesian vector.
+    !!{
+    Create a spherical {\normalfont \ttfamily coordinate} object from a Cartesian vector.
+    !!}
     implicit none
     class           (coordinateSpherical)              , intent(  out) :: self
     double precision                     , dimension(3), intent(in   ) :: x
@@ -298,7 +348,9 @@ contains
   end subroutine Coordinates_Spherical_From_Cartesian
 
   function Coordinates_Spherical_To_Cartesian(self)
-    !% Return a Cartesian vector from a spherical {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return a Cartesian vector from a spherical {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class           (coordinateSpherical), intent(in   ) :: self
     double precision                     , dimension(3)  :: Coordinates_Spherical_To_Cartesian
@@ -319,7 +371,9 @@ contains
   end function Coordinates_Spherical_To_Cartesian
 
   double precision function Coordinates_Spherical_R(self)
-    !% Return the $r$-component of a Spherical {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return the $r$-component of a Spherical {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class(coordinateSpherical), intent(in   ) :: self
 
@@ -328,7 +382,9 @@ contains
   end function Coordinates_Spherical_R
 
   double precision function Coordinates_Spherical_Theta(self)
-    !% Return the $\theta$-component of a Spherical {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return the $\theta$-component of a Spherical {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class(coordinateSpherical), intent(in   ) :: self
 
@@ -337,7 +393,9 @@ contains
   end function Coordinates_Spherical_Theta
 
   double precision function Coordinates_Spherical_Phi(self)
-    !% Return the $\phi$-component of a Spherical {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return the $\phi$-component of a Spherical {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class(coordinateSpherical), intent(in   ) :: self
 
@@ -346,7 +404,9 @@ contains
   end function Coordinates_Spherical_Phi
 
   subroutine Coordinates_Spherical_Set_R(self,r)
-    !% Return the $r$-component of a Spherical {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return the $r$-component of a Spherical {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class           (coordinateSpherical), intent(inout) :: self
     double precision                     , intent(in   ) :: r
@@ -356,7 +416,9 @@ contains
   end subroutine Coordinates_Spherical_Set_R
 
   subroutine Coordinates_Spherical_Set_Theta(self,theta)
-    !% Return the $\theta$-component of a Spherical {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return the $\theta$-component of a Spherical {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class           (coordinateSpherical), intent(inout) :: self
     double precision                     , intent(in   ) :: theta
@@ -366,7 +428,9 @@ contains
   end subroutine Coordinates_Spherical_Set_Theta
 
   subroutine Coordinates_Spherical_Set_Phi(self,phi)
-    !% Return the $\phi$-component of a Spherical {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return the $\phi$-component of a Spherical {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class           (coordinateSpherical), intent(inout) :: self
     double precision                     , intent(in   ) :: phi
@@ -376,7 +440,9 @@ contains
   end subroutine Coordinates_Spherical_Set_Phi
 
   double precision function Coordinates_Spherical_R_Spherical(self)
-    !% Return the spherical radius, $r$ of a spherical {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return the spherical radius, $r$ of a spherical {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class(coordinateSpherical), intent(in   ) :: self
 
@@ -385,7 +451,9 @@ contains
   end function Coordinates_Spherical_R_Spherical
 
   double precision function Coordinates_Spherical_R_Spherical_Squared(self)
-    !% Return the squared spherical radius, $r^2$ of a spherical {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return the squared spherical radius, $r^2$ of a spherical {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class(coordinateSpherical), intent(in   ) :: self
 
@@ -395,7 +463,9 @@ contains
 
   ! Cylindrical coordinate object.
   subroutine Coordinates_Cylindrical_From_Cartesian(self,x)
-    !% Create a cylindrical {\normalfont \ttfamily coordinate} object from a Cartesian vector.
+    !!{
+    Create a cylindrical {\normalfont \ttfamily coordinate} object from a Cartesian vector.
+    !!}
     implicit none
     class           (coordinateCylindrical)              , intent(  out) :: self
     double precision                       , dimension(3), intent(in   ) :: x
@@ -409,7 +479,9 @@ contains
   end subroutine Coordinates_Cylindrical_From_Cartesian
 
   function Coordinates_Cylindrical_To_Cartesian(self)
-    !% Return a Cartesian vector from a cylindrical {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return a Cartesian vector from a cylindrical {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class           (coordinateCylindrical), intent(in   ) :: self
     double precision                       , dimension(3)  :: Coordinates_Cylindrical_To_Cartesian
@@ -429,7 +501,9 @@ contains
   end function Coordinates_Cylindrical_To_Cartesian
 
   double precision function Coordinates_Cylindrical_R(self)
-    !% Return the $r$-component of a Cylindrical {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return the $r$-component of a Cylindrical {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class(coordinateCylindrical), intent(in   ) :: self
 
@@ -438,7 +512,9 @@ contains
   end function Coordinates_Cylindrical_R
 
   double precision function Coordinates_Cylindrical_Phi(self)
-    !% Return the $\phi$-component of a Cylindrical {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return the $\phi$-component of a Cylindrical {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class(coordinateCylindrical), intent(in   ) :: self
 
@@ -447,7 +523,9 @@ contains
   end function Coordinates_Cylindrical_Phi
 
   double precision function Coordinates_Cylindrical_Z(self)
-    !% Return the $z$-component of a Cylindrical {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return the $z$-component of a Cylindrical {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class(coordinateCylindrical), intent(in   ) :: self
 
@@ -456,7 +534,9 @@ contains
   end function Coordinates_Cylindrical_Z
 
   subroutine Coordinates_Cylindrical_Set_R(self,r)
-    !% Return the $r$-component of a Cylindrical {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return the $r$-component of a Cylindrical {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class           (coordinateCylindrical), intent(inout) :: self
     double precision                       , intent(in   ) :: r
@@ -466,7 +546,9 @@ contains
   end subroutine Coordinates_Cylindrical_Set_R
 
   subroutine Coordinates_Cylindrical_Set_Phi(self,phi)
-    !% Return the $\phi$-component of a Cylindrical {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return the $\phi$-component of a Cylindrical {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class           (coordinateCylindrical), intent(inout) :: self
     double precision                       , intent(in   ) :: phi
@@ -476,7 +558,9 @@ contains
   end subroutine Coordinates_Cylindrical_Set_Phi
 
   subroutine Coordinates_Cylindrical_Set_Z(self,z)
-    !% Return the $z$-component of a Cylindrical {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return the $z$-component of a Cylindrical {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class           (coordinateCylindrical), intent(inout) :: self
     double precision                       , intent(in   ) :: z
@@ -486,7 +570,9 @@ contains
   end subroutine Coordinates_Cylindrical_Set_Z
 
   double precision function Coordinates_Cylindrical_R_Spherical_Squared(self)
-    !% Return the squared spherical radius, $r^2$ of a cylindrical {\normalfont \ttfamily coordinate} object.
+    !!{
+    Return the squared spherical radius, $r^2$ of a cylindrical {\normalfont \ttfamily coordinate} object.
+    !!}
     implicit none
     class(coordinateCylindrical), intent(in   ) :: self
 

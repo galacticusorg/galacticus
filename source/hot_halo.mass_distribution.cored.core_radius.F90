@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,26 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides an object that implements core radii for cored hot halo mass distributions.
+!!{
+Contains a module which provides an object that implements core radii for cored hot halo mass distributions.
+!!}
 
 module Hot_Halo_Mass_Distributions_Core_Radii
-  !% Provides an object that implements core radii for hot halo mass distributions.
+  !!{
+  Provides an object that implements core radii for hot halo mass distributions.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
-  !# <functionClass>
-  !#  <name>hotHaloMassDistributionCoreRadius</name>
-  !#  <descriptiveName>Hot Halo Mass Distributions Core Radii</descriptiveName>
-  !#  <description>
-  !#   Object implementing core radii for hot halo mass distributions.
-  !#  </description>
-  !#  <default>virialFraction</default>
-  !#  <method name="radius" >
-  !#   <description>Return the core radius of the hot halo mass distribution.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>hotHaloMassDistributionCoreRadius</name>
+   <descriptiveName>Hot Halo Mass Distributions Core Radii</descriptiveName>
+   <description>
+    Object implementing core radii for hot halo mass distributions.
+   </description>
+   <default>virialFraction</default>
+   <method name="radius" >
+    <description>Return the core radius of the hot halo mass distribution.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Hot_Halo_Mass_Distributions_Core_Radii

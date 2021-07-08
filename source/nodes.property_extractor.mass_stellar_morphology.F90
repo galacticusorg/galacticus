@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a stellar mass-weighted morphology output analysis property extractor class.
+!!{
+Contains a module which implements a stellar mass-weighted morphology output analysis property extractor class.
+!!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorMassStellarMorphology">
-  !#  <description>A stellar mass-weighted morphology output analysis property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorMassStellarMorphology">
+   <description>A stellar mass-weighted morphology output analysis property extractor class.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassStellarMorphology
-     !% A stelalr mass output analysis class.
+     !!{
+     A stelalr mass output analysis class.
+     !!}
      private
    contains
      procedure :: extract     => massStellarMorphologyExtract
@@ -34,14 +40,18 @@
   end type nodePropertyExtractorMassStellarMorphology
 
   interface nodePropertyExtractorMassStellarMorphology
-     !% Constructors for the ``massStellarMorphology'' output analysis class.
+     !!{
+     Constructors for the ``massStellarMorphology'' output analysis class.
+     !!}
      module procedure massStellarMorphologyConstructorParameters
   end interface nodePropertyExtractorMassStellarMorphology
 
 contains
 
   function massStellarMorphologyConstructorParameters(parameters) result(self)
-    !% Constructor for the ``massStellarMorphology'' output analysis property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``massStellarMorphology'' output analysis property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorMassStellarMorphology)                :: self
@@ -53,7 +63,9 @@ contains
   end function massStellarMorphologyConstructorParameters
 
   double precision function massStellarMorphologyExtract(self,node,instance)
-    !% Implement a stellar mass-weighted morphology output analysis.
+    !!{
+    Implement a stellar mass-weighted morphology output analysis.
+    !!}
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : componentTypeDisk               , componentTypeSpheroid, massTypeStellar, radiusLarge
     implicit none
@@ -78,7 +90,9 @@ contains
   end function massStellarMorphologyExtract
 
   integer function massStellarMorphologyType(self)
-    !% Return the type of the stellar mass-weighted morphology property.
+    !!{
+    Return the type of the stellar mass-weighted morphology property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassStellarMorphology), intent(inout) :: self
@@ -89,7 +103,9 @@ contains
   end function massStellarMorphologyType
 
   function massStellarMorphologyName(self)
-    !% Return the name of the massStellarMorphology property.
+    !!{
+    Return the name of the massStellarMorphology property.
+    !!}
     implicit none
     type (varying_string                            )                :: massStellarMorphologyName
     class(nodePropertyExtractorMassStellarMorphology), intent(inout) :: self
@@ -100,7 +116,9 @@ contains
   end function massStellarMorphologyName
 
   function massStellarMorphologyDescription(self)
-    !% Return a description of the massStellarMorphology property.
+    !!{
+    Return a description of the massStellarMorphology property.
+    !!}
     implicit none
     type (varying_string                            )                :: massStellarMorphologyDescription
     class(nodePropertyExtractorMassStellarMorphology), intent(inout) :: self
@@ -111,7 +129,9 @@ contains
   end function massStellarMorphologyDescription
 
   double precision function massStellarMorphologyUnitsInSI(self)
-    !% Return the units of the massStellarMorphology property in the SI system.
+    !!{
+    Return the units of the massStellarMorphology property in the SI system.
+    !!}
     implicit none
     class(nodePropertyExtractorMassStellarMorphology), intent(inout) :: self
     !$GLC attributes unused :: self

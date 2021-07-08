@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a \cite{tinker_towardhalo_2008} dark matter halo mass function class.
+  !!{
+  Contains a module which implements a \cite{tinker_towardhalo_2008} dark matter halo mass function class.
+  !!}
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Linear_Growth             , only : linearGrowthClass
 
-  !# <haloMassFunction name="haloMassFunctionTinker2008Form" abstract="yes">
-  !#  <description>The halo mass function is computed from the function given by \cite{tinker_towardhalo_2008}.</description>
-  !# </haloMassFunction>
+  !![
+  <haloMassFunction name="haloMassFunctionTinker2008Form" abstract="yes">
+   <description>The halo mass function is computed from the function given by \cite{tinker_towardhalo_2008}.</description>
+  </haloMassFunction>
+  !!]
   type, abstract, extends(haloMassFunctionClass) :: haloMassFunctionTinker2008Form
-     !% A halo mass function class using the fitting function of \cite{tinker_towardhalo_2008}.
+     !!{
+     A halo mass function class using the fitting function of \cite{tinker_towardhalo_2008}.
+     !!}
      private
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
      class           (linearGrowthClass            ), pointer :: linearGrowth_
@@ -34,12 +40,14 @@
      double precision                                         :: time                     , mass, &
           &                                                      massFunction
    contains
-     !# <methods>
-     !#   <method description="Return the parameter $a$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="a" />
-     !#   <method description="Return the parameter $b$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="b" />
-     !#   <method description="Return the parameter $c$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="c" />
-     !#   <method description="Return the parameter $A$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="normalization" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return the parameter $a$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="a" />
+       <method description="Return the parameter $b$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="b" />
+       <method description="Return the parameter $c$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="c" />
+       <method description="Return the parameter $A$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="normalization" />
+     </methods>
+     !!]
      procedure                                    :: differential  => tinker2008FormDifferential
      procedure(tinker2008FormParameter), deferred :: normalization
      procedure(tinker2008FormParameter), deferred :: a
@@ -48,7 +56,9 @@
   end type haloMassFunctionTinker2008Form
 
   abstract interface
-     !% Interface to parameter functions.
+     !!{
+     Interface to parameter functions.
+     !!}
      double precision function tinker2008FormParameter(self,time,mass)
        import haloMassFunctionTinker2008Form
        class           (haloMassFunctionTinker2008Form), intent(inout) :: self
@@ -59,7 +69,9 @@
 contains
 
   double precision function tinker2008FormDifferential(self,time,mass,node)
-    !% Return the differential halo mass function at the given time and mass.
+    !!{
+    Return the differential halo mass function at the given time and mass.
+    !!}
     implicit none
     class           (haloMassFunctionTinker2008Form), intent(inout)            :: self
     double precision                                , intent(in   )            :: time , mass

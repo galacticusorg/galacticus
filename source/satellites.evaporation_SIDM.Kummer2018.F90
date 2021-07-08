@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,35 +17,45 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a satellite evaporation due to dark matter self-interactions using the model of
-  !% \cite{kummer_effective_2018}.
+  !!{
+  Implementation of a satellite evaporation due to dark matter self-interactions using the model of
+  \cite{kummer_effective_2018}.
+  !!}
 
   use :: Dark_Matter_Particles   , only : darkMatterParticleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   use :: Numerical_Interpolation , only : interpolator
 
-  !# <satelliteEvaporationSIDM name="satelliteEvaporationSIDMKummer2018">
-  !#  <description>A satellite evaporation due to dark matter self-interactions using the model of \cite{kummer_effective_2018}.</description>
-  !# </satelliteEvaporationSIDM>
+  !![
+  <satelliteEvaporationSIDM name="satelliteEvaporationSIDMKummer2018">
+   <description>A satellite evaporation due to dark matter self-interactions using the model of \cite{kummer_effective_2018}.</description>
+  </satelliteEvaporationSIDM>
+  !!]
   type, extends(satelliteEvaporationSIDMClass) :: satelliteEvaporationSIDMKummer2018
-     !% Implementation of a satellite evaporation due to dark matter self-interactions using the model of
-     !% \cite{kummer_effective_2018}.
+     !!{
+     Implementation of a satellite evaporation due to dark matter self-interactions using the model of
+     \cite{kummer_effective_2018}.
+     !!}
      private
      class           (darkMatterParticleClass  ), pointer     :: darkMatterParticle_         => null()
      class           (darkMatterProfileDMOClass), pointer     :: darkMatterProfileDMO_       => null()
      type            (interpolator             ), allocatable :: evaporationFactor
      double precision                                         :: rateScatteringNormalization          , xMaximum
    contains
-     !# <methods>
-     !#   <method description="Tabulate the evaporation factor." method="tabulate" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Tabulate the evaporation factor." method="tabulate" />
+     </methods>
+     !!]
      final     ::                 kummer2018Destructor
      procedure :: massLossRate => kummer2018MassLossRate
      procedure :: tabulate     => kummer2018Tabulate
   end type satelliteEvaporationSIDMKummer2018
 
   interface satelliteEvaporationSIDMKummer2018
-     !% Constructors for the {\normalfont \ttfamily kummer2018} satellite evaporation due to dark matter self-interactions class.
+     !!{
+     Constructors for the {\normalfont \ttfamily kummer2018} satellite evaporation due to dark matter self-interactions class.
+     !!}
      module procedure kummer2018ConstructorParameters
      module procedure kummer2018ConstructorInternal
   end interface satelliteEvaporationSIDMKummer2018
@@ -53,8 +63,10 @@
 contains
 
   function kummer2018ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily kummer2018} satellite evaporation due to dark matter self-interactions class
-    !% which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily kummer2018} satellite evaporation due to dark matter self-interactions class
+    which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (satelliteEvaporationSIDMKummer2018)                :: self
@@ -63,18 +75,24 @@ contains
     class(darkMatterProfileDMOClass         ), pointer       :: darkMatterProfileDMO_
 
   
-    !# <objectBuilder class="darkMatterParticle"   name="darkMatterParticle_"   source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !![
+    <objectBuilder class="darkMatterParticle"   name="darkMatterParticle_"   source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !!]
     self=satelliteEvaporationSIDMKummer2018(darkMatterParticle_,darkMatterProfileDMO_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterParticle_"  />
-    !# <objectDestructor name="darkMatterProfileDMO_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterParticle_"  />
+    <objectDestructor name="darkMatterProfileDMO_"/>
+    !!]
     return
   end function kummer2018ConstructorParameters
 
   function kummer2018ConstructorInternal(darkMatterParticle_,darkMatterProfileDMO_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily kummer2018} satellite evaporation due to dark matter self-interactions
-    !% class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily kummer2018} satellite evaporation due to dark matter self-interactions
+    class.
+    !!}
     use :: Dark_Matter_Particles           , only : darkMatterParticleSelfInteractingDarkMatter
     use :: Numerical_Constants_Prefixes    , only : centi                                     , milli   , kilo
     use :: Numerical_Constants_Astronomical, only : megaParsec                                , gigaYear, massSolar
@@ -82,7 +100,9 @@ contains
     type (satelliteEvaporationSIDMKummer2018)                        :: self
     class(darkMatterParticleClass           ), intent(in   ), target :: darkMatterParticle_
     class(darkMatterProfileDMOClass         ), intent(in   ), target :: darkMatterProfileDMO_
-    !# <constructorAssign variables="*darkMatterParticle_, *darkMatterProfileDMO_"/>
+    !![
+    <constructorAssign variables="*darkMatterParticle_, *darkMatterProfileDMO_"/>
+    !!]
 
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleSelfInteractingDarkMatter)
@@ -104,17 +124,23 @@ contains
   end function kummer2018ConstructorInternal
 
   subroutine kummer2018Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily kummer2018} satellite evaporation due to dark matter self-interactions class.
+    !!{
+    Destructor for the {\normalfont \ttfamily kummer2018} satellite evaporation due to dark matter self-interactions class.
+    !!}
     implicit none
     type(satelliteEvaporationSIDMKummer2018), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterParticle_"  />
-    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !![
+    <objectDestructor name="self%darkMatterParticle_"  />
+    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !!]
     return
   end subroutine kummer2018Destructor
 
  double precision function kummer2018MassLossRate(self,node)
-    !% Return a evaporation for satellites due to dark matter self-interactions using the formulation of \cite{kummer_effective_2018}.
+    !!{
+    Return a evaporation for satellites due to dark matter self-interactions using the formulation of \cite{kummer_effective_2018}.
+    !!}
     use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
     use :: Galactic_Structure_Potentials     , only : Galactic_Structure_Potential
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Radius_Enclosing_Mass
@@ -216,7 +242,9 @@ contains
   end function kummer2018MassLossRate
 
   subroutine kummer2018Tabulate(self,xMaximum)
-    !% Tabulate the evaporation factor, $\chi_\mathrm{d}$.
+    !!{
+    Tabulate the evaporation factor, $\chi_\mathrm{d}$.
+    !!}
     use :: Dark_Matter_Particles   , only : darkMatterParticleSelfInteractingDarkMatter
     use :: Numerical_Integration   , only : integrator
     use :: Numerical_Ranges        , only : Make_Range                                 , rangeTypeLinear
@@ -247,7 +275,7 @@ contains
                &                      /(+x(i)**2+1.0d0) &
                &                     )
           evaporationFactor(i)=+integrator_        %integrate                  (Pi-thetaCritical,thetaCritical) &
-               &                /darkMatterParticle_%crossSectionSelfInteraction(                   )
+               &               /darkMatterParticle_%crossSectionSelfInteraction(                              )
        end do
        if (allocated(self%evaporationFactor)) deallocate(self%evaporationFactor)
        allocate(self%evaporationFactor)
@@ -258,7 +286,9 @@ contains
   contains
     
     double precision function integrandEvaporationFactor(theta)
-      !% The integrand used to evaluate $\chi_\mathrm{e}$ from \cite[][eqn.~3]{kummer_effective_2018}.
+      !!{
+      The integrand used to evaluate $\chi_\mathrm{e}$ from \cite[][eqn.~3]{kummer_effective_2018}.
+      !!}
       implicit none
       double precision, intent(in   ) :: theta
 

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,32 +17,38 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of mass loss rates from dark matter halos using the prescription of \cite{van_den_bosch_mass_2005}.
+  !!{
+  Implementation of mass loss rates from dark matter halos using the prescription of \cite{van_den_bosch_mass_2005}.
+  !!}
 
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
   use :: Virial_Density_Contrast, only : virialDensityContrastClass
 
-  !# <darkMatterHaloMassLossRate name="darkMatterHaloMassLossRateVanDenBosch">
-  !#  <description>
-  !#   A dark matter halo mass loss rate class which uses the algorithm of \cite{van_den_bosch_mass_2005} to compute the rate of
-  !#   mass loss. Specifically:
-  !#   \begin{equation}
-  !#   \dot{M}_\mathrm{node,bound} = -{M_\mathrm{node,bound}\over \tau} \left({M_\mathrm{node,bound} / M_\mathrm{node,parent}}\right)^\zeta,
-  !#   \end{equation}
-  !#   where $M_\mathrm{node,parent}$ is the mass of the parent \gls{node} in which the halo lives and
-  !#   \begin{equation}
-  !#   \tau = \tau_0 \left({\Delta_\mathrm{vir}(t) \over \Delta(t_0)}\right)^{-1/2} a^{3/2},
-  !#   \end{equation}
-  !#   where $\Delta_\mathrm{vir}(t)$ is the virial overdensity of halos at time $t$ and $a$ is the expansion factor. The fitting
-  !#   parameters, $\tau_0$ and $\zeta$ have values of 0.13~Gyr and 0.36 respectively as determined by
-  !#   \cite{van_den_bosch_mass_2005}. Note that \cite{van_den_bosch_mass_2005} write this expression in a slightly different form
-  !#   since their $\Delta_\mathrm{vir}$ is defined relative to the critical density rather than the mean density as it is in
-  !#   \glc. In both cases, the timescale $\tau$ simply scales as $\langle \rho_\mathrm{vir} \rangle ^{-1/2}$ where $\langle
-  !#   \rho_\mathrm{vir} \rangle$ is the mean virial overdensity of halos.
-  !#  </description>
-  !# </darkMatterHaloMassLossRate>
+  !![
+  <darkMatterHaloMassLossRate name="darkMatterHaloMassLossRateVanDenBosch">
+   <description>
+    A dark matter halo mass loss rate class which uses the algorithm of \cite{van_den_bosch_mass_2005} to compute the rate of
+    mass loss. Specifically:
+    \begin{equation}
+    \dot{M}_\mathrm{node,bound} = -{M_\mathrm{node,bound}\over \tau} \left({M_\mathrm{node,bound} / M_\mathrm{node,parent}}\right)^\zeta,
+    \end{equation}
+    where $M_\mathrm{node,parent}$ is the mass of the parent \gls{node} in which the halo lives and
+    \begin{equation}
+    \tau = \tau_0 \left({\Delta_\mathrm{vir}(t) \over \Delta(t_0)}\right)^{-1/2} a^{3/2},
+    \end{equation}
+    where $\Delta_\mathrm{vir}(t)$ is the virial overdensity of halos at time $t$ and $a$ is the expansion factor. The fitting
+    parameters, $\tau_0$ and $\zeta$ have values of 0.13~Gyr and 0.36 respectively as determined by
+    \cite{van_den_bosch_mass_2005}. Note that \cite{van_den_bosch_mass_2005} write this expression in a slightly different form
+    since their $\Delta_\mathrm{vir}$ is defined relative to the critical density rather than the mean density as it is in
+    \glc. In both cases, the timescale $\tau$ simply scales as $\langle \rho_\mathrm{vir} \rangle ^{-1/2}$ where $\langle
+    \rho_\mathrm{vir} \rangle$ is the mean virial overdensity of halos.
+   </description>
+  </darkMatterHaloMassLossRate>
+  !!]
   type, extends(darkMatterHaloMassLossRateClass) :: darkMatterHaloMassLossRateVanDenBosch
-     !% Implementation of a dark matter halo mass loss rate class which uses the prescription of \cite{van_den_bosch_mass_2005}.
+     !!{
+     Implementation of a dark matter halo mass loss rate class which uses the prescription of \cite{van_den_bosch_mass_2005}.
+     !!}
      private
      class           (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_ => null()
      class           (virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
@@ -54,7 +60,9 @@
   end type darkMatterHaloMassLossRateVanDenBosch
 
   interface darkMatterHaloMassLossRateVanDenBosch
-     !% Constructors for the vanDenBosch dark matter halo mass loss rate class.
+     !!{
+     Constructors for the vanDenBosch dark matter halo mass loss rate class.
+     !!}
      module procedure vanDenBoschConstructorParameters
      module procedure vanDenBoschConstructorInternal
   end interface darkMatterHaloMassLossRateVanDenBosch
@@ -62,7 +70,9 @@
 contains
 
   function vanDenBoschConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily vanDenBosch} dark matter halo mass loss rate class which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily vanDenBosch} dark matter halo mass loss rate class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (darkMatterHaloMassLossRateVanDenBosch)                :: self
@@ -71,51 +81,65 @@ contains
     class           (virialDensityContrastClass           ), pointer       :: virialDensityContrast_
     double precision                                                       :: timescaleNormalization, zeta
 
-    !# <inputParameter>
-    !#   <name>timescaleNormalization</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.13d0</defaultValue>
-    !#   <description>The mass loss timescale normalization (in Gyr) for the \cite{van_den_bosch_mass_2005} dark matter halo mass loss rate algorithm.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>zeta</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.36d0</defaultValue>
-    !#   <description>The mass loss scaling with halo mass for the \cite{van_den_bosch_mass_2005} dark matter halo mass loss rate algorithm.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
-    !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>timescaleNormalization</name>
+      <source>parameters</source>
+      <defaultValue>0.13d0</defaultValue>
+      <description>The mass loss timescale normalization (in Gyr) for the \cite{van_den_bosch_mass_2005} dark matter halo mass loss rate algorithm.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>zeta</name>
+      <source>parameters</source>
+      <defaultValue>0.36d0</defaultValue>
+      <description>The mass loss scaling with halo mass for the \cite{van_den_bosch_mass_2005} dark matter halo mass loss rate algorithm.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    !!]
     self=darkMatterHaloMassLossRateVanDenBosch(timescaleNormalization,zeta,cosmologyFunctions_,virialDensityContrast_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"   />
-    !# <objectDestructor name="virialDensityContrast_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"   />
+    <objectDestructor name="virialDensityContrast_"/>
+    !!]
     return
   end function vanDenBoschConstructorParameters
 
   function vanDenBoschConstructorInternal(timescaleNormalization,zeta,cosmologyFunctions_,virialDensityContrast_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily vanDenBosch} dark matter halo mass loss rate class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily vanDenBosch} dark matter halo mass loss rate class.
+    !!}
     implicit none
     type            (darkMatterHaloMassLossRateVanDenBosch)                        :: self
     double precision                                       , intent(in   )         :: timescaleNormalization, zeta
     class           (cosmologyFunctionsClass              ), intent(in   ), target :: cosmologyFunctions_
     class           (virialDensityContrastClass           ), intent(in   ), target :: virialDensityContrast_
-    !# <constructorAssign variables="timescaleNormalization, zeta, *cosmologyFunctions_, *virialDensityContrast_"/>
+    !![
+    <constructorAssign variables="timescaleNormalization, zeta, *cosmologyFunctions_, *virialDensityContrast_"/>
+    !!]
 
     return
   end function vanDenBoschConstructorInternal
 
   subroutine vanDenBoschDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily vanDenBosch} dark matter halo mass loss rate class.
+    !!{
+    Destructor for the {\normalfont \ttfamily vanDenBosch} dark matter halo mass loss rate class.
+    !!}
     implicit none
     type(darkMatterHaloMassLossRateVanDenBosch), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"    />
-    !# <objectDestructor name="self%virialDensityContrast_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"    />
+    <objectDestructor name="self%virialDensityContrast_"/>
+    !!]
     return
   end subroutine vanDenBoschDestructor
 
   double precision function vanDenBoschRate(self,node)
-    !% Returns the mass loss rate from the dark matter halo of the given \gls{node} in units of $M_\odot$/Gyr.
+    !!{
+    Returns the mass loss rate from the dark matter halo of the given \gls{node} in units of $M_\odot$/Gyr.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite, treeNode
     implicit none
     class           (darkMatterHaloMassLossRateVanDenBosch), intent(inout) :: self

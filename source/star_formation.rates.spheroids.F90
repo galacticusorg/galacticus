@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,25 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements rates of star formation in spheroids.
+!!{
+Contains a module which provides a class that implements rates of star formation in spheroids.
+!!}
 
 module Star_Formation_Rates_Spheroids
-  !% Provides a class that implements calculations of rates of formation in spheroids.
+  !!{
+  Provides a class that implements calculations of rates of formation in spheroids.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
-  !# <functionClass>
-  !#  <name>starFormationRateSpheroids</name>
-  !#  <descriptiveName>Rates for star formation in spheroids.</descriptiveName>
-  !#  <description>Class providing models of rates of star formation in spheroids.</description>
-  !#  <default>timescale</default>
-  !#  <method name="rate" >
-  !#   <description>Returns the rate (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the spheroid component of {\normalfont \ttfamily node}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <selfTarget>yes</selfTarget>
-  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>starFormationRateSpheroids</name>
+   <descriptiveName>Rates for star formation in spheroids.</descriptiveName>
+   <description>Class providing models of rates of star formation in spheroids.</description>
+   <default>timescale</default>
+   <method name="rate" >
+    <description>Returns the rate (in units of $\mathrm{M}_\odot$ Gyr$^{-1}$) for star formation in the spheroid component of {\normalfont \ttfamily node}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>type(treeNode), intent(inout), target :: node</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Star_Formation_Rates_Spheroids

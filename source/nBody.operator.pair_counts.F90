@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which computes pair counts in bins of separation.
+!!{
+Contains a module which implements an N-body data operator which computes pair counts in bins of separation.
+!!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
-  !# <nbodyOperator name="nbodyOperatorPairCounts">
-  !#  <description>An N-body data operator which computes pair counts in bins of separation.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorPairCounts">
+   <description>An N-body data operator which computes pair counts in bins of separation.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorPairCounts
-     !% An N-body data operator which computes pair counts in bins of separation.
+     !!{
+     An N-body data operator which computes pair counts in bins of separation.
+     !!}
      private
      double precision                                      :: separationMinimum               , separationMaximum   , &
           &                                                   bootstrapSampleRate
@@ -39,7 +45,9 @@
   end type nbodyOperatorPairCounts
 
   interface nbodyOperatorPairCounts
-     !% Constructors for the ``pairCounts'' N-body operator class.
+     !!{
+     Constructors for the ``pairCounts'' N-body operator class.
+     !!}
      module procedure pairCountsConstructorParameters
      module procedure pairCountsConstructorInternal
   end interface nbodyOperatorPairCounts
@@ -47,7 +55,9 @@
 contains
 
   function pairCountsConstructorParameters(parameters) result (self)
-    !% Constructor for the ``pairCounts'' N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``pairCounts'' N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyOperatorPairCounts   )                :: self
@@ -58,54 +68,60 @@ contains
     integer         (c_size_t                  )                :: separationCount       , bootstrapSampleCount
     logical                                                     :: includeUnbootstrapped , crossCount
 
-    !# <inputParameter>
-    !#   <name>crossCount</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, compute cross-simulation pair counts between the first and all simulations. Otherwise, compute pair counts within each simulation.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>bootstrapSampleCount</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>30_c_size_t</defaultValue>
-    !#   <description>The number of bootstrap resamples of the particles that should be used.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>bootstrapSampleRate</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The sampling rate for particles.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>separationMinimum</name>
-    !#   <source>parameters</source>
-    !#   <description>The minimum separation to consider for pair counts.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>separationMaximum</name>
-    !#   <source>parameters</source>
-    !#   <description>The maximum separation to consider for pair counts.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>separationCount</name>
-    !#   <source>parameters</source>
-    !#   <description>The number of bins in separation for pair counts.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>includeUnbootstrapped</name>
-    !#   <source>parameters</source>
-    !#   <description>If true, include results for the unbootstrapped (i.e. original) sample.</description>
-    !#   <defaultValue>.true.</defaultValue>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>crossCount</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, compute cross-simulation pair counts between the first and all simulations. Otherwise, compute pair counts within each simulation.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>bootstrapSampleCount</name>
+      <source>parameters</source>
+      <defaultValue>30_c_size_t</defaultValue>
+      <description>The number of bootstrap resamples of the particles that should be used.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>bootstrapSampleRate</name>
+      <source>parameters</source>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The sampling rate for particles.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>separationMinimum</name>
+      <source>parameters</source>
+      <description>The minimum separation to consider for pair counts.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>separationMaximum</name>
+      <source>parameters</source>
+      <description>The maximum separation to consider for pair counts.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>separationCount</name>
+      <source>parameters</source>
+      <description>The number of bins in separation for pair counts.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>includeUnbootstrapped</name>
+      <source>parameters</source>
+      <description>If true, include results for the unbootstrapped (i.e. original) sample.</description>
+      <defaultValue>.true.</defaultValue>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=nbodyOperatorPairCounts(separationMinimum,separationMaximum,separationCount,crossCount,includeUnbootstrapped,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="randomNumberGenerator_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="randomNumberGenerator_"/>
+    !!]
     return
   end function pairCountsConstructorParameters
 
   function pairCountsConstructorInternal(separationMinimum,separationMaximum,separationCount,crossCount,includeUnbootstrapped,bootstrapSampleCount,bootstrapSampleRate,randomNumberGenerator_) result (self)
-    !% Internal constructor for the ``pairCounts'' N-body operator class.
+    !!{
+    Internal constructor for the ``pairCounts'' N-body operator class.
+    !!}
     implicit none
     type            (nbodyOperatorPairCounts)                           :: self
     double precision                            , intent(in   )         :: separationMinimum     , separationMaximum   , &
@@ -113,34 +129,42 @@ contains
     integer         (c_size_t                  ), intent(in   )         :: separationCount       , bootstrapSampleCount
     logical                                     , intent(in   )         :: includeUnbootstrapped , crossCount
     class           (randomNumberGeneratorClass), intent(in   ), target :: randomNumberGenerator_
-    !# <constructorAssign variables="separationMinimum, separationMaximum, separationCount, crossCount, includeUnbootstrapped, bootstrapSampleCount, bootstrapSampleRate, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="separationMinimum, separationMaximum, separationCount, crossCount, includeUnbootstrapped, bootstrapSampleCount, bootstrapSampleRate, *randomNumberGenerator_"/>
+    !!]
 
     return
   end function pairCountsConstructorInternal
 
   subroutine pairCountsDestructor(self)
-    !% Destructor for the ``pairCounts'' N-body operator class.
+    !!{
+    Destructor for the ``pairCounts'' N-body operator class.
+    !!}
     implicit none
     type(nbodyOperatorPairCounts), intent(inout) :: self
 
-    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
     return
   end subroutine pairCountsDestructor
   
   subroutine pairCountsOperate(self,simulations)
-    !% Compute pair counts of the particles in bins of separation.
-    !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num
+    !!{
+    Compute pair counts of the particles in bins of separation.
+    !!}
     use    :: Arrays_Search     , only : searchArray
-    use    :: Galacticus_Display, only : Galacticus_Display_Indent , Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                               Galacticus_Display_Message, verbosityStandard
+    use    :: Display           , only : displayCounter    , displayCounterClear   , displayIndent, displayMessage, &
+          &                              displayUnindent   , verbosityLevelStandard
     use    :: IO_HDF5           , only : hdf5Access
     use    :: ISO_Varying_String, only : var_str
-    use    :: Memory_Management , only : deallocateArray
-    use    :: Nearest_Neighbors , only : nearestNeighbors
-    use    :: Numerical_Ranges  , only : Make_Range                , rangeTypeLogarithmic
 #ifdef USEMPI
     use    :: MPI_Utilities     , only : mpiSelf
 #endif
+    use    :: Memory_Management , only : deallocateArray
+    use    :: Nearest_Neighbors , only : nearestNeighbors
+    use    :: Numerical_Ranges  , only : Make_Range        , rangeTypeLogarithmic
+    !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num
     implicit none
     class           (nbodyOperatorPairCounts   ), intent(inout)                 :: self
     type            (nBodyData                 ), intent(inout), dimension(:  ) :: simulations
@@ -164,7 +188,7 @@ contains
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Indent('compute pair counts',verbosityStandard)
+       call displayIndent('compute pair counts',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif
@@ -183,7 +207,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Message(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityStandard)
+       call displayMessage(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityLevelStandard)
 #ifdef USEMPI
        end if
 #endif
@@ -219,7 +243,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Counter(0,.true.)
+          call displayCounter(0,.true.)
 #ifdef USEMPI
        end if
 #endif
@@ -260,7 +284,7 @@ contains
 #ifdef USEMPI
           if (mpiSelf%isMaster()) then
 #endif
-             call Galacticus_Display_Counter(                                                 &
+             call displayCounter(                                                 &
                   &                          int(                                             &
                   &                              +100.0d0                                     &
                   &                              *float(i                                  )  &
@@ -278,7 +302,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Counter_Clear()
+          call displayCounterClear()
 #ifdef USEMPI
        end if
 #endif
@@ -316,7 +340,7 @@ contains
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Unindent('done',verbosityStandard)
+       call displayUnindent('done',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif

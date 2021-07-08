@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a merger tree filter which passes if any node in the tree passes the given galactic filter.
+!!{
+Contains a module which implements a merger tree filter which passes if any node in the tree passes the given galactic filter.
+!!}
 
   use :: Galactic_Filters, only : galacticFilterClass
   
-  !# <mergerTreeFilter name="mergerTreeFilterAnyNode">
-  !#  <description>A merger tree filter which passes if any node in the tree passes the given galactic filter.</description>
-  !# </mergerTreeFilter>
+  !![
+  <mergerTreeFilter name="mergerTreeFilterAnyNode">
+   <description>A merger tree filter which passes if any node in the tree passes the given galactic filter.</description>
+  </mergerTreeFilter>
+  !!]
   type, extends(mergerTreeFilterClass) :: mergerTreeFilterAnyNode
-     !% A merger tree filter class which passes if any node in the tree passes the given galactic filter.
+     !!{
+     A merger tree filter class which passes if any node in the tree passes the given galactic filter.
+     !!}
      private
      class(galacticFilterClass), pointer :: galacticFilter_ => null()
    contains
@@ -34,7 +40,9 @@
   end type mergerTreeFilterAnyNode
 
   interface mergerTreeFilterAnyNode
-     !% Constructors for the ``anyNode'' merger tree filter class.
+     !!{
+     Constructors for the ``anyNode'' merger tree filter class.
+     !!}
      module procedure anyNodeConstructorParameters
      module procedure anyNodeConstructorInternal
   end interface mergerTreeFilterAnyNode
@@ -42,41 +50,57 @@
 contains
   
   function anyNodeConstructorParameters(parameters) result(self)
-    !% Constructor for the ``anyNode'' merger tree filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``anyNode'' merger tree filter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (mergerTreeFilterAnyNode)                :: self
     type (inputParameters        ), intent(inout) :: parameters
     class(galacticFilterClass    ), pointer       :: galacticFilter_
 
-    !# <objectBuilder class="galacticFilter" name="galacticFilter_" source="parameters"/>
+    !![
+    <objectBuilder class="galacticFilter" name="galacticFilter_" source="parameters"/>
+    !!]
     self=mergerTreeFilterAnyNode(galacticFilter_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="galacticFilter_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticFilter_"/>
+    !!]
     return
   end function anyNodeConstructorParameters
 
   function anyNodeConstructorInternal(galacticFilter_) result(self)
-    !% Internal constructor for the ``anyNode'' merger tree filter class.
+    !!{
+    Internal constructor for the ``anyNode'' merger tree filter class.
+    !!}
     implicit none
     type (mergerTreeFilterAnyNode)                        :: self
     class(galacticFilterClass    ), intent(in   ), target :: galacticFilter_
-    !# <constructorAssign variables="*galacticFilter_"/>
+    !![
+    <constructorAssign variables="*galacticFilter_"/>
+    !!]
 
     return
   end function anyNodeConstructorInternal
 
   subroutine anyNodeDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily anyNode} merger tree filter class.
+    !!{
+    Destructor for the {\normalfont \ttfamily anyNode} merger tree filter class.
+    !!}
     implicit none
     type(mergerTreeFilterAnyNode), intent(inout) :: self
 
-    !# <objectDestructor name="self%galacticFilter_"/>
+    !![
+    <objectDestructor name="self%galacticFilter_"/>
+    !!]
     return
   end subroutine anyNodeDestructor
 
   logical function anyNodePasses(self,tree)
-    !% Implement a merger tree filter which passes if any node in the tree passes the given merger tree filter.
+    !!{
+    Implement a merger tree filter which passes if any node in the tree passes the given merger tree filter.
+    !!}
     use :: Galacticus_Nodes   , only : treeNode
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
     implicit none

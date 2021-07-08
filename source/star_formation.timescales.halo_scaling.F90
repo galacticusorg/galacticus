@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,23 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a timescale for star formation which scales with the circular velocity of the host halo.
+  !!{
+  Implementation of a timescale for star formation which scales with the circular velocity of the host halo.
+  !!}
 
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
-  !# <starFormationTimescale name="starFormationTimescaleHaloScaling">
-  !#  <description>
-  !#   A star formation timescale class in which the timescale scales with halo properties. Specifically,
-  !#   \begin{equation}
-  !#    \tau_\star = \tau_\mathrm{\star,0} \left( {V_\mathrm{vir} \over 200\hbox{km/s}} \right)^{\alpha_\star} (1+z)^{\beta_\star},
-  !#   \end{equation}
-  !#   where $\tau_\mathrm{\star,0}=${\normalfont \ttfamily [timescale]}, $\alpha_\star=${\normalfont \ttfamily
-  !#   [exponentVelocityVirial]}, and $\beta_\star=${\normalfont \ttfamily [exponentRedshift]}.
-  !#  </description>
-  !# </starFormationTimescale>
+  !![
+  <starFormationTimescale name="starFormationTimescaleHaloScaling">
+   <description>
+    A star formation timescale class in which the timescale scales with halo properties. Specifically,
+    \begin{equation}
+     \tau_\star = \tau_\mathrm{\star,0} \left( {V_\mathrm{vir} \over 200\hbox{km/s}} \right)^{\alpha_\star} (1+z)^{\beta_\star},
+    \end{equation}
+    where $\tau_\mathrm{\star,0}=${\normalfont \ttfamily [timescale]}, $\alpha_\star=${\normalfont \ttfamily
+    [exponentVelocityVirial]}, and $\beta_\star=${\normalfont \ttfamily [exponentRedshift]}.
+   </description>
+  </starFormationTimescale>
+  !!]
   type, extends(starFormationTimescaleClass) :: starFormationTimescaleHaloScaling
-     !% Implementation of a haloScaling timescale for star formation.
+     !!{
+     Implementation of a haloScaling timescale for star formation.
+     !!}
      private
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_           => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_          => null()
@@ -44,9 +50,11 @@
      logical                                             :: timescaleComputed
      integer         (kind_int8                        ) :: lastUniqueID
    contains
-     !# <methods>
-     !#   <method description="Reset memoized calculations." method="calculationReset" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Reset memoized calculations." method="calculationReset" />
+     </methods>
+     !!]
      final     ::                     haloScalingDestructor
      procedure :: autoHook         => haloScalingAutoHook
      procedure :: timescale        => haloScalingTimescale
@@ -54,7 +62,9 @@
   end type starFormationTimescaleHaloScaling
 
   interface starFormationTimescaleHaloScaling
-     !% Constructors for the {\normalfont \ttfamily haloScaling} timescale for star formation class.
+     !!{
+     Constructors for the {\normalfont \ttfamily haloScaling} timescale for star formation class.
+     !!}
      module procedure haloScalingConstructorParameters
      module procedure haloScalingConstructorInternal
   end interface starFormationTimescaleHaloScaling
@@ -64,8 +74,10 @@
 contains
 
   function haloScalingConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily haloScaling} timescale for star formation feedback class which takes a
-    !% parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily haloScaling} timescale for star formation feedback class which takes a
+    parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (starFormationTimescaleHaloScaling)                :: self
@@ -75,42 +87,50 @@ contains
     double precision                                                   :: timescale           , exponentVelocityVirial, &
          &                                                                exponentRedshift
 
-    !# <inputParameter>
-    !#   <name>timescale</name>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The timescale for star formation in the halo scaling timescale model.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>exponentVelocityVirial</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The exponent of virial velocity in the timescale for star formation in the halo scaling timescale model.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>exponentRedshift</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The exponent of redshift in the timescale for star formation in the halo scaling timescale model.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>timescale</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The timescale for star formation in the halo scaling timescale model.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>exponentVelocityVirial</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The exponent of virial velocity in the timescale for star formation in the halo scaling timescale model.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>exponentRedshift</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The exponent of redshift in the timescale for star formation in the halo scaling timescale model.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !!]
     self=starFormationTimescaleHaloScaling(timescale,exponentVelocityVirial,exponentRedshift,cosmologyFunctions_,darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
-    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="darkMatterHaloScale_"/>
+    !!]
     return
   end function haloScalingConstructorParameters
 
   function haloScalingConstructorInternal(timescale,exponentVelocityVirial,exponentRedshift,cosmologyFunctions_,darkMatterHaloScale_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily haloScaling} timescale for star formation class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily haloScaling} timescale for star formation class.
+    !!}
     implicit none
     type            (starFormationTimescaleHaloScaling)                        :: self
     double precision                                   , intent(in   )         :: timescale           , exponentVelocityVirial, &
          &                                                                        exponentRedshift
     class           (cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass         ), intent(in   ), target :: darkMatterHaloScale_
-    !# <constructorAssign variables="exponentVelocityVirial, exponentRedshift, *cosmologyFunctions_, *darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="exponentVelocityVirial, exponentRedshift, *cosmologyFunctions_, *darkMatterHaloScale_"/>
+    !!]
 
     self%lastUniqueID                 =-1_kind_int8
     self%timescaleComputed            =.false.
@@ -125,7 +145,9 @@ contains
   end function haloScalingConstructorInternal
 
   subroutine haloScalingAutoHook(self)
-    !% Attach to the calculation reset event.
+    !!{
+    Attach to the calculation reset event.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(starFormationTimescaleHaloScaling), intent(inout) :: self
@@ -135,19 +157,25 @@ contains
   end subroutine haloScalingAutoHook
 
   subroutine haloScalingDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily haloScaling} timescale for star formation class.
+    !!{
+    Destructor for the {\normalfont \ttfamily haloScaling} timescale for star formation class.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(starFormationTimescaleHaloScaling), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_" />
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_" />
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    !!]
     call calculationResetEvent%detach(self,haloScalingCalculationReset)
     return
   end subroutine haloScalingDestructor
 
   subroutine haloScalingCalculationReset(self,node)
-    !% Reset the halo scaling star formation timescale calculation.
+    !!{
+    Reset the halo scaling star formation timescale calculation.
+    !!}
     use :: Galacticus_Nodes, only : treeNode
     implicit none
     class(starFormationTimescaleHaloScaling), intent(inout) :: self
@@ -159,8 +187,10 @@ contains
   end subroutine haloScalingCalculationReset
 
   double precision function haloScalingTimescale(self,component)
-    !% Returns the timescale (in Gyr) for star formation in the given {\normalfont \ttfamily component} in the halo scaling
-    !% timescale model.
+    !!{
+    Returns the timescale (in Gyr) for star formation in the given {\normalfont \ttfamily component} in the halo scaling
+    timescale model.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (starFormationTimescaleHaloScaling), intent(inout) :: self

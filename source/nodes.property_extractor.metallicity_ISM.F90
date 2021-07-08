@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an ISM metallicity output analysis property extractor class.
+!!{
+Contains a module which implements an ISM metallicity output analysis property extractor class.
+!!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorMetallicityISM">
-  !#  <description>An ISM metallicity output analysis property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorMetallicityISM">
+   <description>An ISM metallicity output analysis property extractor class.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMetallicityISM
-     !% An ISM metallicity output analysis property extractor class.
+     !!{
+     An ISM metallicity output analysis property extractor class.
+     !!}
      private
      integer :: indexElement
    contains
@@ -35,7 +41,9 @@
   end type nodePropertyExtractorMetallicityISM
 
   interface nodePropertyExtractorMetallicityISM
-     !% Constructors for the ``metallicityISM'' output analysis class.
+     !!{
+     Constructors for the ``metallicityISM'' output analysis class.
+     !!}
      module procedure metallicityISMConstructorParameters
      module procedure metallicityISMConstructorInternal
   end interface nodePropertyExtractorMetallicityISM
@@ -43,7 +51,9 @@
 contains
 
   function metallicityISMConstructorParameters(parameters) result(self)
-    !% Constructor for the ``metallicityISM'' output analysis property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``metallicityISM'' output analysis property extractor class which takes a parameter set as input.
+    !!}
     use :: Abundances_Structure, only : Abundances_Index_From_Name
     use :: Input_Parameters    , only : inputParameter            , inputParameters
     use :: Galacticus_Error    , only : Galacticus_Error_Report
@@ -53,30 +63,40 @@ contains
     integer                                                       :: indexElement
     character(len=3                              )                :: element
 
-    !# <inputParameter>
-    !#   <name>element</name>
-    !#   <source>parameters</source>
-    !#   <description>The atomic symbol for the element to use to define metallicity.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>element</name>
+      <source>parameters</source>
+      <description>The atomic symbol for the element to use to define metallicity.</description>
+    </inputParameter>
+    !!]
     indexElement=Abundances_Index_From_Name(element)
     if (indexElement < 0) call Galacticus_Error_Report('element "'//trim(element)//'" is not being tracked'//{introspection:location})
     self=nodePropertyExtractorMetallicityISM(indexElement)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function metallicityISMConstructorParameters
 
   function metallicityISMConstructorInternal(indexElement) result(self)
-    !% Internal constructor for the ``metallicityISM'' output analysis property extractor class.
+    !!{
+    Internal constructor for the ``metallicityISM'' output analysis property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorMetallicityISM)                :: self
     integer                                  , intent(in   ) :: indexElement
-    !# <constructorAssign variables="indexElement"/>
+    !![
+    <constructorAssign variables="indexElement"/>
+    !!]
 
     return
   end function metallicityISMConstructorInternal
 
   double precision function metallicityISMExtract(self,node,instance)
-    !% Extracts the metallicity (defined as the mass ratio of a specified element to hydrogen) in the ISM.
+    !!{
+    Extracts the metallicity (defined as the mass ratio of a specified element to hydrogen) in the ISM.
+    !!}
     use :: Abundances_Structure, only : abundances
     use :: Galacticus_Nodes    , only : nodeComponentDisk, nodeComponentSpheroid, treeNode
     implicit none
@@ -115,7 +135,9 @@ contains
   end function metallicityISMExtract
 
   integer function metallicityISMType(self)
-    !% Return the type of the stellar mass property.
+    !!{
+    Return the type of the stellar mass property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMetallicityISM), intent(inout) :: self
@@ -126,7 +148,9 @@ contains
   end function metallicityISMType
 
   function metallicityISMName(self)
-    !% Return the name of the metallicityISM property.
+    !!{
+    Return the name of the metallicityISM property.
+    !!}
     use :: Abundances_Structure, only : Abundances_Names
     implicit none
     type (varying_string                     )                :: metallicityISMName
@@ -138,7 +162,9 @@ contains
   end function metallicityISMName
 
   function metallicityISMDescription(self)
-    !% Return a description of the metallicityISM property.
+    !!{
+    Return a description of the metallicityISM property.
+    !!}
     use :: Abundances_Structure, only : Abundances_Names
     implicit none
     type (varying_string                     )                :: metallicityISMDescription
@@ -150,7 +176,9 @@ contains
   end function metallicityISMDescription
 
   double precision function metallicityISMUnitsInSI(self)
-    !% Return the units of the metallicityISM property in the SI system.
+    !!{
+    Return the units of the metallicityISM property in the SI system.
+    !!}
     implicit none
     class(nodePropertyExtractorMetallicityISM), intent(inout) :: self
     !$GLC attributes unused :: self

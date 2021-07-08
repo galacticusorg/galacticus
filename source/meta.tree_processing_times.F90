@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,24 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module providing a class for calculations of the time taken to process merger trees.
+!!{
+Contains a module providing a class for calculations of the time taken to process merger trees.
+!!}
 
 module Meta_Tree_Compute_Times
-  !% Provides a class for calculations of the time taken to process merger trees.
+  !!{
+  Provides a class for calculations of the time taken to process merger trees.
+  !!}
   implicit none
   private
 
-  !# <functionClass>
-  !#  <name>metaTreeProcessingTime</name>
-  !#  <descriptiveName>Merger Tree Processing Times</descriptiveName>
-  !#  <description>Class providing estimates of processing times for merger trees.</description>
-  !#  <default>file</default>
-  !#  <method name="time" >
-  !#   <description>Return an estimate of the time needed to process a tree of the given mass.</description>
-  !#   <type>double precision</type>
-  !#   <argument>double precision, intent(in   ) :: massTree</argument>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>metaTreeProcessingTime</name>
+   <descriptiveName>Merger Tree Processing Times</descriptiveName>
+   <description>Class providing estimates of processing times for merger trees.</description>
+   <default>file</default>
+   <method name="time" >
+    <description>Return an estimate of the time needed to process a tree of the given mass.</description>
+    <type>double precision</type>
+    <argument>double precision, intent(in   ) :: massTree</argument>
+    <pass>yes</pass>
+   </method>
+  </functionClass>
+  !!]
 
 end module Meta_Tree_Compute_Times

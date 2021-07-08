@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of the intergalactic medium state class for a simplistic model of instantaneous and full reionization.
+  !!{
+  An implementation of the intergalactic medium state class for a simplistic model of instantaneous and full reionization.
+  !!}
 
-  !# <accretionHaloTotal name="accretionHaloTotalBertschinger">
-  !#  <description>
-  !#   A halo total accretion class that assumes that the accretion rate is equal to the growth rate of the basic component
-  !#   Bertschinger mass property.
-  !#  </description>
-  !# </accretionHaloTotal>
+  !![
+  <accretionHaloTotal name="accretionHaloTotalBertschinger">
+   <description>
+    A halo total accretion class that assumes that the accretion rate is equal to the growth rate of the basic component
+    Bertschinger mass property.
+   </description>
+  </accretionHaloTotal>
+  !!]
   type, extends(accretionHaloTotalClass) :: accretionHaloTotalBertschinger
-     !% A halo total accretion class which assumes the accretion corresponds to the Bertschinger mass.
+     !!{
+     A halo total accretion class which assumes the accretion corresponds to the Bertschinger mass.
+     !!}
      private
    contains
      procedure :: accretionRate => bertschingerAccretionRate
@@ -34,14 +40,18 @@
   end type accretionHaloTotalBertschinger
 
   interface accretionHaloTotalBertschinger
-     !% Constructors for the bertschinger total halo accretion class.
+     !!{
+     Constructors for the bertschinger total halo accretion class.
+     !!}
      module procedure bertschingerConstructorParameters
   end interface accretionHaloTotalBertschinger
 
 contains
 
   function bertschingerConstructorParameters(parameters) result (self)
-    !% Constructor for the bertschinger total halo accretion state class which takes a parameter set as input.
+    !!{
+    Constructor for the bertschinger total halo accretion state class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(accretionHaloTotalBertschinger)                :: self
@@ -53,7 +63,9 @@ contains
   end function bertschingerConstructorParameters
 
   double precision function bertschingerAccretionRate(self,node)
-    !% Return the accretion rate onto a halo.
+    !!{
+    Return the accretion rate onto a halo.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(accretionHaloTotalBertschinger), intent(inout) :: self
@@ -67,7 +79,9 @@ contains
   end function bertschingerAccretionRate
 
   double precision function bertschingerAccretedMass(self,node)
-    !% Return the mass accreted onto a halo.
+    !!{
+    Return the mass accreted onto a halo.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(accretionHaloTotalBertschinger), intent(inout) :: self

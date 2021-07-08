@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,11 +19,15 @@
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
-  !# <outputTimes name="outputTimesList">
-  !#  <description>An output times class which simply reads a list of output times from a parameter.</description>
-  !# </outputTimes>
+  !![
+  <outputTimes name="outputTimesList">
+   <description>An output times class which simply reads a list of output times from a parameter.</description>
+  </outputTimes>
+  !!]
   type, extends(outputTimesClass) :: outputTimesList
-     !% Implementation of an output times class which reads a list of output times from a parameter.
+     !!{
+     Implementation of an output times class which reads a list of output times from a parameter.
+     !!}
      private
      class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_ => null()
      double precision                         , allocatable, dimension(:) :: times                        , redshifts
@@ -38,7 +42,9 @@
   end type outputTimesList
 
   interface outputTimesList
-     !% Constructors for the {\normalfont \ttfamily list} output times class.
+     !!{
+     Constructors for the {\normalfont \ttfamily list} output times class.
+     !!}
      module procedure listConstructorParameters
      module procedure listConstructorInternal
   end interface outputTimesList
@@ -46,7 +52,9 @@
 contains
 
   function listConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily list} output times class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily list} output times class which takes a parameter set as input.
+    !!}
     use :: Array_Utilities  , only : Array_Reverse
     use :: Input_Parameters , only : inputParameter, inputParameters
     use :: Memory_Management, only : allocateArray
@@ -58,7 +66,9 @@ contains
     double precision                         , allocatable, dimension(:) :: times
     integer         (c_size_t               )                            :: outputCount        , i
 
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !!]
     if      (parameters%isPresent('times'    )) then
        outputCount=parameters%count('times'    )
     else if (parameters%isPresent('redshifts')) then
@@ -68,20 +78,24 @@ contains
     end if
     call allocateArray(times,[outputCount])
     if (parameters%isPresent('times')) then
-       !# <inputParameter>
-       !#   <name>times</name>
-       !#   <description>A list of (space-separated) times at which \glc\ results should be output. Times need not be in any particular order.</description>
-       !#   <source>parameters</source>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>times</name>
+         <description>A list of (space-separated) times at which \glc\ results should be output. Times need not be in any particular order.</description>
+         <source>parameters</source>
+       </inputParameter>
+       !!]
        call sort(times)
     else
-       !# <inputParameter>
-       !#   <name>redshifts</name>
-       !#   <defaultValue>[0.0d0]</defaultValue>
-       !#   <variable>times</variable>
-       !#   <description>A list of (space-separated) redshifts at which \glc\ results should be output. Redshifts need not be in any particular order.</description>
-       !#   <source>parameters</source>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>redshifts</name>
+         <defaultValue>[0.0d0]</defaultValue>
+         <variable>times</variable>
+         <description>A list of (space-separated) redshifts at which \glc\ results should be output. Redshifts need not be in any particular order.</description>
+         <source>parameters</source>
+       </inputParameter>
+       !!]
        call sort(times)
        times=Array_Reverse(times)
        do i=1,outputCount
@@ -89,20 +103,26 @@ contains
        end do
     end if
     self=outputTimesList(times,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    !!]
     return
   end function listConstructorParameters
 
   function listConstructorInternal(times,cosmologyFunctions_) result(self)
-    !% Constructor for the {\normalfont \ttfamily list} output times class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily list} output times class which takes a parameter set as input.
+    !!}
     use :: Memory_Management, only : allocateArray
     implicit none
     type            (outputTimesList        )                              :: self
     double precision                         , intent(in   ), dimension(:) :: times
     class           (cosmologyFunctionsClass), intent(in   ), target       :: cosmologyFunctions_
     integer         (c_size_t               )                              :: i
-    !# <constructorAssign variables="times, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="times, *cosmologyFunctions_"/>
+    !!]
 
     call allocateArray(self%redshifts,shape(times))
     do i=1,size(times)
@@ -112,16 +132,22 @@ contains
   end function listConstructorInternal
 
   subroutine listDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily list} output times class.
+    !!{
+    Destructor for the {\normalfont \ttfamily list} output times class.
+    !!}
     implicit none
     type(outputTimesList), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    !!]
     return
   end subroutine listDestructor
 
   function listCount(self)
-    !% Return the number of outputs.
+    !!{
+    Return the number of outputs.
+    !!}
     implicit none
     integer(c_size_t       )                :: listCount
     class  (outputTimesList), intent(inout) :: self
@@ -131,7 +157,9 @@ contains
   end function listCount
 
   double precision function listTime(self,indexOutput)
-    !% Returns the time of the output indexed by {\normalfont \ttfamily iOutput}.
+    !!{
+    Returns the time of the output indexed by {\normalfont \ttfamily iOutput}.
+    !!}
     implicit none
     class  (outputTimesList), intent(inout) :: self
     integer(c_size_t       ), intent(in   ) :: indexOutput
@@ -145,7 +173,9 @@ contains
   end function listTime
 
   double precision function listRedshift(self,indexOutput)
-    !% Returns the redshift of the output indexed by {\normalfont \ttfamily indexOutput}.
+    !!{
+    Returns the redshift of the output indexed by {\normalfont \ttfamily indexOutput}.
+    !!}
     implicit none
     class  (outputTimesList), intent(inout) :: self
     integer(c_size_t       ), intent(in   ) :: indexOutput
@@ -159,7 +189,9 @@ contains
   end function listRedshift
 
   function listIndex(self,time,findClosest)
-    !% Returns the index of the output given the corresponding time.
+    !!{
+    Returns the index of the output given the corresponding time.
+    !!}
     use :: Arrays_Search       , only : searchArray           , searchArrayClosest
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     use :: Numerical_Comparison, only : Values_Differ
@@ -180,7 +212,9 @@ contains
   end function listIndex
 
   double precision function listTimeNext(self,timeCurrent,indexOutput)
-    !% Returns the time of the next output after {\normalfont \ttfamily currentTime}.
+    !!{
+    Returns the time of the next output after {\normalfont \ttfamily currentTime}.
+    !!}
     use :: Arrays_Search, only : searchArray
     implicit none
     class           (outputTimesList), intent(inout)           :: self
@@ -204,7 +238,9 @@ contains
   end function listTimeNext
 
   double precision function listTimePrevious(self,timeCurrent)
-    !% Returns the time of the previous output prior to {\normalfont \ttfamily timeCurrent}.
+    !!{
+    Returns the time of the previous output prior to {\normalfont \ttfamily timeCurrent}.
+    !!}
     use :: Arrays_Search, only : searchArray
     implicit none
     class           (outputTimesList), intent(inout) :: self

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,126 +19,132 @@
 
 !+    Contributions to this file made by: Andrew Benson, Xiaolong Du.
 
-  !% Implements a file-based transfer function class for fuzzy dark matter.
+  !!{
+  Implements a file-based transfer function class for fuzzy dark matter.
+  !!}
 
   use :: Dark_Matter_Particles, only : darkMatterParticleClass, darkMatterParticleFuzzyDarkMatter
 
-  !# <transferFunction name="transferFunctionFileFuzzyDarkMatter">
-  !#  <description>
-  !# Provides a fuzzy dark matter transfer function from a tabulation given in an HDF5 file with the following structure:
-  !# \begin{verbatim}
-  !# HDF5 "transferFunction.hdf5" {
-  !# GROUP "/" {
-  !#    ATTRIBUTE "description" {
-  !#       DATATYPE  H5T_STRING {
-  !#          STRSIZE 71;
-  !#          STRPAD H5T_STR_NULLTERM;
-  !#          CSET H5T_CSET_ASCII;
-  !#          CTYPE H5T_C_S1;
-  !#       }
-  !#       DATASPACE  SCALAR
-  !#    }
-  !#    ATTRIBUTE "fileFormat" {
-  !#       DATATYPE  H5T_STD_I32LE
-  !#       DATASPACE  SCALAR
-  !#    }
-  !#    ATTRIBUTE "redshift" {
-  !#       DATATYPE  H5T_STD_I32LE
-  !#       DATASPACE  SCALAR
-  !#    }
-  !#    GROUP "extrapolation" {
-  !#       GROUP "wavenumber" {
-  !#          ATTRIBUTE "high" {
-  !#             DATATYPE  H5T_STRING {
-  !#                STRSIZE 11;
-  !#                STRPAD H5T_STR_NULLTERM;
-  !#                CSET H5T_CSET_ASCII;
-  !#                CTYPE H5T_C_S1;
-  !#             }
-  !#             DATASPACE  SCALAR
-  !#          }
-  !#          ATTRIBUTE "low" {
-  !#             DATATYPE  H5T_STRING {
-  !#                STRSIZE 3;
-  !#                STRPAD H5T_STR_NULLTERM;
-  !#                CSET H5T_CSET_ASCII;
-  !#                CTYPE H5T_C_S1;
-  !#             }
-  !#             DATASPACE  SCALAR
-  !#          }
-  !#       }
-  !#    }
-  !#    GROUP "parameters" {
-  !#       ATTRIBUTE "HubbleConstant" {
-  !#          DATATYPE  H5T_STRING {
-  !#             STRSIZE 4;
-  !#             STRPAD H5T_STR_NULLTERM;
-  !#             CSET H5T_CSET_ASCII;
-  !#             CTYPE H5T_C_S1;
-  !#          }
-  !#          DATASPACE  SCALAR
-  !#       }
-  !#       ATTRIBUTE "OmegaBaryon" {
-  !#          DATATYPE  H5T_STRING {
-  !#             STRSIZE 6;
-  !#             STRPAD H5T_STR_NULLTERM;
-  !#             CSET H5T_CSET_ASCII;
-  !#             CTYPE H5T_C_S1;
-  !#          }
-  !#          DATASPACE  SCALAR
-  !#       }
-  !#       ATTRIBUTE "OmegaDarkEnergy" {
-  !#          DATATYPE  H5T_STRING {
-  !#             STRSIZE 5;
-  !#             STRPAD H5T_STR_NULLTERM;
-  !#             CSET H5T_CSET_ASCII;
-  !#             CTYPE H5T_C_S1;
-  !#          }
-  !#          DATASPACE  SCALAR
-  !#       }
-  !#       ATTRIBUTE "OmegaMatter" {
-  !#          DATATYPE  H5T_STRING {
-  !#             STRSIZE 5;
-  !#             STRPAD H5T_STR_NULLTERM;
-  !#             CSET H5T_CSET_ASCII;
-  !#             CTYPE H5T_C_S1;
-  !#          }
-  !#          DATASPACE  SCALAR
-  !#       }
-  !#       ATTRIBUTE "fuzzyDMMass" {
-  !#          DATATYPE  H5T_STRING {
-  !#             STRSIZE 6;
-  !#             STRPAD H5T_STR_NULLTERM;
-  !#             CSET H5T_CSET_ASCII;
-  !#             CTYPE H5T_C_S1;
-  !#          }
-  !#          DATASPACE  SCALAR
-  !#       }
-  !#       ATTRIBUTE "fuzzyDMDensityFraction" {
-  !#          DATATYPE  H5T_STRING {
-  !#             STRSIZE 6;
-  !#             STRPAD H5T_STR_NULLTERM;
-  !#             CSET H5T_CSET_ASCII;
-  !#             CTYPE H5T_C_S1;
-  !#          }
-  !#          DATASPACE  SCALAR
-  !#       }
-  !#    }
-  !#    DATASET "transferFunction" {
-  !#       DATATYPE  H5T_IEEE_F64LE
-  !#       DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
-  !#    }
-  !#    DATASET "wavenumber" {
-  !#       DATATYPE  H5T_IEEE_F64LE
-  !#       DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
-  !#    }
-  !# }
-  !# }
-  !# \end{verbatim}
-  !# </description>
-  !# </transferFunction>
+  !![
+  <transferFunction name="transferFunctionFileFuzzyDarkMatter">
+   <description>
+  Provides a fuzzy dark matter transfer function from a tabulation given in an HDF5 file with the following structure:
+  \begin{verbatim}
+  HDF5 "transferFunction.hdf5" {
+  GROUP "/" {
+     ATTRIBUTE "description" {
+        DATATYPE  H5T_STRING {
+           STRSIZE 71;
+           STRPAD H5T_STR_NULLTERM;
+           CSET H5T_CSET_ASCII;
+           CTYPE H5T_C_S1;
+        }
+        DATASPACE  SCALAR
+     }
+     ATTRIBUTE "fileFormat" {
+        DATATYPE  H5T_STD_I32LE
+        DATASPACE  SCALAR
+     }
+     ATTRIBUTE "redshift" {
+        DATATYPE  H5T_STD_I32LE
+        DATASPACE  SCALAR
+     }
+     GROUP "extrapolation" {
+        GROUP "wavenumber" {
+           ATTRIBUTE "high" {
+              DATATYPE  H5T_STRING {
+                 STRSIZE 11;
+                 STRPAD H5T_STR_NULLTERM;
+                 CSET H5T_CSET_ASCII;
+                 CTYPE H5T_C_S1;
+              }
+              DATASPACE  SCALAR
+           }
+           ATTRIBUTE "low" {
+              DATATYPE  H5T_STRING {
+                 STRSIZE 3;
+                 STRPAD H5T_STR_NULLTERM;
+                 CSET H5T_CSET_ASCII;
+                 CTYPE H5T_C_S1;
+              }
+              DATASPACE  SCALAR
+           }
+        }
+     }
+     GROUP "parameters" {
+        ATTRIBUTE "HubbleConstant" {
+           DATATYPE  H5T_STRING {
+              STRSIZE 4;
+              STRPAD H5T_STR_NULLTERM;
+              CSET H5T_CSET_ASCII;
+              CTYPE H5T_C_S1;
+           }
+           DATASPACE  SCALAR
+        }
+        ATTRIBUTE "OmegaBaryon" {
+           DATATYPE  H5T_STRING {
+              STRSIZE 6;
+              STRPAD H5T_STR_NULLTERM;
+              CSET H5T_CSET_ASCII;
+              CTYPE H5T_C_S1;
+           }
+           DATASPACE  SCALAR
+        }
+        ATTRIBUTE "OmegaDarkEnergy" {
+           DATATYPE  H5T_STRING {
+              STRSIZE 5;
+              STRPAD H5T_STR_NULLTERM;
+              CSET H5T_CSET_ASCII;
+              CTYPE H5T_C_S1;
+           }
+           DATASPACE  SCALAR
+        }
+        ATTRIBUTE "OmegaMatter" {
+           DATATYPE  H5T_STRING {
+              STRSIZE 5;
+              STRPAD H5T_STR_NULLTERM;
+              CSET H5T_CSET_ASCII;
+              CTYPE H5T_C_S1;
+           }
+           DATASPACE  SCALAR
+        }
+        ATTRIBUTE "fuzzyDMMass" {
+           DATATYPE  H5T_STRING {
+              STRSIZE 6;
+              STRPAD H5T_STR_NULLTERM;
+              CSET H5T_CSET_ASCII;
+              CTYPE H5T_C_S1;
+           }
+           DATASPACE  SCALAR
+        }
+        ATTRIBUTE "fuzzyDMDensityFraction" {
+           DATATYPE  H5T_STRING {
+              STRSIZE 6;
+              STRPAD H5T_STR_NULLTERM;
+              CSET H5T_CSET_ASCII;
+              CTYPE H5T_C_S1;
+           }
+           DATASPACE  SCALAR
+        }
+     }
+     DATASET "transferFunction" {
+        DATATYPE  H5T_IEEE_F64LE
+        DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
+     }
+     DATASET "wavenumber" {
+        DATATYPE  H5T_IEEE_F64LE
+        DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
+     }
+  }
+  }
+  \end{verbatim}
+   </description>
+  </transferFunction>
+  !!]
   type, extends(transferFunctionFile) :: transferFunctionFileFuzzyDarkMatter
-     !% A transfer function class which interpolates a fuzzy dark matter transfer function given in a file.
+     !!{
+     A transfer function class which interpolates a fuzzy dark matter transfer function given in a file.
+     !!}
      private
      class(darkMatterParticleClass), pointer :: darkMatterParticle_ => null()
    contains
@@ -147,7 +153,9 @@
   end type transferFunctionFileFuzzyDarkMatter
 
   interface transferFunctionFileFuzzyDarkMatter
-     !% Constructors for the fileFuzzyDarkMatter transfer function class.
+     !!{
+     Constructors for the fileFuzzyDarkMatter transfer function class.
+     !!}
      module procedure fileFuzzyDarkMatterConstructorParameters
      module procedure fileFuzzyDarkMatterConstructorInternal
   end interface transferFunctionFileFuzzyDarkMatter
@@ -155,7 +163,9 @@
 contains
 
   function fileFuzzyDarkMatterConstructorParameters(parameters) result(self)
-    !% Constructor for the fileFuzzyDarkMatter transfer function class which takes a parameter set as input.
+    !!{
+    Constructor for the fileFuzzyDarkMatter transfer function class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (transferFunctionFileFuzzyDarkMatter)                :: self
@@ -166,30 +176,36 @@ contains
     type            (varying_string                     )                :: fileName
     double precision                                                     :: redshift
 
-    !# <inputParameter>
-    !#   <name>fileName</name>
-    !#   <source>parameters</source>
-    !#   <description>The name of the file from which to read a tabulated transfer function.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshift</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The redshift of the transfer function to read.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
+    !![
+    <inputParameter>
+      <name>fileName</name>
+      <source>parameters</source>
+      <description>The name of the file from which to read a tabulated transfer function.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>redshift</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The redshift of the transfer function to read.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
+    !!]
     self=transferFunctionFileFuzzyDarkMatter(char(fileName),redshift,cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
-    !# <objectDestructor name="darkMatterParticle_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="darkMatterParticle_" />
+    !!]
     return
   end function fileFuzzyDarkMatterConstructorParameters
 
   function fileFuzzyDarkMatterConstructorInternal(fileName,redshift,cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_) result(self)
-    !% Internal constructor for the fileFuzzyDarkMatter transfer function class.
+    !!{
+    Internal constructor for the fileFuzzyDarkMatter transfer function class.
+    !!}
     implicit none
     type            (transferFunctionFileFuzzyDarkMatter)                        :: self
     character       (len=*                              ), intent(in   )         :: fileName
@@ -197,7 +213,9 @@ contains
     class           (cosmologyParametersClass           ), intent(in   ), target :: cosmologyParameters_
     class           (cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
     class           (darkMatterParticleClass            ), intent(in   ), target :: darkMatterParticle_
-    !# <constructorAssign variables="fileName, redshift, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterParticle_"/>
+    !![
+    <constructorAssign variables="fileName, redshift, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterParticle_"/>
+    !!]
 
     self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
     call self%readFile(fileName)
@@ -205,9 +223,11 @@ contains
   end function fileFuzzyDarkMatterConstructorInternal
 
   subroutine fileFuzzyDarkMatterReadFile(self,fileName)
-    !% Read in the transfer function data from a file.
+    !!{
+    Read in the transfer function data from a file.
+    !!}
     use :: File_Utilities         , only : File_Name_Expand
-    use :: Galacticus_Display     , only : Galacticus_Display_Message
+    use :: Display                , only : displayMessage
     use :: Galacticus_Error       , only : Galacticus_Error_Report
     use :: IO_HDF5                , only : hdf5Access                , hdf5Object
     use :: Numerical_Comparison   , only : Values_Differ
@@ -227,9 +247,9 @@ contains
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleFuzzyDarkMatter)
        if (Values_Differ(fuzzyDMMass           ,darkMatterParticle_%mass           (),relTol=1.0d-3)) &
-            & call Galacticus_Display_Message('fuzzyDMMass from transfer function file does not match internal value'           )
+            & call displayMessage('fuzzyDMMass from transfer function file does not match internal value'           )
        if (Values_Differ(fuzzyDMDensityFraction,darkMatterParticle_%densityFraction(),absTol=1.0d-3)) &
-            & call Galacticus_Display_Message('fuzzyDMDensityFraction from transfer function file does not match internal value')
+            & call displayMessage('fuzzyDMDensityFraction from transfer function file does not match internal value')
     class default
        call Galacticus_Error_Report('transfer function expects a fuzzy dark matter particle'//{introspection:location})
     end select
@@ -243,15 +263,17 @@ contains
   end subroutine fileFuzzyDarkMatterReadFile
 
   double precision function fileFuzzyDarkMatterHalfModeMass(self,status)
-    !% Compute the mass corresponding to the wavenumber at which the transfer function is
-    !% suppressed by a factor of two relative to a \gls{cdm} transfer function. Here the
-    !% fitting function from \cite{hu_fuzzy_2000} has been used. Note that:
-    !% (1) In \cite{hu_fuzzy_2000}, the half-mode wavenumber is defined as the sacle at
-    !%     which the matter power spectrum, instead of the transfer function, is suppressed
-    !%     by a factor of two. A correction factor has been added in the calculations to be
-    !%     consistent with the common definition.
-    !% (2) For a mixed \gls{cdm} and \gls{fuzzy dark matter} model, the half-mode wavenumber
-    !%     is not well defined.
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is
+    suppressed by a factor of two relative to a \gls{cdm} transfer function. Here the
+    fitting function from \cite{hu_fuzzy_2000} has been used. Note that:
+    (1) In \cite{hu_fuzzy_2000}, the half-mode wavenumber is defined as the sacle at
+        which the matter power spectrum, instead of the transfer function, is suppressed
+        by a factor of two. A correction factor has been added in the calculations to be
+        consistent with the common definition.
+    (2) For a mixed \gls{cdm} and \gls{fuzzy dark matter} model, the half-mode wavenumber
+        is not well defined.
+    !!}
     use :: Galacticus_Error            , only : errorStatusSuccess
     use :: Numerical_Constants_Math    , only : Pi
     use :: Numerical_Constants_Prefixes, only : kilo

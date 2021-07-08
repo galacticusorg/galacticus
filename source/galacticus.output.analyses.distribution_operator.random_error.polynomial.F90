@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a random error output analysis distribution operator class with an error magnitude that is
-  !% a polynomial function of the property value.
+  !!{
+  Contains a module which implements a random error output analysis distribution operator class with an error magnitude that is
+  a polynomial function of the property value.
+  !!}
 
-  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomErrorPlynml">
-  !#  <description>A random error output analysis distribution operator class.</description>
-  !# </outputAnalysisDistributionOperator>
+  !![
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomErrorPlynml">
+   <description>A random error output analysis distribution operator class.</description>
+  </outputAnalysisDistributionOperator>
+  !!]
   type, extends(outputAnalysisDistributionOperatorRandomError) :: outputAnalysisDistributionOperatorRandomErrorPlynml
-     !% A random error output distribution operator class which has an error magnitude that is a polynomial function of the
-     !% property value.
+     !!{
+     A random error output distribution operator class which has an error magnitude that is a polynomial function of the
+     property value.
+     !!}
      private
      double precision                            :: propertyValueZeroPoint, errorMinimum, &
           &                                         errorMaximum
@@ -35,7 +41,9 @@
   end type outputAnalysisDistributionOperatorRandomErrorPlynml
 
   interface outputAnalysisDistributionOperatorRandomErrorPlynml
-     !% Constructors for the ``randomErrorPolynomial'' output analysis distribution operator class.
+     !!{
+     Constructors for the ``randomErrorPolynomial'' output analysis distribution operator class.
+     !!}
      module procedure randomErrorPolynomialConstructorParameters
      module procedure randomErrorPolynomialConstructorInternal
   end interface outputAnalysisDistributionOperatorRandomErrorPlynml
@@ -43,7 +51,9 @@
 contains
 
   function randomErrorPolynomialConstructorParameters(parameters) result(self)
-    !% Constructor for the ``randomErrorPolynomial'' output analysis distribution operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``randomErrorPolynomial'' output analysis distribution operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisDistributionOperatorRandomErrorPlynml)                              :: self
@@ -54,50 +64,60 @@ contains
 
     ! Check and read parameters.
     allocate(coefficient(parameters%count('coefficient')))
-    !# <inputParameter>
-    !#   <name>zeroPoint</name>
-    !#   <source>parameters</source>
-    !#   <variable>zeroPoint</variable>
-    !#   <description>The zero-point of the property value used in the polynomial random error distribution class.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>coefficient</name>
-    !#   <source>parameters</source>
-    !#   <variable>coefficient</variable>
-    !#   <description>The coefficients in the polynomial random error distribution class.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>errorMinimum</name>
-    !#   <source>parameters</source>
-    !#   <variable>errorMinimum</variable>
-    !#   <description>The minimum error in the polynomial random error distribution class.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>errorMaximum</name>
-    !#   <source>parameters</source>
-    !#   <variable>errorMaximum</variable>
-    !#   <description>The maximum error in the polynomial random error distribution class.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>zeroPoint</name>
+      <source>parameters</source>
+      <variable>zeroPoint</variable>
+      <description>The zero-point of the property value used in the polynomial random error distribution class.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>coefficient</name>
+      <source>parameters</source>
+      <variable>coefficient</variable>
+      <description>The coefficients in the polynomial random error distribution class.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>errorMinimum</name>
+      <source>parameters</source>
+      <variable>errorMinimum</variable>
+      <description>The minimum error in the polynomial random error distribution class.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>errorMaximum</name>
+      <source>parameters</source>
+      <variable>errorMaximum</variable>
+      <description>The maximum error in the polynomial random error distribution class.</description>
+    </inputParameter>
+    !!]
     ! Construct the object.
     self=outputAnalysisDistributionOperatorRandomErrorPlynml(errorMinimum,errorMaximum,zeroPoint,coefficient)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function randomErrorPolynomialConstructorParameters
 
   function randomErrorPolynomialConstructorInternal(errorMinimum,errorMaximum,propertyValueZeroPoint,coefficient) result(self)
-    !% Internal constructor for the ``randomErrorPolynomial'' output analysis distribution operator class.
+    !!{
+    Internal constructor for the ``randomErrorPolynomial'' output analysis distribution operator class.
+    !!}
     implicit none
     type            (outputAnalysisDistributionOperatorRandomErrorPlynml)                              :: self
     double precision                                                     , intent(in   )               :: errorMinimum          , errorMaximum, &
          &                                                                                                propertyValueZeroPoint
     double precision                                                     , intent(in   ), dimension(:) :: coefficient
-    !# <constructorAssign variables="errorMinimum, errorMaximum, propertyValueZeroPoint, coefficient"/>
+    !![
+    <constructorAssign variables="errorMinimum, errorMaximum, propertyValueZeroPoint, coefficient"/>
+    !!]
 
     return
   end function randomErrorPolynomialConstructorInternal
 
   double precision function randomErrorPolynomialRootVariance(self,propertyValue,node)
-    !% Rerturn the root-variance in the polynomial random error distribution operator.
+    !!{
+    Rerturn the root-variance in the polynomial random error distribution operator.
+    !!}
     implicit none
     class           (outputAnalysisDistributionOperatorRandomErrorPlynml), intent(inout) :: self
     double precision                                                     , intent(in   ) :: propertyValue

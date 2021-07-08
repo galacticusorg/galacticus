@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,24 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a merger tree operator which restructures the tree onto a fixed grid of timesteps.
+  !!{
+  Contains a module which implements a merger tree operator which restructures the tree onto a fixed grid of timesteps.
+  !!}
 
   use :: Output_Times, only : outputTimesClass
 
-  !# <mergerTreeOperator name="mergerTreeOperatorRegridTimes">
-  !#  <description>
-  !#   A merger tree operator class which will interpolate the merger tree structure onto a new array of timesteps. The timestep
-  !#   array is specified via an \refClass{outputTimesClass} object. Along each branch of the tree, new halos are inserted at
-  !#   times corresponding to the times in the resulting array. The masses of these nodes are linearly interpolated between the
-  !#   existing nodes on the branch. Once these new nodes have been added, all other nodes are removed from the tree\footnote{The
-  !#   base node of the tree is never removed, even if it does not lie on one of the times in the constructed array.} The
-  !#   processing is useful to construct representations of trees as they would be if only sparse time sampling were available. As
-  !#   such, it is useful for exploring how the number of snapshots in merger trees extracted from N-body simulations\index{merger
-  !#   tree!N-body} affects the properties of galaxies that form in them.
-  !#  </description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorRegridTimes">
+   <description>
+    A merger tree operator class which will interpolate the merger tree structure onto a new array of timesteps. The timestep
+    array is specified via an \refClass{outputTimesClass} object. Along each branch of the tree, new halos are inserted at
+    times corresponding to the times in the resulting array. The masses of these nodes are linearly interpolated between the
+    existing nodes on the branch. Once these new nodes have been added, all other nodes are removed from the tree\footnote{The
+    base node of the tree is never removed, even if it does not lie on one of the times in the constructed array.} The
+    processing is useful to construct representations of trees as they would be if only sparse time sampling were available. As
+    such, it is useful for exploring how the number of snapshots in merger trees extracted from N-body simulations\index{merger
+    tree!N-body} affects the properties of galaxies that form in them.
+   </description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorRegridTimes
-     !% A merger tree operator class which restructures the tree onto a fixed grid of timesteps.
+     !!{
+     A merger tree operator class which restructures the tree onto a fixed grid of timesteps.
+     !!}
      private
      class           (outputTimesClass), pointer                   :: outputTimes_  => null()
      logical                                                       :: dumpTrees
@@ -46,7 +52,9 @@
   end type mergerTreeOperatorRegridTimes
 
   interface mergerTreeOperatorRegridTimes
-     !% Constructors for the regrid times merger tree operator class.
+     !!{
+     Constructors for the regrid times merger tree operator class.
+     !!}
      module procedure regridTimesConstructorParameters
      module procedure regridTimesConstructorInternal
   end interface mergerTreeOperatorRegridTimes
@@ -54,7 +62,9 @@
 contains
 
   function regridTimesConstructorParameters(parameters) result(self)
-    !% Constructor for the regrid times merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the regrid times merger tree operator class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeOperatorRegridTimes)                :: self
@@ -63,23 +73,43 @@ contains
     logical                                                        :: dumpTrees
     double precision                                               :: snapTolerance
 
-    !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>dumpTrees</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>Specifies whether or not to dump merger trees as they are regridded.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>snapTolerance</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The fractional tolerance used in deciding if a node should be snapped to a time on the grid.</description>
+    </inputParameter>
+    <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
+    !!]
     self=mergerTreeOperatorRegridTimes(snapTolerance,dumpTrees,outputTimes_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="outputTimes_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="outputTimes_"/>
+    !!]
     return
   end function regridTimesConstructorParameters
 
   function regridTimesConstructorInternal(snapTolerance,dumpTrees,outputTimes_) result(self)
-    !% Internal constructor for the regrid times merger tree operator class.
-    use :: Galacticus_Error , only : Galacticus_Error_Report
+    !!{
+    Internal constructor for the regrid times merger tree operator class.
+    !!}
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeOperatorRegridTimes)                        :: self
     double precision                               , intent(in   )         :: snapTolerance
     logical                                        , intent(in   )         :: dumpTrees
     class           (outputTimesClass             ), intent(in   ), target :: outputTimes_
     integer         (c_size_t                     )                        :: i
-    !# <constructorAssign variables="dumpTrees, snapTolerance, *outputTimes_"/>
+    !![
+    <constructorAssign variables="dumpTrees, snapTolerance, *outputTimes_"/>
+    !!]
 
     ! Validate arguments.
     if (self%outputTimes_%count() < 2_c_size_t) call Galacticus_Error_Report('2 or more output times are required'//{introspection:location})
@@ -91,24 +121,31 @@ contains
   end function regridTimesConstructorInternal
 
   subroutine regridTimesDestructor(self)
-    !% Destructor for the merger tree operator function class.
+    !!{
+    Destructor for the merger tree operator function class.
+    !!}
     implicit none
     type(mergerTreeOperatorRegridTimes), intent(inout) :: self
 
-    !# <objectDestructor name="self%outputTimes_"/>
+    !![
+    <objectDestructor name="self%outputTimes_"/>
+    !!]
     return
   end subroutine regridTimesDestructor
 
   subroutine regridTimesOperatePreEvolution(self,tree)
-    !% Perform a regrid times operation on a merger tree.
-    use            :: Galacticus_Display     , only : Galacticus_Display_Indent, Galacticus_Display_Unindent  , Galacticus_Display_Message, verbosityWorking
-    use            :: Galacticus_Error       , only : Galacticus_Error_Report  , Galacticus_Warn
-    use            :: Galacticus_Nodes       , only : mergerTree               , nodeComponentBasic           , nodeComponentSatellite    , nodeEvent       , &
-          &                                           treeNode                 , treeNodeList
+    !!{
+    Perform a regrid times operation on a merger tree.
+    !!}
+    use            :: Display                , only : displayIndent           , displayMessage               , displayUnindent       , verbosityLevelWorking, &
+         &                                            displayMagenta          , displayReset
+    use            :: Galacticus_Error       , only : Galacticus_Error_Report , Galacticus_Warn
+    use            :: Galacticus_Nodes       , only : mergerTree              , nodeComponentBasic           , nodeComponentSatellite, nodeEvent            , &
+          &                                           treeNode                , treeNodeList
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: ISO_Varying_String     , only : var_str
     use            :: Kind_Numbers           , only : kind_int8
-    use            :: Merger_Tree_Walkers    , only : mergerTreeWalkerAllNodes , mergerTreeWalkerIsolatedNodes
+    use            :: Merger_Tree_Walkers    , only : mergerTreeWalkerAllNodes, mergerTreeWalkerIsolatedNodes
     use            :: Merger_Trees_Dump      , only : Merger_Tree_Dump
     use            :: Numerical_Comparison   , only : Values_Agree
     use            :: Numerical_Interpolation, only : interpolator
@@ -141,7 +178,7 @@ contains
     ! Iterate over trees.
     currentTree => tree
     do while (associated(currentTree))
-       call Galacticus_Display_Indent(var_str('Regridding tree ')//currentTree%index,verbosityWorking)
+       call displayIndent(var_str('Regridding tree ')//currentTree%index,verbosityLevelWorking)
        ! Dump the unprocessed tree if required.
        if (self%dumpTrees) call Merger_Tree_Dump(                              &
             &                                    currentTree                 , &
@@ -171,12 +208,14 @@ contains
           if (associated(node%mergeTarget).and..not.mergeTargetWarningIssued) then
              !$omp critical (mergeTargetWarning)
              if (.not.mergeTargetWarningIssued) then
-                call Galacticus_Warn(                                                                                &
-                     &               'WARNING: nodes in this tree have merge targets set'               //char(10)// &
-                     &               '         this is not supported by the regridding operator'        //char(10)// &
-                     &               '         your tree may crash or deadlock'                         //char(10)// &
-                     &               '         to avoid this problem do not preset merge targets, e.g. '//char(10)// &
-                     &               '           <mergerTreeReadPresetMergerNodes value="false"/>'                   &
+                call Galacticus_Warn(                                                                                          &
+                     &                                                                                    displayMagenta(  )// &
+                     &               'WARNING:'                                                         //displayReset  (  )// &
+                     &               ' nodes in this tree have merge targets set'                       //char          (10)// &
+                     &               '         this is not supported by the regridding operator'        //char          (10)// &
+                     &               '         your tree may crash or deadlock'                         //char          (10)// &
+                     &               '         to avoid this problem do not preset merge targets, e.g. '//char          (10)// &
+                     &               '           <mergerTreeReadPresetMergerNodes value="false"/>'                             &
                      &              )
                 mergeTargetWarningIssued=.true.
              end if
@@ -232,7 +271,7 @@ contains
           end if
        end do
        firstNewNode=nodeIndex+1
-       call Galacticus_Display_Message(var_str('Tree contains ')//countNodes//' nodes prior to regridding',verbosityWorking)
+       call displayMessage(var_str('Tree contains ')//countNodes//' nodes prior to regridding',verbosityLevelWorking)
        ! Walk the tree, locating branches which intersect grid times.
        treeWalkerIsolatedNodes=mergerTreeWalkerIsolatedNodes(currentTree)
        do while (treeWalkerIsolatedNodes%next(node))
@@ -243,25 +282,6 @@ contains
              ! Get the time of this node and its parent.
              timeNow   =basic  %time()
              timeParent=basicParent%time()
-             ! Get masses of these halos.
-             massNow   =basic  %mass()
-             massParent=basicParent%mass()
-             if (node%isPrimaryProgenitor()) then
-                ! Remove the mass in any non-primary progenitors - we don't want to include
-                ! their mass in the estimated mass growth rate of this node.
-                nodeChild => node%parent%firstChild%sibling
-                do while (associated(nodeChild))
-                   basicChild => nodeChild%basic()
-                   massParent =  massParent-basicChild%mass()
-                   nodeChild  => nodeChild%sibling
-                end do
-                ! Do not let the parent mass decrease along the branch.
-                massParent=max(massParent,massNow)
-             else
-                ! Halo is not the primary progenitor of its parent. Assume that its mass does
-                ! not grow further.
-                massParent=massNow
-             end if
              ! Locate these times in the list of grid times.
              iNow   =interpolator_%locate(timeNow   )
              iParent=interpolator_%locate(timeParent)
@@ -271,6 +291,25 @@ contains
              ! If the branch from node to parent spans one or more grid times, insert new nodes
              ! at those points.
              if (iParent > iNow) then
+                ! Get masses of these halos.
+                massNow   =basic      %mass()
+                massParent=basicParent%mass()
+                if (node%isPrimaryProgenitor()) then
+                   ! Remove the mass in any non-primary progenitors - we don't want to include
+                   ! their mass in the estimated mass growth rate of this node.
+                   nodeChild => node%parent%firstChild%sibling
+                   do while (associated(nodeChild))
+                      basicChild => nodeChild%basic()
+                      massParent =  massParent-basicChild%mass()
+                      nodeChild  => nodeChild%sibling
+                   end do
+                   ! Do not let the parent mass decrease along the branch.
+                   massParent=max(massParent,massNow)
+                else
+                   ! Halo is not the primary progenitor of its parent. Assume that its mass does
+                   ! not grow further.
+                   massParent=massNow
+                end if
                 ! Create new nodes.
                 allocate(newNodes(iParent-iNow),stat=allocErr)
                 if (allocErr/=0) call Galacticus_Error_Report('unable to allocate new nodes'//{introspection:location})
@@ -360,12 +399,12 @@ contains
                    nodeChild => node%firstChild
                    ! Assign all children a parent that is the parent of the current node.
                    do while (associated(nodeChild))
-                      nodeChild%parent => node %parent
+                      nodeChild%parent => node%parent
                       if (.not.associated(nodeChild%sibling)) then
-                         nodeChild%sibling => node%sibling
-                         nodeChild             => null()
+                         nodeChild%sibling => node     %sibling
+                         nodeChild         => null()
                       else
-                         nodeChild             => nodeChild%sibling
+                         nodeChild         => nodeChild%sibling
                       end if
                    end do
                    ! Assign the current node's parent a child that is the child of the current node.
@@ -382,16 +421,15 @@ contains
                    ! Assign all children a parent that is the parent of the current node.
                    nodeChild => node%firstChild
                    do while (associated(nodeChild))
-                      nodeChild%parent => node %parent
+                      nodeChild%parent => node%parent
                       if (.not.associated(nodeChild%sibling)) then
-                         nodeChild%sibling => node%sibling
-                         nodeChild => null()
+                         nodeChild%sibling => node     %sibling
+                         nodeChild         => null()
                       else
-                         nodeChild            => nodeChild%sibling
+                         nodeChild         => nodeChild%sibling
                       end if
                    end do
-                   ! Find which sibling points the current node and link in the children of the
-                   ! current node.
+                   ! Find which sibling points to the current node and link in the children of the current node.
                    nodeSibling => node%parent%firstChild
                    do while (.not.associated(nodeSibling%sibling,node))
                       nodeSibling => nodeSibling%sibling
@@ -414,7 +452,7 @@ contains
              countNodes=countNodes+1_c_size_t
           end if
        end do
-       call Galacticus_Display_Message(var_str('Tree contains ')//countNodes//' nodes after regridding',verbosityWorking)
+       call displayMessage(var_str('Tree contains ')//countNodes//' nodes after regridding',verbosityLevelWorking)
        ! Dump the processed tree if required.
        if (self%dumpTrees) call Merger_Tree_Dump(                              &
             &                                    currentTree                 , &
@@ -429,7 +467,7 @@ contains
             &                                    scaleNodesByLogMass=.true.  , &
             &                                    edgeLengthsToTimes =.true.    &
             &                                   )
-       call Galacticus_Display_Unindent('Done',verbosityWorking)
+       call displayUnindent('Done',verbosityLevelWorking)
        ! Move to the next tree.
        currentTree => currentTree%nextTree
     end do

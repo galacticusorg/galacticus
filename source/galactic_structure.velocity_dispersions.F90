@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,11 +19,15 @@
 
 !+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
 
-!% Contains a module which implements calculations of the velocity dispersions in isotropic spherical systems by solving the Jeans
-!% equation.
+!!{
+Contains a module which implements calculations of the velocity dispersions in isotropic spherical systems by solving the Jeans
+equation.
+!!}
 
 module Galactic_Structure_Velocity_Dispersions
-  !% Implements calculations of the velocity dispersions in isotropic spherical systems by solving the Jeans equation.
+  !!{
+  Implements calculations of the velocity dispersions in isotropic spherical systems by solving the Jeans equation.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
@@ -35,24 +39,26 @@ module Galactic_Structure_Velocity_Dispersions
   !$omp threadprivate(massTypeGlobal,componentTypeGlobal,activeNode)
 contains
 
-  double precision function Galactic_Structure_Velocity_Dispersion(thisNode,radius,radiusOuter,componentType,massType)
-    !% Returns the velocity dispersion of the specified {\normalfont \ttfamily componentType} in {\normalfont \ttfamily thisNode} at the given {\normalfont \ttfamily radius}.
+  double precision function Galactic_Structure_Velocity_Dispersion(node,radius,radiusOuter,componentType,massType)
+    !!{
+    Returns the velocity dispersion of the specified {\normalfont \ttfamily componentType} in {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius}.
+    !!}
     use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : radiusLarge
     use :: Numerical_Integration             , only : integrator
-    type            (treeNode  ), intent(inout), target   :: thisNode
+    type            (treeNode  ), intent(inout), target   :: node
     double precision            , intent(in   )           :: radius          , radiusOuter
     integer                     , intent(in   )           :: componentType   , massType
     double precision                                      :: componentDensity, densityVelocityVariance, &
          &                                                   massTotal
     type            (integrator)                          :: integrator_
 
-    activeNode         => thisNode
+    activeNode         => node
     componentTypeGlobal=  componentType
     massTypeGlobal     =  massType
     ! Find the total mass.
-    massTotal=Galactic_Structure_Enclosed_Mass(thisNode,radiusLarge,componentType=componentType,massType=massType)
+    massTotal=Galactic_Structure_Enclosed_Mass(node,radiusLarge,componentType=componentType,massType=massType)
     ! Return with zero dispersion if the component is massless.
     if (massTotal <= 0.0d0) then
        Galactic_Structure_Velocity_Dispersion=0.0d0
@@ -62,7 +68,7 @@ contains
     integrator_            =integrator           (Velocity_Dispersion_Integrand,toleranceRelative=1.0d-3)
     densityVelocityVariance=integrator_%integrate(radius                       ,radiusOuter             )
     ! Get the density at this radius.
-    componentDensity=Galactic_Structure_Density(thisNode,[radius,0.0d0,0.0d0],componentType=componentType,massType=massType)
+    componentDensity=Galactic_Structure_Density(node,[radius,0.0d0,0.0d0],componentType=componentType,massType=massType)
     ! Check for zero density.
     if (componentDensity <= 0.0d0) then
        Galactic_Structure_Velocity_Dispersion=0.0d0
@@ -73,7 +79,9 @@ contains
   end function Galactic_Structure_Velocity_Dispersion
 
   double precision function Velocity_Dispersion_Integrand(radius)
-    !% Integrand function used for finding velocity dispersions using Jeans equation.
+    !!{
+    Integrand function used for finding velocity dispersions using Jeans equation.
+    !!}
     use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus

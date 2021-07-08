@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a massHost property extractor class.
+!!{
+Contains a module which implements a massHost property extractor class.
+!!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorMassHost">
-  !#  <description>A host halo mass property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorMassHost">
+   <description>A host halo mass property extractor class.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassHost
-     !% A host halo mass property extractor class.
+     !!{
+     A host halo mass property extractor class.
+     !!}
      private
    contains
      procedure :: extract     => massHostExtract
@@ -34,14 +40,18 @@
   end type nodePropertyExtractorMassHost
 
   interface nodePropertyExtractorMassHost
-     !% Constructors for the ``massHost'' output analysis class.
+     !!{
+     Constructors for the ``massHost'' output analysis class.
+     !!}
      module procedure massHostConstructorParameters
   end interface nodePropertyExtractorMassHost
 
 contains
 
   function massHostConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily massHost} property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily massHost} property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorMassHost)                :: self
@@ -53,7 +63,9 @@ contains
   end function massHostConstructorParameters
 
   double precision function massHostExtract(self,node,instance)
-    !% Implement a last isolated redshift output analysis.
+    !!{
+    Implement a last isolated redshift output analysis.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (nodePropertyExtractorMassHost), intent(inout)           :: self
@@ -74,7 +86,9 @@ contains
   end function massHostExtract
 
   function massHostName(self)
-    !% Return the name of the host halo mass property.
+    !!{
+    Return the name of the host halo mass property.
+    !!}
     implicit none
     type (varying_string               )                :: massHostName
     class(nodePropertyExtractorMassHost), intent(inout) :: self
@@ -85,7 +99,9 @@ contains
   end function massHostName
 
   function massHostDescription(self)
-    !% Return a description of the host halo mass property.
+    !!{
+    Return a description of the host halo mass property.
+    !!}
     implicit none
     type (varying_string               )                :: massHostDescription
     class(nodePropertyExtractorMassHost), intent(inout) :: self
@@ -96,7 +112,9 @@ contains
   end function massHostDescription
 
   double precision function massHostUnitsInSI(self)
-    !% Return the units of the host halo mass in the SI system.
+    !!{
+    Return the units of the host halo mass in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(nodePropertyExtractorMassHost), intent(inout) :: self
@@ -107,7 +125,9 @@ contains
   end function massHostUnitsInSI
 
   integer function massHostType(self)
-    !% Return the type of the last isolated redshift property.
+    !!{
+    Return the type of the last isolated redshift property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassHost), intent(inout) :: self

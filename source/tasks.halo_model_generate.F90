@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,11 +24,15 @@
   use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMO        , darkMatterProfileDMOClass
   use :: Numerical_Random_Numbers  , only : randomNumberGeneratorClass
 
-  !# <task name="taskHaloModelGenerate">
-  !#  <description>A task which generates a mock catalog of galaxies based on a simple halo model approach.</description>
-  !# </task>
+  !![
+  <task name="taskHaloModelGenerate">
+   <description>A task which generates a mock catalog of galaxies based on a simple halo model approach.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskHaloModelGenerate
-     !% Implementation of a task which generates a mock catalog of galaxies based on a simple halo model approach.
+     !!{
+     Implementation of a task which generates a mock catalog of galaxies based on a simple halo model approach.
+     !!}
      private
      class           (cosmologyParametersClass         ), pointer :: cosmologyParameters_          => null()
      class           (cosmologyFunctionsClass          ), pointer :: cosmologyFunctions_           => null()
@@ -47,7 +51,9 @@
   end type taskHaloModelGenerate
 
   interface taskHaloModelGenerate
-     !% Constructors for the {\normalfont \ttfamily haloModelGenerate} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily haloModelGenerate} task.
+     !!}
      module procedure haloModelGenerateConstructorParameters
      module procedure haloModelGenerateConstructorInternal
   end interface taskHaloModelGenerate
@@ -55,7 +61,9 @@
 contains
 
   function haloModelGenerateConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily haloModelGenerate} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily haloModelGenerate} task class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Input_Parameters, only : inputParameter              , inputParameters
     use :: Node_Components , only : Node_Components_Initialize
@@ -85,46 +93,52 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
-    !# <inputParameter>
-    !#   <name>haloCatalogFileName</name>
-    !#   <description>The file name of the halo catalog to populate.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>galaxyCatalogFileName</name>
-    !#   <description>The file name to which the galaxy catalog should be output.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMinimum</name>
-    !#   <description>The minimum mass galaxy to include in a mock halo model realization.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMaximum</name>
-    !#   <defaultValue>1.0d16</defaultValue>
-    !#   <description>The maximum mass galaxy to include in a mock halo model realization.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"          source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
-    !# <objectBuilder class="conditionalMassFunction"      name="conditionalMassFunction_"      source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
-    !# <objectBuilder class="randomNumberGenerator"        name="randomNumberGenerator_"        source="parameters"/>
+    !![
+    <inputParameter>
+      <name>haloCatalogFileName</name>
+      <description>The file name of the halo catalog to populate.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>galaxyCatalogFileName</name>
+      <description>The file name to which the galaxy catalog should be output.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massMinimum</name>
+      <description>The minimum mass galaxy to include in a mock halo model realization.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massMaximum</name>
+      <defaultValue>1.0d16</defaultValue>
+      <description>The maximum mass galaxy to include in a mock halo model realization.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters"          name="cosmologyParameters_"          source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
+    <objectBuilder class="conditionalMassFunction"      name="conditionalMassFunction_"      source="parameters"/>
+    <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
+    <objectBuilder class="randomNumberGenerator"        name="randomNumberGenerator_"        source="parameters"/>
+    !!]
     self=taskHaloModelGenerate(galaxyCatalogFileName,haloCatalogFileName,massMinimum,massMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,conditionalMassFunction_,darkMatterProfileScaleRadius_,randomNumberGenerator_,parametersRoot)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"         />
-    !# <objectDestructor name="cosmologyFunctions_"          />
-    !# <objectDestructor name="darkMatterProfileDMO_"        />
-    !# <objectDestructor name="conditionalMassFunction_"     />
-    !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
-    !# <objectDestructor name="randomNumberGenerator_"       />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"         />
+    <objectDestructor name="cosmologyFunctions_"          />
+    <objectDestructor name="darkMatterProfileDMO_"        />
+    <objectDestructor name="conditionalMassFunction_"     />
+    <objectDestructor name="darkMatterProfileScaleRadius_"/>
+    <objectDestructor name="randomNumberGenerator_"       />
+    !!]
     return
   end function haloModelGenerateConstructorParameters
 
   function haloModelGenerateConstructorInternal(galaxyCatalogFileName,haloCatalogFileName,massMinimum,massMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,conditionalMassFunction_,darkMatterProfileScaleRadius_,randomNumberGenerator_,parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily haloModelGenerate} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily haloModelGenerate} task class which takes a parameter set as input.
+    !!}
     implicit none
     type            (taskHaloModelGenerate            )                        :: self
     type            (varying_string                   ), intent(in   )         :: galaxyCatalogFileName        , haloCatalogFileName
@@ -136,7 +150,9 @@ contains
     class           (darkMatterProfileScaleRadiusClass), intent(in   ), target :: darkMatterProfileScaleRadius_
     class           (randomNumberGeneratorClass       ), intent(in   ), target :: randomNumberGenerator_
     type            (inputParameters                  ), intent(in   ), target :: parameters
-    !# <constructorAssign variables="galaxyCatalogFileName, haloCatalogFileName, massMinimum, massMaximum, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *conditionalMassFunction_, *darkMatterProfileScaleRadius_, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="galaxyCatalogFileName, haloCatalogFileName, massMinimum, massMaximum, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *conditionalMassFunction_, *darkMatterProfileScaleRadius_, *randomNumberGenerator_"/>
+    !!]
 
     self%parameters=inputParameters(parameters)
     call self%parameters%parametersGroupCopy(parameters)
@@ -144,28 +160,34 @@ contains
   end function haloModelGenerateConstructorInternal
 
   subroutine haloModelGenerateDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily haloModelGenerate} task class.
+    !!{
+    Destructor for the {\normalfont \ttfamily haloModelGenerate} task class.
+    !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
     type(taskHaloModelGenerate), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"         />
-    !# <objectDestructor name="self%cosmologyFunctions_"          />
-    !# <objectDestructor name="self%darkMatterProfileDMO_"        />
-    !# <objectDestructor name="self%conditionalMassFunction_"     />
-    !# <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
-    !# <objectDestructor name="self%randomNumberGenerator_"       />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"         />
+    <objectDestructor name="self%cosmologyFunctions_"          />
+    <objectDestructor name="self%darkMatterProfileDMO_"        />
+    <objectDestructor name="self%conditionalMassFunction_"     />
+    <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
+    <objectDestructor name="self%randomNumberGenerator_"       />
+    !!]
     call Node_Components_Uninitialize()
     return
   end subroutine haloModelGenerateDestructor
 
   subroutine haloModelGeneratePerform(self,status)
-    !% Generate a mock galaxy catalog using a simple halo model approach.
+    !!{
+    Generate a mock galaxy catalog using a simple halo model approach.
+    !!}
     use :: Conditional_Mass_Functions        , only : haloModelGalaxyTypeCentral              , haloModelGalaxyTypeSatellite
+    use :: Display                           , only : displayIndent                           , displayMessage                     , displayUnindent
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options        , only : massTypeDark
     use :: Galacticus_Calculations_Resets    , only : Galacticus_Calculations_Reset
-    use :: Galacticus_Display                , only : Galacticus_Display_Indent               , Galacticus_Display_Message         , Galacticus_Display_Unindent
     use :: Galacticus_Error                  , only : errorStatusSuccess
     use :: Galacticus_Nodes                  , only : nodeComponentBasic                      , nodeComponentDarkMatterProfile     , treeNode
     use :: IO_IRATE                          , only : irate
@@ -199,11 +221,11 @@ contains
     type            (rootFinder                    )                                :: finderCentral        , finderSatellite
     character       (len=6                         )                                :: label
 
-    call Galacticus_Display_Indent('Begin task: halo model generate')
+    call displayIndent('Begin task: halo model generate')
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
     call Node_Components_Thread_Initialize(self%parameters)
     ! Read the halo catalog.
-    call Galacticus_Display_Indent("Reading halo catalog")
+    call displayIndent("Reading halo catalog")
     haloFile=irate(char(self%haloCatalogFileName),self%cosmologyParameters_,self%cosmologyFunctions_)
     call haloFile%readHalos     (                            &
          &                       snapshot=1                , &
@@ -215,38 +237,30 @@ contains
     call haloFile%readSimulation(                            &
          &                       boxSize =simulationBoxSize  &
          &                      )
-    call Galacticus_Display_Unindent("done")
+    call displayUnindent("done")
     ! Establish root finders.
-    call finderCentral  %tolerance   (                                               &
-         &                            toleranceRelative  =1.0d-6                     &
-         &                           )
-    call finderCentral  %rangeExpand (                                               &
-         &                            rangeExpandUpward  =2.0d0                    , &
-         &                            rangeExpandDownward=1.0d0                    , &
-         &                            rangeExpandType    =rangeExpandMultiplicative  &
-         &                           )
-    call finderCentral  %rootFunction(                                               &
-         &                                                centralMassRoot            &
-         &                           )
-    call finderSatellite%tolerance   (                                               &
-         &                            toleranceRelative  =1.0d-6                     &
-         &                           )
-    call finderSatellite%rangeExpand (                                               &
-         &                            rangeExpandUpward  =2.0d0                    , &
-         &                            rangeExpandDownward=1.0d0                    , &
-         &                            rangeExpandType    =rangeExpandMultiplicative  &
-         &                           )
-    call finderSatellite%rootFunction(                                               &
-         &                                                satelliteMassRoot          &
-         &                           )
-    ! Establish tree node for sampling satellite positions.
+    finderCentral  =rootFinder(                                               &
+         &                     rootFunction       =centralMassRoot          , &
+         &                     toleranceRelative  =1.0d-6                   , &
+         &                     rangeExpandUpward  =2.0d0                    , &
+         &                     rangeExpandDownward=1.0d0                    , &
+         &                     rangeExpandType    =rangeExpandMultiplicative  &
+         &                    )
+    finderSatellite=rootFinder(                                               &
+         &                     rootFunction       =satelliteMassRoot        , &
+         &                     toleranceRelative  =1.0d-6                   , &
+         &                     rangeExpandUpward  =2.0d0                    , &
+         &                     rangeExpandDownward=1.0d0                    , &
+         &                     rangeExpandType    =rangeExpandMultiplicative  &
+         &                    )
+     ! Establish tree node for sampling satellite positions.
     node    => treeNode                  (                 )
     basic   => node    %basic            (autoCreate=.true.)
     profile => node    %darkMatterProfile(autoCreate=.true.)
     call basic%timeSet            (self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift)))
     call basic%timeLastIsolatedSet(self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift)))
     ! Iterate over halos.
-    call Galacticus_Display_Indent("Populating halos")
+    call displayIndent("Populating halos")
     galaxyCount             =     0
     populatedHaloMassMinimum=huge(0.0d0)
     do iHalo=1,size(haloMass)
@@ -317,11 +331,11 @@ contains
     end do
     message="Created "
     message=message//galaxyCount//" galaxies"
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     write (label,'(f5.2)') log10(populatedHaloMassMinimum)
     message="Lowest mass halo populated has log₁₀(Mₕₐₗₒ/M☉)="//trim(adjustl(label))
-    call Galacticus_Display_Message(message)
-    call Galacticus_Display_Unindent("done")
+    call displayMessage(message)
+    call displayUnindent("done")
     ! Output galaxy catalog.
     galaxyFile=irate(char(self%galaxyCatalogFileName),self%cosmologyParameters_,self%cosmologyFunctions_)
     call haloFile%copyCosmology (galaxyFile)
@@ -333,12 +347,14 @@ contains
     deallocate(haloMass    )
     call Node_Components_Thread_Uninitialize()
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: halo model generate' )
+    call displayUnindent('Done task: halo model generate' )
 
   contains
 
     double precision function centralMassRoot(mass)
-      !% Root function used to find the mass of central galaxies
+      !!{
+      Root function used to find the mass of central galaxies
+      !!}
       implicit none
       double precision, intent(in   ) :: mass
       double precision                :: x
@@ -352,7 +368,9 @@ contains
     end function centralMassRoot
 
     double precision function satelliteMassRoot(mass)
-      !% Root function used to find the mass of satellite galaxies
+      !!{
+      Root function used to find the mass of satellite galaxies
+      !!}
       implicit none
       double precision, intent(in   ) :: mass
       double precision                :: x
@@ -366,7 +384,9 @@ contains
     end function satelliteMassRoot
 
     subroutine galaxyAdd(mass,position,velocity)
-      !% Add a galaxy to the output buffers.
+      !!{
+      Add a galaxy to the output buffers.
+      !!}
       use :: Memory_Management, only : allocateArray, deallocateArray
       implicit none
       double precision, intent(in   )                 :: mass
@@ -409,7 +429,9 @@ contains
   end subroutine haloModelGeneratePerform
 
   logical function haloModelGenerateRequiresOutputFile(self)
-    !% Specifies that this task does not requires the main output file.
+    !!{
+    Specifies that this task does not requires the main output file.
+    !!}
     implicit none
     class(taskHaloModelGenerate), intent(inout) :: self
     !$GLC attributes unused :: self

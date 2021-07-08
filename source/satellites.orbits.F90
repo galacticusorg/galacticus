@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations related to satellite orbits.
+!!{
+Contains a module which implements calculations related to satellite orbits.
+!!}
 
 module Satellite_Orbits
-  !% Implements calculations related to satellite orbits.
+  !!{
+  Implements calculations related to satellite orbits.
+  !!}
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   use :: Galacticus_Nodes        , only : treeNode
   use :: Kind_Numbers            , only : kind_int8
@@ -61,7 +65,9 @@ module Satellite_Orbits
 contains
 
   double precision function Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,darkMatterHaloScale_,darkMatterProfileDMO_,errorCode)
-    !% Solves for the equivalent circular orbit radius for {\normalfont \ttfamily orbit} in {\normalfont \ttfamily nodeHost}.
+    !!{
+    Solves for the equivalent circular orbit radius for {\normalfont \ttfamily orbit} in {\normalfont \ttfamily nodeHost}.
+    !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
     use :: Kepler_Orbits          , only : keplerOrbit
     use :: Root_Finder            , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
@@ -93,15 +99,16 @@ contains
        Satellite_Orbit_Equivalent_Circular_Orbit_Radius=-1.0d0
        if (present(errorCode)) errorCode=errorCodeNoEquivalentOrbit
     else
-       call finder%rootFunction(Equivalent_Circular_Orbit_Solver   )
-       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
-       call finder%rangeExpand (                                                             &
-            &                   rangeExpandUpward            =2.0d0                        , &
-            &                   rangeExpandDownward          =0.5d0                        , &
-            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-            &                   rangeExpandType              =rangeExpandMultiplicative      &
-            &                  )
+       finder=rootFinder(                                                                &
+            &            rootFunction                 =Equivalent_Circular_Orbit_Solver, &
+            &            toleranceAbsolute            =toleranceAbsolute               , &
+            &            toleranceRelative            =toleranceRelative               , &
+            &            rangeExpandUpward            =2.0d0                           , &
+            &            rangeExpandDownward          =0.5d0                           , &
+            &            rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative   , &
+            &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive   , &
+            &            rangeExpandType              =rangeExpandMultiplicative         &
+            &           )
        Satellite_Orbit_Equivalent_Circular_Orbit_Radius=finder%find(rootGuess=darkMatterHaloScale_%virialRadius(nodeHost))
        if (present(errorCode)) errorCode=errorCodeSuccess
     end if
@@ -109,7 +116,9 @@ contains
   end function Satellite_Orbit_Equivalent_Circular_Orbit_Radius
 
   double precision function Equivalent_Circular_Orbit_Solver(radius)
-    !% Root function used in finding equivalent circular orbits.
+    !!{
+    Root function used in finding equivalent circular orbits.
+    !!}
     use :: Galactic_Structure_Options   , only : structureErrorCodeInfinite  , structureErrorCodeSuccess
     use :: Galactic_Structure_Potentials, only : Galactic_Structure_Potential
     use :: Galacticus_Error             , only : Galacticus_Error_Report
@@ -136,7 +145,9 @@ contains
   end function Equivalent_Circular_Orbit_Solver
 
   subroutine Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumType,radius,velocity)
-    !% Solves for the pericentric radius and velocity of {\normalfont \ttfamily orbit} in {\normalfont \ttfamily nodeHost}.
+    !!{
+    Solves for the pericentric radius and velocity of {\normalfont \ttfamily orbit} in {\normalfont \ttfamily nodeHost}.
+    !!}
     use :: Galactic_Structure_Options   , only : structureErrorCodeInfinite  , structureErrorCodeSuccess
     use :: Galactic_Structure_Potentials, only : Galactic_Structure_Potential
     use :: Galacticus_Error             , only : Galacticus_Error_Report
@@ -149,11 +160,12 @@ contains
     type            (treeNode          ), intent(inout), target :: nodeHost
     type            (keplerOrbit       ), intent(inout)         :: orbit
     integer                             , intent(in   )         :: extremumType
-    double precision                    , intent(  out)         :: radius                 , velocity
+    double precision                    , intent(  out)         :: radius                   , velocity
     class           (nodeComponentBasic), pointer               :: basicHost
-    double precision                    , parameter             :: toleranceAbsolute=0.0d0, toleranceRelative=1.0d-6
+    double precision                    , parameter             :: toleranceAbsolute=0.0d0  , toleranceRelative=1.0d-6
     type            (rootFinder        ), save                  :: finder
-    !$omp threadprivate(finder )
+    logical                             , save                  :: finderConstructed=.false.
+    !$omp threadprivate(finder,finderConstructed)
     type            (keplerOrbit       )                        :: orbitCurrent
     integer                                                     :: status
     double precision                                            :: potential
@@ -216,9 +228,13 @@ contains
           ! Orbit is radial, so pericenter is zero.
           radius=0.0d0
        else
-          if (.not.finder%isInitialized()) then
-             call finder%rootFunction(Extremum_Solver                    )
-             call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+          if (.not.finderConstructed) then
+             finder           =rootFinder(                                     &
+                  &                       rootFunction     =Extremum_Solver  , &
+                  &                       toleranceAbsolute=toleranceAbsolute, &
+                  &                       toleranceRelative=toleranceRelative  &
+                  &                      )
+             finderConstructed=.true.
           end if
           select case (extremumType)
           case (extremumPericenter)
@@ -281,7 +297,9 @@ contains
   end subroutine Satellite_Orbit_Extremum_Phase_Space_Coordinates
 
   double precision function Extremum_Solver(radius)
-    !% Root function used in finding orbital extremum radius.
+    !!{
+    Root function used in finding orbital extremum radius.
+    !!}
     use :: Galactic_Structure_Potentials, only : Galactic_Structure_Potential
     implicit none
     double precision, intent(in   ) :: radius
@@ -293,14 +311,16 @@ contains
   end function Extremum_Solver
 
   function Satellite_Orbit_Convert_To_Current_Potential(orbit,currentHost)
-    !% Takes a virial orbit and adjusts the energy to account for the change in the definition of potential between the original
-    !% halo in which the orbit was defined and the current halo. Since the potential at the virial radius of halos is always
-    !% defined to be $\Phi(r_\mathrm{vir}) = - V_\mathrm{vir}^2$ then the specific energy transforms as:
-    !% \begin{equation}
-    !% e \rightarrow e + V^2_\mathrm{vir,0} + \Phi(r_\mathrm{vir,0}),
-    !% \end{equation}
-    !% where subscript $0$ refers to the original halo in which the orbit was defined and $\Phi(r)$ is the potential of the
-    !% current halo.
+    !!{
+    Takes a virial orbit and adjusts the energy to account for the change in the definition of potential between the original
+    halo in which the orbit was defined and the current halo. Since the potential at the virial radius of halos is always
+    defined to be $\Phi(r_\mathrm{vir}) = - V_\mathrm{vir}^2$ then the specific energy transforms as:
+    \begin{equation}
+    e \rightarrow e + V^2_\mathrm{vir,0} + \Phi(r_\mathrm{vir,0}),
+    \end{equation}
+    where subscript $0$ refers to the original halo in which the orbit was defined and $\Phi(r)$ is the potential of the
+    current halo.
+    !!}
     use :: Galactic_Structure_Potentials, only : Galactic_Structure_Potential
     use :: Kepler_Orbits                , only : keplerOrbit
     use :: Numerical_Constants_Astronomical , only : gravitationalConstantGalacticus
@@ -322,7 +342,9 @@ contains
   end function Satellite_Orbit_Convert_To_Current_Potential
 
   subroutine Satellite_Orbit_Reset(node)
-    !% Reset the satellite orbit calculations.
+    !!{
+    Reset the satellite orbit calculations.
+    !!}
     implicit none
     type(treeNode), intent(inout) :: node
 

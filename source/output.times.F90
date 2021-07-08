@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,55 +17,61 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements output times for \glc.
+!!{
+Contains a module which provides a class that implements output times for \glc.
+!!}
 
 module Output_Times
-  !% Provides a class that implements output times for \glc.
+  !!{
+  Provides a class that implements output times for \glc.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   private
 
-  !# <functionClass>
-  !#  <name>outputTimes</name>
-  !#  <descriptiveName>Output Times</descriptiveName>
-  !#  <description>Class providing output times for \glc.</description>
-  !#  <default>list</default>
-  !#  <method name="count" >
-  !#   <description>Return the number of output times.</description>
-  !#   <type>integer(c_size_t)</type>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !#  <method name="time" >
-  !#   <description>Return the output time index by {\normalfont \ttfamily indexOutput}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>integer(c_size_t), intent(in   ) :: indexOutput</argument>
-  !#  </method>
-  !#  <method name="redshift" >
-  !#   <description>Return the output redshift index by {\normalfont \ttfamily indexOutput}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>integer(c_size_t), intent(in   ) :: indexOutput</argument>
-  !#  </method>
-  !#  <method name="index" >
-  !#   <description>Return the index of the output at the given {\normalfont \ttfamily time}. If {\normalfont \ttfamily findClosest} is given and is true then the closest matching output is returned.</description>
-  !#   <type>integer(c_size_t)</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   )           :: time       </argument>
-  !#   <argument>logical         , intent(in   ), optional :: findClosest</argument>
-  !#  </method>
-  !#  <method name="timeNext" >
-  !#   <description>Given a {\normalfont \ttfamily time}, return the time of the next output, and (optionally) the index of that output.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision          , intent(in   )           :: timeCurrent</argument>
-  !#   <argument>integer         (c_size_t), intent(  out), optional :: indexOutput</argument>
-  !#  </method>
-  !#  <method name="timePrevious" >
-  !#   <description>Given a {\normalfont \ttfamily time}, return the time of the previous output.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: timeCurrent</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>outputTimes</name>
+   <descriptiveName>Output Times</descriptiveName>
+   <description>Class providing output times for \glc.</description>
+   <default>list</default>
+   <method name="count" >
+    <description>Return the number of output times.</description>
+    <type>integer(c_size_t)</type>
+    <pass>yes</pass>
+   </method>
+   <method name="time" >
+    <description>Return the output time index by {\normalfont \ttfamily indexOutput}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>integer(c_size_t), intent(in   ) :: indexOutput</argument>
+   </method>
+   <method name="redshift" >
+    <description>Return the output redshift index by {\normalfont \ttfamily indexOutput}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>integer(c_size_t), intent(in   ) :: indexOutput</argument>
+   </method>
+   <method name="index" >
+    <description>Return the index of the output at the given {\normalfont \ttfamily time}. If {\normalfont \ttfamily findClosest} is given and is true then the closest matching output is returned.</description>
+    <type>integer(c_size_t)</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   )           :: time       </argument>
+    <argument>logical         , intent(in   ), optional :: findClosest</argument>
+   </method>
+   <method name="timeNext" >
+    <description>Given a {\normalfont \ttfamily time}, return the time of the next output, and (optionally) the index of that output.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision          , intent(in   )           :: timeCurrent</argument>
+    <argument>integer         (c_size_t), intent(  out), optional :: indexOutput</argument>
+   </method>
+   <method name="timePrevious" >
+    <description>Given a {\normalfont \ttfamily time}, return the time of the previous output.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: timeCurrent</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Output_Times

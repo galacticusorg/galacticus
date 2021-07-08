@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,44 +17,52 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides convergence criteria for radiative transfer calculations.
+!!{
+Contains a module which provides convergence criteria for radiative transfer calculations.
+!!}
 
 module Radiative_Transfer_Convergences
-  !% Provides a class that implements convergence criteria for radiative transfer calculations.
+  !!{
+  Provides a class that implements convergence criteria for radiative transfer calculations.
+  !!}
   use :: Radiative_Transfer_Matters      , only : radiativeTransferMatterClass      , radiativeTransferPropertiesMatter
   use :: Radiative_Transfer_Photon_Packet, only : radiativeTransferPhotonPacketClass
   private
   
-  !# <functionClass>
-  !#  <name>radiativeTransferConvergence</name>
-  !#  <descriptiveName>Radiative Transfer Convergence Criteria</descriptiveName>
-  !#  <description>Class providing convergence criteria for radiative transfer calculations.</description>
-  !#  <default>always</default>
-  !#  <method name="photonPacketEscapes" >
-  !#   <description>Process an escaping photon packet for convergence testing.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <argument>class(radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket</argument>
-  !#  </method>
-  !#  <method name="testConvergence" >
-  !#   <description>Test a domain cell for convergence.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <argument>class  (radiativeTransferMatterClass     ), intent(inout) :: radiativeTransferMatter_</argument>
-  !#   <argument>class  (radiativeTransferPropertiesMatter), intent(inout) :: properties</argument>
-  !#   <argument>integer                                   , intent(in   ) :: statusCell</argument>
-  !#   <argument>logical                                   , intent(  out) :: converged</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>radiativeTransferConvergence</name>
+   <descriptiveName>Radiative Transfer Convergence Criteria</descriptiveName>
+   <description>Class providing convergence criteria for radiative transfer calculations.</description>
+   <default>always</default>
+   <method name="photonPacketEscapes" >
+    <description>Process an escaping photon packet for convergence testing.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>class(radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket</argument>
+   </method>
+   <method name="testConvergence" >
+    <description>Test a domain cell for convergence.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>class  (radiativeTransferMatterClass     ), intent(inout) :: radiativeTransferMatter_</argument>
+    <argument>class  (radiativeTransferPropertiesMatter), intent(inout) :: properties</argument>
+    <argument>integer                                   , intent(in   ) :: statusCell</argument>
+    <argument>logical                                   , intent(  out) :: converged</argument>
+   </method>
+  </functionClass>
+  !!]
   
-  !# <enumeration>
-  !#  <name>statusCell</name>
-  !#  <description>Specifies cell status for convergence testing.</description>
-  !#  <visibility>public</visibility>
-  !#  <entry label="first"/>
-  !#  <entry label="last" />
-  !#  <entry label="other"/>
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>statusCell</name>
+   <description>Specifies cell status for convergence testing.</description>
+   <visibility>public</visibility>
+   <entry label="first"/>
+   <entry label="last" />
+   <entry label="other"/>
+  </enumeration>
+  !!]
 
 
 end module Radiative_Transfer_Convergences

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,35 +17,40 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements calculations of the cooling radius.
+!!{
+Contains a module that implements calculations of the cooling radius.
+!!}
 
 module Cooling_Radii
-  !% Provides a class that implements calculations of the cooling radius.
+  !!{
+  Provides a class that implements calculations of the cooling radius.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
 
-  !# <functionClass>
-  !#  <name>coolingRadius</name>
-  !#  <descriptiveName>Cooling radii.</descriptiveName>
-  !#  <description>
-  !#   Class providing models of the cooling radius for gas in the hot atmosphere surrounding a galaxy.
-  !#  </description>
-  !#  <default>simple</default>
-  !#  <calculationReset>yes</calculationReset>
-  !#  <method name="radius" >
-  !#   <description>Returns the cooling radius for gas in the hot atmosphere surrounding the galaxy in {\normalfont \ttfamily node} in units of Mpc.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <selfTarget>yes</selfTarget>
-  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
-  !#  </method>
-  !#  <method name="radiusGrowthRate" >
-  !#   <description>Returns the rate of increase of the cooling radius for gas in the hot atmosphere surrounding the galaxy in {\normalfont \ttfamily node} in units of Mpc/Gyr.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>coolingRadius</name>
+   <descriptiveName>Cooling radii.</descriptiveName>
+   <description>
+    Class providing models of the cooling radius for gas in the hot atmosphere surrounding a galaxy.
+   </description>
+   <default>simple</default>
+   <method name="radius" >
+    <description>Returns the cooling radius for gas in the hot atmosphere surrounding the galaxy in {\normalfont \ttfamily node} in units of Mpc.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>type(treeNode), intent(inout), target :: node</argument>
+   </method>
+   <method name="radiusGrowthRate" >
+    <description>Returns the rate of increase of the cooling radius for gas in the hot atmosphere surrounding the galaxy in {\normalfont \ttfamily node} in units of Mpc/Gyr.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Cooling_Radii

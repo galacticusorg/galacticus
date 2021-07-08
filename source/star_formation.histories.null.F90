@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,30 +17,41 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a null star formation histories class.
+!!{
+Contains a module which implements a null star formation histories class.
+!!}
 
-  !# <starFormationHistory name="starFormationHistoryNull">
-  !#  <description>A null star formation histories class.</description>
-  !# </starFormationHistory>
+  !![
+  <starFormationHistory name="starFormationHistoryNull">
+   <description>A null star formation histories class.</description>
+  </starFormationHistory>
+  !!]
   type, extends(starFormationHistoryClass) :: starFormationHistoryNull
-     !% A null star formation histories class.
+     !!{
+     A null star formation histories class.
+     !!}
      private
    contains
-     procedure :: create => nullCreate
-     procedure :: rate   => nullRate
-     procedure :: output => nullOutput
-     procedure :: scales => nullScales
+     procedure :: create                => nullCreate
+     procedure :: rate                  => nullRate
+     procedure :: output                => nullOutput
+     procedure :: scales                => nullScales
+     procedure :: metallicityBoundaries => nullMetallicityBoundaries
   end type starFormationHistoryNull
 
   interface starFormationHistoryNull
-     !% Constructors for the ``null'' star formation history class.
+     !!{
+     Constructors for the ``null'' star formation history class.
+     !!}
      module procedure nullConstructorParameters
   end interface starFormationHistoryNull
 
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !% Constructor for the ``null'' star formation history class which takes a parameter set as input.
+    !!{
+    Constructor for the ``null'' star formation history class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(starFormationHistoryNull)                :: self
@@ -52,7 +63,9 @@ contains
   end function nullConstructorParameters
 
   subroutine nullCreate(self,node,historyStarFormation,timeBegin)
-    !% Create the history required for storing star formation history.
+    !!{
+    Create the history required for storing star formation history.
+    !!}
     implicit none
     class           (starFormationHistoryNull), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
@@ -65,7 +78,9 @@ contains
   end subroutine nullCreate
 
   subroutine nullRate(self,node,historyStarFormation,abundancesFuel,rateStarFormation)
-    !% Set the rate the star formation history for {\normalfont \ttfamily node}.
+    !!{
+    Set the rate the star formation history for {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class           (starFormationHistoryNull), intent(inout) :: self
     type            (treeNode                ), intent(inout) :: node
@@ -79,24 +94,28 @@ contains
     return
   end subroutine nullRate
 
-  subroutine nullOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,labelComponent)
-    !% Output the star formation history for {\normalfont \ttfamily node}.
+  subroutine nullOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,componentType)
+    !!{
+    Output the star formation history for {\normalfont \ttfamily node}.
+    !!}
     implicit none
-    class    (starFormationHistoryNull), intent(inout)         :: self
-    type     (treeNode                ), intent(inout), target :: node
-    logical                            , intent(in   )         :: nodePassesFilter
-    type     (history                 ), intent(inout)         :: historyStarFormation
-    integer  (c_size_t                ), intent(in   )         :: indexOutput
-    integer  (kind=kind_int8          ), intent(in   )         :: indexTree
-    character(len=*                   ), intent(in   )         :: labelComponent
-    !$GLC attributes unused :: self, node, nodePassesFilter, historyStarFormation, indexOutput, indexTree, labelComponent
+    class  (starFormationHistoryNull), intent(inout)         :: self
+    type   (treeNode                ), intent(inout), target :: node
+    logical                          , intent(in   )         :: nodePassesFilter
+    type   (history                 ), intent(inout)         :: historyStarFormation
+    integer(c_size_t                ), intent(in   )         :: indexOutput
+    integer(kind=kind_int8          ), intent(in   )         :: indexTree
+    integer                            intent(in   )         :: componentType
+    !$GLC attributes unused :: self, node, nodePassesFilter, historyStarFormation, indexOutput, indexTree, componentType
 
     ! Do nothing.
     return
   end subroutine nullOutput
 
   subroutine nullScales(self,historyStarFormation,massStellar,abundancesStellar)
-    !% Set the scalings for error control on the absolute values of star formation histories.
+    !!{
+    Set the scalings for error control on the absolute values of star formation histories.
+    !!}
     implicit none
     class           (starFormationHistoryNull), intent(inout) :: self
     double precision                          , intent(in   ) :: massStellar
@@ -107,3 +126,16 @@ contains
     ! Do nothing.
     return
   end subroutine nullScales
+
+  function nullMetallicityBoundaries(self)
+    !!{
+    Return the boundaries of the metallicities used in this tabulation.
+    !!}
+    implicit none
+    double precision                          , allocatable  , dimension(:) :: nullMetallicityBoundaries
+    class           (starFormationHistoryNull), intent(inout)               :: self
+
+    allocate(nullMetallicityBoundaries(0:1))
+    nullMetallicityBoundaries(0:1)=[0.0d0,huge(0.0d0)]
+    return
+  end function nullMetallicityBoundaries

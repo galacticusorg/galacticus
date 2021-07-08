@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a merger tree constructor class which constructs trees by reading their definitions from file.
+  !!{
+  Implements a merger tree constructor class which constructs trees by reading their definitions from file.
+  !!}
 
   use    :: Cosmology_Functions               , only : cosmologyFunctionsClass
   use    :: Dark_Matter_Halo_Scales           , only : darkMatterHaloScaleClass
@@ -29,151 +31,158 @@
   use    :: Kind_Numbers                      , only : kind_int8
   use    :: MPI_Utilities                     , only : mpiCounter
   use    :: Merger_Tree_Read_Importers        , only : mergerTreeImporterClass
+  use    :: Nodes_Operators                   , only : nodeOperatorClass
   use    :: Numerical_Random_Numbers          , only : randomNumberGeneratorClass
   !$ use :: OMP_Lib                           , only : omp_lock_kind
   use    :: Output_Times                      , only : outputTimes                        , outputTimesClass
   use    :: Satellite_Merging_Timescales      , only : satelliteMergingTimescalesClass
   use    :: Virial_Orbits                     , only : virialOrbitClass
 
-  !# <mergerTreeConstructor name="mergerTreeConstructorRead">
-  !#  <description>
-  !#   A merger tree constructor class from data imported from a file and processed into a form suitable for \glc\ to evolve. Merger
-  !#   trees are inherently complex structures, particularly when the possibility of subhalos are considered. \glc\ is currently designed
-  !#   to work with single descendent merger trees, i.e. ones in which the tree structure is entirely defined by specifying which
-  !#   \gls{node} a given \gls{node} is physically associated with at a later time. Additionally, \glc\ expects the merger tree file to
-  !#   contain information on the host \gls{node}, i.e. the node within which a given node is physically located. In the following, these
-  !#   two properties are labelled {\normalfont \ttfamily descendentNode} and {\normalfont \ttfamily hostNode}. \glc\ assumes that nodes
-  !#   for which {\normalfont \ttfamily descendentNode}$=${\normalfont \ttfamily hostNode} are isolated halos (i.e. they are their own
-  !#   hosts) while other nodes are subhalos (i.e. they are hosted by some other node). An example of a simple tree structure is shown in
-  !#   Fig.~\ref{fig:MergerTreeSimple}. The particular structure would be represented by the following list of nodes and node properties
-  !#   (a $-1$ indicates that no descendent node exists):
-  !#   \begin{center}
-  !#   \begin{tabular}{rrr}
-  !#   \hline
-  !#   {\normalfont \ttfamily node} &amp; {\normalfont \ttfamily descendentNode} &amp; {\normalfont \ttfamily hostNode} \\
-  !#   \hline
-  !#   1 &amp; -1 &amp; 1 \\
-  !#   2 &amp;  1 &amp; 2 \\
-  !#   3 &amp;  2 &amp; 3 \\
-  !#   4 &amp;  1 &amp; 4 \\
-  !#   5 &amp;  4 &amp; 5 \\
-  !#   6 &amp; -1 &amp; 1 \\
-  !#   7 &amp;  6 &amp; 4 \\
-  !#   8 &amp;  7 &amp; 8 \\
-  !#   \hline
-  !#   \end{tabular}
-  !#   \end{center}
-  !#   
-  !#   \begin{figure}
-  !#    \begin{center}
-  !#    \includegraphics[width=160mm]{Diagrams/MergerTreeSimple.pdf}
-  !#    \end{center}
-  !#    \caption{An example of a simple merger tree structure. Colored circles represent nodes in the merger tree. Each node has a unique
-  !#      index indicated by the number inside each circle. Black arrows link each node to its descendent node (as specified by the
-  !#      {\normalfont \ttfamily descendentNode} property. Where a node is not its own host node it is placed inside its host node.}
-  !#    \label{fig:MergerTreeSimple}
-  !#   \end{figure}
-  !#   
-  !#   The following should be noted when constructing merger tree files:
-  !#   \begin{itemize}
-  !#   \item Note that \glc\ does not require that nodes be placed on a uniform grid of times/redshifts, nor that mass be conserved along
-  !#     a branch of the tree. After processing the tree in this way, \glc\ builds additional links which identify the child node of each
-  !#     halo and any sibling nodes. These are not required to specify the tree structure but are computationally convenient.
-  !#   \item It is acceptable for a node to begin its existence as a subhalo (i.e. to have never had an isolated node progenitor). Such
-  !#     nodes will be created as satellites in the merger tree and, providing the selected node components (see
-  !#     \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.Components}{here})
-  !#     initialize their properties appropriately, will be evolved correctly.
-  !#   \item It is acceptable for an isolated node to have progenitors, none of which are a primary progenitor. This can happen if all
-  !#     progenitors descend into subhalos in the isolated node. In such cases, \glc\ will create a clone of the isolated node at a very
-  !#     slightly earlier time to act as the primary progenitor. This is necessary to allow the tree to be processed correctly, but does
-  !#     not affect the evolution of the tree.
-  !#   \item \hyperdef{physics}{mergerTreeConstructRead.missingHosts}{} Normally, cases where a node's host node cannot be found in
-  !#     the \gls{forest} will cause \glc\ to exit with an error. Setting {\normalfont \ttfamily
-  !#     [mergerTreeReadMissingHostsAreFatal]}$=${\normalfont \ttfamily false} will instead circumvent this issue by making any such
-  !#     nodes self-hosting (i.e. they become isolated nodes rather than subhalos). Note that this behavior is not a physically
-  !#     correct way to treat such cases---it is intended only to allow trees to be processed in cases where the full \gls{forest}
-  !#     is not available.
-  !#   \item It is acceptable for nodes to jump between branches in a tree, or even to jump between branches in different trees. In the
-  !#     latter case, all trees linked by jumping nodes (a so-called ``\gls{forest}'' of connected trees) must be stored as a single
-  !#     forest (with multiple root-nodes) in the merger tree file. \glc\ will process this \gls{forest} of trees simultaneously,
-  !#     allowing to nodes to move between their branches.
-  !#   \item It is acceptable for a subhalo to later become an isolated halo (as can happen due to three-body interactions; see
-  !#     \citealt{sales_cosmic_2007}). If {\normalfont \ttfamily [mergerTreeReadAllowSubhaloPromotions]}$=${\normalfont \ttfamily true}
-  !#     then such cases will be handled correctly (i.e. the subhalo will be promoted back to being an isolated halo). If {\normalfont
-  !#       \ttfamily [mergerTreeReadAllowSubhaloPromotions]}$=${\normalfont \ttfamily false} then subhalos are not permitted to become
-  !#     isolated halos. In this case, the following logic will be applied to remove all such cases from the tree:\\
-  !#   
-  !#     \noindent\hspace{ 5mm} $\rightarrow$ \parbox[t]{150mm}{For any branch in a tree which at some point is a subhalo:}\\
-  !#   
-  !#     \noindent\hspace{10mm} $\rightarrow$ \parbox[t]{145mm}{Beginning from the earliest node in the branch that is a subhalo,
-  !#       repeatedly step to the next descendent node;}\\
-  !#   
-  !#     \noindent\hspace{10mm} $\rightarrow$ \parbox[t]{145mm}{If that descendent is \emph{not} a subhalo then:}\\
-  !#   
-  !#     \noindent\hspace{15mm} $\rightarrow$ \parbox[t]{140mm}{If there is not currently any non-subhalo node which has the present node
-  !#       as its descendent then current node is only descendent of a subhalo. Therefore, try to make this node a subhalo, and propose
-  !#       the descendent of the host node of the previous node visited in the branch as the new host:}\\
-  !#     
-  !#     \noindent\hspace{20mm} $\rightarrow$ \parbox[t]{135mm}{If the proposed host exists:}\\
-  !#     
-  !#     \noindent\hspace{25mm} $\rightarrow$ \parbox[t]{130mm}{If the mass of the current node is less than that of the proposed host:}\\
-  !#     
-  !#     \noindent\hspace{30mm} $\rightarrow$ \parbox[t]{125mm}{If the proposed hosts exists before the current node, repeatedly step to
-  !#       its descendents until one is found which exists at or after the time of the current node. This is the new proposed host.}\\
-  !#     
-  !#     \noindent\hspace{30mm} $\rightarrow$ \parbox[t]{125mm}{If the proposed host is a subhalo, make it an isolated node.}\\
-  !#     
-  !#     \noindent\hspace{30mm} $\rightarrow$ \parbox[t]{125mm}{The current node is made a subhalo within the proposed host.}\\
-  !#     
-  !#     \noindent\hspace{25mm} $\rightarrow$ \parbox[t]{130mm}{Otherwise:}\\
-  !#     
-  !#     \noindent\hspace{30mm} $\rightarrow$ \parbox[t]{125mm}{The current node remains an isolated node, while the proposed host is
-  !#       instead made a subhalo within the current node.}\\
-  !#     
-  !#     \noindent\hspace{20mm} $\rightarrow$ \parbox[t]{135mm}{Otherwise:}\\
-  !#     
-  !#     \noindent\hspace{25mm} $\rightarrow$ \parbox[t]{130mm}{The proposed host does not exists, which implies the end of a branch has
-  !#       been reached. Therefore, flag the current node as being a subhalo with a host identical to that of the node from which it
-  !#       descended.}\\
-  !#   \end{itemize}
-  !#   
-  !#   \textbf{Requirements for \glc\ Input Parameters:} The following requirements must be met for the input parameters to \glc\ when
-  !#   using merger trees read from file:
-  !#   \begin{itemize}
-  !#   \item The cosmological parameters ($\Omega_\mathrm{M}$, $\Omega_\Lambda$, $\Omega_\mathrm{b}$, $H_0$, $\sigma_8$), if defined in
-  !#     the file, must be set identically in the \glc\ input file unless you set {\normalfont \ttfamily
-  !#       [mergerTreeReadMismatchIsFatal]}$=${\normalfont \ttfamily false} in which case you'll just be warned about any mismatch;
-  !#   \item \glc\ assumes by default that all merger trees exist at the final output time---if this is not the case set {\normalfont
-  !#       \ttfamily [allTreesExistAtFinalTime]}$=${\normalfont \ttfamily false}.
-  !#   \end{itemize}
-  !#   
-  !#   \textbf{Dark Matter Scale Radii}: \index{dark matter halo!concentration}\index{dark matter halo!scale radius} If {\normalfont
-  !#     \ttfamily [mergerTreeReadPresetScaleRadii]}$=${\normalfont \ttfamily true} and the {\normalfont \ttfamily halfMassRadius}
-  !#   dataset is available within the {\normalfont \ttfamily haloTrees} group (see
-  !#   \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group}{here}) then the half-mass radii
-  !#   of nodes will be used to compute the corresponding scale length of the dark matter halo profile\footnote{The scale radius is found
-  !#     by seeking a value which gives the correct half mass radius. It is therefore important that the definition of halo mass
-  !#     (specifically the virial overdensity) in \protect\glc\ be the same as was used in computing the input half mass radii.}. This
-  !#   requires a dark matter profile scale component which supports setting of the scale length (see
-  !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.DarkMatterProfileScale}{here}).
-  !#   
-  !#   \textbf{Satellite Merger Times:}\index{merger times}\index{satellite!merger times} If {\normalfont \ttfamily
-  !#     [mergerTreeReadPresetMergerTimes]}$=${\normalfont \ttfamily true} then merger times for satellites will be computed directly
-  !#   from the merger tree data read from file. When a subhalo has an isolated halo as a descendent it is assumed to undergo a merger
-  !#   with that isolated halo at that time. Note that this requires a satellite orbit component method which supports setting of merger
-  !#   times (e.g. {\normalfont \ttfamily [treeNodeMethodSatelliteOrbit]}$=${\normalfont \ttfamily preset}).
-  !#   
-  !#   \textbf{Dark Matter Halo Spins:}\index{dark matter halo!spin} If {\normalfont \ttfamily
-  !#     [mergerTreeReadPresetSpins]}$=${\normalfont \ttfamily true} and the {\normalfont \ttfamily angularMomentum} dataset is available
-  !#   within the {\normalfont \ttfamily haloTrees} group (see
-  !#   \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group}{here}) then the spin parameters
-  !#   of nodes will be computed and set. This requires a dark matter halo spin component which supports setting of the spin (see
-  !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.DarkMatterHaloSpinComponent}{here}).
+  !![
+  <mergerTreeConstructor name="mergerTreeConstructorRead">
+   <description>
+    A merger tree constructor class from data imported from a file and processed into a form suitable for \glc\ to evolve. Merger
+    trees are inherently complex structures, particularly when the possibility of subhalos are considered. \glc\ is currently designed
+    to work with single descendent merger trees, i.e. ones in which the tree structure is entirely defined by specifying which
+    \gls{node} a given \gls{node} is physically associated with at a later time. Additionally, \glc\ expects the merger tree file to
+    contain information on the host \gls{node}, i.e. the node within which a given node is physically located. In the following, these
+    two properties are labelled {\normalfont \ttfamily descendentNode} and {\normalfont \ttfamily hostNode}. \glc\ assumes that nodes
+    for which {\normalfont \ttfamily descendentNode}$=${\normalfont \ttfamily hostNode} are isolated halos (i.e. they are their own
+    hosts) while other nodes are subhalos (i.e. they are hosted by some other node). An example of a simple tree structure is shown in
+    Fig.~\ref{fig:MergerTreeSimple}. The particular structure would be represented by the following list of nodes and node properties
+    (a $-1$ indicates that no descendent node exists):
+    \begin{center}
+    \begin{tabular}{rrr}
+    \hline
+    {\normalfont \ttfamily node} &amp; {\normalfont \ttfamily descendentNode} &amp; {\normalfont \ttfamily hostNode} \\
+    \hline
+    1 &amp; -1 &amp; 1 \\
+    2 &amp;  1 &amp; 2 \\
+    3 &amp;  2 &amp; 3 \\
+    4 &amp;  1 &amp; 4 \\
+    5 &amp;  4 &amp; 5 \\
+    6 &amp; -1 &amp; 1 \\
+    7 &amp;  6 &amp; 4 \\
+    8 &amp;  7 &amp; 8 \\
+    \hline
+    \end{tabular}
+    \end{center}
+    
+    \begin{figure}
+     \begin{center}
+     \includegraphics[width=160mm]{Diagrams/MergerTreeSimple.pdf}
+     \end{center}
+     \caption{An example of a simple merger tree structure. Colored circles represent nodes in the merger tree. Each node has a unique
+       index indicated by the number inside each circle. Black arrows link each node to its descendent node (as specified by the
+       {\normalfont \ttfamily descendentNode} property. Where a node is not its own host node it is placed inside its host node.}
+     \label{fig:MergerTreeSimple}
+    \end{figure}
+    
+    The following should be noted when constructing merger tree files:
+    \begin{itemize}
+    \item Note that \glc\ does not require that nodes be placed on a uniform grid of times/redshifts, nor that mass be conserved along
+      a branch of the tree. After processing the tree in this way, \glc\ builds additional links which identify the child node of each
+      halo and any sibling nodes. These are not required to specify the tree structure but are computationally convenient.
+    \item It is acceptable for a node to begin its existence as a subhalo (i.e. to have never had an isolated node progenitor). Such
+      nodes will be created as satellites in the merger tree and, providing the selected node components (see
+      \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.Components}{here})
+      initialize their properties appropriately, will be evolved correctly.
+    \item It is acceptable for an isolated node to have progenitors, none of which are a primary progenitor. This can happen if all
+      progenitors descend into subhalos in the isolated node. In such cases, \glc\ will create a clone of the isolated node at a very
+      slightly earlier time to act as the primary progenitor. This is necessary to allow the tree to be processed correctly, but does
+      not affect the evolution of the tree.
+    \item \hyperdef{physics}{mergerTreeConstructRead.missingHosts}{} Normally, cases where a node's host node cannot be found in
+      the \gls{forest} will cause \glc\ to exit with an error. Setting {\normalfont \ttfamily
+      [mergerTreeReadMissingHostsAreFatal]}$=${\normalfont \ttfamily false} will instead circumvent this issue by making any such
+      nodes self-hosting (i.e. they become isolated nodes rather than subhalos). Note that this behavior is not a physically
+      correct way to treat such cases---it is intended only to allow trees to be processed in cases where the full \gls{forest}
+      is not available.
+    \item It is acceptable for nodes to jump between branches in a tree, or even to jump between branches in different trees. In the
+      latter case, all trees linked by jumping nodes (a so-called ``\gls{forest}'' of connected trees) must be stored as a single
+      forest (with multiple root-nodes) in the merger tree file. \glc\ will process this \gls{forest} of trees simultaneously,
+      allowing to nodes to move between their branches.
+    \item It is acceptable for a subhalo to later become an isolated halo (as can happen due to three-body interactions; see
+      \citealt{sales_cosmic_2007}). If {\normalfont \ttfamily [mergerTreeReadAllowSubhaloPromotions]}$=${\normalfont \ttfamily true}
+      then such cases will be handled correctly (i.e. the subhalo will be promoted back to being an isolated halo). If {\normalfont
+        \ttfamily [mergerTreeReadAllowSubhaloPromotions]}$=${\normalfont \ttfamily false} then subhalos are not permitted to become
+      isolated halos. In this case, the following logic will be applied to remove all such cases from the tree:\\
+    
+      \noindent\hspace{ 5mm} $\rightarrow$ \parbox[t]{150mm}{For any branch in a tree which at some point is a subhalo:}\\
+    
+      \noindent\hspace{10mm} $\rightarrow$ \parbox[t]{145mm}{Beginning from the earliest node in the branch that is a subhalo,
+        repeatedly step to the next descendent node;}\\
+    
+      \noindent\hspace{10mm} $\rightarrow$ \parbox[t]{145mm}{If that descendent is \emph{not} a subhalo then:}\\
+    
+      \noindent\hspace{15mm} $\rightarrow$ \parbox[t]{140mm}{If there is not currently any non-subhalo node which has the present node
+        as its descendent then current node is only descendent of a subhalo. Therefore, try to make this node a subhalo, and propose
+        the descendent of the host node of the previous node visited in the branch as the new host:}\\
+      
+      \noindent\hspace{20mm} $\rightarrow$ \parbox[t]{135mm}{If the proposed host exists:}\\
+      
+      \noindent\hspace{25mm} $\rightarrow$ \parbox[t]{130mm}{If the mass of the current node is less than that of the proposed host:}\\
+      
+      \noindent\hspace{30mm} $\rightarrow$ \parbox[t]{125mm}{If the proposed hosts exists before the current node, repeatedly step to
+        its descendents until one is found which exists at or after the time of the current node. This is the new proposed host.}\\
+      
+      \noindent\hspace{30mm} $\rightarrow$ \parbox[t]{125mm}{If the proposed host is a subhalo, make it an isolated node.}\\
+      
+      \noindent\hspace{30mm} $\rightarrow$ \parbox[t]{125mm}{The current node is made a subhalo within the proposed host.}\\
+      
+      \noindent\hspace{25mm} $\rightarrow$ \parbox[t]{130mm}{Otherwise:}\\
+      
+      \noindent\hspace{30mm} $\rightarrow$ \parbox[t]{125mm}{The current node remains an isolated node, while the proposed host is
+        instead made a subhalo within the current node.}\\
+      
+      \noindent\hspace{20mm} $\rightarrow$ \parbox[t]{135mm}{Otherwise:}\\
+      
+      \noindent\hspace{25mm} $\rightarrow$ \parbox[t]{130mm}{The proposed host does not exists, which implies the end of a branch has
+        been reached. Therefore, flag the current node as being a subhalo with a host identical to that of the node from which it
+        descended.}\\
+    \end{itemize}
+    
+    \textbf{Requirements for \glc\ Input Parameters:} The following requirements must be met for the input parameters to \glc\ when
+    using merger trees read from file:
+    \begin{itemize}
+    \item The cosmological parameters ($\Omega_\mathrm{M}$, $\Omega_\Lambda$, $\Omega_\mathrm{b}$, $H_0$, $\sigma_8$), if defined in
+      the file, must be set identically in the \glc\ input file unless you set {\normalfont \ttfamily
+        [mergerTreeReadMismatchIsFatal]}$=${\normalfont \ttfamily false} in which case you'll just be warned about any mismatch;
+    \item \glc\ assumes by default that all merger trees exist at the final output time---if this is not the case set {\normalfont
+        \ttfamily [allTreesExistAtFinalTime]}$=${\normalfont \ttfamily false}.
+    \end{itemize}
+    
+    \textbf{Dark Matter Scale Radii}: \index{dark matter halo!concentration}\index{dark matter halo!scale radius} If {\normalfont
+      \ttfamily [mergerTreeReadPresetScaleRadii]}$=${\normalfont \ttfamily true} and the {\normalfont \ttfamily halfMassRadius}
+    dataset is available within the {\normalfont \ttfamily haloTrees} group (see
+    \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group}{here}) then the half-mass radii
+    of nodes will be used to compute the corresponding scale length of the dark matter halo profile\footnote{The scale radius is found
+      by seeking a value which gives the correct half mass radius. It is therefore important that the definition of halo mass
+      (specifically the virial overdensity) in \protect\glc\ be the same as was used in computing the input half mass radii.}. This
+    requires a dark matter profile scale component which supports setting of the scale length (see
+    \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.DarkMatterProfileScale}{here}).
+    
+    \textbf{Satellite Merger Times:}\index{merger times}\index{satellite!merger times} If {\normalfont \ttfamily
+      [mergerTreeReadPresetMergerTimes]}$=${\normalfont \ttfamily true} then merger times for satellites will be computed directly
+    from the merger tree data read from file. When a subhalo has an isolated halo as a descendent it is assumed to undergo a merger
+    with that isolated halo at that time. Note that this requires a satellite orbit component method which supports setting of merger
+    times (e.g. {\normalfont \ttfamily [componentSatellite]}$=${\normalfont \ttfamily preset}).
+    
+    \textbf{Dark Matter Halo Spins:}\index{dark matter halo!spin} If {\normalfont \ttfamily
+      [mergerTreeReadPresetSpins]}$=${\normalfont \ttfamily true} and the {\normalfont \ttfamily angularMomentum} dataset is available
+    within the {\normalfont \ttfamily haloTrees} group (see
+    \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group}{here}) then the spin parameters
+    of nodes will be computed and set. This requires a dark matter halo spin component which supports setting of the spin (see
+    \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.DarkMatterHaloSpinComponent}{here}).
+  !!]
 
-  !#  </description>
-  !# </mergerTreeConstructor>
+  !![
+   </description>
+  </mergerTreeConstructor>
+  !!]
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorRead
-     !% A class implementing merger tree construction by reading trees from file.
+     !!{
+     A class implementing merger tree construction by reading trees from file.
+     !!}
      private
      class           (cosmologyFunctionsClass            ), pointer                   :: cosmologyFunctions_                   => null()
      class           (mergerTreeImporterClass            ), pointer                   :: mergerTreeImporter_                   => null()
@@ -186,6 +195,7 @@
      class           (outputTimesClass                   ), pointer                   :: outputTimes_                          => null()
      class           (darkMatterProfileScaleRadiusClass  ), pointer                   :: darkMatterProfileScaleRadius_         => null()
      class           (randomNumberGeneratorClass         ), pointer                   :: randomNumberGenerator_                => null()
+     class           (nodeOperatorClass                  ), pointer                   :: nodeOperator_                         => null()
      integer                                                                          :: fileCurrent
      type            (varying_string                     ), allocatable, dimension(:) :: fileNames                                      , presetNamedReals                    , &
           &                                                                              presetNamedIntegers
@@ -231,36 +241,38 @@
      real                                                 , allocatable, dimension(:) :: timingTimes
      type            (varying_string                     ), allocatable, dimension(:) :: timingLabels
    contains
-     !# <methods>
-     !#   <method description="Ensure that any node which was once a subhalo remains a subhalo." method="enforceSubhaloStatus" />
-     !#   <method description="Scan for cases where a subhalo stops being a subhalo and so must be promoted." method="scanForSubhaloPromotions" />
-     !#   <method description="Create a sorted list of node indices with an index into the original array." method="createNodeIndices" />
-     !#   <method description="Return the location in the original array of the given {\normalfont \ttfamily nodeIndex}." method="nodeLocation" />
-     !#   <method description=" Return the sort index of the given {\normalfont \ttfamily descendentIndex}." method="descendentNodeSortIndex" />
-     !#   <method description="Destroy the sorted list of node indices." method="destroyNodeIndices" />
-     !#   <method description="Builds pointers from each node to its descendent node." method="buildDescendentPointers" />
-     !#   <method description="Create parent pointer links between isolated nodes and assign times and masses to those nodes." method="buildIsolatedParentPointers" />
-     !#   <method description="Assign named properties to nodes." method="assignNamedProperties" />
-     !#   <method description="Assign scale radii to nodes." method="assignScaleRadii" />
-     !#   <method description="Scan for and record mergers between nodes." method="scanForMergers" />
-     !#   <method description="Assign spin parameters to nodes." method="assignSpinParameters" />
-     !#   <method description="Assign pointers to merge targets." method="assignMergers" />
-     !#   <method description="Search for subhalos which move between branches/trees." method="scanForBranchJumps" />
-     !#   <method description="Build and attached bound mass histories to subhalos." method="buildSubhaloMassHistories" />
-     !#   <method description="Compute the additional time until merging after a subhalo is lost from the tree (presumably due to limited resolution)." method="timeUntilMergingSubresolution" />
-     !#   <method description="Modify relative positions and velocities to account for both any periodicity of the simulated volume, and for Hubble flow." method="phaseSpacePositionRealize" />
-     !#   <method description="Record timing data." method="timingRecord" />
-     !#   <method description="Report on time taken in various steps of processing merger trees read from file." method="timingReport" />
-     !#   <method description="Find initial root node affinities for all nodes." method="rootNodeAffinitiesInitial" />
-     !#   <method description="Return true if the given node is on the current ``push-to'' list of nodes for split forests." method="isOnPushList" />
-     !#   <method description="Return true if the given node is on the current ``pull-from'' list of nodes for split forests." method="isOnPullList" />
-     !#   <method description="Return the index of the given node in the ``push-to'' list of nodes for split forests." method="pushListIndex" />
-     !#   <method description="Return the index of the given node in the ``pull-from'' list of nodes for split forests." method="pullListIndex" />
-     !#   <method description="Return the number of the given node in the ``pull-from'' list of nodes for split forests." method="pullListCount" />
-     !#   <method description="Assign events to nodes if they jump between trees in a forest." method="assignSplitForestEvents" />
-     !#   <method description="Returns true if {\normalfont \ttfamily node} undergoes a subhalo-subhalo merger." method="isSubhaloSubhaloMerger" />
-     !#   <method description="Create an array of standard nodes and associated structures." method="createNodeArray" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Ensure that any node which was once a subhalo remains a subhalo." method="enforceSubhaloStatus" />
+       <method description="Scan for cases where a subhalo stops being a subhalo and so must be promoted." method="scanForSubhaloPromotions" />
+       <method description="Create a sorted list of node indices with an index into the original array." method="createNodeIndices" />
+       <method description="Return the location in the original array of the given {\normalfont \ttfamily nodeIndex}." method="nodeLocation" />
+       <method description=" Return the sort index of the given {\normalfont \ttfamily descendentIndex}." method="descendentNodeSortIndex" />
+       <method description="Destroy the sorted list of node indices." method="destroyNodeIndices" />
+       <method description="Builds pointers from each node to its descendent node." method="buildDescendentPointers" />
+       <method description="Create parent pointer links between isolated nodes and assign times and masses to those nodes." method="buildIsolatedParentPointers" />
+       <method description="Assign named properties to nodes." method="assignNamedProperties" />
+       <method description="Assign scale radii to nodes." method="assignScaleRadii" />
+       <method description="Scan for and record mergers between nodes." method="scanForMergers" />
+       <method description="Assign spin parameters to nodes." method="assignSpinParameters" />
+       <method description="Assign pointers to merge targets." method="assignMergers" />
+       <method description="Search for subhalos which move between branches/trees." method="scanForBranchJumps" />
+       <method description="Build and attached bound mass histories to subhalos." method="buildSubhaloMassHistories" />
+       <method description="Compute the additional time until merging after a subhalo is lost from the tree (presumably due to limited resolution)." method="timeUntilMergingSubresolution" />
+       <method description="Modify relative positions and velocities to account for both any periodicity of the simulated volume, and for Hubble flow." method="phaseSpacePositionRealize" />
+       <method description="Record timing data." method="timingRecord" />
+       <method description="Report on time taken in various steps of processing merger trees read from file." method="timingReport" />
+       <method description="Find initial root node affinities for all nodes." method="rootNodeAffinitiesInitial" />
+       <method description="Return true if the given node is on the current ``push-to'' list of nodes for split forests." method="isOnPushList" />
+       <method description="Return true if the given node is on the current ``pull-from'' list of nodes for split forests." method="isOnPullList" />
+       <method description="Return the index of the given node in the ``push-to'' list of nodes for split forests." method="pushListIndex" />
+       <method description="Return the index of the given node in the ``pull-from'' list of nodes for split forests." method="pullListIndex" />
+       <method description="Return the number of the given node in the ``pull-from'' list of nodes for split forests." method="pullListCount" />
+       <method description="Assign events to nodes if they jump between trees in a forest." method="assignSplitForestEvents" />
+       <method description="Returns true if {\normalfont \ttfamily node} undergoes a subhalo-subhalo merger." method="isSubhaloSubhaloMerger" />
+       <method description="Create an array of standard nodes and associated structures." method="createNodeArray" />
+     </methods>
+     !!]
      final     ::                                  readDestructor
      procedure :: construct                     => readConstruct
      procedure :: enforceSubhaloStatus          => readEnforceSubhaloStatus
@@ -294,7 +306,9 @@
   end type mergerTreeConstructorRead
 
   interface mergerTreeConstructorRead
-     !% Constructors for the {\normalfont \ttfamily read} merger tree constructor class.
+     !!{
+     Constructors for the {\normalfont \ttfamily read} merger tree constructor class.
+     !!}
      module procedure readConstructorParameters
      module procedure readConstructorInternal
   end interface mergerTreeConstructorRead
@@ -306,13 +320,15 @@
      logical                                     :: progenitorsFound
      type   (mergerTreeConstructorRead), pointer :: constructor
    contains
-     !# <methods>
-     !#   <method description="Set the target descendent node and initialize the iterator." method="descendentSet" />
-     !#   <method description="Move to the next progenitor. Returns true if the next progenitor exists, false otherwise." method="next" />
-     !#   <method description="Return the index of the current progenitor." method="index" />
-     !#   <method description="Return a pointer to the current progenitor." method="current" />
-     !#   <method description="Return true if any progenitors exist, false otherwise." method="exist" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Set the target descendent node and initialize the iterator." method="descendentSet" />
+       <method description="Move to the next progenitor. Returns true if the next progenitor exists, false otherwise." method="next" />
+       <method description="Return the index of the current progenitor." method="index" />
+       <method description="Return a pointer to the current progenitor." method="current" />
+       <method description="Return true if any progenitors exist, false otherwise." method="exist" />
+     </methods>
+     !!]
      procedure :: descendentSet => progenitorIteratorDescendentSet
      procedure :: next          => progenitorIteratorNext
      procedure :: index         => progenitorIteratorIndex
@@ -321,29 +337,35 @@
   end type progenitorIterator
 
   ! Enumeration of cross-tree event types.
-  !# <enumeration>
-  !#  <name>pushType</name>
-  !#  <description>Cross-tree event type enumeration.</description>
-  !#  <entry label="branchJump"      />
-  !#  <entry label="subhaloPromotion"/>
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>pushType</name>
+   <description>Cross-tree event type enumeration.</description>
+   <entry label="branchJump"      />
+   <entry label="subhaloPromotion"/>
+  </enumeration>
+  !!]
 
   ! Enumeration of node reachability status.
-  !# <enumeration>
-  !#  <name>readNodeReachability</name>
-  !#  <description>Node reachability status.</description>
-  !#  <entry label="unreachable"/>
-  !#  <entry label="reachable"  />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>readNodeReachability</name>
+   <description>Node reachability status.</description>
+   <entry label="unreachable"/>
+   <entry label="reachable"  />
+  </enumeration>
+  !!]
 
   ! Enumeration of subhalo angular momentum methods.
-  !# <enumeration>
-  !#  <name>readSubhaloAngularMomentaMethod</name>
-  !#  <description>Subhalo angular momentum methods.</description>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <entry label="scale"    />
-  !#  <entry label="summation"/>
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>readSubhaloAngularMomentaMethod</name>
+   <description>Subhalo angular momentum methods.</description>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="scale"    />
+   <entry label="summation"/>
+  </enumeration>
+  !!]
 
   ! Variables used in root-finding.
   class           (nodeComponentDarkMatterProfile     ), pointer :: readDarkMatterProfile
@@ -359,7 +381,9 @@
 contains
 
   function readConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily read} merger tree constructor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily read} merger tree constructor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeConstructorRead          )                            :: self
@@ -375,6 +399,7 @@ contains
     class           (outputTimesClass                   ), pointer                   :: outputTimes_
     class           (darkMatterProfileScaleRadiusClass  ), pointer                   :: darkMatterProfileScaleRadius_
     class           (randomNumberGeneratorClass         ), pointer                   :: randomNumberGenerator_
+    class           (nodeOperatorClass                  ), pointer                   :: nodeOperator_
     type            (varying_string                     ), allocatable, dimension(:) :: fileNames                           , presetNamedReals                    , &
          &                                                                              presetNamedIntegers
     integer                                                                          :: fileCount
@@ -396,193 +421,206 @@ contains
 
     fileCount=parameters%count('fileNames')
     allocate(fileNames(fileCount))
-    !# <inputParameter>
-    !#   <name>fileNames</name>
-    !#   <description>The name of the file(s) from which merger tree data should be read when using the {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\normalfont \ttfamily read} tree construction method.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>forestSizeMaximum</name>
-    !#   <defaultValue>0_c_size_t</defaultValue>
-    !#   <description>The maximum number of nodes allowed in a forest before it will be broken up into trees and processed individually. A value of 0 implies that forests should never be split.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>presetMergerTimes</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether merging times for subhalos should be preset when reading merger trees from a file.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>presetMergerNodes</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether the target nodes for mergers should be preset (i.e. determined from descendent nodes). If they are not, merging will be with each satellite's host node.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>presetSubhaloMasses</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether subhalo mass should be preset when reading merger trees from a file.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>subhaloAngularMomentaMethod</name>
-    !#   <defaultValue>var_str('summation')</defaultValue>
-    !#   <description>Specifies how to account for subhalo angular momentum when adding subhalo mass to host halo mass.</description>
-    !#   <source>parameters</source>
-    !#   <variable>subhaloAngularMomentaMethodText</variable>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>presetSubhaloIndices</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether subhalo indices should be preset when reading merger trees from a file.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>presetPositions</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether node positions should be preset when reading merger trees from a file.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>presetScaleRadii</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether node scale radii should be preset when reading merger trees from a file.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>scaleRadiiFailureIsFatal</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether failure to set a node scale radii should be regarded as a fatal error. (If not, a fallback method to set scale radius is used in such cases.)</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>presetScaleRadiiConcentrationMinimum</name>
-    !#   <defaultValue>3.0d0</defaultValue>
-    !#   <description>The lowest concentration ($c=r_\mathrm{vir}/r_\mathrm{s}$) allowed when setting scale radii, $r_\mathrm{s}$.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>presetScaleRadiiConcentrationMaximum</name>
-    !#   <defaultValue>60.0d0</defaultValue>
-    !#   <description>The largest concentration ($c=r_\mathrm{vir}/r_\mathrm{s}$) allowed when setting scale radii, $r_\mathrm{s}$.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>presetScaleRadiiMinimumMass</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The minimum halo mass for which scale radii should be preset (if {\normalfont \ttfamily [presetScaleRadii]}$=${\normalfont \ttfamily true}).</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>presetUnphysicalSpins</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>When reading merger trees from file and presetting halo spins, detect unphysical (&lt;=0) spins and preset them using the selected halo spin method.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>presetSpins</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether node spins should be preset when reading merger trees from a file.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>presetSpins3D</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Specifies whether node 3-D spin vectors should be preset when reading merger trees from a file.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>presetOrbits</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether node orbits should be preset when reading merger trees from a file.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>presetOrbitsSetAll</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Forces all orbits to be set. If the computed orbit does not cross the virial radius, then select one at random instead.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>presetOrbitsAssertAllSet</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Asserts that all virial orbits must be preset. If any can not be set, \glc\ will stop.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>presetOrbitsBoundOnly</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether only bound node orbits should be set.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>beginAt</name>
-    !#   <defaultValue>-1_kind_int8</defaultValue>
-    !#   <description>Specifies the index of the tree to begin at. (Use -1 to always begin with the first tree.)</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>outputTimeSnapTolerance</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The relative tolerance required to ``snap'' a node time to the closest output time.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>missingHostsAreFatal</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether nodes with missing host nodes should be considered to be fatal---see \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#physics.mergerTreeConstructRead.missingHosts}{here}.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>treeIndexToRootNodeIndex</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Specifies whether tree indices should always be set to the index of their root node.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>allowBranchJumps</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether nodes are allowed to jump between branches.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>allowSubhaloPromotions</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether subhalos are permitted to be promoted to being isolated halos.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>fileNames</name>
+      <description>The name of the file(s) from which merger tree data should be read when using the {\normalfont \ttfamily [mergerTreeConstruct]}$=${\normalfont \ttfamily read} tree construction method.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>forestSizeMaximum</name>
+      <defaultValue>0_c_size_t</defaultValue>
+      <description>The maximum number of nodes allowed in a forest before it will be broken up into trees and processed individually. A value of 0 implies that forests should never be split.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>presetMergerTimes</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Specifies whether merging times for subhalos should be preset when reading merger trees from a file.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>presetMergerNodes</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Specifies whether the target nodes for mergers should be preset (i.e. determined from descendent nodes). If they are not, merging will be with each satellite's host node.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>presetSubhaloMasses</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Specifies whether subhalo mass should be preset when reading merger trees from a file.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>subhaloAngularMomentaMethod</name>
+      <defaultValue>var_str('summation')</defaultValue>
+      <description>Specifies how to account for subhalo angular momentum when adding subhalo mass to host halo mass.</description>
+      <source>parameters</source>
+      <variable>subhaloAngularMomentaMethodText</variable>
+    </inputParameter>
+    <inputParameter>
+      <name>presetSubhaloIndices</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Specifies whether subhalo indices should be preset when reading merger trees from a file.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>presetPositions</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Specifies whether node positions should be preset when reading merger trees from a file.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>presetScaleRadii</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Specifies whether node scale radii should be preset when reading merger trees from a file.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>scaleRadiiFailureIsFatal</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Specifies whether failure to set a node scale radii should be regarded as a fatal error. (If not, a fallback method to set scale radius is used in such cases.)</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>presetScaleRadiiConcentrationMinimum</name>
+      <defaultValue>3.0d0</defaultValue>
+      <description>The lowest concentration ($c=r_\mathrm{vir}/r_\mathrm{s}$) allowed when setting scale radii, $r_\mathrm{s}$.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>presetScaleRadiiConcentrationMaximum</name>
+      <defaultValue>60.0d0</defaultValue>
+      <description>The largest concentration ($c=r_\mathrm{vir}/r_\mathrm{s}$) allowed when setting scale radii, $r_\mathrm{s}$.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>presetScaleRadiiMinimumMass</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The minimum halo mass for which scale radii should be preset (if {\normalfont \ttfamily [presetScaleRadii]}$=${\normalfont \ttfamily true}).</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>presetUnphysicalSpins</name>
+      <defaultValue>.false.</defaultValue>
+      <description>When reading merger trees from file and presetting halo spins, detect unphysical (&lt;=0) spins and preset them using the selected halo spin method.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>presetSpins</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Specifies whether node spins should be preset when reading merger trees from a file.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>presetSpins3D</name>
+      <defaultValue>.false.</defaultValue>
+      <description>Specifies whether node 3-D spin vectors should be preset when reading merger trees from a file.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>presetOrbits</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Specifies whether node orbits should be preset when reading merger trees from a file.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>presetOrbitsSetAll</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Forces all orbits to be set. If the computed orbit does not cross the virial radius, then select one at random instead.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>presetOrbitsAssertAllSet</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Asserts that all virial orbits must be preset. If any can not be set, \glc\ will stop.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>presetOrbitsBoundOnly</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Specifies whether only bound node orbits should be set.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>beginAt</name>
+      <defaultValue>-1_kind_int8</defaultValue>
+      <description>Specifies the index of the tree to begin at. (Use -1 to always begin with the first tree.)</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>outputTimeSnapTolerance</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The relative tolerance required to ``snap'' a node time to the closest output time.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>missingHostsAreFatal</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Specifies whether nodes with missing host nodes should be considered to be fatal---see \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#physics.mergerTreeConstructRead.missingHosts}{here}.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>treeIndexToRootNodeIndex</name>
+      <defaultValue>.false.</defaultValue>
+      <description>Specifies whether tree indices should always be set to the index of their root node.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>allowBranchJumps</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Specifies whether nodes are allowed to jump between branches.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>allowSubhaloPromotions</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Specifies whether subhalos are permitted to be promoted to being isolated halos.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     allocate(presetNamedReals   (parameters%count('presetNamedReals'   ,zeroIfNotPresent=.true.)))
     if (size(presetNamedReals   ) > 0) then
-       !# <inputParameter>
-       !#   <name>presetNamedReals</name>
-       !#   <description>Names of real datasets to be additionally read and stored in the nodes of the merger tree when using the {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\normalfont \ttfamily read} tree construction method.</description>
-       !#   <source>parameters</source>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>presetNamedReals</name>
+         <description>Names of real datasets to be additionally read and stored in the nodes of the merger tree when using the {\normalfont \ttfamily [mergerTreeConstruct]}$=${\normalfont \ttfamily read} tree construction method.</description>
+         <source>parameters</source>
+       </inputParameter>
+       !!]
     end if
     allocate(presetNamedIntegers(parameters%count('presetNamedIntegers',zeroIfNotPresent=.true.)))
     if (size(presetNamedIntegers) > 0) then
-       !# <inputParameter>
-       !#   <name>presetNamedIntegers</name>
-       !#   <description>Names of integer datasets to be additionally read and stored in the nodes of the merger tree when using the {\normalfont \ttfamily [mergerTreeConstructMethod]}$=${\normalfont \ttfamily read} tree construction method.</description>
-       !#   <source>parameters</source>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>presetNamedIntegers</name>
+         <description>Names of integer datasets to be additionally read and stored in the nodes of the merger tree when using the {\normalfont \ttfamily [mergerTreeConstruct]}$=${\normalfont \ttfamily read} tree construction method.</description>
+         <source>parameters</source>
+       </inputParameter>
+       !!]
     end if
-    !# <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"                                                                                  />
-    !# <objectBuilder class="mergerTreeImporter"             name="mergerTreeImporter_"             source="parameters"                                                                                  />
-    !# <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"                                                                                  />
-    !# <objectBuilder class="darkMatterProfileDMO"           name="darkMatterProfileDMO_"           source="parameters"                                                                                  />
-    !# <objectBuilder class="darkMatterProfileConcentration" name="darkMatterProfileConcentration_" source="parameters"                                                                                  />
-    !# <objectBuilder class="haloSpinDistribution"           name="haloSpinDistribution_"           source="parameters"                                                                                  />
-    !# <objectBuilder class="virialOrbit"                    name="virialOrbit_"                    source="parameters"                                                                                  />
-    !# <objectBuilder class="outputTimes"                    name="outputTimes_"                    source="parameters"                                                                                  />
-    !# <objectBuilder class="darkMatterProfileScaleRadius"   name="darkMatterProfileScaleRadius_"   source="parameters"                                                                                  />
-    !# <objectBuilder class="randomNumberGenerator"          name="randomNumberGenerator_"          source="parameters"                                                                                  />
-    !# <objectBuilder class="satelliteMergingTimescales"     name="satelliteMergingTimescales_"     source="parameters" parameterName="satelliteMergingTimescalesSubresolutionMethod" threadPrivate="yes" >
-    !#  <default>
-    !#   <satelliteMergingTimescalesSubresolutionMethod value="zero"/>
-    !#  </default>
-    !# </objectBuilder>
+    !![
+    <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"                                                         />
+    <objectBuilder class="mergerTreeImporter"             name="mergerTreeImporter_"             source="parameters"                                                         />
+    <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"                                                         />
+    <objectBuilder class="darkMatterProfileDMO"           name="darkMatterProfileDMO_"           source="parameters"                                                         />
+    <objectBuilder class="darkMatterProfileConcentration" name="darkMatterProfileConcentration_" source="parameters"                                                         />
+    <objectBuilder class="haloSpinDistribution"           name="haloSpinDistribution_"           source="parameters"                                                         />
+    <objectBuilder class="virialOrbit"                    name="virialOrbit_"                    source="parameters"                                                         />
+    <objectBuilder class="outputTimes"                    name="outputTimes_"                    source="parameters"                                                         />
+    <objectBuilder class="darkMatterProfileScaleRadius"   name="darkMatterProfileScaleRadius_"   source="parameters"                                                         />
+    <objectBuilder class="nodeOperator"                   name="nodeOperator_"                   source="parameters" parameterName="nodeOperatorTreeInitializor"              >
+     <default>
+      <nodeOperatorTreeInitializor value="null"/>
+     </default>
+    </objectBuilder>
+    <objectBuilder class="randomNumberGenerator"          name="randomNumberGenerator_"          source="parameters"                                                         />
+    <objectBuilder class="satelliteMergingTimescales"     name="satelliteMergingTimescales_"     source="parameters" parameterName="satelliteMergingTimescalesSubresolution"  >
+     <default>
+      <satelliteMergingTimescalesSubresolution value="zero"/>
+     </default>
+    </objectBuilder>
+    !!]
     self=mergerTreeConstructorRead(                                                                                                                     &
          &                                                                               fileNames                                                    , &
          &                                                                               outputTimeSnapTolerance                                      , &
@@ -622,25 +660,33 @@ contains
          &                                                                               virialOrbit_                                                 , &
          &                                                                               outputTimes_                                                 , &
          &                                                                               darkMatterProfileScaleRadius_                                , &
+         &                                                                               nodeOperator_                                                , &
          &                                                                               randomNumberGenerator_                                         &
          &                        )
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"            />
-    !# <objectDestructor name="mergerTreeImporter_"            />
-    !# <objectDestructor name="darkMatterHaloScale_"           />
-    !# <objectDestructor name="darkMatterProfileDMO_"          />
-    !# <objectDestructor name="darkMatterProfileConcentration_"/>
-    !# <objectDestructor name="haloSpinDistribution_"          />
-    !# <objectDestructor name="virialOrbit_"                   />
-    !# <objectDestructor name="outputTimes_"                   />
-    !# <objectDestructor name="darkMatterProfileScaleRadius_"  />
-    !# <objectDestructor name="satelliteMergingTimescales_"    />
-    !# <objectDestructor name="randomNumberGenerator_"         />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"            />
+    <objectDestructor name="mergerTreeImporter_"            />
+    <objectDestructor name="darkMatterHaloScale_"           />
+    <objectDestructor name="darkMatterProfileDMO_"          />
+    <objectDestructor name="darkMatterProfileConcentration_"/>
+    <objectDestructor name="haloSpinDistribution_"          />
+    <objectDestructor name="virialOrbit_"                   />
+    <objectDestructor name="outputTimes_"                   />
+    <objectDestructor name="darkMatterProfileScaleRadius_"  />
+    <objectDestructor name="nodeOperator_"                  />
+    <objectDestructor name="satelliteMergingTimescales_"    />
+    <objectDestructor name="randomNumberGenerator_"         />
+    !!]
     return
   end function readConstructorParameters
 
-  function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalSpins,presetSpins,presetSpins3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_,outputTimes_,darkMatterProfileScaleRadius_,randomNumberGenerator_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily read} merger tree constructor class.
+  function readConstructorInternal(fileNames,outputTimeSnapTolerance,forestSizeMaximum,beginAt,missingHostsAreFatal,treeIndexToRootNodeIndex,subhaloAngularMomentaMethod,allowBranchJumps,allowSubhaloPromotions,presetMergerTimes,presetMergerNodes,presetSubhaloMasses,presetSubhaloIndices,presetPositions,presetScaleRadii,presetScaleRadiiConcentrationMinimum,presetScaleRadiiConcentrationMaximum,presetScaleRadiiMinimumMass,scaleRadiiFailureIsFatal,presetUnphysicalSpins,presetSpins,presetSpins3D,presetOrbits,presetOrbitsSetAll,presetOrbitsAssertAllSet,presetOrbitsBoundOnly,presetNamedReals,presetNamedIntegers,cosmologyFunctions_,mergerTreeImporter_,darkMatterHaloScale_,darkMatterProfileDMO_,darkMatterProfileConcentration_,haloSpinDistribution_,satelliteMergingTimescales_,virialOrbit_,outputTimes_,darkMatterProfileScaleRadius_,nodeOperator_,randomNumberGenerator_) result(self)
+    !!{
+    Internal constructor for the {\normalfont \ttfamily read} merger tree constructor class.
+    !!}
+    use    :: Display                    , only : displayMagenta         , displayReset
+    use    :: File_Utilities             , only : File_Name_Expand
     use    :: Galacticus_Error           , only : Galacticus_Error_Report, Galacticus_Warn
     use    :: Galacticus_Nodes           , only : defaultNBodyComponent  , nodeComponentNBodyGeneric
     use    :: Memory_Management          , only : allocateArray
@@ -659,6 +705,7 @@ contains
     class           (outputTimesClass                   ), intent(in   ), target       :: outputTimes_
     class           (darkMatterProfileScaleRadiusClass  ), intent(in   ), target       :: darkMatterProfileScaleRadius_
     class           (randomNumberGeneratorClass         ), intent(in   ), target       :: randomNumberGenerator_
+    class           (nodeOperatorClass                  ), intent(in   ), target       :: nodeOperator_
     type            (varying_string                     ), intent(in   ), dimension(:) :: fileNames                           , presetNamedReals                    , &
          &                                                                                presetNamedIntegers
     integer         (c_size_t                           ), intent(in   )               :: forestSizeMaximum
@@ -677,7 +724,9 @@ contains
          &                                                                                presetScaleRadiiMinimumMass         , outputTimeSnapTolerance
     integer         (c_size_t                           )                              :: iOutput                             , i
     type            (varying_string                     )                              :: message
-    !# <constructorAssign variables="fileNames, outputTimeSnapTolerance, forestSizeMaximum, beginAt, missingHostsAreFatal, treeIndexToRootNodeIndex, subhaloAngularMomentaMethod, allowBranchJumps, allowSubhaloPromotions, presetMergerTimes, presetMergerNodes, presetSubhaloMasses, presetSubhaloIndices, presetPositions, presetScaleRadii,  presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, presetScaleRadiiMinimumMass, scaleRadiiFailureIsFatal, presetUnphysicalSpins, presetSpins, presetSpins3D, presetOrbits, presetOrbitsSetAll, presetOrbitsAssertAllSet, presetOrbitsBoundOnly, presetNamedReals, presetNamedIntegers, *cosmologyFunctions_, *mergerTreeImporter_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *darkMatterProfileConcentration_, *haloSpinDistribution_, *satelliteMergingTimescales_, *virialOrbit_, *outputTimes_, *darkMatterProfileScaleRadius_, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="fileNames, outputTimeSnapTolerance, forestSizeMaximum, beginAt, missingHostsAreFatal, treeIndexToRootNodeIndex, subhaloAngularMomentaMethod, allowBranchJumps, allowSubhaloPromotions, presetMergerTimes, presetMergerNodes, presetSubhaloMasses, presetSubhaloIndices, presetPositions, presetScaleRadii,  presetScaleRadiiConcentrationMinimum, presetScaleRadiiConcentrationMaximum, presetScaleRadiiMinimumMass, scaleRadiiFailureIsFatal, presetUnphysicalSpins, presetSpins, presetSpins3D, presetOrbits, presetOrbitsSetAll, presetOrbitsAssertAllSet, presetOrbitsBoundOnly, presetNamedReals, presetNamedIntegers, *cosmologyFunctions_, *mergerTreeImporter_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *darkMatterProfileConcentration_, *haloSpinDistribution_, *satelliteMergingTimescales_, *virialOrbit_, *outputTimes_, *darkMatterProfileScaleRadius_, *nodeOperator_, *randomNumberGenerator_"/>
+    !!]
 
     ! Initialize statuses.
     self%warningNestedHierarchyIssued           =.false.
@@ -694,7 +743,7 @@ contains
     self%treeNumberOffset=0_c_size_t
     self%fileCurrent     =1
     self%importerOpen    =.true.
-    call self%mergerTreeImporter_%open(self%fileNames(self%fileCurrent))
+    call self%mergerTreeImporter_%open(File_Name_Expand(char(self%fileNames(self%fileCurrent))))
     ! Validate input parameters.
     if (self%presetMergerNodes.and..not.self%presetMergerTimes) then
        message="presetting of merger target nodes requires that merger times also be preset;"//char(10)
@@ -711,7 +760,7 @@ contains
     end if
     ! Warn about lack of branch jumps and subhalo promotions if split forests are being used.
     if (self%forestSizeMaximum > 0_c_size_t .and. .not.(self%allowBranchJumps .and. self%allowSubhaloPromotions)) then
-       message='WARNING: large forests may be split for processing but '
+       message=displayMagenta()//'WARNING:'//displayReset()//' large forests may be split for processing but '
        if (                                     .not.self%allowBranchJumps) message=message//' branch jumps'
        if (.not.self%allowSubhaloPromotions.and..not.self%allowBranchJumps) message=message//' and'
        if (.not.self%allowSubhaloPromotions                               ) message=message//' subhalo promotions'
@@ -720,7 +769,7 @@ contains
     end if
     ! Warn if subhalo promotions are allowed, but branch jumps are not.
     if (self%allowSubhaloPromotions.and..not.self%allowBranchJumps) then
-       message='WARNING: allowing subhalo promotions while not allowing branch jumps can lead to deadlocking of trees.'//char(10)
+       message=displayMagenta()//'WARNING:'//displayReset()//' allowing subhalo promotions while not allowing branch jumps can lead to deadlocking of trees.'//char(10)
        message=message//'Be sure that your trees have no promotion events for subhalos which survive beyond the end of their original branch'//char(10)
        message=message//'For example, without branch jumping, "a" in the following tree (in which "==>" indicates subhalo host) is stuck in "1", so it cannot evolve to become "b" causing the subhalo promotion "b" to "c" to be unreachable, resulting in a deadlock of the tree:'//char(10)//char(10)
        message=message//' ---   -----'//char(10)
@@ -738,7 +787,7 @@ contains
     end if
     ! Warn if subhalo promotions are allowed, but branch jumps are not.
     if (self%allowBranchJumps.and..not.self%presetMergerTimes) then
-       message='WARNING: allowing branch jumps while not presetting merger times can lead to tree deadlock if merging occurs prior to the jumped-to node time and before an output time which blocks the jumped-to node''s child.'//char(10)
+       message=displayMagenta()//'WARNING:'//displayReset()//' allowing branch jumps while not presetting merger times can lead to tree deadlock if merging occurs prior to the jumped-to node time and before an output time which blocks the jumped-to node''s child.'//char(10)
        message=message//'For example, "a" in the following tree (in which "<==" indicates subhalo host) jump from "3" to "1", but cannot merge with "1" since "1" still has a child, and that child, "2", cannot reach one because it is blocked by the output time, resulting in a deadlock of the tree:'//char(10)//char(10)
        message=message//' ---           ---'//char(10)
        message=message//' |1|<==========|a|'//char(10)
@@ -853,7 +902,9 @@ contains
   end function readConstructorInternal
 
   subroutine readDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily read} merger tree constructor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily read} merger tree constructor class.
+    !!}
     implicit none
     type(mergerTreeConstructorRead), intent(inout) :: self
 
@@ -861,30 +912,36 @@ contains
        call self%mergerTreeImporter_%close()
        self%importerOpen=.false.
     end if
-    !# <objectDestructor name="self%cosmologyFunctions_"            />
-    !# <objectDestructor name="self%mergerTreeImporter_"            />
-    !# <objectDestructor name="self%darkMatterHaloScale_"           />
-    !# <objectDestructor name="self%darkMatterProfileDMO_"          />
-    !# <objectDestructor name="self%darkMatterProfileConcentration_"/>
-    !# <objectDestructor name="self%haloSpinDistribution_"          />
-    !# <objectDestructor name="self%satelliteMergingTimescales_"    />
-    !# <objectDestructor name="self%virialOrbit_"                   />
-    !# <objectDestructor name="self%outputTimes_"                   />
-    !# <objectDestructor name="self%darkMatterProfileScaleRadius_"  />
-    !# <objectDestructor name="self%randomNumberGenerator_"         />
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"            />
+    <objectDestructor name="self%mergerTreeImporter_"            />
+    <objectDestructor name="self%darkMatterHaloScale_"           />
+    <objectDestructor name="self%darkMatterProfileDMO_"          />
+    <objectDestructor name="self%darkMatterProfileConcentration_"/>
+    <objectDestructor name="self%haloSpinDistribution_"          />
+    <objectDestructor name="self%satelliteMergingTimescales_"    />
+    <objectDestructor name="self%virialOrbit_"                   />
+    <objectDestructor name="self%outputTimes_"                   />
+    <objectDestructor name="self%darkMatterProfileScaleRadius_"  />
+    <objectDestructor name="self%nodeOperator_"                  />
+    <objectDestructor name="self%randomNumberGenerator_"         />
+    !!]
     return
   end subroutine readDestructor
 
   function readConstruct(self,treeNumber,finished) result(tree)
-    !% Construct a merger tree by reading its definition from file.
+    !!{
+    Construct a merger tree by reading its definition from file.
+    !!}
     use    :: Array_Utilities           , only : operator(.intersection.)
     use    :: Arrays_Search             , only : searchArrayClosest
+    use    :: File_Utilities            , only : File_Name_Expand
     use    :: Functions_Global          , only : Galacticus_State_Retrieve_       , Galacticus_State_Store_
     use    :: Galacticus_Error          , only : Galacticus_Component_List        , Galacticus_Error_Report
     use    :: Galacticus_Nodes          , only : defaultDarkMatterProfileComponent, defaultPositionComponent, defaultSatelliteComponent, defaultSpinComponent, &
           &                                      mergerTree                       , treeNodeList
     use    :: Memory_Management         , only : Memory_Usage_Record              , allocateArray           , deallocateArray
-    use    :: Merger_Tree_Read_Importers, only : nodeDataMinimal                  , nodeData
+    use    :: Merger_Tree_Read_Importers, only : nodeData                         , nodeDataMinimal
     use    :: Merger_Tree_State_Store   , only : treeStateStoreSequence
     use    :: Numerical_Comparison      , only : Values_Agree
     !$ use :: OMP_Lib                   , only : OMP_Unset_Lock
@@ -927,8 +984,8 @@ contains
     if (treeNumber-self%treeNumberOffset > treeNumberMaximum .and. self%fileCurrent < size(self%fileNames)) then
        self%fileCurrent     =self%fileCurrent     +1
        self%treeNumberOffset=self%treeNumberOffset+treeNumberMaximum
-       call self%mergerTreeImporter_%close(                                )
-       call self%mergerTreeImporter_%open (self%fileNames(self%fileCurrent))
+       call self%mergerTreeImporter_%close(                                                        )
+       call self%mergerTreeImporter_%open (File_Name_Expand(char(self%fileNames(self%fileCurrent))))
     end if
     treeNumberOffset=treeNumber-self%treeNumberOffset
     if (treeNumberOffset <= treeNumberMaximum) then
@@ -947,8 +1004,11 @@ contains
        ! the integer type.
        allocate(tree%randomNumberGenerator_,mold=self%randomNumberGenerator_)
        !$omp critical(mergerTreeConstructReadDeepCopyReset)
-       !# <deepCopyReset variables="self%randomNumberGenerator_"/>
-       !# <deepCopy source="self%randomNumberGenerator_" destination="tree%randomNumberGenerator_"/>
+       !![
+       <deepCopyReset variables="self%randomNumberGenerator_"/>
+       <deepCopy source="self%randomNumberGenerator_" destination="tree%randomNumberGenerator_"/>
+       <deepCopyFinalize variables="tree%randomNumberGenerator_"/>
+       !!]
        !$omp end critical(mergerTreeConstructReadDeepCopyReset)
        call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
        ! Store internal state.
@@ -992,35 +1052,37 @@ contains
           nodeSubset=[-1_c_size_t]
        end if
        ! Read data from the file.
-       !# <conditionalCall>
-       !# <call>
-       !#   call self%mergerTreeImporter_%import(                                                                                                                      &amp;
-       !#      &amp;                             int(treeNumberOffset)                                                                                               , &amp;
-       !#      &amp;                             nodes                                                                                                               , &amp;
-       !#      &amp;                             requireScaleRadii         = self%presetScaleRadii                                                                   , &amp;
-       !#      &amp;                             requireAngularMomenta     =(self%presetSpins              .and.self%mergerTreeImporter_%angularMomentaAvailable  ()), &amp;
-       !#      &amp;                             requireAngularMomenta3D   =                                                                                           &amp;
-       !#      &amp;                                                        (                                                                                          &amp;
-       !#      &amp;                                                           self%presetSpins3D                                                                      &amp;
-       !#      &amp;                                                          .or.                                                                                     &amp;
-       !#      &amp;                                                           (                                                                                       &amp;
-       !#      &amp;                                                             self%presetSpins                                                                      &amp;
-       !#      &amp;                                                            .and.                                                                                  &amp;
-       !#      &amp;                                                             self%subhaloAngularMomentaMethod == readSubhaloAngularMomentaMethodSummation          &amp;
-       !#      &amp;                                                           )                                                                                       &amp;
-       !#      &amp;                                                         )                                                                                         &amp;
-       !#      &amp;                                                        .and.                                                                                      &amp;
-       !#      &amp;                                                         self%mergerTreeImporter_%angularMomenta3DAvailable()                                    , &amp;
-       !#      &amp;                             requireSpin               =(self%presetSpins              .and.self%mergerTreeImporter_%spinAvailable            ()), &amp;
-       !#      &amp;                             requireSpin3D             =(self%presetSpins3D            .and.self%mergerTreeImporter_%spin3DAvailable          ()), &amp;
-       !#      &amp;                             requirePositions          =(self%presetPositions          .or. self%presetOrbits                                   ), &amp;
-       !#      &amp;                             nodeSubset                =nodeSubset                                                                                 &amp;
-       !#      &amp;                             {conditions}                                                                                                          &amp;
-       !#      &amp;                            )
-       !#  </call>
-       !#  <argument name="requireNamedReals"    value="self%presetNamedReals"    condition="size(self%presetNamedReals   ) > 0"/>
-       !#  <argument name="requireNamedIntegers" value="self%presetNamedIntegers" condition="size(self%presetNamedIntegers) > 0"/>
-       !# </conditionalCall>
+       !![
+       <conditionalCall>
+       <call>
+         call self%mergerTreeImporter_%import(                                                                                                                      &amp;
+            &amp;                             int(treeNumberOffset)                                                                                               , &amp;
+            &amp;                             nodes                                                                                                               , &amp;
+            &amp;                             requireScaleRadii         = self%presetScaleRadii                                                                   , &amp;
+            &amp;                             requireAngularMomenta     =(self%presetSpins              .and.self%mergerTreeImporter_%angularMomentaAvailable  ()), &amp;
+            &amp;                             requireAngularMomenta3D   =                                                                                           &amp;
+            &amp;                                                        (                                                                                          &amp;
+            &amp;                                                           self%presetSpins3D                                                                      &amp;
+            &amp;                                                          .or.                                                                                     &amp;
+            &amp;                                                           (                                                                                       &amp;
+            &amp;                                                             self%presetSpins                                                                      &amp;
+            &amp;                                                            .and.                                                                                  &amp;
+            &amp;                                                             self%subhaloAngularMomentaMethod == readSubhaloAngularMomentaMethodSummation          &amp;
+            &amp;                                                           )                                                                                       &amp;
+            &amp;                                                         )                                                                                         &amp;
+            &amp;                                                        .and.                                                                                      &amp;
+            &amp;                                                         self%mergerTreeImporter_%angularMomenta3DAvailable()                                    , &amp;
+            &amp;                             requireSpin               =(self%presetSpins              .and.self%mergerTreeImporter_%spinAvailable            ()), &amp;
+            &amp;                             requireSpin3D             =(self%presetSpins3D            .and.self%mergerTreeImporter_%spin3DAvailable          ()), &amp;
+            &amp;                             requirePositions          =(self%presetPositions          .or. self%presetOrbits                                   ), &amp;
+            &amp;                             nodeSubset                =nodeSubset                                                                                 &amp;
+            &amp;                             {conditions}                                                                                                          &amp;
+            &amp;                            )
+        </call>
+        <argument name="requireNamedReals"    value="self%presetNamedReals"    condition="size(self%presetNamedReals   ) > 0"/>
+        <argument name="requireNamedIntegers" value="self%presetNamedIntegers" condition="size(self%presetNamedIntegers) > 0"/>
+       </conditionalCall>
+       !!]
        deallocate(nodeSubset)
        select type (nodes)
        class is (nodeData)
@@ -1137,51 +1199,51 @@ contains
           ! Check that all required properties exist.
           if (self%presetPositions.or.self%presetOrbits) then
              ! Position and velocity methods are required.
-             if     (                                                                                                                                                     &
-                  &  .not.(                                                                                                                                               &
-                  &         defaultPositionComponent%positionIsSettable()                                                                                                 &
-                  &        .and.                                                                                                                                          &
-                  &         defaultPositionComponent%velocityIsSettable()                                                                                                 &
-                  &       )                                                                                                                                               &
-                  & )                                                                                                                                                     &
-                  & call Galacticus_Error_Report                                                                                                                          &
-                  &      (                                                                                                                                                &
-                  &       'presetting positions or orbits requires a component that supports position and velocity setting (e.g. set [treeNodeMethodPosition]=preset);'// &
-                  &       Galacticus_Component_List(                                                                                                                      &
-                  &                                 'position'                                                                                                          , &
-                  &                                  defaultPositionComponent        %     positionAttributeMatch(requireSettable=.true.)                                 &
-                  &                                 .intersection.                                                                                                        &
-                  &                                  defaultPositionComponent        %     velocityAttributeMatch(requireSettable=.true.)                                 &
-                  &                                )                                                                                                                   // &
-                  &       char(10)                                                                                                                                     // &
-                  &       'alternatively setting [presetPositions]=false and [presetOrbits]=false will remove the need to store positions and velocities'              // &
-                  &       {introspection:location}                                                                                                                        &
+             if     (                                                                                                                                                &
+                  &  .not.(                                                                                                                                          &
+                  &         defaultPositionComponent%positionIsSettable()                                                                                            &
+                  &        .and.                                                                                                                                     &
+                  &         defaultPositionComponent%velocityIsSettable()                                                                                            &
+                  &       )                                                                                                                                          &
+                  & )                                                                                                                                                &
+                  & call Galacticus_Error_Report                                                                                                                     &
+                  &      (                                                                                                                                           &
+                  &       'presetting positions or orbits requires a component that supports position and velocity setting (e.g. set [componentPosition]=preset);'// &
+                  &       Galacticus_Component_List(                                                                                                                 &
+                  &                                 'position'                                                                                                     , &
+                  &                                  defaultPositionComponent        %     positionAttributeMatch(requireSettable=.true.)                            &
+                  &                                 .intersection.                                                                                                   &
+                  &                                  defaultPositionComponent        %     velocityAttributeMatch(requireSettable=.true.)                            &
+                  &                                )                                                                                                              // &
+                  &       char(10)                                                                                                                                // &
+                  &       'alternatively setting [presetPositions]=false and [presetOrbits]=false will remove the need to store positions and velocities'         // &
+                  &       {introspection:location}                                                                                                                   &
                   & )
           end if
           if (self%presetMergerTimes) then
              ! Time of merging property is required.
-             if (.not.defaultSatelliteComponent%timeOfMergingIsSettable      ())                                                                                          &
-                  & call Galacticus_Error_Report                                                                                                                          &
-                  &      (                                                                                                                                                &
-                  &       'presetting merging times requires a component that supports setting of merging times.'                                                      // &
-                  &       Galacticus_Component_List(                                                                                                                      &
-                  &                                 'satellite'                                                                                                         , &
-                  &                                  defaultSatelliteComponent       %timeOfMergingAttributeMatch(requireSettable=.true.)                                 &
-                  &                                 )                                                                                                                  // &
-                  &       {introspection:location}                                                                                                                        &
+             if (.not.defaultSatelliteComponent%timeOfMergingIsSettable      ())                                                                                     &
+                  & call Galacticus_Error_Report                                                                                                                     &
+                  &      (                                                                                                                                           &
+                  &       'presetting merging times requires a component that supports setting of merging times.'                                                 // &
+                  &       Galacticus_Component_List(                                                                                                                 &
+                  &                                 'satellite'                                                                                                    , &
+                  &                                  defaultSatelliteComponent       %timeOfMergingAttributeMatch(requireSettable=.true.)                            &
+                  &                                 )                                                                                                             // &
+                  &       {introspection:location}                                                                                                                   &
                   &      )
           end if
           if (self%presetScaleRadii) then
              ! Scale radius property is required.
-             if (.not.defaultDarkMatterProfileComponent%scaleIsSettable      ())                                                                                          &
-                  & call Galacticus_Error_Report                                                                                                                          &
-                  &      (                                                                                                                                                &
-                  &       'presetting scale radii requires a component that supports setting of scale radii.'                                                          // &
-                  &       Galacticus_Component_List(                                                                                                                      &
-                  &                                 'darkMatterProfile'                                                                                                 , &
-                  &                                 defaultDarkMatterProfileComponent%        scaleAttributeMatch(requireSettable=.true.)                                 &
-                  &                                )                                                                                                                   // &
-                  &       {introspection:location}                                                                                                                        &
+             if (.not.defaultDarkMatterProfileComponent%scaleIsSettable      ())                                                                                     &
+                  & call Galacticus_Error_Report                                                                                                                     &
+                  &      (                                                                                                                                           &
+                  &       'presetting scale radii requires a component that supports setting of scale radii.'                                                     // &
+                  &       Galacticus_Component_List(                                                                                                                 &
+                  &                                 'darkMatterProfile'                                                                                            , &
+                  &                                 defaultDarkMatterProfileComponent%        scaleAttributeMatch(requireSettable=.true.)                            &
+                  &                                )                                                                                                              // &
+                  &       {introspection:location}                                                                                                                   &
                   &      )
           end if
           if (self%presetSpins      ) then
@@ -1215,7 +1277,7 @@ contains
              if (.not.defaultSatelliteComponent        %virialOrbitIsSettable())                                                                                          &
                   & call Galacticus_Error_Report                                                                                                                          &
                   &      (                                                                                                                                                &
-                  &       'presetting orbits requires a component that supports setting of orbits (e.g. [treeNodeMethodSatelliteOrbit]=preset);'                       // &
+                  &       'presetting orbits requires a component that supports setting of orbits (e.g. [componentSatellite]=preset);'                                 // &
                   &       Galacticus_Component_List(                                                                                                                      &
                   &                                 'satellite'                                                                                                         , &
                   &                                 defaultSatelliteComponent        %  virialOrbitAttributeMatch(requireSettable=.true.)                                 &
@@ -1225,6 +1287,8 @@ contains
                   &       {introspection:location}                                                                                                                        &
                   &      )
           end if
+          ! Apply any tree initialization operators.
+          call self%nodeOperator_%nodeTreeInitialize(tree%baseNode)
           ! Assign named properties.
           if     (                                    &
                &   size(self%presetNamedReals   ) > 0 &
@@ -1315,7 +1379,9 @@ contains
   end function readConstruct
 
   subroutine readCreateNodeIndices(self,nodes)
-    !% Create a sorted list of node indices with an index into the original array.
+    !!{
+    Create a sorted list of node indices with an index into the original array.
+    !!}
     use :: Galacticus_Error          , only : Galacticus_Warn
     use :: Memory_Management         , only : allocateArray
     use :: Merger_Tree_Read_Importers, only : nodeDataMinimal
@@ -1349,7 +1415,9 @@ contains
   end subroutine readCreateNodeIndices
 
   function readNodeLocation(self,nodeIndex)
-    !% Return the location in the original array of the given {\normalfont \ttfamily nodeIndex}.
+    !!{
+    Return the location in the original array of the given {\normalfont \ttfamily nodeIndex}.
+    !!}
     use :: Arrays_Search, only : searchArray
     implicit none
     integer(c_size_t                 )                :: readNodeLocation
@@ -1367,7 +1435,9 @@ contains
   end function readNodeLocation
 
   function readDescendentNodeSortIndex(self,descendentIndex)
-    !% Return the sort index of the given {\normalfont \ttfamily descendentIndex}.
+    !!{
+    Return the sort index of the given {\normalfont \ttfamily descendentIndex}.
+    !!}
     use :: Arrays_Search, only : searchArray
     implicit none
     integer(c_size_t                 )                :: readDescendentNodeSortIndex
@@ -1379,7 +1449,9 @@ contains
   end function readDescendentNodeSortIndex
 
   subroutine readDestroyNodeIndices(self)
-    !% Destroy the sorted list of node indices.
+    !!{
+    Destroy the sorted list of node indices.
+    !!}
     use :: Memory_Management, only : deallocateArray
     implicit none
     class(mergerTreeConstructorRead), intent(inout) :: self
@@ -1392,8 +1464,10 @@ contains
   end subroutine readDestroyNodeIndices
 
   subroutine readBuildDescendentPointers(self,nodes)
-    !% Builds pointers from each node to its descendent node.
-    use :: Galacticus_Display        , only : Galacticus_Display_Message, verbosityInfo
+    !!{
+    Builds pointers from each node to its descendent node.
+    !!}
+    use :: Display                   , only : displayMessage         , verbosityLevelInfo
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Merger_Tree_Read_Importers, only : nodeData
     use :: String_Handling           , only : operator(//)
@@ -1425,7 +1499,7 @@ contains
                 call Galacticus_Error_Report(message//{introspection:location})
              else
                 message=message//" - resetting this node to be an isolated node"
-                call Galacticus_Display_Message(message,verbosity=verbosityInfo)
+                call displayMessage(message,verbosity=verbosityLevelInfo)
                 nodes(iNode)%hostIndex =  nodes(iNode)%nodeIndex
                 nodes(iNode)%host      => nodes(iNode)
                 nodes(iNode)%isSubhalo =  .false.
@@ -1441,7 +1515,9 @@ contains
   end subroutine readBuildDescendentPointers
 
   subroutine readEnforceSubhaloStatus(self,nodes)
-    !% Ensure that any node which was once a subhalo remains a subhalo.
+    !!{
+    Ensure that any node which was once a subhalo remains a subhalo.
+    !!}
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Merger_Tree_Read_Importers, only : nodeData
     use :: String_Handling           , only : operator(//)
@@ -1513,10 +1589,12 @@ contains
   end subroutine readEnforceSubhaloStatus
 
   subroutine readScanForSubhaloPromotions(self,nodes,nodeList)
-    !% Scan for cases where a subhalo stops being a subhalo and so must be promoted.
+    !!{
+    Scan for cases where a subhalo stops being a subhalo and so must be promoted.
+    !!}
     use :: Galacticus_Nodes          , only : nodeEvent                  , nodeEventSubhaloPromotion, treeNode, treeNodeList
-    use :: Node_Subhalo_Promotions   , only : nodeSubhaloPromotionPerform
     use :: Merger_Tree_Read_Importers, only : nodeData
+    use :: Node_Subhalo_Promotions   , only : nodeSubhaloPromotionPerform
     implicit none
     class  (mergerTreeConstructorRead), intent(inout)                              :: self
     class  (nodeData                 ), target       , dimension(:), intent(inout) :: nodes
@@ -1583,7 +1661,9 @@ contains
   end subroutine readScanForSubhaloPromotions
 
   subroutine readBuildParentPointers(nodes)
-    !% Build pointers to node parents.
+    !!{
+    Build pointers to node parents.
+    !!}
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Merger_Tree_Read_Importers, only : nodeData
     use :: String_Handling           , only : operator(//)
@@ -1628,7 +1708,9 @@ contains
   end subroutine readBuildParentPointers
 
   subroutine readCreateNodeArray(self,tree,nodes,nodeList,isolatedNodeCount,childIsSubhalo)
-    !% Create an array of standard nodes and associated structures.
+    !!{
+    Create an array of standard nodes and associated structures.
+    !!}
     use :: Galacticus_Nodes          , only : mergerTree         , treeNode     , treeNodeList
     use :: Memory_Management         , only : Memory_Usage_Record, allocateArray
     use :: Merger_Tree_Read_Importers, only : nodeData
@@ -1686,7 +1768,9 @@ contains
   end subroutine readCreateNodeArray
 
   subroutine readBuildIsolatedParentPointers(self,tree,nodes,nodeList)
-    !% Create parent pointer links between isolated nodes and assign times and masses to those nodes.
+    !!{
+    Create parent pointer links between isolated nodes and assign times and masses to those nodes.
+    !!}
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Galacticus_Nodes          , only : mergerTree             , nodeComponentBasic, treeNodeList
     use :: Merger_Tree_Read_Importers, only : nodeData
@@ -1725,8 +1809,11 @@ contains
                       allocate(treeCurrent%nextTree)
                       allocate(treeCurrent%nextTree%randomNumberGenerator_,mold=self%randomNumberGenerator_)
                       !$omp critical(mergerTreeConstructReadDeepCopyReset)
-                      !# <deepCopyReset variables="self%randomNumberGenerator_"/>
-                      !# <deepCopy source="self%randomNumberGenerator_" destination="treeCurrent%nextTree%randomNumberGenerator_"/>
+                      !![
+                      <deepCopyReset variables="self%randomNumberGenerator_"/>
+                      <deepCopy source="self%randomNumberGenerator_" destination="treeCurrent%nextTree%randomNumberGenerator_"/>
+                      <deepCopyFinalize variables="treeCurrent%nextTree%randomNumberGenerator_"/>
+                      !!]
                       !$omp end critical(mergerTreeConstructReadDeepCopyReset)
                       call treeCurrent%nextTree%randomNumberGenerator_%seedSet(seed=treeCurrent%nextTree%index,offset=.true.)
                    end if
@@ -1785,7 +1872,9 @@ contains
   end subroutine readBuildIsolatedParentPointers
 
   subroutine readBuildChildAndSiblingLinks(nodes,nodeList,childIsSubhalo)
-    !% Build child and sibling links between nodes.
+    !!{
+    Build child and sibling links between nodes.
+    !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasic, treeNodeList
     use :: Memory_Management         , only : deallocateArray
     use :: Merger_Tree_Read_Importers, only : nodeData
@@ -1857,7 +1946,9 @@ contains
   end subroutine readBuildChildAndSiblingLinks
 
   subroutine readAssignHostTreePointers(tree)
-    !% After tree base nodes have been assigned, walk each tree and set the host tree pointer for each node.
+    !!{
+    After tree base nodes have been assigned, walk each tree and set the host tree pointer for each node.
+    !!}
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     implicit none
     type(mergerTree              ), intent(inout), target  :: tree
@@ -1877,9 +1968,11 @@ contains
   end subroutine readAssignHostTreePointers
 
   subroutine readAssignScaleRadii(self,nodes,nodeList)
-    !% Assign scale radii to nodes.
-    use :: Galacticus_Display        , only : Galacticus_Display_Indent, Galacticus_Display_Message    , Galacticus_Display_Unindent  , Galacticus_Verbosity_Level, &
-         &                                    verbosityWarn
+    !!{
+    Assign scale radii to nodes.
+    !!}
+    use :: Display                   , only : displayIndent            , displayMessage                , displayUnindent              , displayVerbosity, &
+          &                                   verbosityLevelWarn
     use :: Galacticus_Error          , only : Galacticus_Error_Report  , errorStatusSuccess
     use :: Galacticus_Nodes          , only : nodeComponentBasic       , nodeComponentDarkMatterProfile, treeNodeList
     use :: Merger_Tree_Read_Importers, only : nodeData
@@ -1888,26 +1981,31 @@ contains
     class           (mergerTreeConstructorRead        ), target                       , intent(inout) :: self
     class           (nodeData                         )                 , dimension(:), intent(inout) :: nodes
     type            (treeNodeList                     )                 , dimension(:), intent(inout) :: nodeList
-    double precision                                   , parameter                                    :: scaleRadiusMaximumAllowed    =100.0d0, toleranceAbsolute  =1.0d-9, &
-         &                                                                                               toleranceRelative            =1.0d-9
-    logical                                                       , save                              :: excessiveScaleRadiiReported  =.false.
+    double precision                                   , parameter                                    :: scaleRadiusMaximumAllowed  =100.0d0, toleranceAbsolute  =1.0d-9, &
+         &                                                                                               toleranceRelative          =1.0d-9
+    logical                                                       , save                              :: excessiveScaleRadiiReported=.false.
     class           (nodeComponentBasic               ), pointer                                      :: basic
     class           (nodeComponentDarkMatterProfile   ), pointer                                      :: darkMatterProfile
-    integer                                                                                           :: iNode                                , status                     , &
+    integer                                                                                           :: iNode                              , status                    , &
          &                                                                                               messageVerbosity
     integer         (c_size_t                         )                                               :: iIsolatedNode
     double precision                                                                                  :: radiusScale
-    logical                                                                                           :: excessiveHalfMassRadii               , excessiveScaleRadii        , &
+    logical                                                                                           :: excessiveHalfMassRadii             , excessiveScaleRadii       , &
          &                                                                                               useFallbackScaleMethod
     type            (rootFinder                       )           , save                              :: finder
+    logical                                                       , save                              :: finderConstructed          =.false.
     !$omp threadprivate(finder)
     type            (varying_string                   )                                               :: message
     character       (len=16                           )                                               :: label
 
     ! Initialize our root finder.
-    if (.not.finder%isInitialized()) then
-       call finder%rootFunction(readRadiusHalfMassRoot              )
-       call finder%tolerance   (toleranceAbsolute,toleranceRelative)
+    if (.not.finderConstructed) then
+       finder           =rootFinder(                                          &
+            &                       rootFunction     =readRadiusHalfMassRoot, &
+            &                       toleranceAbsolute=toleranceAbsolute     , &
+            &                       toleranceRelative=toleranceRelative       &
+            &                      )
+       finderConstructed=.true.
     end if
     readSelf => self
     ! Find the scale radius.
@@ -1971,24 +2069,24 @@ contains
                    useFallbackScaleMethod=.false.
                 else
                    if (self%scaleRadiiFailureIsFatal) then
-                      messageVerbosity=Galacticus_Verbosity_Level()
+                      messageVerbosity=displayVerbosity()
                    else
-                      messageVerbosity=verbosityWarn
+                      messageVerbosity=verbosityLevelWarn
                    end if
-                   call Galacticus_Display_Indent  ("failed to find scale radius consistent with specified half-mass radius",messageVerbosity)
+                   call displayIndent  ("failed to find scale radius consistent with specified half-mass radius",messageVerbosity)
                    write (label,'(i16)') readNode%hostTree%index
                    message="      tree index: "//trim(label)
-                   call Galacticus_Display_Message(message,messageVerbosity)
+                   call displayMessage(message,messageVerbosity)
                     write (label,'(i16)') readNode%index()
                    message="      node index: "//trim(label)
-                   call Galacticus_Display_Message(message,messageVerbosity)
+                   call displayMessage(message,messageVerbosity)
                    write (label,'(e12.6)') self%darkMatterHaloScale_%virialRadius(readNode)
                    message="   virial radius: "//trim(label)
-                   call Galacticus_Display_Message(message,messageVerbosity)
+                   call displayMessage(message,messageVerbosity)
                    write (label,'(e12.6)') readRadiusHalfMass
                    message="half-mass radius: "//trim(label)
-                   call Galacticus_Display_Message(message,messageVerbosity)
-                   call Galacticus_Display_Unindent("",messageVerbosity)
+                   call displayMessage(message,messageVerbosity)
+                   call displayUnindent("",messageVerbosity)
                    if (self%scaleRadiiFailureIsFatal) then
                       call Galacticus_Error_Report('problem with half-mass radii - see report above - aborting'//{introspection:location})
                    else
@@ -2015,8 +2113,8 @@ contains
     ! Report warning on excessive scale radii if not already done.
     if (excessiveScaleRadii.and..not.excessiveScaleRadiiReported) then
        excessiveScaleRadiiReported=.true.
-       call Galacticus_Display_Message('warning - some scale radii exceed the corresponding virial radii - suggests&
-            & inconsistent definitions of halo mass/radius'//{introspection:location},verbosityWarn)
+       call displayMessage('warning - some scale radii exceed the corresponding virial radii - suggests&
+            & inconsistent definitions of halo mass/radius'//{introspection:location},verbosityLevelWarn)
     end if
 
     ! Exit on excessive half mass radii.
@@ -2026,7 +2124,9 @@ contains
   end subroutine readAssignScaleRadii
 
   subroutine readAssignSpinParameters(self,nodes,nodeList)
-    !% Assign spin parameters to nodes.
+    !!{
+    Assign spin parameters to nodes.
+    !!}
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Galacticus_Nodes          , only : nodeComponentBasic     , nodeComponentSpin, treeNodeList
     use :: Merger_Tree_Read_Importers, only : nodeData
@@ -2081,7 +2181,9 @@ contains
   contains
 
     double precision function spinNormalization()
-      !% Normalization for conversion of angular momentum to spin.
+      !!{
+      Normalization for conversion of angular momentum to spin.
+      !!}
       use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
       implicit none
       spinNormalization= sqrt(abs(self%darkMatterProfileDMO_%energy(nodeList(iIsolatedNode)%node))) &
@@ -2093,7 +2195,9 @@ contains
   end subroutine readAssignSpinParameters
 
   subroutine readAssignNamedProperties(self,nodes,nodeList)
-    !% Assign named properties to nodes.
+    !!{
+    Assign named properties to nodes.
+    !!}
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Galacticus_Nodes          , only : nodeComponentNBody     , nodeComponentNBodyGeneric, treeNodeList
     use :: Merger_Tree_Read_Importers, only : nodeData
@@ -2133,7 +2237,9 @@ contains
   end subroutine readAssignNamedProperties
 
   double precision function readRadiusHalfMassRoot(radius)
-    !% Function used to find scale radius of dark matter halos given their half-mass radius.
+    !!{
+    Function used to find scale radius of dark matter halos given their half-mass radius.
+    !!}
     implicit none
     double precision, intent(in   ) :: radius
 
@@ -2145,7 +2251,9 @@ contains
   end function readRadiusHalfMassRoot
 
   subroutine readAssignIsolatedNodeIndices(nodes)
-    !% Assign to each node the number of the corresponding isolated node.
+    !!{
+    Assign to each node the number of the corresponding isolated node.
+    !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
     class  (nodeData), dimension(:), intent(inout) :: nodes
@@ -2188,7 +2296,9 @@ contains
   end subroutine readAssignIsolatedNodeIndices
 
   subroutine readScanForMergers(self,nodes,nodeList,historyCountMaximum)
-    !% Scan for and record mergers between nodes.
+    !!{
+    Scan for and record mergers between nodes.
+    !!}
     use :: Galacticus_Error            , only : Galacticus_Error_Report
     use :: Galacticus_Nodes            , only : nodeComponentBasic        , nodeComponentPosition, nodeComponentSatellite, treeNode, &
           &                                     treeNodeList
@@ -2500,9 +2610,11 @@ contains
   end subroutine readScanForMergers
 
   logical function massIsGreater(node1,node2)
-    !% Return true if the mass of {\normalfont \ttfamily node1} is greater than that of {\normalfont \ttfamily node2}. In cases of
-    !% precisely equal masses the tie is broken by considering the node indices (which should never be equal). Thsi ensures that
-    !% there is always a well-defined primary progenitor halo for example.
+    !!{
+    Return true if the mass of {\normalfont \ttfamily node1} is greater than that of {\normalfont \ttfamily node2}. In cases of
+    precisely equal masses the tie is broken by considering the node indices (which should never be equal). Thsi ensures that
+    there is always a well-defined primary progenitor halo for example.
+    !!}
     implicit none
     class(nodeData), intent(in   ) :: node1, node2
     
@@ -2517,7 +2629,9 @@ contains
   end function massIsGreater
   
   subroutine readAssignMergers(self,nodes,nodeList)
-    !% Assign pointers to merge targets.
+    !!{
+    Assign pointers to merge targets.
+    !!}
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Galacticus_Nodes          , only : treeNodeList
     use :: Merger_Tree_Read_Importers, only : nodeData
@@ -2563,10 +2677,12 @@ contains
   end subroutine readAssignMergers
 
   subroutine readScanForBranchJumps(self,nodes,nodeList)
-    !% Search for subhalos which move between branches/trees.
-    use :: Galacticus_Display        , only : Galacticus_Display_Message, verbosityWarn
+    !!{
+    Search for subhalos which move between branches/trees.
+    !!}
+    use :: Display                   , only : displayMessage, verbosityLevelWarn
     use :: Galacticus_Nodes          , only : treeNodeList
-    use :: ISO_Varying_String        , only : assignment(=)             , operator(//)
+    use :: ISO_Varying_String        , only : assignment(=) , operator(//)
     use :: Merger_Tree_Read_Importers, only : nodeData
     use :: String_Handling           , only : operator(//)
     implicit none
@@ -2616,7 +2732,7 @@ contains
                       message=message//nodes(iNode)%descendent%nodeIndex//']'
                       message=message//char(10)//'ignoring as not currently supported'
                       message=message//char(10)//'warning will not be issued again'
-                      call Galacticus_Display_Message(message,verbosityWarn)
+                      call displayMessage(message,verbosityLevelWarn)
                       self%warningNestedHierarchyIssued=.true.
                    end if
                    jumpToHost => jumpToHost%host
@@ -2745,7 +2861,9 @@ contains
   end subroutine readScanForBranchJumps
 
   function readLastHostDescendent(node) result (currentHost)
-    !% Return a pointer to the last descendent that can be reached from {\normalfont \ttfamily node} when descending through hosts.
+    !!{
+    Return a pointer to the last descendent that can be reached from {\normalfont \ttfamily node} when descending through hosts.
+    !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
     class(nodeData), pointer               :: currentHost
@@ -2759,7 +2877,9 @@ contains
   end function readLastHostDescendent
 
   subroutine readCreateBranchJumpEvent(node,jumpToHost,timeOfJump)
-    !% Create a matched-pair of branch jump events in the given nodes.
+    !!{
+    Create a matched-pair of branch jump events in the given nodes.
+    !!}
     use :: Galacticus_Nodes , only : nodeEvent       , nodeEventBranchJump, treeNode
     use :: Node_Branch_Jumps, only : Node_Branch_Jump
     implicit none
@@ -2782,7 +2902,9 @@ contains
   end subroutine readCreateBranchJumpEvent
 
   subroutine readBuildSubhaloMassHistories(self,nodes,nodeList,historyCountMaximum,historyTime,historyIndex,historyMass,position,velocity)
-    !% Build and attached bound mass histories to subhalos.
+    !!{
+    Build and attached bound mass histories to subhalos.
+    !!}
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Galacticus_Nodes          , only : defaultSatelliteComponent, nodeComponentPosition, nodeComponentSatellite, treeNodeList
     use :: Histories                 , only : history                  , longIntegerHistory
@@ -2931,7 +3053,9 @@ contains
   end subroutine readBuildSubhaloMassHistories
 
   subroutine readValidateIsolatedHalos(nodes)
-    !% Ensure that nodes have valid primary progenitors.
+    !!{
+    Ensure that nodes have valid primary progenitors.
+    !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
     class  (nodeData          ), dimension(:), intent(inout) :: nodes
@@ -2980,7 +3104,9 @@ contains
   end subroutine readValidateIsolatedHalos
 
   subroutine readAssignUniqueIDsToClones(nodeList)
-    !% Assign new uniqueID values to any cloned nodes inserted into the trees.
+    !!{
+    Assign new uniqueID values to any cloned nodes inserted into the trees.
+    !!}
     use :: Galacticus_Nodes, only : treeNodeList
     implicit none
     type   (treeNodeList), dimension(:), intent(inout) :: nodeList
@@ -2996,7 +3122,9 @@ contains
   end subroutine readAssignUniqueIDsToClones
 
   logical function readIsSubhaloSubhaloMerger(self,nodes,node)
-    !% Returns true if {\normalfont \ttfamily node} undergoes a subhalo-subhalo merger.
+    !!{
+    Returns true if {\normalfont \ttfamily node} undergoes a subhalo-subhalo merger.
+    !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
     class(mergerTreeConstructorRead)              , intent(inout) :: self
@@ -3030,7 +3158,9 @@ contains
 
   !$GLC function attributes unused :: readDumpTree
   subroutine readDumpTree(nodes,highlightNodes,branchRoot)
-    !% Dumps the tree structure to a file in a format suitable for processing with \href{http://www.graphviz.org/}{\normalfont \scshape dot}.
+    !!{
+    Dumps the tree structure to a file in a format suitable for processing with \href{http://www.graphviz.org/}{\normalfont \scshape dot}.
+    !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
     class    (nodeData      ), dimension(:), intent(in   ), target   :: nodes
@@ -3118,10 +3248,12 @@ contains
   end subroutine readDumpTree
 
   subroutine readTimeUntilMergingSubresolution(self,lastSeenNode,nodes,nodeList,iNode,timeSubhaloMerges)
-    !% Compute the additional time until merging after a subhalo is lost from the tree (presumably due to limited resolution).
-    use :: Galacticus_Display        , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, verbosityWarn
+    !!{
+    Compute the additional time until merging after a subhalo is lost from the tree (presumably due to limited resolution).
+    !!}
+    use :: Display                   , only : displayIndent          , displayMessage       , displayUnindent, verbosityLevelWarn
     use :: Galacticus_Error          , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes          , only : nodeComponentBasic       , nodeComponentPosition     , treeNode                   , treeNodeList
+    use :: Galacticus_Nodes          , only : nodeComponentBasic     , nodeComponentPosition, treeNode       , treeNodeList
     use :: Kepler_Orbits             , only : keplerOrbit
     use :: Merger_Tree_Read_Importers, only : nodeData
     use :: String_Handling           , only : operator(//)
@@ -3184,20 +3316,20 @@ contains
           if (Vector_Magnitude(relativePosition) == 0.0d0) then
              message='merging halos ['
              message=message//lastSeenNode%nodeIndex//' & '//primaryProgenitor%nodeIndex//'] have zero separation'
-             call Galacticus_Display_Indent  (message                          ,verbosityWarn)
+             call displayIndent  (message                          ,verbosityLevelWarn)
              write (coordinateLabel,'("[",e12.6,",",e12.6,",",e12.6,"]")') primaryProgenitor%position
              message="position [primary  ] = "//trim(coordinateLabel)
-             call Galacticus_Display_Message (message                          ,verbosityWarn)
+             call displayMessage (message                          ,verbosityLevelWarn)
              write (coordinateLabel,'("[",e12.6,",",e12.6,",",e12.6,"]")') lastSeenNode     %position
              message="position [satellite] = "//trim(coordinateLabel)
-             call Galacticus_Display_Message (message                          ,verbosityWarn)
+             call displayMessage (message                          ,verbosityLevelWarn)
              write (coordinateLabel,'("[",e12.6,",",e12.6,",",e12.6,"]")') primaryProgenitor%velocity
              message="velocity [primary  ] = "//trim(coordinateLabel)
-             call Galacticus_Display_Message (message                          ,verbosityWarn)
+             call displayMessage (message                          ,verbosityLevelWarn)
              write (coordinateLabel,'("[",e12.6,",",e12.6,",",e12.6,"]")') lastSeenNode     %velocity
              message="velocity [satellite] = "//trim(coordinateLabel)
-             call Galacticus_Display_Message (message                          ,verbosityWarn)
-             call Galacticus_Display_Unindent('assuming instantaneous merging' ,verbosityWarn)
+             call displayMessage (message                          ,verbosityLevelWarn)
+             call displayUnindent('assuming instantaneous merging' ,verbosityLevelWarn)
           else
              ! Create the orbit.
              orbit=readOrbitConstruct(lastSeenNode%nodeMass,primaryProgenitor%nodeMass,relativePosition,relativeVelocity)
@@ -3243,7 +3375,9 @@ contains
   end subroutine readTimeUntilMergingSubresolution
 
   function readOrbitConstruct(mass1,mass2,position,velocity) result(orbit)
-    !% Construct a Keplerian orbit given body masses, positions, and relative velocities.
+    !!{
+    Construct a Keplerian orbit given body masses, positions, and relative velocities.
+    !!}
     use :: Kepler_Orbits, only : keplerOrbit
     use :: Vectors      , only : Vector_Magnitude, Vector_Product
     implicit none
@@ -3263,7 +3397,9 @@ contains
   end function readOrbitConstruct
 
   subroutine readPhaseSpacePositionRealize(self,time,position,velocity)
-    !% Modify relative positions and velocities to account for both any periodicity of the simulated volume, and for Hubble flow.
+    !!{
+    Modify relative positions and velocities to account for both any periodicity of the simulated volume, and for Hubble flow.
+    !!}
     use :: Numerical_Constants_Boolean, only : booleanFalse, booleanTrue
     implicit none
     class           (mergerTreeConstructorRead)              , intent(inout) :: self
@@ -3287,8 +3423,10 @@ contains
   end subroutine readPhaseSpacePositionRealize
 
   subroutine progenitorIteratorDescendentSet(self,constructor,node,nodes)
-    !% Initialize a progenitor iterator object by storing the index of the taget {\normalfont \ttfamily node} and finding the location of the first
-    !% progenitor (if any).
+    !!{
+    Initialize a progenitor iterator object by storing the index of the taget {\normalfont \ttfamily node} and finding the location of the first
+    progenitor (if any).
+    !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
     class(progenitorIterator       )              , intent(inout) :: self
@@ -3317,8 +3455,10 @@ contains
   end subroutine progenitorIteratorDescendentSet
 
   logical function progenitorIteratorNext(self,nodes)
-    !% Move to the next progenitor using a progenitor iterator object, returning true if the next progenitor exists, false if it
-    !% does not.
+    !!{
+    Move to the next progenitor using a progenitor iterator object, returning true if the next progenitor exists, false if it
+    does not.
+    !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
     class(progenitorIterator)              , intent(inout) :: self
@@ -3346,7 +3486,9 @@ contains
   end function progenitorIteratorNext
 
   function progenitorIteratorIndex(self,nodes)
-    !% Return the node index of the current progenitor in a progenitor iterator object.
+    !!{
+    Return the node index of the current progenitor in a progenitor iterator object.
+    !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
     integer(kind=kind_int8    )                              :: progenitorIteratorIndex
@@ -3358,7 +3500,9 @@ contains
   end function progenitorIteratorIndex
 
   function progenitorIteratorCurrent(self,nodes)
-    !% Return a pointer to the current progenitor in a progenitor iterator object.
+    !!{
+    Return a pointer to the current progenitor in a progenitor iterator object.
+    !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
     class(nodeData          ), pointer                             :: progenitorIteratorCurrent
@@ -3370,7 +3514,9 @@ contains
   end function progenitorIteratorCurrent
 
   logical function progenitorIteratorExist(self)
-    !% Return true if progenitors exist, false otherwise.
+    !!{
+    Return true if progenitors exist, false otherwise.
+    !!}
     implicit none
     class(progenitorIterator), intent(in   ) :: self
 
@@ -3379,7 +3525,9 @@ contains
   end function progenitorIteratorExist
 
   subroutine readTimingRecord(self,label)
-    !% Record timing data.
+    !!{
+    Record timing data.
+    !!}
     implicit none
     class    (mergerTreeConstructorRead), intent(inout)               :: self
     character(len=*                    ), intent(in   )               :: label
@@ -3407,32 +3555,36 @@ contains
   end subroutine readTimingRecord
 
   subroutine readTimingReport(self)
-    !% Report on time taken in various steps of processing merger trees read from file.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
+    !!{
+    Report on time taken in various steps of processing merger trees read from file.
+    !!}
+    use :: Display, only : displayIndent, displayMessage, displayUnindent
     implicit none
     class    (mergerTreeConstructorRead), intent(inout) :: self
     integer                                             :: i        , lengthMaximum
     type     (varying_string           )                :: message
     character(len=12                   )                :: timeTaken
 
-    call Galacticus_Display_Indent("Merger tree read processing report:")
+    call displayIndent("Merger tree read processing report:")
     if (allocated(self%timingTimes).and.size(self%timingTimes) > 1) then
        lengthMaximum=maxval(len(self%timingLabels))
        do i=2,size(self%timingTimes)
           write (timeTaken,'(f10.2)') self%timingTimes(i)-self%timingTimes(i-1)
           message=repeat(" ",lengthMaximum-len(self%timingLabels(i)))//self%timingLabels(i)//": "//trim(adjustl(timeTaken))//" s"
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end do
     end if
-    call Galacticus_Display_Unindent("done")
+    call displayUnindent("done")
     return
   end subroutine readTimingReport
 
   subroutine readRootNodeAffinitiesInitial(self,nodes)
-    !% Find initial root node affinities for all nodes.
-    use :: Galacticus_Display        , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent, verbosityInfo, &
-         &                                    verbosityWarn
-    use :: ISO_Varying_String        , only : varying_string           , assignment(=)             , operator(//)
+    !!{
+    Find initial root node affinities for all nodes.
+    !!}
+    use :: Display                   , only : displayIndent     , displayMessage, displayUnindent, verbosityLevelInfo, &
+          &                                   verbosityLevelWarn
+    use :: ISO_Varying_String        , only : assignment(=)     , operator(//)  , varying_string
     use :: Memory_Management         , only : allocateArray
     use :: Merger_Tree_Read_Importers, only : nodeDataMinimal
     use :: Sorting                   , only : sortIndex
@@ -3533,12 +3685,12 @@ contains
     end if
     self%splitForestTreeSize(treeCount)=size(nodes)+1-self%splitForestTreeStart(treeCount)
     ! Report.
-    call Galacticus_Display_Indent('Breaking forest into trees:',verbosityInfo)
+    call displayIndent('Breaking forest into trees:',verbosityLevelInfo)
     do i=1,treeCount
        message="Tree "
        message=message//i//" of "//treeCount//" contains "//self%splitForestTreeSize(i)//" node"
        if (self%splitForestTreeSize(i) > 1) message=message//"s"
-       call Galacticus_Display_Message(message,verbosityInfo)
+       call displayMessage(message,verbosityLevelInfo)
     end do
     ! Search for nodes which have a descendent with different root affinity.
     pushCount=0
@@ -3561,7 +3713,7 @@ contains
     end do
     message="Found "
     message=message//pushCount//" links between trees"
-    call Galacticus_Display_Message(message,verbosityInfo)
+    call displayMessage(message,verbosityLevelInfo)
     ! Build a list of push and pull links.
     call allocateArray(self%splitForestPushTo   ,[pushCount])
     call allocateArray(self%splitForestPullFrom ,[pushCount])
@@ -3626,7 +3778,7 @@ contains
                       message=message//nodes(j)%nodeIndex//']'
                       message=message//char(10)//'ignoring as not currently supported'
                       message=message//char(10)//'warning will not be issued again'
-                      call Galacticus_Display_Message(message,verbosityWarn)
+                      call displayMessage(message,verbosityLevelWarn)
                       self%warningSplitForestNestedHierarchyIssued=.true.
                    end if
                    do while (nodes(j)%nodeIndex /= nodes(j)%hostIndex)
@@ -3646,12 +3798,14 @@ contains
           end if
        end if
     end do
-    call Galacticus_Display_Unindent('done',verbosityInfo)
+    call displayUnindent('done',verbosityLevelInfo)
     return
   end subroutine readRootNodeAffinitiesInitial
 
   logical function readIsOnPushList(self,node)
-    !% Return true if the given node is on the current ``push-to'' list of nodes for split forests.
+    !!{
+    Return true if the given node is on the current ``push-to'' list of nodes for split forests.
+    !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
     class(mergerTreeConstructorRead), intent(inout) :: self
@@ -3666,7 +3820,9 @@ contains
   end function readIsOnPushList
 
   logical function readIsOnPullList(self,node)
-    !% Return true if the given node is on the current ``pull-from'' list of nodes for split forests.
+    !!{
+    Return true if the given node is on the current ``pull-from'' list of nodes for split forests.
+    !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
     class(mergerTreeConstructorRead), intent(inout) :: self
@@ -3681,7 +3837,9 @@ contains
   end function readIsOnPullList
 
   function readPushListIndex(self,node)
-    !% Return the index of the given node in the ``push-to'' list of nodes for split forests.
+    !!{
+    Return the index of the given node in the ``push-to'' list of nodes for split forests.
+    !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
     class  (mergerTreeConstructorRead), intent(inout) :: self
@@ -3700,7 +3858,9 @@ contains
   end function readPushListIndex
 
   function readPullListIndex(self,node,iPull)
-    !% Return the index of the given node in the ``pull-from'' list of nodes for split forests.
+    !!{
+    Return the index of the given node in the ``pull-from'' list of nodes for split forests.
+    !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
     class  (mergerTreeConstructorRead), intent(inout) :: self
@@ -3724,7 +3884,9 @@ contains
   end function readPullListIndex
 
   function readPullListCount(self,node)
-    !% Return the number of the given node in the ``pull-from'' list of nodes for split forests.
+    !!{
+    Return the number of the given node in the ``pull-from'' list of nodes for split forests.
+    !!}
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
     class  (mergerTreeConstructorRead), intent(inout) :: self
@@ -3740,13 +3902,15 @@ contains
   end function readPullListCount
 
   subroutine readAssignSplitForestEvents(self,nodes,nodeList)
-    !% Assign events to nodes if they jump between trees in a forest.
-    use :: Galacticus_Display        , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent , verbosityInfo
+    !!{
+    Assign events to nodes if they jump between trees in a forest.
+    !!}
+    use :: Display                   , only : displayIndent          , displayMessage     , displayUnindent             , verbosityLevelInfo
     use :: Galacticus_Error          , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes          , only : nodeComponentBasic       , nodeEvent                 , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, &
-          &                                   treeNode                 , treeNodeList
+    use :: Galacticus_Nodes          , only : nodeComponentBasic     , nodeEvent          , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, &
+          &                                   treeNode               , treeNodeList
     use :: Merger_Tree_Read_Importers, only : nodeData
-    use :: Node_Events_Inter_Tree    , only : Node_Pull_From_Tree      , Node_Push_From_Tree
+    use :: Node_Events_Inter_Tree    , only : Node_Pull_From_Tree    , Node_Push_From_Tree
     use :: String_Handling           , only : operator(//)
     implicit none
     class           (mergerTreeConstructorRead)              , intent(inout), target :: self
@@ -3766,7 +3930,7 @@ contains
 
     !! TODO: Handle cases where branch jumps and/or subhalo promotions are disallowed.
 
-    call Galacticus_Display_Indent('Assigning inter-tree events',verbosityInfo)
+    call displayIndent('Assigning inter-tree events',verbosityLevelInfo)
     do iNode=1,size(nodes)
        ! Process only isolated nodes.
        if (nodes(iNode)%isolatedNodeIndex == readNodeReachabilityUnreachable) cycle
@@ -3801,7 +3965,7 @@ contains
                 write (label,'(f12.8)') self%splitForestPushTime(self%pushListIndex(node))
                 message="Attaching push event ["
                 message=message//newEvent%ID//"] to node "//node%nodeIndex//" [-->"//self%splitForestPullFrom(self%pushListIndex(node))//"] {ref:"//self%splitForestPushTo(self%pushListIndex(node))//"} at time "//label//" Gyr"
-                call Galacticus_Display_Message(message,verbosityInfo)
+                call displayMessage(message,verbosityLevelInfo)
              end if
           end if
           if (self%isOnPullList(node)) then
@@ -3906,7 +4070,7 @@ contains
                    write (label,'(f12.8)') self%splitForestPushTime(self%pullListIndex(node,iPull))
                    message="Attaching pull event ["
                    message=message//newEvent%ID//"] to node "//node%nodeIndex//" [<--"//self%splitForestPushTo(self%pullListIndex(node,iPull))//"] {ref:"//self%splitForestPushTo(self%pullListIndex(node,iPull))//"} at time "//label//" Gyr"
-                   call Galacticus_Display_Message(message,verbosityInfo)
+                   call displayMessage(message,verbosityLevelInfo)
                 end if
              end do
           end if
@@ -3941,12 +4105,14 @@ contains
           end if
        end do
     end do
-    call Galacticus_Display_Unindent('done',verbosityInfo)
+    call displayUnindent('done',verbosityLevelInfo)
     return
   end subroutine readAssignSplitForestEvents
 
   subroutine readInterTreeMergeTimeSet(self,nodeSatellite,nodeHost)
-    !% Set the merging time for a node undergoing and inter-tree transfer.
+    !!{
+    Set the merging time for a node undergoing and inter-tree transfer.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentPosition, nodeComponentSatellite, treeNode
     use :: Kepler_Orbits   , only : keplerOrbit

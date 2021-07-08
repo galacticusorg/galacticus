@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An accretion flow class using the framework of \cite{shi_outer_2016}.
+  !!{
+  An accretion flow class using the framework of \cite{shi_outer_2016}.
+  !!}
   
   use :: Cosmology_Functions                      , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters                     , only : cosmologyParametersClass
-  use :: Numerical_Interpolation                  , only : interpolator                           , gsl_interp_cspline
   use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistoryClass
   use :: Dark_Matter_Halo_Scales                  , only : darkMatterHaloScaleClass
+  use :: Numerical_Interpolation                  , only : gsl_interp_cspline                     , interpolator
   use :: Spherical_Collapse_Solvers               , only : sphericalCollapseSolverClass
   
   ! Note: Throughout this class the following acronyms are used:
@@ -37,11 +39,15 @@
   !        * ScaleHRTA - these correspond to the HRTA unit system - that is, quantities are scaled to Rₕᵣₜₐ(a) and Mₕᵣₜₐ(a).
   !        * Physical  - these correspond to physical units (Mpc, M☉, km/s).
   
-  !# <accretionFlows name="accretionFlowsShi2016">
-  !#  <description>An accretion flow class using the framework of \cite{shi_outer_2016}.</description>
-  !# </accretionFlows>
+  !![
+  <accretionFlows name="accretionFlowsShi2016">
+   <description>An accretion flow class using the framework of \cite{shi_outer_2016}.</description>
+  </accretionFlows>
+  !!]
   type, extends(accretionFlowsClass) :: accretionFlowsShi2016
-     !% An accretion flow class using the framework of \cite{shi_outer_2016}.
+     !!{
+     An accretion flow class using the framework of \cite{shi_outer_2016}.
+     !!}
      private
      class           (darkMatterHaloScaleClass               ), pointer                   :: darkMatterHaloScale_                              => null()
      class           (darkMatterHaloMassAccretionHistoryClass), pointer                   :: darkMatterHaloMassAccretionHistory_               => null()
@@ -70,9 +76,11 @@
           &                                                                                  radiusSplashbackScaled                                     , radiusMinimumPhysical               , &
           &                                                                                  scaleFactorVelocity
    contains
-     !# <methods>
-     !#   <method description="Solve for the structurr of the accretion flow." method="solve" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Solve for the structure of the accretion flow." method="solve" />
+     </methods>
+     !!]
      final     ::              shi2016Destructor
      procedure :: density   => shi2016Density
      procedure :: velocity  => shi2016Velocity
@@ -80,7 +88,9 @@
   end type accretionFlowsShi2016
 
   interface accretionFlowsShi2016
-     !% Constructors for the {\normalfont \ttfamily shi2016} accretion flows class.
+     !!{
+     Constructors for the {\normalfont \ttfamily shi2016} accretion flows class.
+     !!}
      module procedure shi2016ConstructorParameters
      module procedure shi2016ConstructorInternal
   end interface accretionFlowsShi2016
@@ -98,7 +108,9 @@
 contains
   
   function shi2016ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily shi2016} accretion flow class that takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily shi2016} accretion flow class that takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (accretionFlowsShi2016                  )                :: self
@@ -110,30 +122,34 @@ contains
     class           (sphericalCollapseSolverClass           ), pointer       :: sphericalCollapseSolver_
     double precision                                                         :: scaleFactorVelocity
 
-    !# <inputParameter>
-    !#   <name>scaleFactorVelocity</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>A scale factor to be applied to inflow velocities.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterHaloScale"                name="darkMatterHaloScale_"                source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"/>
-    !# <objectBuilder class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"/>
-    !# <objectBuilder class="sphericalCollapseSolver"            name="sphericalCollapseSolver_"            source="parameters"/>
+    !![
+    <inputParameter>
+      <name>scaleFactorVelocity</name>
+      <source>parameters</source>
+      <defaultValue>1.0d0</defaultValue>
+      <description>A scale factor to be applied to inflow velocities.</description>
+    </inputParameter>
+    <objectBuilder class="darkMatterHaloScale"                name="darkMatterHaloScale_"                source="parameters"/>
+    <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"/>
+    <objectBuilder class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"/>
+    <objectBuilder class="sphericalCollapseSolver"            name="sphericalCollapseSolver_"            source="parameters"/>
+    !!]
     self=accretionFlowsShi2016(scaleFactorVelocity,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloMassAccretionHistory_,darkMatterHaloScale_,sphericalCollapseSolver_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloMassAccretionHistory_"/>
-    !# <objectDestructor name="darkMatterHaloScale_"               />
-    !# <objectDestructor name="cosmologyParameters_"               />
-    !# <objectDestructor name="cosmologyFunctions_"                />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloMassAccretionHistory_"/>
+    <objectDestructor name="darkMatterHaloScale_"               />
+    <objectDestructor name="cosmologyParameters_"               />
+    <objectDestructor name="cosmologyFunctions_"                />
+    !!]
     return
   end function shi2016ConstructorParameters
 
   function shi2016ConstructorInternal(scaleFactorVelocity,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloMassAccretionHistory_,darkMatterHaloScale_,sphericalCollapseSolver_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily shi2016} accretion flows class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily shi2016} accretion flows class.
+    !!}
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
     type            (accretionFlowsShi2016                  )                        :: self
@@ -143,7 +159,9 @@ contains
     class           (darkMatterHaloScaleClass               ), intent(in   ), target :: darkMatterHaloScale_
     class           (sphericalCollapseSolverClass           ), intent(in   ), target :: sphericalCollapseSolver_
     double precision                                         , intent(in   )         :: scaleFactorVelocity
-    !# <constructorAssign variables="scaleFactorVelocity, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloMassAccretionHistory_, *darkMatterHaloScale_, *sphericalCollapseSolver_"/>
+    !![
+    <constructorAssign variables="scaleFactorVelocity, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterHaloMassAccretionHistory_, *darkMatterHaloScale_, *sphericalCollapseSolver_"/>
+    !!]
 
     ! Validate cosmology.
     if (.not.Values_Agree(self%cosmologyParameters_%OmegaCurvature           (),+0.0d0,absTol=1.0d-3))                      &
@@ -160,20 +178,26 @@ contains
   end function shi2016ConstructorInternal
 
   subroutine shi2016Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily shi2016} accretion flows class.
+    !!{
+    Destructor for the {\normalfont \ttfamily shi2016} accretion flows class.
+    !!}
     implicit none
     type(accretionFlowsShi2016), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"                />
-    !# <objectDestructor name="self%cosmologyParameters_"               />
-    !# <objectDestructor name="self%darkMatterHaloMassAccretionHistory_"/>
-    !# <objectDestructor name="self%darkMatterHaloScale_"               />
-    !# <objectDestructor name="self%sphericalCollapseSolver_"           />
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"                />
+    <objectDestructor name="self%cosmologyParameters_"               />
+    <objectDestructor name="self%darkMatterHaloMassAccretionHistory_"/>
+    <objectDestructor name="self%darkMatterHaloScale_"               />
+    <objectDestructor name="self%sphericalCollapseSolver_"           />
+    !!]
     return
   end subroutine shi2016Destructor
   
   double precision function shi2016Density(self,node,radius)
-    !% Compute the density of the accretion flow at the given radius.
+    !!{
+    Compute the density of the accretion flow at the given radius.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -197,7 +221,9 @@ contains
   end function shi2016Density
   
   double precision function shi2016Velocity(self,node,radius)
-    !% Compute the velocity of the accretion flow at the given radius.
+    !!{
+    Compute the velocity of the accretion flow at the given radius.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -224,21 +250,23 @@ contains
   end function shi2016Velocity
   
   subroutine shi2016Solve(self,node)
-    !% Solve the accretion flow.
-    use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: Galacticus_Display              , only : Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, Galacticus_Display_Indent    , Galacticus_Display_Unindent, &
-         &                                          verbosityWorking
-    use :: Galacticus_Nodes                , only : nodeComponentBasic
-    use :: Elliptic_Integrals              , only : Elliptic_Integral_K       , Elliptic_Integral_Pi
-    use :: Numerical_Constants_Astronomical, only : megaParsec                , gigaYear
-    use :: Numerical_Constants_Prefixes    , only : kilo
-    use :: Numerical_Constants_Math        , only : Pi
-    use :: Numerical_Ranges                , only : Make_Range                , rangeTypeLogarithmic
-    use :: Root_Finder                     , only : rangeExpandMultiplicative , rangeExpandSignExpectNegative   , rangeExpandSignExpectPositive, rootFinder
+    !!{
+    Solve the accretion flow.
+    !!}
     use :: Array_Utilities                 , only : Array_Reverse
-    use :: Sorting                         , only : sortIndex
-    use :: Numerical_Comparison            , only : Values_Differ
+    use :: Display                         , only : displayCounter           , displayCounterClear          , displayIndent                , displayUnindent, &
+          &                                         verbosityLevelWorking
+    use :: Elliptic_Integrals              , only : Elliptic_Integral_K      , Elliptic_Integral_Pi
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                , only : nodeComponentBasic
     use :: ISO_Varying_String              , only : var_str
+    use :: Numerical_Comparison            , only : Values_Differ
+    use :: Numerical_Constants_Astronomical, only : gigaYear                 , megaParsec
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Numerical_Ranges                , only : Make_Range               , rangeTypeLogarithmic
+    use :: Root_Finder                     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+    use :: Sorting                         , only : sortIndex
     use :: String_Handling                 , only : operator(//)
     use :: Tables                          , only : table1D
     implicit none
@@ -352,13 +380,11 @@ contains
        ! Build array of overdensityies.
        self%overdensityScaled         =Make_Range(overdensityMaximumScaled,overdensityMinimumScaled,countRadii,rangeTypeLogarithmic)
        ! Build a root finder which will be used for finding the time at half the turnaround radius.
-       call finder%rootFunction(                                            &
-            &                                     halfRadiusTurnAroundRoot  &
-            &                  )
-       call finder%tolerance   (                                            &
-            &                   toleranceAbsolute=0.0d+0                  , &
-            &                   toleranceRelative=1.0d-3                    &
-            &                  )
+       finder=rootFinder(                                            &
+            &            rootFunction     =halfRadiusTurnAroundRoot, &
+            &            toleranceAbsolute=0.0d+0                  , &
+            &            toleranceRelative=1.0d-3                    &
+            &           )
        ! Find turnaround radius and mass as a function of time, along with epoch at which half the turnaround radius is
        ! reached. This is all in scale-free units.
        do i=1,countRadii
@@ -446,10 +472,10 @@ contains
        multistreamConverged=.false.
        do while (iteration < iterationMaximum .and. .not.multistreamConverged)
           iteration=iteration+1
-          call Galacticus_Display_Indent(var_str('multistream mass profile iteration ')//iteration,verbosity=verbosityWorking)
+          call displayIndent(var_str('multistream mass profile iteration ')//iteration,verbosity=verbosityLevelWorking)
           ! Iterate over all overdensity shells solving for their radial position and velocity at the present epoch.
           do i=1,countRadii
-             call Galacticus_Display_Counter(int(100.0d0*dble(i-1)/dble(countRadii)),isNew=i==1,verbosity=verbosityWorking)
+             call displayCounter(int(100.0d0*dble(i-1)/dble(countRadii)),isNew=i==1,verbosity=verbosityLevelWorking)
              ! Solve the dynamical ODEs to get the scaled radius at the final time.
              radiusComovingInitialOriginal=self%radiusComovingInitialOriginal(i)
              massEnclosedInitialOriginal  =self%massEnclosedInitialOriginal  (i)
@@ -464,7 +490,7 @@ contains
                   &                        *asinh(                                               expansionFactorScaledInitial **1.5d0)
              call radiusScaledSolver(timeInitialScaled,self%timeNowScaled,radiusInitialScaled,radiusGrowthRateInitialScaled,self%radiusScaled(i),self%radiusGrowthRateScaled(i))
           end do
-          call Galacticus_Display_Counter_Clear(verbosity=verbosityWorking)
+          call displayCounterClear(verbosity=verbosityLevelWorking)
           ! Build an interpolator for the scaled radius as a function of overdensity.
           if (allocated(self%interpolatorRadiusScaled)) deallocate(self%interpolatorRadiusScaled)
           allocate(self%interpolatorRadiusScaled)
@@ -529,7 +555,7 @@ contains
           self%radiusMultistreamMinimumScaledHRTA         =self%radiusOrderedOriginal(         1)/self%radiusHRTANowOriginal
           self%radiusMultistreamMaximumScaledHRTA         =self%radiusOrderedOriginal(countRadii)/self%radiusHRTANowOriginal
           write (label,'(e8.2)') changeRelativeMaximum
-          call Galacticus_Display_Unindent(var_str('done [fractional change = ')//trim(adjustl(label))//']',verbosity=verbosityWorking)
+          call displayUnindent(var_str('done [fractional change = ')//trim(adjustl(label))//']',verbosity=verbosityLevelWorking)
        end do
        if (.not.multistreamConverged) call Galacticus_Error_Report('failed to reach convergence in the multistream region'//{introspection:location})
     end if
@@ -655,7 +681,9 @@ contains
   end subroutine shi2016Solve
 
   double precision function halfRadiusTurnAroundRoot(timeFinalScaled)
-    !% Root function used in finding the epoch at which a shell reaches a radius equal to half of its turnaround radius, $y^*$.
+    !!{
+    Root function used in finding the epoch at which a shell reaches a radius equal to half of its turnaround radius, $y^*$.
+    !!}
     implicit none
     double precision, intent(in   ) :: timeFinalScaled
     double precision                :: radiusScaled   , radiusGrowthRateScaled
@@ -672,9 +700,11 @@ contains
   end function halfRadiusTurnAroundRoot
   
   subroutine radiusScaledSolver(timeInitialScaled,timeFinalScaled,radiusInitialScaled,radiusGrowthRateInitialScaled,radiusScaled,radiusGrowthRateScaled)
-    !% Compute the scaled radius (and its growth rate) as a function of the initial state and final time.
-    use :: Numerical_ODE_Solvers, only : odeSolver
+    !!{
+    Compute the scaled radius (and its growth rate) as a function of the initial state and final time.
+    !!}
     use :: Interface_GSL        , only : GSL_Success
+    use :: Numerical_ODE_Solvers, only : odeSolver
     implicit none
     double precision           , intent(in   ) :: timeInitialScaled         , timeFinalScaled                      , &
          &                                        radiusInitialScaled       , radiusGrowthRateInitialScaled
@@ -694,7 +724,9 @@ contains
   end subroutine radiusScaledSolver
 
   integer function dynamicalODES(timeScaled,odeVariables,odeVariablesGrowthRate)
-    !% The dynamical equation describing the motion of a shell of matter in scaled variables \citep[][eqn.~A7]{shi_outer_2016}.
+    !!{
+    The dynamical equation describing the motion of a shell of matter in scaled variables \citep[][eqn.~A7]{shi_outer_2016}.
+    !!}
     use :: Interface_GSL, only : GSL_Success
     implicit none
     double precision              , intent(in   ) :: timeScaled
@@ -761,7 +793,9 @@ contains
   end function dynamicalODES
 
   elemental double precision function expansionFactorFromTimeScaled(timeScaled) result(expansionFactor)
-    !% Compute the scaled expansion factor from the scaled time using equation~(A6) of \cite{shi_outer_2016}.
+    !!{
+    Compute the scaled expansion factor from the scaled time using equation~(A6) of \cite{shi_outer_2016}.
+    !!}
     implicit none
     double precision, intent(in   ) :: timeScaled
 

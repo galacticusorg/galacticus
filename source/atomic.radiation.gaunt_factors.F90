@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,24 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class implenting Gaunt factors.
+!!{
+Contains a module which provides a class implenting Gaunt factors.
+!!}
 
 module Atomic_Radiation_Gaunt_Factors
-  !% Provides a class implenting Gaunt factors.
+  !!{
+  Provides a class implenting Gaunt factors.
+  !!}
   private
 
-  !# <functionClass>
-  !#  <name>gauntFactor</name>
-  !#  <descriptiveName>Gaunt Factors</descriptiveName>
-  !#  <description>Class providing Gaunt factors.</description>
-  !#  <default>sutherland1998</default>
-  !#  <method name="total" >
-  !#   <description>Returns the thermally averaged, total Gaunt factor.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>integer         , intent(in   ) :: atomicNumber, electronNumber</argument>
-  !#   <argument>double precision, intent(in   ) :: temperature</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>gauntFactor</name>
+   <descriptiveName>Gaunt Factors</descriptiveName>
+   <description>Class providing Gaunt factors.</description>
+   <default>sutherland1998</default>
+   <method name="total" >
+    <description>Returns the thermally averaged, total Gaunt factor.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>integer         , intent(in   ) :: atomicNumber, electronNumber</argument>
+    <argument>double precision, intent(in   ) :: temperature</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Atomic_Radiation_Gaunt_Factors

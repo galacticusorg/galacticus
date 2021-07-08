@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,19 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements calculations of satellite merging times using the \cite{boylan-kolchin_dynamical_2008} method.
+  !!{
+  Implements calculations of satellite merging times using the \cite{boylan-kolchin_dynamical_2008} method.
+  !!}
 
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
-  !# <satelliteMergingTimescales name="satelliteMergingTimescalesBoylanKolchin2008">
-  !#  <description>
-  !#   A satellite merging timescale class which computes merging timescales using the dynamical friction calibration of
-  !#   \cite{boylan-kolchin_dynamical_2008}.
-  !#  </description>
-  !# </satelliteMergingTimescales>
+  !![
+  <satelliteMergingTimescales name="satelliteMergingTimescalesBoylanKolchin2008">
+   <description>
+    A satellite merging timescale class which computes merging timescales using the dynamical friction calibration of
+    \cite{boylan-kolchin_dynamical_2008}.
+   </description>
+  </satelliteMergingTimescales>
+  !!]
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesBoylanKolchin2008
-     !% A class implementing the \cite{boylan-kolchin_dynamical_2008} method for satellite merging timescales.
+     !!{
+     A class implementing the \cite{boylan-kolchin_dynamical_2008} method for satellite merging timescales.
+     !!}
      private
      class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
@@ -40,7 +46,9 @@
   end type satelliteMergingTimescalesBoylanKolchin2008
 
   interface satelliteMergingTimescalesBoylanKolchin2008
-     !% Constructors for the {\normalfont \ttfamily boylanKolchin2008} satellite merging timescale class.
+     !!{
+     Constructors for the {\normalfont \ttfamily boylanKolchin2008} satellite merging timescale class.
+     !!}
      module procedure boylanKolchin2008ConstructorParameters
      module procedure boylanKolchin2008ConstructorInternal
   end interface satelliteMergingTimescalesBoylanKolchin2008
@@ -48,8 +56,10 @@
 contains
 
   function boylanKolchin2008ConstructorParameters(parameters) result(self)
-    !% A constructor for the {\normalfont \ttfamily boylanKolchin2008} satellite merging timescale class which builds the object from a
-    !% parameter set.
+    !!{
+    A constructor for the {\normalfont \ttfamily boylanKolchin2008} satellite merging timescale class which builds the object from a
+    parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (satelliteMergingTimescalesBoylanKolchin2008)                :: self
@@ -58,45 +68,59 @@ contains
     class           (darkMatterProfileDMOClass                  ), pointer       :: darkMatterProfileDMO_
     double precision                                                             :: timescaleMultiplier
 
-    !# <inputParameter>
-    !#   <name>timescaleMultiplier</name>
-    !#   <defaultValue>0.75d0</defaultValue>
-    !#   <description>A multiplier for the merging timescale in dynamical friction timescale calculations.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>timescaleMultiplier</name>
+      <defaultValue>0.75d0</defaultValue>
+      <description>A multiplier for the merging timescale in dynamical friction timescale calculations.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !!]
     self=satelliteMergingTimescalesBoylanKolchin2008(timescaleMultiplier,darkMatterHaloScale_,darkMatterProfileDMO_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_" />
-    !# <objectDestructor name="darkMatterProfileDMO_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_" />
+    <objectDestructor name="darkMatterProfileDMO_"/>
+    !!]
     return
   end function boylanKolchin2008ConstructorParameters
 
   function boylanKolchin2008ConstructorInternal(timescaleMultiplier,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
-    !% Default constructor for the {\normalfont \ttfamily boylanKolchin2008} satellite merging timescale class.
+    !!{
+    Default constructor for the {\normalfont \ttfamily boylanKolchin2008} satellite merging timescale class.
+    !!}
     implicit none
     type            (satelliteMergingTimescalesBoylanKolchin2008)                        :: self
     double precision                                             , intent(in   )         :: timescaleMultiplier
     class           (darkMatterHaloScaleClass                   ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass                  ), intent(in   ), target :: darkMatterProfileDMO_
-    !# <constructorAssign variables="timescaleMultiplier, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    !![
+    <constructorAssign variables="timescaleMultiplier, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    !!]
 
     return
   end function boylanKolchin2008ConstructorInternal
 
   subroutine boylanKolchin2008Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily boylanKolchin2008} satellite merging timescale class.
+    !!{
+    Destructor for the {\normalfont \ttfamily boylanKolchin2008} satellite merging timescale class.
+    !!}
     implicit none
     type(satelliteMergingTimescalesBoylanKolchin2008), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_" />
-    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_" />
+    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !!]
     return
   end subroutine boylanKolchin2008Destructor
 
   double precision function boylanKolchin2008TimeUntilMerging(self,node,orbit)
-    !% Return the timescale for merging satellites using the \cite{boylan-kolchin_dynamical_2008} method.
+    !!{
+    Return the timescale for merging satellites using the \cite{boylan-kolchin_dynamical_2008} method.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic                              , treeNode
     use :: Kepler_Orbits   , only : keplerOrbit

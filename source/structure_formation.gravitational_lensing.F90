@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,31 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements gravitational lensing from large scale structure.
+!!{
+Contains a module which implements gravitational lensing from large scale structure.
+!!}
 
 module Gravitational_Lensing
-  !% Implements gravitational lensing from large scale structure.
+  !!{
+  Implements gravitational lensing from large scale structure.
+  !!}
   private
 
-  !# <functionClass>
-  !# <name>gravitationalLensing</name>
-  !#  <descriptiveName>Gravitational Lensing</descriptiveName>
-  !#  <description>
-  !#   Class providing gravitational lensing probabilities due to large scale structure.
-  !#  </description>
-  !#  <default>takahashi2011</default>
-  !#  <method name="magnificationPDF" >
-  !#   <description>Returns the differential probability function for magnification.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: magnification, redshift, scaleSource</argument>
-  !#  </method>
-  !#  <method name="magnificationCDF" >
-  !#   <description>Returns the cumulative probability function for magnification.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: magnification, redshift, scaleSource</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+  <name>gravitationalLensing</name>
+   <descriptiveName>Gravitational Lensing</descriptiveName>
+   <description>
+    Class providing gravitational lensing probabilities due to large scale structure.
+   </description>
+   <default>takahashi2011</default>
+   <method name="magnificationPDF" >
+    <description>Returns the differential probability function for magnification.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: magnification, redshift, scaleSource</argument>
+   </method>
+   <method name="magnificationCDF" >
+    <description>Returns the cumulative probability function for magnification.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: magnification, redshift, scaleSource</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Gravitational_Lensing

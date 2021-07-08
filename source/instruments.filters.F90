@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,46 +19,68 @@
 
 !+    Contributions to this file made by:  Alex Merson.
 
-!% Contains a module which implements calculations of filter response curves.
+!!{
+Contains a module which implements calculations of filter response curves.
+!!}
 
 module Instruments_Filters
-  !% Implements calculations of filter response curves.
-  use :: Numerical_Interpolation, only : interpolator
-  use :: ISO_Varying_String     , only : varying_string
+  !!{
+  Implements calculations of filter response curves.
+  !!}
+  use :: ISO_Varying_String , only : varying_string
+  use :: Locks              , only : ompReadWriteLock
   implicit none
   private
-  public :: Filter_Get_Index, Filter_Response, Filter_Extent, Filter_Vega_Offset, Filter_Name, Filter_Wavelength_Effective
+  public :: Filter_Get_Index, Filter_Response            , Filter_Extent , Filter_Vega_Offset      , &
+       &    Filter_Name     , Filter_Wavelength_Effective, Filters_Output, Filter_Response_Function
 
   type filterType
-     !% A structure which holds filter response curves.
+     !!{
+     A structure which holds filter response curves.
+     !!}
      integer                                                     :: nPoints
      double precision                , allocatable, dimension(:) :: response           , wavelength
      type            (varying_string)                            :: name
      logical                                                     :: vegaOffsetAvailable, wavelengthEffectiveAvailable
      double precision                                            :: vegaOffset         , wavelengthEffective
-     type            (interpolator  )                            :: interpolator_
   end type filterType
 
   ! Array to hold filter data.
-  type(filterType), allocatable, dimension(:) :: filterResponses
+  type   (filterType      ), allocatable, dimension(:) :: filterResponses
+  integer                                              :: countFilterResponses=0
 
+  ! Read/write lock used to control access to the filter responeses.
+  type   (ompReadWriteLock)                            :: lock
+  logical                                              :: lockInitialized=.false.
+  
 contains
 
   integer function Filter_Get_Index(filterName)
-    !% Return the index for the specified filter, loading that filter if necessary.
+    !!{
+    Return the index for the specified filter, loading that filter if necessary.
+    !!}
     use :: ISO_Varying_String, only : operator(==)
     implicit none
     type   (varying_string), intent(in   ) :: filterName
     integer                                :: iFilter
 
+    ! Initialize lock if necessary.
+    if (.not.lockInitialized) then
+       !$omp critical (instrumentsFiltersLock)
+       if (.not.lockInitialized) then
+          lock           =ompReadWriteLock()
+          lockInitialized=.true.
+       end if
+       !$omp end critical (instrumentsFiltersLock)
+    end if
     ! See if we already have this filter loaded. If not, load it.
-    !$omp critical (Filter_Get_Index_Lock)
-    if (.not.allocated(filterResponses)) then
+    call lock%setRead()
+    if (countFilterResponses == 0) then
        call Filter_Response_Load(filterName)
-       Filter_Get_Index=1
+       Filter_Get_Index=countFilterResponses
     else
        Filter_Get_Index=0
-       do iFilter=1,size(filterResponses)
+       do iFilter=1,countFilterResponses
          if (filterResponses(iFilter)%name == filterName) then
              Filter_Get_Index=iFilter
              exit
@@ -66,52 +88,57 @@ contains
        end do
        if (Filter_Get_Index == 0) then
           call Filter_Response_Load(filterName)
-          Filter_Get_Index=size(filterResponses)
+          Filter_Get_Index=countFilterResponses
        end if
     end if
-    !$omp end critical (Filter_Get_Index_Lock)
+    call lock%unsetRead()
     return
   end function Filter_Get_Index
 
   function Filter_Name(filterIndex)
-    !% Return the name of the specified filter.
+    !!{
+    Return the name of the specified filter.
+    !!}
     implicit none
     type   (varying_string)                :: Filter_Name
     integer                , intent(in   ) :: filterIndex
 
+    call lock%setRead()
     Filter_Name=filterResponses(filterIndex)%name
+    call lock%unsetRead()
     return
   end function Filter_Name
 
   function Filter_Extent(filterIndex)
-    !% Return an array containing the minimum and maximum wavelengths tabulated for this specified filter.
+    !!{
+    Return an array containing the minimum and maximum wavelengths tabulated for this specified filter.
+    !!}
     implicit none
     double precision, dimension(2)  :: Filter_Extent
     integer         , intent(in   ) :: filterIndex
 
-    !$omp critical (Filter_Get_Index_Lock)
+    call lock%setRead()
     Filter_Extent(1)=filterResponses(filterIndex)%wavelength(1)
     Filter_Extent(2)=filterResponses(filterIndex)%wavelength(filterResponses(filterIndex)%nPoints)
-    !$omp end critical (Filter_Get_Index_Lock)
+    call lock%unsetRead()
     return
   end function Filter_Extent
 
   subroutine Filter_Response_Load(filterName)
-    !% Load a filter response curve.
+    !!{
+    Load a filter response curve.
+    !!}
     use :: File_Utilities           , only : File_Exists
     use :: FoX_dom                  , only : DOMException           , Node                             , destroy           , getExceptionCode                          , &
          &                                   inException
     use :: Galacticus_Error         , only : Galacticus_Error_Report
-    use :: Galacticus_HDF5          , only : galacticusOutputFile   , galacticusOutputFileIsOpen
     use :: Galacticus_Paths         , only : galacticusPath         , pathTypeDataDynamic              , pathTypeDataStatic
     use :: HII_Region_Emission_Lines, only : emissionLineWavelength
-    use :: IO_HDF5                  , only : hdf5Access             , hdf5Object
     use :: IO_XML                   , only : XML_Array_Read         , XML_Get_First_Element_By_Tag_Name, XML_Path_Exists   , extractDataContent => extractDataContentTS, &
          &                                   XML_Parse
     use :: ISO_Varying_String       , only : assignment(=)          , char                             , operator(//)      , operator(==)                              , &
          &                                   extract
     use :: Memory_Management        , only : Memory_Usage_Record    , allocateArray
-    use :: Numerical_Constants_Units, only : angstromsPerMeter
     use :: String_Handling          , only : String_Split_Words     , operator(//)
     implicit none
     type            (varying_string), intent(in   )               :: filterName
@@ -123,28 +150,26 @@ contains
     integer                                                       :: filterIndex                   , ioErr
     type            (varying_string)                              :: filterFileName                , errorMessage
     type            (DOMException  )                              :: exception
-    logical                                                       :: parseSuccess                  , firstFilter
+    logical                                                       :: parseSuccess
     character       (len=64        )                              :: word
     double precision                                              :: centralWavelength             , resolution                , &
          &                                                           filterWidth
-    type            (hdf5Object    )                              :: filtersGroup                  , dataset
 
+    call lock%setWrite(haveReadLock=.true.)
     ! Allocate space for this filter.
-    if (allocated(filterResponses)) then
-       call Move_Alloc(filterResponses,filterResponsesTemporary)
-       allocate(filterResponses(size(filterResponsesTemporary)+1))
-       filterResponses(1:size(filterResponsesTemporary))=filterResponsesTemporary
-       do filterIndex=1,size(filterResponsesTemporary)
-          call filterResponses(filterIndex)%interpolator_%GSLReallocate(gslFree=.false.)
-       end do
-       deallocate(filterResponsesTemporary)       
-       call Memory_Usage_Record(sizeof(filterResponses(1)),blockCount=0)
-    else
+    if (countFilterResponses == 0) then
        allocate(filterResponses(1))
        call Memory_Usage_Record(sizeof(filterResponses))
+    else if (countFilterResponses == size(filterResponses)) then
+       call Move_Alloc(filterResponses,filterResponsesTemporary)
+       allocate(filterResponses(2*size(filterResponsesTemporary)))
+       filterResponses(1:size(filterResponsesTemporary))=filterResponsesTemporary
+       deallocate(filterResponsesTemporary)       
+       call Memory_Usage_Record(sizeof(filterResponses(1)),blockCount=0)
     end if
     ! Index in array to load into.
-    filterIndex=size(filterResponses)
+    countFilterResponses=countFilterResponses+1
+    filterIndex         =countFilterResponses
     ! Store the name of the filter.
     filterResponses(filterIndex)%name=filterName
     ! Check for special filters.
@@ -291,61 +316,100 @@ contains
     filterResponses(filterIndex)%wavelengthEffectiveAvailable=.true.
     filterResponses(filterIndex)%wavelengthEffective         =+sum(filterResponses(filterIndex)%wavelength*filterResponses(filterIndex)%response) &
          &                                                    /sum(                                        filterResponses(filterIndex)%response)
-    ! Store the filter effective wavelength to the output file.
-    if (galacticusOutputFileIsOpen) then
-       call hdf5Access%set()
-       filtersGroup=galacticusOutputFile%openGroup('Filters','Properties of filters used.')
-       firstFilter =.not.filtersGroup%hasDataset('name')
-       word        =filterResponses(filterIndex)%name
-       call filtersGroup%writeDataset([word                                            ],'name'               ,'Filter name.'                       ,appendTo=.true.                        )
-       call filtersGroup%writeDataset([filterResponses(filterIndex)%wavelengthEffective],'wavelengthEffective','Effective wavelength of filter [Å].',appendTo=.true.,datasetReturned=dataset)
-       if (firstFilter) then
-          call dataset%writeAttribute("Angstroms [Å]"        ,"units"    )
-          call dataset%writeAttribute(1.0d0/angstromsPerMeter,"unitsInSI")
-       end if
-       call dataset     %close()
-       call filtersGroup%close()
-       call hdf5Access%unset()
-    end if
-    ! Build an interpolator for this filter.
-    filterResponses(filterIndex)%interpolator_=interpolator(filterResponses(filterIndex)%wavelength,filterResponses(filterIndex)%response)
+    call lock%unsetWrite(haveReadLock=.true.)
     return
   end subroutine Filter_Response_Load
 
-  double precision function Filter_Response(filterIndex,wavelength)
-    !% Return the filter response function at the given {\normalfont \ttfamily wavelength} (specified in Angstroms).  Note that we follow the
-    !% convention of \cite{hogg_k_2002} and assume that the filter response gives the fraction of incident photons received by the
-    !% detector at a given wavelength, multiplied by the relative photon response (which will be 1 for a photon-counting detector
-    !% such as a CCD, or proportional to the photon energy for a bolometer/calorimeter type detector.
+  !![
+  <hdfPreCloseTask>
+   <unitName>Filters_Output</unitName>
+  </hdfPreCloseTask>
+  !!]
+  subroutine Filters_Output()
+    !!{
+    Output accumulated filter data to file.
+    !!}
+    use :: Galacticus_HDF5          , only : galacticusOutputFile
+    use :: IO_HDF5                  , only : hdf5Access          , hdf5Object
+    use :: Numerical_Constants_Units, only : angstromsPerMeter
     implicit none
-    integer         , intent(in   ) :: filterIndex
-    double precision, intent(in   ) :: wavelength
+    type(hdf5Object) :: filtersGroup, dataset
 
-    !$omp critical (Filter_Get_Index_Lock)
-    Filter_Response=filterResponses(filterIndex)%interpolator_%interpolate(wavelength)
-    !$omp end critical (Filter_Get_Index_Lock)
+    if (.not.allocated(filterResponses)) return
+    !$ call hdf5Access%set()
+    filtersGroup=galacticusOutputFile%openGroup('Filters','Properties of filters used.')
+    call filtersGroup%writeDataset(filterResponses%name               ,'name'               ,'Filter name.'                                               )
+    call filtersGroup%writeDataset(filterResponses%wavelengthEffective,'wavelengthEffective','Effective wavelength of filter [Å].',datasetReturned=dataset)
+    call dataset%writeAttribute("Angstroms [Å]"        ,"units"    )
+    call dataset%writeAttribute(1.0d0/angstromsPerMeter,"unitsInSI")
+    call dataset     %close()
+    call filtersGroup%close()
+    !$ call hdf5Access%unset()
+    return
+  end subroutine Filters_Output
+  
+  function Filter_Response_Function(filterIndex) result(interpolator_)
+    !!{
+    Return the filter response function (as an interpolator) as a function of wavelength (specified in Angstroms). Note that we follow the
+    convention of \cite{hogg_k_2002} and assume that the filter response gives the fraction of incident photons received by the
+    detector at a given wavelength, multiplied by the relative photon response (which will be 1 for a photon-counting detector
+    such as a CCD, or proportional to the photon energy for a bolometer/calorimeter type detector.
+    !!}
+    use :: Numerical_Interpolation, only : interpolator
+    implicit none
+    type   (interpolator), pointer       :: interpolator_
+    integer              , intent(in   ) :: filterIndex
+
+    allocate(interpolator_)
+    call lock%setRead()
+    interpolator_=interpolator(filterResponses(filterIndex)%wavelength,filterResponses(filterIndex)%response)
+    call lock%unsetRead()
+    return
+  end function Filter_Response_Function
+
+  double precision function Filter_Response(filterIndex,wavelength)
+    !!{
+    Return the filter response function at the given {\normalfont \ttfamily wavelength} (specified in Angstroms).
+    !!}
+    use :: Numerical_Interpolation, only : interpolator
+    implicit none
+    integer                       , intent(in   ) :: filterIndex
+    double precision              , intent(in   ) :: wavelength
+    type            (interpolator), pointer       :: interpolator_
+
+    interpolator_   => Filter_Response_Function(filterIndex)
+    Filter_Response =  interpolator_%interpolate(wavelength)
+    deallocate(interpolator_)
     return
   end function Filter_Response
 
   double precision function Filter_Vega_Offset(filterIndex)
-    !% Return the Vega to AB magnitude offset for the specified filter.
+    !!{
+    Return the Vega to AB magnitude offset for the specified filter.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer, intent(in   ) :: filterIndex
 
+    call lock%setRead()
     if (.not.filterResponses(filterIndex)%vegaOffsetAvailable) call Galacticus_Error_Report('Vega offset is not available'//{introspection:location})
     Filter_Vega_Offset=filterResponses(filterIndex)%vegaOffset
-    return
+    call lock%unsetRead()
+   return
   end function Filter_Vega_Offset
 
   double precision function Filter_Wavelength_Effective(filterIndex)
-    !% Return the effective wavelength for the specified filter.
+    !!{
+    Return the effective wavelength for the specified filter.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer, intent(in   ) :: filterIndex
 
+    call lock%setRead()
     if (.not.filterResponses(filterIndex)%wavelengthEffectiveAvailable) call Galacticus_Error_Report('effective wavelength is not available'//{introspection:location})
     Filter_Wavelength_Effective=filterResponses(filterIndex)%wavelengthEffective
+    call lock%unsetRead()
     return
   end function Filter_Wavelength_Effective
 

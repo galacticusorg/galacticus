@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a dark matter profile scale radius output analysis property extractor class.
+!!{
+Contains a module which implements a dark matter profile scale radius output analysis property extractor class.
+!!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorDarkMatterProfileShapeParameter">
-  !#  <description>A  dark matter profile scale radius output analysis property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorDarkMatterProfileShapeParameter">
+   <description>A  dark matter profile scale radius output analysis property extractor class.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorDarkMatterProfileShapeParameter
-     !% A dark matter profile scale radius output property extractor class.
+     !!{
+     A dark matter profile scale radius output property extractor class.
+     !!}
      private
    contains
      procedure :: extract     => darkMatterProfileShapeParameterExtract
@@ -34,14 +40,18 @@
   end type nodePropertyExtractorDarkMatterProfileShapeParameter
 
   interface nodePropertyExtractorDarkMatterProfileShapeParameter
-     !% Constructors for the {\normalfont \ttfamily darkMatterProfileShapeParameter} output analysis class.
+     !!{
+     Constructors for the {\normalfont \ttfamily darkMatterProfileShapeParameter} output analysis class.
+     !!}
      module procedure darkMatterProfileShapeParameterConstructorParameters
   end interface nodePropertyExtractorDarkMatterProfileShapeParameter
 
 contains
 
   function darkMatterProfileShapeParameterConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily darkMatterProfileShapeParameter} output analysis property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily darkMatterProfileShapeParameter} output analysis property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodePropertyExtractorDarkMatterProfileShapeParameter)                :: self
@@ -53,7 +63,9 @@ contains
   end function darkMatterProfileShapeParameterConstructorParameters
 
   double precision function darkMatterProfileShapeParameterExtract(self,node,instance)
-    !% Implement a {\normalfont \ttfamily darkMatterProfileShapeParameter} output analysis.
+    !!{
+    Implement a {\normalfont \ttfamily darkMatterProfileShapeParameter} output analysis.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
     implicit none
     class(nodePropertyExtractorDarkMatterProfileShapeParameter), intent(inout)           :: self
@@ -68,7 +80,9 @@ contains
   end function darkMatterProfileShapeParameterExtract
 
   integer function darkMatterProfileShapeParameterType(self)
-    !% Return the type of the {\normalfont \ttfamily darkMatterProfileShapeParameter} property.
+    !!{
+    Return the type of the {\normalfont \ttfamily darkMatterProfileShapeParameter} property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorDarkMatterProfileShapeParameter), intent(inout) :: self
@@ -79,7 +93,9 @@ contains
   end function darkMatterProfileShapeParameterType
 
   function darkMatterProfileShapeParameterName(self)
-    !% Return the name of the {\normalfont \ttfamily darkMatterProfileShapeParameter} property.
+    !!{
+    Return the name of the {\normalfont \ttfamily darkMatterProfileShapeParameter} property.
+    !!}
     implicit none
     type (varying_string                                      )                :: darkMatterProfileShapeParameterName
     class(nodePropertyExtractorDarkMatterProfileShapeParameter), intent(inout) :: self
@@ -90,7 +106,9 @@ contains
   end function darkMatterProfileShapeParameterName
 
   function darkMatterProfileShapeParameterDescription(self)
-    !% Return a description of the {\normalfont \ttfamily darkMatterProfileShapeParameter} property.
+    !!{
+    Return a description of the {\normalfont \ttfamily darkMatterProfileShapeParameter} property.
+    !!}
     implicit none
     type (varying_string                                      )                :: darkMatterProfileShapeParameterDescription
     class(nodePropertyExtractorDarkMatterProfileShapeParameter), intent(inout) :: self
@@ -101,7 +119,9 @@ contains
   end function darkMatterProfileShapeParameterDescription
 
   double precision function darkMatterProfileShapeParameterUnitsInSI(self)
-    !% Return the units of the darkMatterProfileShapeParameter property in the SI system.
+    !!{
+    Return the units of the darkMatterProfileShapeParameter property in the SI system.
+    !!}
     implicit none
     class(nodePropertyExtractorDarkMatterProfileShapeParameter), intent(inout) :: self
     !$GLC attributes unused :: self

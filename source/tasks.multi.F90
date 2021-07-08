@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,14 +22,21 @@
      type (multiTaskList), pointer :: next  => null()
   end type multiTaskList
 
-  !# <task name="taskMulti">
-  !#  <description>A task which performs multiple other tasks.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="multiTaskList" variable="tasks" next="next" object="task_" objectType="taskClass"/>
-  !#  </deepCopy>
-  !# </task>
+  !![
+  <task name="taskMulti">
+   <description>A task which performs multiple other tasks.</description>
+   <deepCopy>
+    <linkedList type="multiTaskList" variable="tasks" next="next" object="task_" objectType="taskClass"/>
+   </deepCopy>
+   <stateStore>
+    <linkedList type="multiTaskList" variable="tasks" next="next" object="task_"/>
+   </stateStore>
+  </task>
+  !!]
   type, extends(taskClass) :: taskMulti
-     !% Implementation of a task which performs multiple other tasks.
+     !!{
+     Implementation of a task which performs multiple other tasks.
+     !!}
      private
      type(multiTaskList), pointer :: tasks => null()
    contains
@@ -39,7 +46,9 @@
   end type taskMulti
 
   interface taskMulti
-     !% Constructors for the {\normalfont \ttfamily multi} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily multi} task.
+     !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
   end interface taskMulti
@@ -47,7 +56,9 @@
 contains
 
   function multiConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily multi} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily multi} task class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (taskMulti      )                :: self
@@ -57,7 +68,7 @@ contains
 
     self %tasks => null()
     task_       => null()
-    do i=1,parameters%copiesCount('taskMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('task',zeroIfNotPresent=.true.)
        if (associated(task_)) then
           allocate(task_%next)
           task_ => task_%next
@@ -65,13 +76,17 @@ contains
           allocate(self%tasks)
           task_ => self%tasks
        end if
-       !# <objectBuilder class="task" name="task_%task_" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="task" name="task_%task_" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function multiConstructorParameters
 
   function multiConstructorInternal(tasks) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily multi} task class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily multi} task class.
+    !!}
     implicit none
     type(taskMulti    )                        :: self
     type(multiTaskList), target, intent(in   ) :: tasks
@@ -80,14 +95,18 @@ contains
     self %tasks => tasks
     task_       => tasks
     do while (associated(task_))
-       !# <referenceCountIncrement owner="task_" object="task_"/>
+       !![
+       <referenceCountIncrement owner="task_" object="task_"/>
+       !!]
        task_ => task_%next
     end do
     return
   end function multiConstructorInternal
 
   subroutine multiDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily multi} task class.
+    !!{
+    Destructor for the {\normalfont \ttfamily multi} task class.
+    !!}
     implicit none
     type(taskMulti    ), intent(inout) :: self
     type(multiTaskList), pointer       :: task_, taskNext
@@ -96,7 +115,9 @@ contains
        task_ => self%tasks
        do while (associated(task_))
           taskNext => task_%next
-          !# <objectDestructor name="task_%task_"/>
+          !![
+          <objectDestructor name="task_%task_"/>
+          !!]
           deallocate(task_)
           task_ => taskNext
        end do
@@ -105,15 +126,17 @@ contains
   end subroutine multiDestructor
 
   subroutine multiPerform(self,status)
-    !% Perform all tasks.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent
-    use :: Galacticus_Error  , only : errorStatusSuccess
+    !!{
+    Perform all tasks.
+    !!}
+    use :: Display         , only : displayIndent     , displayUnindent
+    use :: Galacticus_Error, only : errorStatusSuccess
     implicit none
     class  (taskMulti    ), intent(inout), target   :: self
     integer               , intent(  out), optional :: status
     type   (multiTaskList), pointer                 :: task_
 
-    call Galacticus_Display_Indent('Begin multiple tasks')
+    call displayIndent('Begin multiple tasks')
     if (present(status)) status=errorStatusSuccess
     task_ => self%tasks
     do while (associated(task_))
@@ -121,12 +144,14 @@ contains
        if (present(status) .and. status /= errorStatusSuccess) return
        task_ => task_%next
     end do
-    call Galacticus_Display_Unindent('Done multiple tasks')
+    call displayUnindent('Done multiple tasks')
     return
   end subroutine multiPerform
 
   logical function multiRequiresOutputFile(self)
-    !% Returns true if any sub-task requires that the output file be open.
+    !!{
+    Returns true if any sub-task requires that the output file be open.
+    !!}
     implicit none
     class(taskMulti    ), intent(inout) :: self
     type (multiTaskList), pointer       :: task_

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a merger progenitor properties class which uses a simple calculation.
+  !!{
+  Implements a merger progenitor properties class which uses a simple calculation.
+  !!}
 
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
 
-  !# <mergerProgenitorProperties name="mergerProgenitorPropertiesSimple">
-  !#  <description>A merger progenitor properties class which uses a simple calculation.</description>
-  !# </mergerProgenitorProperties>
+  !![
+  <mergerProgenitorProperties name="mergerProgenitorPropertiesSimple">
+   <description>A merger progenitor properties class which uses a simple calculation.</description>
+  </mergerProgenitorProperties>
+  !!]
   type, extends(mergerProgenitorPropertiesClass) :: mergerProgenitorPropertiesSimple
-     !% A merger progenitor properties class which uses a simple calculation.
+     !!{
+     A merger progenitor properties class which uses a simple calculation.
+     !!}
      private
      class(mergerMassMovementsClass), pointer :: mergerMassMovements_ => null()
    contains
@@ -34,7 +40,9 @@
   end type mergerProgenitorPropertiesSimple
 
   interface mergerProgenitorPropertiesSimple
-     !% Constructors for the {\normalfont \ttfamily simple} merger progenitor properties class.
+     !!{
+     Constructors for the {\normalfont \ttfamily simple} merger progenitor properties class.
+     !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
   end interface mergerProgenitorPropertiesSimple
@@ -42,7 +50,9 @@
 contains
 
   function simpleConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily simple} merger progenitor properties class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily simple} merger progenitor properties class which takes a parameter list as input.
+    !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultDiskComponent     , defaultSpheroidComponent
@@ -89,34 +99,48 @@ contains
          &                                  )                                                                                                      // &
          &         {introspection:location}                                                                                                           &
          &        )
-    !# <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters"/>
+    !![
+    <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters"/>
+    !!]
     self=mergerProgenitorPropertiesSimple(mergerMassMovements_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="mergerMassMovements_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="mergerMassMovements_"/>
+    !!]
     return
   end function simpleConstructorParameters
 
  function simpleConstructorInternal(mergerMassMovements_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily simple} merger progenitor properties class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily simple} merger progenitor properties class.
+    !!}
     implicit none
     type (mergerProgenitorPropertiesSimple)                        :: self
     class(mergerMassMovementsClass        ), intent(in   ), target :: mergerMassMovements_
-    !# <constructorAssign variables="*mergerMassMovements_"/>
+    !![
+    <constructorAssign variables="*mergerMassMovements_"/>
+    !!]
 
     return
   end function simpleConstructorInternal
 
   subroutine simpleDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily simple} merger progenitor properties class.
+    !!{
+    Destructor for the {\normalfont \ttfamily simple} merger progenitor properties class.
+    !!}
     implicit none
     type(mergerProgenitorPropertiesSimple), intent(inout) :: self
 
-    !# <objectDestructor name="self%mergerMassMovements_"/>
+    !![
+    <objectDestructor name="self%mergerMassMovements_"/>
+    !!]
     return
   end subroutine simpleDestructor
 
   subroutine simpleGet(self,nodeSatellite,nodeHost,massSatellite,massHost,massSpheroidSatellite,massSpheroidHost,massSpheroidHostPreMerger,radiusSatellite,radiusHost,factorAngularMomentum,massSpheroidRemnant,massGasSpheroidRemnant)
-    !% Computes various properties of the progenitor galaxies useful for calculations of merger remnant sizes.
+    !!{
+    Computes various properties of the progenitor galaxies useful for calculations of merger remnant sizes.
+    !!}
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : massTypeGalactic
     use :: Galacticus_Error                  , only : Galacticus_Error_Report

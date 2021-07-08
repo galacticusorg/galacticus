@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,12 +17,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to coordinate system functions.
+!!{
+Contains a program to coordinate system functions.
+!!}
 
 program Test_Coordinate_Systems
-  !% Tests of coordinate system functions.
+  !!{
+  Tests of coordinate system functions.
+  !!}
   use :: Coordinate_Systems      , only : Coordinates_Cartesian_To_Cylindrical, Coordinates_Cartesian_To_Spherical, Coordinates_Cylindrical_To_Spherical, Coordinates_Spherical_To_Cylindrical
-  use :: Galacticus_Display      , only : Galacticus_Verbosity_Level_Set      , verbosityStandard
+  use :: Display                 , only : displayVerbositySet                 , verbosityLevelStandard
   use :: Numerical_Constants_Math, only : Pi
   use :: Unit_Tests              , only : Assert                              , Unit_Tests_Begin_Group            , Unit_Tests_End_Group                , Unit_Tests_Finish
   implicit none
@@ -33,7 +37,7 @@ program Test_Coordinate_Systems
   character       (len=43)                 :: groupName
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Coordinate systems")

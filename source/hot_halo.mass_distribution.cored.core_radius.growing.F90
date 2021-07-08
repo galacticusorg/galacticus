@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,23 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of the hot halo mass distribution core radius class in which the core grows as the hot halo content is depleted.
+  !!{
+  An implementation of the hot halo mass distribution core radius class in which the core grows as the hot halo content is depleted.
+  !!}
 
   use :: Cosmology_Parameters   , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   use :: Tables                 , only : table1D                 , table1DLogarithmicLinear
 
-  !# <hotHaloMassDistributionCoreRadius name="hotHaloMassDistributionCoreRadiusGrowing">
-  !#  <description>
-  !#   A hot halo mass distribution core radius class which implements a core radius equal to a fraction {\normalfont \ttfamily
-  !#   [coreRadiusOverScaleRadius]} of the node's dark matter profile scale radius for nodes containing a mass of hot gas equal to
-  !#   the universal baryon fraction times their total mass. For nodes containing less hot gas mass, the core radius is expanded
-  !#   to maintain the same gas density at the virial radius, with a maximum core radius of {\normalfont \ttfamily
-  !#   [coreRadiusOverVirialRadiusMaximum]} times the node's virial radius.
-  !#  </description>
-  !# </hotHaloMassDistributionCoreRadius>
+  !![
+  <hotHaloMassDistributionCoreRadius name="hotHaloMassDistributionCoreRadiusGrowing">
+   <description>
+    A hot halo mass distribution core radius class which implements a core radius equal to a fraction {\normalfont \ttfamily
+    [coreRadiusOverScaleRadius]} of the node's dark matter profile scale radius for nodes containing a mass of hot gas equal to
+    the universal baryon fraction times their total mass. For nodes containing less hot gas mass, the core radius is expanded
+    to maintain the same gas density at the virial radius, with a maximum core radius of {\normalfont \ttfamily
+    [coreRadiusOverVirialRadiusMaximum]} times the node's virial radius.
+   </description>
+  </hotHaloMassDistributionCoreRadius>
+  !!]
   type, extends(hotHaloMassDistributionCoreRadiusClass) :: hotHaloMassDistributionCoreRadiusGrowing
-     !% An implementation of the hot halo mass distribution core radius class in which the core grows as the hot halo content is depleted.
+     !!{
+     An implementation of the hot halo mass distribution core radius class in which the core grows as the hot halo content is depleted.
+     !!}
      private
      class           (cosmologyParametersClass), pointer     :: cosmologyParameters_            => null()
      class           (darkMatterHaloScaleClass), pointer     :: darkMatterHaloScale_            => null()
@@ -51,7 +57,9 @@
   end type hotHaloMassDistributionCoreRadiusGrowing
 
   interface hotHaloMassDistributionCoreRadiusGrowing
-     !% Constructors for the {\normalfont \ttfamily growing} hot halo mass distribution core radius class.
+     !!{
+     Constructors for the {\normalfont \ttfamily growing} hot halo mass distribution core radius class.
+     !!}
      module procedure growingConstructorParameters
      module procedure growingConstructorInternal
   end interface hotHaloMassDistributionCoreRadiusGrowing
@@ -61,8 +69,10 @@
 contains
 
   function growingConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily growing} hot halo mass distribution core radius class which builds the object
-    !% from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily growing} hot halo mass distribution core radius class which builds the object
+    from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (hotHaloMassDistributionCoreRadiusGrowing)                :: self
@@ -71,29 +81,35 @@ contains
     class           (cosmologyParametersClass                ), pointer       :: cosmologyParameters_
     double precision                                                          :: coreRadiusOverScaleRadius, coreRadiusOverVirialRadiusMaximum
 
-    !# <inputParameter>
-    !#   <name>coreRadiusOverScaleRadius</name>
-    !#   <defaultValue>0.1d0</defaultValue>
-    !#   <description>The core radius in the hot halo density profile in units of the dark matter profile scale radius.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>coreRadiusOverVirialRadiusMaximum</name>
-    !#   <defaultValue>10.0d0</defaultValue>
-    !#   <description>The maximum core radius in the ``growing'' hot halo density profile in units of the virial radius.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>coreRadiusOverScaleRadius</name>
+      <defaultValue>0.1d0</defaultValue>
+      <description>The core radius in the hot halo density profile in units of the dark matter profile scale radius.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>coreRadiusOverVirialRadiusMaximum</name>
+      <defaultValue>10.0d0</defaultValue>
+      <description>The maximum core radius in the ``growing'' hot halo density profile in units of the virial radius.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !!]
     self=hotHaloMassDistributionCoreRadiusGrowing(coreRadiusOverScaleRadius,coreRadiusOverVirialRadiusMaximum,darkMatterHaloScale_,cosmologyParameters_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    !!]
     return
   end function growingConstructorParameters
 
   function growingConstructorInternal(coreRadiusOverScaleRadius,coreRadiusOverVirialRadiusMaximum,darkMatterHaloScale_,cosmologyParameters_) result(self)
-    !% Default constructor for the {\normalfont \ttfamily growing} hot halo mass distribution core radius class.
+    !!{
+    Default constructor for the {\normalfont \ttfamily growing} hot halo mass distribution core radius class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Component_List        , Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
@@ -101,7 +117,9 @@ contains
     double precision                                          , intent(in   )         :: coreRadiusOverScaleRadius, coreRadiusOverVirialRadiusMaximum
     class           (darkMatterHaloScaleClass                ), intent(in   ), target :: darkMatterHaloScale_
     class           (cosmologyParametersClass                ), intent(in   ), target :: cosmologyParameters_
-    !# <constructorAssign variables="coreRadiusOverScaleRadius, coreRadiusOverVirialRadiusMaximum, *darkMatterHaloScale_, *cosmologyParameters_"/>
+    !![
+    <constructorAssign variables="coreRadiusOverScaleRadius, coreRadiusOverVirialRadiusMaximum, *darkMatterHaloScale_, *cosmologyParameters_"/>
+    !!]
 
     ! Ensure that the dark matter profile supports the scale property.
     if (.not.defaultDarkMatterProfileComponent%scaleIsGettable())                                                           &
@@ -123,18 +141,24 @@ contains
   end function growingConstructorInternal
 
   subroutine growingDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily growing} hot halo mass distribution class.
+    !!{
+    Destructor for the {\normalfont \ttfamily growing} hot halo mass distribution class.
+    !!}
     implicit none
     type(hotHaloMassDistributionCoreRadiusGrowing), intent(inout) :: self
 
     call self%coreRadiusTable%destroy()
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
-    !# <objectDestructor name="self%cosmologyParameters_"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    <objectDestructor name="self%cosmologyParameters_"/>
+    !!]
     return
   end subroutine growingDestructor
 
   double precision function growingRadius(self,node)
-    !% Return the core radius of the hot halo mass distribution.
+    !!{
+    Return the core radius of the hot halo mass distribution.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, nodeComponentHotHalo, treeNode
     implicit none
     class           (hotHaloMassDistributionCoreRadiusGrowing), intent(inout) :: self
@@ -207,8 +231,10 @@ contains
   end function growingRadius
 
   elemental double precision function growingCoreVirialDensityFunction(radiusOverVirialRadius)
-    !% Returns the function $(1+r_\mathrm{c}^2)[1-r_\mathrm{c} \tan^{-1}(1/r_\mathrm{c}]$ which is proportional to the density at the
-    !% virial radius of a cored isothermal profile with core radius $r_\mathrm{c}$ (in units of the virial radius) per unit mass.
+    !!{
+    Returns the function $(1+r_\mathrm{c}^2)[1-r_\mathrm{c} \tan^{-1}(1/r_\mathrm{c}]$ which is proportional to the density at the
+    virial radius of a cored isothermal profile with core radius $r_\mathrm{c}$ (in units of the virial radius) per unit mass.
+    !!}
     implicit none
     double precision, intent(in   ) :: radiusOverVirialRadius
 

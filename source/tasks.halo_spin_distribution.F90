@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,11 +21,15 @@
   use :: Halo_Spin_Distributions, only : haloSpinDistribution, haloSpinDistributionClass
   use :: Output_Times           , only : outputTimes         , outputTimesClass
 
-  !# <task name="taskHaloSpinDistribution">
-  !#  <description>A task which computes and outputs the halo spin distribution.</description>
-  !# </task>
+  !![
+  <task name="taskHaloSpinDistribution">
+   <description>A task which computes and outputs the halo spin distribution.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskHaloSpinDistribution
-     !% Implementation of a task which computes and outputs the halo spin distribution.
+     !!{
+     Implementation of a task which computes and outputs the halo spin distribution.
+     !!}
      private
      class           (haloSpinDistributionClass), pointer :: haloSpinDistribution_ => null()
      class           (outputTimesClass         ), pointer :: outputTimes_          => null()
@@ -41,7 +45,9 @@
   end type taskHaloSpinDistribution
 
   interface taskHaloSpinDistribution
-     !% Constructors for the {\normalfont \ttfamily haloSpinDistribution} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily haloSpinDistribution} task.
+     !!}
      module procedure haloSpinDistributionConstructorParameters
      module procedure haloSpinDistributionConstructorInternal
   end interface taskHaloSpinDistribution
@@ -49,7 +55,9 @@
 contains
 
   function haloSpinDistributionConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily haloSpinDistribution} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily haloSpinDistribution} task class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize, treeNode
     use :: Input_Parameters, only : inputParameter              , inputParameters
     use :: Node_Components , only : Node_Components_Initialize
@@ -77,53 +85,59 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
-    !# <inputParameter>
-    !#   <name>spinMinimum</name>
-    !#   <variable>spinMinimum</variable>
-    !#   <defaultValue>3.0d-4</defaultValue>
-    !#   <description>Minimum spin for which the distribution function should be calculated.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>spinMaximum</name>
-    !#   <variable>spinMaximum</variable>
-    !#   <defaultValue>0.5d0</defaultValue>
-    !#   <description>Maximum spin for which the distribution function should be calculated.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>spinPointsPerDecade</name>
-    !#   <variable>spinPointsPerDecade</variable>
-    !#   <defaultValue>10.0d0</defaultValue>
-    !#   <description>Number of points per decade of spin at which to calculate the distribution.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>haloMassMinimum</name>
-    !#   <variable>haloMassMinimum</variable>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>Minimum halo mass above which spin distribution should be averaged.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>outputGroup</name>
-    !#   <defaultValue>var_str('.')</defaultValue>
-    !#   <description>The HDF5 output group within which to write spin distribution data.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="parameters"/>
-    !# <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
+    !![
+    <inputParameter>
+      <name>spinMinimum</name>
+      <variable>spinMinimum</variable>
+      <defaultValue>3.0d-4</defaultValue>
+      <description>Minimum spin for which the distribution function should be calculated.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>spinMaximum</name>
+      <variable>spinMaximum</variable>
+      <defaultValue>0.5d0</defaultValue>
+      <description>Maximum spin for which the distribution function should be calculated.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>spinPointsPerDecade</name>
+      <variable>spinPointsPerDecade</variable>
+      <defaultValue>10.0d0</defaultValue>
+      <description>Number of points per decade of spin at which to calculate the distribution.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>haloMassMinimum</name>
+      <variable>haloMassMinimum</variable>
+      <defaultValue>0.0d0</defaultValue>
+      <description>Minimum halo mass above which spin distribution should be averaged.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>outputGroup</name>
+      <defaultValue>var_str('.')</defaultValue>
+      <description>The HDF5 output group within which to write spin distribution data.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="parameters"/>
+    <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
+    !!]
     self=taskHaloSpinDistribution(spinMinimum,spinMaximum,spinPointsPerDecade,haloMassMinimum,outputGroup,haloSpinDistribution_,outputTimes_,cosmologyFunctions_,parametersRoot)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="haloSpinDistribution_"/>
-    !# <objectDestructor name="outputTimes_"         />
-    !# <objectDestructor name="cosmologyFunctions_"  />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="haloSpinDistribution_"/>
+    <objectDestructor name="outputTimes_"         />
+    <objectDestructor name="cosmologyFunctions_"  />
+    !!]
     return
   end function haloSpinDistributionConstructorParameters
 
   function haloSpinDistributionConstructorInternal(spinMinimum,spinMaximum,spinPointsPerDecade,haloMassMinimum,outputGroup,haloSpinDistribution_,outputTimes_,cosmologyFunctions_,parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily haloSpinDistribution} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily haloSpinDistribution} task class which takes a parameter set as input.
+    !!}
     implicit none
     type            (taskHaloSpinDistribution )                        :: self
     class           (haloSpinDistributionClass), intent(in   ), target :: haloSpinDistribution_
@@ -133,7 +147,9 @@ contains
     double precision                           , intent(in   )         :: spinMinimum          , spinMaximum    , &
          &                                                                spinPointsPerDecade  , haloMassMinimum
     type            (inputParameters          ), intent(in   ), target :: parameters
-    !# <constructorAssign variables="spinMinimum, spinMaximum, spinPointsPerDecade, haloMassMinimum, outputGroup, *haloSpinDistribution_, *outputTimes_, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="spinMinimum, spinMaximum, spinPointsPerDecade, haloMassMinimum, outputGroup, *haloSpinDistribution_, *outputTimes_, *cosmologyFunctions_"/>
+    !!]
 
     self%parameters=inputParameters(parameters)
     call self%parameters%parametersGroupCopy(parameters)
@@ -141,21 +157,27 @@ contains
   end function haloSpinDistributionConstructorInternal
 
   subroutine haloSpinDistributionDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily haloSpinDistribution} task class.
+    !!{
+    Destructor for the {\normalfont \ttfamily haloSpinDistribution} task class.
+    !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
     type(taskHaloSpinDistribution), intent(inout) :: self
 
-    !# <objectDestructor name="self%haloSpinDistribution_"/>
-    !# <objectDestructor name="self%outputTimes_"         />
-    !# <objectDestructor name="self%cosmologyFunctions_"  />
+    !![
+    <objectDestructor name="self%haloSpinDistribution_"/>
+    <objectDestructor name="self%outputTimes_"         />
+    <objectDestructor name="self%cosmologyFunctions_"  />
+    !!]
     call Node_Components_Uninitialize()
     return
   end subroutine haloSpinDistributionDestructor
 
   subroutine haloSpinDistributionPerform(self,status)
-    !% Compute and output the halo spin distribution.
-    use            :: Galacticus_Display     , only : Galacticus_Display_Indent        , Galacticus_Display_Unindent
+    !!{
+    Compute and output the halo spin distribution.
+    !!}
+    use            :: Display                , only : displayIndent                    , displayUnindent
     use            :: Galacticus_Error       , only : Galacticus_Error_Report          , errorStatusSuccess
     use            :: Galacticus_HDF5        , only : galacticusOutputFile
     use            :: Galacticus_Nodes       , only : nodeComponentBasic               , nodeComponentDarkMatterProfile     , nodeComponentSpin, treeNode
@@ -178,7 +200,7 @@ contains
          &                                                                           containerGroup
     type            (varying_string                )                              :: groupName            , commentText
 
-    call Galacticus_Display_Indent('Begin task: halo spin distribution')
+    call displayIndent('Begin task: halo spin distribution')
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
     call Node_Components_Thread_Initialize(self%parameters)
     ! Create a tree node.
@@ -238,6 +260,6 @@ contains
     if (containerGroup%isOpen()) call containerGroup%close()
     call Node_Components_Thread_Uninitialize()
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: halo spin distribution' )
+    call displayUnindent('Done task: halo spin distribution' )
     return
   end subroutine haloSpinDistributionPerform

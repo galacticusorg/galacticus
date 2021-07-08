@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test abundances objects functions.
+!!{
+Contains a program to test abundances objects functions.
+!!}
 
 program Test_Abundances
-  !% Test abundances objects.
-  use :: Abundances_Structure, only : abundances                    , max
-  use :: Galacticus_Display  , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: ISO_Varying_String  , only : varying_string                , assignment(=)
-  use :: Input_Parameters    , only : inputParameters
-  use :: Unit_Tests          , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  !!{
+  Test abundances objects.
+  !!}
+  use :: Abundances_Structure      , only : abundances                , max
+  use :: Display                   , only : displayVerbositySet       , verbosityLevelStandard
+  use :: Functions_Global_Utilities, only : Functions_Global_Set
+  use :: ISO_Varying_String        , only : assignment(=)             , varying_string
+  use :: Input_Parameters          , only : inputParameters
+  use :: Node_Components           , only : Node_Components_Initialize
+  use :: Unit_Tests                , only : Assert                    , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (varying_string )               :: parameterFile
   type            (abundances     )               :: abundances1    , abundances2, abundances3
@@ -33,14 +39,15 @@ program Test_Abundances
   type            (inputParameters)               :: parameters
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Abundances objects functions")
 
   ! Read in controlling parameters.
   parameterFile='testSuite/parameters/abundances/testAbundances.xml'
   parameters=inputParameters(parameterFile)
-  call parameters%markGlobal()
+  call Functions_Global_Set      (          )
+  call Node_Components_Initialize(parameters)
 
   ! Initialize abundances.
   call abundances1%deserialize([1.0d0,2.0d0,3.0d0,4.0d0,5.0d0])

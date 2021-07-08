@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test stellar inital mass functions.
+!!{
+Contains a program to test stellar inital mass functions.
+!!}
 
 program Test_Initial_Mass_Functions
-  !% Tests of stellar initial mass functions.
-  use :: Galacticus_Display                        , only : Galacticus_Verbosity_Level_Set  , verbosityStandard
+  !!{
+  Tests of stellar initial mass functions.
+  !!}
+  use :: Display                                   , only : displayVerbositySet             , verbosityLevelStandard
   use :: Numerical_Integration2                    , only : integratorCompositeTrapezoidal1D
   use :: Stellar_Populations_Initial_Mass_Functions, only : initialMassFunctionBPASS        , initialMassFunctionBaugh2005TopHeavy, initialMassFunctionChabrier2001   , initialMassFunctionClass            , &
           &                                                 initialMassFunctionKennicutt1983, initialMassFunctionKroupa2001       , initialMassFunctionMillerScalo1979, initialMassFunctionPiecewisePowerLaw, &
@@ -41,7 +45,7 @@ program Test_Initial_Mass_Functions
   type            (integratorCompositeTrapezoidal1D    )          :: integrator_
   double precision                                                :: massInInitialMassFunction
 
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   call Unit_Tests_Begin_Group("Stellar initial mass functions")
   call integrator_%initialize  (24           )
   call integrator_%toleranceSet(1.0d-7,1.0d-7)
@@ -135,7 +139,9 @@ program Test_Initial_Mass_Functions
 contains
 
   double precision function initialMassFunctionIntegrand(mass)
-    !% Integrand used to find the total mass in the initial mass function.
+    !!{
+    Integrand used to find the total mass in the initial mass function.
+    !!}
     implicit none
     double precision, intent(in   ) :: mass
 

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling likelihood class which implements a likelihood for projected correlation functions.
+  !!{
+  Implementation of a posterior sampling likelihood class which implements a likelihood for projected correlation functions.
+  !!}
 
   use :: Cosmology_Functions       , only : cosmologyFunctions          , cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Biases   , only : darkMatterHaloBias          , darkMatterHaloBiasClass
@@ -30,34 +32,38 @@
   use :: Linear_Growth             , only : linearGrowth                , linearGrowthClass
   use :: Power_Spectra             , only : powerSpectrum               , powerSpectrumClass
 
-  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodPrjctdCorrelationFunction">
-  !#  <description>
-  !#   The likelihood is computed as
-  !#   \begin{equation}
-  !#   \log \mathcal{L} = -{1\over2} \Delta \cdot \mathcal{C}^{-1} \cdot \Delta^\mathrm{T},
-  !#   \end{equation}
-  !#   where $\mathcal{C}$ is the covariance matrix, and $\Delta_i = w_i^\mathrm{model} - w_i^\mathrm{obs}$, $w_i^\mathrm{model}$
-  !#   is the computed projected correlation function at the $i^\mathrm{th}$ separation, and $w_i^\mathrm{obs}$ is the observed
-  !#   projected correlation function at the $i^\mathrm{th}$ separation. The projected correlation function is computed using the
-  !#   halo model and the parameterized conditional galaxy mass function of \cite[][see also \protect\cite{leauthaud_new_2011};
-  !#   \protect\refPhysics{conditionalMassFunctionBehroozi2010}]{behroozi_comprehensive_2010}.  The details of the projected
-  !#   correlation function calculation are specified by the following subparameters:
-  !#   \begin{description}
-  !#   \item[{\normalfont \ttfamily haloMass(Min|Max)imum}] The minimum/maximum halo mass over which to integrate in the halo model;
-  !#   \item[{\normalfont \ttfamily redshift(Min|Max)imum}] The minimum/maximum redshift over which to integrate in the halo model;
-  !#   \item[{\normalfont \ttfamily projectedCorrelationFunctionFileName}] The name of an HDF5 file containing the observed projected
-  !#     correlation function and its covariance matrix.
-  !#   \end{description}
-  !#   
-  !#   The HDF5 file specified by the {\normalfont \ttfamily projectedCorrelationFunctionFileName} element should contain a {\normalfont
-  !#   \ttfamily separation} dataset, giving the spearations at which the projected correlation function is measured (in units of Mpc),
-  !#   a {\normalfont \ttfamily projectedCorrelationFunctionObserved} dataset giving the observed values of the projected correlation
-  !#   function at those separations (in units of Mpc), and a {\normalfont \ttfamily covariance} dataset, giving the covariance of the
-  !#   projected correlation function (in units of Mpc$^2$).
-  !#  </description>
-  !# </posteriorSampleLikelihood>
+  !![
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodPrjctdCorrelationFunction">
+   <description>
+    The likelihood is computed as
+    \begin{equation}
+    \log \mathcal{L} = -{1\over2} \Delta \cdot \mathcal{C}^{-1} \cdot \Delta^\mathrm{T},
+    \end{equation}
+    where $\mathcal{C}$ is the covariance matrix, and $\Delta_i = w_i^\mathrm{model} - w_i^\mathrm{obs}$, $w_i^\mathrm{model}$
+    is the computed projected correlation function at the $i^\mathrm{th}$ separation, and $w_i^\mathrm{obs}$ is the observed
+    projected correlation function at the $i^\mathrm{th}$ separation. The projected correlation function is computed using the
+    halo model and the parameterized conditional galaxy mass function of \cite[][see also \protect\cite{leauthaud_new_2011};
+    \protect\refPhysics{conditionalMassFunctionBehroozi2010}]{behroozi_comprehensive_2010}.  The details of the projected
+    correlation function calculation are specified by the following subparameters:
+    \begin{description}
+    \item[{\normalfont \ttfamily haloMass(Min|Max)imum}] The minimum/maximum halo mass over which to integrate in the halo model;
+    \item[{\normalfont \ttfamily redshift(Min|Max)imum}] The minimum/maximum redshift over which to integrate in the halo model;
+    \item[{\normalfont \ttfamily projectedCorrelationFunctionFileName}] The name of an HDF5 file containing the observed projected
+      correlation function and its covariance matrix.
+    \end{description}
+    
+    The HDF5 file specified by the {\normalfont \ttfamily projectedCorrelationFunctionFileName} element should contain a {\normalfont
+    \ttfamily separation} dataset, giving the spearations at which the projected correlation function is measured (in units of Mpc),
+    a {\normalfont \ttfamily projectedCorrelationFunctionObserved} dataset giving the observed values of the projected correlation
+    function at those separations (in units of Mpc), and a {\normalfont \ttfamily covariance} dataset, giving the covariance of the
+    projected correlation function (in units of Mpc$^2$).
+   </description>
+  </posteriorSampleLikelihood>
+  !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodPrjctdCorrelationFunction
-     !% Implementation of a posterior sampling likelihood class which implements a likelihood for projected correlation functions.
+     !!{
+     Implementation of a posterior sampling likelihood class which implements a likelihood for projected correlation functions.
+     !!}
      private
      class           (powerSpectrumClass               ), pointer                     :: powerSpectrum_                       => null()
      class           (cosmologyFunctionsClass          ), pointer                     :: cosmologyFunctions_                  => null()
@@ -84,7 +90,9 @@
   end type posteriorSampleLikelihoodPrjctdCorrelationFunction
 
   interface posteriorSampleLikelihoodPrjctdCorrelationFunction
-     !% Constructors for the {\normalfont \ttfamily projectedCorrelationFunction} posterior sampling convergence class.
+     !!{
+     Constructors for the {\normalfont \ttfamily projectedCorrelationFunction} posterior sampling convergence class.
+     !!}
      module procedure projectedCorrelationFunctionConstructorParameters
      module procedure projectedCorrelationFunctionConstructorInternal
   end interface posteriorSampleLikelihoodPrjctdCorrelationFunction
@@ -92,8 +100,10 @@
 contains
 
   function projectedCorrelationFunctionConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily projectedCorrelationFunction} posterior sampling convergence class which builds the object from a
-    !% parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily projectedCorrelationFunction} posterior sampling convergence class which builds the object from a
+    parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleLikelihoodPrjctdCorrelationFunction)                :: self
@@ -111,54 +121,60 @@ contains
     logical                                                                             :: halfIntegral
     type            (varying_string                                    )                :: fileName
 
-    !# <inputParameter>
-    !#   <name>haloMassMinimum</name>
-    !#   <description>The minimum halo mass over which to integrate.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>haloMassMaximum</name>
-    !#   <description>The maximum halo mass over which to integrate.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>lineOfSightDepth</name>
-    !#   <description>The line of sight depth over which to integrate.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>halfIntegral</name>
-    !#   <description>If true, integrate only over positive line of sight depths.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>fileName</name>
-    !#   <description>The name of the file containing the target projected correlation function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="powerSpectrum"                name="powerSpectrum_"                source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
-    !# <objectBuilder class="surveyGeometry"               name="surveyGeometry_"               source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
-    !# <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloBias"           name="darkMatterHaloBias_"           source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>haloMassMinimum</name>
+      <description>The minimum halo mass over which to integrate.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>haloMassMaximum</name>
+      <description>The maximum halo mass over which to integrate.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>lineOfSightDepth</name>
+      <description>The line of sight depth over which to integrate.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>halfIntegral</name>
+      <description>If true, integrate only over positive line of sight depths.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>fileName</name>
+      <description>The name of the file containing the target projected correlation function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="powerSpectrum"                name="powerSpectrum_"                source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"           name="cosmologyFunctions_"           source="parameters"/>
+    <objectBuilder class="surveyGeometry"               name="surveyGeometry_"               source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"          name="darkMatterHaloScale_"          source="parameters"/>
+    <objectBuilder class="haloMassFunction"             name="haloMassFunction_"             source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"         name="darkMatterProfileDMO_"         source="parameters"/>
+    <objectBuilder class="darkMatterHaloBias"           name="darkMatterHaloBias_"           source="parameters"/>
+    <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
+    !!]
     self=posteriorSampleLikelihoodPrjctdCorrelationFunction(haloMassMinimum,haloMassMaximum,lineOfSightDepth,halfIntegral,char(fileName),powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="powerSpectrum_"               />
-    !# <objectDestructor name="cosmologyFunctions_"          />
-    !# <objectDestructor name="surveyGeometry_"              />
-    !# <objectDestructor name="darkMatterHaloScale_"         />
-    !# <objectDestructor name="haloMassFunction_"            />
-    !# <objectDestructor name="darkMatterProfileDMO_"        />
-    !# <objectDestructor name="darkMatterHaloBias_"          />
-    !# <objectDestructor name="darkMatterProfileScaleRadius_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="powerSpectrum_"               />
+    <objectDestructor name="cosmologyFunctions_"          />
+    <objectDestructor name="surveyGeometry_"              />
+    <objectDestructor name="darkMatterHaloScale_"         />
+    <objectDestructor name="haloMassFunction_"            />
+    <objectDestructor name="darkMatterProfileDMO_"        />
+    <objectDestructor name="darkMatterHaloBias_"          />
+    <objectDestructor name="darkMatterProfileScaleRadius_"/>
+    !!]
     return
   end function projectedCorrelationFunctionConstructorParameters
 
   function projectedCorrelationFunctionConstructorInternal(haloMassMinimum,haloMassMaximum,lineOfSightDepth,halfIntegral,fileName,powerSpectrum_,cosmologyFunctions_,surveyGeometry_,darkMatterHaloScale_,haloMassFunction_,darkMatterProfileDMO_,darkMatterHaloBias_,darkMatterProfileScaleRadius_) result(self)
-    !% Constructor for ``projectedCorrelationFunction'' posterior sampling likelihood class.
+    !!{
+    Constructor for ``projectedCorrelationFunction'' posterior sampling likelihood class.
+    !!}
     use :: Galacticus_Paths , only : galacticusPath, pathTypeDataStatic
     use :: IO_HDF5          , only : hdf5Access    , hdf5Object
     use :: Linear_Algebra   , only : assignment(=)
@@ -178,7 +194,9 @@ contains
     class           (darkMatterHaloBiasClass                           ), intent(in   ), target :: darkMatterHaloBias_
     class           (darkMatterProfileScaleRadiusClass                 ), intent(in   ), target :: darkMatterProfileScaleRadius_
     type            (hdf5Object                                        )                        :: file
-    !# <constructorAssign variables="haloMassMinimum, haloMassMaximum, lineOfSightDepth, halfIntegral, fileName, *powerSpectrum_, *cosmologyFunctions_, *surveyGeometry_, *darkMatterHaloScale_, *haloMassFunction_, *darkMatterProfileDMO_, *darkMatterHaloBias_, *darkMatterProfileScaleRadius_"/>
+    !![
+    <constructorAssign variables="haloMassMinimum, haloMassMaximum, lineOfSightDepth, halfIntegral, fileName, *powerSpectrum_, *cosmologyFunctions_, *surveyGeometry_, *darkMatterHaloScale_, *haloMassFunction_, *darkMatterProfileDMO_, *darkMatterHaloBias_, *darkMatterProfileScaleRadius_"/>
+    !!]
 
     ! Read the projected correlation function file.
     !$ call hdf5Access%set()
@@ -204,23 +222,29 @@ contains
   end function projectedCorrelationFunctionConstructorInternal
 
   subroutine projectedCorrelationFunctionDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily projectedCorrelationFunction} class.
+    !!{
+    Destructor for the {\normalfont \ttfamily projectedCorrelationFunction} class.
+    !!}
     implicit none
     type(posteriorSampleLikelihoodPrjctdCorrelationFunction), intent(inout) :: self
 
-    !# <objectDestructor name="self%powerSpectrum_"               />
-    !# <objectDestructor name="self%cosmologyFunctions_"          />
-    !# <objectDestructor name="self%surveyGeometry_"              />
-    !# <objectDestructor name="self%darkMatterHaloScale_"         />
-    !# <objectDestructor name="self%haloMassFunction_"            />
-    !# <objectDestructor name="self%darkMatterProfileDMO_"        />
-    !# <objectDestructor name="self%darkMatterHaloBias_"          />
-    !# <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
+    !![
+    <objectDestructor name="self%powerSpectrum_"               />
+    <objectDestructor name="self%cosmologyFunctions_"          />
+    <objectDestructor name="self%surveyGeometry_"              />
+    <objectDestructor name="self%darkMatterHaloScale_"         />
+    <objectDestructor name="self%haloMassFunction_"            />
+    <objectDestructor name="self%darkMatterProfileDMO_"        />
+    <objectDestructor name="self%darkMatterHaloBias_"          />
+    <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
+    !!]
     return
   end subroutine projectedCorrelationFunctionDestructor
 
   double precision function projectedCorrelationFunctionEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
-    !% Return the log-likelihood for the projected correlation function likelihood function.
+    !!{
+    Return the log-likelihood for the projected correlation function likelihood function.
+    !!}
     use :: Conditional_Mass_Functions       , only : conditionalMassFunctionBehroozi2010
     use :: Galacticus_Error                 , only : Galacticus_Error_Report
     use :: Halo_Model_Projected_Correlations, only : Halo_Model_Projected_Correlation
@@ -310,7 +334,9 @@ contains
   end function projectedCorrelationFunctionEvaluate
 
   subroutine projectedCorrelationFunctionFunctionChanged(self)
-    !% Respond to possible changes in the likelihood function.
+    !!{
+    Respond to possible changes in the likelihood function.
+    !!}
     implicit none
     class(posteriorSampleLikelihoodPrjctdCorrelationFunction), intent(inout) :: self
     !$GLC attributes unused :: self

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,26 +17,34 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a simple posterior sampling state class.
+  !!{
+  Implementation of a simple posterior sampling state class.
+  !!}
 
-  !# <posteriorSampleState name="posteriorSampleStateSimple">
-  !#  <description>
-  !#  This class stores the current state but makes no attempt to record a history of the state and so cannot provide measures of the
-  !#  mean or variance of state over the simulation history. It does, however, maintain a running average of the state acceptance
-  !#  rate. The number of steps over which the acceptance rate should be computed is specified by the {\normalfont \ttfamily
-  !#  acceptedStateCount}.
-  !#  </description>
-  !# </posteriorSampleState>
+  !![
+  <posteriorSampleState name="posteriorSampleStateSimple">
+   <description>
+   This class stores the current state but makes no attempt to record a history of the state and so cannot provide measures of the
+   mean or variance of state over the simulation history. It does, however, maintain a running average of the state acceptance
+   rate. The number of steps over which the acceptance rate should be computed is specified by the {\normalfont \ttfamily
+   acceptedStateCount}.
+   </description>
+  </posteriorSampleState>
+  !!]
   type, extends(posteriorSampleStateClass) :: posteriorSampleStateSimple
-     !% Implementation of a simple posterior sampling state class.
+     !!{
+     Implementation of a simple posterior sampling state class.
+     !!}
      private
      double precision, allocatable, dimension(:) :: current
      integer         , allocatable, dimension(:) :: accepted
      integer                                     :: acceptedStateCount
    contains
-     !# <methods>
-     !#   <method description="Set the state count." method="countSet" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Set the state count." method="countSet" />
+     </methods>
+     !!]
      procedure :: parameterCountSet => simpleParameterCountSet
      procedure :: get               => simpleGet
      procedure :: update            => simpleUpdate
@@ -49,7 +57,9 @@
   end type posteriorSampleStateSimple
 
   interface posteriorSampleStateSimple
-     !% Constructors for the {\normalfont \ttfamily simple} posterior sampling state class.
+     !!{
+     Constructors for the {\normalfont \ttfamily simple} posterior sampling state class.
+     !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
   end interface posteriorSampleStateSimple
@@ -57,33 +67,43 @@
 contains
 
   function simpleConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily simple} posterior sampling state class which builds the object from a
-    !% parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily simple} posterior sampling state class which builds the object from a
+    parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (posteriorSampleStateSimple)                :: self
     type   (inputParameters           ), intent(inout) :: parameters
     integer                                            :: acceptedStateCount
 
-    !# <inputParameter>
-    !#   <name>acceptedStateCount</name>
-    !#   <description>The number of states to use in acceptance rate statistics.</description>
-    !#   <defaultValue>100</defaultValue>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>acceptedStateCount</name>
+      <description>The number of states to use in acceptance rate statistics.</description>
+      <defaultValue>100</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=posteriorSampleStateSimple(acceptedStateCount)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
    return
   end function simpleConstructorParameters
 
   function simpleConstructorInternal(acceptedStateCount) result(self)
-    !% Constructor for the {\normalfont \ttfamily simple} posterior sampling state class which builds the object from a
-    !% parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily simple} posterior sampling state class which builds the object from a
+    parameter set.
+    !!}
     use :: MPI_Utilities, only : mpiSelf
     implicit none
     type   (posteriorSampleStateSimple)                :: self
     integer                            , intent(in   ) :: acceptedStateCount
-    !# <constructorAssign variables="acceptedStateCount"/>
+    !![
+    <constructorAssign variables="acceptedStateCount"/>
+    !!]
 
     allocate(self%accepted(acceptedStateCount))
     self%stepCount      =0
@@ -93,7 +113,9 @@ contains
   end function simpleConstructorInternal
 
   subroutine simpleParameterCountSet(self,parameterCount)
-    !% Set the number of parameters in this state.
+    !!{
+    Set the number of parameters in this state.
+    !!}
     implicit none
     class  (posteriorSampleStateSimple), intent(inout) :: self
     integer                            , intent(in   ) :: parameterCount
@@ -105,7 +127,9 @@ contains
   end subroutine simpleParameterCountSet
 
   function simpleGet(self)
-    !% Return the current state.
+    !!{
+    Return the current state.
+    !!}
     implicit none
     class           (posteriorSampleStateSimple), intent(inout)                  :: self
     double precision                            , dimension(self%parameterCount) :: simpleGet
@@ -115,7 +139,9 @@ contains
   end function simpleGet
 
   subroutine simpleUpdate(self,stateNew,logState,isConverged,outlierMask)
-    !% Update the current state.
+    !!{
+    Update the current state.
+    !!}
     implicit none
     class           (posteriorSampleStateSimple), intent(inout)                         :: self
     double precision                            , intent(in   ), dimension(:)           :: stateNew
@@ -139,7 +165,9 @@ contains
   end subroutine simpleUpdate
 
   function simpleMean(self)
-    !% Return the mean over state history.
+    !!{
+    Return the mean over state history.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (posteriorSampleStateSimple), intent(inout)                  :: self
@@ -151,7 +179,9 @@ contains
   end function simpleMean
 
   function simpleVariance(self)
-    !% Return the mean over state history.
+    !!{
+    Return the mean over state history.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (posteriorSampleStateSimple), intent(inout)                  :: self
@@ -163,7 +193,9 @@ contains
   end function simpleVariance
 
   double precision function simpleAcceptanceRate(self)
-    !% Return the acceptance rate for the state.
+    !!{
+    Return the acceptance rate for the state.
+    !!}
     implicit none
     class  (posteriorSampleStateSimple), intent(inout) :: self
     integer                                            :: stepCount
@@ -178,7 +210,9 @@ contains
   end function simpleAcceptanceRate
 
   subroutine simpleReset(self)
-    !% Reset the state object.
+    !!{
+    Reset the state object.
+    !!}
     implicit none
     class(posteriorSampleStateSimple), intent(inout) :: self
 
@@ -188,7 +222,9 @@ contains
   end subroutine simpleReset
 
   subroutine simpleRestore(self,stateVector,first)
-    !% Restore the state object.
+    !!{
+    Restore the state object.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (posteriorSampleStateSimple), intent(inout)               :: self
@@ -213,7 +249,9 @@ contains
   end subroutine simpleRestore
 
   subroutine simpleCountSet(self,stateCount)
-    !% Set the state count.
+    !!{
+    Set the state count.
+    !!}
     implicit none
     class  (posteriorSampleStateSimple), intent(inout) :: self
     integer                            , intent(in   ) :: stateCount

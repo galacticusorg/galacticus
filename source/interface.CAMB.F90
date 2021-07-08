@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides various interfaces to the \gls{camb} code.
+!!{
+Contains a module which provides various interfaces to the \gls{camb} code.
+!!}
 
 module Interfaces_CAMB
-  !% Provides various interfaces to the \gls{camb} code.
+  !!{
+  Provides various interfaces to the \gls{camb} code.
+  !!}
   use :: File_Utilities, only : lockDescriptor
   private
   public :: Interface_CAMB_Initialize, Interface_CAMB_Transfer_Function
@@ -32,28 +36,34 @@ module Interfaces_CAMB
   ! Default maximum wavenumber to tabulate.
   double precision                , parameter :: cambLogWavenumberMaximumDefault=log(10.0d0)
 
-  !# <enumeration>
-  !#  <name>cambSpecies</name>
-  !#  <description>Particle species in CAMB.</description>
-  !#  <visibility>public</visibility>
-  !#  <indexing>1</indexing>
-  !#  <entry label="darkMatter"/>
-  !#  <entry label="baryons"   />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>cambSpecies</name>
+   <description>Particle species in CAMB.</description>
+   <visibility>public</visibility>
+   <indexing>1</indexing>
+   <entry label="darkMatter"/>
+   <entry label="baryons"   />
+  </enumeration>
+  !!]
 
   ! Generate a source digest.
-  !# <sourceDigest name="cambSourceDigest"/>
+  !![
+  <sourceDigest name="cambSourceDigest"/>
+  !!]
 
 contains
 
   subroutine Interface_CAMB_Initialize(cambPath,cambVersion,static)
-    !% Initialize the interface with CAMB, including downloading and compiling CAMB if necessary.
-    use :: File_Utilities    , only : File_Exists               , File_Lock          , File_Unlock , lockDescriptor, &
-         &                            Directory_Make
-    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
+    !!{
+    Initialize the interface with CAMB, including downloading and compiling CAMB if necessary.
+    !!}
+    use :: Display           , only : displayMessage         , verbosityLevelWorking
+    use :: File_Utilities    , only : Directory_Make         , File_Exists          , File_Lock   , File_Unlock, &
+          &                           lockDescriptor
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Galacticus_Paths  , only : galacticusPath            , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : assignment(=)             , char               , operator(//), replace       , &
+    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : assignment(=)          , char                 , operator(//), replace    , &
           &                           varying_string
     use :: System_Command    , only : System_Command_Do
     implicit none
@@ -62,7 +72,9 @@ contains
     integer                                          :: status  , flagsLength
     type   (varying_string)                          :: command
     type   (lockDescriptor)                          :: fileLock
-    !# <optionalArgument name="static" defaultsTo=".false." />
+    !![
+    <optionalArgument name="static" defaultsTo=".false." />
+    !!]
 
     ! Set path and version
     cambPath   =galacticusPath(pathTypeDataDynamic)//"CAMB/"
@@ -75,15 +87,15 @@ contains
        if (.not.File_Exists(cambPath//"Makefile")) then
           ! Download CAMB if necessary.
           if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz")) then
-             call Galacticus_Display_Message("downloading CAMB code....",verbosityWorking)
+             call displayMessage("downloading CAMB code....",verbosityLevelWorking)
              call System_Command_Do("wget http://camb.info/CAMB.tar.gz -O "//galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz",status)
              if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz")) call Galacticus_Error_Report("unable to download CAMB"//{introspection:location})
           end if
-          call Galacticus_Display_Message("unpacking CAMB code....",verbosityWorking)
+          call displayMessage("unpacking CAMB code....",verbosityLevelWorking)
           call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//" -f "//galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz");
           if (status /= 0 .or. .not.File_Exists(cambPath)) call Galacticus_Error_Report('failed to unpack CAMB code'//{introspection:location})
        end if
-       call Galacticus_Display_Message("compiling CAMB code",verbosityWorking)
+       call displayMessage("compiling CAMB code",verbosityLevelWorking)
        command='cd '//cambPath//'; sed -r -i~ s/"ifortErr\s*=.*"/"ifortErr = 1"/ Makefile; sed -r -i~ s/"gfortErr\s*=.*"/"gfortErr = 0"/ Makefile; sed -r -i~ s/"^FFLAGS\s*\+=\s*\-march=native"/"FFLAGS+="/ Makefile; sed -r -i~ s/"^FFLAGS\s*=\s*.*"/"FFLAGS = -Ofast -fopenmp'
        if (static_) then
           ! Include Galacticus compilation flags here - may be necessary for static linking.
@@ -101,7 +113,9 @@ contains
   contains
 
     function flagsRetrieve(flagsLength)
-      !% Retrieve the compiler flags.
+      !!{
+      Retrieve the compiler flags.
+      !!}
       implicit none
       type     (varying_string )                :: flagsRetrieve
       integer                   , intent(in   ) :: flagsLength
@@ -115,24 +129,26 @@ contains
   end subroutine Interface_CAMB_Initialize
 
   subroutine Interface_CAMB_Transfer_Function(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,countPerDecade,fileName,wavenumberMaximumReached,transferFunctionDarkMatter,transferFunctionBaryons)
-    !% Run CAMB as necessary to compute transfer functions.
+    !!{
+    Run CAMB as necessary to compute transfer functions.
+    !!}
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
-    use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists , File_Lock     , &
-          &                                                       File_Path                   , File_Remove        , File_Unlock , lockDescriptor
+    use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists   , File_Lock     , &
+          &                                                       File_Path                   , File_Remove        , File_Unlock   , lockDescriptor
     use               :: Galacticus_Error                , only : Galacticus_Error_Report
     use               :: Galacticus_Paths                , only : galacticusPath              , pathTypeDataDynamic
     use               :: HDF5                            , only : hsize_t
     use               :: Hashes_Cryptographic            , only : Hash_MD5
     use               :: IO_HDF5                         , only : hdf5Access                  , hdf5Object
     use   , intrinsic :: ISO_C_Binding                   , only : c_size_t
-    use               :: ISO_Varying_String              , only : assignment(=)               , char               , extract     , len        , &
-          &                                                       operator(==)                , varying_string     , operator(//)
+    use               :: ISO_Varying_String              , only : assignment(=)               , char               , extract       , len           , &
+          &                                                       operator(//)                , operator(==)       , varying_string
     use               :: Input_Parameters                , only : inputParameters
     use               :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use               :: Numerical_Interpolation         , only : GSL_Interp_cSpline
     !$ use            :: OMP_Lib                         , only : OMP_Get_Thread_Num
     use               :: Sorting                         , only : sortIndex
-    use               :: String_Handling                 , only : operator(//)                , String_C_To_Fortran
+    use               :: String_Handling                 , only : String_C_To_Fortran         , operator(//)
     use               :: System_Command                  , only : System_Command_Do
     use               :: Table_Labels                    , only : extrapolationTypeExtrapolate
     use               :: Tables                          , only : table                       , table1DGeneric
@@ -169,7 +185,9 @@ contains
          &                                                                         transferFileName                        , fileName_
     type            (inputParameters         )                                  :: descriptor
     logical                                                                     :: allEpochsFound
-    !# <optionalArgument name="countPerDecade" defaultsTo="0"/>
+    !![
+    <optionalArgument name="countPerDecade" defaultsTo="0"/>
+    !!]
 
     ! Build a sorted array of all redshift labels.
     allocate(redshiftRanks (size(redshifts)))

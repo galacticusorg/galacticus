@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that provides and object that implements satellite merging timescales.
+!!{
+Contains a module that provides and object that implements satellite merging timescales.
+!!}
 
 module Satellite_Merging_Timescales
-  !% Provides and object that implements satellite merging timescales.
+  !!{
+  Provides and object that implements satellite merging timescales.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   use :: Kepler_Orbits   , only : keplerOrbit
   private
@@ -29,20 +33,22 @@ module Satellite_Merging_Timescales
   ! such that if perturbations are made around this value it does not cause floating point exceptions.
   double precision, public, parameter :: satelliteMergeTimeInfinite=1.0d-6*huge(1.0d0)
 
-  !# <functionClass>
-  !#  <name>satelliteMergingTimescales</name>
-  !#  <descriptiveName>Satellite Merging Timescales</descriptiveName>
-  !#  <description>
-  !#   Object providing merging timescales for satellites.
-  !#  </description>
-  !#  <default>jiang2008</default>
-  !#  <method name="timeUntilMerging" >
-  !#   <description>Return the time (in Gyr) until the satellite will merge with its host given the current orbit.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode   ), intent(inout) :: node</argument>
-  !#   <argument>type(keplerOrbit), intent(inout) :: orbit</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>satelliteMergingTimescales</name>
+   <descriptiveName>Satellite Merging Timescales</descriptiveName>
+   <description>
+    Object providing merging timescales for satellites.
+   </description>
+   <default>jiang2008</default>
+   <method name="timeUntilMerging" >
+    <description>Return the time (in Gyr) until the satellite will merge with its host given the current orbit.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode   ), intent(inout) :: node</argument>
+    <argument>type(keplerOrbit), intent(inout) :: orbit</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Satellite_Merging_Timescales

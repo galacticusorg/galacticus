@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,14 +24,21 @@
      type (radiativeTransferSourceList ), pointer :: next                    => null()
   end type radiativeTransferSourceList
 
-  !# <radiativeTransferSource name="radiativeTransferSourceSummation">
-  !#  <description>A photon source class for summation sources.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="radiativeTransferSourceList" variable="radiativeTransferSources" next="next" object="radiativeTransferSource" objectType="radiativeTransferSourceClass"/>
-  !#  </deepCopy>
-  !# </radiativeTransferSource>
+  !![
+  <radiativeTransferSource name="radiativeTransferSourceSummation">
+   <description>A photon source class for summation sources.</description>
+   <deepCopy>
+    <linkedList type="radiativeTransferSourceList" variable="radiativeTransferSources" next="next" object="radiativeTransferSource" objectType="radiativeTransferSourceClass"/>
+   </deepCopy>
+   <stateStore>
+    <linkedList type="radiativeTransferSourceList" variable="radiativeTransferSources" next="next" object="radiativeTransferSource"/>
+   </stateStore>
+  </radiativeTransferSource>
+  !!]
   type, extends(radiativeTransferSourceClass) :: radiativeTransferSourceSummation
-     !% Implementation of a summation source class for radiative transfer calculations.
+     !!{
+     Implementation of a summation source class for radiative transfer calculations.
+     !!}
      private
      type   (radiativeTransferSourceList), pointer                   :: radiativeTransferSources => null()
      class  (randomNumberGeneratorClass ), pointer                   :: randomNumberGenerator_   => null()
@@ -47,7 +54,9 @@
   end type radiativeTransferSourceSummation
 
   interface radiativeTransferSourceSummation
-     !% Constructors for the {\normalfont \ttfamily summation} radiative transfer source class.
+     !!{
+     Constructors for the {\normalfont \ttfamily summation} radiative transfer source class.
+     !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
   end interface radiativeTransferSourceSummation
@@ -55,7 +64,9 @@
 contains
 
   function summationConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily summation} radiative transfer source class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily summation} radiative transfer source class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
@@ -65,9 +76,9 @@ contains
     integer                                                  :: i
 
     radiativeTransferSource_ => null()
-    self%sourceTypeCount_    =  parameters%copiesCount('radiativeTransferSourceMethod',zeroIfNotPresent=.true.)
+    self%sourceTypeCount_    =  parameters%copiesCount('radiativeTransferSource',zeroIfNotPresent=.true.)
     allocate(self%sourceTypeName_(self%sourceTypeCount_))
-    do i=1,parameters%copiesCount('radiativeTransferSourceMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('radiativeTransferSource',zeroIfNotPresent=.true.)
        if (associated(radiativeTransferSource_)) then
           allocate(radiativeTransferSource_%next)
           radiativeTransferSource_ => radiativeTransferSource_%next
@@ -75,30 +86,40 @@ contains
           allocate(self%radiativeTransferSources)
           radiativeTransferSource_ => self%radiativeTransferSources
        end if
-       !# <objectBuilder class="radiativeTransferSource" name="radiativeTransferSource_%radiativeTransferSource" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="radiativeTransferSource" name="radiativeTransferSource_%radiativeTransferSource" source="parameters" copy="i" />
+       !!]
        if (radiativeTransferSource_%radiativeTransferSource%sourceTypeCount() /= 1) &
             & call Galacticus_Error_Report('more than 1 source type is not presently supported'//{introspection:location})
        self%sourceTypeName_(i)=radiativeTransferSource_%radiativeTransferSource%sourceTypeName(1)
     end do
-    !# <objectBuilder class="randomNumberGenerator" name="self%randomNumberGenerator_" source="parameters"/>
+    !![
+    <objectBuilder class="randomNumberGenerator" name="self%randomNumberGenerator_" source="parameters"/>
+    !!]
     return
   end function summationConstructorParameters
 
   function summationConstructorInternal(radiativeTransferSources,randomNumberGenerator_) result(self)
-    !% Internal constructor for the ``summation'' radiative transfer source class.
+    !!{
+    Internal constructor for the ``summation'' radiative transfer source class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (radiativeTransferSourceSummation)                         :: self
     type (radiativeTransferSourceList     ), target , intent(in   ) :: radiativeTransferSources
     type (radiativeTransferSourceList     ), pointer                :: radiativeTransferSource_
     class(randomNumberGeneratorClass      ), target , intent(in   ) :: randomNumberGenerator_
-    !# <constructorAssign variables="*randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="*randomNumberGenerator_"/>
+    !!]
 
     self                    %radiativeTransferSources => radiativeTransferSources
     radiativeTransferSource_                          => radiativeTransferSources
     self%sourceTypeCount_                             =  0
     do while (associated(radiativeTransferSource_))
-       !# <referenceCountIncrement owner="radiativeTransferSource_" object="radiativeTransferSource"/>
+       !![
+       <referenceCountIncrement owner="radiativeTransferSource_" object="radiativeTransferSource"/>
+       !!]
        self%sourceTypeCount_    =  self%sourceTypeCount_        +1
        radiativeTransferSource_ => radiativeTransferSource_%next
     end do
@@ -116,7 +137,9 @@ contains
   end function summationConstructorInternal
 
   subroutine summationDestructor(self)
-    !% Destructor for the ``summation'' radiative transfer source class.
+    !!{
+    Destructor for the ``summation'' radiative transfer source class.
+    !!}
     implicit none
     type(radiativeTransferSourceSummation), intent(inout) :: self
     type(radiativeTransferSourceList     ), pointer       :: radiativeTransferSource, radiativeTransferSourceNext
@@ -124,16 +147,22 @@ contains
     radiativeTransferSource => self%radiativeTransferSources
     do while (associated(radiativeTransferSource))
        radiativeTransferSourceNext => radiativeTransferSource%next
-       !# <objectDestructor name="radiativeTransferSource%radiativeTransferSource"/>
+       !![
+       <objectDestructor name="radiativeTransferSource%radiativeTransferSource"/>
+       !!]
        deallocate(radiativeTransferSource)
        radiativeTransferSource => radiativeTransferSourceNext
     end do
-    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
     return
   end subroutine summationDestructor
   
   subroutine summationInitializePhotonPacket(self,photonPacket)
-    !% Initialize the photon packet.
+    !!{
+    Initialize the photon packet.
+    !!}
     implicit none
     class           (radiativeTransferSourceSummation  ), intent(inout) :: self
     class           (radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket
@@ -165,7 +194,9 @@ contains
   end subroutine summationInitializePhotonPacket
 
   double precision function summationLuminosity(self,wavelengthMinimum,wavelengthMaximum,sourceType)
-    !% Return the spectrum of the summation source.
+    !!{
+    Return the spectrum of the summation source.
+    !!}
     implicit none
     class           (radiativeTransferSourceSummation), intent(inout)           :: self
     double precision                                  , intent(in   )           :: wavelengthMinimum      , wavelengthMaximum
@@ -191,7 +222,9 @@ contains
   end function summationLuminosity
 
   double precision function summationSpectrum(self,wavelength,sourceType)
-    !% Return the spectrum of the summation source.
+    !!{
+    Return the spectrum of the summation source.
+    !!}
     implicit none
     class           (radiativeTransferSourceSummation), intent(inout)           :: self
     double precision                                  , intent(in   )           :: wavelength
@@ -217,7 +250,9 @@ contains
   end function summationSpectrum
 
   integer function summationSourceTypeCount(self)
-    !% Return the number of source types provided.
+    !!{
+    Return the number of source types provided.
+    !!}
     implicit none
     class(radiativeTransferSourceSummation), intent(inout) :: self
     
@@ -226,7 +261,9 @@ contains
   end function summationSourceTypeCount
 
   function summationSourceTypeName(self,sourceType)
-    !% Return the name of the source type.
+    !!{
+    Return the name of the source type.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (varying_string                  )                :: summationSourceTypeName

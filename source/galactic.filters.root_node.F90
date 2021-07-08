@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a filter which passes only nodes that are roots of their merger tree.
+!!{
+Contains a module which implements a filter which passes only nodes that are roots of their merger tree.
+!!}
 
-  !# <galacticFilter name="galacticFilterRootNode">
-  !#  <description>A filter which passes only nodes which are roots of their merger tree.</description>
-  !# </galacticFilter>
+  !![
+  <galacticFilter name="galacticFilterRootNode">
+   <description>A filter which passes only nodes which are roots of their merger tree.</description>
+  </galacticFilter>
+  !!]
   type, extends(galacticFilterClass) :: galacticFilterRootNode
-     !% A galactic filter class which passes only nodes which are roots of their merger tree.
+     !!{
+     A galactic filter class which passes only nodes which are roots of their merger tree.
+     !!}
      private
    contains
      procedure :: passes => rootNodePasses
   end type galacticFilterRootNode
 
   interface galacticFilterRootNode
-     !% Constructors for the ``rootNode'' galactic filter class.
+     !!{
+     Constructors for the ``rootNode'' galactic filter class.
+     !!}
      module procedure rootNodeConstructorParameters
   end interface galacticFilterRootNode
 
 contains
 
   function rootNodeConstructorParameters(parameters) result(self)
-    !% Constructor for the ``rootNode'' galactic filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``rootNode'' galactic filter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(galacticFilterRootNode)                :: self
@@ -49,7 +59,9 @@ contains
   end function rootNodeConstructorParameters
 
   logical function rootNodePasses(self,node)
-    !% Implement a galactic filter which passes only main branch halos.
+    !!{
+    Implement a galactic filter which passes only main branch halos.
+    !!}
     implicit none
     class(galacticFilterRootNode), intent(inout)         :: self
     type (treeNode              ), intent(inout), target :: node

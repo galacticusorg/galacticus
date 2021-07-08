@@ -170,7 +170,11 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 	if ( scalar(@{$directives->{'functionClass'}}) > 0 ||  scalar(@{$directives->{'inputParameter'}}) > 0 );
     # Add dependence on error reporting module if necessary.
     push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName."galacticus_error.mod")
-	if ( grep {exists($_->{'encodeFunction'}) && $_->{'encodeFunction'} eq "yes"} @{$directives->{'enumeration'}} );
+	if (
+	    (grep {exists($_->{'encodeFunction'}) && $_->{'encodeFunction'} eq "yes" && ! exists($_->{'errorValue'})} @{$directives->{'enumeration'}})
+	    ||
+	    (grep {exists($_->{'decodeFunction'}) && $_->{'decodeFunction'} eq "yes"                                } @{$directives->{'enumeration'}})
+	);
     # Find modules used in functionClass directives.
     foreach my $functionClass ( @{$directives->{'functionClass'}} ) {
 	next 
@@ -199,8 +203,17 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 	# Initialize preprocessor conditional compilation state and state stack.
 	my @preprocessorConditionalsStack;
 	my $conditionallyCompile = 1;
+	my $inXML                = 0;
+	my $inLaTeX              = 0;
 	open(my $file,$fullPathFileName) or die "Can't open input file: $fullPathFileName";
 	while (my $line = <$file>) {
+	    # Detect leaving LaTeX and XML blocks.
+	    $inXML   = 0
+		if ( $line =~ m/^\s*!!\]/ );
+	    $inLaTeX = 0
+		if ( $line =~ m/^\s*!!\}/ );
+	    next
+		if ( $inXML || $inLaTeX );
 	    if ( $line =~ m/^\s*\!;\s*([a-zA-Z0-9_]+)\s*$/ ) {
 		$usesPerFile->{$fileIdentifier}->{'libraryDependencies'}->{$1} = 1;	
 	    }
@@ -303,6 +316,11 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 		    }
 		}
 	    }
+	    # Detect entering LaTeX and XML blocks.
+	    $inXML   = 1
+		if ( $line =~ m/^\s*!!\[/ );
+	    $inLaTeX = 1
+		if ( $line =~ m/^\s*!!\{/ );
 	}
 	close($file);
     }

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,38 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a sequence output analysis distribution operator class.
+!!{
+Contains a module which implements a sequence output analysis distribution operator class.
+!!}
 
   type, public :: distributionOperatorList
      class(outputAnalysisDistributionOperatorClass), pointer :: operator_
      type (distributionOperatorList               ), pointer :: next     => null()
   end type distributionOperatorList
 
-  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorSequence">
-  !#  <description>A sequence output analysis distribution operator class.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="distributionOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisDistributionOperatorClass"/>
-  !#  </deepCopy>
-  !# </outputAnalysisDistributionOperator>
+  !![
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorSequence">
+   <description>A sequence output analysis distribution operator class.</description>
+   <deepCopy>
+    <linkedList type="distributionOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisDistributionOperatorClass"/>
+   </deepCopy>
+   <stateStore>
+    <linkedList type="distributionOperatorList" variable="operators" next="next" object="operator_"/>
+   </stateStore>
+  </outputAnalysisDistributionOperator>
+  !!]
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorSequence
-     !% A sequence output distribution operator class.
+     !!{
+     A sequence output distribution operator class.
+     !!}
      private
      type(distributionOperatorList), pointer :: operators => null()
    contains
-     !# <methods>
-     !#   <method description="Prepend an operator to a sequence of distribution operators." method="prepend" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Prepend an operator to a sequence of distribution operators." method="prepend" />
+     </methods>
+     !!]
      final     ::                        sequenceDestructor
      procedure :: operateScalar       => sequenceOperateScalar
      procedure :: operateDistribution => sequenceOperateDistribution
@@ -45,7 +56,9 @@
   end type outputAnalysisDistributionOperatorSequence
 
   interface outputAnalysisDistributionOperatorSequence
-     !% Constructors for the ``sequence'' output analysis class.
+     !!{
+     Constructors for the ``sequence'' output analysis class.
+     !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal
   end interface outputAnalysisDistributionOperatorSequence
@@ -53,7 +66,9 @@
 contains
 
   function sequenceConstructorParameters(parameters) result (self)
-    !% Constructor for the ``sequence'' output analysis distribution operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``sequence'' output analysis distribution operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (outputAnalysisDistributionOperatorSequence)                :: self
@@ -63,7 +78,7 @@ contains
 
     self     %operators => null()
     operator_           => null()
-    do i=1,parameters%copiesCount('outputAnalysisDistributionOperatorMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('outputAnalysisDistributionOperator',zeroIfNotPresent=.true.)
        if (associated(operator_)) then
           allocate(operator_%next)
           operator_ => operator_%next
@@ -71,13 +86,17 @@ contains
           allocate(self%operators)
           operator_ => self%operators
        end if
-       !# <objectBuilder class="outputAnalysisDistributionOperator" name="operator_%operator_" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="outputAnalysisDistributionOperator" name="operator_%operator_" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function sequenceConstructorParameters
 
   function sequenceConstructorInternal(operators) result (self)
-    !% Internal constructor for the sequence merger tree normalizer class.
+    !!{
+    Internal constructor for the sequence merger tree normalizer class.
+    !!}
     implicit none
     type(outputAnalysisDistributionOperatorSequence)                        :: self
     type(distributionOperatorList                  ), target, intent(in   ) :: operators
@@ -86,14 +105,18 @@ contains
     self     %operators => operators
     operator_           => operators
     do while (associated(operator_))
-       !# <referenceCountIncrement owner="operator_" object="operator_"/>
+       !![
+       <referenceCountIncrement owner="operator_" object="operator_"/>
+       !!]
        operator_ => operator_%next
     end do
     return
   end function sequenceConstructorInternal
 
   subroutine sequenceDestructor(self)
-    !% Destructor for the sequence distribution operator class.
+    !!{
+    Destructor for the sequence distribution operator class.
+    !!}
     implicit none
     type(outputAnalysisDistributionOperatorSequence), intent(inout) :: self
     type(distributionOperatorList                  ), pointer       :: operator_, operatorNext
@@ -102,7 +125,9 @@ contains
        operator_ => self%operators
        do while (associated(operator_))
           operatorNext => operator_%next
-          !# <objectDestructor name="operator_%operator_"/>
+          !![
+          <objectDestructor name="operator_%operator_"/>
+          !!]
           deallocate(operator_)
           operator_ => operatorNext
        end do
@@ -111,7 +136,9 @@ contains
   end subroutine sequenceDestructor
 
   function sequenceOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !% Implement an sequence output analysis distribution operator.
+    !!{
+    Implement an sequence output analysis distribution operator.
+    !!}
     implicit none
     class           (outputAnalysisDistributionOperatorSequence), intent(inout)                                        :: self
     double precision                                            , intent(in   )                                        :: propertyValue
@@ -136,7 +163,9 @@ contains
   end function sequenceOperateScalar
 
   function sequenceOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !% Implement a random error output analysis distribution operator.
+    !!{
+    Implement a random error output analysis distribution operator.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (outputAnalysisDistributionOperatorSequence), intent(inout)                                        :: self
@@ -158,7 +187,9 @@ contains
   end function sequenceOperateDistribution
 
   subroutine sequencePrepend(self,operator_)
-    !% Prepend an operator to the sequence.
+    !!{
+    Prepend an operator to the sequence.
+    !!}
     implicit none
     class(outputAnalysisDistributionOperatorSequence), intent(inout)          :: self
     class(outputAnalysisDistributionOperatorClass   ), intent(in   ), target  :: operator_

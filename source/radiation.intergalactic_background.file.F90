@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,57 +17,63 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a class for intergalactic background light.
+  !!{
+  Implements a class for intergalactic background light.
+  !!}
 
   use            :: Cosmology_Functions    , only : cosmologyFunctionsClass
   use, intrinsic :: ISO_C_Binding          , only : c_size_t
   use            :: Numerical_Interpolation, only : interpolator
 
-  !# <radiationField name="radiationFieldIntergalacticBackgroundFile">
-  !#  <description>
-  !#   A radiation field class for intergalactic background light with properties read from file. The flux is determined by
-  !#   linearly interpolating to the required time and wavelength. The XML file to read is specified by {\normalfont \ttfamily
-  !#   [fileName]}. An example of the required file structure is:
-  !#    \begin{verbatim}
-  !#   <spectrum>
-  !#     <URL>http://adsabs.harvard.edu/abs/1996ApJ...461...20H</URL>
-  !#     <description>Cosmic background radiation spectrum from quasars alone.</description>
-  !#     <reference>Haardt, F. &amp; Madau, P. 1996, ApJ, 461, 20</reference>
-  !#     <source>Francesco Haardt on Aug 6 2005, via Cloudy 08.00</source>
-  !#     <wavelengths>
-  !#       <datum>0.0002481</datum>
-  !#       <datum>0.001489</datum>
-  !#       .
-  !#       .
-  !#       .
-  !#       <units>Angstroms</units>
-  !#     </wavelengths>
-  !#     <spectra>
-  !#       <datum>7.039E-49</datum>
-  !#       <datum>8.379E-48</datum>
-  !#       <datum>1.875E-39</datum>
-  !#       <datum>7.583E-38</datum>
-  !#       .
-  !#       .
-  !#       .
-  !#       <redshift>0</redshift>
-  !#       <units>erg cm^-2 s^-1 Hz^-1 sr^-1</units>
-  !#     </spectra>
-  !#   </spectrum>
-  !#    \end{verbatim}
-  !#   \end{description}
-  !#   The optional {\normalfont \ttfamily URL}, {\normalfont \ttfamily description}, {\normalfont \ttfamily reference} and
-  !#   {\normalfont \ttfamily source} elements can be used to give the provenance of the data. The {\normalfont \ttfamily
-  !#   wavelengths} element should contain a set of {\normalfont \ttfamily datum} elements each containing a wavelength (in
-  !#   increasing order) at which the spectrum will be tabulated. Wavelengths must be given in Angstroms. Multiple {\normalfont
-  !#   \ttfamily spectra} elements can be given, each specifying the spectrum at a redshift as given in the {\normalfont \ttfamily
-  !#   redshift} element. Each {\normalfont \ttfamily spectra} element must contain an array of {\normalfont \ttfamily datum}
-  !#   elements that gives the spectrum at each wavelength listed in the {\normalfont \ttfamily wavelength} element. Spectra must
-  !#   be in units of erg cm$^{-2}$ s$^{-1}$ Hz$^{-1}$ sr$^{-1}$.
-  !#  </description>
-  !# </radiationField>
+  !![
+  <radiationField name="radiationFieldIntergalacticBackgroundFile">
+   <description>
+    A radiation field class for intergalactic background light with properties read from file. The flux is determined by
+    linearly interpolating to the required time and wavelength. The XML file to read is specified by {\normalfont \ttfamily
+    [fileName]}. An example of the required file structure is:
+     \begin{verbatim}
+    <spectrum>
+      <URL>http://adsabs.harvard.edu/abs/1996ApJ...461...20H</URL>
+      <description>Cosmic background radiation spectrum from quasars alone.</description>
+      <reference>Haardt, F. &amp; Madau, P. 1996, ApJ, 461, 20</reference>
+      <source>Francesco Haardt on Aug 6 2005, via Cloudy 08.00</source>
+      <wavelengths>
+        <datum>0.0002481</datum>
+        <datum>0.001489</datum>
+        .
+        .
+        .
+        <units>Angstroms</units>
+      </wavelengths>
+      <spectra>
+        <datum>7.039E-49</datum>
+        <datum>8.379E-48</datum>
+        <datum>1.875E-39</datum>
+        <datum>7.583E-38</datum>
+        .
+        .
+        .
+        <redshift>0</redshift>
+        <units>erg cm^-2 s^-1 Hz^-1 sr^-1</units>
+      </spectra>
+    </spectrum>
+     \end{verbatim}
+    \end{description}
+    The optional {\normalfont \ttfamily URL}, {\normalfont \ttfamily description}, {\normalfont \ttfamily reference} and
+    {\normalfont \ttfamily source} elements can be used to give the provenance of the data. The {\normalfont \ttfamily
+    wavelengths} element should contain a set of {\normalfont \ttfamily datum} elements each containing a wavelength (in
+    increasing order) at which the spectrum will be tabulated. Wavelengths must be given in Angstroms. Multiple {\normalfont
+    \ttfamily spectra} elements can be given, each specifying the spectrum at a redshift as given in the {\normalfont \ttfamily
+    redshift} element. Each {\normalfont \ttfamily spectra} element must contain an array of {\normalfont \ttfamily datum}
+    elements that gives the spectrum at each wavelength listed in the {\normalfont \ttfamily wavelength} element. Spectra must
+    be in units of erg cm$^{-2}$ s$^{-1}$ Hz$^{-1}$ sr$^{-1}$.
+   </description>
+  </radiationField>
+  !!]
   type, extends(radiationFieldIntergalacticBackground) :: radiationFieldIntergalacticBackgroundFile
-     !% A radiation field class for intergalactic background light with properties read from file.
+     !!{
+     A radiation field class for intergalactic background light with properties read from file.
+     !!}
      private
      class           (cosmologyFunctionsClass), pointer                     :: cosmologyFunctions_     => null()
      type            (varying_string         )                              :: fileName
@@ -79,16 +85,20 @@
      integer         (c_size_t               )                              :: iTime
      double precision                         , dimension(0:1)              :: hTime
    contains
-     !# <methods>
-     !#   <method description="Set the time for the radiation field." method="timeSet" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Set the time for the radiation field." method="timeSet" />
+     </methods>
+     !!]
      final     ::            intergalacticBackgroundFileDestructor
      procedure :: flux    => intergalacticBackgroundFileFlux
      procedure :: timeSet => intergalacticBackgroundFileTimeSet
   end type radiationFieldIntergalacticBackgroundFile
 
   interface radiationFieldIntergalacticBackgroundFile
-     !% Constructors for the {\normalfont \ttfamily intergalacticBackgroundFile} radiation field class.
+     !!{
+     Constructors for the {\normalfont \ttfamily intergalacticBackgroundFile} radiation field class.
+     !!}
      module procedure intergalacticBackgroundFileConstructorParameters
      module procedure intergalacticBackgroundFileConstructorInternal
   end interface radiationFieldIntergalacticBackgroundFile
@@ -99,7 +109,9 @@
 contains
 
   function intergalacticBackgroundFileConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily intergalacticBackgroundFile} radiation field class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily intergalacticBackgroundFile} radiation field class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (radiationFieldIntergalacticBackgroundFile)                :: self
@@ -107,20 +119,26 @@ contains
     class(cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctions_
     type (varying_string                           )                :: fileName
 
-    !# <inputParameter>
-    !#   <name>fileName</name>
-    !#   <description>The name of the file from which to read intergalactic background light properties.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>fileName</name>
+      <description>The name of the file from which to read intergalactic background light properties.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !!]
     self=radiationFieldIntergalacticBackgroundFile(fileName,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    !!]
     return
   end function intergalacticBackgroundFileConstructorParameters
 
   function intergalacticBackgroundFileConstructorInternal(fileName,cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily intergalacticBackgroundFile} radiation field class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily intergalacticBackgroundFile} radiation field class.
+    !!}
     use :: Array_Utilities  , only : Array_Is_Monotonic            , Array_Reverse     , directionIncreasing
     use :: FoX_DOM          , only : destroy                       , node              , extractDataContent
     use :: Galacticus_Error , only : Galacticus_Error_Report
@@ -137,7 +155,9 @@ contains
     integer                                                                         :: fileFormatVersion  , iSpectrum , &
          &                                                                             status             , jSpectrum
     logical                                                                         :: timesIncreasing
-    !# <constructorAssign variables="fileName, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="fileName, *cosmologyFunctions_"/>
+    !!]
 
     !$omp critical (FoX_DOM_Access)
     doc => XML_Parse(char(fileName),iostat=status)
@@ -194,16 +214,22 @@ contains
   end function intergalacticBackgroundFileConstructorInternal
 
   subroutine intergalacticBackgroundFileDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily intergalacticBackgroundFile} radiation field class.
+    !!{
+    Destructor for the {\normalfont \ttfamily intergalacticBackgroundFile} radiation field class.
+    !!}
     implicit none
     type(radiationFieldIntergalacticBackgroundFile), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    !!]
     return
   end subroutine intergalacticBackgroundFileDestructor
 
   double precision function intergalacticBackgroundFileFlux(self,wavelength,node)
-    !% Return the flux in the intergalactic background radiation field.
+    !!{
+    Return the flux in the intergalactic background radiation field.
+    !!}
     implicit none
     class           (radiationFieldIntergalacticBackgroundFile), intent(inout)  :: self
     double precision                                           , intent(in   )  :: wavelength
@@ -239,7 +265,9 @@ contains
   end function intergalacticBackgroundFileFlux
 
   subroutine intergalacticBackgroundFileTimeSet(self,time)
-    !% Set the time of the intergalactic backgroun radiation field.
+    !!{
+    Set the time of the intergalactic backgroun radiation field.
+    !!}
     implicit none
     class           (radiationFieldIntergalacticBackgroundFile), intent(inout) :: self
     double precision                                           , intent(in   ) :: time

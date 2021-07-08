@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,32 +17,44 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a merger trees outputter class which combines multiple other outputters.
+  !!{
+  Implements a merger trees outputter class which combines multiple other outputters.
+  !!}
 
   type, public :: multiOutputterList
      class(mergerTreeOutputterClass), pointer :: outputter_ => null()
      type (multiOutputterList      ), pointer :: next       => null()
   end type multiOutputterList
 
-  !# <mergerTreeOutputter name="mergerTreeOutputterMulti">
-  !#  <description>A merger tree outputter which combines multiple other outputters.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_" objectType="mergerTreeOutputterClass"/>
-  !#  </deepCopy>
-  !# </mergerTreeOutputter>
+  !![
+  <mergerTreeOutputter name="mergerTreeOutputterMulti">
+   <description>A merger tree outputter which combines multiple other outputters.</description>
+   <deepCopy>
+    <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_" objectType="mergerTreeOutputterClass"/>
+   </deepCopy>
+   <stateStore>
+    <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_"/>
+   </stateStore>
+  </mergerTreeOutputter>
+  !!]
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterMulti
-     !% Implementation of a merger tree outputter which combines multiple other outputters.
+     !!{
+     Implementation of a merger tree outputter which combines multiple other outputters.
+     !!}
      private
      type(multiOutputterList), pointer :: outputters => null()
    contains
-     final     ::             multiDestructor
-     procedure :: output   => multiOutput
-     procedure :: finalize => multiFinalize
-     procedure :: reduce   => multiReduce
+     final     ::               multiDestructor
+     procedure :: outputTree => multiOutputTree
+     procedure :: outputNode => multiOutputNode
+     procedure :: finalize   => multiFinalize
+     procedure :: reduce     => multiReduce
   end type mergerTreeOutputterMulti
 
   interface mergerTreeOutputterMulti
-     !% Constructors for the {\normalfont \ttfamily multi} merger tree outputter.
+     !!{
+     Constructors for the {\normalfont \ttfamily multi} merger tree outputter.
+     !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
   end interface mergerTreeOutputterMulti
@@ -50,7 +62,9 @@
 contains
 
   function multiConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily multi} merger tree outputter class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily multi} merger tree outputter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (mergerTreeOutputterMulti)                :: self
@@ -60,7 +74,7 @@ contains
 
     self      %outputters => null()
     outputter_           => null()
-    do i=1,parameters%copiesCount('mergerTreeOutputterMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('mergerTreeOutputter',zeroIfNotPresent=.true.)
        if (associated(outputter_)) then
           allocate(outputter_%next)
           outputter_ => outputter_%next
@@ -68,13 +82,17 @@ contains
           allocate(self%outputters)
           outputter_ => self%outputters
        end if
-       !# <objectBuilder class="mergerTreeOutputter" name="outputter_%outputter_" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="mergerTreeOutputter" name="outputter_%outputter_" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function multiConstructorParameters
 
   function multiConstructorInternal(outputters) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily multi} outputter class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily multi} outputter class.
+    !!}
     implicit none
     type(mergerTreeOutputterMulti)                        :: self
     type(multiOutputterList      ), target, intent(in   ) :: outputters
@@ -83,14 +101,18 @@ contains
     self      %outputters => outputters
     outputter_            => outputters
     do while (associated(outputter_))
-       !# <referenceCountIncrement owner="outputter_" object="outputter_"/>
+       !![
+       <referenceCountIncrement owner="outputter_" object="outputter_"/>
+       !!]
        outputter_ => outputter_%next
     end do
     return
   end function multiConstructorInternal
 
   subroutine multiDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily multi} outputter class.
+    !!{
+    Destructor for the {\normalfont \ttfamily multi} outputter class.
+    !!}
     implicit none
     type(mergerTreeOutputterMulti), intent(inout) :: self
     type(multiOutputterList      ), pointer       :: outputter_, outputterNext
@@ -99,7 +121,9 @@ contains
        outputter_ => self%outputters
        do while (associated(outputter_))
           outputterNext => outputter_%next
-          !# <objectDestructor name="outputter_%outputter_"/>
+          !![
+          <objectDestructor name="outputter_%outputter_"/>
+          !!]
           deallocate(outputter_)
           outputter_ => outputterNext
        end do
@@ -107,26 +131,47 @@ contains
     return
   end subroutine multiDestructor
 
-  subroutine multiOutput(self,tree,indexOutput,time,isLastOutput)
-    !% Output from all outputters.
+  subroutine multiOutputTree(self,tree,indexOutput,time)
+    !!{
+    Output from all outputters.
+    !!}
     implicit none
-    class           (mergerTreeOutputterMulti), intent(inout)           :: self
-    type            (multiOutputterList      ), pointer                 :: outputter_
-    type            (mergerTree              ), intent(inout), target   :: tree
-    integer         (c_size_t                ), intent(in   )           :: indexOutput
-    double precision                          , intent(in   )           :: time
-    logical                                   , intent(in   ), optional :: isLastOutput
+    class           (mergerTreeOutputterMulti), intent(inout)         :: self
+    type            (mergerTree              ), intent(inout), target :: tree
+    integer         (c_size_t                ), intent(in   )         :: indexOutput
+    double precision                          , intent(in   )         :: time
+    type            (multiOutputterList      ), pointer               :: outputter_
 
     outputter_ => self%outputters
     do while (associated(outputter_))
-       call outputter_%outputter_%output(tree,indexOutput,time,isLastOutput)
+       call outputter_%outputter_%outputTree(tree,indexOutput,time)
        outputter_ => outputter_%next
     end do
     return
-  end subroutine multiOutput
+  end subroutine multiOutputTree
+
+  subroutine multiOutputNode(self,node,indexOutput)
+    !!{
+    Output from all outputters.
+    !!}
+    implicit none
+    class  (mergerTreeOutputterMulti), intent(inout) :: self
+    type   (treeNode                ), intent(inout) :: node
+    integer(c_size_t                ), intent(in   ) :: indexOutput
+    type   (multiOutputterList      ), pointer       :: outputter_
+
+    outputter_ => self%outputters
+    do while (associated(outputter_))
+       call outputter_%outputter_%outputNode(node,indexOutput)
+       outputter_ => outputter_%next
+    end do
+    return
+  end subroutine multiOutputNode
 
   subroutine multiFinalize(self)
-    !% Finalize all outputters.
+    !!{
+    Finalize all outputters.
+    !!}
     implicit none
     class(mergerTreeOutputterMulti), intent(inout) :: self
     type (multiOutputterList      ), pointer       :: outputter_
@@ -140,7 +185,9 @@ contains
   end subroutine multiFinalize
 
   subroutine multiReduce(self,reduced)
-    !% Reduce over the outputter.
+    !!{
+    Reduce over the outputter.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(mergerTreeOutputterMulti), intent(inout) :: self

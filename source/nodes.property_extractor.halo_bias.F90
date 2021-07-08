@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an ISM mass output analysis property extractor class.
+!!{
+Contains a module which implements an ISM mass output analysis property extractor class.
+!!}
 
   use :: Dark_Matter_Halo_Biases, only : darkMatterHaloBias, darkMatterHaloBiasClass
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorHaloBias">
-  !#  <description>
-  !#   A node property extractor which extracts the large scale, lineary theory bias for each node. For satellite nodes, this
-  !#   corresponds to the bias of their host halo.
-  !#  </description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorHaloBias">
+   <description>
+    A node property extractor which extracts the large scale, lineary theory bias for each node. For satellite nodes, this
+    corresponds to the bias of their host halo.
+   </description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorHaloBias
-     !% A node property extractor for halo bias.
+     !!{
+     A node property extractor for halo bias.
+     !!}
      private
      class(darkMatterHaloBiasClass), pointer :: darkMatterHaloBias_ => null()
    contains
@@ -41,7 +47,9 @@
   end type nodePropertyExtractorHaloBias
 
   interface nodePropertyExtractorHaloBias
-     !% Constructors for the ``haloBias'' output analysis class.
+     !!{
+     Constructors for the ``haloBias'' output analysis class.
+     !!}
      module procedure haloBiasConstructorParameters
      module procedure haloBiasConstructorInternal
   end interface nodePropertyExtractorHaloBias
@@ -49,41 +57,57 @@
 contains
 
   function haloBiasConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily haloBias} node property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily haloBias} node property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorHaloBias)                :: self
     type (inputParameters              ), intent(inout) :: parameters
     class(darkMatterHaloBiasClass      ), pointer       :: darkMatterHaloBias_
 
-    !# <objectBuilder class="darkMatterHaloBias" name="darkMatterHaloBias_" source="parameters"/>
+    !![
+    <objectBuilder class="darkMatterHaloBias" name="darkMatterHaloBias_" source="parameters"/>
+    !!]
     self=nodePropertyExtractorHaloBias(darkMatterHaloBias_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloBias_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloBias_"/>
+    !!]
     return
   end function haloBiasConstructorParameters
 
   function haloBiasConstructorInternal(darkMatterHaloBias_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily haloBias} node property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily haloBias} node property extractor class.
+    !!}
     implicit none
     type (nodePropertyExtractorHaloBias)                        :: self
     class(darkMatterHaloBiasClass      ), intent(in   ), target :: darkMatterHaloBias_
-    !# <constructorAssign variables="*darkMatterHaloBias_"/>
+    !![
+    <constructorAssign variables="*darkMatterHaloBias_"/>
+    !!]
 
     return
   end function haloBiasConstructorInternal
 
   subroutine haloBiasDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily haloBias} property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily haloBias} property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorHaloBias), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloBias_"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloBias_"/>
+    !!]
     return
   end subroutine haloBiasDestructor
 
   double precision function haloBiasExtract(self,node,instance)
-    !% Implement a {\normalfont \ttfamily haloBias} node property extractor.
+    !!{
+    Implement a {\normalfont \ttfamily haloBias} node property extractor.
+    !!}
     implicit none
     class           (nodePropertyExtractorHaloBias), intent(inout)           :: self
     type            (treeNode                     ), intent(inout), target   :: node
@@ -100,7 +124,9 @@ contains
   end function haloBiasExtract
 
   integer function haloBiasType(self)
-    !% Return the type of the stellar mass property.
+    !!{
+    Return the type of the stellar mass property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorHaloBias), intent(inout) :: self
@@ -111,7 +137,9 @@ contains
   end function haloBiasType
 
   function haloBiasName(self)
-    !% Return the name of the haloBias property.
+    !!{
+    Return the name of the haloBias property.
+    !!}
     implicit none
     type (varying_string               )                :: haloBiasName
     class(nodePropertyExtractorHaloBias), intent(inout) :: self
@@ -122,7 +150,9 @@ contains
   end function haloBiasName
 
   function haloBiasDescription(self)
-    !% Return a description of the haloBias property.
+    !!{
+    Return a description of the haloBias property.
+    !!}
     implicit none
     type (varying_string               )                :: haloBiasDescription
     class(nodePropertyExtractorHaloBias), intent(inout) :: self
@@ -133,7 +163,9 @@ contains
   end function haloBiasDescription
 
   double precision function haloBiasUnitsInSI(self)
-    !% Return the units of the {\normalfont \ttfamily haloBias} property in the SI system.
+    !!{
+    Return the units of the {\normalfont \ttfamily haloBias} property in the SI system.
+    !!}
     implicit none
     class(nodePropertyExtractorHaloBias), intent(inout) :: self
     !$GLC attributes unused :: self

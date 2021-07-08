@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Provides a node merger class implementing a multi level hierarchy.
+  !!{
+  Provides a node merger class implementing a multi level hierarchy.
+  !!}
 
-  !# <mergerTreeNodeMerger name="mergerTreeNodeMergerMultiLevelHierarchy">
-  !#  <description>A node merger class implementing a multi level hierarchy.</description>
-  !# </mergerTreeNodeMerger>
+  !![
+  <mergerTreeNodeMerger name="mergerTreeNodeMergerMultiLevelHierarchy">
+   <description>A node merger class implementing a multi level hierarchy.</description>
+  </mergerTreeNodeMerger>
+  !!]
   type, extends(mergerTreeNodeMergerClass) :: mergerTreeNodeMergerMultiLevelHierarchy
-     !% Implementation of the multi-level hierarchy node merger class.
+     !!{
+     Implementation of the multi-level hierarchy node merger class.
+     !!}
      private
    contains
      procedure :: process  => multiLevelHierarchyProcess
   end type mergerTreeNodeMergerMultiLevelHierarchy
 
   interface mergerTreeNodeMergerMultiLevelHierarchy
-     !% Constructors for the {\normalfont \ttfamily multiLevelHierarchy} node merger class.
+     !!{
+     Constructors for the {\normalfont \ttfamily multiLevelHierarchy} node merger class.
+     !!}
      module procedure multiLevelHierarchyConstructorParameters
   end interface mergerTreeNodeMergerMultiLevelHierarchy
 
 contains
 
   function multiLevelHierarchyConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily multiLevelHierarchy} node merger class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily multiLevelHierarchy} node merger class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeNodeMergerMultiLevelHierarchy)                :: self
@@ -49,7 +59,10 @@ contains
   end function multiLevelHierarchyConstructorParameters
 
   subroutine multiLevelHierarchyProcess(self,node)
-    !% Processes a node merging event, utilizing a multi level substructure hierarchy.
+    !!{
+    Processes a node merging event, utilizing a multi level substructure hierarchy.
+    !!}
+    use :: Display         , only : displayGreen           , displayReset
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : treeNode
     use :: String_Handling , only : operator(//)
@@ -69,7 +82,7 @@ contains
        message='attempting to make node '
        message=message//node%index()//' a satellite, but it is the primary progenitor'//char(10)
        message=message//'this can happen if branch jumps are allowed and the tree is postprocessed to remove nodes'//char(10)
-       message=message//'HELP: to resolve this issue, either switch off postprocessing of the tree, or prevent'//char(10)
+       message=message//displayGreen()//'HELP:'//displayReset()//' to resolve this issue, either switch off postprocessing of the tree, or prevent'//char(10)
        message=message//'branch jumps by setting [mergerTreeReadAllowBranchJumps]=false'
        call Galacticus_Error_Report(message//{introspection:location})
     end if

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which determines the subset of particles that are self-bound.
+!!{
+Contains a module which implements an N-body data operator which determines the subset of particles that are self-bound.
+!!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
-  !# <nbodyOperator name="nbodyOperatorSelfBound">
-  !#  <description>An N-body data operator which determines the subset of particles that are self-bound.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorSelfBound">
+   <description>An N-body data operator which determines the subset of particles that are self-bound.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSelfBound
-     !% An N-body data operator which determines the subset of particles that are self-bound.
+     !!{
+     An N-body data operator which determines the subset of particles that are self-bound.
+     !!}
      private
      class           (randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()
      integer         (c_size_t                  )          :: bootstrapSampleCount
@@ -38,7 +44,9 @@
   end type nbodyOperatorSelfBound
 
   interface nbodyOperatorSelfBound
-     !% Constructors for the ``selfBound'' N-body operator class.
+     !!{
+     Constructors for the ``selfBound'' N-body operator class.
+     !!}
      module procedure selfBoundConstructorParameters
      module procedure selfBoundConstructorInternal
   end interface nbodyOperatorSelfBound
@@ -46,7 +54,9 @@
 contains
 
   function selfBoundConstructorParameters(parameters) result (self)
-    !% Constructor for the ``selfBound'' N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``selfBound'' N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyOperatorSelfBound    )                :: self
@@ -56,71 +66,86 @@ contains
     double precision                                            :: tolerance           , bootstrapSampleRate
     logical                                                     :: analyzeAllParticles , useVelocityMostBound
 
-    !# <inputParameter>
-    !#   <name>bootstrapSampleCount</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>30_c_size_t</defaultValue>
-    !#   <description>The number of bootstrap resamples of the particles that should be used.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>tolerance</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d-2</defaultValue>
-    !#   <description>The tolerance in the summed weight of bound particles which must be attained to declare convergence.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>bootstrapSampleRate</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The sampling rate for particles.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>analyzeAllParticles</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true, all particles are assumed to be self-bound at the beginning of the analysis. Unbound particles at previous times are allowed to become bound in the current snapshot. If false and the self-bound information from the previous snapshot is available, only the particles that are self-bound at the previous snapshot are assumed to be bound at the begnning of the anlysis.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>useVelocityMostBound</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, the velocity of the most bound particle in velocity space is used as the representative velocity of the satellite. If false, use the mass weighted mean velocity (center-of-mass velocity) of self-bounf particles instead.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>bootstrapSampleCount</name>
+      <source>parameters</source>
+      <defaultValue>30_c_size_t</defaultValue>
+      <description>The number of bootstrap resamples of the particles that should be used.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>tolerance</name>
+      <source>parameters</source>
+      <defaultValue>1.0d-2</defaultValue>
+      <description>The tolerance in the summed weight of bound particles which must be attained to declare convergence.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>bootstrapSampleRate</name>
+      <source>parameters</source>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The sampling rate for particles.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>analyzeAllParticles</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, all particles are assumed to be self-bound at the beginning of the analysis. Unbound particles at previous times are allowed to become bound in the current snapshot. If false and the self-bound information from the previous snapshot is available, only the particles that are self-bound at the previous snapshot are assumed to be bound at the begnning of the anlysis.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>useVelocityMostBound</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, the velocity of the most bound particle in velocity space is used as the representative velocity of the satellite. If false, use the mass weighted mean velocity (center-of-mass velocity) of self-bound particles instead.</description>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=nbodyOperatorSelfBound(tolerance,bootstrapSampleCount,bootstrapSampleRate,analyzeAllParticles,useVelocityMostBound,randomNumberGenerator_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="randomNumberGenerator_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="randomNumberGenerator_"/>
+    !!]
     return
   end function selfBoundConstructorParameters
 
   function selfBoundConstructorInternal(tolerance,bootstrapSampleCount,bootstrapSampleRate,analyzeAllParticles,useVelocityMostBound,randomNumberGenerator_) result (self)
-    !% Internal constructor for the ``selfBound'' N-body operator class
+    !!{
+    Internal constructor for the ``selfBound'' N-body operator class
+    !!}
     implicit none
     type            (nbodyOperatorSelfBound    )                        :: self
     double precision                            , intent(in   )         :: tolerance             , bootstrapSampleRate
     integer         (c_size_t                  ), intent(in   )         :: bootstrapSampleCount
     logical                                     , intent(in   )         :: analyzeAllParticles   , useVelocityMostBound
     class           (randomNumberGeneratorClass), intent(in   ), target :: randomNumberGenerator_
-    !# <constructorAssign variables="tolerance, bootstrapSampleCount, bootstrapSampleRate, analyzeAllParticles, useVelocityMostBound, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="tolerance, bootstrapSampleCount, bootstrapSampleRate, analyzeAllParticles, useVelocityMostBound, *randomNumberGenerator_"/>
+    !!]
 
     return
   end function selfBoundConstructorInternal
 
   subroutine selfBoundDestructor(self)
-    !% Destructor for the ``selfBound'' N-body operator class.
+    !!{
+    Destructor for the ``selfBound'' N-body operator class.
+    !!}
     implicit none
     type(nbodyOperatorSelfBound), intent(inout) :: self
 
-    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
     return
   end subroutine selfBoundDestructor
   
   subroutine selfBoundOperate(self,simulations)
-    !% Determine the subset of N-body particles which are self-bound.
-    use :: Galacticus_Display          , only : Galacticus_Display_Message
-    use :: Galacticus_Error            , only : Galacticus_Error_Report
-    use :: ISO_Varying_String          , only : varying_string
-    use :: Memory_Management           , only : allocateArray                  , deallocateArray
+    !!{
+    Determine the subset of N-body particles which are self-bound.
+    !!}
+    use :: Display                         , only : displayIndent                  , displayUnindent, displayMessage
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: ISO_Varying_String              , only : var_str
+    use :: String_Handling                 , only : operator(//)
+    use :: Memory_Management               , only : allocateArray                  , deallocateArray
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (nbodyOperatorSelfBound), intent(inout)                          :: self
@@ -129,8 +154,7 @@ contains
     logical                                 , allocatable  , dimension(:,:)          :: isBound                   , isBoundNew             , &
          &                                                                              isBoundCompute            , isBoundComputeActual
     logical                                 , allocatable  , dimension(:  )          :: compute                   , computeActual
-    integer         (c_size_t              ), allocatable  , dimension(:,:)          :: boundStatus
-    integer         (c_size_t              ), pointer      , dimension(:,:)          :: boundStatusPrevious
+    integer         (c_size_t              ), pointer      , dimension(:,:)          :: boundStatus               , boundStatusPrevious
     double precision                        , pointer      , dimension(:,:)          :: position                  , velocity               , &
          &                                                                              sampleWeightPrevious
     integer         (c_size_t              ), pointer      , dimension(:  )          :: particleIDs               , particleIDsPrevious
@@ -150,8 +174,10 @@ contains
     double precision                        , allocatable  , dimension(:  )          :: weightBound               , weightBoundPrevious
     logical                                 , allocatable  , dimension(:  )          :: isConverged
     integer                                                                          :: addSubtract               , countIteration
-    double precision                                                                 :: lengthSoftening           , massParticle
+    double precision                                                                 :: lengthSoftening           , massParticle           , &
+         &                                                                              convergenceFactor
     type            (varying_string        )                                         :: message
+    character       (len=12                )                                         :: label
 
     ! Determine current and previous simulations.
     if      (size(simulations) == 1) then
@@ -163,12 +189,12 @@ contains
        current =-1
        previous=-1
        do i=1,2
-          if (simulations(i)%label == "active") current =i
+          if (simulations(i)%label == "active"  ) current =i
           if (simulations(i)%label == "previous") previous=i
        end do
        if (current  == -1) call Galacticus_Error_Report('no "active" simulation found'  //{introspection:location})
        if (previous == -1) call Galacticus_Error_Report('no "previous" simulation found'//{introspection:location})
-       if (.not.simulations(previous)%propertiesInteger%exists('isBound')) &
+       if (.not.simulations(previous)%propertiesIntegerRank1%exists('isBound')) &
             & call Galacticus_Error_Report('"previous" simulation must provide the "isBound" property'//{introspection:location})
     else
        current =-1
@@ -184,29 +210,28 @@ contains
     particleIDs => simulations(current)%propertiesInteger  %value('particleID')
     ! Allocate workspaces.
     particleCount=size(position,dim=2)
-    call allocateArray(isBound                ,[           particleCount,self%bootstrapSampleCount])
-    call allocateArray(isBoundNew             ,[           particleCount,self%bootstrapSampleCount])
-    call allocateArray(isBoundCompute         ,[           particleCount,self%bootstrapSampleCount])
-    call allocateArray(energyKinetic          ,[           particleCount,self%bootstrapSampleCount])
-    call allocateArray(energyPotential        ,[           particleCount,self%bootstrapSampleCount])
-    call allocateArray(velocityPotential      ,[           particleCount,self%bootstrapSampleCount])
-    call allocateArray(compute                ,[           particleCount                          ])
-    call allocateArray(energyPotentialChange  ,[           particleCount,self%bootstrapSampleCount])
-    call allocateArray(velocityPotentialChange,[           particleCount,self%bootstrapSampleCount])
-    call allocateArray(sampleWeight           ,[           particleCount,self%bootstrapSampleCount])
-    call allocateArray(velocityCenterOfMass   ,[3_c_size_t              ,self%bootstrapSampleCount])
-    call allocateArray(positionOffset         ,[3_c_size_t,particleCount                          ])
-    call allocateArray(boundStatus            ,[           particleCount,self%bootstrapSampleCount])
-    call allocateArray(indexMostBound         ,[                         self%bootstrapSampleCount])
-    call allocateArray(indexVelocityMostBound ,[                         self%bootstrapSampleCount])
-    call allocateArray(countBound             ,[                         self%bootstrapSampleCount])
-    call allocateArray(countBoundPrevious     ,[                         self%bootstrapSampleCount])
-    call allocateArray(weightBound            ,[                         self%bootstrapSampleCount])
-    call allocateArray(weightBoundPrevious    ,[                         self%bootstrapSampleCount])
-    call allocateArray(isConverged            ,[                         self%bootstrapSampleCount])
+    allocate(isBound                (           particleCount,self%bootstrapSampleCount))
+    allocate(isBoundNew             (           particleCount,self%bootstrapSampleCount))
+    allocate(isBoundCompute         (           particleCount,self%bootstrapSampleCount))
+    allocate(energyKinetic          (           particleCount,self%bootstrapSampleCount))
+    allocate(energyPotential        (           particleCount,self%bootstrapSampleCount))
+    allocate(velocityPotential      (           particleCount,self%bootstrapSampleCount))
+    allocate(compute                (           particleCount                          ))
+    allocate(energyPotentialChange  (           particleCount,self%bootstrapSampleCount))
+    allocate(velocityPotentialChange(           particleCount,self%bootstrapSampleCount))
+    allocate(sampleWeight           (           particleCount,self%bootstrapSampleCount))
+    allocate(velocityCenterOfMass   (3_c_size_t              ,self%bootstrapSampleCount))
+    allocate(positionOffset         (3_c_size_t,particleCount                          ))
+    allocate(boundStatus            (           particleCount,self%bootstrapSampleCount))
+    allocate(indexMostBound         (                         self%bootstrapSampleCount))
+    allocate(indexVelocityMostBound (                         self%bootstrapSampleCount))
+    allocate(countBound             (                         self%bootstrapSampleCount))
+    allocate(countBoundPrevious     (                         self%bootstrapSampleCount))
+    allocate(weightBound            (                         self%bootstrapSampleCount))
+    allocate(weightBoundPrevious    (                         self%bootstrapSampleCount))
+    allocate(isConverged            (                         self%bootstrapSampleCount))
     ! Iterate over bootstrap samplings.
-    message='Performing self-bound analysis on bootstrap samples.'
-    call Galacticus_Display_Message(message)
+    call displayIndent('Performing self-bound analysis on bootstrap samples')
     ! If previous bound status is available, read in the self-bound status and sampling weights. If not, generate new values.
     if (previous > 0) then
        ! Get the self-bound status from the previous snapshot.
@@ -266,14 +291,15 @@ contains
        countIteration         =countIteration+1
        velocityPotentialChange=0.0d0
        energyPotentialChange  =0.0d0
+       call displayIndent(var_str('iteration ')//countIteration)
        !$omp parallel private(i,k,positionRelative,separationSquared,separation,potential,potentialActual,computeActual,isBoundComputeActual,velocityRepresentative)
-       call allocateArray(positionRelative    ,[3_c_size_t,particleCount                          ])
-       call allocateArray(separation          ,[           particleCount                          ])
-       call allocateArray(separationSquared   ,[           particleCount                          ])
-       call allocateArray(potential           ,[           particleCount                          ])
-       call allocateArray(potentialActual     ,[           particleCount                          ])
-       call allocateArray(computeActual       ,[           particleCount                          ])
-       call allocateArray(isBoundComputeActual,[           particleCount,self%bootstrapSampleCount])
+       allocate(positionRelative    (3_c_size_t,particleCount                          ))
+       allocate(separation          (           particleCount                          ))
+       allocate(separationSquared   (           particleCount                          ))
+       allocate(potential           (           particleCount                          ))
+       allocate(potentialActual     (           particleCount                          ))
+       allocate(computeActual       (           particleCount                          ))
+       allocate(isBoundComputeActual(           particleCount,self%bootstrapSampleCount))
        separation       =0.0d0
        separationSquared=0.0d0
        positionRelative =0.0d0
@@ -448,13 +474,13 @@ contains
           !$omp end workshare
        end do
        ! Free workspaces.
-       call deallocateArray(positionRelative    )
-       call deallocateArray(separation          )
-       call deallocateArray(separationSquared   )
-       call deallocateArray(potential           )
-       call deallocateArray(potentialActual     )
-       call deallocateArray(computeActual       )
-       call deallocateArray(isBoundComputeActual)
+       deallocate(positionRelative    )
+       deallocate(separation          )
+       deallocate(separationSquared   )
+       deallocate(potential           )
+       deallocate(potentialActual     )
+       deallocate(computeActual       )
+       deallocate(isBoundComputeActual)
        !$omp end parallel
        ! Decide if it is faster to recompute potentials fully for the new bound set, or to subtract potential due
        ! to particles which are now unbound.
@@ -466,11 +492,16 @@ contains
        ! Test for convergence.
        compute = .false.
        do iSample=1,self%bootstrapSampleCount
-          if (abs(weightBound(iSample)-weightBoundPrevious(iSample)) < 0.5d0*self%tolerance                 &
-               &                                                            *(                              &
-               &                                                              +weightBound        (iSample) &
-               &                                                              +weightBoundPrevious(iSample) &
-               &                                                             )) then
+          convergenceFactor=+2.0d0                             &
+               &            *abs(                              &
+               &                 +weightBound        (iSample) &
+               &                 -weightBoundPrevious(iSample) &
+               &                )                              &
+               &            /   (                              &
+               &                 +weightBound        (iSample) &
+               &                 +weightBoundPrevious(iSample) &
+               &                )
+          if (convergenceFactor < self%tolerance) then
              ! Converged.
              isBound       (:,iSample)=isBoundNew(:,iSample)
              isBoundCompute(:,iSample)=.false.
@@ -496,9 +527,13 @@ contains
              countBoundPrevious (  iSample)=countBound (  iSample)
              weightBoundPrevious(  iSample)=weightBound(  iSample)
           end if
+          write (label,'(e12.6)') convergenceFactor
+          message=var_str('sample ')//iSample//' convergence factor = '//trim(adjustl(label))
+          call displayMessage(message)
           ! Check for excess iterations.
           if (countIteration > countIterationMaximum) call Galacticus_Error_Report('maximum iterations exceeded'//{introspection:location})
        end do
+       call displayUnindent('done')
        if (count(isConverged)==self%bootstrapSampleCount) exit
     end do
     ! Write bound status to file.
@@ -509,39 +544,44 @@ contains
        boundStatus=0
     end where
     !$omp end parallel workshare
+    call displayUnindent('done')
+    ! Store the self bound status.
+    call simulations(current)%propertiesIntegerRank1%set         ('isBound'             ,boundStatus             )
     ! Write indices of most bound particles to file.
-    call simulations(current)%analysis%writeDataset(indexMostBound        ,'indexMostBound'        )
-    call simulations(current)%analysis%writeDataset(indexVelocityMostBound,'indexVelocityMostBound')
+    call simulations(current)%analysis              %writeDataset(indexMostBound        ,'indexMostBound'        )
+    call simulations(current)%analysis              %writeDataset(indexVelocityMostBound,'indexVelocityMostBound')
     ! Write bound status to file.
-    call simulations(current)%analysis%writeDataset(boundStatus           ,'selfBoundStatus'       )
-    call simulations(current)%analysis%writeDataset(nint(sampleWeight)    ,'weight'                )
+    call simulations(current)%analysis              %writeDataset(boundStatus           ,'selfBoundStatus'       )
+    call simulations(current)%analysis              %writeDataset(nint(sampleWeight)    ,'weight'                )
     ! Free workspaces.
-    call deallocateArray(compute                )
-    call deallocateArray(isBound                )
-    call deallocateArray(isBoundNew             )
-    call deallocateArray(isBoundCompute         )
-    call deallocateArray(energyKinetic          )
-    call deallocateArray(energyPotential        )
-    call deallocateArray(velocityPotential      )
-    call deallocateArray(boundStatus            )
-    call deallocateArray(energyPotentialChange  )
-    call deallocateArray(velocityPotentialChange)
-    call deallocateArray(sampleWeight           )
-    call deallocateArray(velocityCenterOfMass   )
-    call deallocateArray(indexMostBound         )
-    call deallocateArray(indexVelocityMostBound )
-    call deallocateArray(positionOffset         )
-    call deallocateArray(countBound             )
-    call deallocateArray(countBoundPrevious     )
-    call deallocateArray(weightBound            )
-    call deallocateArray(weightBoundPrevious    )
-    call deallocateArray(isConverged            )
+    nullify   (boundStatus            )
+    deallocate(compute                )
+    deallocate(isBound                )
+    deallocate(isBoundNew             )
+    deallocate(isBoundCompute         )
+    deallocate(energyKinetic          )
+    deallocate(energyPotential        )
+    deallocate(velocityPotential      )
+    deallocate(energyPotentialChange  )
+    deallocate(velocityPotentialChange)
+    deallocate(sampleWeight           )
+    deallocate(velocityCenterOfMass   )
+    deallocate(indexMostBound         )
+    deallocate(indexVelocityMostBound )
+    deallocate(positionOffset         )
+    deallocate(countBound             )
+    deallocate(countBoundPrevious     )
+    deallocate(weightBound            )
+    deallocate(weightBoundPrevious    )
+    deallocate(isConverged            )
     return
   end subroutine selfBoundOperate
 
   pure function selfBoundPotential(separation,separationSquared)
-    !% Compute the potential for an array of particle separations. Currently assumes the functional form of the softening used by
-    !% Gadget.
+    !!{
+    Compute the potential for an array of particle separations. Currently assumes the functional form of the softening used by
+    Gadget.
+    !!}
     implicit none
     double precision, intent(in   ), dimension(:               ) :: separation        , separationSquared
     double precision               , dimension(size(separation)) :: selfBoundPotential

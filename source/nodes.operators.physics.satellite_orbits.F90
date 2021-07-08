@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,39 +17,53 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that propagates satellite halos along their orbits.
+  !!{
+  Implements a node operator class that propagates satellite halos along their orbits.
+  !!}
 
-  !# <nodeOperator name="nodeOperatorSatelliteOrbit">
-  !#  <description>A node operator class that propagates satellite halos along their orbits.</description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorSatelliteOrbit">
+   <description>A node operator class that propagates satellite halos along their orbits.</description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteOrbit
-     !% A node operator class that propagates satellite halos along their orbits.
+     !!{
+     A node operator class that propagates satellite halos along their orbits.
+     !!}
      private
    contains
      procedure :: differentialEvolution => satelliteOrbitDifferentialEvolution
   end type nodeOperatorSatelliteOrbit
   
   interface nodeOperatorSatelliteOrbit
-     !% Constructors for the {\normalfont \ttfamily satelliteOrbit} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily satelliteOrbit} node operator class.
+     !!}
      module procedure satelliteOrbitConstructorParameters
   end interface nodeOperatorSatelliteOrbit
   
 contains
 
   function satelliteOrbitConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily satelliteOrbit} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily satelliteOrbit} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodeOperatorSatelliteOrbit)                :: self
     type(inputParameters           ), intent(inout) :: parameters
     
     self=nodeOperatorSatelliteOrbit()
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function satelliteOrbitConstructorParameters
   
   subroutine satelliteOrbitDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Perform evolution of a satellite orbit due to its velocity and the acceleration of its host's potential.
+    !!{
+    Perform evolution of a satellite orbit due to its velocity and the acceleration of its host's potential.
+    !!}
     use :: Galacticus_Nodes                  , only : nodeComponentSatellite
     use :: Galactic_Structure_Accelerations  , only : Galactic_Structure_Acceleration
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass

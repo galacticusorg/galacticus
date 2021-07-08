@@ -8,6 +8,8 @@ use XML::Simple;
 use PDL;
 use PDL::NiceSlice;
 use Data::Dumper;
+use DateTime;
+use Scalar::Util qw(reftype);
 use Galacticus::Options;
 use Galacticus::Launch::Hooks;
 use Galacticus::Launch::PBS;
@@ -36,12 +38,12 @@ my $xml = new XML::Simple;
 my @tasks =
     (
      {
-	 label       => "haloMassFunction"                            ,
-	 config      => "haloMassFunctionConfig.xml"                  ,
-	 base        => "haloMassFunctionBase.xml"                    ,
-	 ppn         => 16                                            ,
-	 nodes       =>  1                                            ,
-	 postProcess => $pipelinePath."haloMassFunctionPostProcess.pl",
+	 label        => "haloMassFunction"                            ,
+	 config       => "haloMassFunctionConfig.xml"                  ,
+	 base         => [ "haloMassFunctionBase.xml" ]                ,
+	 ppn          => 16                                            ,
+	 nodes        =>  1                                            ,
+	 postProcess  => $pipelinePath."haloMassFunctionPostProcess.pl",
 	 parameterMap =>
 	 {
 	     "haloMassFunctionMethod::haloMassFunctionMethod::haloMassFunctionConditioned::a"               => "haloMassFunctionMethod::a"            ,
@@ -53,8 +55,37 @@ my @tasks =
 	 }
      },
      {
+	 label        => "progenitorMassFunction"                            ,
+	 config       => "progenitorMassFunctionConfig.xml"                  ,
+	 base         =>
+	     [
+	      "progenitorMassFunctionBaseHugeMDPL.xml"        ,
+	      "progenitorMassFunctionBaseBigMDPL.xml"         ,
+	      "progenitorMassFunctionBaseMDPL2.xml"           ,
+	      "progenitorMassFunctionBaseSMDPL.xml"           ,
+	      "progenitorMassFunctionBaseVSMDPL.xml"          ,
+	      "progenitorMassFunctionBaseCaterpillar_LX12.xml",
+	      "progenitorMassFunctionBaseCaterpillar_LX13.xml",
+	      "progenitorMassFunctionBaseCaterpillar_LX14.xml"
+	     ],
+	 suffix       =>
+	     [
+	      "HugeMDPL"        ,
+	      "BigMDPL"         ,
+	      "MDPL2"           ,
+	      "SMDPL"           ,
+	      "VSMDPL"          ,
+	      "Caterpillar_LX12",
+	      "Caterpillar_LX13",
+	      "Caterpillar_LX14"
+	     ],
+	 ppn          => 16                                                  ,
+	 nodes        =>  1                                                  ,
+	 postProcess  => $pipelinePath."progenitorMassFunctionPostProcess.pl"
+     },
+     {
 	 label       => "final"    ,
-	 base        => "final.xml"
+	 base        => [ "final.xml" ]
      }
     );
 
@@ -68,25 +99,56 @@ my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     })
 # Iterate through tasks.
 foreach my $task ( @tasks ) {
     # Parse the config and base parameter files for this task.
-    my $config = $xml->XMLin($pipelinePath.$task->{'config'})
+    my $config =      $xml->XMLin($pipelinePath.$task->{'config'})
 	if ( exists($task->{'config'}) );
-    my $base   = $xml->XMLin($pipelinePath.$task->{'base'  });
+    my @bases  = map {$xml->XMLin($pipelinePath.$_)} @{$task->{'base'}};
     
     # Copy in current best parameters.
-    &applyParameters($base,$task,\%parametersDetermined);
+    &applyParameters($_,$task,\%parametersDetermined)
+	foreach ( @bases );
 
     # Change output paths.
-    $base->{'galacticusOutputFileName'}->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}.".hdf5" ;
+    my $i = -1;
+    foreach my $base ( @bases ) {
+	++$i;
+	my $suffix = exists($task->{'suffix'}) ? $task->{'suffix'}->[$i] : "";
+	$base->{'galacticusOutputFileName'}->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}.$suffix.".hdf5";
+    }
     if ( defined($config) ) {
 	$config->{'galacticusOutputFileName'       }                 ->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}.".hdf5" ;
 	$config->{'posteriorSampleSimulationMethod'}->{'logFileRoot'}->{'value'} = $options{'outputDirectory'}."/".$task->{'label'}."Chains";
+	my $i = -1;
+	# Set base file names in the config file.
+	foreach my $base ( @bases ) {
+	    ++$i;
+	    my $baseFileName = $options{'outputDirectory'}."/".$task->{'base'}->[$i];
+	    if      ( exists($config->{'posteriorSampleLikelihoodMethod'}->{'baseParametersFileName'         }) ) {
+		die("config file has insufficient base parameter file names")
+		    if ( $i > 0 );
+		$config->{'posteriorSampleLikelihoodMethod'}->{'baseParametersFileName'}->{'value'} = $baseFileName;
+	    } elsif ( exists($config->{'posteriorSampleLikelihoodMethod'}->{'posteriorSampleLikelihoodMethod'}) ) {
+		if ( reftype($config->{'posteriorSampleLikelihoodMethod'}->{'posteriorSampleLikelihoodMethod'}) eq "ARRAY" ) {
+		    die("config file has insufficient base parameter file names")
+			if ( $i >= scalar(@{$config->{'posteriorSampleLikelihoodMethod'}->{'posteriorSampleLikelihoodMethod'}}) );
+		    $config->{'posteriorSampleLikelihoodMethod'}->{'posteriorSampleLikelihoodMethod'}->[$i]->{'baseParametersFileName'}->{'value'} = $baseFileName;
+		} else {
+		    die("config file has insufficient base parameter file names")
+			if ( $i > 0 );
+		    $config->{'posteriorSampleLikelihoodMethod'}->{'posteriorSampleLikelihoodMethod'}      ->{'baseParametersFileName'}->{'value'} = $baseFileName;
+		}
+	    }
+	}
     }
     
     # Write out modified config and base parameter files.
-    my $baseFileName = $options{'outputDirectory'}."/".$task->{'base'};
-    open(my $baseFile,">".$baseFileName);
-    print $baseFile $xml->XMLout($base,RootName => "parameters");
-    close($baseFile);
+    $i = -1;
+    foreach my $base ( @bases ) {
+	++$i;
+	my $baseFileName = $options{'outputDirectory'}."/".$task->{'base'}->[$i];
+	open(my $baseFile,">".$baseFileName);
+	print $baseFile $xml->XMLout($base,RootName => "parameters");
+	close($baseFile);
+    }
     if ( defined($config) ) {
 	my $configFileName = $options{'outputDirectory'}."/".$task->{'config'};
 	open(my $configFile,">".$configFileName);
@@ -104,10 +166,15 @@ foreach my $task ( @tasks ) {
 	    $job->{'nodes'     } = $task->{'nodes'};
 	    $job->{'mpi'       } = "yes";
 	    my @jobs = ( $job );
-	    
 	    # Run the job.
-	    &{$Galacticus::Launch::Hooks::moduleHooks{$queueManager->{'manager'}}->{'jobArrayLaunch'}}(\%options,@jobs)
-	    	unless ( -e $options{'outputDirectory'}."/".$task->{'label'}."Chains_0000.log" );
+	    unless ( -e $options{'outputDirectory'}."/".$task->{'label'}."Chains_0000.log" ) {
+		my $timeBegin = DateTime->now();
+		print "Running constraint for '".$task->{'label'}."'\n";
+		print "\tbegin at ".$timeBegin->datetime()."\n";
+		&{$Galacticus::Launch::Hooks::moduleHooks{$queueManager->{'manager'}}->{'jobArrayLaunch'}}(\%options,@jobs);
+		my $timeEnd   = DateTime->now();
+		print "\t done at ".$timeEnd  ->datetime()."\n";
+	    }
 	    
 	    # Extract results.
 	    my %posteriorOptions =
@@ -127,10 +194,15 @@ foreach my $task ( @tasks ) {
 	    close($resultsFile);
 
 	    # Copy in new best parameters.
-	    &applyParameters($base,$task,\%parametersDetermined);
-	    open(my $baseFile,">".$baseFileName);
-	    print $baseFile $xml->XMLout($base,RootName => "parameters");
-	    close($baseFile);
+	    $i = -1;
+	    foreach my $base ( @bases ) {
+		++$i;
+		my $baseFileName = $options{'outputDirectory'}."/".$task->{'base'}->[$i];
+		&applyParameters($base,$task,\%parametersDetermined);
+		open(my $baseFile,">".$baseFileName);
+		print $baseFile $xml->XMLout($base,RootName => "parameters");
+		close($baseFile);
+	    }
 
 	    # Postprocess the results.
 	    if ( exists($task->{'postProcess'}) ) {

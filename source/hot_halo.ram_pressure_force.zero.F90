@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,29 +17,39 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a model of ram pressure stripping of hot halos which always returns zero force.
+  !!{
+  Implements a model of ram pressure stripping of hot halos which always returns zero force.
+  !!}
 
-  !# <hotHaloRamPressureForce name="hotHaloRamPressureForceZero">
-  !#  <description>
-  !#   A hot halo ram pressure force class which assumes a zero ram pressure force due to the hot halo.
-  !#  </description>
-  !# </hotHaloRamPressureForce>
+  !![
+  <hotHaloRamPressureForce name="hotHaloRamPressureForceZero">
+   <description>
+    A hot halo ram pressure force class which assumes a zero ram pressure force due to the hot halo.
+   </description>
+  </hotHaloRamPressureForce>
+  !!]
   type, extends(hotHaloRamPressureForceClass) :: hotHaloRamPressureForceZero
-     !% Implementation of a hot halo ram pressure force class which always returns zero force.
+     !!{
+     Implementation of a hot halo ram pressure force class which always returns zero force.
+     !!}
      private
    contains
      procedure :: force => zeroForce
   end type hotHaloRamPressureForceZero
 
   interface hotHaloRamPressureForceZero
-     !% Constructors for the {\normalfont \ttfamily zero} hot halo ram pressure force class.
+     !!{
+     Constructors for the {\normalfont \ttfamily zero} hot halo ram pressure force class.
+     !!}
      module procedure zeroConstructorParameters
   end interface hotHaloRamPressureForceZero
 
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily zero} hot halo ram pressure force class which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily zero} hot halo ram pressure force class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(hotHaloRamPressureForceZero)                :: self
@@ -51,7 +61,9 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroForce(self,node)
-    !% Return a zero ram pressure force due to the hot halo.
+    !!{
+    Return a zero ram pressure force due to the hot halo.
+    !!}
     implicit none
     class(hotHaloRamPressureForceZero), intent(inout) :: self
     type (treeNode                   ), intent(inout) :: node

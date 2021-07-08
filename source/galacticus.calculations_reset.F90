@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,39 +17,57 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which handles resetting of calculations before a new or updated node is processed.
+!!{
+Contains a module which handles resetting of calculations before a new or updated node is processed.
+!!}
 
 module Galacticus_Calculations_Resets
-  !% Handles resetting of calculations before a new or updated node is processed.
+  !!{
+  Handles resetting of calculations before a new or updated node is processed.
+  !!}
   implicit none
   private
   public :: Galacticus_Calculations_Reset
 
 contains
 
-  !# <functionGlobal>
-  !#  <unitName>Galacticus_Calculations_Reset</unitName>
-  !#  <type>void</type>
-  !#  <module>Galacticus_Nodes, only : treeNode</module>
-  !#  <arguments>type(treeNode) , intent(inout) :: node</arguments>
-  !# </functionGlobal>
+  !![
+  <functionGlobal>
+   <unitName>Galacticus_Calculations_Reset</unitName>
+   <type>void</type>
+   <module>Galacticus_Nodes, only : treeNode</module>
+   <arguments>type(treeNode) , intent(inout) :: node</arguments>
+  </functionGlobal>
+  !!]
   subroutine Galacticus_Calculations_Reset(node)
-    !% Calls any routines required to reset all calculation for a new or updated node.
+    !!{
+    Calls any routines required to reset all calculation for a new or updated node.
+    !!}
     use :: Galacticus_Nodes, only : treeNode
-    !# <include directive="calculationResetTask" type="moduleUse">
+    !![
+    <include directive="calculationResetTask" type="moduleUse">
+    !!]
     include 'galacticus.calculation_reset.tasks.modules.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     implicit none
     type(treeNode), intent(inout) :: node
 
-    !# <include directive="calculationResetTask" type="functionCall" functionType="void">
-    !#  <functionArgs>node</functionArgs>
+    !![
+    <include directive="calculationResetTask" type="functionCall" functionType="void">
+     <functionArgs>node</functionArgs>
+    !!]
     include 'galacticus.calculation_reset.tasks.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
 
-    !# <eventHook name="calculationReset">
-    !#  <callWith>node</callWith>
-    !# </eventHook>
+    !![
+    <eventHook name="calculationReset">
+     <callWith>node</callWith>
+    </eventHook>
+    !!]
     return
   end subroutine Galacticus_Calculations_Reset
 

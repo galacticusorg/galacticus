@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a identity output analysis distribution operator class.
+  !!{
+  Contains a module which implements a identity output analysis distribution operator class.
+  !!}
 
-  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorIdentity">
-  !#  <description>A identity output analysis distribution operator class.</description>
-  !# </outputAnalysisDistributionOperator>
+  !![
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorIdentity">
+   <description>A identity output analysis distribution operator class.</description>
+  </outputAnalysisDistributionOperator>
+  !!]
   type, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorIdentity
-     !% A identity output distribution operator class.
+     !!{
+     A identity output distribution operator class.
+     !!}
      private
    contains
      procedure :: operateScalar       => identityOperateScalar
@@ -31,14 +37,18 @@
   end type outputAnalysisDistributionOperatorIdentity
 
   interface outputAnalysisDistributionOperatorIdentity
-     !% Constructors for the ``identity'' output analysis class.
+     !!{
+     Constructors for the ``identity'' output analysis class.
+     !!}
      module procedure identityConstructorParameters
   end interface outputAnalysisDistributionOperatorIdentity
 
 contains
 
   function identityConstructorParameters(parameters) result (self)
-    !% Constructor for the ``identity'' output analysis distribution operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``identity'' output analysis distribution operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisDistributionOperatorIdentity)                :: self
@@ -50,7 +60,9 @@ contains
   end function identityConstructorParameters
 
   function identityOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !% Implement a identity output analysis distribution operator.
+    !!{
+    Implement a identity output analysis distribution operator.
+    !!}
     use :: Arrays_Search, only : searchArray
     implicit none
     class           (outputAnalysisDistributionOperatorIdentity), intent(inout)                                        :: self
@@ -81,7 +93,9 @@ contains
   end function identityOperateScalar
 
   function identityOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !% Implement a identity output analysis distribution operator.
+    !!{
+    Implement a identity output analysis distribution operator.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (outputAnalysisDistributionOperatorIdentity), intent(inout)                                        :: self

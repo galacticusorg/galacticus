@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,8 +19,10 @@
 
   !+    Contributions to this file made by: Xiaolong Du
   
-  !% An implementation of dark matter halo profile concentrations using the
-  !% \cite{diemer_accurate_2019} algorithm.
+  !!{
+  An implementation of dark matter halo profile concentrations using the
+  \cite{diemer_accurate_2019} algorithm.
+  !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
@@ -28,19 +30,24 @@
   use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMONFW
   use :: Virial_Density_Contrast   , only : virialDensityContrastFixed
   use :: Linear_Growth             , only : linearGrowthClass
+  use :: Root_Finder               , only : rootFinder
 
-  !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationDiemerJoyce2019">
-  !#  <description>Dark matter halo concentrations are computed using the algorithm of \cite{diemer_accurate_2019}.</description>
-  !#  <deepCopy>
-  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
-  !#  </stateStorable>
-  !# </darkMatterProfileConcentration>
+  !![
+  <darkMatterProfileConcentration name="darkMatterProfileConcentrationDiemerJoyce2019">
+   <description>Dark matter halo concentrations are computed using the algorithm of \cite{diemer_accurate_2019}.</description>
+   <deepCopy>
+    <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
+   </stateStorable>
+  </darkMatterProfileConcentration>
+  !!]
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationDiemerJoyce2019
-     !% A dark matter halo profile concentration class implementing the algorithm of
-     !% \cite{diemer_accurate_2019}.
+     !!{
+     A dark matter halo profile concentration class implementing the algorithm of
+     \cite{diemer_accurate_2019}.
+     !!}
      private
      class           (cosmologyFunctionsClass      ), pointer     :: cosmologyFunctions_              => null()
      class           (cosmologyParametersClass     ), pointer     :: cosmologyParameters_             => null()
@@ -49,6 +56,7 @@
      class           (linearGrowthClass            ), pointer     :: linearGrowth_                    => null()
      type            (virialDensityContrastFixed   ), pointer     :: virialDensityContrastDefinition_ => null()
      type            (darkMatterProfileDMONFW      ), pointer     :: darkMatterProfileDMODefinition_  => null()
+     type            (rootFinder                   )              :: finder
      double precision                                             :: kappa                                     , scatter     , &
           &                                                          a0                                        , a1          , &
           &                                                          b0                                        , b1          , &
@@ -63,7 +71,9 @@
   end type darkMatterProfileConcentrationDiemerJoyce2019
 
   interface darkMatterProfileConcentrationDiemerJoyce2019
-     !% Constructors for the {\normalfont \ttfamily diemerJoyce2019} dark matter halo profile concentration class.
+     !!{
+     Constructors for the {\normalfont \ttfamily diemerJoyce2019} dark matter halo profile concentration class.
+     !!}
      module procedure diemerJoyce2019ConstructorParameters
      module procedure diemerJoyce2019ConstructorInternal
   end interface darkMatterProfileConcentrationDiemerJoyce2019
@@ -75,8 +85,10 @@
 contains
 
   function diemerJoyce2019ConstructorParameters(parameters) result(self)
-    !% Default constructor for the {\normalfont \ttfamily diemerJoyce2019} dark matter halo
-    !% profile concentration class.
+    !!{
+    Default constructor for the {\normalfont \ttfamily diemerJoyce2019} dark matter halo
+    profile concentration class.
+    !!}
     implicit none
     type            (darkMatterProfileConcentrationDiemerJoyce2019   )                :: self
     type            (inputParameters                                 ), intent(inout) :: parameters
@@ -91,90 +103,83 @@ contains
          &                                                                               scatter
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>kappa</name>
-    !#   <source>parameters</source>
-    !#   <variable>kappa</variable>
-    !#   <defaultValue>0.41d0</defaultValue>
-    !#   <description>The parameter $\kappa$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>a0</name>
-    !#   <source>parameters</source>
-    !#   <variable>a0</variable>
-    !#   <defaultValue>2.45d0</defaultValue>
-    !#   <description>The parameter $a_0$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>a1</name>
-    !#   <source>parameters</source>
-    !#   <variable>a1</variable>
-    !#   <defaultValue>1.82d0</defaultValue>
-    !#   <description>The parameter $a_1$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>b0</name>
-    !#   <source>parameters</source>
-    !#   <variable>b0</variable>
-    !#   <defaultValue>3.20d0</defaultValue>
-    !#   <description>The parameter $b_0$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>b1</name>
-    !#   <source>parameters</source>
-    !#   <variable>b1</variable>
-    !#   <defaultValue>2.30d0</defaultValue>
-    !#   <description>The parameter $b_1$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>cAlpha</name>
-    !#   <source>parameters</source>
-    !#   <variable>cAlpha</variable>
-    !#   <defaultValue>0.21d0</defaultValue>
-    !#   <description>The parameter $c_{\alpha}$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>scatter</name>
-    !#   <source>parameters</source>
-    !#   <variable>scatter</variable>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The scatter (in dex) to assume in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
-    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
-    !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
+    !![
+    <inputParameter>
+      <name>kappa</name>
+      <source>parameters</source>
+      <variable>kappa</variable>
+      <defaultValue>0.41d0</defaultValue>
+      <description>The parameter $\kappa$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>a0</name>
+      <source>parameters</source>
+      <variable>a0</variable>
+      <defaultValue>2.45d0</defaultValue>
+      <description>The parameter $a_0$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>a1</name>
+      <source>parameters</source>
+      <variable>a1</variable>
+      <defaultValue>1.82d0</defaultValue>
+      <description>The parameter $a_1$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>b0</name>
+      <source>parameters</source>
+      <variable>b0</variable>
+      <defaultValue>3.20d0</defaultValue>
+      <description>The parameter $b_0$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>b1</name>
+      <source>parameters</source>
+      <variable>b1</variable>
+      <defaultValue>2.30d0</defaultValue>
+      <description>The parameter $b_1$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>cAlpha</name>
+      <source>parameters</source>
+      <variable>cAlpha</variable>
+      <defaultValue>0.21d0</defaultValue>
+      <description>The parameter $c_{\alpha}$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>scatter</name>
+      <source>parameters</source>
+      <variable>scatter</variable>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The scatter (in dex) to assume in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
+    !!]
      self=darkMatterProfileConcentrationDiemerJoyce2019(kappa,a0,a1,b0,b1,cAlpha,scatter,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"      />
-    !# <objectDestructor name="cosmologyParameters_"     />
-    !# <objectDestructor name="criticalOverdensity_"     />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
-    !# <objectDestructor name="linearGrowth_"            />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="cosmologyParameters_"     />
+    <objectDestructor name="criticalOverdensity_"     />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    <objectDestructor name="linearGrowth_"            />
+    !!]
     return
   end function diemerJoyce2019ConstructorParameters
 
   function diemerJoyce2019ConstructorInternal(kappa,a0,a1,b0,b1,cAlpha,scatter,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_) result(self)
-    !% Constructor for the {\normalfont \ttfamily diemerJoyce2019} dark matter halo profile
-    !% concentration class.
+    !!{
+    Constructor for the {\normalfont \ttfamily diemerJoyce2019} dark matter halo profile
+    concentration class.
+    !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Galacticus_Error       , only : Galacticus_Error_Report
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
+    use :: Root_Finder            , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
     type            (darkMatterProfileConcentrationDiemerJoyce2019     )                         :: self
     double precision                                                    , intent(in   )          :: kappa                          , a0     , &
@@ -187,39 +192,85 @@ contains
     class           (cosmologicalMassVarianceClass                     ), intent(in   ), target  :: cosmologicalMassVariance_
     class           (linearGrowthClass                                 ), intent(in   ), target  :: linearGrowth_
     type            (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
-    !# <constructorAssign variables="kappa, a0, a1, b0, b1, cAlpha, scatter, *cosmologyFunctions_, *cosmologyParameters_, *criticalOverdensity_, *cosmologicalMassVariance_, *linearGrowth_"/>
+    !![
+    <constructorAssign variables="kappa, a0, a1, b0, b1, cAlpha, scatter, *cosmologyFunctions_, *cosmologyParameters_, *criticalOverdensity_, *cosmologicalMassVariance_, *linearGrowth_"/>
+    !!]
 
     self%timePrevious             =-1.0d0
     self%massPrevious             =-1.0d0
     self%concentrationMeanPrevious=-1.0d0
+    self%finder                   =rootFinder(                                                             &
+         &                                    rootFunction=GRoot                                         , &
+         &                                    rangeExpandDownward          =0.5d0                        , &
+         &                                    rangeExpandUpward            =2.0d0                        , &
+         &                                    rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
+         &                                    rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
+         &                                    rangeExpandType              =rangeExpandMultiplicative    , &
+         &                                    rangeDownwardLimit           =1.0d0                        , &
+         &                                    toleranceAbsolute            =0.0d0                        , &
+         &                                    toleranceRelative            =1.0d-3                         &
+         &                                   )
     allocate(     darkMatterHaloScaleDefinition_  )
     allocate(self%virialDensityContrastDefinition_)
     allocate(self%darkMatterProfileDMODefinition_ )
-    !# <referenceConstruct owner="self" isResult="yes" object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed                        (200.0d0,fixedDensityTypeCritical,2.0d0,self%cosmologyParameters_,self%cosmologyFunctions_)"/>
-    !# <referenceConstruct                             object="darkMatterHaloScaleDefinition_"   constructor="darkMatterHaloScaleVirialDensityContrastDefinition(self%cosmologyParameters_,self%cosmologyFunctions_,self%virialDensityContrastDefinition_ )"/>
-    !# <referenceConstruct owner="self" isResult="yes" object="darkMatterProfileDMODefinition_"  constructor="darkMatterProfileDMONFW                           (darkMatterHaloScaleDefinition_                                                           )"/>
-    !# <objectDestructor                               name  ="darkMatterHaloScaleDefinition_"                                                                                                                                                              />
+    !![
+    <referenceConstruct owner="self" isResult="yes" object="virialDensityContrastDefinition_">
+     <constructor>
+      virialDensityContrastFixed                        (                                                                            &amp;
+       &amp;                                             densityContrastValue                =200.0d0                              , &amp;
+       &amp;                                             densityType                         =fixedDensityTypeCritical             , &amp;
+       &amp;                                             turnAroundOverVirialRadius          =2.0d0                                , &amp;
+       &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+       &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_               &amp;
+       &amp;                                            )
+     </constructor>
+    </referenceConstruct>
+    <referenceConstruct                             object="darkMatterHaloScaleDefinition_"  >
+     <constructor>
+      darkMatterHaloScaleVirialDensityContrastDefinition(                                                                            &amp;
+       &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+       &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_             , &amp;
+       &amp;                                             virialDensityContrast_              =self%virialDensityContrastDefinition_  &amp;
+       &amp;                                            )
+     </constructor>
+    </referenceConstruct>
+    <referenceConstruct owner="self" isResult="yes" object="darkMatterProfileDMODefinition_" >
+     <constructor>
+      darkMatterProfileDMONFW                           (                                                                            &amp;
+       &amp;                                             velocityDispersionUseSeriesExpansion=.true.                               , &amp;
+       &amp;                                             darkMatterHaloScale_                =darkMatterHaloScaleDefinition_         &amp;
+       &amp;                                            )
+     </constructor>
+    </referenceConstruct>
+    <objectDestructor                               name  ="darkMatterHaloScaleDefinition_" />
+    !!]
     return
   end function diemerJoyce2019ConstructorInternal
 
   subroutine diemerJoyce2019Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily diemerJoyce2019} dark matter halo profile concentration class.
+    !!{
+    Destructor for the {\normalfont \ttfamily diemerJoyce2019} dark matter halo profile concentration class.
+    !!}
     implicit none
     type(darkMatterProfileConcentrationDiemerJoyce2019), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"             />
-    !# <objectDestructor name="self%cosmologyParameters_"            />
-    !# <objectDestructor name="self%criticalOverdensity_"            />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"       />
-    !# <objectDestructor name="self%linearGrowth_"                   />
-    !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
-    !# <objectDestructor name="self%darkMatterProfileDMODefinition_" />
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"             />
+    <objectDestructor name="self%cosmologyParameters_"            />
+    <objectDestructor name="self%criticalOverdensity_"            />
+    <objectDestructor name="self%cosmologicalMassVariance_"       />
+    <objectDestructor name="self%linearGrowth_"                   />
+    <objectDestructor name="self%virialDensityContrastDefinition_"/>
+    <objectDestructor name="self%darkMatterProfileDMODefinition_" />
+    !!]
     return
   end subroutine diemerJoyce2019Destructor
 
   double precision function diemerJoyce2019Concentration(self,node)
-    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
-    !% using the \cite{diemer_accurate_2019} algorithm.
+    !!{
+    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node}
+    using the \cite{diemer_accurate_2019} algorithm.
+    !!}
     implicit none
     class(darkMatterProfileConcentrationDiemerJoyce2019), intent(inout), target :: self
     type (treeNode                                     ), intent(inout), target :: node
@@ -238,12 +289,13 @@ contains
   end function diemerJoyce2019Concentration
 
   double precision function diemerJoyce2019ConcentrationMean(self,node)
-    !% Return the mean concentration of the dark matter halo profile of {\normalfont \ttfamily node}
-    !% using the \cite{diemer_accurate_2019} algorithm.
-    use :: Galacticus_Nodes        , only : nodeComponentBasic       , treeNode
+    !!{
+    Return the mean concentration of the dark matter halo profile of {\normalfont \ttfamily node}
+    using the \cite{diemer_accurate_2019} algorithm.
+    !!}
+    use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
     use :: Math_Exponentiation     , only : cubeRoot
     use :: Numerical_Constants_Math, only : Pi
-    use :: Root_Finder             , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
     class           (darkMatterProfileConcentrationDiemerJoyce2019), intent(inout)          :: self
     type            (treeNode                                     ), intent(inout), target  :: node
@@ -252,8 +304,6 @@ contains
          &                                                                                     alphaEffective, A       , &
          &                                                                                     B             , C       , &
          &                                                                                     GTilde
-    type            (rootFinder                                   ), save                   :: finder
-    !$omp threadprivate(finder)
 
     basic => node%basic()
     if     (                                   &
@@ -287,23 +337,10 @@ contains
             &                             +1.0d0                                                                                              &
             &                             +peakHeight**2/B                                                                                    &
             &                             )
-       ! Initialize the root finder.
-       if (.not.finder%isInitialized()) then
-          call finder%rangeExpand (                                                             &
-               &                   rangeExpandDownward          =0.5d0                        , &
-               &                   rangeExpandUpward            =2.0d0                        , &
-               &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive, &
-               &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
-               &                   rangeExpandType              =rangeExpandMultiplicative    , &
-               &                   rangeDownwardLimit           =1.0d0                          &
-               &                  )
-          call finder%rootFunction(GRoot                                           )
-          call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=1.0d-3)
-       end if
        ! Initial guess of the concentration.
        if (self%concentrationMeanPrevious < 0.0d0) self%concentrationMeanPrevious=5.0d0
        ! Solve for the concentration.
-       GTilde                           = finder%find(rootGuess=self%concentrationMeanPrevious)
+       GTilde                           = self%finder%find(rootGuess=self%concentrationMeanPrevious)
        self%concentrationMeanPrevious   = C*GTilde
        self%massPrevious                = basic%mass()
        self%timePrevious                = basic%time()
@@ -313,8 +350,10 @@ contains
   end function diemerJoyce2019ConcentrationMean
 
   function diemerJoyce2019DensityContrastDefinition(self)
-    !% Return a virial density contrast object defining that used in the definition of concentration in the
-    !% \cite{diemer_accurate_2019} algorithm.
+    !!{
+    Return a virial density contrast object defining that used in the definition of concentration in the
+    \cite{diemer_accurate_2019} algorithm.
+    !!}
     implicit none
     class(virialDensityContrastClass                   ), pointer       :: diemerJoyce2019DensityContrastDefinition
     class(darkMatterProfileConcentrationDiemerJoyce2019), intent(inout) :: self
@@ -324,8 +363,10 @@ contains
   end function diemerJoyce2019DensityContrastDefinition
 
   function diemerJoyce2019DarkMatterProfileDefinition(self)
-    !% Return a dark matter density profile object defining that used in the definition of concentration in the
-    !% \cite{diemer_accurate_2019} algorithm.
+    !!{
+    Return a dark matter density profile object defining that used in the definition of concentration in the
+    \cite{diemer_accurate_2019} algorithm.
+    !!}
     implicit none
     class(darkMatterProfileDMOClass                    ), pointer       :: diemerJoyce2019DarkMatterProfileDefinition
     class(darkMatterProfileConcentrationDiemerJoyce2019), intent(inout) :: self
@@ -335,7 +376,9 @@ contains
   end function diemerJoyce2019DarkMatterProfileDefinition
 
   double precision function GRoot(concentration)
-     !% Root function used to find the concentration.
+     !!{
+     Root function used to find the concentration.
+     !!}
      implicit none
      double precision, intent(in   ) :: concentration
 

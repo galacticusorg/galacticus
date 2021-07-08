@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,23 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a uniform 1D distibution function.
+  !!{
+  Implementation of a uniform 1D distibution function.
+  !!}
 
-  !# <distributionFunction1D name="distributionFunction1DUniform">
-  !#  <description>
-  !#   A uniform distribution over a finite range
-  !#   \begin{equation}
-  !#   P(x) \propto \left\{ \begin{array}{ll} 1 &amp; \hbox{ if } x_\mathrm{l} \leq x \leq x_\mathrm{u} \\ 0 &amp; \hbox{ otherwise.}  \end{array} \right.
-  !#   \end{equation}
-  !#   Specified using:
-  !#   \begin{description}
-  !#   \item[{\normalfont \ttfamily [minimum]}] The lower limit of the range, $x_\mathrm{l}$;
-  !#   \item[{\normalfont \ttfamily [maximum]}] The upper limit of the range, $x_\mathrm{u}$.
-  !#   \end{description}
-  !#  </description>
-  !# </distributionFunction1D>
+  !![
+  <distributionFunction1D name="distributionFunction1DUniform">
+   <description>
+    A uniform distribution over a finite range
+    \begin{equation}
+    P(x) \propto \left\{ \begin{array}{ll} 1 &amp; \hbox{ if } x_\mathrm{l} \leq x \leq x_\mathrm{u} \\ 0 &amp; \hbox{ otherwise.}  \end{array} \right.
+    \end{equation}
+    Specified using:
+    \begin{description}
+    \item[{\normalfont \ttfamily [minimum]}] The lower limit of the range, $x_\mathrm{l}$;
+    \item[{\normalfont \ttfamily [maximum]}] The upper limit of the range, $x_\mathrm{u}$.
+    \end{description}
+   </description>
+  </distributionFunction1D>
+  !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DUniform
-     !% Implementation of a uniform 1D distibution function.
+     !!{
+     Implementation of a uniform 1D distibution function.
+     !!}
      private
      double precision :: limitLower, limitUpper
    contains
@@ -45,7 +51,9 @@
   end type distributionFunction1DUniform
 
   interface distributionFunction1DUniform
-     !% Constructors for the {\normalfont \ttfamily uniform} 1D distribution function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily uniform} 1D distribution function class.
+     !!}
      module procedure uniformConstructorParameters
      module procedure uniformConstructorInternal
   end interface distributionFunction1DUniform
@@ -53,8 +61,10 @@
 contains
 
   function uniformConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily uniform} 1D distribution function class which builds the object from a parameter
-    !% set.
+    !!{
+    Constructor for the {\normalfont \ttfamily uniform} 1D distribution function class which builds the object from a parameter
+    set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunction1DUniform)                :: self
@@ -62,35 +72,45 @@ contains
     class           (randomNumberGeneratorClass   ), pointer       :: randomNumberGenerator_
     double precision                                               :: limitLower            , limitUpper
 
-    !# <inputParameter>
-    !#   <name>limitLower</name>
-    !#   <description>The lower limit of the uniform distribution.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>limitUpper</name>
-    !#   <description>The upper limit of the uniform distribution.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>limitLower</name>
+      <description>The lower limit of the uniform distribution.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>limitUpper</name>
+      <description>The upper limit of the uniform distribution.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=distributionFunction1DUniform(limitLower,limitUpper,randomNumberGenerator_)
-    !# <objectDestructor name="randomNumberGenerator_"/>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <objectDestructor name="randomNumberGenerator_"/>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function uniformConstructorParameters
 
   function uniformConstructorInternal(limitLower,limitUpper,randomNumberGenerator_) result(self)
-    !% Constructor for ``uniform'' 1D distribution function class.
+    !!{
+    Constructor for ``uniform'' 1D distribution function class.
+    !!}
     type            (distributionFunction1DUniform)                                  :: self
     double precision                               , intent(in   )                   :: limitLower            , limitUpper
     class           (randomNumberGeneratorClass   ), intent(in   ), target, optional :: randomNumberGenerator_
-    !# <constructorAssign variables="limitLower, limitUpper, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="limitLower, limitUpper, *randomNumberGenerator_"/>
+    !!]
 
     return
   end function uniformConstructorInternal
 
   double precision function uniformMinimum(self)
-    !% Return the minimum possible value of a uniform distribution.
+    !!{
+    Return the minimum possible value of a uniform distribution.
+    !!}
     implicit none
     class(distributionFunction1DUniform), intent(inout) :: self
 
@@ -99,7 +119,9 @@ contains
   end function uniformMinimum
 
   double precision function uniformMaximum(self)
-    !% Return the maximum possible value of a uniform distribution.
+    !!{
+    Return the maximum possible value of a uniform distribution.
+    !!}
     implicit none
     class(distributionFunction1DUniform), intent(inout) :: self
 
@@ -108,7 +130,9 @@ contains
   end function uniformMaximum
 
   double precision function uniformDensity(self,x)
-    !% Return the density of a uniform distribution.
+    !!{
+    Return the density of a uniform distribution.
+    !!}
     implicit none
     class           (distributionFunction1DUniform), intent(inout) :: self
     double precision                               , intent(in   ) :: x
@@ -122,7 +146,9 @@ contains
   end function uniformDensity
 
   double precision function uniformCumulative(self,x)
-    !% Return the cumulative probability of a uniform distribution.
+    !!{
+    Return the cumulative probability of a uniform distribution.
+    !!}
     implicit none
     class           (distributionFunction1DUniform), intent(inout) :: self
     double precision                               , intent(in   ) :: x
@@ -138,7 +164,9 @@ contains
   end function uniformCumulative
 
   double precision function uniformInverse(self,p)
-    !% Return the inverse of a uniform distribution.
+    !!{
+    Return the inverse of a uniform distribution.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (distributionFunction1DUniform), intent(inout), target :: self

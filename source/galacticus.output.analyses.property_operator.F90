@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,28 +17,34 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements on-the-fly analyses.
+!!{
+Contains a module which provides a class that implements on-the-fly analyses.
+!!}
 
 module Output_Analysis_Property_Operators
-  !% Provides a class that implements operators on properties for on-the-fly analyses.
+  !!{
+  Provides a class that implements operators on properties for on-the-fly analyses.
+  !!}
   use            :: Galacticus_Nodes, only : treeNode
   use, intrinsic :: ISO_C_Binding   , only : c_size_t
   private
 
-  !# <functionClass>
-  !#  <name>outputAnalysisPropertyOperator</name>
-  !#  <descriptiveName>Output Analysis Property Operator</descriptiveName>
-  !#  <description>Class providing operators on properties for on-the-fly analysis of outputs.</description>
-  !#  <default>identity</default>
-  !#  <method name="operate" >
-  !#   <description>Operate on the given property.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision          , intent(in   )           :: propertyValue</argument>
-  !#   <argument>type            (treeNode), intent(inout), optional :: node</argument>
-  !#   <argument>integer                   , intent(inout), optional :: propertyType</argument>
-  !#   <argument>integer         (c_size_t), intent(in   ), optional :: outputIndex</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>outputAnalysisPropertyOperator</name>
+   <descriptiveName>Output Analysis Property Operator</descriptiveName>
+   <description>Class providing operators on properties for on-the-fly analysis of outputs.</description>
+   <default>identity</default>
+   <method name="operate" >
+    <description>Operate on the given property.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision          , intent(in   )           :: propertyValue</argument>
+    <argument>type            (treeNode), intent(inout), optional :: node</argument>
+    <argument>integer                   , intent(inout), optional :: propertyType</argument>
+    <argument>integer         (c_size_t), intent(in   ), optional :: outputIndex</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Output_Analysis_Property_Operators

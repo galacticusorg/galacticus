@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -18,15 +18,17 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 program Tests_Bug745815
-  !% Tests for regression of Bug \#745815 (http://bugs.launchpad.net/galacticus/+bug/745815): Skipping of a node during a tree
-  !% walk.
-  use :: Galacticus_Display , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: Galacticus_Nodes   , only : mergerTree                    , treeNode              , treeNodeList
-  use :: ISO_Varying_String , only : varying_string                , assignment(=)
+  !!{
+  Tests for regression of Bug \#745815 (http://bugs.launchpad.net/galacticus/+bug/745815): Skipping of a node during a tree
+  walk.
+  !!}
+  use :: Display            , only : displayVerbositySet     , verbosityLevelStandard
+  use :: Galacticus_Nodes   , only : mergerTree              , treeNode              , treeNodeList
+  use :: ISO_Varying_String , only : assignment(=)           , varying_string
   use :: Input_Parameters   , only : inputParameters
   use :: Kind_Numbers       , only : kind_int8
   use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
-  use :: Unit_Tests         , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests         , only : Assert                  , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type   (varying_string          )          :: parameterFile
   type   (treeNodeList            )          :: nodes        (5)
@@ -38,14 +40,13 @@ program Tests_Bug745815
   type   (mergerTreeWalkerAllNodes)          :: treeWalker
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Bug #745815: Node skip during tree-walk")
 
   ! Open the parameter file.
   parameterFile='testSuite/parameters/bug745815.xml'
   parameters=inputParameters(parameterFile)
-  call parameters%markGlobal()
 
   ! Create nodes.
   do i=1,5

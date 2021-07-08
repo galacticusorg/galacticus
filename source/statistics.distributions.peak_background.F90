@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a peak-background split density 1D distibution function.
+  !!{
+  Implementation of a peak-background split density 1D distibution function.
+  !!}
 
   use :: Tables, only : table1D, table1DLinearLinear
 
-  !# <distributionFunction1D name="distributionFunction1DPeakBackground">
-  !#  <description>A peakBackground 1D distribution function class.</description>
-  !# </distributionFunction1D>
+  !![
+  <distributionFunction1D name="distributionFunction1DPeakBackground">
+   <description>A peakBackground 1D distribution function class.</description>
+  </distributionFunction1D>
+  !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DPeakBackground
-     !% Implementation of a peakBackground 1D distibution function.
+     !!{
+     Implementation of a peakBackground 1D distibution function.
+     !!}
      private
      double precision                                   :: varianceBackground, thresholdCollapse, &
           &                                                normalization
@@ -41,7 +47,9 @@
   end type distributionFunction1DPeakBackground
 
   interface distributionFunction1DPeakBackground
-     !% Constructors for the {\normalfont \ttfamily peakBackground} 1D distribution function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily peakBackground} 1D distribution function class.
+     !!}
      module procedure peakBackgroundConstructorParameters
      module procedure peakBackgroundConstructorInternal
   end interface distributionFunction1DPeakBackground
@@ -49,8 +57,10 @@
 contains
 
   function peakBackgroundConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily peakBackground} 1D distribution function class which builds the object from a parameter
-    !% set.
+    !!{
+    Constructor for the {\normalfont \ttfamily peakBackground} 1D distribution function class which builds the object from a parameter
+    set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunction1DPeakBackground)                :: self
@@ -58,25 +68,31 @@ contains
     class           (randomNumberGeneratorClass          ), pointer       :: randomNumberGenerator_
     double precision                                                      :: varianceBackground    , thresholdCollapse
 
-    !# <inputParameter>
-    !#   <name>varianceBackground</name>
-    !#   <description>The variance in the background density field.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>thresholdCollapse</name>
-    !#   <description>The threshold for collapse of density perturbations.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>varianceBackground</name>
+      <description>The variance in the background density field.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>thresholdCollapse</name>
+      <description>The threshold for collapse of density perturbations.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=distributionFunction1DPeakBackground(varianceBackground,thresholdCollapse,randomNumberGenerator_)
-    !# <objectDestructor name="randomNumberGenerator_"/>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <objectDestructor name="randomNumberGenerator_"/>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function peakBackgroundConstructorParameters
 
   function peakBackgroundConstructorInternal(varianceBackground,thresholdCollapse,randomNumberGenerator_) result(self)
-    !% Constructor for ``peakBackground'' 1D distribution function class.
+    !!{
+    Constructor for ``peakBackground'' 1D distribution function class.
+    !!}
     use :: Error_Functions, only : Error_Function
     implicit none
     type            (distributionFunction1DPeakBackground)                        ::           self
@@ -85,7 +101,9 @@ contains
     double precision                                      , parameter                       :: rangeTable            =7.0d0
     integer                                               , parameter                       :: cdfCount              =1000
     integer                                                                                 :: i
-    !# <constructorAssign variables="varianceBackground, thresholdCollapse, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="varianceBackground, thresholdCollapse, *randomNumberGenerator_"/>
+    !!]
 
     ! Compute normalization of the distribution.
     self%normalization     =+1.0d0                                                                  &
@@ -102,6 +120,11 @@ contains
             &                  )                                                                                        , &
             &                 i                                                                                           &
             &                )
+       if (i > 1) then
+          ! Test for monotonicity. If monotonicity fails enforce it by adding a small increase in the CDF. This will make
+          ! negligible difference to our results.
+          if (self%cdf%y(i) <= self%cdf%y(i-1)) call self%cdf%populate(self%cdf%y(i-1)*(1.0d0+epsilon(0.0d0)),i)
+       end if
     end do
     call self%cdf%reverse(self%cdfInverse)
     return
@@ -109,7 +132,9 @@ contains
   contains
 
     double precision function cdfIntegrand(x)
-      !% The integrand for the cumulative distribution function.
+      !!{
+      The integrand for the cumulative distribution function.
+      !!}
       implicit none
       double precision, intent(in   ) :: x
 
@@ -120,7 +145,9 @@ contains
   end function peakBackgroundConstructorInternal
 
   subroutine peakBackgroundDestructor(self)
-    !% Destructor for ``peakBackground'' 1D distribution function class.
+    !!{
+    Destructor for ``peakBackground'' 1D distribution function class.
+    !!}
     implicit none
     type(distributionFunction1DPeakBackground), intent(inout) :: self
 
@@ -133,7 +160,9 @@ contains
   end subroutine peakBackgroundDestructor
 
   double precision function peakBackgroundMinimum(self)
-    !% Return the minimum possible value of a peak-background split distribution.
+    !!{
+    Return the minimum possible value of a peak-background split distribution.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(distributionFunction1DPeakBackground), intent(inout) :: self
@@ -145,7 +174,9 @@ contains
   end function peakBackgroundMinimum
 
   double precision function peakBackgroundMaximum(self)
-    !% Return the maximum possible value of a peak-background split distribution.
+    !!{
+    Return the maximum possible value of a peak-background split distribution.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(distributionFunction1DPeakBackground), intent(inout) :: self
@@ -157,7 +188,9 @@ contains
   end function peakBackgroundMaximum
 
   double precision function peakBackgroundDensity(self,x)
-    !% Return the density of a normal distribution.
+    !!{
+    Return the density of a normal distribution.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (distributionFunction1DPeakBackground), intent(inout) :: self
@@ -195,7 +228,9 @@ contains
   end function peakBackgroundDensity
 
   double precision function peakBackgroundCumulative(self,x)
-    !% Return the cumulative probability of a normal distribution.
+    !!{
+    Return the cumulative probability of a normal distribution.
+    !!}
     implicit none
     class           (distributionFunction1DPeakBackground), intent(inout) :: self
     double precision                                     , intent(in   ) :: x
@@ -211,7 +246,9 @@ contains
   end function peakBackgroundCumulative
 
   double precision function peakBackgroundInverse(self,p)
-    !% Return the inverse of a normal distribution.
+    !!{
+    Return the inverse of a normal distribution.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (distributionFunction1DPeakBackground), intent(inout), target :: self

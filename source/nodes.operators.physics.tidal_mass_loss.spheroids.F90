@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that performs tidal mass loss in spheroids.
+  !!{
+  Implements a node operator class that performs tidal mass loss in spheroids.
+  !!}
 
   use :: Tidal_Stripping_Mass_Loss_Rate, only : tidalStrippingClass
   
-  !# <nodeOperator name="nodeOperatorTidalMassLossSpheroids">
-  !#  <description>A node operator class that performs tidal mass loss in spheroids.</description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorTidalMassLossSpheroids">
+   <description>A node operator class that performs tidal mass loss in spheroids.</description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorTidalMassLossSpheroids
-     !% A node operator class that performs tidal mass loss in spheroids.
+     !!{
+     A node operator class that performs tidal mass loss in spheroids.
+     !!}
      private
      class(tidalStrippingClass), pointer :: tidalStripping_ => null()
    contains
@@ -34,7 +40,9 @@
   end type nodeOperatorTidalMassLossSpheroids
   
   interface nodeOperatorTidalMassLossSpheroids
-     !% Constructors for the {\normalfont \ttfamily tidalMassLossSpheroids} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily tidalMassLossSpheroids} node operator class.
+     !!}
      module procedure tidalMassLossSpheroidsConstructorParameters
      module procedure tidalMassLossSpheroidsConstructorInternal
   end interface nodeOperatorTidalMassLossSpheroids
@@ -42,41 +50,57 @@
 contains
 
   function tidalMassLossSpheroidsConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily tidalMassLossSpheroids} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily tidalMassLossSpheroids} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodeOperatorTidalMassLossSpheroids)                :: self
     type (inputParameters                   ), intent(inout) :: parameters
     class(tidalStrippingClass               ), pointer       :: tidalStripping_
     
-    !# <objectBuilder class="tidalStripping" name="tidalStripping_" source="parameters"/>
+    !![
+    <objectBuilder class="tidalStripping" name="tidalStripping_" source="parameters"/>
+    !!]
     self=nodeOperatorTidalMassLossSpheroids(tidalStripping_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="tidalStripping_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="tidalStripping_"/>
+    !!]
     return
   end function tidalMassLossSpheroidsConstructorParameters
 
   function tidalMassLossSpheroidsConstructorInternal(tidalStripping_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily tidalMassLossSpheroids} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily tidalMassLossSpheroids} node operator class.
+    !!}
     implicit none
     type (nodeOperatorTidalMassLossSpheroids)                        :: self
     class(tidalStrippingClass               ), intent(in   ), target :: tidalStripping_
-    !# <constructorAssign variables="*tidalStripping_"/>
+    !![
+    <constructorAssign variables="*tidalStripping_"/>
+    !!]
 
     return
   end function tidalMassLossSpheroidsConstructorInternal
 
   subroutine tidalMassLossSpheroidsDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily tidalMassLossSpheroids} node operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily tidalMassLossSpheroids} node operator class.
+    !!}
     implicit none
     type(nodeOperatorTidalMassLossSpheroids), intent(inout) :: self
 
-    !# <objectDestructor name="self%tidalStripping_"/>
+    !![
+    <objectDestructor name="self%tidalStripping_"/>
+    !!]
     return
   end subroutine tidalMassLossSpheroidsDestructor
   
   subroutine tidalMassLossSpheroidsDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Perform star formation in a spheroid.
+    !!{
+    Perform star formation in a spheroid.
+    !!}
     use :: Galacticus_Nodes              , only : propertyTypeInactive, nodeComponentSpheroid  , nodeComponentHotHalo
     use :: Abundances_Structure          , only : operator(*)
     use :: Histories                     , only : operator(*)         , history

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,10 +19,14 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-!% Contains custom functions for the orbiting satellite component.
+!!{
+Contains custom functions for the orbiting satellite component.
+!!}
 
 double precision function Node_Component_Satellite_Orbiting_Time_Of_Merging(self)
-  !% Return the {\normalfont \ttfamily timeOfMerging} property of the {\normalfont \ttfamily satelliteOrbiting} component class.
+  !!{
+  Return the {\normalfont \ttfamily timeOfMerging} property of the {\normalfont \ttfamily satelliteOrbiting} component class.
+  !!}
   implicit none
   class(nodeComponentSatelliteOrbiting), intent(inout) :: self
   type (treeNode                      ), pointer       :: selfNode

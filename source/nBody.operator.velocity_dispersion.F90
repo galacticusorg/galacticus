@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which computes the velocity dispersion in a set of given spherical shells.
+!!{
+Contains a module which implements an N-body data operator which computes the velocity dispersion in a set of given spherical shells.
+!!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
-  !# <nbodyOperator name="nbodyOperatorVelocityDispersion">
-  !#  <description>An N-body data operator which computes the rotation curve at a set of given radii.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorVelocityDispersion">
+   <description>An N-body data operator which computes the rotation curve at a set of given radii.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorVelocityDispersion
-     !% An N-body data operator which computes the rotation curve at a set of given radii.
+     !!{
+     An N-body data operator which computes the rotation curve at a set of given radii.
+     !!}
      private
      logical                                                                 :: selfBoundParticlesOnly
      integer         (c_size_t                  )                            :: bootstrapSampleCount
@@ -38,7 +44,9 @@
   end type nbodyOperatorVelocityDispersion
 
   interface nbodyOperatorVelocityDispersion
-     !% Constructors for the ``velocityDispersion'' N-body operator class.
+     !!{
+     Constructors for the ``velocityDispersion'' N-body operator class.
+     !!}
      module procedure velocityDispersionConstructorParameters
      module procedure velocityDispersionConstructorInternal
   end interface nbodyOperatorVelocityDispersion
@@ -46,7 +54,9 @@
 contains
 
   function velocityDispersionConstructorParameters(parameters) result (self)
-    !% Constructor for the ``velocityDispersion'' N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``velocityDispersion'' N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyOperatorVelocityDispersion)                              :: self
@@ -58,36 +68,42 @@ contains
 
     allocate(radiusInner(parameters%count('radiusInner')))
     allocate(radiusOuter(parameters%count('radiusOuter')))
-    !# <inputParameter>
-    !#   <name>selfBoundParticlesOnly</name>
-    !#   <source>parameters</source>
-    !#   <description>If true, the velocity dispersion is computed only for self-bound particles.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>radiusInner</name>
-    !#   <source>parameters</source>
-    !#   <description>Inner radii of spherical shells within which the velocity dispersion should be computed.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>radiusOuter</name>
-    !#   <source>parameters</source>
-    !#   <description>Outer radii of spherical shells within which the velocity dispersion should be computed.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>bootstrapSampleCount</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>30_c_size_t</defaultValue>
-    !#   <description>The number of bootstrap resamples of the particles that should be used.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>selfBoundParticlesOnly</name>
+      <source>parameters</source>
+      <description>If true, the velocity dispersion is computed only for self-bound particles.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>radiusInner</name>
+      <source>parameters</source>
+      <description>Inner radii of spherical shells within which the velocity dispersion should be computed.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>radiusOuter</name>
+      <source>parameters</source>
+      <description>Outer radii of spherical shells within which the velocity dispersion should be computed.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>bootstrapSampleCount</name>
+      <source>parameters</source>
+      <defaultValue>30_c_size_t</defaultValue>
+      <description>The number of bootstrap resamples of the particles that should be used.</description>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=nbodyOperatorVelocityDispersion(selfBoundParticlesOnly,bootstrapSampleCount,radiusInner,radiusOuter,randomNumberGenerator_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="randomNumberGenerator_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="randomNumberGenerator_"/>
+    !!]
     return
   end function velocityDispersionConstructorParameters
 
   function velocityDispersionConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,radiusInner,radiusOuter,randomNumberGenerator_) result (self)
-    !% Internal constructor for the ``velocityDispersion'' N-body operator class.
+    !!{
+    Internal constructor for the ``velocityDispersion'' N-body operator class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (nbodyOperatorVelocityDispersion)                              :: self
@@ -95,23 +111,31 @@ contains
     integer         (c_size_t                       ), intent(in   )               :: bootstrapSampleCount
     double precision                                 , intent(in   ), dimension(:) :: radiusInner            , radiusOuter
     class           (randomNumberGeneratorClass     ), intent(in   ), target       :: randomNumberGenerator_
-    !# <constructorAssign variables="selfBoundParticlesOnly, bootstrapSampleCount, radiusInner, radiusOuter, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="selfBoundParticlesOnly, bootstrapSampleCount, radiusInner, radiusOuter, *randomNumberGenerator_"/>
+    !!]
 
     if (size(self%radiusInner) /= size(self%radiusOuter)) call Galacticus_Error_Report('number of inner and outer radii should be equal'//{introspection:location})
     return
   end function velocityDispersionConstructorInternal
 
   subroutine velocityDispersionDestructor(self)
-    !% Destructor for the ``meanPosition'' N-body operator class.
+    !!{
+    Destructor for the ``meanPosition'' N-body operator class.
+    !!}
     implicit none
     type(nbodyOperatorVelocityDispersion), intent(inout) :: self
 
-    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
     return
   end subroutine velocityDispersionDestructor
 
   subroutine velocityDispersionOperate(self,simulations)
-    !% Determine the mean position and velocity of N-body particles.
+    !!{
+    Determine the mean position and velocity of N-body particles.
+    !!}
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none

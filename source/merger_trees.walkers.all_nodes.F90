@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,24 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a depth-first merger tree walker over all all nodes.
+  !!{
+  Contains a module which implements a depth-first merger tree walker over all all nodes.
+  !!}
   use :: Galacticus_Nodes, only : mergerTree, treeNode
 
-  !# <mergerTreeWalker name="mergerTreeWalkerAllNodes">
-  !#  <description>Provides a merger tree walker which iterates depth-first over all all nodes.</description>
-  !# </mergerTreeWalker>
+  !![
+  <mergerTreeWalker name="mergerTreeWalkerAllNodes">
+   <description>Provides a merger tree walker which iterates depth-first over all all nodes.</description>
+  </mergerTreeWalker>
+  !!]
   type, extends(mergerTreeWalkerClass) :: mergerTreeWalkerAllNodes
-     !% A merger tree walker which iterates depth-first over all all nodes.
+     !!{
+     A merger tree walker which iterates depth-first over all all nodes.
+     !!}
      private
      type   (mergerTree), pointer :: tree      , treePrevious
      type   (treeNode  ), pointer :: node      , nodePrevious
      logical                      :: spanForest, nodesRemain_
    contains
-     !# <methods>
-     !#   <method description="Step back to the previously visited node (if possible)." method="previous" />
-     !#   <method description="Set the walker to the given node." method="setNode" />
-     !#   <method description="Descend through the hierarchy to the deepest node along the current branch." method="descend" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Step back to the previously visited node (if possible)." method="previous" />
+       <method description="Set the walker to the given node." method="setNode" />
+       <method description="Descend through the hierarchy to the deepest node along the current branch." method="descend" />
+     </methods>
+     !!]
      procedure :: next        => allNodesNext
      procedure :: previous    => allNodesPrevious
      procedure :: setNode     => allNodesSetNode
@@ -43,7 +51,9 @@
   end type mergerTreeWalkerAllNodes
 
   interface mergerTreeWalkerAllNodes
-     !% Constructors for the {\normalfont \ttfamily allNodes} merger tree walker class.
+     !!{
+     Constructors for the {\normalfont \ttfamily allNodes} merger tree walker class.
+     !!}
      module procedure allNodesParameters
      module procedure allNodesInternal
   end interface mergerTreeWalkerAllNodes
@@ -51,7 +61,9 @@
 contains
 
   function allNodesParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily allNodes} merger tree walker class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily allNodes} merger tree walker class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -64,12 +76,16 @@ contains
   end function allNodesParameters
 
   function allNodesInternal(tree,spanForest) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily allNodes} merger tree walker class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily allNodes} merger tree walker class.
+    !!}
     implicit none
     type   (mergerTreeWalkerAllNodes)                          :: self
     type   (mergerTree              ), intent(in   ), target   :: tree
     logical                          , intent(in   ), optional :: spanForest
-    !# <optionalArgument name="spanForest" defaultsTo=".false."/>
+    !![
+    <optionalArgument name="spanForest" defaultsTo=".false."/>
+    !!]
 
     self%tree         => tree
     self%node         => null()
@@ -81,13 +97,15 @@ contains
   end function allNodesInternal
 
   logical function allNodesNext(self,node)
-    !% This function will update to given {\normalfont \ttfamily node} to the next node which should be visited in a tree to
-    !% perform a depth-first walk, including satellite nodes. Once the entire tree has been walked, a {\normalfont \ttfamily
-    !% null()} pointer will be set, and a value of {\normalfont \ttfamily false} returned indicating that there are no more nodes
-    !% to walk. Each node will be visited once and once only if the tree is walked in this way. Note that it is important that the
-    !% walk descends to satellites before descending to children: the routines that destroy merger tree branches rely on this
-    !% since child nodes are used in testing whether a node is a satellite---if they are destroyed prior to the test being made
-    !% then problems with dangling pointers will occur.
+    !!{
+    This function will update to given {\normalfont \ttfamily node} to the next node which should be visited in a tree to
+    perform a depth-first walk, including satellite nodes. Once the entire tree has been walked, a {\normalfont \ttfamily
+    null()} pointer will be set, and a value of {\normalfont \ttfamily false} returned indicating that there are no more nodes
+    to walk. Each node will be visited once and once only if the tree is walked in this way. Note that it is important that the
+    walk descends to satellites before descending to children: the routines that destroy merger tree branches rely on this
+    since child nodes are used in testing whether a node is a satellite---if they are destroyed prior to the test being made
+    then problems with dangling pointers will occur.
+    !!}
     implicit none
     class(mergerTreeWalkerAllNodes), intent(inout)          :: self
     type (treeNode                ), intent(inout), pointer :: node
@@ -171,7 +189,9 @@ contains
   end function allNodesNext
 
   subroutine allNodesPrevious(self,node)
-    !% Step back to the previously visited node.
+    !!{
+    Step back to the previously visited node.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(mergerTreeWalkerAllNodes), intent(inout)          :: self
@@ -190,7 +210,9 @@ contains
   end subroutine allNodesPrevious
 
   subroutine allNodesDescend(self)
-    !% Descend to the deepest progenitor (satellites and children) of the current branch.
+    !!{
+    Descend to the deepest progenitor (satellites and children) of the current branch.
+    !!}
     implicit none
     class(mergerTreeWalkerAllNodes), intent(inout) :: self
 
@@ -206,7 +228,9 @@ contains
   end subroutine allNodesDescend
 
   logical function allNodesNodesRemain(self)
-    !% Returns true if more nodes remain to be walked to.
+    !!{
+    Returns true if more nodes remain to be walked to.
+    !!}
     implicit none
     class(mergerTreeWalkerAllNodes), intent(inout) :: self
 
@@ -215,7 +239,9 @@ contains
   end function allNodesNodesRemain
 
   subroutine allNodesSetNode(self,node)
-    !% Returns true if more nodes remain to be walked to.
+    !!{
+    Returns true if more nodes remain to be walked to.
+    !!}
     implicit none
     class(mergerTreeWalkerAllNodes), intent(inout)         :: self
     type (treeNode                ), intent(in   ), target :: node

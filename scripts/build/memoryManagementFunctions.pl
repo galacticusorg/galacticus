@@ -33,13 +33,15 @@ my $includeFiles;
 open($includeFiles->{$_} ,">".$ENV{'BUILDPATH'}."/utility.memory_management.".$_.".inc.tmp" )
     foreach ( @codeSections );
 # Write some header information to these files.
-print {$includeFiles->{'preContain' }} "!% Contains interface and type definitions for memory management functions along with storage space for pointers and sizes.\n";
-print {$includeFiles->{'preContain' }} "!% This file was created automatically by {\\normalfont \\ttfamily memoryUseageFunctions.pl}\n\n";
-print {$includeFiles->{'postContain'}} "!% Contains memory management functions.\n";
-print {$includeFiles->{'postContain'}} "!% This file was created automatically by {\\normalfont \\ttfamily memoryUseageFunctions.pl}\n\n";
+print {$includeFiles->{'preContain' }} "!!{\n";
+print {$includeFiles->{'preContain' }} "! Contains interface and type definitions for memory management functions along with storage space for pointers and sizes.\n";
+print {$includeFiles->{'preContain' }} "! This file was created automatically by {\\normalfont \\ttfamily memoryUseageFunctions.pl}\n\n";
+print {$includeFiles->{'postContain'}} "! Contains memory management functions.\n";
+print {$includeFiles->{'postContain'}} "! This file was created automatically by {\\normalfont \\ttfamily memoryUseageFunctions.pl}\n\n";
+print {$includeFiles->{'preContain' }} "!!}\n";
 # Begin construction of interfaces to allocate and deallocate functions.
-$codeFragments->{'preContain'}->{"allocInterfaceCode"  } = "interface allocateArray\n  !% Generic interface to routines which allocate arrays.\n";
-$codeFragments->{'preContain'}->{"deallocInterfaceCode"} = "interface deallocateArray\n  !% Generic interface to routines which deallocate arrays.\n";
+$codeFragments->{'preContain'}->{"allocInterfaceCode"  } = "interface allocateArray\n  !!{\n  ! Generic interface to routines which allocate arrays.\n  !!}\n";
+$codeFragments->{'preContain'}->{"deallocInterfaceCode"} = "interface deallocateArray\n  !!{\n  ! Generic interface to routines which deallocate arrays.\n  !!}\n";
 # Specify list of kinds acceptable as array shape descriptors.
 my @arrayShapeDescriptorKinds = ( "", "kind_int8" );
 # Iterate over all classes of allocatable variable and generate code for them.
@@ -57,8 +59,10 @@ foreach my $allocatable ( @{$allocatables->{'allocatable'}}  ) {
     # Add a deallocate function for this allocatable type.
     $codeFragments->{'postContain'}->{"dealloc".$code::functionLabel} = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine deallocateArray_{$functionLabel}(thisArray,memoryType,file,line)
-  !% Deallocate a {$rank}D \{\normalfont \ttfamily {&LaTeX::Encode::latex_encode($typeName)}\} array.
-  use Galacticus_Display
+  !!\{
+  ! Deallocate a {$rank}D \{\normalfont \ttfamily {&LaTeX::Encode::latex_encode($typeName)}\} array.
+  !!\}
+  use Display
   use ISO_Varying_String
   use String_Handling
   implicit none
@@ -78,12 +82,12 @@ subroutine deallocateArray_{$functionLabel}(thisArray,memoryType,file,line)
   !$omp atomic
   usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage-accumulation
   deallocate(thisArray)
-  if (Galacticus_Verbosity_Level() >= verbosityDebug) then
+  if (displayVerbosity() >= verbosityLevelDebug) then
      if (present(file).and.present(line)) then
       message='memory deallocate: '
       message=message//sizeof(thisArray)+allocationOverhead
       message=message//' ['//file//':'//line//']'
-      call Galacticus_Display_Message(message)
+      call displayMessage(message)
     end if
   end if
   return
@@ -95,8 +99,10 @@ CODE
 	$code::typeDefinition = $arrayShapeDescriptorKind eq "" ? "" : "(kind=".$arrayShapeDescriptorKind.")";
 	$codeFragments->{'postContain'}->{"alloc".$code::functionLabel.$code::suffix} = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine allocateArray_{$functionLabel.$suffix}(thisArray,dimensions,lowerBounds,memoryType,file,line)
-  !% Allocate a {$rank}D \{\normalfont \ttfamily {&LaTeX::Encode::latex_encode($typeName)}\} array.
-  use Galacticus_Display
+  !!\{
+  ! Allocate a {$rank}D \{\normalfont \ttfamily {&LaTeX::Encode::latex_encode($typeName)}\} array.
+  !!\}
+  use Display
   use ISO_Varying_String
   use String_Handling
   implicit none
@@ -123,12 +129,12 @@ subroutine allocateArray_{$functionLabel.$suffix}(thisArray,dimensions,lowerBoun
   accumulation=sizeof(thisArray)+allocationOverhead
   !$omp atomic
   usedMemory%memoryType(memoryTypeActual)%usage=usedMemory%memoryType(memoryTypeActual)%usage+accumulation
-  if (Galacticus_Verbosity_Level() >= verbosityDebug) then
+  if (displayVerbosity() >= verbosityLevelDebug) then
      if (present(file).and.present(line)) then
       message='memory allocate: '
       message=message//sizeof(thisArray)+allocationOverhead
       message=message//' ['//file//':'//line//']'
-      call Galacticus_Display_Message(message)
+      call displayMessage(message)
     end if
   end if
   call Memory_Usage_Report

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a unitarity output analysis distribution normalizer class.
+  !!{
+  Contains a module which implements a unitarity output analysis distribution normalizer class.
+  !!}
 
-  !# <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerUnitarity">
-  !#  <description>A unitarity output analysis distribution normalizer class.</description>
-  !# </outputAnalysisDistributionNormalizer>
+  !![
+  <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerUnitarity">
+   <description>A unitarity output analysis distribution normalizer class.</description>
+  </outputAnalysisDistributionNormalizer>
+  !!]
   type, extends(outputAnalysisDistributionNormalizerClass) :: outputAnalysisDistributionNormalizerUnitarity
-     !% A unitarity output distribution normalizer class.
+     !!{
+     A unitarity output distribution normalizer class.
+     !!}
      private
    contains
      procedure :: normalize => unitarityNormalize
   end type outputAnalysisDistributionNormalizerUnitarity
 
   interface outputAnalysisDistributionNormalizerUnitarity
-     !% Constructors for the ``unitarity'' output analysis distribution normalizer class.
+     !!{
+     Constructors for the ``unitarity'' output analysis distribution normalizer class.
+     !!}
      module procedure unitarityConstructorParameters
   end interface outputAnalysisDistributionNormalizerUnitarity
 
 contains
 
   function unitarityConstructorParameters(parameters) result(self)
-    !% Constructor for the ``unitarity'' output analysis distribution normalizer class which takes a parameter set as input.
+    !!{
+    Constructor for the ``unitarity'' output analysis distribution normalizer class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisDistributionNormalizerUnitarity)                :: self
@@ -49,7 +59,9 @@ contains
   end function unitarityConstructorParameters
 
   subroutine unitarityNormalize(self,distribution,covariance,propertyValueMinimum,propertyValueMaximum)
-    !% Implement a unitarity output analysis distribution normalizer.
+    !!{
+    Implement a unitarity output analysis distribution normalizer.
+    !!}
     implicit none
     class           (outputAnalysisDistributionNormalizerUnitarity), intent(inout)                 :: self
     double precision                                               , intent(inout), dimension(:  ) :: distribution

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module of ODEs for unit tests.
+!!{
+Contains a module of ODEs for unit tests.
+!!}
 
 module Test_ODE_Solver_Functions
-  !% Contains ODEs for unit tests.
+  !!{
+  Contains ODEs for unit tests.
+  !!}
   use :: Interface_GSL, only : GSL_Success
   implicit none
   private
@@ -31,7 +35,9 @@ module Test_ODE_Solver_Functions
 contains
 
   integer function ODE_Set_1(x,y,dydx)
-    !% A set of ODEs for unit tests.
+    !!{
+    A set of ODEs for unit tests.
+    !!}
     double precision              , intent(in   ) :: x
     double precision, dimension(:), intent(in   ) :: y
     double precision, dimension(:), intent(  out) :: dydx
@@ -43,7 +49,9 @@ contains
   end function ODE_Set_1
 
   integer function Jacobian_Set_1(x,y,dfdy,dfdx)
-    !% Jacobian for a set of ODEs for unit tests.
+    !!{
+    Jacobian for a set of ODEs for unit tests.
+    !!}
     double precision              , intent(in   ) :: x
     double precision, dimension(:), intent(in   ) :: y
     double precision, dimension(:), intent(  out) :: dfdy, dfdx
@@ -56,7 +64,9 @@ contains
   end function Jacobian_Set_1
 
   integer function ODE_Set_2(x,y,dydx)
-    !% A set of ODEs for unit tests.
+    !!{
+    A set of ODEs for unit tests.
+    !!}
     double precision              , intent(in   ) :: x
     double precision, dimension(:), intent(in   ) :: y
     double precision, dimension(:), intent(  out) :: dydx
@@ -69,7 +79,9 @@ contains
   end function ODE_Set_2
 
   integer function Jacobian_Set_2(x,y,dfdy,dfdx)
-    !% Jacobian for a set of ODEs for unit tests.
+    !!{
+    Jacobian for a set of ODEs for unit tests.
+    !!}
     double precision              , intent(in   ) :: x
     double precision, dimension(:), intent(in   ) :: y
     double precision, dimension(:), intent(  out) :: dfdy, dfdx
@@ -85,7 +97,9 @@ contains
   end function Jacobian_Set_2
 
   subroutine Integrands_Set_2(x,y,dydx,z0,e,dzdx)
-    !% A set of integrands for unit tests.
+    !!{
+    A set of integrands for unit tests.
+    !!}
     double precision, intent(in   ), dimension(        : ) :: x
     double precision, intent(in   ), dimension(:,:) :: y   , dydx
     double precision, intent(in   ), dimension(:        ) :: z0

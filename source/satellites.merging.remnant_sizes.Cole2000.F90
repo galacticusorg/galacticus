@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,54 +17,60 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.
+  !!{
+  Implements a merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.
+  !!}
 
   use :: Kind_Numbers                           , only : kind_int8
   use :: Satellite_Merging_Progenitor_Properties, only : mergerProgenitorPropertiesClass
 
-  !# <mergerRemnantSize name="mergerRemnantSizeCole2000">
-  !#  <description>
-  !#   A merger remnant size class which uses uses the algorithm of \cite{cole_hierarchical_2000} to compute merger remnant
-  !#   spheroid sizes. Specifically
-  !#   \begin{equation}
-  !#   \frac{(M_1+M_2)^2}{ r_\mathrm{new}} =
-  !#   \frac{M_1^2}{r_1} + \frac{M_2^2}{r_2} + \frac{ f_\mathrm{orbit}}{c}
-  !#   \frac{M_1 M_2}{r_1+r_2},
-  !#   \end{equation}
-  !#   where $M_1$ and $M_2$ are the baryonic masses of the components of the merging galaxies that will end up in the spheroid
-  !#   \gls{component} of the remnant\footnote{Depending on the merging rules (see \protect\refPhysics{mergerMassMovements}) not
-  !#   all mass may be placed into the spheroid \gls{component} of the remnant.} and $r_1$ and $r_2$ are the half mass radii of
-  !#   those same components of the merging galaxies\footnote{In practice, \glc\ computes a weighted average of the disk and
-  !#   spheroid half-mass radii of each galaxy, with weights equal to the masses of each \gls{component} (disk and spheroid) which
-  !#   will become part of the spheroid \gls{component} of the remnant.}, $r_\mathrm{new}$ is the half mass radius of the
-  !#   spheroidal \gls{component} of the remnant galaxy and $c$ is a constant which depends on the distribution of the mass. For a
-  !#   Hernquist spheroid $c=0.40$ can be found by numerical integration while for a exponential disk $c=0.49$. For simplicity a
-  !#   value of $c=0.5$ is adopted for all components. The parameter $f_\mathrm{orbit}=${\normalfont \ttfamily energyOrbital}
-  !#   depends on the orbital parameters of the galaxy pair. For example, a value of $f_\mathrm{orbit} = 1$ corresponds to point
-  !#   mass galaxies in circular orbits about their center of mass.
-  !#   
-  !#   A subtelty arises because the above expression accounts for only the baryonic mass of material which becomes part of the
-  !#   spheroid \gls{component} of the remnant. In reality, there are additional terms in the energy equation due to the
-  !#   interaction of this material with any dark matter mass in each galaxy and any baryonic mass of each galaxy which does not
-  !#   become part of the spheroid \gls{component} of the remnant. To account for this additional matter, an effective boost
-  !#   factor, $f_\mathrm{boost}$, to the specific angular momentum of each \gls{component} of each merging galaxy is computed:
-  !#   \begin{equation}
-  !#    f_\mathrm{boost} = {j \over \sqrt{\mathrm{G} M r_{1/2}}},
-  !#   \end{equation}
-  !#   where $j$ is the specific angular momentum of the component, $M$ is its total baryonic mass and $r_\mathrm{1/2}$ is its
-  !#   half-mass radius. The mass-weighted mean boost factor is found by combining those of all components which will form part of
-  !#   the spheroid of the remnant. The final specific angular momentum of the remnant spheroid is then given by:
-  !#   \begin{equation}
-  !#    j_\mathrm{new} = \langle f_\mathrm{boost} \rangle r_\mathrm{new} V_\mathrm{new},
-  !#   \end{equation}
-  !#   where
-  !#   \begin{equation}
-  !#    V_\mathrm{new}^2 = {\mathrm{G} (M_1+M_2)\over r_\mathrm{new}}.
-  !#   \end{equation}
-  !#  </description>
-  !# </mergerRemnantSize>
+  !![
+  <mergerRemnantSize name="mergerRemnantSizeCole2000">
+   <description>
+    A merger remnant size class which uses uses the algorithm of \cite{cole_hierarchical_2000} to compute merger remnant
+    spheroid sizes. Specifically
+    \begin{equation}
+    \frac{(M_1+M_2)^2}{ r_\mathrm{new}} =
+    \frac{M_1^2}{r_1} + \frac{M_2^2}{r_2} + \frac{ f_\mathrm{orbit}}{c}
+    \frac{M_1 M_2}{r_1+r_2},
+    \end{equation}
+    where $M_1$ and $M_2$ are the baryonic masses of the components of the merging galaxies that will end up in the spheroid
+    \gls{component} of the remnant\footnote{Depending on the merging rules (see \protect\refPhysics{mergerMassMovements}) not
+    all mass may be placed into the spheroid \gls{component} of the remnant.} and $r_1$ and $r_2$ are the half mass radii of
+    those same components of the merging galaxies\footnote{In practice, \glc\ computes a weighted average of the disk and
+    spheroid half-mass radii of each galaxy, with weights equal to the masses of each \gls{component} (disk and spheroid) which
+    will become part of the spheroid \gls{component} of the remnant.}, $r_\mathrm{new}$ is the half mass radius of the
+    spheroidal \gls{component} of the remnant galaxy and $c$ is a constant which depends on the distribution of the mass. For a
+    Hernquist spheroid $c=0.40$ can be found by numerical integration while for a exponential disk $c=0.49$. For simplicity a
+    value of $c=0.5$ is adopted for all components. The parameter $f_\mathrm{orbit}=${\normalfont \ttfamily energyOrbital}
+    depends on the orbital parameters of the galaxy pair. For example, a value of $f_\mathrm{orbit} = 1$ corresponds to point
+    mass galaxies in circular orbits about their center of mass.
+    
+    A subtelty arises because the above expression accounts for only the baryonic mass of material which becomes part of the
+    spheroid \gls{component} of the remnant. In reality, there are additional terms in the energy equation due to the
+    interaction of this material with any dark matter mass in each galaxy and any baryonic mass of each galaxy which does not
+    become part of the spheroid \gls{component} of the remnant. To account for this additional matter, an effective boost
+    factor, $f_\mathrm{boost}$, to the specific angular momentum of each \gls{component} of each merging galaxy is computed:
+    \begin{equation}
+     f_\mathrm{boost} = {j \over \sqrt{\mathrm{G} M r_{1/2}}},
+    \end{equation}
+    where $j$ is the specific angular momentum of the component, $M$ is its total baryonic mass and $r_\mathrm{1/2}$ is its
+    half-mass radius. The mass-weighted mean boost factor is found by combining those of all components which will form part of
+    the spheroid of the remnant. The final specific angular momentum of the remnant spheroid is then given by:
+    \begin{equation}
+     j_\mathrm{new} = \langle f_\mathrm{boost} \rangle r_\mathrm{new} V_\mathrm{new},
+    \end{equation}
+    where
+    \begin{equation}
+     V_\mathrm{new}^2 = {\mathrm{G} (M_1+M_2)\over r_\mathrm{new}}.
+    \end{equation}
+   </description>
+  </mergerRemnantSize>
+  !!]
   type, extends(mergerRemnantSizeClass) :: mergerRemnantSizeCole2000
-     !% A merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.
+     !!{
+     A merger remnant size class which uses the \cite{cole_hierarchical_2000} algorithm.
+     !!}
      private
      class           (mergerProgenitorPropertiesClass), pointer :: mergerProgenitorProperties_ => null()
      double precision                                           :: energyOrbital
@@ -79,7 +85,9 @@
   end type mergerRemnantSizeCole2000
 
   interface mergerRemnantSizeCole2000
-     !% Constructors for the {\normalfont \ttfamily cole2000} merger remnant size class.
+     !!{
+     Constructors for the {\normalfont \ttfamily cole2000} merger remnant size class.
+     !!}
      module procedure cole2000ConstructorParameters
      module procedure cole2000ConstructorInternal
   end interface mergerRemnantSizeCole2000
@@ -87,7 +95,9 @@
 contains
 
   function cole2000ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily cole2000} merger remnant size class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily cole2000} merger remnant size class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerRemnantSizeCole2000      )                :: self
@@ -95,26 +105,34 @@ contains
     class           (mergerProgenitorPropertiesClass), pointer       :: mergerProgenitorProperties_
     double precision                                                 :: energyOrbital
 
-    !# <inputParameter>
-    !#   <name>energyOrbital</name>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The orbital energy used in the ``cole2000'' merger remnant sizes calculation in units of the characteristic orbital energy.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="mergerProgenitorProperties" name="mergerProgenitorProperties_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>energyOrbital</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The orbital energy used in the ``cole2000'' merger remnant sizes calculation in units of the characteristic orbital energy.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="mergerProgenitorProperties" name="mergerProgenitorProperties_" source="parameters"/>
+    !!]
     self=mergerRemnantSizeCole2000(energyOrbital,mergerProgenitorProperties_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="mergerProgenitorProperties_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="mergerProgenitorProperties_"/>
+    !!]
     return
   end function cole2000ConstructorParameters
 
   function cole2000ConstructorInternal(energyOrbital,mergerProgenitorProperties_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily cole2000} merger remnant size class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily cole2000} merger remnant size class.
+    !!}
     implicit none
     type            (mergerRemnantSizeCole2000      )                        :: self
     double precision                                 , intent(in   )         :: energyOrbital
     class           (mergerProgenitorPropertiesClass), intent(in   ), target :: mergerProgenitorProperties_
-    !# <constructorAssign variables="energyOrbital, *mergerProgenitorProperties_"/>
+    !![
+    <constructorAssign variables="energyOrbital, *mergerProgenitorProperties_"/>
+    !!]
 
     self%propertiesCalculated   =.false.
     self%lastUniqueID           =-huge(0_kind_int8)
@@ -124,8 +142,10 @@ contains
   end function cole2000ConstructorInternal
 
   subroutine cole2000AutoHook(self)
-    !% Attach to the calculation reset event.
-    use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent, openMPThreadBindingAllLevels
+    !!{
+    Attach to the calculation reset event.
+    !!}
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels, satelliteMergerEvent
     implicit none
     class(mergerRemnantSizeCole2000), intent(inout) :: self
 
@@ -135,19 +155,25 @@ contains
   end subroutine cole2000AutoHook
 
   subroutine cole2000Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily cole2000} merger remnant size class.
+    !!{
+    Destructor for the {\normalfont \ttfamily cole2000} merger remnant size class.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none
     type(mergerRemnantSizeCole2000), intent(inout) :: self
 
-    !# <objectDestructor name="self%mergerProgenitorProperties_"/>
+    !![
+    <objectDestructor name="self%mergerProgenitorProperties_"/>
+    !!]
     call calculationResetEvent%detach(self,cole2000CalculationReset)
     call satelliteMergerEvent %detach(self,cole2000GetHook         )
     return
   end subroutine cole2000Destructor
 
   subroutine cole2000CalculationReset(self,node)
-    !% Reset the dark matter profile calculation.
+    !!{
+    Reset the dark matter profile calculation.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(*       ), intent(inout) :: self
@@ -164,7 +190,9 @@ contains
   end subroutine cole2000CalculationReset
 
   subroutine cole2000GetHook(self,node)
-    !% Hookable wrapper around the get function.
+    !!{
+    Hookable wrapper around the get function.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (*       ), intent(inout)         :: self
@@ -182,13 +210,15 @@ contains
   end subroutine cole2000GetHook
 
   subroutine cole2000Get(self,node,radius,velocityCircular,angularMomentumSpecific)
-    !% Compute the size of the merger remnant for {\normalfont \ttfamily node} using the \cite{cole_hierarchical_2000} algorithm.
+    !!{
+    Compute the size of the merger remnant for {\normalfont \ttfamily node} using the \cite{cole_hierarchical_2000} algorithm.
+    !!}
+    use :: Display                           , only : displayMessage
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : massTypeDark
-    use :: Galacticus_Display                , only : Galacticus_Display_Message
     use :: Galacticus_Error                  , only : Galacticus_Error_Report
     use :: Numerical_Comparison              , only : Values_Agree
-    use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus
     use :: String_Handling                   , only : operator(//)
     implicit none
     class           (mergerRemnantSizeCole2000), intent(inout) :: self
@@ -267,7 +297,7 @@ contains
                 joinString=", "
              end if
              message=message//' (radius:mass:spheroidMass='//trim(dataString)//')'
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
              errorCondition=.true.
           end if
           if     (                                             &
@@ -297,7 +327,7 @@ contains
                 joinString=", "
              end if
              message=message//' (radius:mass:spheroidMass='//trim(dataString)//')'
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
              errorCondition=.true.
           end if
           if (errorCondition) then

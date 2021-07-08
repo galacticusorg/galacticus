@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a star formation rate in galactic spheroids which computes the rate by dividing the available gas mass by a
-  !% timescale.
+  !!{
+  Implementation of a star formation rate in galactic spheroids which computes the rate by dividing the available gas mass by a
+  timescale.
+  !!}
 
   use :: Star_Formation_Timescales   , only : starFormationTimescaleClass
   use :: Star_Formation_Active_Masses, only : starFormationActiveMassClass
   
-  !# <starFormationRateSpheroids name="starFormationRateSpheroidsTimescale">
-  !#  <description>A star formation rate in galactic spheroids which computes the rate by integrating a star formation rate over the spheroid.</description>
-  !# </starFormationRateSpheroids>
+  !![
+  <starFormationRateSpheroids name="starFormationRateSpheroidsTimescale">
+   <description>A star formation rate in galactic spheroids which computes the rate by integrating a star formation rate over the spheroid.</description>
+  </starFormationRateSpheroids>
+  !!]
   type, extends(starFormationRateSpheroidsClass) :: starFormationRateSpheroidsTimescale
-     !% Implementation of a rate for star formation in galactic spheroids which computes the rate by integrating a star formation rate
-     !% over the spheroid.
+     !!{
+     Implementation of a rate for star formation in galactic spheroids which computes the rate by integrating a star formation rate
+     over the spheroid.
+     !!}
      private
      class(starFormationTimescaleClass ), pointer :: starFormationTimescale_  => null()
      class(starFormationActiveMassClass), pointer :: starFormationActiveMass_ => null()
@@ -38,7 +44,9 @@
   end type starFormationRateSpheroidsTimescale
 
   interface starFormationRateSpheroidsTimescale
-     !% Constructors for the {\normalfont \ttfamily timescale} star formation rate in spheroids class.
+     !!{
+     Constructors for the {\normalfont \ttfamily timescale} star formation rate in spheroids class.
+     !!}
      module procedure timescaleConstructorParameters
      module procedure timescaleConstructorInternal
   end interface starFormationRateSpheroidsTimescale
@@ -46,8 +54,10 @@
 contains
 
   function timescaleConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily timescale} star formation rate in spheroids class which takes a
-    !% parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily timescale} star formation rate in spheroids class which takes a
+    parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (starFormationRateSpheroidsTimescale)                :: self
@@ -55,39 +65,53 @@ contains
     class(starFormationTimescaleClass        ), pointer       :: starFormationTimescale_
     class(starFormationActiveMassClass       ), pointer       :: starFormationActiveMass_
 
-    !# <objectBuilder class="starFormationTimescale"  name="starFormationTimescale_"  source="parameters"/>
-    !# <objectBuilder class="starFormationActiveMass" name="starFormationActiveMass_" source="parameters"/>
+    !![
+    <objectBuilder class="starFormationTimescale"  name="starFormationTimescale_"  source="parameters"/>
+    <objectBuilder class="starFormationActiveMass" name="starFormationActiveMass_" source="parameters"/>
+    !!]
     self=starFormationRateSpheroidsTimescale(starFormationActiveMass_,starFormationTimescale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="starFormationTimescale_" />
-    !# <objectDestructor name="starFormationActiveMass_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="starFormationTimescale_" />
+    <objectDestructor name="starFormationActiveMass_"/>
+    !!]
     return
   end function timescaleConstructorParameters
 
   function timescaleConstructorInternal(starFormationActiveMass_,starFormationTimescale_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily timescale} star formation rate in spheroids class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily timescale} star formation rate in spheroids class.
+    !!}
     implicit none
     type (starFormationRateSpheroidsTimescale)                        :: self
     class(starFormationTimescaleClass        ), intent(in   ), target :: starFormationTimescale_
     class(starFormationActiveMassClass       ), intent(in   ), target :: starFormationActiveMass_
-    !# <constructorAssign variables="*starFormationActiveMass_, *starFormationTimescale_"/>
+    !![
+    <constructorAssign variables="*starFormationActiveMass_, *starFormationTimescale_"/>
+    !!]
 
     return
   end function timescaleConstructorInternal
 
   subroutine timescaleDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily timescale} star formation rate in spheroids class.
+    !!{
+    Destructor for the {\normalfont \ttfamily timescale} star formation rate in spheroids class.
+    !!}
     implicit none
     type(starFormationRateSpheroidsTimescale), intent(inout) :: self
 
-    !# <objectDestructor name="self%starFormationTimescale_" />
-    !# <objectDestructor name="self%starFormationActiveMass_"/>
+    !![
+    <objectDestructor name="self%starFormationTimescale_" />
+    <objectDestructor name="self%starFormationActiveMass_"/>
+    !!]
     return
   end subroutine timescaleDestructor
 
   double precision function timescaleRate(self,node)
-    !% Returns the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the galactic spheroid of {\normalfont \ttfamily node}, by
-    !% dividing the available gas mass by a timescale.
+    !!{
+    Returns the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the galactic spheroid of {\normalfont \ttfamily node}, by
+    dividing the available gas mass by a timescale.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid
     implicit none
     class           (starFormationRateSpheroidsTimescale), intent(inout), target  :: self

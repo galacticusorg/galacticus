@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,24 +19,32 @@
 
   !+ Contributions to this file made by: Andrew Benson, Daniel McAndrew.
 
-  !% Implements an atomic dielectronic recombination class which uses the fits from \cite{aldrovandi_radiative_1973},
-  !% \cite{shull_ionization_1982} and \cite{arnaud_updated_1985}.
+  !!{
+  Implements an atomic dielectronic recombination class which uses the fits from \cite{aldrovandi_radiative_1973},
+  \cite{shull_ionization_1982} and \cite{arnaud_updated_1985}.
+  !!}
 
-  !# <atomicRecombinationRateDielectronic name="atomicRecombinationRateDielectronicArnaud1985">
-  !#  <description>
-  !#   Implements an atomic dielectronic recombination class which uses the fits from \cite{aldrovandi_radiative_1973}, \cite{shull_ionization_1982} and \cite{arnaud_updated_1985}.
-  !#  </description>
-  !# </atomicRecombinationRateDielectronic>
+  !![
+  <atomicRecombinationRateDielectronic name="atomicRecombinationRateDielectronicArnaud1985">
+   <description>
+    Implements an atomic dielectronic recombination class which uses the fits from \cite{aldrovandi_radiative_1973}, \cite{shull_ionization_1982} and \cite{arnaud_updated_1985}.
+   </description>
+  </atomicRecombinationRateDielectronic>
+  !!]
   type, extends(atomicRecombinationRateDielectronicClass) :: atomicRecombinationRateDielectronicArnaud1985
-     !% Implements an atomic dielectronic recombination class which uses the fits from \cite{aldrovandi_radiative_1973},
-     !% \cite{shull_ionization_1982} and \cite{arnaud_updated_1985}.
+     !!{
+     Implements an atomic dielectronic recombination class which uses the fits from \cite{aldrovandi_radiative_1973},
+     \cite{shull_ionization_1982} and \cite{arnaud_updated_1985}.
+     !!}
      private
    contains
      procedure :: rate => arnaud1985Rate
   end type atomicRecombinationRateDielectronicArnaud1985
 
   interface atomicRecombinationRateDielectronicArnaud1985
-     !% Constructors for the {\normalfont \ttfamily arnaud1985} atomic dielectronic recombination rate class.
+     !!{
+     Constructors for the {\normalfont \ttfamily arnaud1985} atomic dielectronic recombination rate class.
+     !!}
      module procedure arnaud1985ConstructorParameters
   end interface atomicRecombinationRateDielectronicArnaud1985
 
@@ -214,8 +222,10 @@
 contains
 
   function arnaud1985ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily arnaud1985} atomic ionization potentail class which builds the object from a
-    !% parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily arnaud1985} atomic ionization potentail class which builds the object from a
+    parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(atomicRecombinationRateDielectronicArnaud1985)                :: self
@@ -227,10 +237,12 @@ contains
   end function arnaud1985ConstructorParameters
 
   double precision function arnaud1985Rate(self,atomicNumber,electronNumber,temperature)
-    !% Calculates rates of dielectric recombination for all ionization stages of all elements from H to Ni ($Z=28$) by use of the
-    !% fits from \cite{aldrovandi_radiative_1973}, \cite{shull_ionization_1982} and \cite{arnaud_updated_1985}.  Input parameters:
-    !% {\normalfont \ttfamily atomicNumber}: atomic number; {\normalfont \ttfamily electronNumber}: number of electrons;
-    !% {\normalfont \ttfamily temperature}: temperature [K].  Output parameter: rate coefficient [cm$^3$ s$^{-1}$].
+    !!{
+    Calculates rates of dielectric recombination for all ionization stages of all elements from H to Ni ($Z=28$) by use of the
+    fits from \cite{aldrovandi_radiative_1973}, \cite{shull_ionization_1982} and \cite{arnaud_updated_1985}.  Input parameters:
+    {\normalfont \ttfamily atomicNumber}: atomic number; {\normalfont \ttfamily electronNumber}: number of electrons;
+    {\normalfont \ttfamily temperature}: temperature [K].  Output parameter: rate coefficient [cm$^3$ s$^{-1}$].
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (atomicRecombinationRateDielectronicArnaud1985), intent(inout) :: self

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,10 +19,14 @@
 
 !+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
 
-!% Contains a module which implements calculations of gravitationl potential.
+!!{
+Contains a module which implements calculations of gravitationl potential.
+!!}
 
 module Galactic_Structure_Potentials
-  !% Implements calculations of the gravitational potential.
+  !!{
+  Implements calculations of the gravitational potential.
+  !!}
   use :: Kind_Numbers, only : kind_int8
   implicit none
   private
@@ -41,16 +45,22 @@ module Galactic_Structure_Potentials
 
 contains
 
-  double precision function Galactic_Structure_Potential(thisNode,radius,componentType,massType,status)
-    !% Solve for the gravitational potential at a given radius. Assumes the galactic structure has already been computed.
+  double precision function Galactic_Structure_Potential(node,radius,componentType,massType,status)
+    !!{
+    Solve for the gravitational potential at a given radius. Assumes the galactic structure has already been computed.
+    !!}
     use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScale          , darkMatterHaloScaleClass
     use :: Galactic_Structure_Options, only : componentTypeAll             , massTypeAll             , structureErrorCodeSuccess
     use :: Galacticus_Nodes          , only : optimizeForPotentialSummation, reductionSummation      , treeNode
-    !# <include directive="potentialTask" type="moduleUse">
+    !![
+    <include directive="potentialTask" type="moduleUse">
+    !!]
     include 'galactic_structure.potential.tasks.modules.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     implicit none
-    type            (treeNode                ), intent(inout)                    :: thisNode
+    type            (treeNode                ), intent(inout)                    :: node
     integer                                   , intent(in   ), optional          :: componentType             , massType
     double precision                          , intent(in   )                    :: radius
     integer                                   , intent(  out), optional          :: status
@@ -63,22 +73,26 @@ contains
     ! Initialize pointer to function that supplies the potential for all components.
     componentPotentialFunction => Component_Potential
     ! Reset calculations if this is a new node.
-    if (thisNode%uniqueID() /= lastUniqueID) call Galactic_Structure_Potential_Standard_Reset(thisNode)
+    if (node%uniqueID() /= lastUniqueID) call Galactic_Structure_Potential_Standard_Reset(node)
     ! Evaluate the potential at the halo virial radius.
     if (.not.potentialOffsetComputed) then
        componentTypeShared  =  componentTypeAll
        massTypeShared       =  massTypeAll
        darkMatterHaloScale_ => darkMatterHaloScale()
-       radiusShared         =  darkMatterHaloScale_%virialRadius(thisNode)
+       radiusShared         =  darkMatterHaloScale_%virialRadius(node)
        statusShared         =  structureErrorCodeSuccess
-       Galactic_Structure_Potential=thisNode%mapDouble0(componentPotentialFunction,reductionSummation,optimizeFor=optimizeForPotentialSummation)
+       Galactic_Structure_Potential=node%mapDouble0(componentPotentialFunction,reductionSummation,optimizeFor=optimizeForPotentialSummation)
        if (statusShared /= structureErrorCodeSuccess) status=statusShared
-       !# <include directive="potentialTask" type="functionCall" functionType="function" returnParameter="componentPotential">
-       !#  <functionArgs>thisNode,radiusShared,componentTypeShared,massTypeShared,status</functionArgs>
-       !#  <onReturn>Galactic_Structure_Potential=Galactic_Structure_Potential+componentPotential</onReturn>
+       !![
+       <include directive="potentialTask" type="functionCall" functionType="function" returnParameter="componentPotential">
+        <functionArgs>node,radiusShared,componentTypeShared,massTypeShared,status</functionArgs>
+        <onReturn>Galactic_Structure_Potential=Galactic_Structure_Potential+componentPotential</onReturn>
+       !!]
        include 'galactic_structure.potential.tasks.inc'
-       !# </include>
-       potentialOffset        =-Galactic_Structure_Potential-darkMatterHaloScale_%virialVelocity(thisNode)**2
+       !![
+       </include>
+       !!]
+       potentialOffset        =-Galactic_Structure_Potential-darkMatterHaloScale_%virialVelocity(node)**2
        potentialOffsetComputed=.true.
     end if
     ! Determine which component type to use.
@@ -98,7 +112,7 @@ contains
     ! Compute the potential offset such that the total gravitational potential at the virial radius is -V^2 where V is the virial
     ! velocity.
     statusShared=structureErrorCodeSuccess
-    Galactic_Structure_Potential=+thisNode%mapDouble0(componentPotentialFunction,reductionSummation,optimizeFor=optimizeForPotentialSummation) &
+    Galactic_Structure_Potential=+node%mapDouble0(componentPotentialFunction,reductionSummation,optimizeFor=optimizeForPotentialSummation) &
          &                       +potentialOffset
     if (statusShared /= structureErrorCodeSuccess) status=statusShared
     include 'galactic_structure.potential.tasks.inc'
@@ -106,7 +120,9 @@ contains
   end function Galactic_Structure_Potential
 
   double precision function Component_Potential(component)
-    !% Unary function returning the potential in a component. Suitable for mapping over components.
+    !!{
+    Unary function returning the potential in a component. Suitable for mapping over components.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponent
     implicit none
     class(nodeComponent), intent(inout) :: component
@@ -115,11 +131,15 @@ contains
     return
   end function Component_Potential
 
-  !# <calculationResetTask>
-  !# <unitName>Galactic_Structure_Potential_Standard_Reset</unitName>
-  !# </calculationResetTask>
+  !![
+  <calculationResetTask>
+  <unitName>Galactic_Structure_Potential_Standard_Reset</unitName>
+  </calculationResetTask>
+  !!]
   subroutine Galactic_Structure_Potential_Standard_Reset(node)
-    !% Reset calculations for galactic structure potentials.
+    !!{
+    Reset calculations for galactic structure potentials.
+    !!}
     use :: Galacticus_Nodes, only : treeNode
     implicit none
     type(treeNode), intent(in   ) :: node

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a satellite dynamical friction class which uses the model of \cite{petts_semi-analytic_2015} for the
-  !% Coulomb logarithm.
+  !!{
+  Implementation of a satellite dynamical friction class which uses the model of \cite{petts_semi-analytic_2015} for the
+  Coulomb logarithm.
+  !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
-  !# <satelliteDynamicalFriction name="satelliteDynamicalFrictionPetts2015">
-  !#  <description>
-  !#  </description>
-  !# </satelliteDynamicalFriction>
+  !![
+  <satelliteDynamicalFriction name="satelliteDynamicalFrictionPetts2015">
+   <description>
+   </description>
+  </satelliteDynamicalFriction>
+  !!]
   type, extends(satelliteDynamicalFrictionChandrasekhar1943) :: satelliteDynamicalFrictionPetts2015
-     !% Implementation of a satellite dynamical friction class which uses the model of \cite{petts_semi-analytic_2015} for the
-     !% Coulomb logarithm.
+     !!{
+     Implementation of a satellite dynamical friction class which uses the model of \cite{petts_semi-analytic_2015} for the
+     Coulomb logarithm.
+     !!}
      private
      class  (cosmologyParametersClass), pointer :: cosmologyParameters_        => null()
      logical                                    :: logarithmCoulombApproximate
@@ -38,7 +44,9 @@
   end type satelliteDynamicalFrictionPetts2015
 
   interface satelliteDynamicalFrictionPetts2015
-     !% Constructors for the petts2015 satellite dynamical friction class.
+     !!{
+     Constructors for the petts2015 satellite dynamical friction class.
+     !!}
      module procedure petts2015ConstructorParameters
      module procedure petts2015ConstructorInternal
   end interface satelliteDynamicalFrictionPetts2015
@@ -46,7 +54,9 @@
 contains
 
   function petts2015ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily petts2015} satellite dynamical friction class which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily petts2015} satellite dynamical friction class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (satelliteDynamicalFrictionPetts2015)                :: self
@@ -56,47 +66,61 @@ contains
     class  (cosmologyParametersClass           ), pointer       :: cosmologyParameters_
     logical                                                     :: logarithmCoulombApproximate
     
-    !# <inputParameter>
-    !#   <name>logarithmCoulombApproximate</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, the Coulomb logarithm term is evaluated as $\frac{1}{2}\log(1+\Lambda^2). Otherwise, it is evaluated as $\log\Lambda$ for $\Lambda \ge 1$ and set to zero otherwise.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"  name="cosmologyParameters_"  source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>logarithmCoulombApproximate</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, the Coulomb logarithm term is evaluated as $\frac{1}{2}\log(1+\Lambda^2)$. Otherwise, it is evaluated as $\log\Lambda$ for $\Lambda \ge 1$ and set to zero otherwise.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters"  name="cosmologyParameters_"  source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !!]
     self=satelliteDynamicalFrictionPetts2015(logarithmCoulombApproximate,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_" />
-    !# <objectDestructor name="darkMatterProfileDMO_"/>
-    !# <objectDestructor name="cosmologyParameters_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_" />
+    <objectDestructor name="darkMatterProfileDMO_"/>
+    <objectDestructor name="cosmologyParameters_" />
+    !!]
     return
   end function petts2015ConstructorParameters
 
   function petts2015ConstructorInternal(logarithmCoulombApproximate,cosmologyParameters_,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily petts2015} satellite dynamical friction class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily petts2015} satellite dynamical friction class.
+    !!}
     implicit none
     type   (satelliteDynamicalFrictionPetts2015)                        :: self
     class  (cosmologyParametersClass           ), intent(in   ), target :: cosmologyParameters_
     class  (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
     class  (darkMatterProfileDMOClass          ), intent(in   ), target :: darkMatterProfileDMO_
     logical                                     , intent(in   )         :: logarithmCoulombApproximate
-    !# <constructorAssign variables="logarithmCoulombApproximate, *cosmologyParameters_, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    !![
+    <constructorAssign variables="logarithmCoulombApproximate, *cosmologyParameters_, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    !!]
 
     return
   end function petts2015ConstructorInternal
 
   subroutine petts2015Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily petts2015} satellite dynamical friction class.
+    !!{
+    Destructor for the {\normalfont \ttfamily petts2015} satellite dynamical friction class.
+    !!}
     implicit none
     type(satelliteDynamicalFrictionPetts2015), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    !!]
     return
   end subroutine petts2015Destructor
   
   double precision function petts2015CoulombLogarithm(self,node) result(coulombLogarithm)
-    !% Evaluate the Coulomb logarithm for the \cite{petts_semi-analytic_2015} dynamical friction model.
+    !!{
+    Evaluate the Coulomb logarithm for the \cite{petts_semi-analytic_2015} dynamical friction model.
+    !!}
     use :: Galacticus_Nodes                  , only : nodeComponentBasic              , nodeComponentSatellite                  , treeNode
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options        , only : componentTypeAll                                                          , massTypeDark

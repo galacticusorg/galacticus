@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,32 +17,41 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a \cite{tinker_towardhalo_2008} dark matter halo mass function class.
+  !!{
+  Contains a module which implements a \cite{tinker_towardhalo_2008} dark matter halo mass function class.
+  !!}
   use :: Tables                 , only : table1DGeneric
   use :: Virial_Density_Contrast, only : virialDensityContrastClass
 
-  !# <enumeration>
-  !#  <name>tinker2008Parameter</name>
-  !#  <description>Enumeration of parameters for the {\normalfont \ttfamily tinker2008} halo mass function class.</description>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <validator>yes</validator>
-  !#  <entry label="a"            />
-  !#  <entry label="b"            />
-  !#  <entry label="c"            />
-  !#  <entry label="normalization"/>
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>tinker2008Parameter</name>
+   <description>Enumeration of parameters for the {\normalfont \ttfamily tinker2008} halo mass function class.</description>
+   <encodeFunction>yes</encodeFunction>
+   <decodeFunction>yes</decodeFunction>
+   <validator>yes</validator>
+   <entry label="a"            />
+   <entry label="b"            />
+   <entry label="c"            />
+   <entry label="normalization"/>
+  </enumeration>
+  !!]
 
-  !# <haloMassFunction name="haloMassFunctionTinker2008">
-  !#  <description>
-  !#   A dark matter halo mass function class using the function given by \cite{tinker_towardhalo_2008}, and using their fits for
-  !#   the parameter values at the appropriate virial density contrast.
-  !#  </description>
-  !#  <stateStorable>
-  !#   <exclude variables="densityContrast"/>
-  !#  </stateStorable>
-  !# </haloMassFunction>
+  !![
+  <haloMassFunction name="haloMassFunctionTinker2008">
+   <description>
+    A dark matter halo mass function class using the function given by \cite{tinker_towardhalo_2008}, and using their fits for
+    the parameter values at the appropriate virial density contrast.
+   </description>
+   <stateStorable>
+    <exclude variables="densityContrast"/>
+   </stateStorable>
+  </haloMassFunction>
+  !!]
   type, extends(haloMassFunctionTinker2008Form) :: haloMassFunctionTinker2008
-     !% A halo mass function class using the fitting function of \cite{tinker_towardhalo_2008}, and using their fits for the parameter values.
+     !!{
+     A halo mass function class using the fitting function of \cite{tinker_towardhalo_2008}, and using their fits for the parameter values.
+     !!}
      private
      class           (virialDensityContrastClass), pointer                                                  :: virialDensityContrast_ => null()
      type            (table1DGeneric            )                                                           :: densityContrast
@@ -50,9 +59,11 @@
      double precision                                                                                       :: alphaDensityContrast            , timeParameters, &
           &                                                                                                    massParameters
    contains
-     !# <methods>
-     !#   <method description="Evaluate hyper-parameters needed for the fitting function." method="parametersEvaluate" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Evaluate hyper-parameters needed for the fitting function." method="parametersEvaluate" />
+     </methods>
+     !!]
      final     ::                       tinker2008Destructor
      procedure :: normalization      => tinker2008Normalization
      procedure :: a                  => tinker2008A
@@ -62,7 +73,9 @@
   end type haloMassFunctionTinker2008
 
   interface haloMassFunctionTinker2008
-     !% Constructors for the {\normalfont \ttfamily tinker2008} halo mass function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily tinker2008} halo mass function class.
+     !!}
      module procedure tinker2008ConstructorParameters
      module procedure tinker2008ConstructorInternal
   end interface haloMassFunctionTinker2008
@@ -70,7 +83,9 @@
 contains
 
   function tinker2008ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily tinker2008} halo mass function class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily tinker2008} halo mass function class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (haloMassFunctionTinker2008   )                :: self
@@ -82,11 +97,13 @@ contains
     class(virialDensityContrastClass   ), pointer       :: virialDensityContrast_
 
     ! Check and read parameters.
-    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
-    !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="virialDensityContrast"    name="virialDensityContrast_"    source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="virialDensityContrast"    name="virialDensityContrast_"    source="parameters"/>
+    !!]
     self=haloMassFunctionTinker2008(                           &
          &                          cosmologyParameters_     , &
          &                          cosmologicalMassVariance_, &
@@ -94,17 +111,21 @@ contains
          &                          cosmologyFunctions_      , &
          &                          virialDensityContrast_     &
          &                         )
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"     />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
-    !# <objectDestructor name="linearGrowth_"            />
-    !# <objectDestructor name="cosmologyFunctions_"      />
-    !# <objectDestructor name="virialDensityContrast_"   />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"     />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    <objectDestructor name="linearGrowth_"            />
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="virialDensityContrast_"   />
+    !!]
     return
   end function tinker2008ConstructorParameters
 
   function tinker2008ConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,linearGrowth_,cosmologyFunctions_,virialDensityContrast_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily tinker2008} halo mass function class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily tinker2008} halo mass function class.
+    !!}
     use :: File_Utilities    , only : File_Exists
     use :: FoX_DOM           , only : destroy                     , node                             , parseFile
     use :: Galacticus_Error  , only : Galacticus_Error_Report
@@ -124,7 +145,9 @@ contains
     double precision                               , allocatable, dimension(:)  :: dataTmp
     integer                                                                     :: i                            , ioStatus
     type            (varying_string               )                             :: parameterFileName
-    !# <constructorAssign variables="*cosmologyParameters_, *cosmologicalMassVariance_, *linearGrowth_, *cosmologyFunctions_, *virialDensityContrast_"/>
+    !![
+    <constructorAssign variables="*cosmologyParameters_, *cosmologicalMassVariance_, *linearGrowth_, *cosmologyFunctions_, *virialDensityContrast_"/>
+    !!]
 
     self%time          =-1.0d0
     self%mass          =-1.0d0
@@ -153,21 +176,27 @@ contains
   end function tinker2008ConstructorInternal
 
   subroutine tinker2008Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily tinker2008} halo mass function class.
+    !!{
+    Destructor for the {\normalfont \ttfamily tinker2008} halo mass function class.
+    !!}
     implicit none
     type(haloMassFunctionTinker2008), intent(inout) :: self
 
     call self%densityContrast%destroy()
-    !# <objectDestructor name="self%cosmologyFunctions_"      />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
-    !# <objectDestructor name="self%linearGrowth_"            />
-    !# <objectDestructor name="self%cosmologyParameters_"     />
-    !# <objectDestructor name="self%virialDensityContrast_"   />
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"      />
+    <objectDestructor name="self%cosmologicalMassVariance_"/>
+    <objectDestructor name="self%linearGrowth_"            />
+    <objectDestructor name="self%cosmologyParameters_"     />
+    <objectDestructor name="self%virialDensityContrast_"   />
+    !!]
     return
   end subroutine tinker2008Destructor
 
   subroutine tinker2008ParametersEvaluate(self,time,mass)
-    !% Evaluate interpolating parametersn for the {\normalfont \ttfamily tinker2008} halo mass function class.
+    !!{
+    Evaluate interpolating parametersn for the {\normalfont \ttfamily tinker2008} halo mass function class.
+    !!}
     implicit none
     class           (haloMassFunctionTinker2008), intent(inout) :: self
     double precision                            , intent(in   ) :: time           , mass
@@ -201,7 +230,9 @@ contains
   end subroutine tinker2008ParametersEvaluate
 
   double precision function tinker2008Normalization(self,time,mass)
-    !% Return the normalization for the {\normalfont \ttfamily tinker2008} halo mass function class.
+    !!{
+    Return the normalization for the {\normalfont \ttfamily tinker2008} halo mass function class.
+    !!}
     implicit none
     class           (haloMassFunctionTinker2008), intent(inout) :: self
     double precision                            , intent(in   ) :: time           , mass
@@ -214,7 +245,9 @@ contains
   end function tinker2008Normalization
 
   double precision function tinker2008A(self,time,mass)
-    !% Return the normalization for the {\normalfont \ttfamily tinker2008} halo mass function class.
+    !!{
+    Return the normalization for the {\normalfont \ttfamily tinker2008} halo mass function class.
+    !!}
     implicit none
     class           (haloMassFunctionTinker2008), intent(inout) :: self
     double precision                            , intent(in   ) :: time           , mass
@@ -227,7 +260,9 @@ contains
   end function tinker2008A
 
   double precision function tinker2008B(self,time,mass)
-    !% Return the normalization for the {\normalfont \ttfamily tinker2008} halo mass function class.
+    !!{
+    Return the normalization for the {\normalfont \ttfamily tinker2008} halo mass function class.
+    !!}
     implicit none
     class           (haloMassFunctionTinker2008), intent(inout) :: self
     double precision                            , intent(in   ) :: time           , mass
@@ -240,7 +275,9 @@ contains
   end function tinker2008B
 
   double precision function tinker2008C(self,time,mass)
-    !% Return the normalization for the {\normalfont \ttfamily tinker2008} halo mass function class.
+    !!{
+    Return the normalization for the {\normalfont \ttfamily tinker2008} halo mass function class.
+    !!}
     implicit none
     class           (haloMassFunctionTinker2008), intent(inout) :: self
     double precision                            , intent(in   ) :: time           , mass

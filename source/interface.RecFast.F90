@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,23 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides various interfaces to the \gls{recfast} code.
+!!{
+Contains a module which provides various interfaces to the \gls{recfast} code.
+!!}
 
 module Interfaces_RecFast
-  !% Provides various interfaces to the \gls{recfast} code.
+  !!{
+  Provides various interfaces to the \gls{recfast} code.
+  !!}
   private
   public :: Interface_RecFast_Initialize
 
 contains
 
   subroutine Interface_RecFast_Initialize(recfastPath,recfastVersion,static)
-    !% Initialize the interface with RecFast, including downloading and compiling RecFast if necessary.
-    use :: File_Utilities    , only : Directory_Make            , File_Exists        , File_Lock   , File_Unlock , &
-         &                            lockDescriptor
-    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
+    !!{
+    Initialize the interface with RecFast, including downloading and compiling RecFast if necessary.
+    !!}
+    use :: Display           , only : displayMessage         , verbosityLevelWorking
+    use :: File_Utilities    , only : Directory_Make         , File_Exists          , File_Lock   , File_Unlock   , &
+          &                           lockDescriptor
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: Galacticus_Paths  , only : galacticusPath            , pathTypeDataDynamic, pathTypeExec
-    use :: ISO_Varying_String, only : varying_string            , assignment(=)      , char        , operator(//)
+    use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic  , pathTypeExec
+    use :: ISO_Varying_String, only : assignment(=)          , char                 , operator(//), varying_string
     use :: System_Command    , only : System_Command_Do
     implicit none
     type     (varying_string), intent(  out)           :: recfastPath, recfastVersion
@@ -42,7 +48,9 @@ contains
     character(len=32        )                          :: line       , versionLabel
     type     (varying_string)                          :: command
     type     (lockDescriptor)                          :: fileLock
-    !# <optionalArgument name="static" defaultsTo=".false." />
+    !![
+    <optionalArgument name="static" defaultsTo=".false." />
+    !!]
 
     ! Set path.
     recfastPath=galacticusPath(pathTypeDataDynamic)//"RecFast/"
@@ -54,17 +62,17 @@ contains
        if (.not.File_Exists(recfastPath//"patched")) then
           ! Download the code if not already downloaded.
           if (.not.File_Exists(recfastPath//"recfast.for")) then
-             call Galacticus_Display_Message("downloading RecFast code....",verbosityWorking)
+             call displayMessage("downloading RecFast code....",verbosityLevelWorking)
              call System_Command_Do("wget --no-check-certificate https://www.astro.ubc.ca/people/scott/recfast.for -O "//recfastPath//"recfast.for")
              if (.not.File_Exists(recfastPath//"recfast.for")) &
                   & call Galacticus_Error_Report("failed to download RecFast code"//{introspection:location})
           end if
-          call Galacticus_Display_Message("patching RecFast code....",verbosityWorking)
+          call displayMessage("patching RecFast code....",verbosityLevelWorking)
           call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/RecFast_Galacticus_Modifications/recfast.for.patch "//recfastPath//"; cd "//recfastPath//"; patch < recfast.for.patch",status)
           if (status /= 0) call Galacticus_Error_Report("failed to patch RecFast file 'recfast.for'"//{introspection:location})
           call System_Command_Do("touch "//recfastPath//"patched")
        end if
-       call Galacticus_Display_Message("compiling RecFast code....",verbosityWorking)
+       call displayMessage("compiling RecFast code....",verbosityLevelWorking)
        command="cd "//recfastPath//"; gfortran recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none"
        if (static_) command=command//" -static"
        call System_Command_Do(char(command))

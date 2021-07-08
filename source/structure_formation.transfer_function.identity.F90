@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an identity transfer function class.
+!!{
+Contains a module which implements an identity transfer function class.
+!!}
 
-  !# <transferFunction name="transferFunctionIdentity">
-  !#  <description>Provides an identity transfer function, i.e. $T(k)=1$ for all $k$.</description>
-  !# </transferFunction>
+  !![
+  <transferFunction name="transferFunctionIdentity">
+   <description>Provides an identity transfer function, i.e. $T(k)=1$ for all $k$.</description>
+  </transferFunction>
+  !!]
   type, extends(transferFunctionClass) :: transferFunctionIdentity
-     !% A identity transfer function class.
+     !!{
+     A identity transfer function class.
+     !!}
      private
      double precision :: time
    contains
@@ -36,7 +42,9 @@
   end type transferFunctionIdentity
 
   interface transferFunctionIdentity
-     !% Constructors for the identity transfer function class.
+     !!{
+     Constructors for the identity transfer function class.
+     !!}
      module procedure identityConstructorParameters
      module procedure identityConstructorInternal
   end interface transferFunctionIdentity
@@ -44,7 +52,9 @@
 contains
 
   function identityConstructorParameters(parameters) result(self)
-    !% Constructor for the identity transfer function class which takes a parameter set as input.
+    !!{
+    Constructor for the identity transfer function class which takes a parameter set as input.
+    !!}
     use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
     use :: Input_Parameters   , only : inputParameter    , inputParameters
     implicit none
@@ -53,31 +63,41 @@ contains
     class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
     double precision                                          :: redshift
 
-    !# <inputParameter>
-    !#   <name>redshift</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The redshift at which the transfer function is defined.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>redshift</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The redshift at which the transfer function is defined.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !!]
     self=transferFunctionIdentity(cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)))
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    !!]
   return
   end function identityConstructorParameters
 
   function identityConstructorInternal(time) result(self)
-    !% Internal constructor for the identity transfer function class.
+    !!{
+    Internal constructor for the identity transfer function class.
+    !!}
     implicit none
     type            (transferFunctionIdentity)                :: self
     double precision                          , intent(in   ) :: time
-    !# <constructorAssign variables="time"/>
+    !![
+    <constructorAssign variables="time"/>
+    !!]
 
     return
   end function identityConstructorInternal
 
   elemental subroutine identityDestructor(self)
-    !% Destructor for the identity transfer function class.
+    !!{
+    Destructor for the identity transfer function class.
+    !!}
     implicit none
     type(transferFunctionIdentity), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -87,7 +107,9 @@ contains
   end subroutine identityDestructor
 
   double precision function identityValue(self,wavenumber)
-    !% Return the transfer function at the given wavenumber.
+    !!{
+    Return the transfer function at the given wavenumber.
+    !!}
     implicit none
     class           (transferFunctionIdentity), intent(inout) :: self
     double precision                          , intent(in   ) :: wavenumber
@@ -98,7 +120,9 @@ contains
   end function identityValue
 
   double precision function identityLogarithmicDerivative(self,wavenumber)
-    !% Return the logarithmic derivative of the transfer function at the given wavenumber.
+    !!{
+    Return the logarithmic derivative of the transfer function at the given wavenumber.
+    !!}
     implicit none
     class           (transferFunctionIdentity), intent(inout) :: self
     double precision                          , intent(in   ) :: wavenumber
@@ -109,8 +133,10 @@ contains
   end function identityLogarithmicDerivative
 
   double precision function identityHalfModeMass(self,status)
-    !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
-    !% to a \gls{cdm} transfer function. Not supported in this implementation.
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
+    to a \gls{cdm} transfer function. Not supported in this implementation.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
     implicit none
     class  (transferFunctionIdentity), intent(inout)           :: self
@@ -127,7 +153,9 @@ contains
   end function identityHalfModeMass
 
   double precision function identityEpochTime(self)
-    !% Return the cosmic time at the epoch at which this transfer function is defined.
+    !!{
+    Return the cosmic time at the epoch at which this transfer function is defined.
+    !!}
     implicit none
     class(transferFunctionIdentity), intent(inout) :: self
 
@@ -135,15 +163,17 @@ contains
     return
   end function identityEpochTime
 
-  subroutine identityDescriptor(self,descriptor,includeMethod)
-    !% Return an input parameter list descriptor which could be used to recreate this object.
+  subroutine identityDescriptor(self,descriptor,includeClass)
+    !!{
+    Return an input parameter list descriptor which could be used to recreate this object.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     class  (transferFunctionIdentity), intent(inout)           :: self
     type   (inputParameters         ), intent(inout)           :: descriptor
-    logical                          , intent(in   ), optional :: includeMethod
+    logical                          , intent(in   ), optional :: includeClass
     !$GLC attributes unused :: self
 
-    if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter('transferFunctionMethod','identity')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('transferFunction','identity')
     return
   end subroutine identityDescriptor

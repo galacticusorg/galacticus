@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides an interface to read command line arguments of arbitrary type.
+!!{
+Contains a module which provides an interface to read command line arguments of arbitrary type.
+!!}
 
 module Command_Arguments
-  !% Provides an interface to read command line arguments of arbitrary type.
+  !!{
+  Provides an interface to read command line arguments of arbitrary type.
+  !!}
   implicit none
   private
   public :: Get_Argument
 
   interface Get_Argument
-     !% Generic interface to routines that read command line arguments.
+     !!{
+     Generic interface to routines that read command line arguments.
+     !!}
      module procedure Get_Argument_Varying_String
      module procedure Get_Argument_Character
      module procedure Get_Argument_Real
@@ -38,7 +44,9 @@ module Command_Arguments
 contains
 
   subroutine Get_Argument_Varying_String(argumentNumber,varStrArgument)
-    !% Reads a varying string command line argument.
+    !!{
+    Reads a varying string command line argument.
+    !!}
     use :: ISO_Varying_String, only : varying_string
     implicit none
     integer                  , intent(in   ) :: argumentNumber
@@ -52,7 +60,9 @@ contains
   end subroutine Get_Argument_Varying_String
 
   subroutine Get_Temporary_String(argumentNumber,varStrArgument,argumentLength)
-    !% Reads a command line argument into a temporary string of the correct length, and returns it as a varying string.
+    !!{
+    Reads a command line argument into a temporary string of the correct length, and returns it as a varying string.
+    !!}
     use :: ISO_Varying_String, only : varying_string
     implicit none
     integer                      , intent(in   ) :: argumentLength    , argumentNumber
@@ -65,7 +75,9 @@ contains
   end subroutine Get_Temporary_String
 
   subroutine Get_Argument_Character(argumentNumber,characterArgument)
-    !% Reads a character command line argument.
+    !!{
+    Reads a character command line argument.
+    !!}
     implicit none
     integer         , intent(in   ) :: argumentNumber
     character(len=*), intent(  out) :: characterArgument
@@ -75,7 +87,9 @@ contains
   end subroutine Get_Argument_Character
 
   subroutine Get_Argument_Integer(argumentNumber,integerArgument)
-    !% Reads a integer command line argument.
+    !!{
+    Reads a integer command line argument.
+    !!}
     implicit none
     integer          , intent(in   ) :: argumentNumber
     integer          , intent(  out) :: integerArgument
@@ -87,7 +101,9 @@ contains
   end subroutine Get_Argument_Integer
 
   subroutine Get_Argument_Real(argumentNumber,realArgument)
-    !% Reads a real command line argument.
+    !!{
+    Reads a real command line argument.
+    !!}
     implicit none
     integer          , intent(in   ) :: argumentNumber
     real             , intent(  out) :: realArgument
@@ -99,7 +115,9 @@ contains
   end subroutine Get_Argument_Real
 
   subroutine Get_Argument_Double(argumentNumber,doubleArgument)
-    !% Reads a double command line argument.
+    !!{
+    Reads a double command line argument.
+    !!}
     implicit none
     integer                 , intent(in   ) :: argumentNumber
     double precision        , intent(  out) :: doubleArgument
@@ -111,7 +129,9 @@ contains
   end subroutine Get_Argument_Double
 
   subroutine Get_Argument_Logical(argumentNumber,logicalArgument)
-    !% Reads a logical command line argument.
+    !!{
+    Reads a logical command line argument.
+    !!}
     implicit none
     integer          , intent(in   ) :: argumentNumber
     logical          , intent(  out) :: logicalArgument

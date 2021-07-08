@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a filter which passes only nodes that are hosted in a merger tree.
+!!{
+Contains a module which implements a filter which passes only nodes that are hosted in a merger tree.
+!!}
 
-  !# <galacticFilter name="galacticFilterTreeHosted">
-  !#  <description>A filter which passes only nodes that are hosted in a merger tree.</description>
-  !# </galacticFilter>
+  !![
+  <galacticFilter name="galacticFilterTreeHosted">
+   <description>A filter which passes only nodes that are hosted in a merger tree.</description>
+  </galacticFilter>
+  !!]
   type, extends(galacticFilterClass) :: galacticFilterTreeHosted
-     !% A galactic filter class which passes only nodes that are hosted in a merger tree.
+     !!{
+     A galactic filter class which passes only nodes that are hosted in a merger tree.
+     !!}
      private
    contains
      procedure :: passes => treeHostedPasses
   end type galacticFilterTreeHosted
 
   interface galacticFilterTreeHosted
-     !% Constructors for the ``treeHosted'' galactic filter class.
+     !!{
+     Constructors for the ``treeHosted'' galactic filter class.
+     !!}
      module procedure treeHostedConstructorParameters
   end interface galacticFilterTreeHosted
 
 contains
 
   function treeHostedConstructorParameters(parameters) result(self)
-    !% Constructor for the ``treeHosted'' galactic filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``treeHosted'' galactic filter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(galacticFilterTreeHosted)                :: self
@@ -49,7 +59,9 @@ contains
   end function treeHostedConstructorParameters
 
   logical function treeHostedPasses(self,node)
-    !% Implement a galactic filter which passes only main branch halos.
+    !!{
+    Implement a galactic filter which passes only main branch halos.
+    !!}
     implicit none
     class(galacticFilterTreeHosted), intent(inout)         :: self
     type (treeNode                ), intent(inout), target :: node

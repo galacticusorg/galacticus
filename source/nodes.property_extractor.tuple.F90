@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,20 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorTuple" abstract="yes">
-  !#  <description>An abstract output analysis property extractor class which provieds a tuple of floating point properties.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorTuple" abstract="yes">
+   <description>An abstract output analysis property extractor class which provieds a tuple of floating point properties.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorTuple
-     !% A tuple property extractor.
+     !!{
+     A tuple property extractor.
+     !!}
      private
    contains
-     !# <methods>
-     !#   <method description="Return the number of properties in the tuple." method="elementCount" pass="yes" />
-     !#   <method description="Extract the properties from the given {\normalfont \ttfamily node}." method="extract" pass="yes" />
-     !#   <method description="Return the names of the properties extracted." method="names" pass="yes" />
-     !#   <method description="Return descriptions of the properties extracted." method="descriptions" pass="yes" />
-     !#   <method description="Return the units of the properties extracted in the SI system." method="unitsInSI" pass="yes" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return the number of properties in the tuple." method="elementCount" pass="yes" />
+       <method description="Extract the properties from the given {\normalfont \ttfamily node}." method="extract" pass="yes" />
+       <method description="Return the names of the properties extracted." method="names" pass="yes" />
+       <method description="Return descriptions of the properties extracted." method="descriptions" pass="yes" />
+       <method description="Return the units of the properties extracted in the SI system." method="unitsInSI" pass="yes" />
+     </methods>
+     !!]
      procedure(tupleElementCount), deferred :: elementCount
      procedure(tupleExtract     ), deferred :: extract
      procedure(tupleNames       ), deferred :: names
@@ -40,7 +46,9 @@
 
   abstract interface
      function tupleExtract(self,node,time,instance)
-       !% Interface for tuple property extraction.
+       !!{
+       Interface for tuple property extraction.
+       !!}
        import nodePropertyExtractorTuple, treeNode, multiCounter
        double precision                            , dimension(:) , allocatable :: tupleExtract
        class           (nodePropertyExtractorTuple), intent(inout), target      :: self
@@ -52,7 +60,9 @@
 
   abstract interface
      function tupleNames(self,time)
-       !% Interface for tuple property names.
+       !!{
+       Interface for tuple property names.
+       !!}
        import varying_string, nodePropertyExtractorTuple
        type            (varying_string            ), dimension(:) , allocatable :: tupleNames
        class           (nodePropertyExtractorTuple), intent(inout)              :: self
@@ -62,7 +72,9 @@
 
   abstract interface
      function tupleUnitsInSI(self,time)
-       !% Interface for tuple property units.
+       !!{
+       Interface for tuple property units.
+       !!}
        import nodePropertyExtractorTuple
        double precision                            , dimension(:) , allocatable :: tupleUnitsInSI
        class           (nodePropertyExtractorTuple), intent(inout)              :: self
@@ -72,7 +84,9 @@
 
   abstract interface
      integer function tupleElementCount(self,time)
-       !% Interface for tuple element count.
+       !!{
+       Interface for tuple element count.
+       !!}
        import nodePropertyExtractorTuple
        class           (nodePropertyExtractorTuple), intent(inout) :: self
        double precision                            , intent(in   ) :: time

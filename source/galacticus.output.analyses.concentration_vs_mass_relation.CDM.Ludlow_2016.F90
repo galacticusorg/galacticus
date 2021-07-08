@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,20 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a concentration vs. halo mass analysis class matched to the
-  !% \cite{ludlow_mass-concentration-redshift_2016} CDM sample.
+  !!{
+  Contains a module which implements a concentration vs. halo mass analysis class matched to the
+  \cite{ludlow_mass-concentration-redshift_2016} CDM sample.
+  !!}
 
 
-  !# <outputAnalysis name="outputAnalysisConcentrationVsHaloMassCDMLudlow2016">
-  !#  <description>A concentration vs. halo mass analysis class matched to the \cite{ludlow_mass-concentration-redshift_2016} CDM sample.</description>
-  !# </outputAnalysis>
+  !![
+  <outputAnalysis name="outputAnalysisConcentrationVsHaloMassCDMLudlow2016">
+   <description>A concentration vs. halo mass analysis class matched to the \cite{ludlow_mass-concentration-redshift_2016} CDM sample.</description>
+  </outputAnalysis>
+  !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisConcentrationVsHaloMassCDMLudlow2016
-     !% A concentration vs. halo mass analysis class matched to the \cite{ludlow_mass-concentration-redshift_2016} CDM sample.
+     !!{
+     A concentration vs. halo mass analysis class matched to the \cite{ludlow_mass-concentration-redshift_2016} CDM sample.
+     !!}
      private
   end type outputAnalysisConcentrationVsHaloMassCDMLudlow2016
 
   interface outputAnalysisConcentrationVsHaloMassCDMLudlow2016
-     !% Constructors for the ``concentrationVsHaloMassCDMLudlow2016'' output analysis class.
+     !!{
+     Constructors for the ``concentrationVsHaloMassCDMLudlow2016'' output analysis class.
+     !!}
      module procedure concentrationVsHaloMassCDMLudlow2016ConstructorParameters
      module procedure concentrationVsHaloMassCDMLudlow2016ConstructorInternal
   end interface outputAnalysisConcentrationVsHaloMassCDMLudlow2016
@@ -38,7 +46,9 @@
 contains
 
   function concentrationVsHaloMassCDMLudlow2016ConstructorParameters(parameters) result (self)
-    !% Constructor for the ``concentrationVsHaloMassCDMLudlow2016'' output analysis class which takes a parameter set as input.
+    !!{
+    Constructor for the ``concentrationVsHaloMassCDMLudlow2016'' output analysis class which takes a parameter set as input.
+    !!}
     use :: Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
     use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
     use :: Input_Parameters    , only : inputParameter     , inputParameters
@@ -50,25 +60,33 @@ contains
     class(outputTimesClass                                  ), pointer       :: outputTimes_
     class(nbodyHaloMassErrorClass                           ), pointer       :: nbodyHaloMassError_
 
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
-    !# <objectBuilder class="nbodyHaloMassError"  name="nbodyHaloMassError_"  source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
+    <objectBuilder class="nbodyHaloMassError"  name="nbodyHaloMassError_"  source="parameters"/>
+    !!]
     self=outputAnalysisConcentrationVsHaloMassCDMLudlow2016(cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     nullify(cosmologyParameters_)
     nullify(cosmologyFunctions_ )
     nullify(nbodyHaloMassError_ )
     nullify(outputTimes_        )
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
-    !# <objectDestructor name="outputTimes_"        />
-    !# <objectDestructor name="nbodyHaloMassError_" />
+    !![
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="outputTimes_"        />
+    <objectDestructor name="nbodyHaloMassError_" />
+    !!]
     return
   end function concentrationVsHaloMassCDMLudlow2016ConstructorParameters
 
   function concentrationVsHaloMassCDMLudlow2016ConstructorInternal(cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_) result (self)
-    !% Constructor for the ``concentrationVsHaloMassCDMLudlow2016'' output analysis class for internal use.
+    !!{
+    Constructor for the ``concentrationVsHaloMassCDMLudlow2016'' output analysis class for internal use.
+    !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters                  , only : cosmologyParametersClass
     use :: Galactic_Filters                      , only : filterList                                        , galacticFilterAll                  , galacticFilterBasicMass, galacticFilterHaloIsolated

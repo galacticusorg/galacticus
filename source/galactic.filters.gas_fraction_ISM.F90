@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a galactic high-pass filter for ISM gas fraction (i.e. ISM gas mass to stellar mass ratio).
+!!{
+Contains a module which implements a galactic high-pass filter for ISM gas fraction (i.e. ISM gas mass to stellar mass ratio).
+!!}
 
-  !# <galacticFilter name="galacticFilterGasFractionISM">
-  !#  <description>
-  !#  A galactic high-pass filter for ISM gas fraction (i.e. ISM gas mass to stellar mass ratio).
-  !#  </description>
-  !# </galacticFilter>
+  !![
+  <galacticFilter name="galacticFilterGasFractionISM">
+   <description>
+   A galactic high-pass filter for ISM gas fraction (i.e. ISM gas mass to stellar mass ratio).
+   </description>
+  </galacticFilter>
+  !!]
   type, extends(galacticFilterClass) :: galacticFilterGasFractionISM
-     !% A galactic high-pass filter class for ISM gas fraction (i.e. ISM gas mass to stellar mass ratio).
+     !!{
+     A galactic high-pass filter class for ISM gas fraction (i.e. ISM gas mass to stellar mass ratio).
+     !!}
      private
      double precision :: fractionGasThreshold
    contains
@@ -33,7 +39,9 @@
   end type galacticFilterGasFractionISM
 
   interface galacticFilterGasFractionISM
-     !% Constructors for the ``gasFractionISM'' galactic filter class.
+     !!{
+     Constructors for the ``gasFractionISM'' galactic filter class.
+     !!}
      module procedure gasFractionISMConstructorParameters
      module procedure gasFractionISMConstructorInternal
   end interface galacticFilterGasFractionISM
@@ -41,7 +49,9 @@
 contains
 
   function gasFractionISMConstructorParameters(parameters) result(self)
-    !% Constructor for the ``gasFractionISM'' galactic filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``gasFractionISM'' galactic filter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (galacticFilterGasFractionISM)                :: self
@@ -49,27 +59,37 @@ contains
     double precision                                              :: fractionGasThreshold
     
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>fractionGasThreshold</name>
-    !#   <source>parameters</source>
-    !#   <description>The ISM gas fraction above which to pass.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>fractionGasThreshold</name>
+      <source>parameters</source>
+      <description>The ISM gas fraction above which to pass.</description>
+    </inputParameter>
+    !!]
     self=galacticFilterGasFractionISM(fractionGasThreshold)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function gasFractionISMConstructorParameters
 
   function gasFractionISMConstructorInternal(fractionGasThreshold) result(self)
-    !% Internal constructor for the ``gasFractionISM'' galactic filter class.
+    !!{
+    Internal constructor for the ``gasFractionISM'' galactic filter class.
+    !!}
     implicit none
     type            (galacticFilterGasFractionISM)                :: self
     double precision                              , intent(in   ) :: fractionGasThreshold
-    !# <constructorAssign variables="fractionGasThreshold"/>
+    !![
+    <constructorAssign variables="fractionGasThreshold"/>
+    !!]
     return
   end function gasFractionISMConstructorInternal
 
   logical function gasFractionISMPasses(self,node)
-    !% Implement a ISM gas fraction high-pass filter.
+    !!{
+    Implement a ISM gas fraction high-pass filter.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, treeNode
     implicit none
     class           (galacticFilterGasFractionISM), intent(inout)         :: self

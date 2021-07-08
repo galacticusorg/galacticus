@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements advanced locks.
+  !!{
+  Contains a module which implements advanced locks.
+  !!}
 
 module Locks
-  !% Provides advanced locks.
+  !!{
+  Provides advanced locks.
+  !!}
   use   , intrinsic :: ISO_C_Binding, only : c_size_t
   !$ use            :: OMP_Lib      , only : omp_lock_kind
   implicit none
@@ -28,17 +32,21 @@ module Locks
   public :: ompLock, ompReadWriteLock, ompIncrementalLock
 
   type :: ompLock
-     !% OpenMP lock type which allows querying based on thread number.
+     !!{
+     OpenMP lock type which allows querying based on thread number.
+     !!}
      private
      !$ integer(omp_lock_kind) :: lock
      integer                   :: ownerThread=-1
    contains
-     !# <methods>
-     !#   <method description="Obtain a lock on the object." method="set" />
-     !#   <method description="Release a lock on the object." method="unset" />
-     !#   <method description="(Re)initialize an OpenMP lock object." method="initialize" />
-     !#   <method description="Return true if the current thread already owns this lock." method="ownedByThread" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Obtain a lock on the object." method="set" />
+       <method description="Release a lock on the object." method="unset" />
+       <method description="(Re)initialize an OpenMP lock object." method="initialize" />
+       <method description="Return true if the current thread already owns this lock." method="ownedByThread" />
+     </methods>
+     !!]
      final     ::                  ompLockDestructor
      procedure :: initialize    => ompLockInitialize
      procedure :: set           => ompLockSet
@@ -47,22 +55,28 @@ module Locks
   end type ompLock
 
   interface ompLock
-     !% Interface to constructors for OpenMP locks.
+     !!{
+     Interface to constructors for OpenMP locks.
+     !!}
      module procedure :: ompLockConstructor
   end interface ompLock
 
   type :: ompReadWriteLock
-     !% OpenMP lock type which supports read/write locking.
+     !!{
+     OpenMP lock type which supports read/write locking.
+     !!}
      private
      !$ integer(omp_lock_kind), allocatable, dimension(:) :: locks
    contains
-     !# <methods>
-     !#   <method description="Obtain a read (non-blocking) lock on the object." method="setRead" />
-     !#   <method description="Release a read (non-blocking) lock on the object." method="unsetRead" />
-     !#   <method description="Obtain a write (blocking) lock on the object. The lock will block until all other read/write locks on the object are released and while held will prevent any read locks from being obtained. If the thread requesting the write lock already has a read lock it should set {\normalfont \ttfamily haveReadLock=.true.} when calling this function." method="setWrite" />
-     !#   <method description="Release a write (blocking) lock on the object. If the thread releasing the write lock already had a read lock it should set {\normalfont \ttfamily haveReadLock=.true.} when calling this function to ensure that read locked is retained." method="unsetWrite" />
-     !#   <method description="(Re)initialize an OpenMP read/write lock object" method="initialize" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Obtain a read (non-blocking) lock on the object." method="setRead" />
+       <method description="Release a read (non-blocking) lock on the object." method="unsetRead" />
+       <method description="Obtain a write (blocking) lock on the object. The lock will block until all other read/write locks on the object are released and while held will prevent any read locks from being obtained. If the thread requesting the write lock already has a read lock it should set {\normalfont \ttfamily haveReadLock=.true.} when calling this function." method="setWrite" />
+       <method description="Release a write (blocking) lock on the object. If the thread releasing the write lock already had a read lock it should set {\normalfont \ttfamily haveReadLock=.true.} when calling this function to ensure that read locked is retained." method="unsetWrite" />
+       <method description="(Re)initialize an OpenMP read/write lock object" method="initialize" />
+     </methods>
+     !!]
      final     ::               ompReadWriteLockDestructor
      procedure :: initialize => ompReadWriteLockInitialize
      procedure :: setRead    => ompReadWriteLockSetRead
@@ -72,21 +86,27 @@ module Locks
   end type ompReadWriteLock
 
   interface ompReadWriteLock
-     !% Interface to constructors for OpenMP read/write locks.
+     !!{
+     Interface to constructors for OpenMP read/write locks.
+     !!}
      module procedure :: ompReadWriteLockConstructor
   end interface ompReadWriteLock
 
   type :: ompIncrementalLock
-     !% OpenMP lock type which requires (and forces) locking to proceed in order.
+     !!{
+     OpenMP lock type which requires (and forces) locking to proceed in order.
+     !!}
      private
      !$ integer(omp_lock_kind) :: lock
      integer   (c_size_t     ) :: lockValue
    contains
-     !# <methods>
-     !#   <method description="Obtain a lock on the object." method="set" />
-     !#   <method description="Release a lock on the object." method="unset" />
-     !#   <method description="(Re)initialize an OpenMP incremental lock object." method="initialize" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Obtain a lock on the object." method="set" />
+       <method description="Release a lock on the object." method="unset" />
+       <method description="(Re)initialize an OpenMP incremental lock object." method="initialize" />
+     </methods>
+     !!]
      final     ::               ompIncrementalLockDestructor
      procedure :: initialize => ompIncrementalLockInitialize
      procedure :: set        => ompIncrementalLockSet
@@ -94,14 +114,18 @@ module Locks
   end type ompIncrementalLock
 
   interface ompIncrementalLock
-     !% Interface to constructors for OpenMP incremental locks.
+     !!{
+     Interface to constructors for OpenMP incremental locks.
+     !!}
      module procedure :: ompIncrementalLockConstructor
   end interface ompIncrementalLock
 
 contains
 
   function ompLockConstructor() result (self)
-    !% Constructor for OpenMP lock objects.
+    !!{
+    Constructor for OpenMP lock objects.
+    !!}
     implicit none
     type(ompLock) :: self
 
@@ -110,7 +134,9 @@ contains
   end function ompLockConstructor
 
   subroutine ompLockDestructor(self)
-    !% Destructor for OpenMP lock objects.
+    !!{
+    Destructor for OpenMP lock objects.
+    !!}
     !$ use :: OMP_Lib, only : OMP_Destroy_Lock
     implicit none
     type   (ompLock), intent(inout) :: self
@@ -121,7 +147,9 @@ contains
   end subroutine ompLockDestructor
 
   subroutine ompLockInitialize(self)
-    !% (Re)initialize an OpenMP lock object.
+    !!{
+    (Re)initialize an OpenMP lock object.
+    !!}
     !$ use :: OMP_Lib, only : OMP_Init_Lock
     implicit none
     class  (ompLock), intent(inout) :: self
@@ -132,7 +160,9 @@ contains
   end subroutine ompLockInitialize
 
   subroutine ompLockSet(self)
-    !% Get a lock on an OpenMP lock objects.
+    !!{
+    Get a lock on an OpenMP lock objects.
+    !!}
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num, OMP_Set_Lock
     implicit none
     class(ompLock), intent(inout) :: self
@@ -143,7 +173,9 @@ contains
   end subroutine ompLockSet
 
   subroutine ompLockUnset(self)
-    !% Release a lock on an OpenMP lock objects.
+    !!{
+    Release a lock on an OpenMP lock objects.
+    !!}
     !$ use :: OMP_Lib, only : OMP_Unset_Lock
     implicit none
     class(ompLock), intent(inout) :: self
@@ -154,7 +186,9 @@ contains
   end subroutine ompLockUnset
 
   logical function ompLockOwnedByThread(self)
-    !% Return true if the lock is owend by the current thread.
+    !!{
+    Return true if the lock is owend by the current thread.
+    !!}
     !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
     implicit none
     class(ompLock), intent(inout) :: self
@@ -165,7 +199,9 @@ contains
   end function ompLockOwnedByThread
 
   function ompReadWriteLockConstructor() result (self)
-    !% Constructor for OpenMP read/write lock objects.
+    !!{
+    Constructor for OpenMP read/write lock objects.
+    !!}
     !$ use :: OMP_Lib, only : omp_get_max_threads
     implicit none
     type(ompReadWriteLock) :: self
@@ -177,7 +213,9 @@ contains
   end function ompReadWriteLockConstructor
 
   subroutine ompReadWriteLockDestructor(self)
-    !% Destructor for OpenMP read/write lock objects.
+    !!{
+    Destructor for OpenMP read/write lock objects.
+    !!}
     !$ use :: OMP_Lib, only : OMP_Destroy_Lock
     implicit none
     type   (ompReadWriteLock), intent(inout) :: self
@@ -195,7 +233,9 @@ contains
   end subroutine ompReadWriteLockDestructor
 
   subroutine ompReadWriteLockInitialize(self)
-    !% (Re)initialize an OpenMP read/write lock object.
+    !!{
+    (Re)initialize an OpenMP read/write lock object.
+    !!}
     !$ use :: OMP_Lib, only : OMP_Init_Lock
     implicit none
     class  (ompReadWriteLock), intent(inout) :: self
@@ -209,7 +249,9 @@ contains
   end subroutine ompReadWriteLockInitialize
 
   subroutine ompReadWriteLockSetRead(self)
-    !% Get a read lock on an OpenMP read/write lock objects.
+    !!{
+    Get a read lock on an OpenMP read/write lock objects.
+    !!}
     !$ use :: OMP_Lib, only : OMP_Set_Lock, omp_get_thread_num
     implicit none
     class(ompReadWriteLock), intent(inout) :: self
@@ -219,7 +261,9 @@ contains
   end subroutine ompReadWriteLockSetRead
 
   subroutine ompReadWriteLockUnsetRead(self)
-    !% Release a read lock on an OpenMP read/write lock objects.
+    !!{
+    Release a read lock on an OpenMP read/write lock objects.
+    !!}
     !$ use :: OMP_Lib, only : OMP_Unset_Lock, omp_get_thread_num
     implicit none
     class(ompReadWriteLock), intent(inout) :: self
@@ -229,13 +273,17 @@ contains
   end subroutine ompReadWriteLockUnsetRead
 
   subroutine ompReadWriteLockSetWrite(self,haveReadLock)
-    !% Get a write lock on an OpenMP read/write lock objects.
+    !!{
+    Get a write lock on an OpenMP read/write lock objects.
+    !!}
     !$ use :: OMP_Lib, only : OMP_Set_Lock
     implicit none
     class  (ompReadWriteLock), intent(inout)               :: self
     logical                  , intent(in   ), optional     :: haveReadLock
     integer                                                :: i
-    !# <optionalArgument name="haveReadLock" defaultsTo=".true." />
+    !![
+    <optionalArgument name="haveReadLock" defaultsTo=".true." />
+    !!]
 
     ! If we have a read lock, release it to avoid deadlocks.
     !$ if (haveReadLock_) call self%unsetRead()
@@ -248,13 +296,17 @@ contains
   end subroutine ompReadWriteLockSetWrite
 
   subroutine ompReadWriteLockUnsetWrite(self,haveReadLock)
-    !% Release a write lock on an OpenMP read/write lock objects.
+    !!{
+    Release a write lock on an OpenMP read/write lock objects.
+    !!}
     !$ use :: OMP_Lib, only : OMP_Unset_Lock
     implicit none
     class  (ompReadWriteLock), intent(inout)           :: self
     logical                  , intent(in   ), optional :: haveReadLock
     integer                                            :: i
-    !# <optionalArgument name="haveReadLock" defaultsTo=".true." />
+    !![
+    <optionalArgument name="haveReadLock" defaultsTo=".true." />
+    !!]
 
     !$ do i=0,ubound(self%locks,dim=1)
     !$    call OMP_Unset_Lock(self%locks(i))
@@ -265,7 +317,9 @@ contains
   end subroutine ompReadWriteLockUnsetWrite
 
   function ompIncrementalLockConstructor() result (self)
-    !% Constructor for OpenMP incremental lock objects.
+    !!{
+    Constructor for OpenMP incremental lock objects.
+    !!}
     implicit none
     type(ompIncrementalLock) :: self
 
@@ -274,7 +328,9 @@ contains
   end function ompIncrementalLockConstructor
 
   subroutine ompIncrementalLockDestructor(self)
-    !% Destructor for OpenMP incremental lock objects.
+    !!{
+    Destructor for OpenMP incremental lock objects.
+    !!}
     !$ use :: OMP_Lib, only : OMP_Destroy_Lock
     implicit none
     type   (ompIncrementalLock), intent(inout) :: self
@@ -285,7 +341,9 @@ contains
   end subroutine ompIncrementalLockDestructor
 
   subroutine ompIncrementalLockInitialize(self)
-    !% (Re)initialize an OpenMP incremental lock object.
+    !!{
+    (Re)initialize an OpenMP incremental lock object.
+    !!}
     !$ use :: OMP_Lib, only : OMP_Init_Lock
     implicit none
     class  (ompIncrementalLock), intent(inout) :: self
@@ -297,7 +355,9 @@ contains
   end subroutine ompIncrementalLockInitialize
 
   subroutine ompIncrementalLockSet(self,lockValue)
-    !% Get a lock on an OpenMP incremental lock object.
+    !!{
+    Get a lock on an OpenMP incremental lock object.
+    !!}
     !$ use :: OMP_Lib, only : OMP_Set_Lock
     implicit none
     class  (ompIncrementalLock), intent(inout) :: self
@@ -314,7 +374,9 @@ contains
   end subroutine ompIncrementalLockSet
 
   subroutine ompIncrementalLockUnset(self)
-    !% Release a lock on an OpenMP incremental lock object.
+    !!{
+    Release a lock on an OpenMP incremental lock object.
+    !!}
     !$ use :: OMP_Lib, only : OMP_Unset_Lock
     implicit none
     class(ompIncrementalLock), intent(inout) :: self

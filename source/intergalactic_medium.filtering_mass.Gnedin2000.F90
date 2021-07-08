@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements the \cite{gnedin_effect_2000} filtering mass calculation.
+  !!{
+  Implements the \cite{gnedin_effect_2000} filtering mass calculation.
+  !!}
 
   use :: Cosmology_Functions       , only : cosmologyFunctions      , cosmologyFunctionsClass
   use :: Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass
@@ -28,11 +30,15 @@
 
   public :: gnedin2000ODEs
 
-  !# <intergalacticMediumFilteringMass name="intergalacticMediumFilteringMassGnedin2000">
-  !#  <description>An implementation of the \cite{gnedin_effect_2000} filtering mass calculation.</description>
-  !# </intergalacticMediumFilteringMass>
+  !![
+  <intergalacticMediumFilteringMass name="intergalacticMediumFilteringMassGnedin2000">
+   <description>An implementation of the \cite{gnedin_effect_2000} filtering mass calculation.</description>
+  </intergalacticMediumFilteringMass>
+  !!]
   type, extends(intergalacticMediumFilteringMassClass) :: intergalacticMediumFilteringMassGnedin2000
-     !% An implementation of the \cite{gnedin_effect_2000} filtering mass calculation.
+     !!{
+     An implementation of the \cite{gnedin_effect_2000} filtering mass calculation.
+     !!}
      private
      class           (cosmologyParametersClass     ), pointer :: cosmologyParameters_      => null()
      class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
@@ -45,15 +51,17 @@
      type            (table1DLogarithmicLinear     )          :: table
      type            (varying_string               )          :: fileName
    contains
-     !# <methods>
-     !#   <method description="Tabulate the filtering mass to encompass at least the given {\normalfont \ttfamily time}." method="tabulate" />
-     !#   <method description="Set the initial conditions for the ODE system." method="conditionsInitialODEs" />
-     !#   <method description="Return coefficients for the early-epoch fitting function to the filtering mass." method="coefficientsEarlyEpoch" />
-     !#   <method description="Return the early-epoch solution for the filtering mass." method="massFilteringEarlyEpoch" />
-     !#   <method description="Store the tabulate filtering mass to file." method="fileWrite" />
-     !#   <method description="Restore the tabulate filtering mass from file." method="fileRead" />
-     !#   <method description="Return true if the table must be remade." method="remakeTable" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Tabulate the filtering mass to encompass at least the given {\normalfont \ttfamily time}." method="tabulate" />
+       <method description="Set the initial conditions for the ODE system." method="conditionsInitialODEs" />
+       <method description="Return coefficients for the early-epoch fitting function to the filtering mass." method="coefficientsEarlyEpoch" />
+       <method description="Return the early-epoch solution for the filtering mass." method="massFilteringEarlyEpoch" />
+       <method description="Store the tabulate filtering mass to file." method="fileWrite" />
+       <method description="Restore the tabulate filtering mass from file." method="fileRead" />
+       <method description="Return true if the table must be remade." method="remakeTable" />
+     </methods>
+     !!]
      final     ::                                gnedin2000Destructor
      procedure :: massFiltering               => gnedin2000MassFiltering
      procedure :: massFilteringRateOfChange   => gnedin2000MassFilteringRateOfChange
@@ -70,7 +78,9 @@
   end type intergalacticMediumFilteringMassGnedin2000
 
   interface intergalacticMediumFilteringMassGnedin2000
-     !% Constructors for the filtering mass class.
+     !!{
+     Constructors for the filtering mass class.
+     !!}
      module procedure gnedin2000ConstructorParameters
      module procedure gnedin2000ConstructorInternal
   end interface intergalacticMediumFilteringMassGnedin2000
@@ -84,7 +94,9 @@
 contains
 
   function gnedin2000ConstructorParameters(parameters) result(self)
-    !% Default constructor for the file \gls{igm} state class.
+    !!{
+    Default constructor for the file \gls{igm} state class.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (intergalacticMediumFilteringMassGnedin2000)                :: self
@@ -95,27 +107,33 @@ contains
     class  (intergalacticMediumStateClass             ), pointer       :: intergalacticMediumState_
     logical                                                            :: timeTooEarlyIsFatal
 
-    !# <inputParameter>
-    !#   <name>timeTooEarlyIsFatal</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true, requesting the filtering mass at a time earlier than the initial time provided by the \cite{naoz_growth_2005} fit will result in a fatal error. Otherwise, the filtering mass is fixed at this initial value for earlier times.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
-    !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
-    !# <objectBuilder class="intergalacticMediumState" name="intergalacticMediumState_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>timeTooEarlyIsFatal</name>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, requesting the filtering mass at a time earlier than the initial time provided by the \cite{naoz_growth_2005} fit will result in a fatal error. Otherwise, the filtering mass is fixed at this initial value for earlier times.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
+    <objectBuilder class="intergalacticMediumState" name="intergalacticMediumState_" source="parameters"/>
+    !!]
     self=intergalacticMediumFilteringMassGnedin2000(timeTooEarlyIsFatal,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,intergalacticMediumState_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"      />
-    !# <objectDestructor name="cosmologyParameters_"     />
-    !# <objectDestructor name="linearGrowth_"            />
-    !# <objectDestructor name="intergalacticMediumState_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="cosmologyParameters_"     />
+    <objectDestructor name="linearGrowth_"            />
+    <objectDestructor name="intergalacticMediumState_"/>
+    !!]
     return
   end function gnedin2000ConstructorParameters
 
   function gnedin2000ConstructorInternal(timeTooEarlyIsFatal,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,intergalacticMediumState_) result(self)
-    !% Constructor for the filtering mass class.
+    !!{
+    Constructor for the filtering mass class.
+    !!}
     use :: File_Utilities  , only : Directory_Make, File_Path
     use :: Galacticus_Paths, only : galacticusPath, pathTypeDataDynamic
     implicit none
@@ -125,7 +143,9 @@ contains
     class  (linearGrowthClass                         ), intent(in   ), target :: linearGrowth_
     class  (intergalacticMediumStateClass             ), intent(in   ), target :: intergalacticMediumState_
     logical                                            , intent(in   )         :: timeTooEarlyIsFatal
-    !# <constructorAssign variables="timeTooEarlyIsFatal, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *intergalacticMediumState_"/>
+    !![
+    <constructorAssign variables="timeTooEarlyIsFatal, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *intergalacticMediumState_"/>
+    !!]
 
     self%initialized=.false.
     self%fileName              =galacticusPath(pathTypeDataDynamic)              // &
@@ -139,19 +159,25 @@ contains
   end function gnedin2000ConstructorInternal
 
   subroutine gnedin2000Destructor(self)
-    !% Destructor for the filtering mass class.
+    !!{
+    Destructor for the filtering mass class.
+    !!}
     implicit none
     type (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"     />
-    !# <objectDestructor name="self%cosmologyFunctions_"      />
-    !# <objectDestructor name="self%linearGrowth_"            />
-    !# <objectDestructor name="self%intergalacticMediumState_"/>
+    !![
+    <objectDestructor name="self%cosmologyParameters_"     />
+    <objectDestructor name="self%cosmologyFunctions_"      />
+    <objectDestructor name="self%linearGrowth_"            />
+    <objectDestructor name="self%intergalacticMediumState_"/>
+    !!]
     return
   end subroutine gnedin2000Destructor
 
   double precision function gnedin2000MassFiltering(self,time)
-    !% Return the filtering mass at the given {\normalfont \ttfamily time}.
+    !!{
+    Return the filtering mass at the given {\normalfont \ttfamily time}.
+    !!}
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
     double precision                                            , intent(in   ) :: time
@@ -162,7 +188,9 @@ contains
   end function gnedin2000MassFiltering
 
   double precision function gnedin2000MassFilteringRateOfChange(self,time)
-    !% Return the rate of change of the filtering mass at the given {\normalfont \ttfamily time}.
+    !!{
+    Return the rate of change of the filtering mass at the given {\normalfont \ttfamily time}.
+    !!}
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
     double precision                                            , intent(in   ) :: time
@@ -173,8 +201,10 @@ contains
   end function gnedin2000MassFilteringRateOfChange
 
   double precision function gnedin2000FractionBaryons(self,mass,time)
-    !% Return the rate fo change of the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the
-    !% {\normalfont \ttfamily time}.
+    !!{
+    Return the rate fo change of the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the
+    {\normalfont \ttfamily time}.
+    !!}
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
     double precision                                            , intent(in   ) :: mass, time
@@ -184,8 +214,10 @@ contains
   end function gnedin2000FractionBaryons
 
   double precision function gnedin2000FractionBaryonsRateOfChange(self,mass,time)
-    !% Return the rate of change of the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the
-    !% {\normalfont \ttfamily time}.
+    !!{
+    Return the rate of change of the fraction of baryons accreted into a halo of the given {\normalfont \ttfamily mass} at the
+    {\normalfont \ttfamily time}.
+    !!}
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
     double precision                                            , intent(in   ) :: mass, time
@@ -199,8 +231,10 @@ contains
   end function gnedin2000FractionBaryonsRateOfChange
 
   double precision function gnedin2000FractionBaryonsGradientMass(self,mass,time)
-    !% Return the gradient with respect to mass of the fraction of baryons accreted into a halo of the given {\normalfont
-    !% \ttfamily mass} at the {\normalfont \ttfamily time}.
+    !!{
+    Return the gradient with respect to mass of the fraction of baryons accreted into a halo of the given {\normalfont
+    \ttfamily mass} at the {\normalfont \ttfamily time}.
+    !!}
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
     double precision                                            , intent(in   ) :: mass, time
@@ -213,7 +247,9 @@ contains
   end function gnedin2000FractionBaryonsGradientMass
 
   subroutine gnedin2000Tabulate(self,time)
-    !% Construct a table of filtering mass as a function of cosmological time.
+    !!{
+    Construct a table of filtering mass as a function of cosmological time.
+    !!}
     use :: File_Utilities          , only : File_Lock              , File_Unlock
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Numerical_Constants_Math, only : Pi
@@ -280,7 +316,9 @@ contains
   contains
 
     integer function massFilteringODEs(time,properties,propertiesRateOfChange)
-      !% Evaluates the ODEs controlling the evolution temperature.
+      !!{
+      Evaluates the ODEs controlling the evolution temperature.
+      !!}
       use :: Interface_GSL                   , only : GSL_Success
       use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial, hydrogenByMassPrimordial
       use :: Numerical_Constants_Atomic      , only : electronMass          , massHeliumAtom          , massHydrogenAtom
@@ -305,8 +343,10 @@ contains
   end subroutine gnedin2000Tabulate
 
   function gnedin2000MassFilteringEarlyEpoch(self,time) result (massFiltering)
-    !% Fitting function for the filtering mass at early epochs from \cite{naoz_formation_2007}. Checks for valid range of redshift
-    !% and cosmology for the fit to be valid.
+    !!{
+    Fitting function for the filtering mass at early epochs from \cite{naoz_formation_2007}. Checks for valid range of redshift
+    and cosmology for the fit to be valid.
+    !!}
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
     double precision                                                            :: massFiltering
@@ -330,23 +370,25 @@ contains
   end function gnedin2000MassFilteringEarlyEpoch
 
   subroutine gnedin2000ConditionsInitialODEs(self,time,massFilteringODEs,massFilteringScales)
-    !% Compute initial conditions for a system of three variables used to solve for the evolution of the filtering mass. The ODE system to be solved is
-    !% \begin{eqnarray}
-    !%  \dot{y}_1 &=& y_2 \\
-    !%  \dot{y}_2 &=& -2 (\dot{a}/a) D(t) (1+r_\mathrm{LSS}(t)) y_2 f_\mathrm{DM} \mathrm{k}_\mathrm{B} T(t)/\mu m_\mathrm{H} a^2 \\
-    !%  \dot{y}_3 &=& 4 \pi^4 \bar{\rho}(t) \dot{k}_\mathrm{F}(t)/ k_\mathrm{F}^4(t)
-    !% \end{eqnarray}
-    !% with initial conditions
-    !% \begin{eqnarray}
-    !%  y_1 &=& D(t)/k_\mathrm{F}^2(t) \\
-    !%  y_2 &=& \dot{y}_1 \\
-    !%  y_3 &=& M_\mathrm{F}(t)
-    !% \end{eqnarray}
-    !% and where
-    !% \begin{equation}
-    !%  k_\mathrm{F}(t) = \pi / [M_\mathrm{F}(t) 3 / 4 \pi \bar{\rho}(t)]^{1/3}
-    !% \end{equation},
-    !% and $r_\mathrm{LSS}(t)$ is the function defined by \cite{naoz_formation_2007}.
+    !!{
+    Compute initial conditions for a system of three variables used to solve for the evolution of the filtering mass. The ODE system to be solved is
+    \begin{eqnarray}
+     \dot{y}_1 &=& y_2 \\
+     \dot{y}_2 &=& -2 (\dot{a}/a) D(t) (1+r_\mathrm{LSS}(t)) y_2 f_\mathrm{DM} \mathrm{k}_\mathrm{B} T(t)/\mu m_\mathrm{H} a^2 \\
+     \dot{y}_3 &=& 4 \pi^4 \bar{\rho}(t) \dot{k}_\mathrm{F}(t)/ k_\mathrm{F}^4(t)
+    \end{eqnarray}
+    with initial conditions
+    \begin{eqnarray}
+     y_1 &=& D(t)/k_\mathrm{F}^2(t) \\
+     y_2 &=& \dot{y}_1 \\
+     y_3 &=& M_\mathrm{F}(t)
+    \end{eqnarray}
+    and where
+    \begin{equation}
+     k_\mathrm{F}(t) = \pi / [M_\mathrm{F}(t) 3 / 4 \pi \bar{\rho}(t)]^{1/3}
+    \end{equation},
+    and $r_\mathrm{LSS}(t)$ is the function defined by \cite{naoz_formation_2007}.
+    !!}
     use :: Cosmology_Parameters    , only : hubbleUnitsTime
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -419,7 +461,9 @@ contains
   end subroutine gnedin2000ConditionsInitialODEs
 
   function gnedin2000ODEs(cosmologyParameters_,cosmologyFunctions_,linearGrowth_,time,massParticleMean,temperature,massFilteringODEs) result (massFilteringODEsRateOfChange)
-    !% Compute the rates of change of the filtering mass ODE system.
+    !!{
+    Compute the rates of change of the filtering mass ODE system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : gigayear          , megaparsec
     use :: Numerical_Constants_Math        , only : Pi
     use :: Numerical_Constants_Physical    , only : boltzmannsConstant
@@ -492,8 +536,10 @@ contains
   end function gnedin2000ODEs
 
   function gnedin2000CoefficientsEarlyEpoch(self,time) result (coefficients)
-    !% Return the coefficients of the fitting function for the filtering mass at early epochs from
-    !% \cite{naoz_formation_2007}. Checks for valid range of redshift and cosmology for the fit to be valid.
+    !!{
+    Return the coefficients of the fitting function for the filtering mass at early epochs from
+    \cite{naoz_formation_2007}. Checks for valid range of redshift and cosmology for the fit to be valid.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Warn
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
@@ -518,7 +564,9 @@ contains
   end function gnedin2000CoefficientsEarlyEpoch
 
   double precision function gnedin2000rLSS(omegaMatter,expansionFactor)
-    !% Evaluate the $r_\mathrm{LSS}$ parameter of \cite{naoz_formation_2007} using their fitting formula.
+    !!{
+    Evaluate the $r_\mathrm{LSS}$ parameter of \cite{naoz_formation_2007} using their fitting formula.
+    !!}
     implicit none
     double precision, intent(in   ) :: omegaMatter     , expansionFactor
     double precision                :: rLSSCoefficient1, rLSSCoefficient2, rLSSCoefficient3
@@ -535,7 +583,9 @@ contains
   end function gnedin2000rLSS
 
   logical function gnedin2000RemakeTable(self,time)
-    !% Determine if the table should be remade.
+    !!{
+    Determine if the table should be remade.
+    !!}
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
     double precision                                            , intent(in   ) :: time
@@ -545,7 +595,9 @@ contains
   end function gnedin2000RemakeTable
 
   subroutine gnedin2000FileRead(self)
-    !% Read tabulated data on linear growth factor from file.
+    !!{
+    Read tabulated data on linear growth factor from file.
+    !!}
     use :: File_Utilities, only : File_Exists
     use :: IO_HDF5       , only : hdf5Access , hdf5Object
     implicit none
@@ -571,7 +623,9 @@ contains
   end subroutine gnedin2000FileRead
 
   subroutine gnedin2000FileWrite(self)
-    !% Write tabulated data on linear growth factor to file.
+    !!{
+    Write tabulated data on linear growth factor to file.
+    !!}
     use :: HDF5   , only : hsize_t
     use :: IO_HDF5, only : hdf5Access, hdf5Object
     implicit none

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements reincorporation of outflowed mass into the hot halo.
+!!{
+Contains a module which provides a class that implements reincorporation of outflowed mass into the hot halo.
+!!}
 
 module Hot_Halo_Outflows_Reincorporations
-  !% Provides a class that implements reincorporation of outflowed mass into the hot halo.
+  !!{
+  Provides a class that implements reincorporation of outflowed mass into the hot halo.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
-  !# <functionClass>
-  !#  <name>hotHaloOutflowReincorporation</name>
-  !#  <descriptiveName>Hot Halo Outflow Reincorporation</descriptiveName>
-  !#  <description>
-  !#   Class providing models of reincorportation of outflowed mass into the hot halo.
-  !#  </description>
-  !#  <default>haloDynamicalTime</default>
-  !#  <calculationReset>yes</calculationReset>
-  !#  <method name="rate" >
-  !#   <description>Return the rate at which outflowed mass is being reincorporated into the hot halo.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>hotHaloOutflowReincorporation</name>
+   <descriptiveName>Hot Halo Outflow Reincorporation</descriptiveName>
+   <description>
+    Class providing models of reincorportation of outflowed mass into the hot halo.
+   </description>
+   <default>haloDynamicalTime</default>
+   <method name="rate" >
+    <description>Return the rate at which outflowed mass is being reincorporated into the hot halo.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Hot_Halo_Outflows_Reincorporations

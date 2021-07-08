@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program which tests nonlinear collapse solution in an Einstein-de Sitter cosmology.
+!!{
+Contains a program which tests nonlinear collapse solution in an Einstein-de Sitter cosmology.
+!!}
 
 program Tests_Spherical_Collapse_NonLinear
-  !% Tests nonlinear collapse solution in an Einstein-de Sitter cosmology.
+  !!{
+  Tests nonlinear collapse solution in an Einstein-de Sitter cosmology.
+  !!}
   use :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters      , only : cosmologyParametersSimple
-  use :: Galacticus_Display        , only : Galacticus_Verbosity_Level_Set                  , verbosityStandard
+  use :: Display                   , only : displayVerbositySet                             , verbosityLevelStandard
   use :: Linear_Growth             , only : linearGrowthCollisionlessMatter
   use :: Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
   use :: Tables                    , only : table2DLinLinLin
@@ -42,7 +46,7 @@ program Tests_Spherical_Collapse_NonLinear
   integer                                                                                     :: i
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Initialize cosmology.
   cosmologyParameters_    =cosmologyParametersSimple                       (                                      &
        &                                                                    OmegaMatter    = 1.00d0             , &

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,16 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that implements bar instabilities in disks.
+  !!{
+  Implements a node operator class that implements bar instabilities in disks.
+  !!}
 
   use :: Dark_Matter_Halo_Scales            , only : darkMatterHaloScaleClass
   use :: Galactic_Dynamics_Bar_Instabilities, only : galacticDynamicsBarInstabilityClass
   
-  !# <nodeOperator name="nodeOperatorBarInstability">
-  !#  <description>A node operator class that implements bar instabilities in disks.</description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorBarInstability">
+   <description>
+    A node operator class that implements bar instabilities in disks. A fraction of the angular momentum of the material
+    transferred from the disk to the spheroid is retained in the disk as suggested by numerical experiments
+    \citep{klypin_cdm-based_2002}.
+   </description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorBarInstability
-     !% A node operator class that implements bar instabilities in disks.
+     !!{
+     A node operator class that implements bar instabilities in disks.
+     !!}
      private
      class  (darkMatterHaloScaleClass           ), pointer :: darkMatterHaloScale_            => null()
      class  (galacticDynamicsBarInstabilityClass), pointer :: galacticDynamicsBarInstability_ => null()
@@ -37,7 +47,9 @@
   end type nodeOperatorBarInstability
 
   interface nodeOperatorBarInstability
-     !% Constructors for the {\normalfont \ttfamily barInstability} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily barInstability} node operator class.
+     !!}
      module procedure barInstabilityConstructorParameters
      module procedure barInstabilityConstructorInternal
   end interface nodeOperatorBarInstability
@@ -45,7 +57,9 @@
 contains
 
   function barInstabilityConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily barInstability} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily barInstability} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type   (nodeOperatorBarInstability         )                :: self
@@ -54,45 +68,59 @@ contains
     class  (galacticDynamicsBarInstabilityClass), pointer       :: galacticDynamicsBarInstability_
     logical                                                     :: luminositiesStellarInactive
 
-    !# <inputParameter>
-    !#   <name>luminositiesStellarInactive</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>If true, stellar luminosities will be treated as inactive properties.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"/>
-    !# <objectBuilder class="galacticDynamicsBarInstability" name="galacticDynamicsBarInstability_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>luminositiesStellarInactive</name>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+      <description>If true, stellar luminosities will be treated as inactive properties.</description>
+    </inputParameter>
+    <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"/>
+    <objectBuilder class="galacticDynamicsBarInstability" name="galacticDynamicsBarInstability_" source="parameters"/>
+    !!]
     self=nodeOperatorBarInstability(luminositiesStellarInactive,darkMatterHaloScale_,galacticDynamicsBarInstability_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="galacticDynamicsBarInstability_"/>
-    !# <objectDestructor name="darkMatterHaloScale_"           />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticDynamicsBarInstability_"/>
+    <objectDestructor name="darkMatterHaloScale_"           />
+    !!]
     return
   end function barInstabilityConstructorParameters
 
   function barInstabilityConstructorInternal(luminositiesStellarInactive,darkMatterHaloScale_,galacticDynamicsBarInstability_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily barInstability} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily barInstability} node operator class.
+    !!}
     implicit none
     type   (nodeOperatorBarInstability         )                        :: self
     class  (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
     class  (galacticDynamicsBarInstabilityClass), intent(in   ), target :: galacticDynamicsBarInstability_
     logical                                     , intent(in   )         :: luminositiesStellarInactive
-    !# <constructorAssign variables="luminositiesStellarInactive, *darkMatterHaloScale_, *galacticDynamicsBarInstability_"/>
+    !![
+    <constructorAssign variables="luminositiesStellarInactive, *darkMatterHaloScale_, *galacticDynamicsBarInstability_"/>
+    !!]
 
     return
   end function barInstabilityConstructorInternal
 
   subroutine barInstabilityDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily barInstability} node operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily barInstability} node operator class.
+    !!}
     implicit none
     type(nodeOperatorBarInstability), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_"           />
-    !# <objectDestructor name="self%galacticDynamicsBarInstability_"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"           />
+    <objectDestructor name="self%galacticDynamicsBarInstability_"/>
+    !!]
     return
   end subroutine barInstabilityDestructor
   
   subroutine barInstabilityDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Perform star formation in a disk.
+    !!{
+    Implement the effects of global bar instability on the galactic disk.
+    !!}
     use :: Galacticus_Nodes              , only : propertyTypeInactive, nodeComponentDisk  , nodeComponentSpheroid
     use :: Abundances_Structure          , only : operator(*)         , abundances         , zeroAbundances         , max
     use :: Histories                     , only : operator(*)         , history
@@ -109,8 +137,8 @@ contains
     !$omp threadprivate(stellarAbundancesRates,fuelAbundancesRates)
     type            (stellarLuminosities       ), save                   :: luminositiesTransferRate
     !$omp threadprivate(luminositiesTransferRate)
-    double precision                                                     :: barInstabilityTimescale , barInstabilitySpecificTorque, &
-         &                                                                  transferRate
+    double precision                                                     :: barInstabilityTimescale , barInstabilitySpecificTorque   , &
+         &                                                                  transferRate            , fractionAngularMomentumRetained
     type            (history                   )                         :: historyTransferRate
 
     ! Do nothing during inactive property solving.
@@ -124,7 +152,7 @@ contains
     ! Determine if the disk is bar unstable and, if so, the rate at which material is moved to the pseudo-bulge.
     if (node%isPhysicallyPlausible) then
        ! Disk has positive angular momentum, so compute an instability timescale.
-       call self%galacticDynamicsBarInstability_%timescale(node,barInstabilityTimescale,barInstabilitySpecificTorque)
+       call self%galacticDynamicsBarInstability_%timescale(node,barInstabilityTimescale,barInstabilitySpecificTorque,fractionAngularMomentumRetained)
     else
        ! Disk has non-positive angular momentum, therefore it is unphysical. Do not compute an instability timescale in this
        ! case as the disk radius may be unphysical also.
@@ -136,32 +164,33 @@ contains
     spheroid => node%spheroid()
     ! Gas mass.
     transferRate               =max(         0.0d0         ,disk    %massGas             (                         ))/barInstabilityTimescale
-    call                                      disk    %massGasRate             (-           transferRate                              )
-    call                                      spheroid%massGasRate             (+           transferRate ,interrupt,functionInterrupt)
+    call                                      disk    %massGasRate             (-                                                    transferRate                            )
+    call                                      spheroid%massGasRate             (+                                                    transferRate,interrupt,functionInterrupt)
     ! Fraction of stellar mass transferred.
     transferRate               =max(         0.0d0         ,disk    %fractionMassRetained(                         ))/barInstabilityTimescale
-    call                                      disk    %fractionMassRetainedRate(-           transferRate                              )
+    call                                      disk    %fractionMassRetainedRate(-                                                    transferRate                            )
     ! Stellar mass.
     transferRate               =max(         0.0d0         ,disk    %massStellar         (                         ))/barInstabilityTimescale
-    call                                      disk    %massStellarRate         (-           transferRate                              )
-    call                                      spheroid%massStellarRate         (+           transferRate ,interrupt,functionInterrupt)
-    ! Angular momentum.
+    call                                      disk    %massStellarRate         (-                                                    transferRate                            )
+    call                                      spheroid%massStellarRate         (+                                                    transferRate,interrupt,functionInterrupt)
+    ! Angular momentum. Note that we only removed from the disk the non-retained fraction. However, for the spheroid we transfer
+    ! the full amount of angular momentum as this becomes the "pseudo-angular momentum" of the spheroid.
     transferRate               =max(         0.0d0         ,disk    %angularMomentum     (                         ))/barInstabilityTimescale
-    call                                      disk    %angularMomentumRate     (-           transferRate                              )
-    call                                      spheroid%angularMomentumRate     (+           transferRate ,interrupt,functionInterrupt)
+    call                                      disk    %angularMomentumRate     (-(1.0d0-fractionAngularMomentumRetained)*            transferRate                            )
+    call                                      spheroid%angularMomentumRate     (+                                                    transferRate,interrupt,functionInterrupt)
     ! Gas abundances.
     fuelAbundancesRates        =max(zeroAbundances         ,disk    %abundancesGas       (                         ))/barInstabilityTimescale
-    call                                      disk    %abundancesGasRate       (-     fuelAbundancesRates                             )
-    call                                      spheroid%abundancesGasRate       (+     fuelAbundancesRates,interrupt,functionInterrupt)
+    call                                      disk    %abundancesGasRate       (-                                             fuelAbundancesRates                            )
+    call                                      spheroid%abundancesGasRate       (+                                             fuelAbundancesRates,interrupt,functionInterrupt)
     ! Stellar abundances.
     stellarAbundancesRates     =max(zeroAbundances         ,disk    %abundancesStellar   (                         ))/barInstabilityTimescale
-    call                                      disk    %abundancesStellarRate   (-  stellarAbundancesRates                             )
-    call                                      spheroid%abundancesStellarRate   (+  stellarAbundancesRates,interrupt,functionInterrupt)
+    call                                      disk    %abundancesStellarRate   (-                                          stellarAbundancesRates                            )
+    call                                      spheroid%abundancesStellarRate   (+                                          stellarAbundancesRates,interrupt,functionInterrupt)
     ! Stellar luminosities.
     if (.not.self%luminositiesStellarInactive) then
        luminositiesTransferRate=max(zeroStellarLuminosities,disk    %luminositiesStellar (                         ))/barInstabilityTimescale
-       call                                   disk    %luminositiesStellarRate (-luminositiesTransferRate                             )
-       call                                   spheroid%luminositiesStellarRate (+luminositiesTransferRate,interrupt,functionInterrupt)
+       call                                   disk    %luminositiesStellarRate (-                                        luminositiesTransferRate                            )
+       call                                   spheroid%luminositiesStellarRate (+                                        luminositiesTransferRate,interrupt,functionInterrupt)
     end if
     ! Stellar properties history.
     historyTransferRate=disk%stellarPropertiesHistory()

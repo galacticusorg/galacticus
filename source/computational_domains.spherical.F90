@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,22 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use            :: Radiative_Transfer_Matters     , only : radiativeTransferMatterClass     , radiativeTransferPropertiesMatter
-  use            :: Radiative_Transfer_Convergences, only : radiativeTransferConvergenceClass
   use, intrinsic :: ISO_C_Binding                  , only : c_size_t
   use            :: Multi_Counters                 , only : multiCounter
+  use            :: Radiative_Transfer_Convergences, only : radiativeTransferConvergenceClass
+  use            :: Radiative_Transfer_Matters     , only : radiativeTransferMatterClass     , radiativeTransferPropertiesMatter
 
   type :: sphericalBoundaries
-     !% Type used to store boundaries of computational domain cells for spherical domains.
+     !!{
+     Type used to store boundaries of computational domain cells for spherical domains.
+     !!}
      private
      double precision, allocatable, dimension(:) :: boundary
   end type sphericalBoundaries
   
-  !# <computationalDomain name="computationalDomainSpherical">
-  !#  <description>A computational domain using a spherical grid.</description>
-  !# </computationalDomain>
+  !![
+  <computationalDomain name="computationalDomainSpherical">
+   <description>A computational domain using a spherical grid.</description>
+  </computationalDomain>
+  !!]
   type, extends(computationalDomainClass) :: computationalDomainSpherical
-     !% Implementation of a computational domain using a spherical grid.
+     !!{
+     Implementation of a computational domain using a spherical grid.
+     !!}
      private
      double precision                                                , dimension(2) :: boundaries
      integer         (c_size_t                         )                            :: countCells
@@ -60,26 +66,34 @@
   end type computationalDomainSpherical
 
   interface computationalDomainSpherical
-     !% Constructors for the {\normalfont \ttfamily spherical} computational domain.
+     !!{
+     Constructors for the {\normalfont \ttfamily spherical} computational domain.
+     !!}
      module procedure sphericalConstructorParameters
      module procedure sphericalConstructorInternal
   end interface computationalDomainSpherical
 
   type, extends(domainIterator) :: domainIteratorSpherical
-     !% An interactor for spherical computational domains.
+     !!{
+     An interactor for spherical computational domains.
+     !!}
      private
      type(multiCounter) :: counter_
    contains
-     !# <methods>
-     !#   <method description="Move to the next cell in the domain." method="next" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Move to the next cell in the domain." method="next" />
+     </methods>
+     !!]
      procedure :: next => domainIteratorSphericalNext
   end type domainIteratorSpherical
   
 contains
 
   function sphericalConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily spherical} computational domain class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily spherical} computational domain class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (computationalDomainSpherical     )                :: self
@@ -91,47 +105,53 @@ contains
     double precision                                                   :: convergencePercentile        , convergenceThreshold, &
          &                                                                convergenceRatioThreshold
     
-    !# <inputParameter>
-    !#   <name>boundaries</name>
-    !#   <defaultValue>[+0.0d0,+1.0d0]</defaultValue>
-    !#   <description>The $r$-interval spanned by the computational domain.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>countCells</name>
-    !#   <defaultValue>3_c_size_t</defaultValue>
-    !#   <description>The number of cells in the domain in radius.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>convergencePercentile</name>
-    !#   <defaultValue>0.99d0</defaultValue>
-    !#   <description>The percentile used in the convergence criterion.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>convergenceThreshold</name>
-    !#   <defaultValue>2.0d0</defaultValue>
-    !#   <description>The threshold for the convergence measure.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>convergenceRatioThreshold</name>
-    !#   <defaultValue>1.1d0</defaultValue>
-    !#   <description>The threshold for the change in convergence criterion.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="radiativeTransferMatter"      name="radiativeTransferMatter_"      source="parameters"/>
-    !# <objectBuilder class="radiativeTransferConvergence" name="radiativeTransferConvergence_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>boundaries</name>
+      <defaultValue>[+0.0d0,+1.0d0]</defaultValue>
+      <description>The $r$-interval spanned by the computational domain.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>countCells</name>
+      <defaultValue>3_c_size_t</defaultValue>
+      <description>The number of cells in the domain in radius.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>convergencePercentile</name>
+      <defaultValue>0.99d0</defaultValue>
+      <description>The percentile used in the convergence criterion.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>convergenceThreshold</name>
+      <defaultValue>2.0d0</defaultValue>
+      <description>The threshold for the convergence measure.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>convergenceRatioThreshold</name>
+      <defaultValue>1.1d0</defaultValue>
+      <description>The threshold for the change in convergence criterion.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="radiativeTransferMatter"      name="radiativeTransferMatter_"      source="parameters"/>
+    <objectBuilder class="radiativeTransferConvergence" name="radiativeTransferConvergence_" source="parameters"/>
+    !!]
     self=computationalDomainSpherical(boundaries,countCells,convergencePercentile,convergenceThreshold,convergenceRatioThreshold,radiativeTransferMatter_,radiativeTransferConvergence_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="radiativeTransferMatter_"     />
-    !# <objectDestructor name="radiativeTransferConvergence_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="radiativeTransferMatter_"     />
+    <objectDestructor name="radiativeTransferConvergence_"/>
+    !!]
     return
   end function sphericalConstructorParameters
 
   function sphericalConstructorInternal(boundaries,countCells,convergencePercentile,convergenceThreshold,convergenceRatioThreshold,radiativeTransferMatter_,radiativeTransferConvergence_) result(self)
-    !% Constructor for the {\normalfont \ttfamily spherical} computational domain class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily spherical} computational domain class which takes a parameter set as input.
+    !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
     implicit none
     type            (computationalDomainSpherical     )                              :: self
@@ -141,7 +161,9 @@ contains
          &                                                                              convergenceRatioThreshold
     class           (radiativeTransferMatterClass     ), target      , intent(in   ) :: radiativeTransferMatter_
     class           (radiativeTransferConvergenceClass), target      , intent(in   ) :: radiativeTransferConvergence_
-    !# <constructorAssign variables="boundaries, countCells, convergencePercentile, convergenceThreshold, convergenceRatioThreshold, *radiativeTransferMatter_, *radiativeTransferConvergence_"/>
+    !![
+    <constructorAssign variables="boundaries, countCells, convergencePercentile, convergenceThreshold, convergenceRatioThreshold, *radiativeTransferMatter_, *radiativeTransferConvergence_"/>
+    !!]
     
     ! Construct cell boundaries.
     allocate(self%boundariesCells%boundary(countCells+1))
@@ -153,22 +175,28 @@ contains
   end function sphericalConstructorInternal
 
   subroutine sphericalDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily spherical} computational domain class.
+    !!{
+    Destructor for the {\normalfont \ttfamily spherical} computational domain class.
+    !!}
     implicit none
     type(computationalDomainSpherical), intent(inout) :: self
 
-    !# <objectDestructor name="self%radiativeTransferMatter_"     />
-    !# <objectDestructor name="self%radiativeTransferConvergence_"/>
+    !![
+    <objectDestructor name="self%radiativeTransferMatter_"     />
+    <objectDestructor name="self%radiativeTransferConvergence_"/>
+    !!]
     return
   end subroutine sphericalDestructor
 
   subroutine sphericalInitialize(self)
-    !% Initialize the computational domain.
+    !!{
+    Initialize the computational domain.
+    !!}
     use :: Computational_Domain_Volume_Integrators, only : computationalDomainVolumeIntegratorSpherical
-    use :: Galacticus_Display                     , only : Galacticus_Display_Indent                     , Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                                                 verbosityStandard                             , verbosityWorking
+    use :: Display                                , only : displayCounter                              , displayCounterClear  , displayIndent, displayUnindent, &
+          &                                                verbosityLevelStandard                      , verbosityLevelWorking
     use :: Galacticus_Error                       , only : Galacticus_Error_Report
-    use :: MPI_Utilities                          , only : mpiSelf                                       , mpiBarrier
+    use :: MPI_Utilities                          , only : mpiBarrier                                  , mpiSelf
     use :: Timers                                 , only : timer
     implicit none
     class           (computationalDomainSpherical                ), intent(inout) :: self
@@ -202,13 +230,13 @@ contains
        end if
     end do
     ! Construct the domain.
-    if (mpiSelf%isMaster()) call Galacticus_Display_Indent('populating computational domain',verbosityStandard)
+    if (mpiSelf%isMaster()) call displayIndent('populating computational domain',verbosityLevelStandard)
     call timer_%start                                 (          )
     call self  %radiativeTransferMatter_%propertyClass(properties)
     allocate(self%properties(self%countCells),mold=properties)
     deallocate(properties)
     do i    =1,self%countCells
-       if (mpiSelf%isMaster()) call Galacticus_Display_Counter(int(100.0d0*dble(i-1_c_size_t)/dble(self%countCells)),isNew=i==1,verbosity=verbosityWorking)
+       if (mpiSelf%isMaster()) call displayCounter(int(100.0d0*dble(i-1_c_size_t)/dble(self%countCells)),isNew=i==1,verbosity=verbosityLevelWorking)
        boundariesCell   (:)=self%boundariesCells%boundary(i:i+1)
        ! Build a volume integrator for this cell.
        allocate(integrator)
@@ -220,14 +248,14 @@ contains
     end do
     call mpiBarrier     ()
     call timer_    %stop()
-    if (mpiSelf%isMaster()) call Galacticus_Display_Counter_Clear(                                   verbosityWorking )
-    if (mpiSelf%isMaster()) call Galacticus_Display_Unindent     ('done ['//timer_%reportText()//']',verbosityStandard)
+    if (mpiSelf%isMaster()) call displayCounterClear(                                   verbosityLevelWorking )
+    if (mpiSelf%isMaster()) call displayUnindent     ('done ['//timer_%reportText()//']',verbosityLevelStandard)
 #ifdef USEMPI
     ! Broadcast populated domain cells.
-    if (mpiSelf%isMaster()) call Galacticus_Display_Indent('broadcasting computational domain',verbosityStandard)
+    if (mpiSelf%isMaster()) call displayIndent('broadcasting computational domain',verbosityLevelStandard)
     call timer_%start                                 (          )
     do p=0,mpiSelf%count()-1
-       if (mpiSelf%isMaster()) call Galacticus_Display_Counter(int(100.0d0*dble(p)/dble(mpiSelf%count())),isNew=p==1,verbosity=verbosityWorking)
+       if (mpiSelf%isMaster()) call displayCounter(int(100.0d0*dble(p)/dble(mpiSelf%count())),isNew=p==1,verbosity=verbosityLevelWorking)
        do i=self%sliceMinimum(p),self%sliceMaximum(p)
           call self%radiativeTransferMatter_%broadcastDomain(p,self%properties(i))
           call mpiBarrier()
@@ -235,14 +263,16 @@ contains
     end do
     call mpiBarrier()
     call timer_    %stop()
-    if (mpiSelf%isMaster()) call Galacticus_Display_Counter_Clear(                                   verbosityWorking )
-    if (mpiSelf%isMaster()) call Galacticus_Display_Unindent     ('done ['//timer_%reportText()//']',verbosityStandard)
+    if (mpiSelf%isMaster()) call displayCounterClear(                                   verbosityLevelWorking )
+    if (mpiSelf%isMaster()) call displayUnindent     ('done ['//timer_%reportText()//']',verbosityLevelStandard)
 #endif
     return
   end subroutine sphericalInitialize
 
   subroutine sphericalIterator(self,iterator)
-    !% Construct an iterator for this domain,
+    !!{
+    Construct an iterator for this domain,
+    !!}
     implicit none
     class(computationalDomainSpherical), intent(inout)              :: self
     class(domainIterator              ), intent(inout), allocatable :: iterator
@@ -265,7 +295,9 @@ contains
   end function domainIteratorSphericalNext
   
   subroutine sphericalReset(self)
-    !% Reset the computational domain prior to a new iteration.
+    !!{
+    Reset the computational domain prior to a new iteration.
+    !!}
     implicit none
     class  (computationalDomainSpherical), intent(inout) :: self
     integer(c_size_t                    )                :: i
@@ -277,7 +309,9 @@ contains
   end subroutine sphericalReset
 
   subroutine sphericalIndicesFromPosition(self,position,indices)
-    !% Determine the indices of the cell containing the given point.
+    !!{
+    Determine the indices of the cell containing the given point.
+    !!}
     use :: Arrays_Search, only : searchArray
 
     implicit none
@@ -306,7 +340,9 @@ contains
   end subroutine sphericalIndicesFromPosition
 
   double precision function sphericalAbsorptionCoefficient(self,photonPacket,indices)
-    !% Return the absorption coefficient for the given photon packet in the given domain cell.
+    !!{
+    Return the absorption coefficient for the given photon packet in the given domain cell.
+    !!}
     implicit none
     class  (computationalDomainSpherical      )              , intent(inout) :: self
     class  (radiativeTransferPhotonPacketClass)              , intent(inout) :: photonPacket
@@ -322,7 +358,9 @@ contains
   end function sphericalAbsorptionCoefficient
   
   double precision function sphericalLengthToCellBoundary(self,photonPacket,indices,indicesNeighbor,positionBoundary)
-    !% Return the length to the first domain cell boundary intersected by the given photon packet.
+    !!{
+    Return the length to the first domain cell boundary intersected by the given photon packet.
+    !!}
     implicit none
     class           (computationalDomainSpherical      )                           , intent(inout) :: self
     class           (radiativeTransferPhotonPacketClass)                           , intent(inout) :: photonPacket
@@ -407,7 +445,9 @@ contains
   end function sphericalLengthToCellBoundary
 
   subroutine sphericalAccumulatePhotonPacket(self,photonPacket,indices,absorptionCoefficient,lengthTraversed)
-    !% Accumulate ``absorptions'' from the photon packet as it traverses a cell of the computational domain.
+    !!{
+    Accumulate ``absorptions'' from the photon packet as it traverses a cell of the computational domain.
+    !!}
     implicit none
     class           (computationalDomainSpherical      )              , intent(inout) :: self
     class           (radiativeTransferPhotonPacketClass)              , intent(inout) :: photonPacket
@@ -426,7 +466,9 @@ contains
   end subroutine sphericalAccumulatePhotonPacket
 
   logical function sphericalInteractWithPhotonPacket(self,photonPacket,indices)
-    !% Allow matter in a domain cell to interact with the photon packet.
+    !!{
+    Allow matter in a domain cell to interact with the photon packet.
+    !!}
     implicit none
     class  (computationalDomainSpherical      )              , intent(inout) :: self
     class  (radiativeTransferPhotonPacketClass)              , intent(inout) :: photonPacket
@@ -445,12 +487,14 @@ contains
   end function sphericalInteractWithPhotonPacket
   
   subroutine sphericalStateSolve(self)
-    !% Solve for the state of matter in the computational domain.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent , Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                            Galacticus_Display_Message, verbosityStandard          , verbosityWorking
-    use :: Galacticus_Error  , only : errorStatusSuccess
-    use :: MPI_Utilities     , only : mpiSelf                   , mpiBarrier
-    use :: Timers            , only : timer
+    !!{
+    Solve for the state of matter in the computational domain.
+    !!}
+    use :: Display         , only : displayCounter    , displayCounterClear   , displayIndent        , displayMessage, &
+          &                         displayUnindent   , verbosityLevelStandard, verbosityLevelWorking
+    use :: Galacticus_Error, only : errorStatusSuccess
+    use :: MPI_Utilities   , only : mpiBarrier        , mpiSelf
+    use :: Timers          , only : timer
     implicit none
     class    (computationalDomainSpherical), intent(inout) :: self
     integer  (c_size_t                    )                :: i     , countFail
@@ -465,7 +509,7 @@ contains
     ! Establish a timer.
     timer_=timer()
 #ifdef USEMPI
-    if (mpiSelf%isMaster()) call Galacticus_Display_Indent  ('accumulating absorptions across processes',verbosityStandard)
+    if (mpiSelf%isMaster()) call displayIndent  ('accumulating absorptions across processes',verbosityLevelStandard)
     call timer_%start()
     ! Reduce accumulated properties across all MPI processes.
     do i=1,self%countCells
@@ -473,14 +517,14 @@ contains
     end do
     call mpiBarrier     ()
     call timer_    %stop()
-    if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('done ['//timer_%reportText()//']'        ,verbosityStandard)
+    if (mpiSelf%isMaster()) call displayUnindent('done ['//timer_%reportText()//']'        ,verbosityLevelStandard)
 #endif
     ! Solve for state in domain cells local to this process.
-    if (mpiSelf%isMaster()) call Galacticus_Display_Indent  ('solving for domain state',verbosityStandard)
+    if (mpiSelf%isMaster()) call displayIndent  ('solving for domain state',verbosityLevelStandard)
     call timer_%start()
     countFail=0_c_size_t
     do i=self%sliceMinimum(mpiSelf%rank()),self%sliceMaximum(mpiSelf%rank())
-       if (mpiSelf%isMaster()) call Galacticus_Display_Counter(int(100.0d0*dble(i-self%sliceMinimum(mpiSelf%rank()))/dble(self%sliceMaximum(mpiSelf%rank())-self%sliceMinimum(mpiSelf%rank())+1)),isNew=i==self%sliceMinimum(mpiSelf%rank()),verbosity=verbosityWorking)
+       if (mpiSelf%isMaster()) call displayCounter(int(100.0d0*dble(i-self%sliceMinimum(mpiSelf%rank()))/dble(self%sliceMaximum(mpiSelf%rank())-self%sliceMinimum(mpiSelf%rank())+1)),isNew=i==self%sliceMinimum(mpiSelf%rank()),verbosity=verbosityLevelWorking)
        call self%radiativeTransferMatter_%stateSolve(self%properties(i),status)
        if (status /= errorStatusSuccess) countFail=countFail+1_c_size_t
     end do
@@ -488,22 +532,22 @@ contains
     countFail=mpiSelf%sum(countFail)
     call timer_    %stop()
     if (mpiSelf%isMaster()) then
-       call Galacticus_Display_Counter_Clear(                                   verbosityWorking )
+       call displayCounterClear(                                   verbosityLevelWorking )
        if (countFail == 0_c_size_t) then
           message='state solve succeeded for all cells'
        else
           write (label,'(i12)') countFail
           message='state solve failed for '//trim(adjustl(label))//' cells'
        end if
-       call Galacticus_Display_Message(message,verbosityStandard)
-       call Galacticus_Display_Unindent     ('done ['//timer_%reportText()//']',verbosityStandard)
+       call displayMessage(message,verbosityLevelStandard)
+       call displayUnindent     ('done ['//timer_%reportText()//']',verbosityLevelStandard)
     end if
     ! Broadcast populated domain cell solutions.
 #ifdef USEMPI
-    if (mpiSelf%isMaster()) call Galacticus_Display_Indent('broadcasting computational domain state',verbosityStandard)
+    if (mpiSelf%isMaster()) call displayIndent('broadcasting computational domain state',verbosityLevelStandard)
     call timer_%start()
     do p=0,mpiSelf%count()-1
-       if (mpiSelf%isMaster()) call Galacticus_Display_Counter(int(100.0d0*dble(p)/dble(mpiSelf%count())),isNew=p==1,verbosity=verbosityWorking)
+       if (mpiSelf%isMaster()) call displayCounter(int(100.0d0*dble(p)/dble(mpiSelf%count())),isNew=p==1,verbosity=verbosityLevelWorking)
        do i=self%sliceMinimum(p),self%sliceMaximum(p)
           call self%radiativeTransferMatter_%broadcastState(p,self%properties(i))
           call mpiBarrier()
@@ -511,20 +555,22 @@ contains
     end do
     call mpiBarrier     ()
     call timer_    %stop()
-    if (mpiSelf%isMaster()) call Galacticus_Display_Counter_Clear(                                   verbosityWorking )
-    if (mpiSelf%isMaster()) call Galacticus_Display_Unindent     ('done ['//timer_%reportText()//']',verbosityStandard)
+    if (mpiSelf%isMaster()) call displayCounterClear(                                   verbosityLevelWorking )
+    if (mpiSelf%isMaster()) call displayUnindent     ('done ['//timer_%reportText()//']',verbosityLevelStandard)
 #endif
     return
   end subroutine sphericalStateSolve
 
   logical function sphericalConverged(self)
-    !% Return the convergence state of the computational domain.
+    !!{
+    Return the convergence state of the computational domain.
+    !!}
     use :: Arrays_Search                  , only : searchArray
     use :: Disparity_Ratios               , only : Disparity_Ratio
-    use :: Galacticus_Display             , only : Galacticus_Display_Message, Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Verbosity_Level, &
-         &                                         verbosityStandard         , verbosityInfo
-    use :: MPI_Utilities                  , only : mpiSelf                   , mpiBarrier
-    use :: Radiative_Transfer_Convergences, only : statusCellFirst           , statusCellLast           , statusCellOther
+    use :: Display                        , only : displayIndent     , displayMessage        , displayUnindent, displayVerbosity, &
+          &                                        verbosityLevelInfo, verbosityLevelStandard
+    use :: MPI_Utilities                  , only : mpiBarrier        , mpiSelf
+    use :: Radiative_Transfer_Convergences, only : statusCellFirst   , statusCellLast        , statusCellOther
     use :: Timers                         , only : timer
     implicit none
     class           (computationalDomainSpherical), intent(inout)                         :: self
@@ -539,7 +585,7 @@ contains
 
     ! Establish a timer.
     timer_=timer()
-    if (mpiSelf%isMaster()) call Galacticus_Display_Indent('computing convergence state',verbosityStandard)
+    if (mpiSelf%isMaster()) call displayIndent('computing convergence state',verbosityLevelStandard)
     call timer_%start()
     ! Find the top k(=self%countCellsConvergence) convergence measures across all cells.
     do i=1,self%countCellsConvergence
@@ -576,32 +622,34 @@ contains
          &                   convergedCriteria
     ! Report on convergence.
     if (mpiSelf%isMaster()) then
-       call Galacticus_Display_Indent('computational domain convergence',verbosityStandard)    
+       call displayIndent('computational domain convergence',verbosityLevelStandard)    
        write (message,'(a,f6.3,a,e12.6,a,f5.3,a)') '       disparity ratio at ',100.0d0*self%convergencePercentile,'% percentile = ',convergenceMeasures    (1)," [target = ",self%convergenceThreshold     ,"]"
-       call Galacticus_Display_Message(trim(message),verbosityStandard)
+       call displayMessage(trim(message),verbosityLevelStandard)
        write (message,'(a,f6.3,a,e12.6,a,f5.3,a)') 'change disparity ratio at ',100.0d0*self%convergencePercentile,'% percentile = ',convergenceMeasureRatio   ," [target = ",self%convergenceRatioThreshold,"]"
-       call Galacticus_Display_Message(trim(message),verbosityStandard)
-       if (Galacticus_Verbosity_Level() >= verbosityInfo) then
-          call Galacticus_Display_Indent('convergence measures',verbosityInfo)    
-          call Galacticus_Display_Message('rank measure',verbosityInfo)
-          call Galacticus_Display_Message('―――――――――――――――――',verbosityInfo)
+       call displayMessage(trim(message),verbosityLevelStandard)
+       if (displayVerbosity() >= verbosityLevelInfo) then
+          call displayIndent('convergence measures',verbosityLevelInfo)    
+          call displayMessage('rank measure',verbosityLevelInfo)
+          call displayMessage('―――――――――――――――――',verbosityLevelInfo)
           do i=1,self%countCellsConvergence
              write (message,'(i4,1x,e12.6)') i,convergenceMeasures(i)
-             call Galacticus_Display_Message(trim(message),verbosityInfo)
+             call displayMessage(trim(message),verbosityLevelInfo)
           end do
-          call Galacticus_Display_Unindent('done measures',verbosityInfo)    
+          call displayUnindent('done measures',verbosityLevelInfo)    
        end if
-       call Galacticus_Display_Unindent('done',verbosityStandard)
+       call displayUnindent('done',verbosityLevelStandard)
     end if
     self%convergenceMeasurePrevious=convergenceMeasures(1)
     call mpiBarrier     ()
     call timer_    %stop()
-    if (mpiSelf%isMaster()) call Galacticus_Display_Unindent('done ['//timer_%reportText()//']',verbosityStandard)
+    if (mpiSelf%isMaster()) call displayUnindent('done ['//timer_%reportText()//']',verbosityLevelStandard)
     return
   end function sphericalConverged
 
   subroutine sphericalOutput(self,outputGroup)
-    !% Output the computational domain.
+    !!{
+    Output the computational domain.
+    !!}
     !$ use :: IO_HDF5                         , only : hdf5Access
     use    :: ISO_Varying_String              , only : char
     use    :: Numerical_Constants_Astronomical, only : megaparsec

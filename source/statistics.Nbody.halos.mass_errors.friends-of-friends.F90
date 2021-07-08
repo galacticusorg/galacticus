@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,20 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements an N-body dark matter halo mass error class using a fit appropriate for friends-of-friends
-  !% group finders.
+  !!{
+  Contains a module which implements an N-body dark matter halo mass error class using a fit appropriate for friends-of-friends
+  group finders.
+  !!}
 
-  !# <nbodyHaloMassError name="nbodyHaloMassErrorFriendsOfFriends">
-  !#  <description>An N-body dark matter halo mass error class which uses a fit appropriate for friends-of-friends group finders.</description>
-  !# </nbodyHaloMassError>
+  !![
+  <nbodyHaloMassError name="nbodyHaloMassErrorFriendsOfFriends">
+   <description>An N-body dark matter halo mass error class which uses a fit appropriate for friends-of-friends group finders.</description>
+  </nbodyHaloMassError>
+  !!]
   type, extends(nbodyHaloMassErrorPowerLaw) :: nbodyHaloMassErrorFriendsOfFriends
-     !% An N-body halo mass error class which uses a fit appropriate for friends-of-friends group finders.
+     !!{
+     An N-body halo mass error class which uses a fit appropriate for friends-of-friends group finders.
+     !!}
      private
    contains
   end type nbodyHaloMassErrorFriendsOfFriends
 
   interface nbodyHaloMassErrorFriendsOfFriends
-     !% Constructors for the {\normalfont \ttfamily friendsOfFriends} N-body halo mass error class.
+     !!{
+     Constructors for the {\normalfont \ttfamily friendsOfFriends} N-body halo mass error class.
+     !!}
      module procedure nbodyHaloMassErrorFriendsOfFriendsParameters
      module procedure nbodyHaloMassErrorFriendsOfFriendsInternal
   end interface nbodyHaloMassErrorFriendsOfFriends
@@ -38,7 +46,9 @@
 contains
 
   function nbodyHaloMassErrorFriendsOfFriendsParameters(parameters)
-    !% Constructor for the {\normalfont \ttfamily friendsOfFriends} N-body halo mass error class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily friendsOfFriends} N-body halo mass error class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyHaloMassErrorFriendsOfFriends)                :: nbodyHaloMassErrorFriendsOfFriendsParameters
@@ -46,19 +56,25 @@ contains
     double precision                                                    :: massParticle
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>massParticle</name>
-    !#   <source>parameters</source>
-    !#   <variable>massParticle</variable>
-    !#   <description>The mass of the particle in the N-body simulation in which friends-of-friends groups were found.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>massParticle</name>
+      <source>parameters</source>
+      <variable>massParticle</variable>
+      <description>The mass of the particle in the N-body simulation in which friends-of-friends groups were found.</description>
+    </inputParameter>
+    !!]
     nbodyHaloMassErrorFriendsOfFriendsParameters=nbodyHaloMassErrorFriendsOfFriends(massParticle)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function nbodyHaloMassErrorFriendsOfFriendsParameters
 
   function nbodyHaloMassErrorFriendsOfFriendsInternal(massParticle)
-    !% Internal constructor for the {\normalfont \ttfamily friendsOfFriends} N-body halo mass error class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily friendsOfFriends} N-body halo mass error class.
+    !!}
     implicit none
     type            (nbodyHaloMassErrorFriendsOfFriends)                :: nbodyHaloMassErrorFriendsOfFriendsInternal
     double precision                                    , intent(in   ) :: massParticle

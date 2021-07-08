@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that applies dynamical friction to orbiting satellite halos.
+  !!{
+  Implements a node operator class that applies dynamical friction to orbiting satellite halos.
+  !!}
 
   use :: Satellite_Dynamical_Friction, only : satelliteDynamicalFrictionClass
 
-  !# <nodeOperator name="nodeOperatorSatelliteDynamicalFriction">
-  !#  <description>A node operator class that applies dynamical friction to orbiting satellite halos.</description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorSatelliteDynamicalFriction">
+   <description>A node operator class that applies dynamical friction to orbiting satellite halos.</description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteDynamicalFriction
-     !% A node operator class that applies dynamical friction to orbiting satellite halos.
+     !!{
+     A node operator class that applies dynamical friction to orbiting satellite halos.
+     !!}
      private
      class(satelliteDynamicalFrictionClass), pointer :: satelliteDynamicalFriction_ => null()
    contains
@@ -34,7 +40,9 @@
   end type nodeOperatorSatelliteDynamicalFriction
   
   interface nodeOperatorSatelliteDynamicalFriction
-     !% Constructors for the {\normalfont \ttfamily satelliteDynamicalFriction} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily satelliteDynamicalFriction} node operator class.
+     !!}
      module procedure satelliteDynamicalFrictionConstructorParameters
      module procedure satelliteDynamicalFrictionConstructorInternal
   end interface nodeOperatorSatelliteDynamicalFriction
@@ -42,41 +50,57 @@
 contains
 
   function satelliteDynamicalFrictionConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily satelliteDynamicalFriction} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily satelliteDynamicalFriction} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodeOperatorSatelliteDynamicalFriction)                :: self
     type (inputParameters                       ), intent(inout) :: parameters
     class(satelliteDynamicalFrictionClass       ), pointer       :: satelliteDynamicalFriction_
     
-    !# <objectBuilder class="satelliteDynamicalFriction" name="satelliteDynamicalFriction_" source="parameters"/>
+    !![
+    <objectBuilder class="satelliteDynamicalFriction" name="satelliteDynamicalFriction_" source="parameters"/>
+    !!]
     self=nodeOperatorSatelliteDynamicalFriction(satelliteDynamicalFriction_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="satelliteDynamicalFriction_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="satelliteDynamicalFriction_"/>
+    !!]
     return
   end function satelliteDynamicalFrictionConstructorParameters
 
   function satelliteDynamicalFrictionConstructorInternal(satelliteDynamicalFriction_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily satelliteDynamicalFriction} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily satelliteDynamicalFriction} node operator class.
+    !!}
     implicit none
     type (nodeOperatorSatelliteDynamicalFriction)                        :: self
     class(satelliteDynamicalFrictionClass       ), intent(in   ), target :: satelliteDynamicalFriction_
-    !# <constructorAssign variables="*satelliteDynamicalFriction_"/>
+    !![
+    <constructorAssign variables="*satelliteDynamicalFriction_"/>
+    !!]
 
     return
   end function satelliteDynamicalFrictionConstructorInternal
 
   subroutine satelliteDynamicalFrictionDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily satelliteDynamicalFriction} node operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily satelliteDynamicalFriction} node operator class.
+    !!}
     implicit none
     type(nodeOperatorSatelliteDynamicalFriction), intent(inout) :: self
 
-    !# <objectDestructor name="self%satelliteDynamicalFriction_"/>
+    !![
+    <objectDestructor name="self%satelliteDynamicalFriction_"/>
+    !!]
     return
   end subroutine satelliteDynamicalFrictionDestructor
   
   subroutine satelliteDynamicalFrictionDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Perform deceleration of a satellite due to dynamical friction.
+    !!{
+    Perform deceleration of a satellite due to dynamical friction.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
     class    (nodeOperatorSatelliteDynamicalFriction), intent(inout), target  :: self

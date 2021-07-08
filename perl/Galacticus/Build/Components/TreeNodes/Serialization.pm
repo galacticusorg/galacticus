@@ -38,7 +38,7 @@ sub Tree_Node_Serialize_ASCII {
 	modules     =>
 	    [
 	     "ISO_Varying_String",
-	     "Galacticus_Display",
+	     "Display",
 	     "String_Handling"
 	    ],
 	variables   =>
@@ -63,21 +63,21 @@ sub Tree_Node_Serialize_ASCII {
     $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 message='Dumping node '
 message=message//self%index()
-call Galacticus_Display_Indent(message)
+call displayIndent(message)
 message='host tree: '
 message=message//self%hostTree%index
-call Galacticus_Display_Message(message)
-call Galacticus_Display_Indent('pointers')
+call displayMessage(message)
+call displayIndent('pointers')
 CODE
     foreach $code::pointer ( "parent", "firstChild", "sibling", "firstSatellite", "mergeTarget", "firstMergee", "siblingMergee", "formationNode" ) {
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 message='{" " x (14-length($pointer))}{$pointer}: '
 message=message//self%{$pointer}%index()
-call Galacticus_Display_Message(message)
+call displayMessage(message)
 CODE
     }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-call Galacticus_Display_Unindent('done')
+call displayUnindent('done')
 CODE
     # Iterate over all component classes
     foreach $code::class ( &List::ExtraUtils::hashList($build->{'componentClasses'}) ) {
@@ -92,7 +92,7 @@ end if
 CODE
     }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-call Galacticus_Display_Unindent('done')
+call displayUnindent('done')
 CODE
     # Insert a type-binding for this function into the treeNode type.
     push(
@@ -116,7 +116,7 @@ sub Tree_Node_Serialize_XML {
 	modules     =>
 	    [
 	     "ISO_Varying_String",
-	     "Galacticus_Display",
+	     "Display",
 	     "String_Handling"
 	    ],
 	variables   =>

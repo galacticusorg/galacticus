@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <task name="taskBuildToolCAMB">
-  !#  <description>A task which builds the CAMB tool.</description>
-  !# </task>
+  !![
+  <task name="taskBuildToolCAMB">
+   <description>A task which builds the CAMB tool.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskBuildToolCAMB
-     !% Implementation of a task which builds the CAMB tool.
+     !!{
+     Implementation of a task which builds the CAMB tool.
+     !!}
      private
    contains
      procedure :: perform            => buildToolCAMBPerform
@@ -29,14 +33,18 @@
   end type taskBuildToolCAMB
 
   interface taskBuildToolCAMB
-     !% Constructors for the {\normalfont \ttfamily buildToolCAMB} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily buildToolCAMB} task.
+     !!}
      module procedure buildToolCAMBParameters
   end interface taskBuildToolCAMB
 
 contains
 
   function buildToolCAMBParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily buildToolCAMB} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily buildToolCAMB} task class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(taskBuildToolCAMB)                :: self
@@ -48,26 +56,30 @@ contains
   end function buildToolCAMBParameters
 
   subroutine buildToolCAMBPerform(self,status)
-    !% Builds the tabulation.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
-    use :: Galacticus_Error  , only : errorStatusSuccess
-    use :: Interfaces_CAMB   , only : Interface_CAMB_Initialize
+    !!{
+    Builds the tabulation.
+    !!}
+    use :: Display         , only : displayIndent            , displayMessage, displayUnindent
+    use :: Galacticus_Error, only : errorStatusSuccess
+    use :: Interfaces_CAMB , only : Interface_CAMB_Initialize
     implicit none
     class  (taskBuildToolCAMB), intent(inout), target   :: self
     integer                   , intent(  out), optional :: status
     type   (varying_string   )                          :: cambPath, cambVersion
     !$GLC attributes unused :: self
 
-    call Galacticus_Display_Indent  ('Begin task: CAMB tool build')
+    call displayIndent  ('Begin task: CAMB tool build')
     call Interface_CAMB_Initialize(cambPath,cambVersion,static=.true.)
-    call Galacticus_Display_Message('CAMB version '//cambVersion//' successfully built in: '//cambPath)
+    call displayMessage('CAMB version '//cambVersion//' successfully built in: '//cambPath)
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: CAMB tool build')
+    call displayUnindent('Done task: CAMB tool build')
     return
   end subroutine buildToolCAMBPerform
 
   logical function buildToolCAMBRequiresOutputFile(self)
-    !% Specifies that this task does not requires the main output file.
+    !!{
+    Specifies that this task does not requires the main output file.
+    !!}
     implicit none
     class(taskBuildToolCAMB), intent(inout) :: self
     !$GLC attributes unused :: self

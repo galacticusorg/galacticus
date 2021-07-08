@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,20 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a merger tree masses class which reads masses from a file.
+  !!{
+  Implementation of a merger tree masses class which reads masses from a file.
+  !!}
 
-  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesRead" abstract="yes">
-  !#  <description>A merger tree masses class which samples masses from a distribution.</description>
-  !# </mergerTreeBuildMasses>
+  !![
+  <mergerTreeBuildMasses name="mergerTreeBuildMassesRead" abstract="yes">
+   <description>A merger tree masses class which samples masses from a distribution.</description>
+  </mergerTreeBuildMasses>
+  !!]
   type, abstract, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesRead
-     !% Implementation of a merger tree masses class which reads masses from a file.
+     !!{
+     Implementation of a merger tree masses class which reads masses from a file.
+     !!}
      private
      type            (varying_string) :: fileName
      double precision                 :: massIntervalFractional
    contains
-     !# <methods>
-     !#   <method description="Read the halo masses, and, optionally, weights, from file.." method="read" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Read the halo masses, and, optionally, weights, from file.." method="read" />
+     </methods>
+     !!]
      procedure                             :: construct => readConstruct
      procedure(readReadTemplate), deferred :: read
   end type mergerTreeBuildMassesRead
@@ -46,7 +54,9 @@
 contains
 
   subroutine readConstruct(self,time,mass,massMinimum,massMaximum,weight)
-    !% Construct a set of merger tree masses by reading from a file.
+    !!{
+    Construct a set of merger tree masses by reading from a file.
+    !!}
     use :: Memory_Management, only : allocateArray
     use :: Sorting          , only : sort
     implicit none

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,22 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of linear growth of cosmological structure in models consisting of only collisionless matter. Ignores
-  !% pressure terms for the growth of baryons and has no wavenumber dependence. Also assumes no growth of radiation perturbations.
+  !!{
+  An implementation of linear growth of cosmological structure in models consisting of only collisionless matter. Ignores
+  pressure terms for the growth of baryons and has no wavenumber dependence. Also assumes no growth of radiation perturbations.
+  !!}
 
-  !# <linearGrowth name="linearGrowthCollisionlessMatter">
-  !#  <description>
-  !#   A linear growth of cosmological structure class for models consisting of only collisionless matter. Pressure terms for the
-  !#   growth of baryons are ignored, and there is no wavenumber dependence. It further assumes no growth of radiation
-  !#   perturbations.
-  !#  </description>
-  !# </linearGrowth>
+  !![
+  <linearGrowth name="linearGrowthCollisionlessMatter">
+   <description>
+    A linear growth of cosmological structure class for models consisting of only collisionless matter. Pressure terms for the
+    growth of baryons are ignored, and there is no wavenumber dependence. It further assumes no growth of radiation
+    perturbations.
+   </description>
+  </linearGrowth>
+  !!]
   use :: Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
   use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass, hubbleUnitsTime
   use :: Tables              , only : table1D
 
   type, extends(linearGrowthClass) :: linearGrowthCollisionlessMatter
-     !% A linear growth of cosmological structure contrast class in models consisting only of collisionless matter.
+     !!{
+     A linear growth of cosmological structure contrast class in models consisting only of collisionless matter.
+     !!}
      private
      logical                                                 :: tableInitialized
      double precision                                        :: tableTimeMinimum                      , tableTimeMaximum, &
@@ -41,9 +47,11 @@
      class           (cosmologyParametersClass), pointer     :: cosmologyParameters_         => null()
      class           (cosmologyFunctionsClass ), pointer     :: cosmologyFunctions_          => null()
    contains
-     !# <methods>
-     !#   <method description="Tabulate linear growth factor." method="retabulate" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Tabulate linear growth factor." method="retabulate" />
+     </methods>
+     !!]
      final     ::                                         collisionlessMatterDestructor
      procedure :: value                                => collisionlessMatterValue
      procedure :: logarithmicDerivativeExpansionFactor => collisionlessMatterLogarithmicDerivativeExpansionFactor
@@ -53,7 +61,9 @@
   end type linearGrowthCollisionlessMatter
 
   interface linearGrowthCollisionlessMatter
-     !% Constructors for the {\normalfont \ttfamily collisionlessMatter} linear growth class.
+     !!{
+     Constructors for the {\normalfont \ttfamily collisionlessMatter} linear growth class.
+     !!}
      module procedure collisionlessMatterConstructorParameters
      module procedure collisionlessMatterConstructorInternal
   end interface linearGrowthCollisionlessMatter
@@ -64,7 +74,9 @@
 contains
 
   function collisionlessMatterConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily collisionlessMatter} linear growth class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily collisionlessMatter} linear growth class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (linearGrowthCollisionlessMatter)                :: self
@@ -72,23 +84,31 @@ contains
     class(cosmologyParametersClass       ), pointer       :: cosmologyParameters_
     class(cosmologyFunctionsClass        ), pointer       :: cosmologyFunctions_
 
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !!]
     self=collisionlessMatterConstructorInternal(cosmologyParameters_,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    !!]
     return
   end function collisionlessMatterConstructorParameters
 
   function collisionlessMatterConstructorInternal(cosmologyParameters_,cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily collisionlessMatter} linear growth class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily collisionlessMatter} linear growth class.
+    !!}
     implicit none
     type            (linearGrowthCollisionlessMatter)                           :: self
     class           (cosmologyParametersClass       ), target   , intent(in   ) :: cosmologyParameters_
     class           (cosmologyFunctionsClass        ), target   , intent(in   ) :: cosmologyFunctions_
     double precision                                                            :: timeBigCrunch
-    !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_"/>
+    !!]
 
     self%tableInitialized=.false.
     self%tableTimeMinimum= 1.0d0
@@ -103,12 +123,16 @@ contains
   end function collisionlessMatterConstructorInternal
 
   subroutine collisionlessMatterDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily collisionlessMatter} linear growth class.
+    !!{
+    Destructor for the {\normalfont \ttfamily collisionlessMatter} linear growth class.
+    !!}
     implicit none
     type (linearGrowthCollisionlessMatter), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_" />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    <objectDestructor name="self%cosmologyFunctions_" />
+    !!]
     if (self%tableInitialized) then
        call self%growthFactor%destroy()
        deallocate(self%growthFactor)
@@ -117,8 +141,10 @@ contains
   end subroutine collisionlessMatterDestructor
 
   subroutine collisionlessMatterRetabulate(self,time)
-    !% Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
-    !% $D(1)=1$ for a collisionless matter plus cosmological constant cosmology.
+    !!{
+    Returns the linear growth factor $D(a)$ for expansion factor {\normalfont \ttfamily aExpansion}, normalized such that
+    $D(1)=1$ for a collisionless matter plus cosmological constant cosmology.
+    !!}
     use :: Interface_GSL        , only : GSL_Success
     use :: Numerical_ODE_Solvers, only : odeSolver
     use :: Tables                , only : table1DLogarithmicLinear
@@ -220,7 +246,9 @@ contains
   contains
 
     integer function growthFactorODEs(time,values,derivatives)
-      !% System of differential equations to solve for the growth factor.
+      !!{
+      System of differential equations to solve for the growth factor.
+      !!}
       double precision              , intent(in   ) :: time
       double precision, dimension(:), intent(in   ) :: values
       double precision, dimension(:), intent(  out) :: derivatives
@@ -241,7 +269,9 @@ contains
   end subroutine collisionlessMatterRetabulate
 
   double precision function collisionlessMatterValue(self,time,expansionFactor,collapsing,normalize,component,wavenumber)
-    !% Return the linear growth factor at the given epoch.
+    !!{
+    Return the linear growth factor at the given epoch.
+    !!}
     implicit none
     class           (linearGrowthCollisionlessMatter), intent(inout)           :: self
     double precision                                 , intent(in   ), optional :: time      , expansionFactor
@@ -249,7 +279,9 @@ contains
     integer                                          , intent(in   ), optional :: normalize , component
     double precision                                 , intent(in   ), optional :: wavenumber
     double precision                                                           :: time_
-    !# <optionalArgument name="normalize" defaultsTo="normalizePresentDay" />
+    !![
+    <optionalArgument name="normalize" defaultsTo="normalizePresentDay" />
+    !!]
     !$GLC attributes unused :: component, wavenumber
 
     ! Determine cosmological time.
@@ -267,7 +299,9 @@ contains
   end function collisionlessMatterValue
 
   double precision function collisionlessMatterLogarithmicDerivativeExpansionFactor(self,time,expansionFactor,collapsing,component,wavenumber)
-    !% Return the logarithmic gradient of linear growth factor with respect to expansion factor at the given epoch.
+    !!{
+    Return the logarithmic gradient of linear growth factor with respect to expansion factor at the given epoch.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (linearGrowthCollisionlessMatter), intent(inout)           :: self
@@ -290,7 +324,9 @@ contains
   end function collisionlessMatterLogarithmicDerivativeExpansionFactor
 
   double precision function collisionlessMatterLogarithmicDerivativeWavenumber(self,time,expansionFactor,collapsing,component,wavenumber)
-    !% Return the logarithmic gradient of linear growth factor with respect to wavenumber at the given epoch.
+    !!{
+    Return the logarithmic gradient of linear growth factor with respect to wavenumber at the given epoch.
+    !!}
     implicit none
     class           (linearGrowthCollisionlessMatter), intent(inout)           :: self
     double precision                                 , intent(in   ), optional :: time      , expansionFactor
@@ -305,7 +341,9 @@ contains
   end function collisionlessMatterLogarithmicDerivativeWavenumber
 
   logical function collisionlessMatterIsWavenumberDependent(self,component)
-    !% Return false indicating that the growth function is not wavenumber-dependent.
+    !!{
+    Return false indicating that the growth function is not wavenumber-dependent.
+    !!}
     implicit none
     class  (linearGrowthCollisionlessMatter), intent(inout)           :: self
     integer                                 , intent(in   ), optional :: component

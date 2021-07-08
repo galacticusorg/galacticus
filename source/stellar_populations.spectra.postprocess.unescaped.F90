@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of a spectrum postprocessor that keeps only unescaped populations.
+  !!{
+  An implementation of a spectrum postprocessor that keeps only unescaped populations.
+  !!}
 
-  !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorUnescaped">
-  !#  <description>Retains only unescaped stellar populations.</description>
-  !# </stellarPopulationSpectraPostprocessor>
+  !![
+  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorUnescaped">
+   <description>Retains only unescaped stellar populations.</description>
+  </stellarPopulationSpectraPostprocessor>
+  !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorUnescaped
-     !% An unescaped spectrum postprocessor.
+     !!{
+     An unescaped spectrum postprocessor.
+     !!}
      private
      double precision :: timescale
    contains
@@ -31,7 +37,9 @@
   end type stellarPopulationSpectraPostprocessorUnescaped
 
   interface stellarPopulationSpectraPostprocessorUnescaped
-     !% Constructors for the unescaped spectrum postprocessor class.
+     !!{
+     Constructors for the unescaped spectrum postprocessor class.
+     !!}
      module procedure unescapedConstructorParameters
      module procedure unescapedConstructorInternal
   end interface stellarPopulationSpectraPostprocessorUnescaped
@@ -39,35 +47,45 @@
 contains
 
   function unescapedConstructorParameters(parameters) result(self)
-    !% Constructor for the unescaped spectrum postprocessor class which accepts a parameter set as input.
+    !!{
+    Constructor for the unescaped spectrum postprocessor class which accepts a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (stellarPopulationSpectraPostprocessorUnescaped)                :: self
     type            (inputParameters                               ), intent(inout) :: parameters
     double precision                                                                :: timescale
 
-    !# <inputParameter>
-    !#   <name>timescale</name>
-    !#   <defaultValue>1.0d-2</defaultValue>
-    !#   <description>The timescale for ``escape'' of stellar populations in the ``unescaped'' spectra postprocessing method.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>timescale</name>
+      <defaultValue>1.0d-2</defaultValue>
+      <description>The timescale for ``escape'' of stellar populations in the ``unescaped'' spectra postprocessing method.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=stellarPopulationSpectraPostprocessorUnescaped(timescale)
     return
   end function unescapedConstructorParameters
 
   function unescapedConstructorInternal(timescale) result(self)
-    !% Generic constructor for the unescaped spectrum postprocessor class.
+    !!{
+    Generic constructor for the unescaped spectrum postprocessor class.
+    !!}
     implicit none
     type            (stellarPopulationSpectraPostprocessorUnescaped)                :: self
     double precision                                                , intent(in   ) :: timescale
-    !# <constructorAssign variables="timescale"/>
+    !![
+    <constructorAssign variables="timescale"/>
+    !!]
 
     return
   end function unescapedConstructorInternal
 
   double precision function unescapedMultiplier(self,wavelength,age,redshift)
-    !% Perform an unescaped postprocessing on a spectrum.
+    !!{
+    Perform an unescaped postprocessing on a spectrum.
+    !!}
     implicit none
     class           (stellarPopulationSpectraPostprocessorUnescaped), intent(inout) :: self
     double precision                                                , intent(in   ) :: age       , redshift, &

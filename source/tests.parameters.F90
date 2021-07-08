@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,17 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program which tests parameter input.
+!!{
+Contains a program which tests parameter input.
+!!}
 
 program Test_Parameters
-  !% Test reading of input parameters.
-  use :: Cosmological_Density_Field, only : cosmologicalMassVariance      , cosmologicalMassVarianceClass
-  use :: Cosmology_Parameters      , only : cosmologyParameters           , cosmologyParametersClass
-  use :: Galacticus_Display        , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  !!{
+  Test reading of input parameters.
+  !!}
+  use :: Cosmological_Density_Field, only : cosmologicalMassVariance, cosmologicalMassVarianceClass
+  use :: Cosmology_Parameters      , only : cosmologyParameters     , cosmologyParametersClass
+  use :: Display                   , only : displayVerbositySet     , verbosityLevelStandard
   use :: IO_HDF5                   , only : hdf5Object
-  use :: ISO_Varying_String        , only : varying_string                , assignment(=)                , var_str
+  use :: ISO_Varying_String        , only : assignment(=)           , var_str                      , varying_string
   use :: Input_Parameters          , only : inputParameters
-  use :: Unit_Tests                , only : Assert                        , Unit_Tests_Begin_Group       , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests                , only : Assert                  , Unit_Tests_Begin_Group       , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (hdf5Object                   )          :: outputFile
   type            (varying_string               )          :: parameterFile            , parameterValue
@@ -37,16 +41,15 @@ program Test_Parameters
   double precision                                         :: valueNumerical
   
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Open an output file.
   call outputFile%openFile("testSuite/outputs/testParameters.hdf5",overWrite=.true.)
   parameterFile  ='testSuite/parameters/testsParameters.xml'
   testParameters=inputParameters(parameterFile,outputParametersGroup=outputFile)
-  call testParameters%markGlobal()
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Parameter input")
   ! Test retrieval of cosmology parameters (simple).
-  cosmologyParameters_ => cosmologyParameters()
+  cosmologyParameters_ => cosmologyParameters(testParameters)
   call Unit_Tests_Begin_Group("Retrieve cosmological parameters (simple)")
   call Assert('Ωₘ  ',cosmologyParameters_%OmegaMatter    (), 0.2725d0,relTol=1.0d-6)
   call Assert('Ωb  ',cosmologyParameters_%OmegaBaryon    (), 0.0455d0,relTol=1.0d-6)
@@ -55,11 +58,11 @@ program Test_Parameters
   call Assert('TCMB',cosmologyParameters_%temperatureCMB (),2.72548d0,relTol=1.0d-6)
   call Unit_Tests_End_Group()
   ! Test retrieval of cosmological mass variance through a reference.
-  cosmologicalMassVariance_ => cosmologicalMassVariance()
+  cosmologicalMassVariance_ => cosmologicalMassVariance(testParameters)
   call Unit_Tests_Begin_Group("Parameter referencing")
-  call Assert('σ₈ via reference'          ,cosmologicalMassVariance_%sigma8     (                                ),0.912d0,relTol=1.0d-6)
-  call Assert('Test presence of reference',testParameters           %isPresent  ('cosmologicalMassVarianceMethod'),.true.               )
-  call Assert('Test count of references'  ,testParameters           %copiesCount('cosmologicalMassVarianceMethod'),1                    )
+  call Assert('σ₈ via reference'          ,cosmologicalMassVariance_%sigma8     (                          ),0.912d0,relTol=1.0d-6)
+  call Assert('Test presence of reference',testParameters           %isPresent  ('cosmologicalMassVariance'),.true.               )
+  call Assert('Test count of references'  ,testParameters           %copiesCount('cosmologicalMassVariance'),1                    )
   call Unit_Tests_End_Group()
   ! Test adding, retrieving, reseting, readding a parameter.
   call Unit_Tests_Begin_Group("Parameter adding")

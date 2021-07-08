@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,11 +21,15 @@
   use :: Numerical_Random_Numbers  , only : randomNumberGeneratorClass
   use :: Radiative_Transfer_Spectra, only : radiativeTransferSpectrumClass
   
-  !# <radiativeTransferSource name="radiativeTransferSourceDistributed">
-  !#  <description>A photon source class for distributed sources.</description>
-  !# </radiativeTransferSource>
+  !![
+  <radiativeTransferSource name="radiativeTransferSourceDistributed">
+   <description>A photon source class for distributed sources.</description>
+  </radiativeTransferSource>
+  !!]
   type, extends(radiativeTransferSourceClass) :: radiativeTransferSourceDistributed
-     !% Implementation of a distributed source class for radiative transfer calculations.
+     !!{
+     Implementation of a distributed source class for radiative transfer calculations.
+     !!}
      private
      class           (massDistributionClass         ), pointer      :: massDistribution_          => null()
      class           (radiativeTransferSpectrumClass), pointer      :: radiativeTransferSpectrum_ => null()
@@ -42,7 +46,9 @@
   end type radiativeTransferSourceDistributed
 
   interface radiativeTransferSourceDistributed
-     !% Constructors for the {\normalfont \ttfamily distributed} radiative transfer source class.
+     !!{
+     Constructors for the {\normalfont \ttfamily distributed} radiative transfer source class.
+     !!}
      module procedure distributedConstructorParameters
      module procedure distributedConstructorInternal
   end interface radiativeTransferSourceDistributed
@@ -50,8 +56,10 @@
 contains
 
   function distributedConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily distributed} radiative transfer source class which takes a parameter set as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily distributed} radiative transfer source class which takes a parameter set as
+    input.
+    !!}
     use :: Input_Parameters, only : inputParameters, inputParameter
     implicit none
     type            (radiativeTransferSourceDistributed)                :: self
@@ -62,31 +70,37 @@ contains
     class           (randomNumberGeneratorClass        ), pointer       :: randomNumberGenerator_
     type            (varying_string                    )                :: label
 
-    !# <inputParameter>
-    !#   <name>position</name>
-    !#   <defaultValue>[0.0d0,0.0d0,0.0d0]</defaultValue>
-    !#   <description>The position of the distributed source.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>label</name>
-    !#   <defaultValue>var_str('unknown')</defaultValue>
-    !#   <description>A descriptive label for the source.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="radiativeTransferSpectrum" name="radiativeTransferSpectrum_" source="parameters"/>
-    !# <objectBuilder class="randomNumberGenerator"     name="randomNumberGenerator_"     source="parameters"/>
-    !# <objectBuilder class="massDistribution"          name="massDistribution_"          source="parameters"/>
+    !![
+    <inputParameter>
+      <name>position</name>
+      <defaultValue>[0.0d0,0.0d0,0.0d0]</defaultValue>
+      <description>The position of the distributed source.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>label</name>
+      <defaultValue>var_str('unknown')</defaultValue>
+      <description>A descriptive label for the source.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="radiativeTransferSpectrum" name="radiativeTransferSpectrum_" source="parameters"/>
+    <objectBuilder class="randomNumberGenerator"     name="randomNumberGenerator_"     source="parameters"/>
+    <objectBuilder class="massDistribution"          name="massDistribution_"          source="parameters"/>
+    !!]
     self=radiativeTransferSourceDistributed(position,label,massDistribution_,radiativeTransferSpectrum_,randomNumberGenerator_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="radiativeTransferSpectrum_"/>
-    !# <objectDestructor name="randomNumberGenerator_"    />
-    !# <objectDestructor name="massDistribution_"         />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="radiativeTransferSpectrum_"/>
+    <objectDestructor name="randomNumberGenerator_"    />
+    <objectDestructor name="massDistribution_"         />
+    !!]
     return
   end function distributedConstructorParameters
 
   function distributedConstructorInternal(position,label,massDistribution_,radiativeTransferSpectrum_,randomNumberGenerator_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily distributed} radiative transfer source class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily distributed} radiative transfer source class.
+    !!}
     implicit none
     type            (radiativeTransferSourceDistributed)                              :: self
     double precision                                    , intent(in   ), dimension(3) :: position
@@ -94,24 +108,32 @@ contains
     class           (massDistributionClass             ), intent(in   ), target       :: massDistribution_
     class           (radiativeTransferSpectrumClass    ), intent(in   ), target       :: radiativeTransferSpectrum_
     class           (randomNumberGeneratorClass        ), intent(in   ), target       :: randomNumberGenerator_
-    !# <constructorAssign variables="position, label, *massDistribution_, *radiativeTransferSpectrum_, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="position, label, *massDistribution_, *radiativeTransferSpectrum_, *randomNumberGenerator_"/>
+    !!]
  
     return
   end function distributedConstructorInternal
 
   subroutine distributedDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily distributed} radiative transfer source class.
+    !!{
+    Destructor for the {\normalfont \ttfamily distributed} radiative transfer source class.
+    !!}
     implicit none
     type(radiativeTransferSourceDistributed), intent(inout) :: self
 
-    !# <objectDestructor name="self%massDistribution_"         />
-    !# <objectDestructor name="self%radiativeTransferSpectrum_"/>
-    !# <objectDestructor name="self%randomNumberGenerator_"    />
+    !![
+    <objectDestructor name="self%massDistribution_"         />
+    <objectDestructor name="self%radiativeTransferSpectrum_"/>
+    <objectDestructor name="self%randomNumberGenerator_"    />
+    !!]
     return
   end subroutine distributedDestructor
 
   subroutine distributedInitializePhotonPacket(self,photonPacket)
-    !% Initialize the wavelength of the photon packet.
+    !!{
+    Initialize the wavelength of the photon packet.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (radiativeTransferSourceDistributed), intent(inout) :: self
@@ -140,7 +162,9 @@ contains
   end subroutine distributedInitializePhotonPacket
 
   double precision function distributedSpectrum(self,wavelength,sourceType)
-    !% Return the spectrum of the distributed source.
+    !!{
+    Return the spectrum of the distributed source.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (radiativeTransferSourceDistributed), intent(inout)           :: self
@@ -155,7 +179,9 @@ contains
   end function distributedSpectrum
 
   double precision function distributedLuminosity(self,wavelengthMinimum,wavelengthMaximum,sourceType)
-    !% Return the luminosity of the distributed source.
+    !!{
+    Return the luminosity of the distributed source.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (radiativeTransferSourceDistributed), intent(inout)           :: self
@@ -170,7 +196,9 @@ contains
   end function distributedLuminosity
 
   integer function distributedSourceTypeCount(self)
-    !% Return the number of source types provided.
+    !!{
+    Return the number of source types provided.
+    !!}
     implicit none
     class(radiativeTransferSourceDistributed), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -180,7 +208,9 @@ contains
   end function distributedSourceTypeCount
 
   function distributedSourceTypeName(self,sourceType)
-    !% Return the name of the source type.
+    !!{
+    Return the name of the source type.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (varying_string                    )                :: distributedSourceTypeName

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an environmental critical overdensity class.
+!!{
+Contains a module which implements an environmental critical overdensity class.
+!!}
 
-  !# <criticalOverdensity name="criticalOverdensityEnvironmental">
-  !#  <description>The critical overdensity is given by some other critical overdensity class multiplied some environment-dependent factor.</description>
-  !# </criticalOverdensity>
+  !![
+  <criticalOverdensity name="criticalOverdensityEnvironmental">
+   <description>The critical overdensity is given by some other critical overdensity class multiplied some environment-dependent factor.</description>
+  </criticalOverdensity>
+  !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensityEnvironmental
-     !% A critical overdensity class in which critical overdensity is given by some other critical overdensity class multiplied some environment-dependent factor.
+     !!{
+     A critical overdensity class in which critical overdensity is given by some other critical overdensity class multiplied some environment-dependent factor.
+     !!}
      private
      class           (criticalOverdensityClass), pointer :: criticalOverdensity_ => null()
      class           (haloEnvironmentClass    ), pointer :: haloEnvironment_     => null()
@@ -38,7 +44,9 @@
   end type criticalOverdensityEnvironmental
 
   interface criticalOverdensityEnvironmental
-     !% Constructors for the {\normalfont \ttfamily environmental} critical overdensity class.
+     !!{
+     Constructors for the {\normalfont \ttfamily environmental} critical overdensity class.
+     !!}
      module procedure environmentalConstructorParameters
      module procedure environmentalConstructorInternal
   end interface criticalOverdensityEnvironmental
@@ -46,7 +54,9 @@
 contains
 
   function environmentalConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily environmental} critical overdensity class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily environmental} critical overdensity class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (criticalOverdensityEnvironmental)                :: self
@@ -59,29 +69,35 @@ contains
     double precision                                                  :: a
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>a</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>Parameter controling environmental dependence of critical overdensity.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
-    !# <objectBuilder class="haloEnvironment"          name="haloEnvironment_"          source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>a</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>Parameter controling environmental dependence of critical overdensity.</description>
+    </inputParameter>
+    <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    <objectBuilder class="haloEnvironment"          name="haloEnvironment_"          source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !!]
     self=criticalOverdensityEnvironmental(a,criticalOverdensity_,haloEnvironment_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="criticalOverdensity_"     />
-    !# <objectDestructor name="haloEnvironment_"         />
-    !# <objectDestructor name="cosmologyFunctions_"      />
-    !# <objectDestructor name="linearGrowth_"            />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="criticalOverdensity_"     />
+    <objectDestructor name="haloEnvironment_"         />
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="linearGrowth_"            />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    !!]
     return
   end function environmentalConstructorParameters
 
   function environmentalConstructorInternal(a,criticalOverdensity_,haloEnvironment_,cosmologyFunctions_,linearGrowth_,cosmologicalMassVariance_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily environmental} critical overdensity class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily environmental} critical overdensity class.
+    !!}
     implicit none
     type            (criticalOverdensityEnvironmental)                        :: self
     class           (criticalOverdensityClass        ), target, intent(in   ) :: criticalOverdensity_
@@ -90,27 +106,35 @@ contains
     class           (cosmologicalMassVarianceClass   ), target, intent(in   ) :: cosmologicalMassVariance_
     class           (linearGrowthClass               ), target, intent(in   ) :: linearGrowth_
     double precision                                          , intent(in   ) :: a
-    !# <constructorAssign variables="a, *criticalOverdensity_, *haloEnvironment_, *cosmologyFunctions_, *linearGrowth_, *cosmologicalMassVariance_"/>
+    !![
+    <constructorAssign variables="a, *criticalOverdensity_, *haloEnvironment_, *cosmologyFunctions_, *linearGrowth_, *cosmologicalMassVariance_"/>
+    !!]
 
     self%massEnvironment=self%haloEnvironment_%environmentMass()
     return
   end function environmentalConstructorInternal
 
   subroutine environmentalDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily environmental} critical overdensity class.
+    !!{
+    Destructor for the {\normalfont \ttfamily environmental} critical overdensity class.
+    !!}
     implicit none
     type(criticalOverdensityEnvironmental), intent(inout) :: self
 
-    !# <objectDestructor name="self%criticalOverdensity_"     />
-    !# <objectDestructor name="self%haloEnvironment_"         />
-    !# <objectDestructor name="self%linearGrowth_"            />
-    !# <objectDestructor name="self%cosmologyFunctions_"      />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !![
+    <objectDestructor name="self%criticalOverdensity_"     />
+    <objectDestructor name="self%haloEnvironment_"         />
+    <objectDestructor name="self%linearGrowth_"            />
+    <objectDestructor name="self%cosmologyFunctions_"      />
+    <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !!]
     return
   end subroutine environmentalDestructor
 
   double precision function environmentalValue(self,time,expansionFactor,collapsing,mass,node)
-    !% Return the critical overdensity for collapse at the given time and mass.
+    !!{
+    Return the critical overdensity for collapse at the given time and mass.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (criticalOverdensityEnvironmental), intent(inout)           :: self
@@ -135,7 +159,9 @@ contains
   end function environmentalValue
 
   double precision function environmentalGradientTime(self,time,expansionFactor,collapsing,mass,node)
-    !% Return the gradient with respect to time of critical overdensity at the given time and mass.
+    !!{
+    Return the gradient with respect to time of critical overdensity at the given time and mass.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (criticalOverdensityEnvironmental), intent(inout)           :: self
@@ -144,7 +170,9 @@ contains
     double precision                                  , intent(in   ), optional :: mass
     type            (treeNode                        ), intent(inout), optional :: node
     class           (nodeComponentBasic              ), pointer                 :: basic
-    !# <optionalArgument name="expansionFactor" defaultsTo="self%cosmologyFunctions_%expansionFactor(time)" />
+    !![
+    <optionalArgument name="expansionFactor" defaultsTo="self%cosmologyFunctions_%expansionFactor(time)" />
+    !!]
 
     basic => node%hostTree%baseNode%basic()
     if (basic%mass() < self%massEnvironment) then
@@ -171,7 +199,9 @@ contains
   end function environmentalGradientTime
 
   double precision function environmentalGradientMass(self,time,expansionFactor,collapsing,mass,node)
-    !% Return the gradient with respect to mass of critical overdensity at the given time and mass.
+    !!{
+    Return the gradient with respect to mass of critical overdensity at the given time and mass.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (criticalOverdensityEnvironmental), intent(inout)           :: self
@@ -196,7 +226,9 @@ contains
   end function environmentalGradientMass
 
   logical function environmentalIsMassDependent(self)
-    !% Return whether the critical overdensity is mass dependent.
+    !!{
+    Return whether the critical overdensity is mass dependent.
+    !!}
     implicit none
     class(criticalOverdensityEnvironmental), intent(inout) :: self
 
@@ -205,7 +237,9 @@ contains
   end function environmentalIsMassDependent
 
   logical function environmentalIsNodeDependent(self)
-    !% Return whether the critical overdensity is node dependent.
+    !!{
+    Return whether the critical overdensity is node dependent.
+    !!}
     implicit none
     class(criticalOverdensityEnvironmental), intent(inout) :: self
     !$GLC attributes unused :: self

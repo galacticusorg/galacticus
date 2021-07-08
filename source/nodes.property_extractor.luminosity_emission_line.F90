@@ -1,3 +1,22 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019, 2020, 2021
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
 ! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
 !!           2019, 2020
 !!    Andrew Benson <abenson@carnegiescience.edu>
@@ -17,7 +36,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a stellar mass output analysis property extractor class.
+!!{
+Contains a module which implements a stellar mass output analysis property extractor class.
+!!}
 
   use    :: Numerical_Interpolation          , only : interpolator
   use    :: ISO_Varying_String               , only : varying_string
@@ -27,11 +48,15 @@
   use    :: Star_Formation_Rates_Spheroids   , only : starFormationRateSpheroidsClass
   use    :: Stellar_Spectra_Dust_Attenuations, only : stellarSpectraDustAttenuationClass
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorLmnstyEmssnLine">
-  !#  <description>A stellar luminosity output analysis property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorLmnstyEmssnLine">
+   <description>A stellar luminosity output analysis property extractor class.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorLmnstyEmssnLine
-     !% A stellar luminosity output analysis property extractor class.
+     !!{
+     A stellar luminosity output analysis property extractor class.
+     !!}
      private
      class           (starFormationRateDisksClass       ), pointer                             :: starFormationRateDisks_        => null()
      class           (starFormationRateSpheroidsClass   ), pointer                             :: starFormationRateSpheroids_    => null()
@@ -59,42 +84,48 @@
   end type nodePropertyExtractorLmnstyEmssnLine
 
   interface nodePropertyExtractorLmnstyEmssnLine
-     !% Constructors for the ``lmnstyEmssnLine'' output analysis class.
+     !!{
+     Constructors for the ``lmnstyEmssnLine'' output analysis class.
+     !!}
      module procedure lmnstyEmssnLineConstructorParameters
      module procedure lmnstyEmssnLineConstructorInternal
   end interface nodePropertyExtractorLmnstyEmssnLine
 
   ! Enumerations for galactic components and ionizing continuua.
-  !# <enumeration>
-  !#  <name>galacticComponent</name>
-  !#  <description>Specifies the galactic component for emission line calculations.</description>
-  !#  <indexing>1</indexing>
-  !#  <entry label="disk"    />
-  !#  <entry label="spheroid"/>
-  !# </enumeration>
-  !# <enumeration>
-  !#  <name>ionizingContinuum</name>
-  !#  <description>Specifies the ionizing continuum for emission line calculations.</description>
-  !#  <indexing>1</indexing>
-  !#  <entry label="Hydrogen"/>
-  !#  <entry label="Helium"  />
-  !#  <entry label="Oxygen"  />
-  !# </enumeration>
-  !# <enumeration>
-  !#  <name>interpolant</name>
-  !#  <description>Specifies the different interpolants for emission line calculations.</description>
-  !#  <indexing>1</indexing>
-  !#  <entry label="metallicity"/>
-  !#  <entry label="density"  />
-  !#  <entry label="hydrogen"  />
-  !#  <entry label="helium"  />
-  !#  <entry label="oxygen"  />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>galacticComponent</name>
+   <description>Specifies the galactic component for emission line calculations.</description>
+   <indexing>1</indexing>
+   <entry label="disk"    />
+   <entry label="spheroid"/>
+  </enumeration>
+  <enumeration>
+   <name>ionizingContinuum</name>
+   <description>Specifies the ionizing continuum for emission line calculations.</description>
+   <indexing>1</indexing>
+   <entry label="Hydrogen"/>
+   <entry label="Helium"  />
+   <entry label="Oxygen"  />
+  </enumeration>
+  <enumeration>
+   <name>interpolant</name>
+   <description>Specifies the different interpolants for emission line calculations.</description>
+   <indexing>1</indexing>
+   <entry label="metallicity"/>
+   <entry label="density"  />
+   <entry label="hydrogen"  />
+   <entry label="helium"  />
+   <entry label="oxygen"  />
+  </enumeration>
+  !!]
 
 contains
 
   function lmnstyEmssnLineConstructorParameters(parameters) result(self)
-    !% Constructor for the ``lmnstyEmssnLine'' output analysis property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``lmnstyEmssnLine'' output analysis property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nodePropertyExtractorLmnstyEmssnLine)                              :: self
@@ -107,32 +138,38 @@ contains
     double precision                                                                    :: depthOpticalISMCoefficient
 
     allocate(lineNames(parameters%count('lineNames')))
-    !# <inputParameter>
-    !#   <name>lineNames</name>
-    !#   <source>parameters</source>
-    !#   <description>The emission lines to extract.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>depthOpticalISMCoefficient</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>Multiplicative coefficient for optical depth in the ISM.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="starFormationRateDisks"        name="starFormationRateDisks_"        source="parameters"/>
-    !# <objectBuilder class="starFormationRateSpheroids"    name="starFormationRateSpheroids_"    source="parameters"/>
-    !# <objectBuilder class="stellarSpectraDustAttenuation" name="stellarSpectraDustAttenuation_" source="parameters"/>
-    !# <objectBuilder class="outputTimes"                   name="outputTimes_"                   source="parameters"/>
+    !![
+    <inputParameter>
+      <name>lineNames</name>
+      <source>parameters</source>
+      <description>The emission lines to extract.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>depthOpticalISMCoefficient</name>
+      <defaultValue>0.0d0</defaultValue>
+      <source>parameters</source>
+      <description>Multiplicative coefficient for optical depth in the ISM.</description>
+    </inputParameter>
+    <objectBuilder class="starFormationRateDisks"        name="starFormationRateDisks_"        source="parameters"/>
+    <objectBuilder class="starFormationRateSpheroids"    name="starFormationRateSpheroids_"    source="parameters"/>
+    <objectBuilder class="stellarSpectraDustAttenuation" name="stellarSpectraDustAttenuation_" source="parameters"/>
+    <objectBuilder class="outputTimes"                   name="outputTimes_"                   source="parameters"/>
+    !!]
     self=nodePropertyExtractorLmnstyEmssnLine(starFormationRateDisks_,starFormationRateSpheroids_,stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="starFormationRateDisks_"       />
-    !# <objectDestructor name="starFormationRateSpheroids_"   />
-    !# <objectDestructor name="stellarSpectraDustAttenuation_"/>
-    !# <objectDestructor name="outputTimes_"                  />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="starFormationRateDisks_"       />
+    <objectDestructor name="starFormationRateSpheroids_"   />
+    <objectDestructor name="stellarSpectraDustAttenuation_"/>
+    <objectDestructor name="outputTimes_"                  />
+    !!]
     return
   end function lmnstyEmssnLineConstructorParameters
 
   function lmnstyEmssnLineConstructorInternal(starFormationRateDisks_,starFormationRateSpheroids_,stellarSpectraDustAttenuation_,outputTimes_,lineNames,depthOpticalISMCoefficient,outputMask) result(self)
-    !% Internal constructor for the ``lmnstyEmssnLine'' output analysis property extractor class.
+    !!{
+    Internal constructor for the ``lmnstyEmssnLine'' output analysis property extractor class.
+    !!}
     use            :: Galacticus_Error              , only : Galacticus_Error_Report
     use            :: Galacticus_Paths              , only : galacticusPath         , pathTypeDataStatic
     use            :: IO_HDF5                       , only : hdf5Access             , hdf5Object
@@ -154,7 +191,9 @@ contains
     type            (hdf5Object                          )                                        :: emissionLinesFile             , lines, &
          &                                                                                           lineDataset
     integer         (c_size_t                            )                                        :: i
-    !# <constructorAssign variables="lineNames, depthOpticalISMCoefficient, *starFormationRateDisks_, *starFormationRateSpheroids_, *stellarSpectraDustAttenuation_, *outputTimes_"/>
+    !![
+    <constructorAssign variables="lineNames, depthOpticalISMCoefficient, *starFormationRateDisks_, *starFormationRateSpheroids_, *stellarSpectraDustAttenuation_, *outputTimes_"/>
+    !!]
 
     ! Read the table of emission line luminosities.
     !$ call hdf5Access%set()
@@ -233,20 +272,26 @@ contains
   end function lmnstyEmssnLineConstructorInternal
 
   subroutine lmnstyEmssnLineDestructor(self)
-    !% Destructor for the ``lmnstyEmssnLine'' output analysis property extractor class.
+    !!{
+    Destructor for the ``lmnstyEmssnLine'' output analysis property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
 
     !$ call OMP_Destroy_Lock(self%interpolateLock)
-    !# <objectDestructor name="self%starFormationRateDisks_"       />
-    !# <objectDestructor name="self%starFormationRateSpheroids_"   />
-    !# <objectDestructor name="self%stellarSpectraDustAttenuation_"/>
-    !# <objectDestructor name="self%outputTimes_"                  />
+    !![
+    <objectDestructor name="self%starFormationRateDisks_"       />
+    <objectDestructor name="self%starFormationRateSpheroids_"   />
+    <objectDestructor name="self%stellarSpectraDustAttenuation_"/>
+    <objectDestructor name="self%outputTimes_"                  />
+    !!]
     return
   end subroutine lmnstyEmssnLineDestructor
 
   double precision function lmnstyEmssnLineExtract(self,node,instance)
-    !% Implement an emission line output analysis property extractor.
+    !!{
+    Implement an emission line output analysis property extractor.
+    !!}
     use            :: Abundances_Structure            , only : abundances         , max                  , metallicityTypeLogarithmicByMassSolar
     use            :: Galacticus_Nodes                , only : nodeComponentBasic , nodeComponentDisk    , nodeComponentSpheroid                , treeNode
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
@@ -537,7 +582,9 @@ contains
   end function lmnstyEmssnLineExtract
 
   integer function lmnstyEmssnLineType(self)
-    !% Return the type of the emission line luminosity property.
+    !!{
+    Return the type of the emission line luminosity property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
@@ -548,7 +595,9 @@ contains
   end function lmnstyEmssnLineType
 
   integer function lmnstyEmssnLineQuantity(self)
-    !% Return the class of the emission line luminosity property.
+    !!{
+    Return the class of the emission line luminosity property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
     implicit none
     class(nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
@@ -559,7 +608,9 @@ contains
   end function lmnstyEmssnLineQuantity
 
   function lmnstyEmssnLineName(self)
-    !% Return the name of the lmnstyEmssnLine property.
+    !!{
+    Return the name of the lmnstyEmssnLine property.
+    !!}
     implicit none
     type (varying_string                      )                :: lmnstyEmssnLineName
     class(nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
@@ -569,7 +620,9 @@ contains
   end function lmnstyEmssnLineName
 
   function lmnstyEmssnLineDescription(self)
-    !% Return a description of the lmnstyEmssnLine property.
+    !!{
+    Return a description of the lmnstyEmssnLine property.
+    !!}
     implicit none
     type (varying_string                      )                :: lmnstyEmssnLineDescription
     class(nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self
@@ -579,7 +632,9 @@ contains
   end function lmnstyEmssnLineDescription
 
   double precision function lmnstyEmssnLineUnitsInSI(self)
-    !% Return the units of the lmnstyEmssnLine property in the SI system.
+    !!{
+    Return the units of the lmnstyEmssnLine property in the SI system.
+    !!}
     use :: Numerical_Constants_Units, only : ergs
     implicit none
     class(nodePropertyExtractorLmnstyEmssnLine), intent(inout) :: self

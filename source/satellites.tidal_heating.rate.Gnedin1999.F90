@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,29 +19,35 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-  !% Contains a class which implements the tidal heating rate model of \cite{gnedin_tidal_1999}.
+  !!{
+  Contains a class which implements the tidal heating rate model of \cite{gnedin_tidal_1999}.
+  !!}
 
   use :: Cosmology_Parameters   , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
-  !# <satelliteTidalHeatingRate name="satelliteTidalHeatingRateGnedin1999">
-  !#  <description>
-  !#   A satellite tidal heating rate class which uses the formalism of \cite{gnedin_tidal_1999} to compute the heating rate:
-  !#   \begin{equation}
-  !#   \dot{Q}_\mathrm{tidal}=\frac{1}{3}\epsilon\left[1+\left(\frac{T_\mathrm{shock}}{T_\mathrm{orb}}\right)^2\right]^{-\gamma}
-  !#   g_{ij} G^{ij}
-  !#   \end{equation}
-  !#   where $T_\mathrm{orb}$ and $T_\mathrm{shock}$ are the orbital period and shock duration, respectively, of the satellite,
-  !#   $\epsilon=${\normalfont \ttfamily [epsilon]} and $\gamma=${\normalfont \ttfamily [gamma]} are model parameters, $g_{ij}$ is
-  !#   the tidal tensor, and $G_{ij}$ is the integral with respect to time of $g_{ij}$ along the orbit of the satellite.  Upon
-  !#   tidal heating, a mass element at radius $r_\mathrm{i}$ expands to radius $r_\mathrm{f}$, according to the equation
-  !#   \begin{equation}
-  !#   \frac{1}{r_\mathrm{f}}=\frac{1}{r_\mathrm{i}}-\frac{2r_\mathrm{i}^3Q_\mathrm{tidal}}{\mathrm{G}M_\mathrm{sat}(&lt;r_\mathrm{i})}.
-  !#   \end{equation}
-  !#  </description>
-  !# </satelliteTidalHeatingRate>
+  !![
+  <satelliteTidalHeatingRate name="satelliteTidalHeatingRateGnedin1999">
+   <description>
+    A satellite tidal heating rate class which uses the formalism of \cite{gnedin_tidal_1999} to compute the heating rate:
+    \begin{equation}
+    \dot{Q}_\mathrm{tidal}=\frac{1}{3}\epsilon\left[1+\left(\frac{T_\mathrm{shock}}{T_\mathrm{orb}}\right)^2\right]^{-\gamma}
+    g_{ij} G^{ij}
+    \end{equation}
+    where $T_\mathrm{orb}$ and $T_\mathrm{shock}$ are the orbital period and shock duration, respectively, of the satellite,
+    $\epsilon=${\normalfont \ttfamily [epsilon]} and $\gamma=${\normalfont \ttfamily [gamma]} are model parameters, $g_{ij}$ is
+    the tidal tensor, and $G_{ij}$ is the integral with respect to time of $g_{ij}$ along the orbit of the satellite.  Upon
+    tidal heating, a mass element at radius $r_\mathrm{i}$ expands to radius $r_\mathrm{f}$, according to the equation
+    \begin{equation}
+    \frac{1}{r_\mathrm{f}}=\frac{1}{r_\mathrm{i}}-\frac{2r_\mathrm{i}^3Q_\mathrm{tidal}}{\mathrm{G}M_\mathrm{sat}(&lt;r_\mathrm{i})}.
+    \end{equation}
+   </description>
+  </satelliteTidalHeatingRate>
+  !!]
   type, extends(satelliteTidalHeatingRateClass) :: satelliteTidalHeatingRateGnedin1999
-     !% A satellite tidal heating rate class which implements the tidal heating rate model of \cite{gnedin_tidal_1999}.
+     !!{
+     A satellite tidal heating rate class which implements the tidal heating rate model of \cite{gnedin_tidal_1999}.
+     !!}
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
@@ -52,7 +58,9 @@
   end type satelliteTidalHeatingRateGnedin1999
 
   interface satelliteTidalHeatingRateGnedin1999
-     !% Constructors for the gnedin1999 satellite tidal heating rate class.
+     !!{
+     Constructors for the gnedin1999 satellite tidal heating rate class.
+     !!}
      module procedure gnedin1999ConstructorParameters
      module procedure gnedin1999ConstructorInternal
   end interface satelliteTidalHeatingRateGnedin1999
@@ -60,7 +68,9 @@
 contains
 
   function gnedin1999ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily gnedin1999} satellite tidal heating rate class which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily gnedin1999} satellite tidal heating rate class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (satelliteTidalHeatingRateGnedin1999)                :: self
@@ -69,51 +79,65 @@ contains
     class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
     double precision                                                     :: epsilon             , gamma
 
-    !# <inputParameter>
-    !#   <name>epsilon</name>
-    !#   <defaultValue>3.0d0</defaultValue>
-    !#   <description>Parameter, $\epsilon$, controlling the tidal heating rate of satellites in the {\normalfont \ttfamily Gnedin1999} method.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>gamma</name>
-    !#   <defaultValue>2.5d0</defaultValue>
-    !#   <description>Parameter, $\gamma$, controlling the tidal heating rate of satellites in the {\normalfont \ttfamily Gnedin1999} method.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>epsilon</name>
+      <defaultValue>3.0d0</defaultValue>
+      <description>Parameter, $\epsilon$, controlling the tidal heating rate of satellites in the {\normalfont \ttfamily Gnedin1999} method.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>gamma</name>
+      <defaultValue>2.5d0</defaultValue>
+      <description>Parameter, $\gamma$, controlling the tidal heating rate of satellites in the {\normalfont \ttfamily Gnedin1999} method.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !!]
     self=satelliteTidalHeatingRateGnedin1999(epsilon,gamma,cosmologyParameters_,darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
+    !!]
     return
   end function gnedin1999ConstructorParameters
 
   function gnedin1999ConstructorInternal(epsilon,gamma,cosmologyParameters_,darkMatterHaloScale_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily gnedin1999} satellite tidal heating rate class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily gnedin1999} satellite tidal heating rate class.
+    !!}
     implicit none
     type            (satelliteTidalHeatingRateGnedin1999)                        :: self
     class           (cosmologyParametersClass           ), intent(in   ), target :: cosmologyParameters_
     class           (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
     double precision                                     , intent(in)            :: epsilon, gamma
-    !# <constructorAssign variables="epsilon, gamma, *cosmologyParameters_, *darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="epsilon, gamma, *cosmologyParameters_, *darkMatterHaloScale_"/>
+    !!]
 
     return
   end function gnedin1999ConstructorInternal
 
   subroutine gnedin1999Destructor(self)
-    !% Default constructor for the {\normalfont \ttfamily gnedin1999} satellite tidal heating rate class.
+    !!{
+    Default constructor for the {\normalfont \ttfamily gnedin1999} satellite tidal heating rate class.
+    !!}
     implicit none
     type(satelliteTidalHeatingRateGnedin1999), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    !!]
     return
   end subroutine gnedin1999Destructor
 
   double precision function gnedin1999HeatingRate(self,node)
-    !% Return the tidal heating rate for satellite halos assuming the model of \cite{gnedin_tidal_1999}.
+    !!{
+    Return the tidal heating rate for satellite halos assuming the model of \cite{gnedin_tidal_1999}.
+    !!}
     use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass , Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options        , only : componentTypeAll                 , coordinateSystemCartesian               , massTypeDark

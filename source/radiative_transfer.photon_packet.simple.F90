@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <radiativeTransferPhotonPacket name="radiativeTransferPhotonPacketSimple">
-  !#  <description>A simple photon packet class which tracks only wavelength, position, and direction.</description>
-  !# </radiativeTransferPhotonPacket>
+  !![
+  <radiativeTransferPhotonPacket name="radiativeTransferPhotonPacketSimple">
+   <description>A simple photon packet class which tracks only wavelength, position, and direction.</description>
+  </radiativeTransferPhotonPacket>
+  !!]
   type, extends(radiativeTransferPhotonPacketClass) :: radiativeTransferPhotonPacketSimple
-     !% Implementation of a simple photon packet class which tracks only wavelength, position, and direction.
+     !!{
+     Implementation of a simple photon packet class which tracks only wavelength, position, and direction.
+     !!}
      private
      double precision               :: wavelengthMinimum_, wavelengthMaximum_, &
           &                            wavelength_       , luminosity_
@@ -45,7 +49,9 @@
   end type radiativeTransferPhotonPacketSimple
 
   interface radiativeTransferPhotonPacketSimple
-     !% Constructors for the {\normalfont \ttfamily simple} radiative transfer photon packet class.
+     !!{
+     Constructors for the {\normalfont \ttfamily simple} radiative transfer photon packet class.
+     !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
   end interface radiativeTransferPhotonPacketSimple
@@ -53,7 +59,9 @@
 contains
 
   function simpleConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily simple} radiative transfer photon packet class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily simple} radiative transfer photon packet class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters, inputParameter
     implicit none
     type            (radiativeTransferPhotonPacketSimple)                :: self
@@ -61,37 +69,43 @@ contains
     double precision                                                     :: wavelengthMinimum, wavelengthMaximum, &
          &                                                                  wavelength       , luminosity
 
-    !# <inputParameter>
-    !#   <name>wavelength</name>
-    !#   <defaultValue>1.0d4</defaultValue>
-    !#   <description>The wavelength of the photon packet (in \AA).</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>wavelengthMinimum</name>
-    !#   <defaultValue>0.5d4</defaultValue>
-    !#   <description>The minimum wavelength of the photon packet (in \AA).</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>wavelengthMaximum</name>
-    !#   <defaultValue>2.0d4</defaultValue>
-    !#   <description>The maximum wavelength of the photon packet (in \AA).</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>luminosity</name>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The luminosity of the photon packet (in $L_\odot$).</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>wavelength</name>
+      <defaultValue>1.0d4</defaultValue>
+      <description>The wavelength of the photon packet (in \AA).</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>wavelengthMinimum</name>
+      <defaultValue>0.5d4</defaultValue>
+      <description>The minimum wavelength of the photon packet (in \AA).</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>wavelengthMaximum</name>
+      <defaultValue>2.0d4</defaultValue>
+      <description>The maximum wavelength of the photon packet (in \AA).</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>luminosity</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The luminosity of the photon packet (in $L_\odot$).</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=radiativeTransferPhotonPacketSimple(wavelength,wavelengthMinimum,wavelengthMaximum,luminosity)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function simpleConstructorParameters
 
   function simpleConstructorInternal(wavelength,wavelengthMinimum,wavelengthMaximum,luminosity) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily simple} radiative transfer photon packet class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily simple} radiative transfer photon packet class.
+    !!}
     implicit none
     type            (radiativeTransferPhotonPacketSimple)                :: self
     double precision                                     , intent(in   ) :: wavelengthMinimum, wavelengthMaximum, &
@@ -106,7 +120,9 @@ contains
   end function simpleConstructorInternal
 
   subroutine simpleWavelengthSet(self,wavelength)
-    !% Set the wavelength of the photon packet.
+    !!{
+    Set the wavelength of the photon packet.
+    !!}
     implicit none
     class           (radiativeTransferPhotonPacketSimple), intent(inout) :: self
     double precision                                     , intent(in   ) :: wavelength
@@ -116,7 +132,9 @@ contains
   end subroutine simpleWavelengthSet
 
   double precision function simpleWavelength(self)
-    !% Return the wavelength of the photon packet.
+    !!{
+    Return the wavelength of the photon packet.
+    !!}
     implicit none
     class(radiativeTransferPhotonPacketSimple), intent(inout) :: self
 
@@ -125,7 +143,9 @@ contains
   end function simpleWavelength
 
   subroutine simpleWavelengthMinimumSet(self,wavelength)
-    !% Set the minimum wavelength of the photon packet.
+    !!{
+    Set the minimum wavelength of the photon packet.
+    !!}
     implicit none
     class           (radiativeTransferPhotonPacketSimple), intent(inout) :: self
     double precision                                     , intent(in   ) :: wavelength
@@ -135,7 +155,9 @@ contains
   end subroutine simpleWavelengthMinimumSet
 
   double precision function simpleWavelengthMinimum(self)
-    !% Return the minimum wavelength of the photon packet.
+    !!{
+    Return the minimum wavelength of the photon packet.
+    !!}
     implicit none
     class(radiativeTransferPhotonPacketSimple), intent(inout) :: self
 
@@ -144,7 +166,9 @@ contains
   end function simpleWavelengthMinimum
 
   subroutine simpleWavelengthMaximumSet(self,wavelength)
-    !% Set the maximum wavelength of the photon packet.
+    !!{
+    Set the maximum wavelength of the photon packet.
+    !!}
     implicit none
     class           (radiativeTransferPhotonPacketSimple), intent(inout) :: self
     double precision                                     , intent(in   ) :: wavelength
@@ -154,7 +178,9 @@ contains
   end subroutine simpleWavelengthMaximumSet
 
   double precision function simpleWavelengthMaximum(self)
-    !% Return the maximum wavelength of the photon packet.
+    !!{
+    Return the maximum wavelength of the photon packet.
+    !!}
     implicit none
     class(radiativeTransferPhotonPacketSimple), intent(inout) :: self
 
@@ -163,7 +189,9 @@ contains
   end function simpleWavelengthMaximum
 
   subroutine simpleLuminositySet(self,luminosity)
-    !% Set the luminosity of the photon packet.
+    !!{
+    Set the luminosity of the photon packet.
+    !!}
     implicit none
     class           (radiativeTransferPhotonPacketSimple), intent(inout) :: self
     double precision                                     , intent(in   ) :: luminosity
@@ -173,7 +201,9 @@ contains
   end subroutine simpleLuminositySet
 
   double precision function simpleLuminosity(self)
-    !% Return the luminosity of the photon packet.
+    !!{
+    Return the luminosity of the photon packet.
+    !!}
     implicit none
     class(radiativeTransferPhotonPacketSimple), intent(inout) :: self
 
@@ -182,7 +212,9 @@ contains
   end function simpleLuminosity
   
   subroutine simplePositionSet(self,position)
-    !% Set the position of the photon packet.
+    !!{
+    Set the position of the photon packet.
+    !!}
     implicit none
     class           (radiativeTransferPhotonPacketSimple), intent(inout)               :: self
     double precision                                     , intent(in   ), dimension(3) :: position
@@ -192,7 +224,9 @@ contains
   end subroutine simplePositionSet
 
   function simplePosition(self)
-    !% Return the position of the photon packet.
+    !!{
+    Return the position of the photon packet.
+    !!}
     implicit none
     double precision                                     , dimension(3)  :: simplePosition
     class           (radiativeTransferPhotonPacketSimple), intent(inout) :: self
@@ -202,7 +236,9 @@ contains
   end function simplePosition
 
   subroutine simpleDirectionSet(self,direction)
-    !% Set the direction of the photon packet.
+    !!{
+    Set the direction of the photon packet.
+    !!}
     implicit none
     class           (radiativeTransferPhotonPacketSimple), intent(inout)               :: self
     double precision                                     , intent(in   ), dimension(3) :: direction
@@ -212,7 +248,9 @@ contains
   end subroutine simpleDirectionSet
 
   function simpleDirection(self)
-    !% Return the direction of the photon packet.
+    !!{
+    Return the direction of the photon packet.
+    !!}
     implicit none
     double precision                                     , dimension(3)  :: simpleDirection
     class           (radiativeTransferPhotonPacketSimple), intent(inout) :: self
@@ -222,7 +260,9 @@ contains
   end function simpleDirection
 
   integer function simpleSourceType(self)
-    !% Return the source type for this photon packet.
+    !!{
+    Return the source type for this photon packet.
+    !!}
     implicit none
     class(radiativeTransferPhotonPacketSimple), intent(inout) :: self
 
@@ -231,7 +271,9 @@ contains
   end function simpleSourceType
 
   subroutine simpleSourceTypeSet(self,sourceType)
-    !% Set the source type for this photon packet.
+    !!{
+    Set the source type for this photon packet.
+    !!}
     implicit none
     class  (radiativeTransferPhotonPacketSimple), intent(inout) :: self
     integer                                     , intent(in   ) :: sourceType

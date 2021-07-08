@@ -6,7 +6,7 @@
 <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-  <mergerTreeConstructorMethod value="read">
+  <mergerTreeConstructor value="read">
     <missingHostsAreFatal value="false"/>
     <fileNames value="testSuite/data/mergerTrees/bug1053153.hdf5"/>
     <outputTimeSnapTolerance value="1.0d-3"/>
@@ -16,65 +16,79 @@
     <presetSubhaloMasses value="true"/>
     <presetSpins value="false"/>
     <presetScaleRadii value="true"/>
-  </mergerTreeConstructorMethod>
+  </mergerTreeConstructor>
   <galacticusOutputFileName value="testSuite/outputs/bug1053153.hdf5"/>
-  <mergerTreeEvolverMethod value="standard">
+  <mergerTreeEvolver value="standard">
     <allTreesExistAtFinalTime value="false"/>
-  </mergerTreeEvolverMethod>
+  </mergerTreeEvolver>
 
-  <treeNodeMethodPosition value="preset"/>
-  <treeNodeMethodSatellite value="preset"/>
-  <mergerRemnantSizeMethod value="cole2000"/>
-  <cosmologyParametersMethod value="simple">
+  <componentPosition value="preset"/>
+  <componentSatellite value="preset"/>
+  <mergerRemnantSize value="cole2000"/>
+  <cosmologyParameters value="simple">
     <HubbleConstant value="70.2"/>
     <OmegaMatter value="0.2748"/>
     <OmegaDarkEnergy value="0.725"/>
     <OmegaBaryon value="0.0458"/>
     <temperatureCMB value="2.72548"/>
-  </cosmologyParametersMethod>
-  <cosmologicalMassVarianceMethod value="filteredPower">
+  </cosmologyParameters>
+  <cosmologicalMassVariance value="filteredPower">
     <sigma_8 value="0.816"/>
-  </cosmologicalMassVarianceMethod>
-  <nodePropertyExtractorMethod value="multi">
-    <nodePropertyExtractorMethod value="virialProperties"/>
-    <nodePropertyExtractorMethod value="descendents"/>
-    <nodePropertyExtractorMethod value="starFormationRate">
+  </cosmologicalMassVariance>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="virialProperties"/>
+    <nodePropertyExtractor value="descendents"/>
+    <nodePropertyExtractor value="starFormationRate">
       <component value="disk"/>
-    </nodePropertyExtractorMethod>
-    <nodePropertyExtractorMethod value="starFormationRate">
+    </nodePropertyExtractor>
+    <nodePropertyExtractor value="starFormationRate">
       <component value="spheroid"/>
-    </nodePropertyExtractorMethod>
-  </nodePropertyExtractorMethod>
-  <mergerTreeOperatorMethod value="massAccretionHistory"/>
+    </nodePropertyExtractor>
+  </nodePropertyExtractor>
+  <mergerTreeOperator value="massAccretionHistory"/>
   <hotHaloAngularMomentumAlwaysGrows value="true"/>
   <nodePromotionIndexShift value="false"/>
-  <outputTimesMethod value="list">
+  <outputTimes value="list">
     <redshifts value="0.000"/>
-  </outputTimesMethod>
+  </outputTimes>
+
+  <!-- Halo scale radii and concentrations -->
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  4.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="concentration"/>
+  </darkMatterProfileScaleRadius>
 
   <!-- Node evolution and physics -->
-  <nodeOperatorMethod value="multi">
-    <nodeOperatorMethod value="starFormationDisks"/>
-    <nodeOperatorMethod value="starFormationSpheroids"/>
+  <nodeOperator value="multi">
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Halo spins -->
+    <nodeOperator value="haloSpinRandom">
+      <factorReset value="2.0"/>
+    </nodeOperator>
+    <!-- Star formation -->
+    <nodeOperator value="starFormationDisks"/>
+    <nodeOperator value="starFormationSpheroids"/>
     <!--Stellar feedback outflows-->
-    <nodeOperatorMethod value="stellarFeedbackDisks">
-      <stellarFeedbackOutflowsMethod value="rateLimit">
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
         <timescaleOutflowFractionalMinimum value="0.001"/>
-        <stellarFeedbackOutflowsMethod value="powerLaw">
+        <stellarFeedbackOutflows value="powerLaw">
           <velocityCharacteristic value="250.0"/>
           <exponent value="3.5"/>
-        </stellarFeedbackOutflowsMethod>
-      </stellarFeedbackOutflowsMethod>
-    </nodeOperatorMethod>
-    <nodeOperatorMethod value="stellarFeedbackSpheroids">
-      <stellarFeedbackOutflowsMethod value="rateLimit">
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+    <nodeOperator value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflows value="rateLimit">
         <timescaleOutflowFractionalMinimum value="0.001"/>
-        <stellarFeedbackOutflowsMethod value="powerLaw">
+        <stellarFeedbackOutflows value="powerLaw">
           <velocityCharacteristic value="250.0"/>
           <exponent value="3.5"/>
-        </stellarFeedbackOutflowsMethod>
-      </stellarFeedbackOutflowsMethod>
-    </nodeOperatorMethod>
-  </nodeOperatorMethod>
+        </stellarFeedbackOutflows>
+      </stellarFeedbackOutflows>
+    </nodeOperator>
+  </nodeOperator>
 
 </parameters>

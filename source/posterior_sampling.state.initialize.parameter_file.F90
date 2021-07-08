@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling state initializor class which initializes all chains to values read from a parameter file.
+  !!{
+  Implementation of a posterior sampling state initializor class which initializes all chains to values read from a parameter file.
+  !!}
 
   use :: ISO_Varying_String, only : varying_string
 
-  !# <posteriorSampleStateInitialize name="posteriorSampleStateInitializeParameterFile">
-  !#  <description>
-  !#   This class initializes all chains to values read from a parameter file.
-  !# </description>
-  !# </posteriorSampleStateInitialize>
+  !![
+  <posteriorSampleStateInitialize name="posteriorSampleStateInitializeParameterFile">
+   <description>
+    This class initializes all chains to values read from a parameter file.
+  </description>
+  </posteriorSampleStateInitialize>
+  !!]
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializeParameterFile
-     !% Implementation of a posterior sampling state initialization class that initializes state to values read from a parameter
-     !% file.
+     !!{
+     Implementation of a posterior sampling state initialization class that initializes state to values read from a parameter
+     file.
+     !!}
      private
      type(varying_string) :: fileName
    contains
@@ -36,7 +42,9 @@
   end type posteriorSampleStateInitializeParameterFile
 
   interface posteriorSampleStateInitializeParameterFile
-     !% Constructors for the {\normalfont \ttfamily parameterFile} posterior sampling state initialization class.
+     !!{
+     Constructors for the {\normalfont \ttfamily parameterFile} posterior sampling state initialization class.
+     !!}
      module procedure parameterFileConstructorParameters
      module procedure parameterFileConstructorInternal
   end interface posteriorSampleStateInitializeParameterFile
@@ -44,36 +52,48 @@
 contains
 
   function parameterFileConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily parameterFile} posterior sampling state initialization class.
+    !!{
+    Constructor for the {\normalfont \ttfamily parameterFile} posterior sampling state initialization class.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(posteriorSampleStateInitializeParameterFile)                :: self
     type(inputParameters                            ), intent(inout) :: parameters
     type(varying_string                             )                :: fileName
 
-    !# <inputParameter>
-    !#   <name>fileName</name>
-    !#   <description>The name of the parameter file from which to read initial state.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>fileName</name>
+      <description>The name of the parameter file from which to read initial state.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=posteriorSampleStateInitializeParameterFile(fileName)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function parameterFileConstructorParameters
 
   function parameterFileConstructorInternal(fileName) result(self)
-    !% Constructor for the {\normalfont \ttfamily parameterFile} posterior sampling state initialization class.
+    !!{
+    Constructor for the {\normalfont \ttfamily parameterFile} posterior sampling state initialization class.
+    !!}
     implicit none
     type(posteriorSampleStateInitializeParameterFile)                :: self
     type(varying_string                             ), intent(in   ) :: fileName
-    !# <constructorAssign variables="fileName"/>
+    !![
+    <constructorAssign variables="fileName"/>
+    !!]
 
     return
   end function parameterFileConstructorInternal
 
   subroutine parameterFileInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
-    !% Initialize simulation state by reading parameter values from a parameter file.
-    use :: Galacticus_Display          , only : Galacticus_Display_Message
+    !!{
+    Initialize simulation state by reading parameter values from a parameter file.
+    !!}
+    use :: Display                     , only : displayMessage
     use :: MPI_Utilities               , only : mpiSelf
     use :: Models_Likelihoods_Constants, only : logImpossible
     use :: Posterior_Sampling_State    , only : posteriorSampleStateClass
@@ -162,7 +182,7 @@ contains
                &  ' -> value   = ' //trim(labelValue  )                             //char(10)// &
                &  ' -> minimum = ' //trim(labelMinimum)                             //char(10)// &
                &  ' -> maximum = ' //trim(labelMaximum)
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end if
     end do
     return

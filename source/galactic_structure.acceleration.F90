@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,10 +19,14 @@
 
 !+    Contributions to this file made by: Andrew Benson.
 
-!% Contains a module which implements calculations of gravitational accelerations.
+!!{
+Contains a module which implements calculations of gravitational accelerations.
+!!}
 
 module Galactic_Structure_Accelerations
-  !% Implements calculations of the gravitational accelerations.
+  !!{
+  Implements calculations of the gravitational accelerations.
+  !!}
   use :: Kind_Numbers, only : kind_int8
   implicit none
   private
@@ -36,12 +40,18 @@ module Galactic_Structure_Accelerations
 contains
 
   function Galactic_Structure_Acceleration(node,positionCartesian,componentType,massType)
-    !% Compute the gravitational acceleration at a given position.
+    !!{
+    Compute the gravitational acceleration at a given position.
+    !!}
     use :: Galactic_Structure_Options, only : componentTypeAll                , massTypeAll
     use :: Galacticus_Nodes          , only : optimizeForAccelerationSummation, reductionSummation, treeNode
-    !# <include directive="accelerationTask" type="moduleUse">
+    !![
+    <include directive="accelerationTask" type="moduleUse">
+    !!]
     include 'galactic_structure.acceleration.tasks.modules.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     implicit none
     double precision                                       , dimension(3) :: Galactic_Structure_Acceleration
     type            (treeNode              ), intent(inout)               :: node
@@ -81,16 +91,22 @@ contains
     end if
     ! Compute the acceleration.
     Galactic_Structure_Acceleration=node%mapDouble1(componentAccelerationFunction,accelerationSize,reductionSummation,optimizeFor=optimizeForAccelerationSummation)
-    !# <include directive="accelerationTask" type="functionCall" functionType="function" returnParameter="componentAcceleration">
-    !#  <functionArgs>node,positionCartesianShared,componentTypeShared,massTypeShared</functionArgs>
-    !#  <onReturn>Galactic_Structure_Acceleration=Galactic_Structure_Acceleration+componentAcceleration</onReturn>
+    !![
+    <include directive="accelerationTask" type="functionCall" functionType="function" returnParameter="componentAcceleration">
+     <functionArgs>node,positionCartesianShared,componentTypeShared,massTypeShared</functionArgs>
+     <onReturn>Galactic_Structure_Acceleration=Galactic_Structure_Acceleration+componentAcceleration</onReturn>
+    !!]
     include 'galactic_structure.acceleration.tasks.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     return
   end function Galactic_Structure_Acceleration
 
   function Component_Acceleration(component,resultSize)
-    !% Function returning the acceleration in a component. Suitable for mapping over components.
+    !!{
+    Function returning the acceleration in a component. Suitable for mapping over components.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponent
     implicit none
     integer                        , intent(in   )         :: resultSize

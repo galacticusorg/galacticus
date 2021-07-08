@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a code to test the ``Hummer'' recombination cooling class.
+!!{
+Contains a code to test the ``Hummer'' recombination cooling class.
+!!}
 
 program Test_Recombination_Cooling_Hummer
-  !% Test the radiative transfer state solver.
+  !!{
+  Test the radiative transfer state solver.
+  !!}
   use :: Atomic_Cross_Sections_Ionization_Photo      , only : atomicCrossSectionIonizationPhotoVerner
   use :: Atomic_Ionization_Potentials                , only : atomicIonizationPotentialVerner
-  use :: Atomic_Rates_Recombination_Radiative_Cooling, only : atomicRecombinationRateRadiativeCoolingComputed, atomicRecombinationRateRadiativeCoolingHummer
   use :: Atomic_Rates_Recombination_Radiative        , only : atomicRecombinationRateRadiativeVerner1996
-  use :: Galacticus_Display                          , only : Galacticus_Verbosity_Level_Set                 , verbosityStandard
+  use :: Atomic_Rates_Recombination_Radiative_Cooling, only : atomicRecombinationRateRadiativeCoolingComputed, atomicRecombinationRateRadiativeCoolingHummer
+  use :: Display                                     , only : displayVerbositySet                            , verbosityLevelStandard
   use :: Galacticus_Error                            , only : errorStatusSuccess
   use :: Unit_Tests                                  , only : Assert                                         , Unit_Tests_Begin_Group                       , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
@@ -36,47 +40,49 @@ program Test_Recombination_Cooling_Hummer
   type(atomicRecombinationRateRadiativeVerner1996     ), pointer :: atomicRecombinationRateRadiative_
   
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Construct atomic matter.
   allocate(atomicCrossSectionIonizationPhoto_              )
   allocate(atomicIonizationPotential_                      )
   allocate(atomicRecombinationRateRadiativeCoolingComputed_)
   allocate(atomicRecombinationRateRadiativeCoolingHummer_  )
   allocate(atomicRecombinationRateRadiative_               )
-  !# <referenceConstruct object="atomicCrossSectionIonizationPhoto_"              >
-  !#  <constructor>
-  !#   atomicCrossSectionIonizationPhotoVerner         (                                   &amp;
-  !#     &amp;                                         )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="atomicIonizationPotential_"                      >
-  !#  <constructor>
-  !#   atomicIonizationPotentialVerner                (                                    &amp;
-  !#     &amp;                                        )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="atomicRecombinationRateRadiative_"               >
-  !#  <constructor>
-  !#   atomicRecombinationRateRadiativeVerner1996     (                                    &amp;
-  !#     &amp;                                        )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="atomicRecombinationRateRadiativeCoolingComputed_">
-  !#  <constructor>
-  !#   atomicRecombinationRateRadiativeCoolingComputed(                                    &amp;
-  !#     &amp;                                         atomicCrossSectionIonizationPhoto_, &amp;
-  !#     &amp;                                         atomicIonizationPotential_          &amp;
-  !#     &amp;                                        )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="atomicRecombinationRateRadiativeCoolingHummer_"  >
-  !#  <constructor>
-  !#   atomicRecombinationRateRadiativeCoolingHummer  (                                    &amp;
-  !#     &amp;                                         0.0d0                             , &amp;
-  !#     &amp;                                         atomicRecombinationRateRadiative_   &amp;
-  !#     &amp;                                        )
-  !#  </constructor>
-  !# </referenceConstruct>
+  !![
+  <referenceConstruct object="atomicCrossSectionIonizationPhoto_"              >
+   <constructor>
+    atomicCrossSectionIonizationPhotoVerner         (                                   &amp;
+      &amp;                                         )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="atomicIonizationPotential_"                      >
+   <constructor>
+    atomicIonizationPotentialVerner                (                                    &amp;
+      &amp;                                        )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="atomicRecombinationRateRadiative_"               >
+   <constructor>
+    atomicRecombinationRateRadiativeVerner1996     (                                    &amp;
+      &amp;                                        )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="atomicRecombinationRateRadiativeCoolingComputed_">
+   <constructor>
+    atomicRecombinationRateRadiativeCoolingComputed(                                    &amp;
+      &amp;                                         atomicCrossSectionIonizationPhoto_, &amp;
+      &amp;                                         atomicIonizationPotential_          &amp;
+      &amp;                                        )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="atomicRecombinationRateRadiativeCoolingHummer_"  >
+   <constructor>
+    atomicRecombinationRateRadiativeCoolingHummer  (                                    &amp;
+      &amp;                                         0.0d0                             , &amp;
+      &amp;                                         atomicRecombinationRateRadiative_   &amp;
+      &amp;                                        )
+   </constructor>
+  </referenceConstruct>
+  !!]
   call Unit_Tests_Begin_Group("Recombination cooling coefficient (Hummer)")
   ! 1²2S level of hydrogen, target values from Table 3.2 of "Astrophysics of Gaseous Nebulae and Active Galactic Nuclei", 2nd
   ! edition, by Osterbrock and Ferland, 2006, University Science Books.

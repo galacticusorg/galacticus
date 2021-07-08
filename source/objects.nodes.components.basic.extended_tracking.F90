@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,40 +17,50 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which extends the extended implementation of basic component to track the maximum progenitor mass.
+!!{
+Contains a module which extends the extended implementation of basic component to track the maximum progenitor mass.
+!!}
 
 module Node_Component_Basic_Extended_Tracking
-  !% Extends the extended implementation of basic component to track the maximum progenitor mass.
+  !!{
+  Extends the extended implementation of basic component to track the maximum progenitor mass.
+  !!}
   implicit none
   private
   public :: Node_Component_Basic_Extended_Tree_Tracking_Initialize    , Node_Component_Basic_Extended_Tracking_Thread_Initialize, &
        &    Node_Component_Basic_Extended_Tracking_Thread_Uninitialize
 
-  !# <component>
-  !#  <class>basic</class>
-  !#  <name>extendedTracking</name>
-  !#  <extends>
-  !#   <class>basic</class>
-  !#   <name>standardExtended</name>
-  !#  </extends>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>massMaximum</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#  </properties>
-  !# </component>
+  !![
+  <component>
+   <class>basic</class>
+   <name>extendedTracking</name>
+   <extends>
+    <class>basic</class>
+    <name>standardExtended</name>
+   </extends>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>massMaximum</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+   </properties>
+  </component>
+  !!]
 
 contains
 
-  !# <mergerTreeInitializeTask>
-  !#  <unitName>Node_Component_Basic_Extended_Tree_Tracking_Initialize</unitName>
-  !# </mergerTreeInitializeTask>
+  !![
+  <mergerTreeInitializeTask>
+   <unitName>Node_Component_Basic_Extended_Tree_Tracking_Initialize</unitName>
+  </mergerTreeInitializeTask>
+  !!]
   subroutine Node_Component_Basic_Extended_Tree_Tracking_Initialize(node)
-    !% Set the mass accretion rate for {\normalfont \ttfamily node}.
+    !!{
+    Set the mass accretion rate for {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicExtendedTracking, treeNode
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
@@ -76,11 +86,15 @@ contains
     return
   end subroutine Node_Component_Basic_Extended_Tree_Tracking_Initialize
 
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Basic_Extended_Tracking_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Basic_Extended_Tracking_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Basic_Extended_Tracking_Thread_Initialize(parameters_)
-    !% Initializes the tree node scale dark matter profile module.
+    !!{
+    Initializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent   , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultBasicComponent
     use :: Input_Parameters, only : inputParameters
@@ -93,11 +107,15 @@ contains
     return
   end subroutine Node_Component_Basic_Extended_Tracking_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Basic_Extended_Tracking_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Basic_Extended_Tracking_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Basic_Extended_Tracking_Thread_Uninitialize()
-    !% Uninitializes the tree node scale dark matter profile module.
+    !!{
+    Uninitializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
@@ -108,8 +126,10 @@ contains
   end subroutine Node_Component_Basic_Extended_Tracking_Thread_Uninitialize
 
   subroutine nodePromotion(self,node)
-    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the maximum
-    !% mass of {\normalfont \ttfamily node} to be that of its parent.
+    !!{
+    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the maximum
+    mass of {\normalfont \ttfamily node} to be that of its parent.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentBasicExtendedTracking, treeNode
     implicit none

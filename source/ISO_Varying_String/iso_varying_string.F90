@@ -53,12 +53,14 @@ module iso_varying_string
      private
      character(LEN=1), dimension(:), allocatable :: chars
    contains
-     !# <methods>
-     !#  <method method="destroy"      description="Destroys the object by deallocating internal storage."/>
-     !#  <method method="loadFromFile" description="Loads a varying string with the contents of a file."  />
-     !#  <method method="stateStore"   description="Store the state of a varying string to file."         />
-     !#  <method method="stateRestore" description="Restore the state of a varying string from file."     />
-     !# </methods>
+     !![
+     <methods>
+       <method method="destroy"      description="Destroys the object by deallocating internal storage."/>
+       <method method="loadFromFile" description="Loads a varying string with the contents of a file."  />
+       <method method="stateStore"   description="Store the state of a varying string to file."         />
+       <method method="stateRestore" description="Restore the state of a varying string from file."     />
+     </methods>
+     !!]
      procedure :: destroy      => destroy_VS
      procedure :: loadFromFile => load_from_file_VS
      procedure :: stateStore   => vsStateStore
@@ -529,19 +531,30 @@ contains
 !****
 
   elemental function op_eq_VS_VS (string_a, string_b) result (op_eq)
+    !!{
+    Test equality of two varying string objects.
+    !!}
+    implicit none
+    type   (varying_string), intent(in) :: string_a
+    type   (varying_string), intent(in) :: string_b
+    integer                             :: i
+    logical                             :: op_eq
 
-    type(varying_string), intent(in) :: string_a
-    type(varying_string), intent(in) :: string_b
-    logical                          :: op_eq
-
-! Compare (==) two varying strings
-
-    op_eq = char(string_a) == char(string_b)
-
-! Finish
-
+    ! Compare (==) two varying strings
+    if (size(string_a%chars) == size(string_b%chars)) then
+       ! Strings have equal lengths, so test each character.
+       op_eq=.true.
+       do i=1,size(string_a%chars)
+          if (string_a%chars(i) /= string_b%chars(i)) then
+             op_eq=.false.
+             exit
+          end if
+       end do
+    else
+       ! Strings have different lengths so cannot be equal.
+       op_eq=.false.
+    end if
     return
-
   end function op_eq_VS_VS
 
 !****
@@ -2669,7 +2682,9 @@ contains
   end subroutine split_CH
 
   subroutine destroy_VS (string)
-    !% Destroy a varying string object by deallocating it. Can be necessary to avoid memory leaks in some instances.
+    !!{
+    Destroy a varying string object by deallocating it. Can be necessary to avoid memory leaks in some instances.
+    !!}
     class(varying_string), intent(inout) :: string
 
     if (allocated(string%chars)) deallocate(string%chars)
@@ -2677,7 +2692,9 @@ contains
   end subroutine destroy_VS
 
   subroutine load_from_file_VS(string,fileName)
-    !% Load a varying string object with the contents of a file (specified by {\normalfont \ttfamily fileName}).
+    !!{
+    Load a varying string object with the contents of a file (specified by {\normalfont \ttfamily fileName}).
+    !!}
     class(varying_string), intent(inout) :: string
     character(len=*),      intent(in   ) :: fileName
     character(len=1)                     :: thisChar
@@ -2700,15 +2717,19 @@ contains
   end subroutine load_from_file_VS
 
   subroutine vsStateStore(self,stateFile)
-    !% Store the state of a {\normalfont \ttfamily varying\_string} object to file.
+    !!{
+    Store the state of a {\normalfont \ttfamily varying\_string} object to file.
+    !!}
     use, intrinsic :: ISO_C_Binding
     implicit none
     class  (varying_string), intent(inout) :: self
     integer                , intent(in   ) :: stateFile
 
-    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    !# </workaround>
+    !![
+    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+     <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    </workaround>
+    !!]
 #ifdef THREADSAFEIO
     !$omp critical(gfortranInternalIO)
 #endif
@@ -2717,9 +2738,11 @@ contains
     !$omp end critical(gfortranInternalIO)
 #endif
     if (allocated(self%chars)) then
-       !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-       !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
-       !# </workaround>
+       !![
+       <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+        <description>Internal file I/O in gfortran can be non-thread safe.</description>
+       </workaround>
+       !!]
 #ifdef THREADSAFEIO
        !$omp critical(gfortranInternalIO)
 #endif
@@ -2733,7 +2756,9 @@ contains
   end subroutine vsStateStore
 
   subroutine vsStateRestore(self,stateFile)
-    !% Restore the state of a {\normalfont \ttfamily varying\_string} object from file.
+    !!{
+    Restore the state of a {\normalfont \ttfamily varying\_string} object from file.
+    !!}
     use, intrinsic :: ISO_C_Binding
     implicit none
     class  (varying_string), intent(inout) :: self
@@ -2741,9 +2766,11 @@ contains
     logical                                :: wasAllocated
     integer(c_size_t      )                :: charsSize
 
-    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    !# </workaround>
+    !![
+    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+     <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    </workaround>
+    !!]
 #ifdef THREADSAFEIO
     !$omp critical(gfortranInternalIO)
 #endif
@@ -2753,9 +2780,11 @@ contains
 #endif
     if (allocated(self%chars)) deallocate(self%chars)
     if (wasAllocated) then
-       !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-       !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
-       !# </workaround>
+       !![
+       <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+        <description>Internal file I/O in gfortran can be non-thread safe.</description>
+       </workaround>
+       !!]
 #ifdef THREADSAFEIO
        !$omp critical(gfortranInternalIO)
 #endif

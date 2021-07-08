@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains custom functions for the preset position component.
+!!{
+Contains custom functions for the preset position component.
+!!}
 
 function PositionPresetPosition(self)
-  !% Return the position of the node.
+  !!{
+  Return the position of the node.
+  !!}
   use, intrinsic :: ISO_C_Binding          , only : c_size_t
   use            :: Numerical_Interpolation, only : interpolator
   implicit none
@@ -52,7 +56,9 @@ function PositionPresetPosition(self)
 end function PositionPresetPosition
 
 function PositionPresetVelocity(self)
-  !% Return the velocity of the node.
+  !!{
+  Return the velocity of the node.
+  !!}
   use, intrinsic :: ISO_C_Binding          , only : c_size_t
   use            :: Numerical_Interpolation, only : interpolator
   implicit none

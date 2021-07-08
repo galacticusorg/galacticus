@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a transfer function class based on the fuzzy dark matter modifier of \cite{hu_fuzzy_2000}.
+  !!{
+  Contains a module which implements a transfer function class based on the fuzzy dark matter modifier of \cite{hu_fuzzy_2000}.
+  !!}
 
   use :: Cosmology_Functions  , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters , only : cosmologyParametersClass
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
-  !# <transferFunction name="transferFunctionHu2000FDM">
-  !#  <description>Provides a transfer function based on the fuzzy dark matter modifier of \cite{hu_fuzzy_2000}.</description>
-  !# </transferFunction>
+  !![
+  <transferFunction name="transferFunctionHu2000FDM">
+   <description>Provides a transfer function based on the fuzzy dark matter modifier of \cite{hu_fuzzy_2000}.</description>
+  </transferFunction>
+  !!]
   type, extends(transferFunctionClass) :: transferFunctionHu2000FDM
-     !% A transfer function class which modifies another transfer function using the fuzzy dark matter modifier of
-     !% \cite{hu_fuzzy_2000}.
+     !!{
+     A transfer function class which modifies another transfer function using the fuzzy dark matter modifier of
+     \cite{hu_fuzzy_2000}.
+     !!}
      private
      double precision                                    :: jeansWavenumberEq             , m22     , &
           &                                                 time                          , redshift
@@ -45,7 +51,9 @@
   end type transferFunctionHu2000FDM
 
   interface transferFunctionHu2000FDM
-     !% Constructors for the {\normalfont \ttfamily hu2000} transfer function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily hu2000} transfer function class.
+     !!}
      module procedure hu2000FDMConstructorParameters
      module procedure hu2000FDMConstructorInternal
   end interface transferFunctionHu2000FDM
@@ -53,7 +61,9 @@
 contains
 
   function hu2000FDMConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily hu2000} transfer function class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily hu2000} transfer function class which takes a parameter set as input.
+    !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
     use :: Galacticus_Error              , only : Galacticus_Error_Report
@@ -70,29 +80,33 @@ contains
     ! Validate parameters.
     if (.not.parameters%isPresent('transferFunctionMethod')) call Galacticus_Error_Report("an explicit 'transferFunctionMethod' must be given"//{introspection:location})
     ! Read parameters.
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
-    !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
-    !# <inputParameter>
-    !#   <name>redshift</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%equalityEpochMatterRadiation(requestTypeExpansionFactor))</defaultValue>
-    !#   <description>The redshift of the epoch at which the transfer function is defined.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
-     self=transferFunctionHu2000FDM(transferFunctionCDM,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
-    !# <objectDestructor name="transferFunctionCDM" />
-    !# <objectDestructor name="darkMatterParticle_" />
+    !![
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
+    <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
+    <inputParameter>
+      <name>redshift</name>
+      <source>parameters</source>
+      <defaultValue>cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%equalityEpochMatterRadiation(requestTypeExpansionFactor))</defaultValue>
+      <description>The redshift of the epoch at which the transfer function is defined.</description>
+    </inputParameter>
+    !!]
+    self=transferFunctionHu2000FDM(transferFunctionCDM,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_)
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="transferFunctionCDM" />
+    <objectDestructor name="darkMatterParticle_" />
+    !!]
     return
   end function hu2000FDMConstructorParameters
   
   function hu2000FDMConstructorInternal(transferFunctionCDM,time,cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily hu2000} transfer function class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily hu2000} transfer function class.
+    !!}
     use :: Cosmology_Parameters        , only : hubbleUnitsLittleH
     use :: Galacticus_Error            , only : Galacticus_Error_Report
     use :: Dark_Matter_Particles       , only : darkMatterParticleFuzzyDarkMatter
@@ -104,7 +118,9 @@ contains
     class           (cosmologyParametersClass ), target, intent(in   ) :: cosmologyParameters_
     class           (cosmologyFunctionsClass  ), target, intent(in   ) :: cosmologyFunctions_
     class           (darkMatterParticleClass  ), target, intent(in   ) :: darkMatterParticle_
-    !# <constructorAssign variables="*transferFunctionCDM, time, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterParticle_"/>
+    !![
+    <constructorAssign variables="*transferFunctionCDM, time, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterParticle_"/>
+    !!]
 
     select type (darkMatterParticle__ => self%darkMatterParticle_)
     class is (darkMatterParticleFuzzyDarkMatter)
@@ -124,19 +140,25 @@ contains
   end function hu2000FDMConstructorInternal
 
   subroutine hu2000FDMDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily hu2000} transfer function class.
+    !!{
+    Destructor for the {\normalfont \ttfamily hu2000} transfer function class.
+    !!}
     implicit none
     type(transferFunctionHu2000FDM), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_" />
-    !# <objectDestructor name="self%transferFunctionCDM" />
-    !# <objectDestructor name="self%darkMatterParticle_" />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    <objectDestructor name="self%cosmologyFunctions_" />
+    <objectDestructor name="self%transferFunctionCDM" />
+    <objectDestructor name="self%darkMatterParticle_" />
+    !!]
     return
   end subroutine hu2000FDMDestructor
 
   double precision function hu2000FDMValue(self,wavenumber)
-    !% Return the transfer function at the given wavenumber.
+    !!{
+    Return the transfer function at the given wavenumber.
+    !!}
     implicit none
     class           (transferFunctionHu2000FDM), intent(inout) :: self
     double precision                           , intent(in   ) :: wavenumber
@@ -161,7 +183,9 @@ contains
   end function hu2000FDMValue
 
   double precision function hu2000FDMLogarithmicDerivative(self,wavenumber)
-    !% Return the logarithmic derivative of the transfer function at the given wavenumber.
+    !!{
+    Return the logarithmic derivative of the transfer function at the given wavenumber.
+    !!}
     implicit none
     class           (transferFunctionHu2000FDM), intent(inout) :: self
     double precision                           , intent(in   ) :: wavenumber
@@ -187,8 +211,10 @@ contains
   end function hu2000FDMLogarithmicDerivative
 
   double precision function hu2000FDMHalfModeMass(self,status)
-    !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
-    !% to a \gls{cdm} transfer function.
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
+    to a \gls{cdm} transfer function.
+    !!}
     use :: Galacticus_Error        , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -214,7 +240,9 @@ contains
   end function hu2000FDMHalfModeMass
 
   double precision function hu2000FDMEpochTime(self)
-    !% Return the cosmic time at the epoch at which this transfer function is defined.
+    !!{
+    Return the cosmic time at the epoch at which this transfer function is defined.
+    !!}
     implicit none
     class(transferFunctionHu2000FDM), intent(inout) :: self
 

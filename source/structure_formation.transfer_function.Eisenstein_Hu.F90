@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,22 +19,28 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-  !% Contains a module which implements a transfer function class using the fitting function of
-  !% \cite{eisenstein_power_1999}.
+  !!{
+  Contains a module which implements a transfer function class using the fitting function of
+  \cite{eisenstein_power_1999}.
+  !!}
 
   use :: Cosmology_Functions  , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters , only : cosmologyParametersClass
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
-  !# <transferFunction name="transferFunctionEisensteinHu1999">
-  !#  <description>
-  !#   Provides the \cite{eisenstein_power_1999} fitting function to the transfer function. The effective number of neutrino
-  !#   species and the summed mass (in electron volts) of all neutrino species are specified via the {\normalfont \ttfamily
-  !#   neutrinoNumberEffective} and {\normalfont \ttfamily neutrinoMassSummed} parameters respectively.
-  !#  </description>
-  !# </transferFunction>
+  !![
+  <transferFunction name="transferFunctionEisensteinHu1999">
+   <description>
+    Provides the \cite{eisenstein_power_1999} fitting function to the transfer function. The effective number of neutrino
+    species and the summed mass (in electron volts) of all neutrino species are specified via the {\normalfont \ttfamily
+    neutrinoNumberEffective} and {\normalfont \ttfamily neutrinoMassSummed} parameters respectively.
+   </description>
+  </transferFunction>
+  !!]
   type, extends(transferFunctionClass) :: transferFunctionEisensteinHu1999
-     !% The ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
+     !!{
+     The ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
+     !!}
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
@@ -48,19 +54,24 @@
           &                                                 wavenumberEffectivePow        , wavenumberPrevious     , &
           &                                                 time
    contains
-     !# <methods>
-     !#   <method description="Compute common factors needed by \cite{eisenstein_power_1999} transfer function calculations." method="computeFactors" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Compute common factors needed by \cite{eisenstein_power_1999} transfer function calculations." method="computeFactors" />
+     </methods>
+     !!]
      final     ::                          eisensteinHu1999Destructor
      procedure :: value                 => eisensteinHu1999Value
      procedure :: logarithmicDerivative => eisensteinHu1999LogarithmicDerivative
      procedure :: computeFactors        => eisensteinHu1999ComputeFactors
      procedure :: halfModeMass          => eisensteinHu1999HalfModeMass
+     procedure :: quarterModeMass       => eisensteinHu1999QuarterModeMass
      procedure :: epochTime             => eisensteinHu1999EpochTime
   end type transferFunctionEisensteinHu1999
 
   interface transferFunctionEisensteinHu1999
-     !% Constructors for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
+     !!{
+     Constructors for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
+     !!}
      module procedure eisensteinHu1999ConstructorParameters
      module procedure eisensteinHu1999ConstructorInternal
   end interface transferFunctionEisensteinHu1999
@@ -68,8 +79,10 @@
 contains
 
   function eisensteinHu1999ConstructorParameters(parameters) result(self)
-    !% Constructor for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class
-    !% which takes a parameter set as input.
+    !!{
+    Constructor for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class
+    which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (transferFunctionEisensteinHu1999)                :: self
@@ -80,33 +93,39 @@ contains
     double precision                                                  :: neutrinoNumberEffective             , neutrinoMassSummed
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>neutrinoNumberEffective</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>3.046d0</defaultValue>
-    !#   <defaultSource>\citep{mangano_relic_2005}</defaultSource>
-    !#   <description>The effective number of neutrino species.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>neutrinoMassSummed</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The summed mass (in electron volts) of all neutrino species.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !![
+    <inputParameter>
+      <name>neutrinoNumberEffective</name>
+      <source>parameters</source>
+      <defaultValue>3.046d0</defaultValue>
+      <defaultSource>\citep{mangano_relic_2005}</defaultSource>
+      <description>The effective number of neutrino species.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>neutrinoMassSummed</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The summed mass (in electron volts) of all neutrino species.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !!]
     ! Call the internal constructor.
     self=transferFunctionEisensteinHu1999(neutrinoNumberEffective,neutrinoMassSummed,darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="darkMatterParticle_" />
-    !# <objectDestructor name="cosmologyFunctions_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="darkMatterParticle_" />
+    <objectDestructor name="cosmologyFunctions_" />
+    !!]
     return
   end function eisensteinHu1999ConstructorParameters
 
   function eisensteinHu1999ConstructorInternal(neutrinoNumberEffective,neutrinoMassSummed,darkMatterParticle_,cosmologyParameters_,cosmologyFunctions_) result(self)
-    !% Internal constructor for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
+    !!{
+    Internal constructor for the ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
+    !!}
     use :: Cosmology_Parameters , only : hubbleUnitsLittleH
     use :: Dark_Matter_Particles, only : darkMatterParticleCDM
     use :: Galacticus_Error     , only : Galacticus_Error_Report
@@ -122,7 +141,9 @@ contains
          &                                                                       expansionFactorRatio        , massFractionMatter    , &
          &                                                                       massFractionBaryonsNeutrinos, suppressionDarkMatter , &
          &                                                                       suppressionMatter
-    !# <constructorAssign variables="*darkMatterParticle_, *cosmologyParameters_, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="*darkMatterParticle_, *cosmologyParameters_, *cosmologyFunctions_"/>
+    !!]
 
     ! Require that the dark matter be cold dark matter.
     select type (darkMatterParticle_)
@@ -288,18 +309,24 @@ contains
   end function eisensteinHu1999ConstructorInternal
 
   subroutine eisensteinHu1999Destructor(self)
-    !% Destructor for the eisensteinHu1999 transfer function class.
+    !!{
+    Destructor for the eisensteinHu1999 transfer function class.
+    !!}
     implicit none
     type(transferFunctionEisensteinHu1999), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_" />
-    !# <objectDestructor name="self%darkMatterParticle_" />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    <objectDestructor name="self%cosmologyFunctions_" />
+    <objectDestructor name="self%darkMatterParticle_" />
+    !!]
     return
   end subroutine eisensteinHu1999Destructor
 
   subroutine eisensteinHu1999ComputeFactors(self,wavenumber)
-    !% Compute common factors required by ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
+    !!{
+    Compute common factors required by ``{\normalfont \ttfamily eisensteinHu1999}'' transfer function class.
+    !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     implicit none
     class           (transferFunctionEisensteinHu1999), intent(inout) :: self
@@ -365,7 +392,9 @@ contains
   end subroutine eisensteinHu1999ComputeFactors
 
   double precision function eisensteinHu1999Value(self,wavenumber)
-    !% Return the transfer function at the given wavenumber.
+    !!{
+    Return the transfer function at the given wavenumber.
+    !!}
     implicit none
     class           (transferFunctionEisensteinHu1999), intent(inout) :: self
     double precision                                  , intent(in   ) :: wavenumber
@@ -402,7 +431,9 @@ contains
   end function eisensteinHu1999Value
 
   double precision function eisensteinHu1999LogarithmicDerivative(self,wavenumber)
-    !% Return the logarithmic derivative of the transfer function at the given wavenumber.
+    !!{
+    Return the logarithmic derivative of the transfer function at the given wavenumber.
+    !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     implicit none
     class           (transferFunctionEisensteinHu1999), intent(inout) :: self
@@ -514,8 +545,10 @@ contains
   end function eisensteinHu1999LogarithmicDerivative
 
   double precision function eisensteinHu1999HalfModeMass(self,status)
-    !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
-    !% to a \gls{cdm} transfer function. Not supported in this implementation.
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
+    to a \gls{cdm} transfer function. Not supported in this implementation.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
     implicit none
     class  (transferFunctionEisensteinHu1999), intent(inout)           :: self
@@ -531,8 +564,30 @@ contains
     return
   end function eisensteinHu1999HalfModeMass
 
+  double precision function eisensteinHu1999QuarterModeMass(self,status)
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative
+    to a \gls{cdm} transfer function. Not supported in this implementation.
+    !!}
+    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
+    implicit none
+    class  (transferFunctionEisensteinHu1999), intent(inout)           :: self
+    integer                                  , intent(  out), optional :: status
+    !$GLC attributes unused :: self
+
+    eisensteinHu1999QuarterModeMass=0.0d0
+    if (present(status)) then
+       status=errorStatusFail
+    else
+       call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+    end if
+    return
+  end function eisensteinHu1999QuarterModeMass
+
   double precision function eisensteinHu1999EpochTime(self)
-    !% Return the cosmic time at the epoch at which this transfer function is defined.
+    !!{
+    Return the cosmic time at the epoch at which this transfer function is defined.
+    !!}
     implicit none
     class(transferFunctionEisensteinHu1999), intent(inout) :: self
 

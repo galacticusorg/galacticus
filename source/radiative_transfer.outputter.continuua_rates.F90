@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,11 +19,15 @@
 
   use :: Atomic_Ionization_Potentials, only : atomicIonizationPotentialClass
   
-  !# <radiativeTransferOutputter name="radiativeTransferOutputterContinuuaRates">
-  !#  <description>A radiative transfer outputter class which outputs the photon emission rates in the continuua of all specified elements.</description>
-  !# </radiativeTransferOutputter>
+  !![
+  <radiativeTransferOutputter name="radiativeTransferOutputterContinuuaRates">
+   <description>A radiative transfer outputter class which outputs the photon emission rates in the continuua of all specified elements.</description>
+  </radiativeTransferOutputter>
+  !!]
   type, extends(radiativeTransferOutputterClass) :: radiativeTransferOutputterContinuuaRates
-     !% Implementation of a radiative transfer outputter class which outputs the Lyman continuum photon emission rate.
+     !!{
+     Implementation of a radiative transfer outputter class which outputs the Lyman continuum photon emission rate.
+     !!}
      private
      class           (atomicIonizationPotentialClass), pointer                       :: atomicIonizationPotential_   => null()
      integer                                         , allocatable, dimension(:    ) :: elementIndices
@@ -40,7 +44,9 @@
   end type radiativeTransferOutputterContinuuaRates
 
   interface radiativeTransferOutputterContinuuaRates
-     !% Constructors for the {\normalfont \ttfamily continuuaRates} radiative transfer outputter packet class.
+     !!{
+     Constructors for the {\normalfont \ttfamily continuuaRates} radiative transfer outputter packet class.
+     !!}
      module procedure continuuaRatesConstructorParameters
      module procedure continuuaRatesConstructorInternal
   end interface radiativeTransferOutputterContinuuaRates
@@ -48,8 +54,10 @@
 contains
 
   function continuuaRatesConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily continuuaRates} radiative transfer outputter class which takes a parameter set as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily continuuaRates} radiative transfer outputter class which takes a parameter set as
+    input.
+    !!}
     use :: Atomic_Data     , only : Atom_Lookup
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -63,23 +71,31 @@ contains
     elementsCount=parameters%count('elements',zeroIfNotPresent=.false.)
     allocate(elements      (elementsCount))
     allocate(elementIndices(elementsCount))
-    !# <inputParameter>
-    !#   <name>elements</name>
-    !#   <description>The names of the elements to be tracked.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>elements</name>
+      <description>The names of the elements to be tracked.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     do i=1,elementsCount
        elementIndices(i)=Atom_Lookup(shortLabel=elements(i))
     end do
-    !# <objectBuilder class="atomicIonizationPotential" name="atomicIonizationPotential_" source="parameters"/>
+    !![
+    <objectBuilder class="atomicIonizationPotential" name="atomicIonizationPotential_" source="parameters"/>
+    !!]
     self=radiativeTransferOutputterContinuuaRates(elementIndices,atomicIonizationPotential_)
-    !# <objectDestructor name="atomicIonizationPotential_"/>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <objectDestructor name="atomicIonizationPotential_"/>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function continuuaRatesConstructorParameters
 
   function continuuaRatesConstructorInternal(elementIndices,atomicIonizationPotential_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily continuuaRates} radiative transfer outputter class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily continuuaRates} radiative transfer outputter class.
+    !!}
     use :: Atomic_Data                 , only : Atomic_Number
     use :: Numerical_Constants_Physical, only : speedLight   , plancksConstant
     use :: Numerical_Constants_Units   , only : electronVolt , angstromsPerMeter
@@ -88,7 +104,9 @@ contains
     integer                                          , intent(in   ), dimension(:) :: elementIndices
     class  (atomicIonizationPotentialClass          ), intent(in   ), target       :: atomicIonizationPotential_
     integer                                                                        :: i                         , j
-    !# <constructorAssign variables="elementIndices, *atomicIonizationPotential_"/>
+    !![
+    <constructorAssign variables="elementIndices, *atomicIonizationPotential_"/>
+    !!]
 
     ! Determine maximum atomic number.
     self%countElements=size(elementIndices)
@@ -118,16 +136,22 @@ contains
   end function continuuaRatesConstructorInternal
 
   subroutine continuuaRatesDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily continuuaRates} radiative transfer outputter class.
+    !!{
+    Destructor for the {\normalfont \ttfamily continuuaRates} radiative transfer outputter class.
+    !!}
     implicit none
     type(radiativeTransferOutputterContinuuaRates), intent(inout) :: self
 
-    !# <objectDestructor name="self%atomicIonizationPotential_"/>
+    !![
+    <objectDestructor name="self%atomicIonizationPotential_"/>
+    !!]
     return
   end subroutine continuuaRatesDestructor
 
   subroutine continuuaRatesReset(self)
-    !% Reset the accumulated Lyman continuum photon escape rate.
+    !!{
+    Reset the accumulated Lyman continuum photon escape rate.
+    !!}
     implicit none
     class(radiativeTransferOutputterContinuuaRates), intent(inout) :: self
 
@@ -137,7 +161,9 @@ contains
   end subroutine continuuaRatesReset
 
   subroutine continuuaRatesSourceProperties(self,radiativeTransferSource_,outputGroup)
-    !% Compute and output the Lyman continuum photon emission rate.
+    !!{
+    Compute and output the Lyman continuum photon emission rate.
+    !!}
     use :: Atomic_Data             , only : Atomic_Number, Atomic_Short_Label
     use :: IO_HDF5                 , only : hdf5Access
     use :: Numerical_Integration   , only : integrator
@@ -195,7 +221,9 @@ contains
   contains
 
     double precision function integrand(wavelength)
-      !% Integrand over the source spectrum.
+      !!{
+      Integrand over the source spectrum.
+      !!}
       use :: Numerical_Constants_Physical    , only : plancksConstant  , speedLight
       use :: Numerical_Constants_Units       , only : angstromsPerMeter
       use :: Numerical_Constants_Astronomical, only : luminositySolar
@@ -216,7 +244,9 @@ contains
   end subroutine continuuaRatesSourceProperties
 
   subroutine continuuaRatesPhotonPacketEscapes(self,photonPacket)
-    !% Process an escaping photon packet.
+    !!{
+    Process an escaping photon packet.
+    !!}
     use :: Atomic_Data                     , only : Atomic_Number    , Atomic_Short_Label
     use :: Numerical_Constants_Physical    , only : plancksConstant  , speedLight
     use :: Numerical_Constants_Units       , only : angstromsPerMeter
@@ -250,7 +280,9 @@ contains
   end subroutine continuuaRatesPhotonPacketEscapes
 
   subroutine continuuaRatesFinalize(self)
-    !% Finalize the Lyman continuum photon escape rate.
+    !!{
+    Finalize the Lyman continuum photon escape rate.
+    !!}
     use :: MPI_Utilities, only : mpiSelf
     implicit none
     class(radiativeTransferOutputterContinuuaRates), intent(inout) :: self
@@ -262,7 +294,9 @@ contains
   end subroutine continuuaRatesFinalize
 
   subroutine continuuaRatesOutput(self,outputGroup)
-    !% Output the Lyman continuum photon escape rate.
+    !!{
+    Output the Lyman continuum photon escape rate.
+    !!}
     use :: Atomic_Data             , only : Atomic_Number          , Atomic_Short_Label
     use :: IO_HDF5                 , only : hdf5Access
     use :: Numerical_Roman_Numerals, only : Roman_Numerals

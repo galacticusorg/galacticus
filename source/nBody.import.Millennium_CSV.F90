@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data importer for Millennium database CSV files.
+!!{
+Contains a module which implements an N-body data importer for Millennium database CSV files.
+!!}
 
-  use :: Cosmology_Parameters, only : cosmologyParametersClass
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
   
-  !# <nbodyImporter name="nbodyImporterMillenniumCSV">
-  !#  <description>An importer for Millennium database CSV files.</description>
-  !# </nbodyImporter>
+  !![
+  <nbodyImporter name="nbodyImporterMillenniumCSV">
+   <description>An importer for Millennium database CSV files.</description>
+  </nbodyImporter>
+  !!]
   type, extends(nbodyImporterClass) :: nbodyImporterMillenniumCSV
-     !% An importer for Millennium database CSV files.
+     !!{
+     An importer for Millennium database CSV files.
+     !!}
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
@@ -39,13 +45,17 @@
   end type nbodyImporterMillenniumCSV
 
   interface nbodyImporterMillenniumCSV
-     !% Constructors for the {\normalfont \ttfamily millenniumCSV} N-body importer class.
+     !!{
+     Constructors for the {\normalfont \ttfamily millenniumCSV} N-body importer class.
+     !!}
      module procedure millenniumCSVConstructorParameters
      module procedure millenniumCSVConstructorInternal
   end interface nbodyImporterMillenniumCSV
 
   type columnType
-     !% Type used to describe column types.
+     !!{
+     Type used to describe column types.
+     !!}
      logical                 :: isPosition=.false., isVelocity=.false., &
           &                     isReal    =.false., isInteger =.false., &
           &                     isID
@@ -56,7 +66,9 @@
 contains
 
   function millenniumCSVConstructorParameters(parameters) result (self)
-    !% Constructor for the {\normalfont \ttfamily millenniumCSV} N-body importer class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily millenniumCSV} N-body importer class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyImporterMillenniumCSV)                :: self
@@ -66,34 +78,40 @@ contains
     type            (varying_string            )                :: fileName            , label
     double precision                                            :: redshift            , time
     
-    !# <inputParameter>
-    !#   <name>fileName</name>
-    !#   <source>parameters</source>
-    !#   <description>The name of the file to read.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>label</name>
-    !#   <source>parameters</source>
-    !#   <description>A label for the simulation.</description>
-    !#   <defaultValue>var_str('primary')</defaultValue>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshift</name>
-    !#   <source>parameters</source>
-    !#   <description>The redshift of the data.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !![
+    <inputParameter>
+      <name>fileName</name>
+      <source>parameters</source>
+      <description>The name of the file to read.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>label</name>
+      <source>parameters</source>
+      <description>A label for the simulation.</description>
+      <defaultValue>var_str('primary')</defaultValue>
+    </inputParameter>
+    <inputParameter>
+      <name>redshift</name>
+      <source>parameters</source>
+      <description>The redshift of the data.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !!]
     time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift))
     self=nbodyImporterMillenniumCSV(fileName,label,time,cosmologyParameters_,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    !!]
     return
   end function millenniumCSVConstructorParameters
 
   function millenniumCSVConstructorInternal(fileName,label,time,cosmologyParameters_,cosmologyFunctions_) result (self)
-    !% Internal constructor for the {\normalfont \ttfamily millenniumCSV} N-body importer class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily millenniumCSV} N-body importer class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (nbodyImporterMillenniumCSV)                        :: self
@@ -101,29 +119,37 @@ contains
     class           (cosmologyFunctionsClass   ), intent(in   ), target :: cosmologyFunctions_
     type            (varying_string            ), intent(in   )         :: fileName            , label
     double precision                            , intent(in   )         :: time
-    !# <constructorAssign variables="fileName, label, time, *cosmologyParameters_, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="fileName, label, time, *cosmologyParameters_, *cosmologyFunctions_"/>
+    !!]
 
     return
   end function millenniumCSVConstructorInternal
 
   subroutine millenniumCSVDestructor(self)
-    !% Destructor for {\normalfont \ttfamily millenniumCSV} importer class.
+    !!{
+    Destructor for {\normalfont \ttfamily millenniumCSV} importer class.
+    !!}
     implicit none
     type(nbodyImporterMillenniumCSV), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_" />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    <objectDestructor name="self%cosmologyFunctions_" />
+    !!]
     return
   end subroutine millenniumCSVDestructor
 
   subroutine millenniumCSVImport(self,simulations)
-    !% Import data from a MillenniumCSV file.
+    !!{
+    Import data from a MillenniumCSV file.
+    !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
-    use :: Galacticus_Display  , only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                              verbosityStandard
+    use :: Display             , only : displayCounter        , displayCounterClear     , displayIndent     , displayUnindent         , &
+          &                             verbosityLevelStandard
     use :: File_Utilities      , only : Count_Lines_in_File
-    use :: Hashes              , only : rank1IntegerSizeTPtrHash , rank2IntegerSizeTPtrHash   , rank1DoublePtrHash        , rank2DoublePtrHash
-    use :: String_Handling     , only : String_Split_Words       , String_Count_Words
+    use :: Hashes              , only : rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, rank2DoublePtrHash, rank2IntegerSizeTPtrHash
+    use :: String_Handling     , only : String_Count_Words    , String_Split_Words
     implicit none
     class           (nbodyImporterMillenniumCSV), intent(inout)                              :: self
     type            (nBodyData                 ), intent(  out), dimension(  :), allocatable :: simulations
@@ -146,7 +172,7 @@ contains
          &                                                                                      gotID
     !$GLC attributes initialized :: columns
 
-    call Galacticus_Display_Indent('import simulation from MillenniumCSV file',verbosityStandard)
+    call displayIndent('import simulation from MillenniumCSV file',verbosityLevelStandard)
     allocate(simulations(1))
     simulations(1)%label=self%label
     ! Count lines in file. (Subtract 1 since one lines gives the column headers.)
@@ -254,9 +280,9 @@ contains
              end do
           end if
        end if
-       call Galacticus_Display_Counter(int(100.0d0*dble(i)/dble(countPoints)),verbosity=verbosityStandard,isNew=i == 1_c_size_t)
+       call displayCounter(int(100.0d0*dble(i)/dble(countPoints)),verbosity=verbosityLevelStandard,isNew=i == 1_c_size_t)
     end do
-    call Galacticus_Display_Counter_Clear(verbosityStandard)
+    call displayCounterClear(verbosityLevelStandard)
     close(file)
     ! Convert position to internal units (physical Mpc).
     do i=1_c_size_t,countPoints
@@ -286,12 +312,14 @@ contains
            call simulations(1)%propertiesInteger%set(columns(j)%label,propertiesInteger(columns(j)%index)%property)
       end if
     end do
-    call Galacticus_Display_Unindent('done',verbosityStandard)
+    call displayUnindent('done',verbosityLevelStandard)
     return
   end subroutine millenniumCSVImport
 
   logical function millenniumCSVIsHDF5(self)
-    !% Return whether or not the imported data is from an HDF5 file.
+    !!{
+    Return whether or not the imported data is from an HDF5 file.
+    !!}
     implicit none
     class(nbodyImporterMillenniumCSV), intent(inout) :: self
 

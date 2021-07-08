@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,42 +17,51 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a property extractor class for the projected density at a set of radii.
+  !!{
+  Contains a module which implements a property extractor class for the projected density at a set of radii.
+  !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale, darkMatterHaloScaleClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorProjectedDensity">
-  !#  <description>
-  !#   A property extractor class for the projected density at a set of radii. The radii and types of projected density to output
-  !#   is specified by the {\normalfont \ttfamily radiusSpecifiers} parameter. This parameter's value can contain multiple
-  !#   entries, each of which should be a valid
-  !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
-  !#   specifier}.
-  !#  </description>
-  !# </nodePropertyExtractor>
-  type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorProjectedDensity
-     !% A property extractor class for the projected density at a set of radii.
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorProjectedDensity">
+   <description>
+    A property extractor class for the projected density at a set of radii. The radii and types of projected density to output
+    is specified by the {\normalfont \ttfamily radiusSpecifiers} parameter. This parameter's value can contain multiple
+    entries, each of which should be a valid
+    \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
+    specifier}.
+   </description>
+  </nodePropertyExtractor>
+  !!]
+  type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorProjectedDensity
+     !!{
+     A property extractor class for the projected density at a set of radii.
+     !!}
      private
      class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_
-     integer                                                      :: radiiCount                   , elementCount_       , &
-          &                                                          step
+     integer                                                      :: radiiCount                   , elementCount_
      logical                                                      :: includeRadii
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
      logical                                                      :: darkMatterScaleRadiusIsNeeded, diskIsNeeded        , &
           &                                                          spheroidIsNeeded             , virialRadiusIsNeeded
    contains
-     final     ::                 projectedDensityDestructor
-     procedure :: elementCount => projectedDensityElementCount
-     procedure :: extract      => projectedDensityExtract
-     procedure :: names        => projectedDensityNames
-     procedure :: descriptions => projectedDensityDescriptions
-     procedure :: unitsInSI    => projectedDensityUnitsInSI
-     procedure :: type         => projectedDensityType
+     final     ::                       projectedDensityDestructor
+     procedure :: columnDescriptions => projectedDensityColumnDescriptions
+     procedure :: size               => projectedDensitySize
+     procedure :: elementCount       => projectedDensityElementCount
+     procedure :: extract            => projectedDensityExtract
+     procedure :: names              => projectedDensityNames
+     procedure :: descriptions       => projectedDensityDescriptions
+     procedure :: unitsInSI          => projectedDensityUnitsInSI
+     procedure :: type               => projectedDensityType
   end type nodePropertyExtractorProjectedDensity
 
   interface nodePropertyExtractorProjectedDensity
-     !% Constructors for the ``projectedDensity'' output analysis class.
+     !!{
+     Constructors for the ``projectedDensity'' output analysis class.
+     !!}
      module procedure projectedDensityConstructorParameters
      module procedure projectedDensityConstructorInternal
   end interface nodePropertyExtractorProjectedDensity
@@ -64,7 +73,9 @@
 contains
 
   function projectedDensityConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily projectedDensity} property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily projectedDensity} property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nodePropertyExtractorProjectedDensity)                              :: self
@@ -74,41 +85,48 @@ contains
     logical                                                                     :: includeRadii
 
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
-    !# <inputParameter>
-    !#   <name>radiusSpecifiers</name>
-    !#   <description>A list of radius specifiers at which to output the projected density profile.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>includeRadii</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Specifies whether or not the radii at which projected density data are output should also be included in the output file.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>radiusSpecifiers</name>
+      <description>A list of radius specifiers at which to output the projected density profile.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>includeRadii</name>
+      <defaultValue>.false.</defaultValue>
+      <description>Specifies whether or not the radii at which projected density data are output should also be included in the output file.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !!]
     self=nodePropertyExtractorProjectedDensity(radiusSpecifiers,includeRadii,darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_" />
+    !!]
     return
   end function projectedDensityConstructorParameters
 
   function projectedDensityConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily projectedDensity} property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily projectedDensity} property extractor class.
+    !!}
     use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
     type   (nodePropertyExtractorProjectedDensity)                              :: self
     type   (varying_string                       ), intent(in   ), dimension(:) :: radiusSpecifiers
     class  (darkMatterHaloScaleClass             ), intent(in   ), target       :: darkMatterHaloScale_
     logical                                       , intent(in   )               :: includeRadii
-    !# <constructorAssign variables="radiusSpecifiers, includeRadii, *darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="radiusSpecifiers, includeRadii, *darkMatterHaloScale_"/>
+    !!]
 
     if (includeRadii) then
-       self%step=2
+       self%elementCount_=2
     else
-       self%step=1
+       self%elementCount_=1
     end if
-    self%radiiCount   =size(radiusSpecifiers)
-    self%elementCount_=self%step*self%radiiCount
+    self%radiiCount      =size(radiusSpecifiers)
     call Galactic_Structure_Radii_Definition_Decode(                                    &
          &                                          radiusSpecifiers                  , &
          &                                          self%radii                        , &
@@ -121,16 +139,22 @@ contains
   end function projectedDensityConstructorInternal
 
   subroutine projectedDensityDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily projectedDensity} property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily projectedDensity} property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorProjectedDensity), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    !!]
     return
   end subroutine projectedDensityDestructor
 
   integer function projectedDensityElementCount(self,time)
-    !% Return the number of elements in the {\normalfont \ttfamily projectedDensity} property extractors.
+    !!{
+    Return the number of elements in the {\normalfont \ttfamily projectedDensity} property extractors.
+    !!}
     implicit none
     class           (nodePropertyExtractorProjectedDensity), intent(inout) :: self
     double precision                                       , intent(in   ) :: time
@@ -140,8 +164,24 @@ contains
     return
   end function projectedDensityElementCount
 
+  function projectedDensitySize(self,time)
+    !!{
+    Return the number of array alements in the {\normalfont \ttfamily projectedDensity} property extractors.
+    !!}
+    implicit none
+    integer         (c_size_t                             )                :: projectedDensitySize
+    class           (nodePropertyExtractorProjectedDensity), intent(inout) :: self
+    double precision                                       , intent(in   ) :: time
+    !$GLC attributes unused :: time
+
+    projectedDensitySize=self%radiiCount
+    return
+  end function projectedDensitySize
+
   function projectedDensityExtract(self,node,time,instance)
-    !% Implement a {\normalfont \ttfamily projectedDensity} property extractor.
+    !!{
+    Implement a {\normalfont \ttfamily projectedDensity} property extractor.
+    !!}
     use :: Galactic_Structure_Densities        , only : Galactic_Structure_Density
     use :: Galactic_Structure_Enclosed_Masses  , only : Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options          , only : componentTypeAll                        , massTypeGalactic
@@ -151,20 +191,20 @@ contains
     use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile          , nodeComponentDisk           , nodeComponentSpheroid           , treeNode
     use :: Numerical_Integration               , only : integrator
     implicit none
-    double precision                                       , dimension(:) , allocatable :: projectedDensityExtract
-    class           (nodePropertyExtractorProjectedDensity), intent(inout), target      :: self
-    type            (treeNode                             ), intent(inout), target      :: node
-    double precision                                       , intent(in   )              :: time
-    type            (multiCounter                         ), intent(inout), optional    :: instance
-    class           (nodeComponentDisk                    ), pointer                    :: disk
-    class           (nodeComponentSpheroid                ), pointer                    :: spheroid
-    class           (nodeComponentDarkMatterProfile       ), pointer                    :: darkMatterProfile
-    type            (integrator                           )                             :: integrator_
-    integer                                                                             :: i
-    double precision                                                                    :: radiusVirial           , radiusOuter
+    double precision                                       , dimension(:,:), allocatable :: projectedDensityExtract
+    class           (nodePropertyExtractorProjectedDensity), intent(inout) , target      :: self
+    type            (treeNode                             ), intent(inout) , target      :: node
+    double precision                                       , intent(in   )               :: time
+    type            (multiCounter                         ), intent(inout) , optional    :: instance
+    class           (nodeComponentDisk                    ), pointer                     :: disk
+    class           (nodeComponentSpheroid                ), pointer                     :: spheroid
+    class           (nodeComponentDarkMatterProfile       ), pointer                     :: darkMatterProfile
+    type            (integrator                           )                              :: integrator_
+    integer                                                                              :: i
+    double precision                                                                     :: radiusVirial           , radiusOuter
     !$GLC attributes unused :: time, instance
 
-    allocate(projectedDensityExtract(self%elementCount_))
+    allocate(projectedDensityExtract(self%radiiCount,self%elementCount_))
     radiusVirial                                         =  0.0d0
     if (self%         virialRadiusIsNeeded) radiusVirial      =  self%darkMatterHaloScale_%virialRadius(node                    )
     if (self%                 diskIsNeeded) disk              =>                                        node%disk             ()
@@ -201,17 +241,19 @@ contains
                &   weightIndex   =self%radii(i)%weightByIndex      &
                &  )
        end select
-       radiusOuter                                      =self       %darkMatterHaloScale_%virialRadius(node                              )       
-       projectedDensityExtract       ((i-1)*self%step+1)=integrator_                     %integrate   (projectedDensityRadius,radiusOuter)
-       if (self%includeRadii)                                                                                                              &
-            & projectedDensityExtract((i-1)*self%step+2)=                                              projectedDensityRadius
+       radiusOuter                        =self       %darkMatterHaloScale_%virialRadius(node                              )       
+       projectedDensityExtract       (i,1)=integrator_                     %integrate   (projectedDensityRadius,radiusOuter)
+       if (self%includeRadii)                                                                                                &
+            & projectedDensityExtract(i,2)=                                              projectedDensityRadius
     end do
     return
 
   contains
 
     double precision function projectedDensityIntegrand(radius)
-      !% Integrand function used for computing projected densities.
+      !!{
+      Integrand function used for computing projected densities.
+      !!}
       use :: Galactic_Structure_Densities, only : Galactic_Structure_Density
       implicit none
       double precision, intent(in   ) :: radius
@@ -242,62 +284,76 @@ contains
   end function projectedDensityExtract
 
   function projectedDensityNames(self,time)
-    !% Return the names of the {\normalfont \ttfamily projectedDensity} properties.
+    !!{
+    Return the names of the {\normalfont \ttfamily projectedDensity} properties.
+    !!}
     implicit none
-    type            (varying_string                     ), dimension(:) , allocatable :: projectedDensityNames
+    type            (varying_string                       ), dimension(:) , allocatable :: projectedDensityNames
     class           (nodePropertyExtractorProjectedDensity), intent(inout)              :: self
-    double precision                                     , intent(in   )              :: time
-    integer                                                                           :: i
+    double precision                                       , intent(in   )              :: time
     !$GLC attributes unused :: time
 
     allocate(projectedDensityNames(self%elementCount_))
-    do i=1,size(self%radii)
-       projectedDensityNames       ((i-1)*self%step+1)="projectedDensity:"      //char(self%radii(i)%name)
-       if (self%includeRadii)                                                                          &
-            & projectedDensityNames((i-1)*self%step+2)="projectedDensityRadius:"//char(self%radii(i)%name)
-    end do
+    projectedDensityNames       (1)="projectedDensity"
+    if (self%includeRadii)                                   &
+         & projectedDensityNames(2)="projectedDensityRadius"
     return
   end function projectedDensityNames
 
   function projectedDensityDescriptions(self,time)
-    !% Return descriptions of the {\normalfont \ttfamily projectedDensity} property.
+    !!{
+    Return descriptions of the {\normalfont \ttfamily projectedDensity} property.
+    !!}
     implicit none
     type            (varying_string                       ), dimension(:) , allocatable :: projectedDensityDescriptions
     class           (nodePropertyExtractorProjectedDensity), intent(inout)              :: self
     double precision                                       , intent(in   )              :: time
-    integer                                                                             :: i
     !$GLC attributes unused :: time
 
     allocate(projectedDensityDescriptions(self%elementCount_))
-    do i=1,size(self%radii)
-       projectedDensityDescriptions       ((i-1)*self%step+1)="Projected density at a given radius [M☉/Mpc⁻²]."
-       if (self%includeRadii)                                                                                      &
-            & projectedDensityDescriptions((i-1)*self%step+2)="Radius at which projected density is output [Mpc]."
-    end do
+    projectedDensityDescriptions       (1)="Projected density at a given radius [M☉/Mpc⁻²]."
+    if (self%includeRadii)                                                                      &
+         & projectedDensityDescriptions(2)="Radius at which projected density is output [Mpc]."
     return
   end function projectedDensityDescriptions
 
+  function projectedDensityColumnDescriptions(self,time)
+    !!{
+    Return column descriptions of the {\normalfont \ttfamily projectedDensity} property.
+    !!}
+    implicit none
+    type            (varying_string                       ), dimension(:) , allocatable :: projectedDensityColumnDescriptions
+    class           (nodePropertyExtractorProjectedDensity), intent(inout)              :: self
+    double precision                                       , intent(in   )              :: time
+    !$GLC attributes unused :: time
+
+    allocate(projectedDensityColumnDescriptions(self%radiiCount))
+    projectedDensityColumnDescriptions=self%radii%name
+    return
+  end function projectedDensityColumnDescriptions
+
   function projectedDensityUnitsInSI(self,time)
-    !% Return the units of the {\normalfont \ttfamily projectedDensity} properties in the SI system.
+    !!{
+    Return the units of the {\normalfont \ttfamily projectedDensity} properties in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none
     double precision                                       , allocatable  , dimension(:) :: projectedDensityUnitsInSI
     class           (nodePropertyExtractorProjectedDensity), intent(inout)               :: self
     double precision                                       , intent(in   )               :: time
-    integer                                                                              :: i
     !$GLC attributes unused :: time
 
     allocate(projectedDensityUnitsInSI(self%elementCount_))
-    do i=1,size(self%radii)
-       projectedDensityUnitsInSI       ((i-1)*self%step+1)=massSolar/megaParsec**2
-       if (self%includeRadii)                                                       &
-            & projectedDensityUnitsInSI((i-1)*self%step+2)=          megaParsec
-    end do
+    projectedDensityUnitsInSI       (1)=massSolar/megaParsec**2
+    if (self%includeRadii)                                       &
+         & projectedDensityUnitsInSI(2)=          megaParsec
     return
   end function projectedDensityUnitsInSI
 
   integer function projectedDensityType(self)
-    !% Return the type of the {\normalfont \ttfamily projectedDensity} properties.
+    !!{
+    Return the type of the {\normalfont \ttfamily projectedDensity} properties.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorProjectedDensity), intent(inout) :: self

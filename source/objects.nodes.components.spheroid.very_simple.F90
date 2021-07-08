@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements a very simple spheroid component.
+!!{
+Contains a module that implements a very simple spheroid component.
+!!}
 
 module Node_Component_Spheroid_Very_Simple
-  !% Implements a very simple spheroid component.
+  !!{
+  Implements a very simple spheroid component.
+  !!}
   use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOClass
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
@@ -32,85 +36,87 @@ module Node_Component_Spheroid_Very_Simple
        &    Node_Component_Spheroid_Very_Simple_Initialize                , Node_Component_Spheroid_Very_Simple_Pre_Evolve         , &
        &    Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility, Node_Component_Spheroid_Very_Simple_Radius_Solver
 
-  !# <component>
-  !#  <class>spheroid</class>
-  !#  <name>verySimple</name>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>isInitialized</name>
-  !#     <type>logical</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#   <property>
-  !#     <name>massStellar</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-  !#     <output unitsInSI="massSolar" comment="Mass of stars in the very simple spheroid."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>abundancesStellar</name>
-  !#     <type>abundances</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-  !#     <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the very simple spheroid."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>massGas</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-  !#     <output unitsInSI="massSolar" comment="Mass of gas in the very simple spheroid."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>abundancesGas</name>
-  !#     <type>abundances</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true"  />
-  !#     <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the very simple spheroid."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>stellarPropertiesHistory</name>
-  !#     <type>history</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-  !#   </property>
-  !#   <property>
-  !#     <name>luminositiesStellar</name>
-  !#     <type>stellarLuminosities</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <output unitsInSI="luminosityZeroPointAB" comment="Luminosity of spheroid stars."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>radius</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <output unitsInSI="megaparsec" comment="Radial scale length in the spheroid."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>halfMassRadius</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <getFunction>Node_Component_Spheroid_Very_Simple_Half_Mass_Radius</getFunction>
-  !#   </property>
-  !#   <property>
-  !#     <name>velocity</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <output unitsInSI="kilo" comment="Circular velocity of the spheroid."/>
-  !#   </property>
-  !#  </properties>
-  !#  <bindings>
-  !#   <binding method="enclosedMass" function="Node_Component_Spheroid_Very_Simple_Enclosed_Mass" bindsTo="component" />
-  !#  </bindings>
-  !#  <functions>objects.nodes.components.spheroid.very_simple.bound_functions.inc</functions>
-  !# </component>
+  !![
+  <component>
+   <class>spheroid</class>
+   <name>verySimple</name>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>isInitialized</name>
+      <type>logical</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+    <property>
+      <name>massStellar</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
+      <output unitsInSI="massSolar" comment="Mass of stars in the very simple spheroid."/>
+    </property>
+    <property>
+      <name>abundancesStellar</name>
+      <type>abundances</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
+      <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the very simple spheroid."/>
+    </property>
+    <property>
+      <name>massGas</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
+      <output unitsInSI="massSolar" comment="Mass of gas in the very simple spheroid."/>
+    </property>
+    <property>
+      <name>abundancesGas</name>
+      <type>abundances</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true"  />
+      <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the very simple spheroid."/>
+    </property>
+    <property>
+      <name>stellarPropertiesHistory</name>
+      <type>history</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
+    </property>
+    <property>
+      <name>luminositiesStellar</name>
+      <type>stellarLuminosities</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <output unitsInSI="luminosityZeroPointAB" comment="Luminosity of spheroid stars."/>
+    </property>
+    <property>
+      <name>radius</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <output unitsInSI="megaparsec" comment="Radial scale length in the spheroid."/>
+    </property>
+    <property>
+      <name>halfMassRadius</name>
+      <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
+      <type>double</type>
+      <rank>0</rank>
+      <getFunction>Node_Component_Spheroid_Very_Simple_Half_Mass_Radius</getFunction>
+    </property>
+    <property>
+      <name>velocity</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <output unitsInSI="kilo" comment="Circular velocity of the spheroid."/>
+    </property>
+   </properties>
+   <bindings>
+    <binding method="enclosedMass" function="Node_Component_Spheroid_Very_Simple_Enclosed_Mass" bindsTo="component" />
+   </bindings>
+   <functions>objects.nodes.components.spheroid.very_simple.bound_functions.inc</functions>
+  </component>
+  !!]
 
   ! Objects used by this component.
   class(darkMatterHaloScaleClass        ), pointer :: darkMatterHaloScale_
@@ -125,11 +131,15 @@ module Node_Component_Spheroid_Very_Simple
 
 contains
 
-  !# <nodeComponentInitializationTask>
-  !#  <unitName>Node_Component_Spheroid_Very_Simple_Initialize</unitName>
-  !# </nodeComponentInitializationTask>
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>Node_Component_Spheroid_Very_Simple_Initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
   subroutine Node_Component_Spheroid_Very_Simple_Initialize(parameters_)
-    !% Initializes the tree node very simple spheroid component module.
+    !!{
+    Initializes the tree node very simple spheroid component module.
+    !!}
     use :: Galacticus_Nodes, only : defaultSpheroidComponent
     use :: Input_Parameters, only : inputParameter          , inputParameters
     implicit none
@@ -138,41 +148,47 @@ contains
     ! Initialize the module if necessary.
     if (defaultSpheroidComponent%verySimpleIsActive()) then
        ! Read parameters controlling the physical implementation.
-       !# <inputParameter>
-       !#   <name>spheroidVerySimpleMassScaleAbsolute</name>
-       !#   <defaultValue>100.0d0</defaultValue>
-       !#   <description>The absolute mass scale below which calculations in the very simple spheroid component are allowed to become inaccurate.</description>
-       !#   <source>parameters_</source>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>spheroidVerySimpleTrackAbundances</name>
-       !#   <defaultValue>.false.</defaultValue>
-       !#   <description>Specifies whether or not to track abundances in the very simple spheroid component.</description>
-       !#   <source>parameters_</source>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>spheroidVerySimpleTrackLuminosities</name>
-       !#   <defaultValue>.false.</defaultValue>
-       !#   <description>Specifies whether or not to track stellar luminosities in the very simple disk component.</description>
-       !#   <source>parameters_</source>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>spheroidMassToleranceAbsolute</name>
-       !#   <defaultValue>1.0d-6</defaultValue>
-       !#   <description>The mass tolerance used to judge whether the spheroid is physically plausible.</description>
-       !#   <source>parameters_</source>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>spheroidVerySimpleMassScaleAbsolute</name>
+         <defaultValue>100.0d0</defaultValue>
+         <description>The absolute mass scale below which calculations in the very simple spheroid component are allowed to become inaccurate.</description>
+         <source>parameters_</source>
+       </inputParameter>
+       <inputParameter>
+         <name>spheroidVerySimpleTrackAbundances</name>
+         <defaultValue>.false.</defaultValue>
+         <description>Specifies whether or not to track abundances in the very simple spheroid component.</description>
+         <source>parameters_</source>
+       </inputParameter>
+       <inputParameter>
+         <name>spheroidVerySimpleTrackLuminosities</name>
+         <defaultValue>.false.</defaultValue>
+         <description>Specifies whether or not to track stellar luminosities in the very simple disk component.</description>
+         <source>parameters_</source>
+       </inputParameter>
+       <inputParameter>
+         <name>spheroidMassToleranceAbsolute</name>
+         <defaultValue>1.0d-6</defaultValue>
+         <description>The mass tolerance used to judge whether the spheroid is physically plausible.</description>
+         <source>parameters_</source>
+       </inputParameter>
+       !!]
     end if
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Initialize
 
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Spheroid_Very_Simple_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Spheroid_Very_Simple_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Spheroid_Very_Simple_Thread_Initialize(parameters_)
-    !% Initializes the tree node very simple satellite module.
-    use :: Events_Hooks    , only : satelliteMergerEvent    , postEvolveEvent, openMPThreadBindingAtLevel, dependencyRegEx, &
-         &                          dependencyDirectionAfter
+    !!{
+    Initializes the tree node very simple satellite module.
+    !!}
+    use :: Events_Hooks    , only : dependencyDirectionAfter, dependencyRegEx, openMPThreadBindingAtLevel, postEvolveEvent, &
+          &                         satelliteMergerEvent
     use :: Galacticus_Nodes, only : defaultSpheroidComponent
     use :: Input_Parameters, only : inputParameter          , inputParameters
     implicit none
@@ -183,40 +199,52 @@ contains
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call postEvolveEvent     %attach(defaultSpheroidComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple'                          )
        call satelliteMergerEvent%attach(defaultSpheroidComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentSpheroidVerySimple',dependencies=dependencies)
-       !# <objectBuilder class="darkMatterHaloScale"         name="darkMatterHaloScale_"         source="parameters_"/>
-       !# <objectBuilder class="darkMatterProfileDMO"        name="darkMatterProfileDMO_"        source="parameters_"/>
-       !# <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters_"/>
-       !# <objectBuilder class="mergerMassMovements"         name="mergerMassMovements_"         source="parameters_"/>
+       !![
+       <objectBuilder class="darkMatterHaloScale"         name="darkMatterHaloScale_"         source="parameters_"/>
+       <objectBuilder class="darkMatterProfileDMO"        name="darkMatterProfileDMO_"        source="parameters_"/>
+       <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters_"/>
+       <objectBuilder class="mergerMassMovements"         name="mergerMassMovements_"         source="parameters_"/>
+       !!]
     end if
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Spheroid_Very_Simple_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Spheroid_Very_Simple_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Spheroid_Very_Simple_Thread_Uninitialize()
-    !% Uninitializes the tree node very simple satellite module.
-    use :: Events_Hooks    , only : satelliteMergerEvent    , postEvolveEvent
+    !!{
+    Uninitializes the tree node very simple satellite module.
+    !!}
+    use :: Events_Hooks    , only : postEvolveEvent         , satelliteMergerEvent
     use :: Galacticus_Nodes, only : defaultSpheroidComponent
     implicit none
 
     if (defaultSpheroidComponent%verySimpleIsActive()) then
        call postEvolveEvent     %detach(defaultSpheroidComponent,postEvolve     )
        call satelliteMergerEvent%detach(defaultSpheroidComponent,satelliteMerger)
-       !# <objectDestructor name="darkMatterHaloScale_"         />
-       !# <objectDestructor name="darkMatterProfileDMO_"        />
-       !# <objectDestructor name="stellarPopulationProperties_" />
-       !# <objectDestructor name="mergerMassMovements_"         />
+       !![
+       <objectDestructor name="darkMatterHaloScale_"         />
+       <objectDestructor name="darkMatterProfileDMO_"        />
+       <objectDestructor name="stellarPopulationProperties_" />
+       <objectDestructor name="mergerMassMovements_"         />
+       !!]
     end if
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Thread_Uninitialize
 
-  !# <preEvolveTask>
-  !# <unitName>Node_Component_Spheroid_Very_Simple_Pre_Evolve</unitName>
-  !# </preEvolveTask>
+  !![
+  <preEvolveTask>
+  <unitName>Node_Component_Spheroid_Very_Simple_Pre_Evolve</unitName>
+  </preEvolveTask>
+  !!]
   subroutine Node_Component_Spheroid_Very_Simple_Pre_Evolve(node)
-    !% Ensure the spheroid has been initialized.
-    use :: Galacticus_Nodes, only : nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode, defaultSpheroidComponent
+    !!{
+    Ensure the spheroid has been initialized.
+    !!}
+    use :: Galacticus_Nodes, only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode
     implicit none
     type (treeNode             ), intent(inout), pointer :: node
     class(nodeComponentSpheroid)               , pointer :: spheroid
@@ -235,7 +263,9 @@ contains
   end subroutine Node_Component_Spheroid_Very_Simple_Pre_Evolve
 
   subroutine postEvolve(self,node)
-    !% Catch rounding errors in the very simple spheroid gas evolution.
+    !!{
+    Catch rounding errors in the very simple spheroid gas evolution.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode
     use :: Histories       , only : history
     implicit none
@@ -260,17 +290,21 @@ contains
     return
   end subroutine postEvolve
 
-  !# <postStepTask>
-  !# <unitName>Node_Component_Spheroid_Very_Simple_Post_Step</unitName>
-  !# </postStepTask>
+  !![
+  <postStepTask>
+  <unitName>Node_Component_Spheroid_Very_Simple_Post_Step</unitName>
+  </postStepTask>
+  !!]
   subroutine Node_Component_Spheroid_Very_Simple_Post_Step(node,status)
-    !% Catch rounding errors in the very simple spheroid gas evolution.
-    use :: Abundances_Structure          , only : abs                       , zeroAbundances
-    use :: Galacticus_Display            , only : Galacticus_Display_Message, verbosityWarn
-    use :: Galacticus_Nodes              , only : nodeComponentSpheroid     , nodeComponentSpheroidVerySimple, treeNode    , defaultSpheroidComponent
+    !!{
+    Catch rounding errors in the very simple spheroid gas evolution.
+    !!}
+    use :: Abundances_Structure          , only : abs                     , zeroAbundances
+    use :: Display                       , only : displayMessage          , verbosityLevelWarn
+    use :: Galacticus_Nodes              , only : defaultSpheroidComponent, nodeComponentSpheroid  , nodeComponentSpheroidVerySimple, treeNode
+    use :: ISO_Varying_String            , only : assignment(=)           , operator(//)           , varying_string
     use :: Interface_GSL                 , only : GSL_Failure
-    use :: ISO_Varying_String            , only : varying_string            , assignment(=)                  , operator(//)
-    use :: Stellar_Luminosities_Structure, only : abs                       , zeroStellarLuminosities
+    use :: Stellar_Luminosities_Structure, only : abs                     , zeroStellarLuminosities
     use :: String_Handling               , only : operator(//)
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
@@ -315,7 +349,7 @@ contains
                 message=message//'  Negative masses are due to numerical inaccuracy in the ODE solutions.'//char(10)
                 message=message//'  If significant, consider using a higher tolerance in the ODE solver.'
              end if
-             call Galacticus_Display_Message(message,verbosityWarn)
+             call displayMessage(message,verbosityLevelWarn)
              ! Store the new maximum fractional error.
              fractionalErrorMaximum=fractionalError
           end if
@@ -338,7 +372,9 @@ contains
   end subroutine Node_Component_Spheroid_Very_Simple_Post_Step
 
   subroutine Node_Component_Spheroid_Very_Simple_Create(node)
-    !% Create properties in a very simple spheroid component.
+    !!{
+    Create properties in a very simple spheroid component.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     use :: Histories       , only : history
     implicit none
@@ -366,16 +402,20 @@ contains
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Create
 
-  !# <scaleSetTask>
-  !#  <unitName>Node_Component_Spheroid_Very_Simple_Scale_Set</unitName>
-  !# </scaleSetTask>
+  !![
+  <scaleSetTask>
+   <unitName>Node_Component_Spheroid_Very_Simple_Scale_Set</unitName>
+  </scaleSetTask>
+  !!]
   subroutine Node_Component_Spheroid_Very_Simple_Scale_Set(node)
-    !% Set scales for properties of {\normalfont \ttfamily node}.
-    use :: Abundances_Structure          , only : abs                  , abundances                     , max                , unitAbundances          , &
+    !!{
+    Set scales for properties of {\normalfont \ttfamily node}.
+    !!}
+    use :: Abundances_Structure          , only : abs                     , abundances           , max                            , unitAbundances         , &
           &                                       zeroAbundances
-    use :: Galacticus_Nodes              , only : nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode           , defaultSpheroidComponent
+    use :: Galacticus_Nodes              , only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode
     use :: Histories                     , only : history
-    use :: Stellar_Luminosities_Structure, only : abs                  , max                            , stellarLuminosities, unitStellarLuminosities
+    use :: Stellar_Luminosities_Structure, only : abs                     , max                  , stellarLuminosities            , unitStellarLuminosities
     implicit none
     type            (treeNode             ), intent(inout), pointer :: node
     class           (nodeComponentSpheroid)               , pointer :: spheroid
@@ -418,13 +458,15 @@ contains
   end subroutine Node_Component_Spheroid_Very_Simple_Scale_Set
 
   subroutine satelliteMerger(self,node)
-    !% Transfer any very simple spheroid associated with {\normalfont \ttfamily node} to its host halo.
-    use :: Abundances_Structure                , only : zeroAbundances
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                    , only : nodeComponentDisk       , nodeComponentSpheroid    , nodeComponentSpheroidVerySimple, treeNode
-    use :: Histories                           , only : history
-    use :: Satellite_Merging_Mass_Movements    , only : destinationMergerDisk   , destinationMergerSpheroid, destinationMergerUnmoved
-    use :: Stellar_Luminosities_Structure      , only : zeroStellarLuminosities
+    !!{
+    Transfer any very simple spheroid associated with {\normalfont \ttfamily node} to its host halo.
+    !!}
+    use :: Abundances_Structure            , only : zeroAbundances
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentSpheroid    , nodeComponentSpheroidVerySimple, treeNode
+    use :: Histories                       , only : history
+    use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk  , destinationMergerSpheroid, destinationMergerUnmoved
+    use :: Stellar_Luminosities_Structure  , only : zeroStellarLuminosities
     implicit none
     class  (*                    ), intent(inout) :: self
     type   (treeNode             ), intent(inout) :: node
@@ -649,11 +691,15 @@ contains
     return
   end subroutine satelliteMerger
 
-  !# <radiusSolverPlausibility>
-  !#  <unitName>Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility</unitName>
-  !# </radiusSolverPlausibility>
+  !![
+  <radiusSolverPlausibility>
+   <unitName>Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility</unitName>
+  </radiusSolverPlausibility>
+  !!]
   subroutine Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility(node)
-    !% Determines whether the spheroid is physically plausible for radius solving tasks. Require that it have non-zero mass.
+    !!{
+    Determines whether the spheroid is physically plausible for radius solving tasks. Require that it have non-zero mass.
+    !!}
     use :: Galacticus_Nodes, only : defaultSpheroidComponent, nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode
     implicit none
     type   (treeNode             ), intent(inout) :: node
@@ -670,12 +716,16 @@ contains
     return
   end subroutine Node_Component_Spheroid_Very_Simple_Radius_Solver_Plausibility
 
-  !# <radiusSolverTask>
-  !#  <unitName>Node_Component_Spheroid_Very_Simple_Radius_Solver</unitName>
-  !# </radiusSolverTask>
+  !![
+  <radiusSolverTask>
+   <unitName>Node_Component_Spheroid_Very_Simple_Radius_Solver</unitName>
+  </radiusSolverTask>
+  !!]
   subroutine Node_Component_Spheroid_Very_Simple_Radius_Solver(node,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get&
        &,Radius_Set,Velocity_Get,Velocity_Set)
-    !% Interface for the size solver algorithm.
+    !!{
+    Interface for the size solver algorithm.
+    !!}
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum
     use :: Galacticus_Nodes      , only : nodeComponentBasic               , nodeComponentSpheroid, nodeComponentSpheroidVerySimple, treeNode
     implicit none
@@ -708,7 +758,9 @@ contains
   end subroutine Node_Component_Spheroid_Very_Simple_Radius_Solver
 
   double precision function Node_Component_Spheroid_Very_Simple_Radius(node)
-    !% Return the radius of the spheroid used in structure solvers.
+    !!{
+    Return the radius of the spheroid used in structure solvers.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
     type (treeNode             ), intent(inout) :: node
@@ -720,7 +772,9 @@ contains
   end function Node_Component_Spheroid_Very_Simple_Radius
 
   subroutine Node_Component_Spheroid_Very_Simple_Radius_Set(node,radius)
-    !% Set the radius of the spheroid used in structure solvers.
+    !!{
+    Set the radius of the spheroid used in structure solvers.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
     type            (treeNode             ), intent(inout) :: node
@@ -733,7 +787,9 @@ contains
   end subroutine Node_Component_Spheroid_Very_Simple_Radius_Set
 
   double precision function Node_Component_Spheroid_Very_Simple_Velocity(node)
-    !% Return the circular velocity of the spheroid.
+    !!{
+    Return the circular velocity of the spheroid.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
     type (treeNode             ), intent(inout) :: node
@@ -745,7 +801,9 @@ contains
   end function Node_Component_Spheroid_Very_Simple_Velocity
 
   subroutine Node_Component_Spheroid_Very_Simple_Velocity_Set(node,velocity)
-    !% Set the circular velocity of the spheroid.
+    !!{
+    Set the circular velocity of the spheroid.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
     type            (treeNode             ), intent(inout) :: node

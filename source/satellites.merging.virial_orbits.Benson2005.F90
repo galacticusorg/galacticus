@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,31 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of virial orbits using the \cite{benson_orbital_2005} orbital parameter distribution.
+  !!{
+  An implementation of virial orbits using the \cite{benson_orbital_2005} orbital parameter distribution.
+  !!}
 
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   use :: Virial_Density_Contrast, only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
 
-  !# <virialOrbit name="virialOrbitBenson2005">
-  !#  <description>
-  !#   A virial orbits class which selects orbital parameters randomly from the distribution given by
-  !#   \cite{benson_orbital_2005}. If the virial density contrast definition differs from that used by \cite{benson_orbital_2005}
-  !#   then the orbit is assigned based on \cite{benson_orbital_2005}'s definition and then propagated to the virial radius
-  !#   relevant to the current definition of density contrast.
-  !#  </description>
-  !#  <deepCopy>
-  !#   <functionClass variables="virialDensityContrast_"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="virialDensityContrast_"/>
-  !#  </stateStorable>
-  !# </virialOrbit>
+  !![
+  <virialOrbit name="virialOrbitBenson2005">
+   <description>
+    A virial orbits class which selects orbital parameters randomly from the distribution given by
+    \cite{benson_orbital_2005}. If the virial density contrast definition differs from that used by \cite{benson_orbital_2005}
+    then the orbit is assigned based on \cite{benson_orbital_2005}'s definition and then propagated to the virial radius
+    relevant to the current definition of density contrast.
+   </description>
+   <deepCopy>
+    <functionClass variables="virialDensityContrast_"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="virialDensityContrast_"/>
+   </stateStorable>
+  </virialOrbit>
+  !!]
   type, extends(virialOrbitClass) :: virialOrbitBenson2005
-     !% A virial orbit class using the \cite{benson_orbital_2005} orbital parameter distribution.
+     !!{
+     A virial orbit class using the \cite{benson_orbital_2005} orbital parameter distribution.
+     !!}
      private
-     class(darkMatterHaloScaleClass                                       ), pointer :: darkMatterHaloScale_   => null()
-     class(cosmologyFunctionsClass                                        ), pointer :: cosmologyFunctions_    => null()
+     class(darkMatterHaloScaleClass                                      ), pointer :: darkMatterHaloScale_   => null()
+     class(cosmologyFunctionsClass                                       ), pointer :: cosmologyFunctions_    => null()
      type (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer :: virialDensityContrast_ => null()
    contains
      final     ::                                    benson2005Destructor
@@ -56,7 +62,9 @@
   end type virialOrbitBenson2005
 
   interface virialOrbitBenson2005
-     !% Constructors for the {\normalfont \ttfamily benson2005} virial orbit class.
+     !!{
+     Constructors for the {\normalfont \ttfamily benson2005} virial orbit class.
+     !!}
      module procedure benson2005ConstructorParameters
      module procedure benson2005ConstructorInternal
   end interface virialOrbitBenson2005
@@ -64,7 +72,9 @@
 contains
 
   function benson2005ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily benson2005} virial orbits class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily benson2005} virial orbits class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (virialOrbitBenson2005   )                :: self
@@ -72,42 +82,58 @@ contains
     class(darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
     class(cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
 
-    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"  source="parameters"/>
+    !![
+    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"  source="parameters"/>
+    !!]
     self=virialOrbitBenson2005(darkMatterHaloScale_,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    !!]
     return
   end function benson2005ConstructorParameters
 
   function benson2005ConstructorInternal(darkMatterHaloScale_,cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily benson2005} virial orbits class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily benson2005} virial orbits class.
+    !!}
     use :: Virial_Density_Contrast, only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
     implicit none
     type (virialOrbitBenson2005   )                        :: self
     class(darkMatterHaloScaleClass), intent(in   ), target :: darkMatterHaloScale_
     class(cosmologyFunctionsClass ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="*darkMatterHaloScale_, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="*darkMatterHaloScale_, *cosmologyFunctions_"/>
+    !!]
 
     allocate(self%virialDensityContrast_)
-    !# <referenceConstruct isResult="yes" owner="self" object="virialDensityContrast_" constructor="virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(.true.,cosmologyFunctions_)"/>
+    !![
+    <referenceConstruct isResult="yes" owner="self" object="virialDensityContrast_" constructor="virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(.true.,cosmologyFunctions_)"/>
+    !!]
     return
   end function benson2005ConstructorInternal
 
   subroutine benson2005Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily benson2005} virial orbits class.
+    !!{
+    Destructor for the {\normalfont \ttfamily benson2005} virial orbits class.
+    !!}
     implicit none
     type(virialOrbitBenson2005), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_"  />
-    !# <objectDestructor name="self%cosmologyFunctions_"   />
-    !# <objectDestructor name="self%virialDensityContrast_"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"  />
+    <objectDestructor name="self%cosmologyFunctions_"   />
+    <objectDestructor name="self%virialDensityContrast_"/>
+    !!]
     return
   end subroutine benson2005Destructor
 
   function benson2005Orbit(self,node,host,acceptUnboundOrbits)
-    !% Return benson2005 orbital parameters for a satellite.
+    !!{
+    Return benson2005 orbital parameters for a satellite.
+    !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Error                    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
@@ -185,7 +211,9 @@ contains
   end function benson2005Orbit
 
   function benson2005DensityContrastDefinition(self)
-    !% Return a virial density contrast object defining that used in the definition of \cite{benson_orbital_2005} virial orbits.
+    !!{
+    Return a virial density contrast object defining that used in the definition of \cite{benson_orbital_2005} virial orbits.
+    !!}
     implicit none
     class(virialDensityContrastClass), pointer       :: benson2005DensityContrastDefinition
     class(virialOrbitBenson2005     ), intent(inout) :: self
@@ -195,7 +223,9 @@ contains
   end function benson2005DensityContrastDefinition
 
   double precision function benson2005VelocityTangentialMagnitudeMean(self,node,host)
-    !% Return the mean magnitude of the tangential velocity.
+    !!{
+    Return the mean magnitude of the tangential velocity.
+    !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
@@ -216,7 +246,9 @@ contains
   end function benson2005VelocityTangentialMagnitudeMean
 
   function benson2005VelocityTangentialVectorMean(self,node,host)
-    !% Return the mean of the vector tangential velocity.
+    !!{
+    Return the mean of the vector tangential velocity.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                       , dimension(3)  :: benson2005VelocityTangentialVectorMean
@@ -230,7 +262,9 @@ contains
   end function benson2005VelocityTangentialVectorMean
 
   double precision function benson2005AngularMomentumMagnitudeMean(self,node,host)
-    !% Return the mean magnitude of the angular momentum.
+    !!{
+    Return the mean magnitude of the angular momentum.
+    !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
@@ -254,7 +288,9 @@ contains
   end function benson2005AngularMomentumMagnitudeMean
 
   function benson2005AngularMomentumVectorMean(self,node,host)
-    !% Return the mean of the vector angular momentum.
+    !!{
+    Return the mean of the vector angular momentum.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                       , dimension(3)  :: benson2005AngularMomentumVectorMean
@@ -268,7 +304,9 @@ contains
   end function benson2005AngularMomentumVectorMean
 
   double precision function benson2005VelocityTotalRootMeanSquared(self,node,host)
-    !% Return the mean magnitude of the tangential velocity.
+    !!{
+    Return the mean magnitude of the tangential velocity.
+    !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
@@ -289,10 +327,12 @@ contains
   end function benson2005VelocityTotalRootMeanSquared
 
   double precision function benson2005EnergyMean(self,node,host)
-    !% Return the mean energy of the orbits.
+    !!{
+    Return the mean energy of the orbits.
+    !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
-    use :: Numerical_Constants_Astronomical        , only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
     implicit none
     class           (virialOrbitBenson2005), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node        , host

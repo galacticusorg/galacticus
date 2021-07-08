@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,34 +17,42 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% An implementation of the hot halo mass distribution class for $\beta$-profile distributions.
+!!{
+An implementation of the hot halo mass distribution class for $\beta$-profile distributions.
+!!}
 
   use :: Hot_Halo_Mass_Distributions_Core_Radii, only : hotHaloMassDistributionCoreRadiusClass
   use :: Mass_Distributions                    , only : massDistributionBetaProfile
 
-  !# <hotHaloMassDistribution name="hotHaloMassDistributionBetaProfile">
-  !#  <description>
-  !#   A hot halo mass distribution class which adopts a spherically symmetric $\beta$-profile density profile for the hot
-  !#   halo. Specifically,
-  !#   \begin{equation}
-  !#    \rho_\mathrm{hot halo}(r) \propto \left[ r^2 + r_\mathrm{core}^2 \right]^{3\beta/2},
-  !#   \end{equation}
-  !#   where the core radius, $r_\mathrm{core}$, is set using the selected cored profile core radius method (see
-  !#   \refPhysics{hotHaloMassDistributionCoreRadius}). The value of $\beta$ is specified by the {\normalfont
-  !#   \ttfamily [beta]} parameter. The profile is normalized such that the current mass in the hot gas profile is contained
-  !#   within the outer radius of the hot halo, $r_\mathrm{hot, outer}$.
-  !#  </description>
-  !# </hotHaloMassDistribution>
+  !![
+  <hotHaloMassDistribution name="hotHaloMassDistributionBetaProfile">
+   <description>
+    A hot halo mass distribution class which adopts a spherically symmetric $\beta$-profile density profile for the hot
+    halo. Specifically,
+    \begin{equation}
+     \rho_\mathrm{hot halo}(r) \propto \left[ r^2 + r_\mathrm{core}^2 \right]^{3\beta/2},
+    \end{equation}
+    where the core radius, $r_\mathrm{core}$, is set using the selected cored profile core radius method (see
+    \refPhysics{hotHaloMassDistributionCoreRadius}). The value of $\beta$ is specified by the {\normalfont
+    \ttfamily [beta]} parameter. The profile is normalized such that the current mass in the hot gas profile is contained
+    within the outer radius of the hot halo, $r_\mathrm{hot, outer}$.
+   </description>
+  </hotHaloMassDistribution>
+  !!]
   type, extends(hotHaloMassDistributionClass) :: hotHaloMassDistributionBetaProfile
-     !% A $\beta$-profile implementation of the hot halo mass distribution class.
+     !!{
+     A $\beta$-profile implementation of the hot halo mass distribution class.
+     !!}
      private
      double precision                                                  :: beta
      type            (massDistributionBetaProfile           )          :: distribution
      class           (hotHaloMassDistributionCoreRadiusClass), pointer :: hotHaloMassDistributionCoreRadius_ => null()
    contains
-     !# <methods>
-     !#   <method description="Initialize the $\beta$-profile density hot halo mass distribution for the given {\normalfont \ttfamily node}." method="initialize" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Initialize the $\beta$-profile density hot halo mass distribution for the given {\normalfont \ttfamily node}." method="initialize" />
+     </methods>
+     !!]
      final     ::                          betaProfileDestructor
      procedure :: initialize            => betaProfileInitialize
      procedure :: density               => betaProfileDensity
@@ -55,7 +63,9 @@
   end type hotHaloMassDistributionBetaProfile
 
   interface hotHaloMassDistributionBetaProfile
-     !% Constructors for the $\beta$-profile hot halo mass distribution class.
+     !!{
+     Constructors for the $\beta$-profile hot halo mass distribution class.
+     !!}
      module procedure betaProfileConstructorParameters
      module procedure betaProfileConstructorInternal
   end interface hotHaloMassDistributionBetaProfile
@@ -63,8 +73,10 @@
 contains
 
   function betaProfileConstructorParameters(parameters) result(self)
-    !% Constructor for the null {\normalfont \ttfamily betaProfile} hot halo mass distributionclass which builds the object from a
-    !% parameter set.
+    !!{
+    Constructor for the null {\normalfont \ttfamily betaProfile} hot halo mass distributionclass which builds the object from a
+    parameter set.
+    !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
@@ -102,41 +114,55 @@ contains
        !$omp end critical(betaProfileInitialized)
     end if
 
-    !# <inputParameter>
-    !#   <name>beta</name>
-    !#   <defaultValue>2.0d0/3.0d0</defaultValue>
-    !#   <description>The value of $\beta$ in $\beta$-profile hot halo mass distributions.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="hotHaloMassDistributionCoreRadius" name="hotHaloMassDistributionCoreRadius_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>beta</name>
+      <defaultValue>2.0d0/3.0d0</defaultValue>
+      <description>The value of $\beta$ in $\beta$-profile hot halo mass distributions.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="hotHaloMassDistributionCoreRadius" name="hotHaloMassDistributionCoreRadius_" source="parameters"/>
+    !!]
     self=hotHaloMassDistributionBetaProfile(beta,hotHaloMassDistributionCoreRadius_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="hotHaloMassDistributionCoreRadius_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="hotHaloMassDistributionCoreRadius_"/>
+    !!]
     return
   end function betaProfileConstructorParameters
 
   function betaProfileConstructorInternal(beta,hotHaloMassDistributionCoreRadius_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily betaProfile} hot halo mass distribution class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily betaProfile} hot halo mass distribution class.
+    !!}
     implicit none
     type            (hotHaloMassDistributionBetaProfile    )                        :: self
     double precision                                        , intent(in   )         :: beta
     class           (hotHaloMassDistributionCoreRadiusClass), intent(in   ), target :: hotHaloMassDistributionCoreRadius_
-    !# <constructorAssign variables="beta, *hotHaloMassDistributionCoreRadius_"/>
+    !![
+    <constructorAssign variables="beta, *hotHaloMassDistributionCoreRadius_"/>
+    !!]
 
     return
   end function betaProfileConstructorInternal
 
   subroutine betaProfileDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily betaProfile} hot halo mass distribution class.
+    !!{
+    Destructor for the {\normalfont \ttfamily betaProfile} hot halo mass distribution class.
+    !!}
     implicit none
     type(hotHaloMassDistributionBetaProfile), intent(inout) :: self
 
-    !# <objectDestructor name="self%hotHaloMassDistributionCoreRadius_"/>
+    !![
+    <objectDestructor name="self%hotHaloMassDistributionCoreRadius_"/>
+    !!]
     return
   end subroutine betaProfileDestructor
 
   subroutine betaProfileInitialize(self,node)
-    !% Initialize the $\beta$-profile hot halo density profile for the given {\normalfont \ttfamily node}.
+    !!{
+    Initialize the $\beta$-profile hot halo density profile for the given {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
     implicit none
     class           (hotHaloMassDistributionBetaProfile    ), intent(inout) :: self
@@ -164,7 +190,9 @@ contains
   end subroutine betaProfileInitialize
 
   double precision function betaProfileDensity(self,node,radius)
-    !% Return the density in a single-betaProfile hot halo mass distribution.
+    !!{
+    Return the density in a single-betaProfile hot halo mass distribution.
+    !!}
     use :: Coordinates, only : assignment(=), coordinateSpherical
     implicit none
     class           (hotHaloMassDistributionBetaProfile), intent(inout) :: self
@@ -179,7 +207,9 @@ contains
   end function betaProfileDensity
 
   double precision function betaProfileDensityLogSlope(self,node,radius)
-    !% Return the logarithmic slope of the density of the hot halo at the given {\normalfont \ttfamily radius}.
+    !!{
+    Return the logarithmic slope of the density of the hot halo at the given {\normalfont \ttfamily radius}.
+    !!}
     use :: Coordinates, only : assignment(=), coordinateSpherical
     implicit none
     class           (hotHaloMassDistributionBetaProfile), intent(inout) :: self
@@ -194,7 +224,9 @@ contains
   end function betaProfileDensityLogSlope
 
   double precision function betaProfileEnclosedMass(self,node,radius)
-    !% Return the mass enclosed in the hot halo at the given {\normalfont \ttfamily radius}.
+    !!{
+    Return the mass enclosed in the hot halo at the given {\normalfont \ttfamily radius}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
     implicit none
     class           (hotHaloMassDistributionBetaProfile), intent(inout)          :: self
@@ -213,7 +245,9 @@ contains
   end function betaProfileEnclosedMass
 
   double precision function betaProfileRadialMoment(self,node,moment,radius)
-    !% Return the radial moment of the density profile of the hot halo to the given {\normalfont \ttfamily radius}.
+    !!{
+    Return the radial moment of the density profile of the hot halo to the given {\normalfont \ttfamily radius}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
     implicit none
     class           (hotHaloMassDistributionBetaProfile), intent(inout) :: self
@@ -238,9 +272,11 @@ contains
   end function betaProfileRadialMoment
 
   double precision function betaProfileRotationNormalization(self,node)
-    !% Returns the relation between specific angular momentum and rotation velocity (assuming a
-    !% rotation velocity that is constant in radius) for {\normalfont \ttfamily node}. Specifically, the
-    !% normalization, $A$, returned is such that $V_\mathrm{rot} = A J/M$.
+    !!{
+    Returns the relation between specific angular momentum and rotation velocity (assuming a
+    rotation velocity that is constant in radius) for {\normalfont \ttfamily node}. Specifically, the
+    normalization, $A$, returned is such that $V_\mathrm{rot} = A J/M$.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
     implicit none
     class(hotHaloMassDistributionBetaProfile), intent(inout) :: self

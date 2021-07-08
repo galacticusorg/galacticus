@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,40 +17,46 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of accretion from the \gls{igm} onto halos using simple truncation to
-  !% mimic the effects of reionization and accounting for cold mode accretion.
+  !!{
+  An implementation of accretion from the \gls{igm} onto halos using simple truncation to
+  mimic the effects of reionization and accounting for cold mode accretion.
+  !!}
 
   use :: Cooling_Functions, only : coolingFunction, coolingFunctionClass
   use :: Kind_Numbers     , only : kind_int8
 
-  !# <accretionHalo name="accretionHaloColdMode">
-  !#  <description>
-  !#   Accretion onto halos using simple truncation to mimic the effects of reionization and accounting for cold mode
-  !#   accretion. This class extends the {\normalfont \ttfamily simple} class by dividing the accretion into hot and cold mode
-  !#   components. The cold mode fraction follows the approximation introduced by \cite{benson_cold_2010}, namely:
-  !#   \begin{equation}
-  !#   f_\mathrm{cold}=(1+r^{1/\delta})^{-1},
-  !#   \end{equation}
-  !#   where $\delta=${\normalfont \ttfamily [accretionColdModeShockStabilityTransitionWidth]}, $r =
-  !#   \epsilon_\mathrm{crit}/\epsilon$, and
-  !#   \begin{equation}
-  !#   \epsilon = r_\mathrm{s} \Lambda / \rho_\mathrm{s} v_\mathrm{s}^3,
-  !#   \end{equation}
-  !#   where $r_\mathrm{s}$ is the accretion shock radius, $\Lambda$ is the post-shock cooling function, $\rho_\mathrm{s}$ is the
-  !#   pre-shock density, $v_\mathrm{s}$ is the pre-shock velocity, and $\epsilon_\mathrm{crit}=${\normalfont \ttfamily
-  !#   [accretionColdModeShockStabilityThreshold]}. The pre-shock radius is set equal to the halo virial radius, the pre-shock
-  !#   velocity is set equal to the halo virial velocity, while the pre-shock density is given by
-  !#   \begin{equation}
-  !#   \rho_\mathrm{s} = {\gamma - 1 \over \gamma + 1} { 3 \over 4 \pi } { \Omega_\mathrm{b} \over \Omega_\mathrm{m} } {M \over
-  !#   r_\mathrm{s}^3} \left[ 1 + {(\alpha + 3) (10 + 9 \pi) \over 4} \right]^{-1},
-  !#   \end{equation}
-  !#   where $M$ is the total halo mass, $\gamma(=5/3)$ is the adiabatic index of the gas, and $\alpha$ is the exponent of the
-  !#   initial power-law density perturbation ($\alpha=0$ is assumed). The post-shock density and temperature are found assuming
-  !#   the strong-shock limit.
-  !#  </description>
-  !# </accretionHalo>
+  !![
+  <accretionHalo name="accretionHaloColdMode">
+   <description>
+    Accretion onto halos using simple truncation to mimic the effects of reionization and accounting for cold mode
+    accretion. This class extends the {\normalfont \ttfamily simple} class by dividing the accretion into hot and cold mode
+    components. The cold mode fraction follows the approximation introduced by \cite{benson_cold_2010}, namely:
+    \begin{equation}
+    f_\mathrm{cold}=(1+r^{1/\delta})^{-1},
+    \end{equation}
+    where $\delta=${\normalfont \ttfamily [accretionColdModeShockStabilityTransitionWidth]}, $r =
+    \epsilon_\mathrm{crit}/\epsilon$, and
+    \begin{equation}
+    \epsilon = r_\mathrm{s} \Lambda / \rho_\mathrm{s} v_\mathrm{s}^3,
+    \end{equation}
+    where $r_\mathrm{s}$ is the accretion shock radius, $\Lambda$ is the post-shock cooling function, $\rho_\mathrm{s}$ is the
+    pre-shock density, $v_\mathrm{s}$ is the pre-shock velocity, and $\epsilon_\mathrm{crit}=${\normalfont \ttfamily
+    [accretionColdModeShockStabilityThreshold]}. The pre-shock radius is set equal to the halo virial radius, the pre-shock
+    velocity is set equal to the halo virial velocity, while the pre-shock density is given by
+    \begin{equation}
+    \rho_\mathrm{s} = {\gamma - 1 \over \gamma + 1} { 3 \over 4 \pi } { \Omega_\mathrm{b} \over \Omega_\mathrm{m} } {M \over
+    r_\mathrm{s}^3} \left[ 1 + {(\alpha + 3) (10 + 9 \pi) \over 4} \right]^{-1},
+    \end{equation}
+    where $M$ is the total halo mass, $\gamma(=5/3)$ is the adiabatic index of the gas, and $\alpha$ is the exponent of the
+    initial power-law density perturbation ($\alpha=0$ is assumed). The post-shock density and temperature are found assuming
+    the strong-shock limit.
+   </description>
+  </accretionHalo>
+  !!]
   type, extends(accretionHaloSimple) :: accretionHaloColdMode
-     !% A halo accretion class using simple truncation to mimic the effects of reionization and accounting for cold mode accretion.
+     !!{
+     A halo accretion class using simple truncation to mimic the effects of reionization and accounting for cold mode accretion.
+     !!}
      private
      class           (coolingFunctionClass), pointer :: coolingFunction_        => null()
      double precision                                :: thresholdStabilityShock          , widthTransitionStabilityShock
@@ -58,11 +64,13 @@
      double precision                                :: coldFractionStored
      logical                                         :: coldFractionComputed
    contains
-     !# <methods>
-     !#   <method description="Reset memoized calculations." method="calculationReset" />
-     !#   <method description="Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter)." method="chemicalMasses" />
-     !#   <method description="Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter)." method="coldModeFraction" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Reset memoized calculations." method="calculationReset" />
+       <method description="Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter)." method="chemicalMasses" />
+       <method description="Returns the total accretion rate from the \gls{igm} onto a halo (including dark matter)." method="coldModeFraction" />
+     </methods>
+     !!]
      final     ::                           coldModeDestructor
      procedure :: autoHook               => coldModeAutoHook
      procedure :: calculationReset       => coldModeCalculationReset
@@ -79,7 +87,9 @@
   end type accretionHaloColdMode
 
   interface accretionHaloColdMode
-     !% Constructors for the {\normalfont \ttfamily coldMode} halo accretion class.
+     !!{
+     Constructors for the {\normalfont \ttfamily coldMode} halo accretion class.
+     !!}
      module procedure coldModeConstructorParameters
      module procedure coldModeConstructorInternal
   end interface accretionHaloColdMode
@@ -87,38 +97,44 @@
 contains
 
   function coldModeConstructorParameters(parameters) result(self)
-    !% Default constructor for the {\normalfont \ttfamily coldMode} halo accretion class.
+    !!{
+    Default constructor for the {\normalfont \ttfamily coldMode} halo accretion class.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (accretionHaloColdMode)                :: self
     type (inputParameters      ), intent(inout) :: parameters
 
     self%accretionHaloSimple=accretionHaloSimple(parameters)
-    !# <inputParameter>
-    !#   <name>thresholdStabilityShock</name>
-    !#   <defaultSource>\citep{birnboim_virial_2003}</defaultSource>
-    !#   <defaultValue>0.0126d0</defaultValue>
-    !#   <description>The threshold value, $\epsilon_\mathrm{s,crit}$, for shock stability in the model of \cite{birnboim_virial_2003}.</description>
-    !#   <source>parameters</source>
-    !#   <variable>self%thresholdStabilityShock</variable>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>widthTransitionStabilityShock</name>
-    !#   <defaultSource>\citep{benson_cold_2010}</defaultSource>
-    !#   <defaultValue>0.01d0</defaultValue>
-    !#   <description>The width of the transition from stability to instability for cold mode accretion \citep{benson_cold_2010}.</description>
-    !#   <source>parameters</source>
-    !#   <variable>self%widthTransitionStabilityShock</variable>
-    !# </inputParameter>
-    !# <objectBuilder class="coolingFunction" name="self%coolingFunction_" source="parameters"/>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParameter>
+      <name>thresholdStabilityShock</name>
+      <defaultSource>\citep{birnboim_virial_2003}</defaultSource>
+      <defaultValue>0.0126d0</defaultValue>
+      <description>The threshold value, $\epsilon_\mathrm{s,crit}$, for shock stability in the model of \cite{birnboim_virial_2003}.</description>
+      <source>parameters</source>
+      <variable>self%thresholdStabilityShock</variable>
+    </inputParameter>
+    <inputParameter>
+      <name>widthTransitionStabilityShock</name>
+      <defaultSource>\citep{benson_cold_2010}</defaultSource>
+      <defaultValue>0.01d0</defaultValue>
+      <description>The width of the transition from stability to instability for cold mode accretion \citep{benson_cold_2010}.</description>
+      <source>parameters</source>
+      <variable>self%widthTransitionStabilityShock</variable>
+    </inputParameter>
+    <objectBuilder class="coolingFunction" name="self%coolingFunction_" source="parameters"/>
+    <inputParametersValidate source="parameters"/>
+    !!]
     self%coldFractionComputed=.false.
     self%lastUniqueID        =-1_kind_int8
     return
   end function coldModeConstructorParameters
 
   function coldModeConstructorInternal(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,thresholdStabilityShock,widthTransitionStabilityShock,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_,coolingFunction_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily coldMode} halo accretion class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily coldMode} halo accretion class.
+    !!}
     implicit none
     type            (accretionHaloColdMode        )                        :: self
     double precision                               , intent(in   )         :: timeReionization        , velocitySuppressionReionization, &
@@ -131,7 +147,9 @@ contains
     class           (chemicalStateClass           ), intent(in   ), target :: chemicalState_
     class           (coolingFunctionClass         ), intent(in   ), target :: coolingFunction_
     class           (intergalacticMediumStateClass), intent(in   ), target :: intergalacticMediumState_
-    !# <constructorAssign variables="thresholdStabilityShock, widthTransitionStabilityShock, *coolingFunction_"/>
+    !![
+    <constructorAssign variables="thresholdStabilityShock, widthTransitionStabilityShock, *coolingFunction_"/>
+    !!]
 
     self%accretionHaloSimple=accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
     self%coldFractionComputed=.false.
@@ -140,7 +158,9 @@ contains
   end function coldModeConstructorInternal
 
   subroutine coldModeAutoHook(self)
-    !% Attach to the calculation reset event.
+    !!{
+    Attach to the calculation reset event.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(accretionHaloColdMode), intent(inout) :: self
@@ -150,18 +170,24 @@ contains
   end subroutine coldModeAutoHook
 
   subroutine coldModeDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily coldMode} halo accretion class.
+    !!{
+    Destructor for the {\normalfont \ttfamily coldMode} halo accretion class.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(accretionHaloColdMode), intent(inout) :: self
 
-    !# <objectDestructor name="self%coolingFunction_"/>
+    !![
+    <objectDestructor name="self%coolingFunction_"/>
+    !!]
     call calculationResetEvent%detach(self,coldModeCalculationReset)
     return
   end subroutine coldModeDestructor
 
   subroutine coldModeCalculationReset(self,node)
-    !% Reset the accretion rate calculation.
+    !!{
+    Reset the accretion rate calculation.
+    !!}
     implicit none
     class(accretionHaloColdMode), intent(inout) :: self
     type (treeNode             ), intent(inout) :: node
@@ -172,7 +198,9 @@ contains
   end subroutine coldModeCalculationReset
 
   double precision function coldModeAccretionRate(self,node,accretionMode)
-    !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
+    !!{
+    Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class  (accretionHaloColdMode), intent(inout) :: self
     type   (treeNode             ), intent(inout) :: node
@@ -184,7 +212,9 @@ contains
   end function coldModeAccretionRate
   
   double precision function coldModeAccretedMass(self,node,accretionMode)
-    !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
+    !!{
+    Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class  (accretionHaloColdMode), intent(inout) :: self
     type   (treeNode             ), intent(inout) :: node
@@ -196,7 +226,9 @@ contains
   end function coldModeAccretedMass
 
   double precision function coldModeFailedAccretionRate(self,node,accretionMode)
-    !% Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
+    !!{
+    Computes the baryonic accretion rate onto {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class  (accretionHaloColdMode), intent(inout) :: self
     type   (treeNode             ), intent(inout) :: node
@@ -208,7 +240,9 @@ contains
   end function coldModeFailedAccretionRate
   
   double precision function coldModeFailedAccretedMass(self,node,accretionMode)
-    !% Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
+    !!{
+    Computes the mass of baryons accreted into {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class  (accretionHaloColdMode), intent(inout) :: self
     type   (treeNode             ), intent(inout) :: node
@@ -220,7 +254,9 @@ contains
   end function coldModeFailedAccretedMass
 
   function coldModeAccretionRateMetals(self,node,accretionMode)
-    !% Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!{
+    Computes the rate of mass of abundance accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!}
     implicit none
     type  (abundances           )                :: coldModeAccretionRateMetals
     class (accretionHaloColdMode), intent(inout) :: self
@@ -233,7 +269,9 @@ contains
   end function coldModeAccretionRateMetals
 
   function coldModeAccretedMassMetals(self,node,accretionMode)
-    !% Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!{
+    Computes the mass of abundances accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!}
     implicit none
     type   (abundances           )                :: coldModeAccretedMassMetals
     class  (accretionHaloColdMode), intent(inout) :: self
@@ -246,9 +284,11 @@ contains
   end function coldModeAccretedMassMetals
 
   function coldModeAccretionRateChemicals(self,node,accretionMode)
-    !% Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium. Assumes a
-    !% primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial
-    !% temperature.
+    !!{
+    Computes the rate of mass of chemicals accretion (in $M_\odot/$Gyr) onto {\normalfont \ttfamily node} from the intergalactic medium. Assumes a
+    primordial mixture of hydrogen and helium and that accreted material is in collisional ionization equilibrium at the virial
+    temperature.
+    !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     implicit none
     type            (chemicalAbundances   )                :: coldModeAccretionRateChemicals
@@ -269,7 +309,9 @@ contains
   end function coldModeAccretionRateChemicals
 
   function coldModeAccretedMassChemicals(self,node,accretionMode)
-    !% Computes the mass of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!{
+    Computes the mass of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!}
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     implicit none
     type            (chemicalAbundances   )                :: coldModeAccretedMassChemicals
@@ -290,7 +332,9 @@ contains
   end function coldModeAccretedMassChemicals
 
   function coldModeChemicalMasses(self,node,massAccreted,accretionMode)
-    !% Compute the masses of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!{
+    Compute the masses of chemicals accreted (in $M_\odot$) onto {\normalfont \ttfamily node} from the intergalactic medium.
+    !!}
     use :: Abundances_Structure             , only : zeroAbundances
     use :: Chemical_Abundances_Structure    , only : chemicalAbundances
     use :: Chemical_Reaction_Rates_Utilities, only : Chemicals_Mass_To_Density_Conversion
@@ -345,7 +389,9 @@ contains
   end function coldModeChemicalMasses
 
   double precision function coldModeColdModeFraction(self,node,accretionMode)
-    !% Computes the fraction of accretion occuring in the specified mode.
+    !!{
+    Computes the fraction of accretion occuring in the specified mode.
+    !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Chemical_Abundances_Structure   , only : chemicalAbundances
     use :: Galacticus_Error                , only : Galacticus_Error_Report
@@ -431,6 +477,7 @@ contains
                &                                    )
           coolingFunctionValue=                                                             &
                &               self%coolingFunction_%coolingFunction(                       &
+               &                                                     node                 , &
                &                                                     numberDensityHydrogen, &
                &                                                     temperaturePostShock , &
                &                                                     zeroAbundances       , &
@@ -451,15 +498,19 @@ contains
           ! Compute the cold fraction using the model from eqn. (2) of Benson & Bower (2011). The original form doesn't allow the
           ! cold fraction to go to zero in high mass halos, since "shockStability" can never be less than zero. This form is
           ! basically the equivalent functional form, but defined in terms of ln(epsilon) rather than epsilon.
-          stabilityRatio=self%thresholdStabilityShock/shockStability
-          if (log(stabilityRatio) > self%widthTransitionStabilityShock*logStabilityRatioMaximum) then
+          if (shockStability <= 0.0d0) then
              self%coldFractionStored=+0.0d0
           else
-             self%coldFractionStored=+1.0d0                                                        &
-                  &                  /(                                                            &
-                  &                    +1.0d0                                                      &
-                  &                    +stabilityRatio**(1.0d0/self%widthTransitionStabilityShock) &
-                  &                   )
+             stabilityRatio=self%thresholdStabilityShock/shockStability
+             if (log(stabilityRatio) > self%widthTransitionStabilityShock*logStabilityRatioMaximum) then
+                self%coldFractionStored=+0.0d0
+             else
+                self%coldFractionStored=+1.0d0                                                        &
+                     &                  /(                                                            &
+                     &                    +1.0d0                                                      &
+                     &                    +stabilityRatio**(1.0d0/self%widthTransitionStabilityShock) &
+                     &                   )
+             end if
           end if
           ! Mark cold fraction as computed.
           self%coldFractionComputed=.true.

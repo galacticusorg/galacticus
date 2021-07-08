@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,45 +17,51 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements a merger tree evolution timestepping class which limits the step the next epoch at which to store global history.
+!!{
+Implements a merger tree evolution timestepping class which limits the step the next epoch at which to store global history.
+!!}
 
   use :: Cosmology_Functions           , only : cosmologyFunctions             , cosmologyFunctionsClass
   use :: Numerical_Interpolation       , only : interpolator
   use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
   use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
 
-  !# <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepHistory">
-  !#  <description>
-  !#   A merger tree evolution timestepping class which records and outputs volume averaged properties of the model universe as a
-  !#   function of time. Timesteps are enforced such that:
-  !#   \begin{equation}
-  !#    \Delta t \le t_{\mathrm{history},i} - t
-  !#   \end{equation}
-  !#   where $t$ is the current time, $t_{\mathrm{history},i}$ is the $i^\mathrm{th}$ time at which the global history of galaxies
-  !#   is to be output and $i$ is chosen to be the smallest $i$ such that $t_{\mathrm{history},i} &gt; t$. If there is no $i$ for
-  !#   which $t_{\mathrm{history},i} &gt; t$ this criterion is not applied. If this criterion is the limiting criterion for $\Delta
-  !#   t$ then the properties of the galaxy will be accumulated to the global history arrays at the end of the timestep.
-  !#
-  !#   Volume-averaged properties are stored to the {\normalfont \ttfamily globalHistory} group of the output file. Currently, the
-  !#   properties stored are:
-  !#   \begin{description}
-  !#    \item[{\normalfont \ttfamily historyTime}] Cosmic time (in Gyr);
-  !#    \item[{\normalfont \ttfamily historyExpansion}] Expansion factor;
-  !#    \item[{\normalfont \ttfamily historyStarFormationRate}] Volume averaged star formation rate (in $M_\odot/$Gyr/Mpc$^3$).
-  !#    \item[{\normalfont \ttfamily historyDiskStarFormationRate}] Volume averaged star formation rate in disks (in $M_\odot/$Gyr/Mpc$^3$).
-  !#    \item[{\normalfont \ttfamily historySpheroidStarFormationRate}] Volume averaged star formation rate in spheroids (in $M_\odot/$Gyr/Mpc$^3$).
-  !#    \item[{\normalfont \ttfamily historyStellarDensity}] Volume averaged stellar mass density (in $M_\odot/$Mpc$^3$).
-  !#    \item[{\normalfont \ttfamily historyDiskStellarDensity}] Volume averaged stellar mass density in disks (in $M_\odot/$Mpc$^3$).
-  !#    \item[{\normalfont \ttfamily historySpheroidStellarDensity}] Volume averaged stellar mass density in spheroids (in $M_\odot/$Mpc$^3$).
-  !#    \item[{\normalfont \ttfamily historyGasDensity}] Volume averaged cooled gas density (in $M_\odot/$Mpc$^3$).
-  !#    \item[{\normalfont \ttfamily historyNodeDensity}] Volume averaged resolved node density (in $M_\odot/$Mpc$^3$).
-  !#   \end{description}
-  !#   Dimensionful datasets have a {\normalfont \ttfamily unitsInSI} attribute which gives their units\index{units} in the SI
-  !#   system.
-  !#  </description>
-  !# </mergerTreeEvolveTimestep>
+  !![
+  <mergerTreeEvolveTimestep name="mergerTreeEvolveTimestepHistory">
+   <description>
+    A merger tree evolution timestepping class which records and outputs volume averaged properties of the model universe as a
+    function of time. Timesteps are enforced such that:
+    \begin{equation}
+     \Delta t \le t_{\mathrm{history},i} - t
+    \end{equation}
+    where $t$ is the current time, $t_{\mathrm{history},i}$ is the $i^\mathrm{th}$ time at which the global history of galaxies
+    is to be output and $i$ is chosen to be the smallest $i$ such that $t_{\mathrm{history},i} &gt; t$. If there is no $i$ for
+    which $t_{\mathrm{history},i} &gt; t$ this criterion is not applied. If this criterion is the limiting criterion for $\Delta
+    t$ then the properties of the galaxy will be accumulated to the global history arrays at the end of the timestep.
+  
+    Volume-averaged properties are stored to the {\normalfont \ttfamily globalHistory} group of the output file. Currently, the
+    properties stored are:
+    \begin{description}
+     \item[{\normalfont \ttfamily historyTime}] Cosmic time (in Gyr);
+     \item[{\normalfont \ttfamily historyExpansion}] Expansion factor;
+     \item[{\normalfont \ttfamily historyStarFormationRate}] Volume averaged star formation rate (in $M_\odot/$Gyr/Mpc$^3$).
+     \item[{\normalfont \ttfamily historyDiskStarFormationRate}] Volume averaged star formation rate in disks (in $M_\odot/$Gyr/Mpc$^3$).
+     \item[{\normalfont \ttfamily historySpheroidStarFormationRate}] Volume averaged star formation rate in spheroids (in $M_\odot/$Gyr/Mpc$^3$).
+     \item[{\normalfont \ttfamily historyStellarDensity}] Volume averaged stellar mass density (in $M_\odot/$Mpc$^3$).
+     \item[{\normalfont \ttfamily historyDiskStellarDensity}] Volume averaged stellar mass density in disks (in $M_\odot/$Mpc$^3$).
+     \item[{\normalfont \ttfamily historySpheroidStellarDensity}] Volume averaged stellar mass density in spheroids (in $M_\odot/$Mpc$^3$).
+     \item[{\normalfont \ttfamily historyGasDensity}] Volume averaged cooled gas density (in $M_\odot/$Mpc$^3$).
+     \item[{\normalfont \ttfamily historyNodeDensity}] Volume averaged resolved node density (in $M_\odot/$Mpc$^3$).
+    \end{description}
+    Dimensionful datasets have a {\normalfont \ttfamily unitsInSI} attribute which gives their units\index{units} in the SI
+    system.
+   </description>
+  </mergerTreeEvolveTimestep>
+  !!]
   type, extends(mergerTreeEvolveTimestepClass) :: mergerTreeEvolveTimestepHistory
-     !% Implementation of a merger tree evolution timestepping class which limits the step the next epoch at which to store global history.
+     !!{
+     Implementation of a merger tree evolution timestepping class which limits the step the next epoch at which to store global history.
+     !!}
      private
      class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_         => null()
      class           (starFormationRateDisksClass    ), pointer                   :: starFormationRateDisks_     => null()
@@ -76,7 +82,9 @@
   end type mergerTreeEvolveTimestepHistory
 
   interface mergerTreeEvolveTimestepHistory
-     !% Constructors for the {\normalfont \ttfamily history} merger tree evolution timestep class.
+     !!{
+     Constructors for the {\normalfont \ttfamily history} merger tree evolution timestep class.
+     !!}
      module procedure historyConstructorParameters
      module procedure historyConstructorInternal
   end interface mergerTreeEvolveTimestepHistory
@@ -84,7 +92,9 @@
 contains
 
   function historyConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily history} merger tree evolution timestep class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily history} merger tree evolution timestep class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeEvolveTimestepHistory)                :: self
@@ -96,38 +106,46 @@ contains
     double precision                                                 :: timeBegin                  , timeEnd, &
          &                                                              ageUniverse
 
-    !# <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"          source="parameters"/>
-    !# <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
-    !# <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"          source="parameters"/>
+    <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
+    <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
+    !!]
     ageUniverse=cosmologyFunctions_%cosmicTime(1.0d0)
-    !# <inputParameter>
-    !#   <name>timeBegin</name>
-    !#   <defaultValue>0.05d0*ageUniverse</defaultValue>
-    !#   <description>The earliest time at which to tabulate the volume averaged history of galaxies (in Gyr).</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>timeEnd</name>
-    !#   <defaultValue>ageUniverse</defaultValue>
-    !#   <description>The latest time at which to tabulate the volume averaged history of galaxies (in Gyr).</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>historyCount</name>
-    !#   <defaultValue>30</defaultValue>
-    !#   <description>The number of steps (spaced logarithmically in cosmic time) at which to tabulate the volume averaged history of galaxies.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>timeBegin</name>
+      <defaultValue>0.05d0*ageUniverse</defaultValue>
+      <description>The earliest time at which to tabulate the volume averaged history of galaxies (in Gyr).</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>timeEnd</name>
+      <defaultValue>ageUniverse</defaultValue>
+      <description>The latest time at which to tabulate the volume averaged history of galaxies (in Gyr).</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>historyCount</name>
+      <defaultValue>30</defaultValue>
+      <description>The number of steps (spaced logarithmically in cosmic time) at which to tabulate the volume averaged history of galaxies.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=mergerTreeEvolveTimestepHistory(historyCount,timeBegin,timeEnd,cosmologyFunctions_,starFormationRateDisks_,starFormationRateSpheroids_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"        />
-    !# <objectDestructor name="starFormationRateDisks_"    />
-    !# <objectDestructor name="starFormationRateSpheroids_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"        />
+    <objectDestructor name="starFormationRateDisks_"    />
+    <objectDestructor name="starFormationRateSpheroids_"/>
+    !!]
     return
   end function historyConstructorParameters
 
   function historyConstructorInternal(historyCount,timeBegin,timeEnd,cosmologyFunctions_,starFormationRateDisks_,starFormationRateSpheroids_) result(self)
-    !% Constructor for the {\normalfont \ttfamily history} merger tree evolution timestep class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily history} merger tree evolution timestep class which takes a parameter set as input.
+    !!}
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : allocateArray
     use            :: Numerical_Ranges , only : Make_Range   , rangeTypeLogarithmic
@@ -139,7 +157,9 @@ contains
     class           (starFormationRateDisksClass    ), intent(in   ), target :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass), intent(in   ), target :: starFormationRateSpheroids_
     integer         (c_size_t                       )                        :: timeIndex
-    !# <constructorAssign variables="historyCount, timeBegin, timeEnd, *cosmologyFunctions_, *starFormationRateDisks_, *starFormationRateSpheroids_"/>
+    !![
+    <constructorAssign variables="historyCount, timeBegin, timeEnd, *cosmologyFunctions_, *starFormationRateDisks_, *starFormationRateSpheroids_"/>
+    !!]
 
     ! Allocate storage arrays.
     call allocateArray(self%time                     ,[self%historyCount])
@@ -172,7 +192,9 @@ contains
   end function historyConstructorInternal
 
   subroutine historyAutoHook(self)
-    !% Create a hook to the HDF5 pre-close event to allow us to finalize and write out our data.
+    !!{
+    Create a hook to the HDF5 pre-close event to allow us to finalize and write out our data.
+    !!}
     use :: Events_Hooks, only : hdf5PreCloseEvent
     implicit none
     class(mergerTreeEvolveTimestepHistory), intent(inout) :: self
@@ -182,24 +204,33 @@ contains
   end subroutine historyAutoHook
 
   subroutine historyDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily history} merger tree evolution timestep class.
+    !!{
+    Destructor for the {\normalfont \ttfamily history} merger tree evolution timestep class.
+    !!}
+    use :: Events_Hooks, only : hdf5PreCloseEvent
     implicit none
     type(mergerTreeEvolveTimestepHistory), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"        />
-    !# <objectDestructor name="self%starFormationRateDisks_"    />
-    !# <objectDestructor name="self%starFormationRateSpheroids_"/>
+    call hdf5PreCloseEvent%detach(self,historyWrite)
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"        />
+    <objectDestructor name="self%starFormationRateDisks_"    />
+    <objectDestructor name="self%starFormationRateSpheroids_"/>
+    !!]
     return
   end subroutine historyDestructor
 
-  double precision function historyTimeEvolveTo(self,node,task,taskSelf,report,lockNode,lockType)
-    !% Determine a suitable timestep for {\normalfont \ttfamily node} using the history method.
+  double precision function historyTimeEvolveTo(self,timeEnd,node,task,taskSelf,report,lockNode,lockType)
+    !!{
+    Determine a suitable timestep for {\normalfont \ttfamily node} using the history method.
+    !!}
     use            :: Evolve_To_Time_Reports, only : Evolve_To_Time_Report
     use            :: Galacticus_Nodes      , only : nodeComponentBasic   , treeNode
     use, intrinsic :: ISO_C_Binding         , only : c_size_t
     use            :: ISO_Varying_String    , only : varying_string
     implicit none
     class           (mergerTreeEvolveTimestepHistory), intent(inout), target            :: self
+    double precision                                 , intent(in   )                    :: timeEnd
     type            (treeNode                       ), intent(inout), target            :: node
     procedure       (timestepTask                   ), intent(  out), pointer           :: task
     class           (*                              ), intent(  out), pointer           :: taskSelf
@@ -209,6 +240,7 @@ contains
     class           (nodeComponentBasic             )               , pointer           :: basic
     integer         (c_size_t                       )                                   :: timeIndex
     double precision                                                                    :: time
+    !$GLC attributes unused :: timeEnd
 
     ! Determine how long until next available timestep.
     basic     => node %basic()
@@ -230,7 +262,9 @@ contains
   end function historyTimeEvolveTo
 
   subroutine historyStore(self,tree,node,deadlockStatus)
-    !% Store various properties in global arrays.
+    !!{
+    Store various properties in global arrays.
+    !!}
     use            :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use            :: Galactic_Structure_Options        , only : componentTypeDisk               , componentTypeHotHalo, componentTypeSpheroid, massTypeGaseous      , &
           &                                                      massTypeStellar
@@ -313,7 +347,9 @@ contains
   end subroutine historyStore
 
   subroutine historyWrite(self)
-    !% Store the global history data to the \glc\ output file.
+    !!{
+    Store the global history data to the \glc\ output file.
+    !!}
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Galacticus_HDF5                 , only : galacticusOutputFile
     use :: IO_HDF5                         , only : hdf5Access             , hdf5Object

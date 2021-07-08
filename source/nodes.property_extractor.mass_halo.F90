@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a halo mass output analysis property extractor class.
+!!{
+Contains a module which implements a halo mass output analysis property extractor class.
+!!}
 
   use :: Virial_Density_Contrast, only : virialDensityContrastClass
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorMassHalo">
-  !#  <description>A halo mass output analysis property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorMassHalo">
+   <description>A halo mass output analysis property extractor class.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassHalo
-     !% A halo mass property extractor output analysis class. The property extracted is the ''\gls{dmou}'' mass of the halo within
-     !% a radius enclosing a density contrast as defined by the supplied {\normalfont \ttfamily virialDensityContrast} class
-     !% object. Note that the density contrast is defined here at the time at which the halo presently exists, \emph{not} at the
-     !% time at which is was last isolated (as is used for standard definition of halo mass).
+     !!{
+     A halo mass property extractor output analysis class. The property extracted is the ''\gls{dmou}'' mass of the halo within
+     a radius enclosing a density contrast as defined by the supplied {\normalfont \ttfamily virialDensityContrast} class
+     object. Note that the density contrast is defined here at the time at which the halo presently exists, \emph{not} at the
+     time at which is was last isolated (as is used for standard definition of halo mass).
+     !!}
      private
      class(virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
    contains
@@ -41,7 +47,9 @@
   end type nodePropertyExtractorMassHalo
 
   interface nodePropertyExtractorMassHalo
-     !% Constructors for the ``massHalo'' output analysis class.
+     !!{
+     Constructors for the ``massHalo'' output analysis class.
+     !!}
      module procedure massHaloConstructorParameters
      module procedure massHaloConstructorInternal
   end interface nodePropertyExtractorMassHalo
@@ -49,41 +57,57 @@
 contains
 
   function massHaloConstructorParameters(parameters) result(self)
-    !% Constructor for the ``massHalo'' output analysis property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``massHalo'' output analysis property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorMassHalo)                :: self
     type (inputParameters              ), intent(inout) :: parameters
     class(virialDensityContrastClass   ), pointer       :: virialDensityContrast_
 
-    !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    !![
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    !!]
     self=nodePropertyExtractorMassHalo(virialDensityContrast_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="virialDensityContrast_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="virialDensityContrast_"/>
+    !!]
     return
   end function massHaloConstructorParameters
 
   function massHaloConstructorInternal(virialDensityContrast_) result(self)
-    !% Internal constructor for the ``massHalo'' output analysis property extractor class.
+    !!{
+    Internal constructor for the ``massHalo'' output analysis property extractor class.
+    !!}
     implicit none
     type (nodePropertyExtractorMassHalo)                        :: self
     class(virialDensityContrastClass   ), intent(in   ), target :: virialDensityContrast_
-    !# <constructorAssign variables="*virialDensityContrast_"/>
+    !![
+    <constructorAssign variables="*virialDensityContrast_"/>
+    !!]
 
     return
   end function massHaloConstructorInternal
 
   subroutine massHaloDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily mass} output analysis property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily mass} output analysis property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorMassHalo), intent(inout) :: self
 
-    !# <objectDestructor name="self%virialDensityContrast_"/>
+    !![
+    <objectDestructor name="self%virialDensityContrast_"/>
+    !!]
     return
   end subroutine massHaloDestructor
 
   double precision function massHaloExtract(self,node,instance)
-    !% Implement a massHalo output analysis.
+    !!{
+    Implement a massHalo output analysis.
+    !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
@@ -99,7 +123,9 @@ contains
   end function massHaloExtract
 
   integer function massHaloType(self)
-    !% Return the type of the halo mass property.
+    !!{
+    Return the type of the halo mass property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassHalo), intent(inout) :: self
@@ -110,7 +136,9 @@ contains
   end function massHaloType
 
   function massHaloName(self)
-    !% Return the name of the massHalo property.
+    !!{
+    Return the name of the massHalo property.
+    !!}
     implicit none
     type (varying_string               )                :: massHaloName
     class(nodePropertyExtractorMassHalo), intent(inout) :: self
@@ -121,7 +149,9 @@ contains
   end function massHaloName
 
   function massHaloDescription(self)
-    !% Return a description of the massHalo property.
+    !!{
+    Return a description of the massHalo property.
+    !!}
     implicit none
     type (varying_string               )                :: massHaloDescription
     class(nodePropertyExtractorMassHalo), intent(inout) :: self
@@ -132,7 +162,9 @@ contains
   end function massHaloDescription
 
   double precision function massHaloUnitsInSI(self)
-    !% Return the units of the massHalo property in the SI system.
+    !!{
+    Return the units of the massHalo property in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(nodePropertyExtractorMassHalo), intent(inout) :: self

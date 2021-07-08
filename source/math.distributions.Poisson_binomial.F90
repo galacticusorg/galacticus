@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements Poisson binomial distributions.
+!!{
+Contains a module which implements Poisson binomial distributions.
+!!}
 
 module Math_Distributions_Poisson_Binomial
-  !% Implements Poisson binomial distributions.
+  !!{
+  Implements Poisson binomial distributions.
+  !!}
   private
   public :: Poisson_Binomial_Distribution           , Poisson_Binomial_Distribution_Mean               , &
        &    Poisson_Binomial_Distribution_Mean_Pairs, Poisson_Binomial_Distribution_Mean_Pairs_Jacobian
@@ -28,8 +32,10 @@ module Math_Distributions_Poisson_Binomial
 contains
 
   double precision function Poisson_Binomial_Distribution(k,p)
-    !% Computes the Poisson binomial distribution with event probabilities {\normalfont \ttfamily p} at argument
-    !% {\normalfont \ttfamily k}. Uses the discrete Fourier transform method proposed by \cite{fernandez_closed-form_2010}.
+    !!{
+    Computes the Poisson binomial distribution with event probabilities {\normalfont \ttfamily p} at argument
+    {\normalfont \ttfamily k}. Uses the discrete Fourier transform method proposed by \cite{fernandez_closed-form_2010}.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     integer         , intent(in   )               :: k
@@ -61,8 +67,10 @@ contains
   end function Poisson_Binomial_Distribution
 
   function Poisson_Binomial_Distribution_Jacobian(k,p)
-    !% Computes the Jacobian of the Poisson binomial distribution with event probabilities {\normalfont \ttfamily p} at argument
-    !% {\normalfont \ttfamily k}. Uses the discrete Fourier transform method proposed by \cite{fernandez_closed-form_2010}.
+    !!{
+    Computes the Jacobian of the Poisson binomial distribution with event probabilities {\normalfont \ttfamily p} at argument
+    {\normalfont \ttfamily k}. Uses the discrete Fourier transform method proposed by \cite{fernandez_closed-form_2010}.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     integer         , intent(in   )                     :: k
@@ -94,7 +102,9 @@ contains
   end function Poisson_Binomial_Distribution_Jacobian
 
   double precision function Poisson_Binomial_Distribution_Mean(p)
-    !% Computes the mean of a Poisson binomial distribution.
+    !!{
+    Computes the mean of a Poisson binomial distribution.
+    !!}
     implicit none
     double precision, intent(in   ), dimension(:) :: p
 
@@ -103,7 +113,9 @@ contains
   end function Poisson_Binomial_Distribution_Mean
 
   double precision function Poisson_Binomial_Distribution_Variance(p)
-    !% Computes the mean of a Poisson binomial distribution.
+    !!{
+    Computes the mean of a Poisson binomial distribution.
+    !!}
     implicit none
     double precision, intent(in   ), dimension(:) :: p
 
@@ -112,9 +124,11 @@ contains
   end function Poisson_Binomial_Distribution_Variance
 
   double precision function Poisson_Binomial_Distribution_Mean_Pairs(p)
-    !% Computes the mean number of pairs expected from a Poisson binomial distribution with
-    !% event probabilities {\normalfont \ttfamily p}. Assumes that pair order is significant, i.e. both $AB$ and
-    !% $BA$ are counted.
+    !!{
+    Computes the mean number of pairs expected from a Poisson binomial distribution with
+    event probabilities {\normalfont \ttfamily p}. Assumes that pair order is significant, i.e. both $AB$ and
+    $BA$ are counted.
+    !!}
     implicit none
     double precision, intent(in   ), dimension(:) :: p
     double precision                              :: mean, variance
@@ -127,9 +141,11 @@ contains
   end function Poisson_Binomial_Distribution_Mean_Pairs
 
   function Poisson_Binomial_Distribution_Mean_Pairs_Jacobian(p)
-    !% Computes the Jacobian of the mean number of pairs expected from a Poisson binomial distribution with
-    !% event probabilities {\normalfont \ttfamily p}. Assumes that pair order is significant, i.e. both $AB$ and
-    !% $BA$ are counted.
+    !!{
+    Computes the Jacobian of the mean number of pairs expected from a Poisson binomial distribution with
+    event probabilities {\normalfont \ttfamily p}. Assumes that pair order is significant, i.e. both $AB$ and
+    $BA$ are counted.
+    !!}
     implicit none
     double precision, intent(in   ), dimension(     : ) :: p
     double precision               , dimension(size(p)) :: Poisson_Binomial_Distribution_Mean_Pairs_Jacobian

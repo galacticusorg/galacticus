@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an square root output analysis property operator class.
+!!{
+Contains a module which implements an square root output analysis property operator class.
+!!}
 
-  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSquareRoot">
-  !#  <description>An squareRoot output analysis property operator class.</description>
-  !# </outputAnalysisPropertyOperator>
+  !![
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSquareRoot">
+   <description>An squareRoot output analysis property operator class.</description>
+  </outputAnalysisPropertyOperator>
+  !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorSquareRoot
-     !% An square root output property operator class.
+     !!{
+     An square root output property operator class.
+     !!}
      private
    contains
      procedure :: operate  => squareRootOperate
   end type outputAnalysisPropertyOperatorSquareRoot
 
   interface outputAnalysisPropertyOperatorSquareRoot
-     !% Constructors for the ``squareRoot'' output analysis class.
+     !!{
+     Constructors for the ``squareRoot'' output analysis class.
+     !!}
      module procedure squareRootConstructorParameters
   end interface outputAnalysisPropertyOperatorSquareRoot
 
 contains
 
   function squareRootConstructorParameters(parameters)
-    !% Constructor for the ``squareRoot'' output analysis property operateor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``squareRoot'' output analysis property operateor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisPropertyOperatorSquareRoot)                :: squareRootConstructorParameters
@@ -49,7 +59,9 @@ contains
   end function squareRootConstructorParameters
 
   double precision function squareRootOperate(self,propertyValue,node,propertyType,outputIndex)
-    !% Implement an square root output analysis property operator.
+    !!{
+    Implement an square root output analysis property operator.
+    !!}
     use            :: Galacticus_Error, only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     implicit none

@@ -9,7 +9,7 @@ use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
 use Text::Table;
 use Text::Template 'fill_in_string';
-use Sort::Topological qw(toposort);
+use Sort::Topo;
 use Scalar::Util 'reftype';
 use XML::SAX::ParserFactory;
 use XML::Validator::Schema;
@@ -101,7 +101,7 @@ sub Components_Parse_Directive {
     die("Galacticus::Build::Components::Components_Parse_Directive: no class present"          )
 	unless ( exists($build->{'currentDocument'}->{'class'}) );
     # Construct an ID for this component.
-    my $componentID = ucfirst($build->{'currentDocument'}->{'class'}).ucfirst($build->{'currentDocument'}->{'name'});    
+    my $componentID = ucfirst($build->{'currentDocument'}->{'class'}).ucfirst($build->{'currentDocument'}->{'name'});
     # Check for pre-existing component with identical name.
     die("Galacticus::Build::Components::Components_Parse_Directive: multiple components with ID '".$componentID."'")
 	if ( exists($build->{'components'}->{$componentID}) );
@@ -223,11 +223,11 @@ sub boundFunctionTable {
 	if ( defined($descriptionText) ) {
 	    ++$methodCount;
 	    my $methodName = (exists($_->{'descriptor'}) && exists($_->{'descriptor'}->{'methodName'})) ? $_->{'descriptor'}->{'methodName'} : $_->{'name'};
-	    $description .= "     !#  <method method=\"".$methodName."\" description=\"".$descriptionText."\"/>\n";
+	    $description .= "      <method method=\"".$methodName."\" description=\"".$descriptionText."\"/>\n";
 	}
     }
     if ( $methodCount >= 1 ) {
-	$description = "     !# <methods>\n".$description."     !# </methods>\n";
+	$description = "     !![\n     <methods>\n".$description."     </methods>\n     !!]\n\n";
     }
     # Construct final product.
     my $product = "";
@@ -265,12 +265,7 @@ sub derivedTypesSerialize {
 	}
     }
     my @typeSort  = &List::ExtraUtils::sortedKeys($build->{'types'});
-    my @typeOrder =
-	toposort
-	(
-	 sub { @{$typeDependencies{$_[0]} || []}; },
-	 \@typeSort
-	);
+    my @typeOrder = &Sort::Topo::sort(\@typeSort,\%typeDependencies);
     # Iterate over types.
     foreach ( @typeOrder ) {
 	# Get the type.
@@ -283,8 +278,11 @@ sub derivedTypesSerialize {
 	    if ( exists($type->{'extends'}) );
 	$build->{'content'} .= " :: ".$type->{'name'}."\n";
 	# Insert any comment.
-	$build->{'content'} .= "  !% ".$type->{'comment'}."\n"
-	    if ( exists($type->{'comment'}) );
+	if ( exists($type->{'comment'}) ) {
+	    $build->{'content'} .= "  !!{\n";
+	    $build->{'content'} .= "  ".$type->{'comment'}."\n";
+	    $build->{'content'} .= "  !!}\n";
+	}
 	# Declare contents private.
 	$build->{'content'} .= "    private\n";
 	# Process any data content.
@@ -383,7 +381,9 @@ sub functionsSerialize {
 	# Serialize function opener.
 	$build->{'content'} .= join(" ",@functionAttributes)." ".$type." ".$form." ".$function->{'name'}."(".join(",",@arguments).") ".$result."\n";
 	# Serialize description.
-	$build->{'content'} .= "   !% ".$function->{'description'}."\n";
+	$build->{'content'} .= "   !!{\n";
+	$build->{'content'} .= "   ".$function->{'description'}."\n";
+	$build->{'content'} .= "   !!}\n";
 	# Serialize module uses.
 	my @intrinsicModules = ( "iso_c_binding" );
 	foreach my $module ( @{$function->{'modules'}} ) {

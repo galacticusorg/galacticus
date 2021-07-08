@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Compute halo mass function -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <task value="NBodyAnalyze"/>
+
+  <nbodyImporter value="merge">
+  </nbodyImporter>
+
+  <nbodyOperator value="sequence">
+    <nbodyOperator value="addAttributes">
+      <names  value="massParticle"/>
+      <values value="1.0e9"       />
+    </nbodyOperator>
+    <nbodyOperator value="progenitorMassFunction">
+      <description                       value=""                 />
+      <simulationReference               value=""                 />
+      <simulationURL                     value=""                 />
+      <massParentMinimum                 value="1.0e+12"          />
+      <massParentMaximum                 value="1.0e+15"          />
+      <massParentCountPerDecade          value="2"                />
+      <massRatioProgenitorMaximum        value="2.0e+00"          />
+      <massRatioProgenitorMinimum        value="1.0e-03"          />
+      <massRatioProgenitorCountPerDecade value="5"                />
+      <snapshotParents                   value="150"              />
+      <snapshotsProgenitors              value="132 119 100 77 51"/>      
+    </nbodyOperator>
+  </nbodyOperator>
+  
+</parameters>

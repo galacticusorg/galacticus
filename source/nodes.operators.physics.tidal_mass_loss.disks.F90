@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that performs tidal mass loss in disks.
+  !!{
+  Implements a node operator class that performs tidal mass loss in disks.
+  !!}
 
   use :: Tidal_Stripping_Mass_Loss_Rate, only : tidalStrippingClass
   
-  !# <nodeOperator name="nodeOperatorTidalMassLossDisks">
-  !#  <description>A node operator class that performs tidal mass loss in disks.</description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorTidalMassLossDisks">
+   <description>A node operator class that performs tidal mass loss in disks.</description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorTidalMassLossDisks
-     !% A node operator class that performs tidal mass loss in disks.
+     !!{
+     A node operator class that performs tidal mass loss in disks.
+     !!}
      private
      class(tidalStrippingClass), pointer :: tidalStripping_ => null()
    contains
@@ -34,7 +40,9 @@
   end type nodeOperatorTidalMassLossDisks
   
   interface nodeOperatorTidalMassLossDisks
-     !% Constructors for the {\normalfont \ttfamily tidalMassLossDisks} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily tidalMassLossDisks} node operator class.
+     !!}
      module procedure tidalMassLossDisksConstructorParameters
      module procedure tidalMassLossDisksConstructorInternal
   end interface nodeOperatorTidalMassLossDisks
@@ -42,41 +50,57 @@
 contains
 
   function tidalMassLossDisksConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily tidalMassLossDisks} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily tidalMassLossDisks} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodeOperatorTidalMassLossDisks)                :: self
     type (inputParameters               ), intent(inout) :: parameters
     class(tidalStrippingClass           ), pointer       :: tidalStripping_
     
-    !# <objectBuilder class="tidalStripping" name="tidalStripping_" source="parameters"/>
+    !![
+    <objectBuilder class="tidalStripping" name="tidalStripping_" source="parameters"/>
+    !!]
     self=nodeOperatorTidalMassLossDisks(tidalStripping_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="tidalStripping_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="tidalStripping_"/>
+    !!]
     return
   end function tidalMassLossDisksConstructorParameters
 
   function tidalMassLossDisksConstructorInternal(tidalStripping_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily tidalMassLossDisks} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily tidalMassLossDisks} node operator class.
+    !!}
     implicit none
     type (nodeOperatorTidalMassLossDisks)                        :: self
     class(tidalStrippingClass           ), intent(in   ), target :: tidalStripping_
-    !# <constructorAssign variables="*tidalStripping_"/>
+    !![
+    <constructorAssign variables="*tidalStripping_"/>
+    !!]
 
     return
   end function tidalMassLossDisksConstructorInternal
 
   subroutine tidalMassLossDisksDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily tidalMassLossDisks} node operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily tidalMassLossDisks} node operator class.
+    !!}
     implicit none
     type(nodeOperatorTidalMassLossDisks), intent(inout) :: self
 
-    !# <objectDestructor name="self%tidalStripping_"/>
+    !![
+    <objectDestructor name="self%tidalStripping_"/>
+    !!]
     return
   end subroutine tidalMassLossDisksDestructor
   
   subroutine tidalMassLossDisksDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Perform star formation in a disk.
+    !!{
+    Perform star formation in a disk.
+    !!}
     use :: Galacticus_Nodes              , only : propertyTypeInactive, nodeComponentDisk  , nodeComponentHotHalo
     use :: Abundances_Structure          , only : operator(*)
     use :: Histories                     , only : operator(*)         , history

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a negative exponential density 1D distibution function.
+  !!{
+  Implementation of a negative exponential density 1D distibution function.
+  !!}
 
-  !# <distributionFunction1D name="distributionFunction1DNegativeExponential">
-  !#  <description>A negative exponential 1D distribution function class.</description>
-  !# </distributionFunction1D>
+  !![
+  <distributionFunction1D name="distributionFunction1DNegativeExponential">
+   <description>A negative exponential 1D distribution function class.</description>
+  </distributionFunction1D>
+  !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DNegativeExponential
-     !% Implementation of a negative exponential 1D distibution function.
+     !!{
+     Implementation of a negative exponential 1D distibution function.
+     !!}
      private
      double precision :: rate
    contains
@@ -33,7 +39,9 @@
   end type distributionFunction1DNegativeExponential
 
   interface distributionFunction1DNegativeExponential
-     !% Constructors for the {\normalfont \ttfamily negativeExponential} 1D distribution function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily negativeExponential} 1D distribution function class.
+     !!}
      module procedure negativeExponentialConstructorParameters
      module procedure negativeExponentialConstructorInternal
   end interface distributionFunction1DNegativeExponential
@@ -41,8 +49,10 @@
 contains
 
   function negativeExponentialConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily negativeExponential} 1D distribution function class which builds
-    !% the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily negativeExponential} 1D distribution function class which builds
+    the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunction1DNegativeExponential)                :: self
@@ -50,30 +60,40 @@ contains
     class           (randomNumberGeneratorClass               ), pointer       :: randomNumberGenerator_
     double precision                                                           :: rate
 
-    !# <inputParameter>
-    !#   <name>rate</name>
-    !#   <description>The rate parameter of the negative exponential distribution function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>rate</name>
+      <description>The rate parameter of the negative exponential distribution function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=distributionFunction1DNegativeExponential(rate,randomNumberGenerator_)
-    !# <objectDestructor name="randomNumberGenerator_"/>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <objectDestructor name="randomNumberGenerator_"/>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function negativeExponentialConstructorParameters
 
   function negativeExponentialConstructorInternal(rate,randomNumberGenerator_) result(self)
-    !% Constructor for ``negativeExponential'' 1D distribution function class.
+    !!{
+    Constructor for ``negativeExponential'' 1D distribution function class.
+    !!}
     type            (distributionFunction1DNegativeExponential)                                  :: self
     double precision                                           , intent(in   )                   :: rate
     class           (randomNumberGeneratorClass               ), intent(in   ), target, optional :: randomNumberGenerator_
-    !# <constructorAssign variables="rate, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="rate, *randomNumberGenerator_"/>
+    !!]
 
     return
   end function negativeExponentialConstructorInternal
 
   double precision function negativeExponentialDensity(self,x)
-    !% Return the density of a negative exponential distribution.
+    !!{
+    Return the density of a negative exponential distribution.
+    !!}
     implicit none
     class           (distributionFunction1DNegativeExponential), intent(inout) :: self
     double precision                                           , intent(in   ) :: x
@@ -87,7 +107,9 @@ contains
   end function negativeExponentialDensity
 
   double precision function negativeExponentialCumulative(self,x)
-    !% Return the cumulative probability of a negative exponential distribution.
+    !!{
+    Return the cumulative probability of a negative exponential distribution.
+    !!}
     implicit none
     class           (distributionFunction1DNegativeExponential), intent(inout) :: self
     double precision                                           , intent(in   ) :: x
@@ -101,7 +123,9 @@ contains
   end function negativeExponentialCumulative
 
   double precision function negativeExponentialInverse(self,p)
-    !% Return the inverse of a negative exponential distribution.
+    !!{
+    Return the inverse of a negative exponential distribution.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (distributionFunction1DNegativeExponential), intent(inout), target :: self

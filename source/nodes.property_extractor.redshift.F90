@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a redshift property extractor class.
+!!{
+Contains a module which implements a redshift property extractor class.
+!!}
 
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorRedshift">
-  !#  <description>A node property extractor class which extracts the current redshift at which a \gls{node} exists---named ``{\normalfont \ttfamily redshift}.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorRedshift">
+   <description>A node property extractor class which extracts the current redshift at which a \gls{node} exists---named ``{\normalfont \ttfamily redshift}.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRedshift
-     !% A redshift property extractor class.
+     !!{
+     A redshift property extractor class.
+     !!}
      private
      class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
    contains
@@ -38,7 +44,9 @@
   end type nodePropertyExtractorRedshift
 
   interface nodePropertyExtractorRedshift
-     !% Constructors for the ``redshift'' output analysis class.
+     !!{
+     Constructors for the ``redshift'' output analysis class.
+     !!}
      module procedure redshiftConstructorParameters
      module procedure redshiftConstructorInternal
   end interface nodePropertyExtractorRedshift
@@ -46,41 +54,57 @@
 contains
 
   function redshiftConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily redshift} property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily redshift} property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorRedshift)                :: self
     type (inputParameters              ), intent(inout) :: parameters
     class(cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
 
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !!]
     self=nodePropertyExtractorRedshift(cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    !!]
     return
   end function redshiftConstructorParameters
 
   function redshiftConstructorInternal(cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily redshift} property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily redshift} property extractor class.
+    !!}
     implicit none
     type (nodePropertyExtractorRedshift)                        :: self
     class(cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="*cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_"/>
+    !!]
 
     return
   end function redshiftConstructorInternal
 
   subroutine redshiftDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily redshift} property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily redshift} property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorRedshift), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    !!]
     return
   end subroutine redshiftDestructor
 
   double precision function redshiftExtract(self,node,instance)
-    !% Implement a last isolated redshift output analysis.
+    !!{
+    Implement a last isolated redshift output analysis.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(nodePropertyExtractorRedshift), intent(inout)           :: self
@@ -99,7 +123,9 @@ contains
   end function redshiftExtract
 
   function redshiftName(self)
-    !% Return the name of the last isolated redshift property.
+    !!{
+    Return the name of the last isolated redshift property.
+    !!}
     implicit none
     type (varying_string               )                :: redshiftName
     class(nodePropertyExtractorRedshift), intent(inout) :: self
@@ -110,7 +136,9 @@ contains
   end function redshiftName
 
   function redshiftDescription(self)
-    !% Return a description of the redshift property.
+    !!{
+    Return a description of the redshift property.
+    !!}
     implicit none
     type (varying_string               )                :: redshiftDescription
     class(nodePropertyExtractorRedshift), intent(inout) :: self
@@ -121,7 +149,9 @@ contains
   end function redshiftDescription
 
   double precision function redshiftUnitsInSI(self)
-    !% Return the units of the last isolated redshift property in the SI system.
+    !!{
+    Return the units of the last isolated redshift property in the SI system.
+    !!}
     implicit none
     class(nodePropertyExtractorRedshift), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -131,7 +161,9 @@ contains
   end function redshiftUnitsInSI
 
   integer function redshiftType(self)
-    !% Return the type of the last isolated redshift property.
+    !!{
+    Return the type of the last isolated redshift property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRedshift), intent(inout) :: self

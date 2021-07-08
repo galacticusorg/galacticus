@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,47 +17,53 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an extension of the standard hot halo node component which tracks the metals arriving from
-!% outflows.
+!!{
+Contains a module which implements an extension of the standard hot halo node component which tracks the metals arriving from
+outflows.
+!!}
 
 module Node_Component_Hot_Halo_Outflow_Tracking
-  !% Implements an extension of the standard hot halo node component which tracks the metals arriving from
-  !% outflows.
+  !!{
+  Implements an extension of the standard hot halo node component which tracks the metals arriving from
+  outflows.
+  !!}
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   implicit none
   private
   public :: Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute     , Node_Component_Hot_Halo_Outflow_Tracking_Scale_Set          , &
        &    Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize, Node_Component_Hot_Halo_Outflow_Tracking_Thread_Uninitialize
 
-  !# <component>
-  !#  <class>hotHalo</class>
-  !#  <name>outflowTracking</name>
-  !#  <extends>
-  !#   <class>hotHalo</class>
-  !#   <name>standard</name>
-  !#  </extends>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>trackedOutflowMass</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <output unitsInSI="massSolar" comment="Mass in the hot phase of the hot halo arrived via direct outflow."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>trackedOutflowAbundances</name>
-  !#     <type>abundances</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <output unitsInSI="massSolar" comment="Mass of metals in the hot phase of the hot halo arrived via direct outflow."/>
-  !#   </property>
-  !#  </properties>
-  !#  <bindings>
-  !#   <binding method="massRemovalRate" function="Node_Component_Hot_Halo_Outflow_Tracking_Mass_Removal_Rate" bindsTo="component" />
-  !#  </bindings>
-  !#  <functions>objects.nodes.components.hot_halo.outflow_tracking.bound_functions.inc</functions>
-  !# </component>
+  !![
+  <component>
+   <class>hotHalo</class>
+   <name>outflowTracking</name>
+   <extends>
+    <class>hotHalo</class>
+    <name>standard</name>
+   </extends>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>trackedOutflowMass</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <output unitsInSI="massSolar" comment="Mass in the hot phase of the hot halo arrived via direct outflow."/>
+    </property>
+    <property>
+      <name>trackedOutflowAbundances</name>
+      <type>abundances</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <output unitsInSI="massSolar" comment="Mass of metals in the hot phase of the hot halo arrived via direct outflow."/>
+    </property>
+   </properties>
+   <bindings>
+    <binding method="massRemovalRate" function="Node_Component_Hot_Halo_Outflow_Tracking_Mass_Removal_Rate" bindsTo="component" />
+   </bindings>
+   <functions>objects.nodes.components.hot_halo.outflow_tracking.bound_functions.inc</functions>
+  </component>
+  !!]
 
   ! Objects used by this component.
   class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
@@ -65,41 +71,57 @@ module Node_Component_Hot_Halo_Outflow_Tracking
 
 contains
 
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize(parameters_)
-    !% Initializes the tree node very simple disk profile module.
+    !!{
+    Initializes the tree node very simple disk profile module.
+    !!}
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
 
     if (defaultHotHaloComponent%outflowTrackingIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
+       !![
+       <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
+       !!]
     end if
     return
   end subroutine Node_Component_Hot_Halo_Outflow_Tracking_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Hot_Halo_Outflow_Tracking_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Hot_Halo_Outflow_Tracking_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Hot_Halo_Outflow_Tracking_Thread_Uninitialize()
-    !% Uninitializes the tree node very simple disk profile module.
+    !!{
+    Uninitializes the tree node very simple disk profile module.
+    !!}
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
 
     if (defaultHotHaloComponent%outflowTrackingIsActive()) then
-       !# <objectDestructor name="darkMatterHaloScale_"/>
+       !![
+       <objectDestructor name="darkMatterHaloScale_"/>
+       !!]
     end if
     return
   end subroutine Node_Component_Hot_Halo_Outflow_Tracking_Thread_Uninitialize
 
-  !# <rateComputeTask>
-  !#  <unitName>Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute</unitName>
-  !# </rateComputeTask>
+  !![
+  <rateComputeTask>
+   <unitName>Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute</unitName>
+  </rateComputeTask>
+  !!]
   subroutine Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
-    !% Compute the hot halo node mass rate of change.
+    !!{
+    Compute the hot halo node mass rate of change.
+    !!}
     use :: Abundances_Structure                 , only : abundances              , operator(*)
     use :: Galacticus_Nodes                     , only : defaultHotHaloComponent , interruptTask, nodeComponentHotHalo, nodeComponentHotHaloOutflowTracking, &
           &                                              propertyTypeInactive    , treeNode
@@ -133,11 +155,15 @@ contains
     return
   end subroutine Node_Component_Hot_Halo_Outflow_Tracking_Rate_Compute
 
-  !# <scaleSetTask>
-  !#  <unitName>Node_Component_Hot_Halo_Outflow_Tracking_Scale_Set</unitName>
-  !# </scaleSetTask>
+  !![
+  <scaleSetTask>
+   <unitName>Node_Component_Hot_Halo_Outflow_Tracking_Scale_Set</unitName>
+  </scaleSetTask>
+  !!]
   subroutine Node_Component_Hot_Halo_Outflow_Tracking_Scale_Set(node)
-    !% Set scales for properties of {\normalfont \ttfamily node}.
+    !!{
+    Set scales for properties of {\normalfont \ttfamily node}.
+    !!}
     use :: Abundances_Structure, only : unitAbundances
     use :: Galacticus_Nodes    , only : nodeComponentBasic     , nodeComponentHotHalo, nodeComponentHotHaloOutflowTracking, treeNode, &
          &                              defaultHotHaloComponent

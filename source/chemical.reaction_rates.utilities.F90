@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements various useful utility functions for calculations of chemical abundances and rates.
+!!{
+Contains a module that implements various useful utility functions for calculations of chemical abundances and rates.
+!!}
 
 module Chemical_Reaction_Rates_Utilities
-  !% Implements various useful utility functions for calculations of chemical abundances and rates.
+  !!{
+  Implements various useful utility functions for calculations of chemical abundances and rates.
+  !!}
   implicit none
   private
   public :: Chemicals_Mass_To_Density_Conversion
@@ -28,8 +32,10 @@ module Chemical_Reaction_Rates_Utilities
 contains
 
   double precision function Chemicals_Mass_To_Density_Conversion(radius)
-    !% Returns the conversion factor from mass of chemicals in ($M_\odot/M_\mathrm{atomic}$) to number density in cm$^{-3}$ assuming
-    !% that the mass is distributed uniformly in a sphere of the given {\normalfont \ttfamily radius} (in Mpc).
+    !!{
+    Returns the conversion factor from mass of chemicals in ($M_\odot/M_\mathrm{atomic}$) to number density in cm$^{-3}$ assuming
+    that the mass is distributed uniformly in a sphere of the given {\normalfont \ttfamily radius} (in Mpc).
+    !!}
     use :: Numerical_Constants_Astronomical, only : massSolar     , megaParsec
     use :: Numerical_Constants_Atomic      , only : atomicMassUnit
     use :: Numerical_Constants_Math        , only : Pi

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,17 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test mathematical distributions.
+!!{
+Contains a program to test mathematical distributions.
+!!}
 
 program Test_Math_Distributions
-  !% Tests of mathematical distributions.
+  !!{
+  Tests of mathematical distributions.
+  !!}
+  use            :: Display                            , only : displayVerbositySet          , verbosityLevelStandard
   use, intrinsic :: ISO_C_Binding                      , only : c_long
-  use            :: Galacticus_Display                 , only : Galacticus_Verbosity_Level_Set, verbosityStandard
   use            :: Input_Parameters                   , only : inputParameters
-  use            :: Math_Distributions_Poisson_Binomial, only : Poisson_Binomial_Distribution , Poisson_Binomial_Distribution_Mean_Pairs
+  use            :: Math_Distributions_Poisson_Binomial, only : Poisson_Binomial_Distribution, Poisson_Binomial_Distribution_Mean_Pairs
   use            :: Numerical_Random_Numbers           , only : randomNumberGeneratorGSL
   use            :: Statistics_Distributions           , only : distributionFunction1DGamma
-  use            :: Unit_Tests                         , only : Assert                        , Unit_Tests_Begin_Group                  , Unit_Tests_End_Group, Unit_Tests_Finish
+  use            :: Unit_Tests                         , only : Assert                       , Unit_Tests_Begin_Group                  , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision                             , dimension(  10) :: p                , x           , y
   integer                                      , dimension(0:10) :: trials
@@ -39,13 +43,12 @@ program Test_Math_Distributions
   type            (inputParameters            )                  :: parameters
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Math: distributions")
   ! Initialize parameters.
   parameters=inputParameters()
-  call parameters%markGlobal()
   ! Test Poisson binomial distribution.
   p=[0.1d0,0.2d0,0.3d0,0.4d0,0.5d0,0.6d0,0.7d0,0.8d0,0.9d0,1.0d0]
   do k=0,10

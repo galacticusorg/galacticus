@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,24 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a cosmological volume corrector analysis weight operator class.
+!!{
+Contains a module which implements a cosmological volume corrector analysis weight operator class.
+!!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
   use :: Geometry_Surveys   , only : surveyGeometryClass
 
-  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorCsmlgyVolume">
-  !#  <description>
-  !#   An output analysis weight operator class which corrects weights for the difference in cosmological volume between true and
-  !#   assumed (i.e. in the observational analysis) cosmologies. Typically the observational data will have been analyzed assuming
-  !#   some specific set of cosmological parameters which will differ from that in the current model. Therefore, the comoving volume
-  !#   occupued by a population of galaxies must be adjusted to match what would be inferred if they were assessed using the same
-  !#   cosmological parameters as were used for the observational data. Typically, this will mean that weights are scaled in
-  !#   proportion to $V_\mathrm{max} / V^\prime_\mathrm{max}$, where $V_\mathrm{max}$ and $V^\prime_\mathrm{max}$ are the maximum
-  !#   volumes within which the galaxy would have been detected in the true and assumed cosmologies respectively.
-  !#  </description>
-  !# </outputAnalysisWeightOperator>
+  !![
+  <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorCsmlgyVolume">
+   <description>
+    An output analysis weight operator class which corrects weights for the difference in cosmological volume between true and
+    assumed (i.e. in the observational analysis) cosmologies. Typically the observational data will have been analyzed assuming
+    some specific set of cosmological parameters which will differ from that in the current model. Therefore, the comoving volume
+    occupued by a population of galaxies must be adjusted to match what would be inferred if they were assessed using the same
+    cosmological parameters as were used for the observational data. Typically, this will mean that weights are scaled in
+    proportion to $V_\mathrm{max} / V^\prime_\mathrm{max}$, where $V_\mathrm{max}$ and $V^\prime_\mathrm{max}$ are the maximum
+    volumes within which the galaxy would have been detected in the true and assumed cosmologies respectively.
+   </description>
+  </outputAnalysisWeightOperator>
+  !!]
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorCsmlgyVolume
-     !% A cosmological volume corrector analysis weight operator class.
+     !!{
+     A cosmological volume corrector analysis weight operator class.
+     !!}
      private
      class(cosmologyFunctionsClass), pointer :: cosmologyFunctionsModel => null(), cosmologyFunctionsData => null()
      class(surveyGeometryClass    ), pointer :: surveyGeometry_         => null()
@@ -44,7 +50,9 @@
   end type outputAnalysisWeightOperatorCsmlgyVolume
 
   interface outputAnalysisWeightOperatorCsmlgyVolume
-     !% Constructors for the ``csmlgyVolume'' output analysis class.
+     !!{
+     Constructors for the ``csmlgyVolume'' output analysis class.
+     !!}
      module procedure csmlgyVolumeConstructorParameters
      module procedure csmlgyVolumeConstructorInternal
   end interface outputAnalysisWeightOperatorCsmlgyVolume
@@ -52,7 +60,9 @@
 contains
 
   function csmlgyVolumeConstructorParameters(parameters) result(self)
-    !% Constructor for the ``csmlgyVolume'' output analysis weight operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``csmlgyVolume'' output analysis weight operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (outputAnalysisWeightOperatorCsmlgyVolume)                :: self
@@ -63,42 +73,56 @@ contains
 
     ! Check and read parameters.
     dataAnalysisParameters=parameters%subParameters('dataAnalysis',requirePresent=.false.,requireValue=.false.)
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctionsModel" source="parameters"            />
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctionsData"  source="dataAnalysisParameters"/>
-    !# <objectBuilder class="surveyGeometry"     name="surveyGeometry_"         source="dataAnalysisParameters"/>
+    !![
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctionsModel" source="parameters"            />
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctionsData"  source="dataAnalysisParameters"/>
+    <objectBuilder class="surveyGeometry"     name="surveyGeometry_"         source="dataAnalysisParameters"/>
+    !!]
     ! Construct the object.
     self=outputAnalysisWeightOperatorCsmlgyVolume(cosmologyFunctionsModel,cosmologyFunctionsData,surveyGeometry_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctionsModel"/>
-    !# <objectDestructor name="cosmologyFunctionsData" />
-    !# <objectDestructor name="surveyGeometry_"        />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctionsModel"/>
+    <objectDestructor name="cosmologyFunctionsData" />
+    <objectDestructor name="surveyGeometry_"        />
+    !!]
     return
   end function csmlgyVolumeConstructorParameters
 
   function csmlgyVolumeConstructorInternal(cosmologyFunctionsModel,cosmologyFunctionsData,surveyGeometry_) result(self)
-    !% Internal constructor for the ``csmlgyVolume'' output analysis weight operator class.
+    !!{
+    Internal constructor for the ``csmlgyVolume'' output analysis weight operator class.
+    !!}
     implicit none
     type   (outputAnalysisWeightOperatorCsmlgyVolume)                        :: self
     class  (cosmologyFunctionsClass                 ), intent(in   ), target :: cosmologyFunctionsModel, cosmologyFunctionsData
     class  (surveyGeometryClass                     ), intent(in   ), target :: surveyGeometry_
-    !# <constructorAssign variables="*cosmologyFunctionsModel, *cosmologyFunctionsData, *surveyGeometry_"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctionsModel, *cosmologyFunctionsData, *surveyGeometry_"/>
+    !!]
 
     return
   end function csmlgyVolumeConstructorInternal
 
   subroutine csmlgyVolumeDestructor(self)
-    !% Destructor for the ``csmlgyVolume'' output analysis weight operator class.
+    !!{
+    Destructor for the ``csmlgyVolume'' output analysis weight operator class.
+    !!}
     implicit none
     type(outputAnalysisWeightOperatorCsmlgyVolume), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctionsModel"/>
-    !# <objectDestructor name="self%cosmologyFunctionsData" />
-    !# <objectDestructor name="self%surveyGeometry_"        />
+    !![
+    <objectDestructor name="self%cosmologyFunctionsModel"/>
+    <objectDestructor name="self%cosmologyFunctionsData" />
+    <objectDestructor name="self%surveyGeometry_"        />
+    !!]
     return
   end subroutine csmlgyVolumeDestructor
 
   double precision function csmlgyVolumeOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
-    !% Implement an csmlgyVolume output analysis weight operator.
+    !!{
+    Implement an csmlgyVolume output analysis weight operator.
+    !!}
     use            :: Galacticus_Error       , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity, outputAnalysisPropertyQuantityMass, outputAnalysisPropertyTypeLinear, outputAnalysisPropertyTypeLog10, &

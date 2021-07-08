@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which deletes named properties from the simulation.
+!!{
+Contains a module which implements an N-body data operator which deletes named properties from the simulation.
+!!}
 
-  !# <nbodyOperator name="nbodyOperatorDeleteProperties">
-  !#  <description>An N-body data operator which deletes named properties from the simulation.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorDeleteProperties">
+   <description>An N-body data operator which deletes named properties from the simulation.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorDeleteProperties
-     !% An N-body data operator which deletes named properties from the simulation.
+     !!{
+     An N-body data operator which deletes named properties from the simulation.
+     !!}
      private
     type(varying_string), allocatable  , dimension(:) :: propertyNames
    contains
@@ -31,7 +37,9 @@
   end type nbodyOperatorDeleteProperties
 
   interface nbodyOperatorDeleteProperties
-     !% Constructors for the {\normalfont \ttfamily deleteProperties} N-body operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily deleteProperties} N-body operator class.
+     !!}
      module procedure deletePropertiesConstructorParameters
      module procedure deletePropertiesConstructorInternal
   end interface nbodyOperatorDeleteProperties
@@ -39,7 +47,9 @@
 contains
 
   function deletePropertiesConstructorParameters(parameters) result (self)
-    !% Constructor for the {\normalfont \ttfamily deleteProperties} N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily deleteProperties} N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(nbodyOperatorDeleteProperties)                              :: self
@@ -47,30 +57,40 @@ contains
     type(varying_string               ), allocatable  , dimension(:) :: propertyNames
 
     allocate(propertyNames(parameters%count('propertyNames',zeroIfNotPresent=.true.)))
-    !# <inputParameter>
-    !#   <name>propertyNames</name>
-    !#   <source>parameters</source>
-    !#   <description>A list of named properties to be deleted from the simulation.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>propertyNames</name>
+      <source>parameters</source>
+      <description>A list of named properties to be deleted from the simulation.</description>
+    </inputParameter>
+    !!]
     self=nbodyOperatorDeleteProperties(propertyNames)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function deletePropertiesConstructorParameters
 
   function deletePropertiesConstructorInternal(propertyNames) result (self)
-    !% Internal constructor for the {\normalfont \ttfamily deleteProperties} N-body operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily deleteProperties} N-body operator class.
+    !!}
     implicit none
     type(nbodyOperatorDeleteProperties)                              :: self
     type(varying_string               ), intent(in   ), dimension(:) :: propertyNames
-    !# <constructorAssign variables="propertyNames"/>
+    !![
+    <constructorAssign variables="propertyNames"/>
+    !!]
     
     return
   end function deletePropertiesConstructorInternal
 
   subroutine deletePropertiesOperate(self,simulations)
-    !% Identify and flag particles which have been always isolated.
-    use :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Message, verbosityStandard
-    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    !!{
+    Identify and flag particles which have been always isolated.
+    !!}
+    use :: Display         , only : displayIndent          , displayMessage, displayUnindent, verbosityLevelStandard
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (nbodyOperatorDeleteProperties), intent(inout)                 :: self
     type            (nBodyData                    ), intent(inout), dimension(  :) :: simulations
@@ -81,7 +101,7 @@ contains
     logical                                                                        :: propertyFound
     integer                                                                        :: i            , j
 
-    call Galacticus_Display_Indent('delete named properties',verbosityStandard)
+    call displayIndent('delete named properties',verbosityLevelStandard)
     do i=1,size(self%propertyNames)
        do j=1,size(simulations)
           propertyFound=.false.
@@ -110,12 +130,12 @@ contains
              call simulations(j)%propertiesRealRank1   %delete(self%propertyNames(i))
           end if
           if (propertyFound) then
-             call Galacticus_Display_Message('deleted "' //self%propertyNames(i)//'"'                                    )
+             call displayMessage('deleted "' //self%propertyNames(i)//'"'                                    )
           else
              call Galacticus_Error_Report   ('property "'//self%propertyNames(i)//'" not found'//{introspection:location})
           end if
        end do
     end do
-    call Galacticus_Display_Unindent('done',verbosityStandard)
+    call displayUnindent('done',verbosityLevelStandard)
     return
   end subroutine deletePropertiesOperate

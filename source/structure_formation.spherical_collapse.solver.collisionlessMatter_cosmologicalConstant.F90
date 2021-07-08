@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,35 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% A spherical collapse solver class for universes consisting of collisionless matter and a cosmological constant.
+  !!{
+  A spherical collapse solver class for universes consisting of collisionless matter and a cosmological constant.
+  !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
   use :: Linear_Growth      , only : linearGrowth      , linearGrowthClass
 
-  !# <sphericalCollapseSolver name="sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt">
-  !#  <description>A spherical collapse solver for universes consisting of collisionless matter and a cosmological constant.</description>
-  !# </sphericalCollapseSolver>
+  !![
+  <sphericalCollapseSolver name="sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt">
+   <description>A spherical collapse solver for universes consisting of collisionless matter and a cosmological constant.</description>
+  </sphericalCollapseSolver>
+  !!]
   type, extends(sphericalCollapseSolverClass) :: sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
-     !% A spherical collapse solver for universes consisting of collisionless matter and a cosmological constant.
+     !!{
+     A spherical collapse solver for universes consisting of collisionless matter and a cosmological constant.
+     !!}
      private
      class(cosmologyFunctionsClass), pointer :: cosmologyFunctions_         => null()
      class(linearGrowthClass      ), pointer :: linearGrowth_               => null()
      type (varying_string         )          :: fileNameCriticalOverdensity          , fileNameVirialDensityContrast, &
           &                                     fileNameRadiusTurnaround
    contains
-     !# <methods>
-     !#   <method description="Restore a tabulated solution from file." method="restoreTable" />
-     !#   <method description="Store a tabulated solution to file." method="storeTable" />
-     !#   <method description="Store a tabulated solution to file." method="tabulate" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Restore a tabulated solution from file." method="restoreTable"/>
+       <method description="Store a tabulated solution to file."     method="storeTable"  />
+       <method description="Construct a tabulated solution."         method="tabulate"    />
+     </methods>
+     !!]
      final     ::                          cllsnlssMttCsmlgclCnstntDestructor
      procedure :: criticalOverdensity   => cllsnlssMttCsmlgclCnstntCriticalOverdensity
      procedure :: virialDensityContrast => cllsnlssMttCsmlgclCnstntVirialDensityContrast
@@ -49,19 +57,23 @@
   end type sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
 
   interface sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
-     !% Constructors for the {\normalfont \ttfamily cllsnlssMttCsmlgclCnstnt} spherical collapse solver class.
+     !!{
+     Constructors for the {\normalfont \ttfamily cllsnlssMttCsmlgclCnstnt} spherical collapse solver class.
+     !!}
      module procedure cllsnlssMttCsmlgclCnstntConstructorParameters
      module procedure cllsnlssMttCsmlgclCnstntConstructorInternal
   end interface sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
 
   ! Enumeration of types of calculation to perform.
-  !# <enumeration>
-  !#  <name>cllsnlssMttCsmlgclCnstntClcltn</name>
-  !#  <description>Enumeration of calculation types to be performed by the spherical collapse solver.</description>
-  !#  <entry label="criticalOverdensity"  />
-  !#  <entry label="virialDensityContrast"/>
-  !#  <entry label="radiusTurnaround"     />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>cllsnlssMttCsmlgclCnstntClcltn</name>
+   <description>Enumeration of calculation types to be performed by the spherical collapse solver.</description>
+   <entry label="criticalOverdensity"  />
+   <entry label="virialDensityContrast"/>
+   <entry label="radiusTurnaround"     />
+  </enumeration>
+  !!]
 
   ! Resolution of tabulated solutions.
   integer         , parameter :: cllsnlssMttCsmlgclCnstntTablePointsPerDecade=1000
@@ -76,8 +88,10 @@
 contains
 
   function cllsnlssMttCsmlgclCnstntConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily cllsnlssMttCsmlgclCnstnt} spherical collapse solver class that takes a parameter set as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily cllsnlssMttCsmlgclCnstnt} spherical collapse solver class that takes a parameter set as
+    input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)                :: self
@@ -85,24 +99,32 @@ contains
     class(cosmologyFunctionsClass                         ), pointer       :: cosmologyFunctions_
     class(linearGrowthClass                               ), pointer       :: linearGrowth_
 
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="linearGrowth"       name="linearGrowth_"       source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    <objectBuilder class="linearGrowth"       name="linearGrowth_"       source="parameters"/>
+    !!]
     self=sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt(cosmologyFunctions_,linearGrowth_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
-    !# <objectDestructor name="linearGrowth_"      />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    <objectDestructor name="linearGrowth_"      />
+    !!]
     return
   end function cllsnlssMttCsmlgclCnstntConstructorParameters
 
   function cllsnlssMttCsmlgclCnstntConstructorInternal(cosmologyFunctions_,linearGrowth_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily cllsnlssMttCsmlgclCnstnt} spherical collapse solver class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily cllsnlssMttCsmlgclCnstnt} spherical collapse solver class.
+    !!}
     use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataDynamic
     use :: ISO_Varying_String, only : operator(//)
     implicit none
     type (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt)                                  :: self
     class(cosmologyFunctionsClass                         ), intent(in   ), target           :: cosmologyFunctions_
     class(linearGrowthClass                               ), intent(in   ), target, optional :: linearGrowth_
-    !# <constructorAssign variables="*cosmologyFunctions_, *linearGrowth_"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_, *linearGrowth_"/>
+    !!]
     
     self%fileNameCriticalOverdensity  =galacticusPath(pathTypeDataDynamic)              // &
          &                             'largeScaleStructure/'                           // &
@@ -126,17 +148,23 @@ contains
   end function cllsnlssMttCsmlgclCnstntConstructorInternal
 
   subroutine cllsnlssMttCsmlgclCnstntDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily cllsnlssMttCsmlgclCnstnt} spherical collapse solver class.
+    !!{
+    Destructor for the {\normalfont \ttfamily cllsnlssMttCsmlgclCnstnt} spherical collapse solver class.
+    !!}
     implicit none
     type(sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
-    !# <objectDestructor name="self%linearGrowth_"      />
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    <objectDestructor name="self%linearGrowth_"      />
+    !!]
     return
   end subroutine cllsnlssMttCsmlgclCnstntDestructor
 
   subroutine cllsnlssMttCsmlgclCnstntCriticalOverdensity(self,time,tableStore,criticalOverdensity_)
-    !% Compute the critical overdensity for collapse for the spherical collapse model.
+    !!{
+    Compute the critical overdensity for collapse for the spherical collapse model.
+    !!}
     use :: Galacticus_Error, only : errorStatusSuccess
     use :: Tables          , only : table1D
     implicit none
@@ -155,7 +183,9 @@ contains
   end subroutine cllsnlssMttCsmlgclCnstntCriticalOverdensity
 
   subroutine cllsnlssMttCsmlgclCnstntVirialDensityContrast(self,time,tableStore,virialDensityContrast_)
-    !% Tabulate the virial density contrast for the spherical collapse model.
+    !!{
+    Tabulate the virial density contrast for the spherical collapse model.
+    !!}
     use :: Galacticus_Error, only : errorStatusSuccess
     use :: Tables          , only : table1D
     implicit none
@@ -174,7 +204,9 @@ contains
   end subroutine cllsnlssMttCsmlgclCnstntVirialDensityContrast
 
   subroutine cllsnlssMttCsmlgclCnstntRadiusTurnaround(self,time,tableStore,radiusTurnaround_)
-    !% Tabulate the ratio of turnaround to virial radiii for the spherical collapse model.
+    !!{
+    Tabulate the ratio of turnaround to virial radiii for the spherical collapse model.
+    !!}
     use :: Galacticus_Error, only : errorStatusSuccess
     use :: Tables          , only : table1D
     implicit none
@@ -193,7 +225,9 @@ contains
   end subroutine cllsnlssMttCsmlgclCnstntRadiusTurnaround
 
   subroutine cllsnlssMttCsmlgclCnstntTabulate(self,time,sphericalCollapse_,calculationType)
-    !% Tabulate spherical collapse solutions for $\delta_\mathrm{crit}$, $\Delta_\mathrm{vir}$, or $R_\mathrm{ta}/R_\mathrm{vir}$ vs. time.
+    !!{
+    Tabulate spherical collapse solutions for $\delta_\mathrm{crit}$, $\Delta_\mathrm{vir}$, or $R_\mathrm{ta}/R_\mathrm{vir}$ vs. time.
+    !!}
     use :: Cosmology_Functions, only : timeToleranceRelativeBigCrunch
     use :: Galacticus_Error   , only : Galacticus_Error_Report
     use :: Kind_Numbers       , only : kind_dble
@@ -205,18 +239,19 @@ contains
     double precision                                                               , intent(in   ) :: time
     integer                                                                        , intent(in   ) :: calculationType
     class           (table1D                                         ), allocatable, intent(inout) :: sphericalCollapse_
-    double precision                                                  , parameter                  :: toleranceAbsolute         =0.0d+0, toleranceRelative         =1.0d-9
+    double precision                                                  , parameter                  :: toleranceAbsolute         =0.0d+0 , toleranceRelative         =1.0d-9
     type            (rootFinder                                      ), save                       :: finder
-    !$omp threadprivate(finder)
-    integer                                                                                        :: countTimes                       , i
-    double precision                                                                               :: expansionFactor                  , epsilonPerturbation              , &
-         &                                                                                            epsilonPerturbationMaximum       , epsilonPerturbationMinimum       , &
-         &                                                                                            eta                              , normalization                    , &
-         &                                                                                            radiiRatio                       , radiusMaximum                    , &
-         &                                                                                            timeBigCrunch                    , timeMinimum                      , &
+    logical                                                           , save                       :: finderConstructed         =.false.
+    !$omp threadprivate(finder,finderConstructed)
+    integer                                                                                        :: countTimes                        , i
+    double precision                                                                               :: expansionFactor                   , epsilonPerturbation              , &
+         &                                                                                            epsilonPerturbationMaximum        , epsilonPerturbationMinimum       , &
+         &                                                                                            eta                               , normalization                    , &
+         &                                                                                            radiiRatio                        , radiusMaximum                    , &
+         &                                                                                            timeBigCrunch                     , timeMinimum                      , &
          &                                                                                            timeMaximum
-    double complex                                                                                 :: a                                , b                                , &
-         &                                                                                            c                                , d                                , &
+    double complex                                                                                 :: a                                 , b                                , &
+         &                                                                                            c                                 , d                                , &
          &                                                                                            Delta
 
     ! Find minimum and maximum times to tabulate.
@@ -272,16 +307,18 @@ contains
           cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal=    self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
           cllsnlssMttCsmlgclCnstntHubbleTimeEpochal     =abs(self%cosmologyFunctions_%expansionRate         (                expansionFactor))
           ! Find the value of ε for which the perturbation just collapses at this time.
-          if (.not.finder%isInitialized()) then
-             call finder%rootFunction(cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot)
-             call finder%tolerance   (toleranceAbsolute,toleranceRelative )
-             call finder%rangeExpand (                                                             &
-                  &                   rangeExpandUpward            =0.5d0                        , &
-                  &                   rangeExpandDownward          =2.0d0                        , &
-                  &                   rangeExpandType              =rangeExpandMultiplicative    , &
-                  &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-                  &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
-                  &                  )
+          if (.not.finderConstructed) then
+             finder=rootFinder(                                                                                &
+                  &            rootFunction                 =cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot, &
+                  &            toleranceAbsolute            =toleranceAbsolute                               , &
+                  &            toleranceRelative            =toleranceRelative                               , &
+                  &            rangeExpandUpward            =0.5d0                                           , &
+                  &            rangeExpandDownward          =2.0d0                                           , &
+                  &            rangeExpandType              =rangeExpandMultiplicative                       , &
+                  &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive                   , &
+                  &            rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative                     &
+                  &           )
+             finderConstructed=.true.
           end if
           epsilonPerturbation=finder%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
           ! Compute the required quantity for this perturbation.
@@ -351,8 +388,10 @@ contains
   end subroutine cllsnlssMttCsmlgclCnstntTabulate
 
   double precision function cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot(epsilonPerturbation)
-    !% Root function used to determine when the collapse time for a perturbation of amplitude {\normalfont \ttfamily
-    !% epsilonPerturbation} collapses at the current time.
+    !!{
+    Root function used to determine when the collapse time for a perturbation of amplitude {\normalfont \ttfamily
+    epsilonPerturbation} collapses at the current time.
+    !!}
     implicit none
     double precision, intent(in   ) :: epsilonPerturbation
 
@@ -362,20 +401,22 @@ contains
   end function cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot
 
   double precision function cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum(epsilonPerturbation)
-    !% Find the maximum radius of a perturbation with initial curvature {\normalfont \ttfamily epsilonPerturbation}.
+    !!{
+    Find the maximum radius of a perturbation with initial curvature {\normalfont \ttfamily epsilonPerturbation}.
+    !!}
     use :: Root_Finder, only : rootFinder
     implicit none
     double precision            , intent(in   ) :: epsilonPerturbation
-    double precision            , parameter     :: toleranceAbsolute               =0.0d0, toleranceRelative               =1.0d-9
+    double precision            , parameter     :: toleranceAbsolute               =0.0d0  , toleranceRelative               =1.0d-9
     type            (rootFinder), save          :: finder
-    !$omp threadprivate(finder)
-    double precision                            :: expansionFactorTurnaroundMaximum      , expansionFactorTurnaroundMinimum
-
+    logical                     , save          :: finderConstructed               =.false.
+    !$omp threadprivate(finder,finderConstructed)
+    double precision                            :: expansionFactorTurnaroundMaximum        , expansionFactorTurnaroundMinimum
 
     if (cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal == 0.0d0) then
        ! No cosmological constant - use the simple analytic solution.
        cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum=-cllsnlssMttCsmlgclCnstntOmegaMatterEpochal &
-            &                                 /epsilonPerturbation
+            &                                            /epsilonPerturbation
     else
        ! Cosmological constant - use root finder.
        cllsnlssMttCsmlgclCnstntAmplitudePerturbation=+epsilonPerturbation
@@ -397,9 +438,13 @@ contains
           ! for the expansion factor at turnaround is very close to the actual root.
           cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum=expansionFactorTurnaroundMinimum
        else
-          if (.not.finder%isInitialized()) then
-             call finder%rootFunction(cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot)
-             call finder%tolerance   (toleranceAbsolute,toleranceRelative      )
+          if (.not.finderConstructed) then
+             finder=rootFinder(                                                                         &
+                  &            rootFunction     =cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot, &
+                  &            toleranceAbsolute=toleranceAbsolute                                    , &
+                  &            toleranceRelative=toleranceRelative                                      &
+                  &           )
+             finderConstructed=.true.
           end if
           cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum=finder%find(rootRange=[expansionFactorTurnaroundMinimum,expansionFactorTurnaroundMaximum])
        end if
@@ -408,15 +453,17 @@ contains
   end function cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximum
 
   double precision function cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot(radiusMaximum)
-    !% Function used in root finding to determine the maximum expansion radius of the perturbation. Evaluates the expansion speed
-    !% of the perturbation which must be zero at the maximum radius.
+    !!{
+    Function used in root finding to determine the maximum expansion radius of the perturbation. Evaluates the expansion speed
+    of the perturbation which must be zero at the maximum radius.
+    !!}
     double precision, intent(in   ) :: radiusMaximum
 
-    cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot=+cllsnlssMttCsmlgclCnstntOmegaMatterEpochal &
-         &                                    /radiusMaximum                                          &
-         &                                    +cllsnlssMttCsmlgclCnstntAmplitudePerturbation          &
-         &                                    +cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal         &
-         &                                    *radiusMaximum**2
+    cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot=+cllsnlssMttCsmlgclCnstntOmegaMatterEpochal     &
+         &                                                /radiusMaximum                                  &
+         &                                                +cllsnlssMttCsmlgclCnstntAmplitudePerturbation  &
+         &                                                +cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal &
+         &                                                *radiusMaximum**2
     return
   end function cllsnlssMttCsmlgclCnstntRadiusPerturbationMaximumRoot
 
@@ -469,7 +516,9 @@ contains
   end function cllsnlssMttCsmlgclCnstntTimeCollapse
 
   double precision function cllsnlssMttCsmlgclCnstntPerturbationIntegrand(radius)
-    !% Integrand function giving the $\mathrm{d}t/\mathrm{d}r$ for the perturbation.
+    !!{
+    Integrand function giving the $\mathrm{d}t/\mathrm{d}r$ for the perturbation.
+    !!}
     implicit none
     double precision, intent(in   ) :: radius
     double precision                :: sqrtArgument
@@ -490,7 +539,9 @@ contains
   end function cllsnlssMttCsmlgclCnstntPerturbationIntegrand
 
   subroutine cllsnlssMttCsmlgclCnstntLinearNonlinearMap(self,time,linearNonlinearMap_)
-    !% Tabulate the mapping between linea rna dnonlinear overdensity for the spherical collapse model.
+    !!{
+    Tabulate the mapping between linea rna dnonlinear overdensity for the spherical collapse model.
+    !!}
     use :: Array_Utilities      , only : Array_Reverse
     use :: Arrays_Search        , only : searchArray
     use :: Galacticus_Error     , only : Galacticus_Error_Report
@@ -502,30 +553,34 @@ contains
     class           (sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt), intent(inout)              :: self
     double precision                                                  , intent(in   )              :: time
     class           (table2DLinLinLin                                ), intent(inout)              :: linearNonlinearMap_
-    integer                                                           , parameter                  :: tableIncrement          =100
-    integer                                                           , parameter                  :: timesPerDecade          = 10
-    integer                                                           , parameter                  :: overdensityLinearCount  =500
-    double precision                                                  , parameter                  :: numericalLimitEpsilon   =  1.0d-4
-    double precision                                                  , parameter                  :: toleranceAbsolute       =  0.0d+0, toleranceRelative         =1.0d-9
-    double precision                                                  , parameter                  :: expansionFactorMinimum  =  1.0d-2, expansionFactorMaximum    =1.0d+0
-    double precision                                                  , parameter                  :: overdensityLinearMinimum= -5.0d+0, overdensityLinearMaximum  =2.0d+0
-    double precision                                                  , allocatable, dimension(:)  :: overdensityLinear                , overdensityNonlinear             , &
-         &                                                                                            overdensityLinearTmp             , overdensityNonLinearTmp          , &
-         &                                                                                            times                            , overdensitiesLinear
-    double precision                                                                               :: expansionFactor                  , epsilonPerturbationMaximum       , &
-         &                                                                                            epsilonPerturbationCollapsed     , radiusNow                        , &
-         &                                                                                            epsilonPerturbation              , epsilonPerturbationMinimum       , &
-         &                                                                                            timeMaximum                      , radiusUpperLimit                 , &
-         &                                                                                            normalization                    , overdensityNonlinear_            , &
-         &                                                                                            timesMinimum                     , timesMaximum
+    integer                                                           , parameter                  :: tableIncrement               =100
+    integer                                                           , parameter                  :: timesPerDecade               = 10
+    integer                                                           , parameter                  :: overdensityLinearCount       =500
+    double precision                                                  , parameter                  :: numericalLimitEpsilon        =  1.0d-4
+    double precision                                                  , parameter                  :: toleranceAbsolute            =  0.0d+0, toleranceRelative         =1.0d-9
+    double precision                                                  , parameter                  :: expansionFactorMinimum       =  1.0d-2, expansionFactorMaximum    =1.0d+0
+    double precision                                                  , parameter                  :: overdensityLinearMinimum     = -5.0d+0, overdensityLinearMaximum  =2.0d+0
+    double precision                                                  , allocatable, dimension(:)  :: overdensityLinear                     , overdensityNonlinear              , &
+         &                                                                                            overdensityLinearTmp                  , overdensityNonLinearTmp           , &
+         &                                                                                            times                                 , overdensitiesLinear
+    double precision                                                                               :: expansionFactor                       , epsilonPerturbationMaximum        , &
+         &                                                                                            epsilonPerturbationCollapsed          , radiusNow                         , &
+         &                                                                                            epsilonPerturbation                   , epsilonPerturbationMinimum        , &
+         &                                                                                            timeMaximum                           , radiusUpperLimit                  , &
+         &                                                                                            normalization                         , overdensityNonlinear_             , &
+         &                                                                                            timesMinimum                          , timesMaximum
+    logical                                                                                        :: finderPerturbationConstructed         , finderRadiusConstructed
     type            (integrator                                      )                             :: integrator_
-    type            (rootFinder                                      )                             :: finderPerturbation               , finderRadius
-    integer                                                                                        :: i                                , timeCount                        , &
-         &                                                                                            iOverdensityLinear               , iOverdensity                     , &
+    type            (rootFinder                                      )                             :: finderPerturbation                    , finderRadius
+    integer                                                                                        :: i                                     , timeCount                         , &
+         &                                                                                            iOverdensityLinear                    , iOverdensity                      , &
          &                                                                                            iTime
 
     ! Check that we have a linear growth object.
     if (.not.associated(self%linearGrowth_)) call Galacticus_Error_Report('no linearGrowth object was supplied'//{introspection:location})
+    ! Set initial state of root finder objects.
+    finderPerturbationConstructed=.false. 
+    finderRadiusConstructed      =.false.
     ! Find a suitable range of times to tabulate, and generate an array of times.
     timesMinimum      =min(0.5d0*time,self%cosmologyFunctions_%cosmicTime(expansionFactorMinimum))
     timesMaximum      =max(2.0d0*time,self%cosmologyFunctions_%cosmicTime(expansionFactorMaximum))
@@ -558,16 +613,18 @@ contains
        cllsnlssMttCsmlgclCnstntOmegaDarkEnergyEpochal=self%cosmologyFunctions_%omegaDarkEnergyEpochal(expansionFactor=expansionFactor)
        cllsnlssMttCsmlgclCnstntHubbleTimeEpochal     =self%cosmologyFunctions_%expansionRate         (                expansionFactor)
        ! Find the value of epsilon for which the perturbation just collapses at this time.
-       if (.not.finderPerturbation%isInitialized()) then
-          call finderPerturbation%rootFunction(cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot)
-          call finderPerturbation%tolerance   (toleranceAbsolute,toleranceRelative )
-          call finderPerturbation%rangeExpand (                                                             &
-               &                               rangeExpandUpward            =0.5d0                        , &
-               &                               rangeExpandDownward          =2.0d0                        , &
-               &                               rangeExpandType              =rangeExpandMultiplicative    , &
-               &                               rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-               &                               rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
-               &                              )
+       if (.not.finderPerturbationConstructed) then
+          finderPerturbation=rootFinder(                                                                                &
+               &                        rootFunction                 =cllsnlssMttCsmlgclCnstntPerturbationCollapseRoot, &
+               &                        toleranceAbsolute            =toleranceAbsolute                               , &
+               &                        toleranceRelative            =toleranceRelative                               , &
+               &                        rangeExpandUpward            =0.5d0                                           , &
+               &                        rangeExpandDownward          =2.0d0                                           , &
+               &                        rangeExpandType              =rangeExpandMultiplicative                       , &
+               &                        rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive                   , &
+               &                        rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative                     &
+               &                       )
+          finderPerturbationConstructed=.true.
        end if
        epsilonPerturbationCollapsed=finderPerturbation%find(rootRange=[epsilonPerturbationMinimum,epsilonPerturbationMaximum])
        ! For non-collapsed regions, epsilon will be greater then that for a collapsed perturbation. Step through values until
@@ -621,16 +678,18 @@ contains
              end if
           end if
           ! Solve for the radius at the present time.
-          if (.not.finderRadius%isInitialized()) then
-             call finderRadius%rootFunction(cllsnlssMttCsmlgclCnstntRadiusRoot )
-             call finderRadius%tolerance   (toleranceAbsolute,toleranceRelative)
-             call finderRadius%rangeExpand (                                                             &
-                  &                         rangeExpandDownward          =0.5d0                        , &
-                  &                         rangeExpandUpward            =2.0d0                        , &
-                  &                         rangeExpandType              =rangeExpandMultiplicative    , &
-                  &                         rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-                  &                         rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive  &
-                  &                        )
+          if (.not.finderRadiusConstructed) then
+             finderRadius=rootFinder(                                                                  &
+                  &                  rootFunction                 =cllsnlssMttCsmlgclCnstntRadiusRoot, &
+                  &                  toleranceAbsolute            =toleranceAbsolute                 , &
+                  &                  toleranceRelative            =toleranceRelative                 , &
+                  &                  rangeExpandDownward          =0.5d0                             , &
+                  &                  rangeExpandUpward            =2.0d0                             , &
+                  &                  rangeExpandType              =rangeExpandMultiplicative         , &
+                  &                  rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative     , &
+                  &                  rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive       &
+                  &                 )
+             finderRadiusConstructed=.true.
           end if
           if (epsilonPerturbation <= epsilonPerturbationMaximum .and. cllsnlssMttCsmlgclCnstntRadiusRoot(cllsnlssMttCsmlgclCnstntRadiusMaximum) < 0.0d0) then
              ! Perturbation is close to maximum radius. Adopt this as the solution.
@@ -708,7 +767,9 @@ contains
   end subroutine cllsnlssMttCsmlgclCnstntLinearNonlinearMap
 
   double precision function cllsnlssMttCsmlgclCnstntRadiusRoot(radiusNow)
-    !% Root function used in solving for the radius of a perturbation.
+    !!{
+    Root function used in solving for the radius of a perturbation.
+    !!}
     use :: Numerical_Integration, only : integrator
     implicit none
     double precision            , intent(in   ) :: radiusNow
@@ -739,7 +800,9 @@ contains
   end function cllsnlssMttCsmlgclCnstntRadiusRoot
 
   subroutine cllsnlssMttCsmlgclCnstntRestoreTable(self,time,restoredTable,fileName,tableStore,status)
-    !% Attempt to restore a table from file.
+    !!{
+    Attempt to restore a table from file.
+    !!}
     use :: File_Utilities    , only : File_Exists    , File_Lock               , File_Unlock, lockDescriptor
     use :: Galacticus_Error  , only : errorStatusFail, errorStatusSuccess
     use :: IO_HDF5           , only : hdf5Access     , hdf5Object
@@ -792,7 +855,9 @@ contains
   end subroutine cllsnlssMttCsmlgclCnstntRestoreTable
 
   subroutine cllsnlssMttCsmlgclCnstntStoreTable(self,storeTable,fileName,tableStore)
-    !% Store a table to file.
+    !!{
+    Store a table to file.
+    !!}
     use :: File_Utilities    , only : Directory_Make, File_Lock     ,  File_Path, File_Unlock, &
          &                            lockDescriptor
     use :: IO_HDF5           , only : hdf5Access    , hdf5Object

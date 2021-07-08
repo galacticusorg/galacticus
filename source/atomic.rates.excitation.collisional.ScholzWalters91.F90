@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,28 +19,38 @@
 
 !+ Contributions to this file made by: Daniel McAndrew.
 
-  !% An implementation of atomic collisional excitation using the fitting functions of \cite{scholz_collisional_1991}.
+  !!{
+  An implementation of atomic collisional excitation using the fitting functions of \cite{scholz_collisional_1991}.
+  !!}
 
-  !# <atomicExcitationRateCollisional name="atomicExcitationRateCollisionalScholzWalters1991">
-  !#  <description>Atomic collisional excitation using the fitting functions of \cite{scholz_collisional_1991}.</description>
-  !# </atomicExcitationRateCollisional>
+  !![
+  <atomicExcitationRateCollisional name="atomicExcitationRateCollisionalScholzWalters1991">
+   <description>Atomic collisional excitation using the fitting functions of \cite{scholz_collisional_1991}.</description>
+  </atomicExcitationRateCollisional>
+  !!]
   type, extends(atomicExcitationRateCollisionalClass) :: atomicExcitationRateCollisionalScholzWalters1991
-     !% An atomic collisional excitation class using the fitting functions of \cite{scholz_collisional_1991}.
+     !!{
+     An atomic collisional excitation class using the fitting functions of \cite{scholz_collisional_1991}.
+     !!}
      private
    contains
      procedure :: coolingRate => scholzWalters1991CoolingRate
   end type atomicExcitationRateCollisionalScholzWalters1991
 
   interface atomicExcitationRateCollisionalScholzWalters1991
-     !% Constructors for the {\normalfont \ttfamily scholzWalters1991} atomic collisional excitation class.
+     !!{
+     Constructors for the {\normalfont \ttfamily scholzWalters1991} atomic collisional excitation class.
+     !!}
      module procedure scholzWalters1991ConstructorParameters
   end interface atomicExcitationRateCollisionalScholzWalters1991
 
 contains
 
   function scholzWalters1991ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily scholzWalters1991} atomic collisional excitation class which takes a parameter set as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily scholzWalters1991} atomic collisional excitation class which takes a parameter set as
+    input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(atomicExcitationRateCollisionalScholzWalters1991)                :: self
@@ -52,8 +62,10 @@ contains
   end function scholzWalters1991ConstructorParameters
 
   double precision function scholzWalters1991CoolingRate(self,atomicNumber,electronNumber,temperature)
-    !% Return collisional excitation cooling rates, in units of J m$^3$ s$^{-1}$, for ion {\normalfont \ttfamily Ion} at
-    !% temperature {\normalfont \ttfamily T} (in Kelvin) using the fitting functions of \cite{scholz_collisional_1991}.
+    !!{
+    Return collisional excitation cooling rates, in units of J m$^3$ s$^{-1}$, for ion {\normalfont \ttfamily Ion} at
+    temperature {\normalfont \ttfamily T} (in Kelvin) using the fitting functions of \cite{scholz_collisional_1991}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (atomicExcitationRateCollisionalScholzWalters1991), intent(inout) :: self

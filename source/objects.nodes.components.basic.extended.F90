@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which extends the standard implementation of basic component to track the
-!% Bertschinger mass.
+!!{
+Contains a module which extends the standard implementation of basic component to track the
+Bertschinger mass.
+!!}
 
 module Node_Component_Basic_Standard_Extended
-  !% Extends the standard implementation of basic component to track the Bertschinger mass.
+  !!{
+  Extends the standard implementation of basic component to track the Bertschinger mass.
+  !!}
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters   , only : cosmologyParametersClass
   use :: Virial_Density_Contrast, only : virialDensityContrastClass
@@ -32,45 +36,47 @@ module Node_Component_Basic_Standard_Extended
        &    Node_Component_Basic_Extended_Thread_Initialize  , Node_Component_Basic_Extended_Thread_Uninitialize  , &
        &    Node_Component_Basic_Standard_Extended_Rate_Compute
 
-  !# <component>
-  !#  <class>basic</class>
-  !#  <name>standardExtended</name>
-  !#  <extends>
-  !#   <class>basic</class>
-  !#   <name>standard</name>
-  !#  </extends>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>massBertschinger</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="get" />
-  !#     <classDefault>-1.0d0</classDefault>
-  !#     <output unitsInSI="massSolar" comment="Bertschinger mass of the node, assuming universal baryon fraction."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>accretionRateBertschinger</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#   <property>
-  !#     <name>radiusTurnaround</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="get" />
-  !#     <classDefault>-1.0d0</classDefault>
-  !#   </property>
-  !#   <property>
-  !#     <name>radiusTurnaroundGrowthRate</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <classDefault>-1.0d0</classDefault>
-  !#   </property>
-  !#  </properties>
-  !# </component>
+  !![
+  <component>
+   <class>basic</class>
+   <name>standardExtended</name>
+   <extends>
+    <class>basic</class>
+    <name>standard</name>
+   </extends>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>massBertschinger</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="get" />
+      <classDefault>-1.0d0</classDefault>
+      <output unitsInSI="massSolar" comment="Bertschinger mass of the node, assuming universal baryon fraction."/>
+    </property>
+    <property>
+      <name>accretionRateBertschinger</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+    <property>
+      <name>radiusTurnaround</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" isDeferred="get" />
+      <classDefault>-1.0d0</classDefault>
+    </property>
+    <property>
+      <name>radiusTurnaroundGrowthRate</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <classDefault>-1.0d0</classDefault>
+    </property>
+   </properties>
+  </component>
+  !!]
 
   ! Objects used by this component.
   class(cosmologyParametersClass), pointer :: cosmologyParameters_
@@ -91,11 +97,15 @@ module Node_Component_Basic_Standard_Extended
 
 contains
 
-  !# <nodeComponentInitializationTask>
-  !#  <unitName>Node_Component_Basic_Extended_Bindings</unitName>
-  !# </nodeComponentInitializationTask>
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>Node_Component_Basic_Extended_Bindings</unitName>
+  </nodeComponentInitializationTask>
+  !!]
   subroutine Node_Component_Basic_Extended_Bindings(parameters_)
-    !% Initializes the ``extended'' implementation of the basic component.
+    !!{
+    Initializes the ``extended'' implementation of the basic component.
+    !!}
     use :: Galacticus_Nodes          , only : nodeComponentBasicStandardExtended
     use :: ISO_Varying_String        , only : var_str                                       , varying_string , char
     use :: Input_Parameters          , only : inputParameter                                , inputParameters
@@ -105,27 +115,31 @@ contains
     type(varying_string                    )                :: nodeComponentBasicExtendedSphericalCollapseTypeText, nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText
     type(nodeComponentBasicStandardExtended)                :: basic
 
-    !# <inputParameter>
-    !#   <name>nodeComponentBasicExtendedSphericalCollapseType</name>
-    !#   <defaultValue>var_str('matterLambda')</defaultValue>
-    !#   <description>The type of spherical collapse model to assume in the extended basic node component class.</description>
-    !#   <source>parameters_</source>
-    !#   <variable>nodeComponentBasicExtendedSphericalCollapseTypeText</variable>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>nodeComponentBasicExtendedSphericalCollapseType</name>
+      <defaultValue>var_str('matterLambda')</defaultValue>
+      <description>The type of spherical collapse model to assume in the extended basic node component class.</description>
+      <source>parameters_</source>
+      <variable>nodeComponentBasicExtendedSphericalCollapseTypeText</variable>
+    </inputParameter>
+    !!]
     select case (char(nodeComponentBasicExtendedSphericalCollapseTypeText))
     case ('matterLambda'    )
        nodeComponentBasicExtendedSphericalCollapseType=nodeComponentBasicExtendedSphericalCollapseTypeLambda
     case ('matterDarkEnergy')
        nodeComponentBasicExtendedSphericalCollapseType=nodeComponentBasicExtendedSphericalCollapseTypeDE
-       !# <inputParameter>
-       !#   <name>nodeComponentBasicExtendedSphericalCollapseEnergyFixedAt</name>
-       !#   <defaultValue>var_str('turnaround')</defaultValue>
-       !#   <description>Selects the epoch at which the energy of a spherical top hat perturbation in a dark energy cosmology should be
-       !#     ``fixed'' for the purposes of computing virial density contrasts. (See the discussion in
-       !#     \citealt{percival_cosmological_2005}; \S8.).</description>
-       !#   <source>parameters_</source>
-       !#   <variable>nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText</variable>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>nodeComponentBasicExtendedSphericalCollapseEnergyFixedAt</name>
+         <defaultValue>var_str('turnaround')</defaultValue>
+         <description>Selects the epoch at which the energy of a spherical top hat perturbation in a dark energy cosmology should be
+           ``fixed'' for the purposes of computing virial density contrasts. (See the discussion in
+           \citealt{percival_cosmological_2005}; \S8.).</description>
+         <source>parameters_</source>
+         <variable>nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText</variable>
+       </inputParameter>
+       !!]
        nodeComponentBasicExtendedSphericalCollapseEnergyFixedAt=enumerationCllsnlssMttrDarkEnergyFixedAtEncode(char(nodeComponentBasicExtendedSphericalCollapseEnergyFixedAtText),includesPrefix=.false.)
     case ('bryanNorman')
        nodeComponentBasicExtendedSphericalCollapseType=nodeComponentBasicExtendedSphericalCollapseTypeBryanNorman1998
@@ -136,11 +150,15 @@ contains
     return
   end subroutine Node_Component_Basic_Extended_Bindings
 
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Basic_Extended_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Basic_Extended_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Basic_Extended_Thread_Initialize(parameters_)
-    !% Initializes the tree node random spin module.
+    !!{
+    Initializes the tree node random spin module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent   , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultBasicComponent
     use :: Input_Parameters, only : inputParameter       , inputParameters
@@ -148,32 +166,42 @@ contains
     type(inputParameters), intent(inout) :: parameters_
 
     if (defaultBasicComponent%standardExtendedIsActive()) then
-       !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters_"/>
-       !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters_"/>
+       !![
+       <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters_"/>
+       <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters_"/>
+       !!]
        call nodePromotionEvent%attach(defaultBasicComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentBasicExtended')
     end if
     return
   end subroutine Node_Component_Basic_Extended_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Basic_Extended_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Basic_Extended_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Basic_Extended_Thread_Uninitialize()
-    !% Uninitializes the tree node random spin module.
+    !!{
+    Uninitializes the tree node random spin module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
 
     if (defaultBasicComponent%standardExtendedIsActive()) then
-       !# <objectDestructor name="cosmologyParameters_"/>
-       !# <objectDestructor name="cosmologyFunctions_" />
+       !![
+       <objectDestructor name="cosmologyParameters_"/>
+       <objectDestructor name="cosmologyFunctions_" />
+       !!]
        call nodePromotionEvent%detach(defaultBasicComponent,nodePromotion)
     end if
     return
   end subroutine Node_Component_Basic_Extended_Thread_Uninitialize
 
   subroutine Node_Component_Basic_Extended_Bertschinger_Solver(self)
-    !% Compute the Bertschinger mass and turnaround radii
+    !!{
+    Compute the Bertschinger mass and turnaround radii
+    !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasicStandardExtended  , treeNode
     use :: Virial_Density_Contrast             , only : virialDensityContrastBryanNorman1998, virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt, virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy
@@ -223,7 +251,9 @@ contains
   end subroutine Node_Component_Basic_Extended_Bertschinger_Solver
 
   double precision function Node_Component_Basic_Extended_Mass_Bertschinger(self)
-    !% Return the Bertschinger mass.
+    !!{
+    Return the Bertschinger mass.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasicStandardExtended
     implicit none
     class(nodeComponentBasicStandardExtended), intent(inout) :: self
@@ -234,7 +264,9 @@ contains
   end function Node_Component_Basic_Extended_Mass_Bertschinger
 
   double precision function Node_Component_Basic_Extended_Radius_Turnaround(self)
-    !% Return the turnaround radius.
+    !!{
+    Return the turnaround radius.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasicStandardExtended
     implicit none
     class(nodeComponentBasicStandardExtended), intent(inout) :: self
@@ -244,11 +276,15 @@ contains
     return
   end function Node_Component_Basic_Extended_Radius_Turnaround
 
-  !# <mergerTreeInitializeTask>
-  !#  <unitName>Node_Component_Basic_Standard_Extended_Initialize</unitName>
-  !# </mergerTreeInitializeTask>
+  !![
+  <mergerTreeInitializeTask>
+   <unitName>Node_Component_Basic_Standard_Extended_Initialize</unitName>
+  </mergerTreeInitializeTask>
+  !!]
   subroutine Node_Component_Basic_Standard_Extended_Initialize(node)
-    !% Set the mass accretion rate for {\normalfont \ttfamily node}.
+    !!{
+    Set the mass accretion rate for {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandardExtended, treeNode
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
@@ -320,7 +356,9 @@ contains
   end subroutine Node_Component_Basic_Standard_Extended_Initialize
 
   double precision function Node_Component_Basic_Standard_Extended_Unresolved_Mass(node)
-    !% Return the unresolved mass for {\normalfont \ttfamily node}.
+    !!{
+    Return the unresolved mass for {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     type (treeNode          ), intent(inout), pointer :: node
@@ -341,11 +379,15 @@ contains
     return
   end function Node_Component_Basic_Standard_Extended_Unresolved_Mass
 
-  !# <rateComputeTask>
-  !#  <unitName>Node_Component_Basic_Standard_Extended_Rate_Compute</unitName>
-  !# </rateComputeTask>
+  !![
+  <rateComputeTask>
+   <unitName>Node_Component_Basic_Standard_Extended_Rate_Compute</unitName>
+  </rateComputeTask>
+  !!]
   subroutine Node_Component_Basic_Standard_Extended_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
-    !% Compute rates of change of properties in the standard implementation of the basic component.
+    !!{
+    Compute rates of change of properties in the standard implementation of the basic component.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandardExtended, propertyTypeInactive, treeNode
     implicit none
     type     (treeNode          ), intent(inout)          :: node
@@ -370,11 +412,15 @@ contains
     return
   end subroutine Node_Component_Basic_Standard_Extended_Rate_Compute
 
-  !# <scaleSetTask>
-  !#  <unitName>Node_Component_Basic_Standard_Extended_Scale_Set</unitName>
-  !# </scaleSetTask>
+  !![
+  <scaleSetTask>
+   <unitName>Node_Component_Basic_Standard_Extended_Scale_Set</unitName>
+  </scaleSetTask>
+  !!]
   subroutine Node_Component_Basic_Standard_Extended_Scale_Set(node)
-    !% Set scales for properties in the standard implementation of the basic component.
+    !!{
+    Set scales for properties in the standard implementation of the basic component.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandardExtended, treeNode
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
@@ -395,11 +441,15 @@ contains
     return
   end subroutine Node_Component_Basic_Standard_Extended_Scale_Set
 
-  !# <nodeMergerTask>
-  !#  <unitName>Node_Component_Basic_Standard_Extended_Node_Merger</unitName>
-  !# </nodeMergerTask>
+  !![
+  <nodeMergerTask>
+   <unitName>Node_Component_Basic_Standard_Extended_Node_Merger</unitName>
+  </nodeMergerTask>
+  !!]
   subroutine Node_Component_Basic_Standard_Extended_Node_Merger(node)
-    !% Switch off accretion of new mass onto this node once it becomes a satellite.
+    !!{
+    Switch off accretion of new mass onto this node once it becomes a satellite.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandardExtended, treeNode
     implicit none
     type (treeNode          ), intent(inout) :: node
@@ -418,8 +468,10 @@ contains
   end subroutine Node_Component_Basic_Standard_Extended_Node_Merger
   
   subroutine nodePromotion(self,node)
-    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply
-    !% update the mass of {\normalfont \ttfamily node} to be that of its parent.
+    !!{
+    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply
+    update the mass of {\normalfont \ttfamily node} to be that of its parent.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentBasicStandardExtended, treeNode
     implicit none

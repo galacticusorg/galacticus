@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,14 +17,18 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test differentiation functions.
+!!{
+Contains a program to test differentiation functions.
+!!}
 
 program Test_Differentiation
-  !% Tests that numerical differentiation functions work.
-  use :: Galacticus_Display            , only : Galacticus_Verbosity_Level_Set, verbosityStandard
+  !!{
+  Tests that numerical differentiation functions work.
+  !!}
+  use :: Display                       , only : displayVerbositySet, verbosityLevelStandard
   use :: Numerical_Differentiation     , only : differentiator
   use :: Test_Differentiation_Functions, only : function1
-  use :: Unit_Tests                    , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests                    , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   integer                         , parameter            :: countStep      =10
   double precision                , dimension(countStep) :: x              =[0.0d0,0.1d0,0.3d0,0.5d0,0.7d0,0.9d0,1.1d0,1.3d0,1.5d0,1.7d0], y
@@ -33,7 +37,7 @@ program Test_Differentiation
   integer                                                :: i
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Numerical differentiation")
   differentiator_=differentiator(function1)

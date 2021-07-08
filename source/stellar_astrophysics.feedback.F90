@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,28 +17,34 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a class that performs calculations of stellar feedback.
+!!{
+Contains a module which implements a class that performs calculations of stellar feedback.
+!!}
 
 module Stellar_Feedback
-  !% Implements a class that performs calculations of stellar feedback.
+  !!{
+  Implements a class that performs calculations of stellar feedback.
+  !!}
   implicit none
   private
 
-  !# <functionClass>
-  !#  <name>stellarFeedback</name>
-  !#  <descriptiveName>Stellar Feedback</descriptiveName>
-  !#  <description>
-  !#   Class providing models of stellar feedback.
-  !#  </description>
-  !#  <default>standard</default>
-  !#  <method name="energyInputCumulative" >
-  !#   <description>Return the cumulative energy input from a stellar population of the given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age}, and {\normalfont \ttfamily metallicity}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <selfTarget>yes</selfTarget>
-  !#   <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>stellarFeedback</name>
+   <descriptiveName>Stellar Feedback</descriptiveName>
+   <description>
+    Class providing models of stellar feedback.
+   </description>
+   <default>standard</default>
+   <method name="energyInputCumulative" >
+    <description>Return the cumulative energy input from a stellar population of the given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age}, and {\normalfont \ttfamily metallicity}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>
+   </method>
+  </functionClass>
+  !!]
 
   ! Canonical value of the total energy input from a single stellar population of $1 M_\odot$ after infinite time. All feedback
   ! calculations which don't specifically use the energy input should be scaled to this value if they want to have the correct

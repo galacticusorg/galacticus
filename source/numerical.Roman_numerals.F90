@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements conversion of integers to Roman numerals.
+!!{
+Contains a module which implements conversion of integers to Roman numerals.
+!!}
 
 module Numerical_Roman_Numerals
-  !% Implements conversion of integers to Roman numerals.
+  !!{
+  Implements conversion of integers to Roman numerals.
+  !!}
   implicit none
   private
   public :: Roman_Numerals
@@ -32,7 +36,9 @@ module Numerical_Roman_Numerals
 contains
 
   function Roman_Numerals(i)
-    !% Convert the given integer to Roman numerals.
+    !!{
+    Convert the given integer to Roman numerals.
+    !!}
     use :: ISO_Varying_String, only : varying_string, var_str, operator(//)
     implicit none
     type   (varying_string)                :: Roman_Numerals

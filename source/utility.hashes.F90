@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,28 +17,35 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements ``hashes'' (i.e. associative arrays).
+!!{
+Contains a module which implements ``hashes'' (i.e. associative arrays).
+!!}
 
 module Hashes
-  !% Implements ``hashes'' (i.e. associative arrays).
+  !!{
+  Implements ``hashes'' (i.e. associative arrays).
+  !!}
   use, intrinsic :: ISO_C_Binding     , only : c_size_t
-  use            :: ISO_Varying_String, only : varying_string
+  use            :: ISO_Varying_String, only : varying_string, var_str
   implicit none
 
-  !# <generic identifier="Type">
-  !#  <instance label="integer"              intrinsic="integer"           attributes=""                              argumentAttributes=""                          assignment="="  null="0"         />
-  !#  <instance label="integerSizeT"         intrinsic="integer(c_size_t)" attributes=""                              argumentAttributes=""                          assignment="="  null="0_c_size_t"/>
-  !#  <instance label="rank1IntegerSizeT"    intrinsic="integer(c_size_t)" attributes=", allocatable, dimension(:  )" argumentAttributes="         , dimension(:  )" assignment="="  null="0_c_size_t"/>
-  !#  <instance label="rank2IntegerSizeT"    intrinsic="integer(c_size_t)" attributes=", allocatable, dimension(:,:)" argumentAttributes="         , dimension(:,:)" assignment="="  null="0_c_size_t"/>
-  !#  <instance label="rank1IntegerSizeTPtr" intrinsic="integer(c_size_t)" attributes=", pointer    , dimension(:  )" argumentAttributes=", pointer, dimension(:  )" assignment="=>" null="null()"    />
-  !#  <instance label="rank2IntegerSizeTPtr" intrinsic="integer(c_size_t)" attributes=", pointer    , dimension(:,:)" argumentAttributes=", pointer, dimension(:,:)" assignment="=>" null="null()"    />
-  !#  <instance label="double"               intrinsic="double precision"  attributes=""                              argumentAttributes=""                          assignment="="  null="0.0d0"     />
-  !#  <instance label="rank1Double"          intrinsic="double precision"  attributes=", allocatable, dimension(:  )" argumentAttributes="         , dimension(:  )" assignment="="  null="0.0d0"     />
-  !#  <instance label="rank2Double"          intrinsic="double precision"  attributes=", allocatable, dimension(:,:)" argumentAttributes="         , dimension(:,:)" assignment="="  null="0.0d0"     />
-  !#  <instance label="rank1DoublePtr"       intrinsic="double precision"  attributes=", pointer    , dimension(:  )" argumentAttributes=", pointer, dimension(:  )" assignment="=>" null="null()"    />
-  !#  <instance label="rank2DoublePtr"       intrinsic="double precision"  attributes=", pointer    , dimension(:,:)" argumentAttributes=", pointer, dimension(:,:)" assignment="=>" null="null()"    />
-  !#  <instance label="generic"              intrinsic="class(*)"          attributes=", pointer"                     argumentAttributes=", target"                  assignment="=>" null="null()"    />
-  !# </generic>
+  !![
+  <generic identifier="Type">
+   <instance label="integer"              intrinsic="integer"              attributes=""                              argumentAttributes=""                          assignment="="  null="0"          />
+   <instance label="integerSizeT"         intrinsic="integer(c_size_t)"    attributes=""                              argumentAttributes=""                          assignment="="  null="0_c_size_t" />
+   <instance label="rank1IntegerSizeT"    intrinsic="integer(c_size_t)"    attributes=", allocatable, dimension(:  )" argumentAttributes="         , dimension(:  )" assignment="="  null="0_c_size_t" />
+   <instance label="rank2IntegerSizeT"    intrinsic="integer(c_size_t)"    attributes=", allocatable, dimension(:,:)" argumentAttributes="         , dimension(:,:)" assignment="="  null="0_c_size_t" />
+   <instance label="rank1IntegerSizeTPtr" intrinsic="integer(c_size_t)"    attributes=", pointer    , dimension(:  )" argumentAttributes=", pointer, dimension(:  )" assignment="=>" null="null()"     />
+   <instance label="rank2IntegerSizeTPtr" intrinsic="integer(c_size_t)"    attributes=", pointer    , dimension(:,:)" argumentAttributes=", pointer, dimension(:,:)" assignment="=>" null="null()"     />
+   <instance label="double"               intrinsic="double precision"     attributes=""                              argumentAttributes=""                          assignment="="  null="0.0d0"      />
+   <instance label="rank1Double"          intrinsic="double precision"     attributes=", allocatable, dimension(:  )" argumentAttributes="         , dimension(:  )" assignment="="  null="0.0d0"      />
+   <instance label="rank2Double"          intrinsic="double precision"     attributes=", allocatable, dimension(:,:)" argumentAttributes="         , dimension(:,:)" assignment="="  null="0.0d0"      />
+   <instance label="rank1DoublePtr"       intrinsic="double precision"     attributes=", pointer    , dimension(:  )" argumentAttributes=", pointer, dimension(:  )" assignment="=>" null="null()"     />
+   <instance label="rank2DoublePtr"       intrinsic="double precision"     attributes=", pointer    , dimension(:,:)" argumentAttributes=", pointer, dimension(:,:)" assignment="=>" null="null()"     />
+   <instance label="varyingString"        intrinsic="type(varying_string)" attributes=""                              argumentAttributes=""                          assignment="="  null="var_str('')"/>
+   <instance label="generic"              intrinsic="class(*)"             attributes=", pointer"                     argumentAttributes=", target"                  assignment="=>" null="null()"     />
+  </generic>
+  !!]
 
   private
   public :: {Type¦label}Hash
@@ -49,24 +56,28 @@ module Hashes
   end type {Type¦label}Container
 
   type :: {Type¦label}Hash
-     !% Derived type for {Type¦label} hashes.
+     !!{
+     Derived type for {Type¦label} hashes.
+     !!}
      private
      integer                                                   :: allocatedSize, elementCount
      type   ({Type¦label}Container), allocatable, dimension(:) :: hashValues
      type   (varying_string       ), allocatable, dimension(:) :: hashKeys
    contains
-     !# <methods>
-     !#   <method description="Initialize the hash." method="initialize" />
-     !#   <method description="Set the value of a key in the hash." method="set" />
-     !#   <method description="Delete a key from the hash." method="delete" />
-     !#   <method description="Return the value for the given key." method="value" />
-     !#   <method description="Return the key of the {\normalfont \ttfamily indexValue}$^\mathrm{th}$ entry in the hash." method="key" />
-     !#   <method description="Return an array of all keys in the hash." method="keys" />
-     !#   <method description="Return an array of all values in the hash." method="values" />
-     !#   <method description="Return true if the specified key exists in the hash." method="exists" />
-     !#   <method description="Return the number of keys in the hash." method="size" />
-     !#   <method description="Destroy the hash." method="destroy" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Initialize the hash." method="initialize" />
+       <method description="Set the value of a key in the hash." method="set" />
+       <method description="Delete a key from the hash." method="delete" />
+       <method description="Return the value for the given key." method="value" />
+       <method description="Return the key of the {\normalfont \ttfamily indexValue}$^\mathrm{th}$ entry in the hash." method="key" />
+       <method description="Return an array of all keys in the hash." method="keys" />
+       <method description="Return an array of all values in the hash." method="values" />
+       <method description="Return true if the specified key exists in the hash." method="exists" />
+       <method description="Return the number of keys in the hash." method="size" />
+       <method description="Destroy the hash." method="destroy" />
+     </methods>
+     !!]
      final     ::                             {Type¦label}Destructor
      procedure :: initialize               => {Type¦label}Initialize
      procedure :: {Type¦label}SetVarStr
@@ -99,7 +110,9 @@ module Hashes
 contains
 
   function {Type¦label}HashConstructor() result(self)
-     !% Constructor for scalar hashes.
+     !!{
+     Constructor for scalar hashes.
+     !!}
      implicit none
      type({Type¦label}Hash) :: self
 
@@ -107,178 +120,202 @@ contains
      return
    end function {Type¦label}HashConstructor
 
-  subroutine {Type¦label}Initialize(thisHash)
-    !% Routine to initialize (or re-initialize) a hash.
+  subroutine {Type¦label}Initialize(self)
+    !!{
+    Routine to initialize (or re-initialize) a hash.
+    !!}
     implicit none
-    class({Type¦label}Hash), intent(  out) :: thisHash
+    class({Type¦label}Hash), intent(  out) :: self
 
-    thisHash%elementCount =0
-    thisHash%allocatedSize=0
-    if (allocated(thisHash%hashValues)) deallocate(thisHash%hashValues)
-    if (allocated(thisHash%hashKeys  )) deallocate(thisHash%hashKeys  )
+    self%elementCount =0
+    self%allocatedSize=0
+    if (allocated(self%hashValues)) deallocate(self%hashValues)
+    if (allocated(self%hashKeys  )) deallocate(self%hashKeys  )
     return
   end subroutine {Type¦label}Initialize
 
-  integer function {Type¦label}Size(thisHash)
-    !% Returns the number of elements in the specified {\normalfont \ttfamily Hash}.
+  integer function {Type¦label}Size(self)
+    !!{
+    Returns the number of elements in the specified {\normalfont \ttfamily Hash}.
+    !!}
     implicit none
-    class({Type¦label}Hash), intent(in   ) :: thisHash
+    class({Type¦label}Hash), intent(in   ) :: self
 
-    {Type¦label}Size=thisHash%elementCount
+    {Type¦label}Size=self%elementCount
     return
   end function {Type¦label}Size
 
-  logical function {Type¦label}ExistsChar(thisHash,keyCH)
-    !% Returns true if the specified {\normalfont \ttfamily key} exists in the specified {\normalfont \ttfamily thisHash}, false otherwise.
+  logical function {Type¦label}ExistsChar(self,keyCH)
+    !!{
+    Returns true if the specified {\normalfont \ttfamily key} exists in the specified {\normalfont \ttfamily self}, false otherwise.
+    !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
-    class    ({Type¦label}Hash), intent(in   ) :: thisHash
+    class    ({Type¦label}Hash), intent(in   ) :: self
     character(len=*           ), intent(in   ) :: keyCH
     type     (varying_string  ), save          :: key
     !$omp threadprivate(key)
     key=trim(keyCH)
-    {Type¦label}ExistsChar={Type¦label}ExistsVarStr(thisHash,key)
+    {Type¦label}ExistsChar={Type¦label}ExistsVarStr(self,key)
     return
   end function {Type¦label}ExistsChar
 
-  logical function {Type¦label}ExistsVarStr(thisHash,key)
-    !% Returns true if the specified {\normalfont \ttfamily key} exists in the specified {\normalfont \ttfamily thisHash}, false otherwise.
+  logical function {Type¦label}ExistsVarStr(self,key)
+    !!{
+    Returns true if the specified {\normalfont \ttfamily key} exists in the specified {\normalfont \ttfamily self}, false otherwise.
+    !!}
     use :: ISO_Varying_String, only : operator(==)
     implicit none
-    class({Type¦label}Hash), intent(in   ) :: thisHash
+    class({Type¦label}Hash), intent(in   ) :: self
     type (varying_string  ), intent(in   ) :: key
 
-    if (thisHash%elementCount > 0) then
-       {Type¦label}ExistsVarStr=any(thisHash%hashKeys(1:thisHash%elementCount) == key)
+    if (self%elementCount > 0) then
+       {Type¦label}ExistsVarStr=any(self%hashKeys(1:self%elementCount) == key)
     else
        {Type¦label}ExistsVarStr=.false.
     end if
     return
   end function {Type¦label}ExistsVarStr
 
-  subroutine {Type¦label}DeleteChar(thisHash,keyCH)
-    !% Deletes entry {\normalfont \ttfamily key} from {\normalfont \ttfamily thisHash}.
+  subroutine {Type¦label}DeleteChar(self,keyCH)
+    !!{
+    Deletes entry {\normalfont \ttfamily key} from {\normalfont \ttfamily self}.
+    !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
     character(len=*           ), intent(in   ) :: keyCH
-    class    ({Type¦label}Hash), intent(inout) :: thisHash
+    class    ({Type¦label}Hash), intent(inout) :: self
     type     (varying_string  ), save          :: key
     !$omp threadprivate(key)
     key=trim(keyCH)
-    call {Type¦label}DeleteVarStr(thisHash,key)
+    call {Type¦label}DeleteVarStr(self,key)
     return
   end subroutine {Type¦label}DeleteChar
 
-  subroutine {Type¦label}DeleteVarStr(thisHash,key)
-    !% Deletes entry {\normalfont \ttfamily key} from {\normalfont \ttfamily Hash}.
+  subroutine {Type¦label}DeleteVarStr(self,key)
+    !!{
+    Deletes entry {\normalfont \ttfamily key} from {\normalfont \ttfamily Hash}.
+    !!}
     use            :: Arrays_Search     , only : searchArray
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: ISO_Varying_String, only : char
     implicit none
     type   (varying_string  ), intent(in   ) :: key
-    class  ({Type¦label}Hash), intent(inout) :: thisHash
+    class  ({Type¦label}Hash), intent(inout) :: self
     integer(c_size_t        ), save          :: iKey
     !$omp threadprivate(iKey)
     integer(c_size_t        )                :: i
 
-    if ({Type¦label}ExistsVarStr(thisHash,key)) then
-       iKey=searchArray(thisHash%hashKeys(1:thisHash%elementCount),key)
-       do i=iKey,thisHash%elementCount-1
-          thisHash%hashKeys  (i)        =                 thisHash%hashKeys  (i+1)
-          thisHash%hashValues(i)%object {Type¦assignment} thisHash%hashValues(i+1)%object
+    if ({Type¦label}ExistsVarStr(self,key)) then
+       iKey=searchArray(self%hashKeys(1:self%elementCount),key)
+       do i=iKey,self%elementCount-1
+          self%hashKeys  (i)        =                 self%hashKeys  (i+1)
+          self%hashValues(i)%object {Type¦assignment} self%hashValues(i+1)%object
        end do
-       thisHash%elementCount=thisHash%elementCount-1
+       self%elementCount=self%elementCount-1
     else
        call Galacticus_Error_Report('key '''//char(key)//''' does not exist in hash'//{introspection:location})
     end if
     return
   end subroutine {Type¦label}DeleteVarStr
 
-  function {Type¦label}KeyInt(thisHash,indexValue) result (key)
-    !% Returns the key of entry number {\normalfont \ttfamily index} in {\normalfont \ttfamily thisHash}.
+  function {Type¦label}KeyInt(self,indexValue) result (key)
+    !!{
+    Returns the key of entry number {\normalfont \ttfamily index} in {\normalfont \ttfamily self}.
+    !!}
     implicit none
     type   (varying_string  )                :: key
     integer                  , intent(in   ) :: indexValue
-    class  ({Type¦label}Hash), intent(in   ) :: thisHash
+    class  ({Type¦label}Hash), intent(in   ) :: self
 
-    key=thisHash%hashKeys(indexValue)
+    key=self%hashKeys(indexValue)
     return
   end function {Type¦label}KeyInt
 
-  subroutine {Type¦label}Keys(thisHash,keys)
-    !% Returns an array of all keys in {\normalfont \ttfamily thisHash}.
+  subroutine {Type¦label}Keys(self,keys)
+    !!{
+    Returns an array of all keys in {\normalfont \ttfamily self}.
+    !!}
     implicit none
     type (varying_string  ), allocatable, dimension(:), intent(inout) :: keys
-    class({Type¦label}Hash)                           , intent(in   ) :: thisHash
+    class({Type¦label}Hash)                           , intent(in   ) :: self
 
     if (allocated(keys)) deallocate(keys)
-    allocate(keys(thisHash%elementCount))
-    keys=thisHash%hashKeys(1:thisHash%elementCount)
+    allocate(keys(self%elementCount))
+    keys=self%hashKeys(1:self%elementCount)
     return
   end subroutine {Type¦label}Keys
 
-  subroutine {Type¦label}Values(thisHash,values)
-    !% Returns an array of all values in {\normalfont \ttfamily thisHash}.
+  subroutine {Type¦label}Values(self,values)
+    !!{
+    Returns an array of all values in {\normalfont \ttfamily self}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
 #if {Type¦match¦^(generic|rank\d+[a-zA-Z]+)$¦0¦1}
     {Type¦intrinsic}                  {Type¦attributes}, allocatable, dimension(:), intent(inout) :: values
-    class           ({Type¦label}Hash)                                            , intent(in   ) :: thisHash
+    class           ({Type¦label}Hash)                                            , intent(in   ) :: self
 
     if (allocated(values)) deallocate(values)
-    allocate(values(thisHash%elementCount))
-    values=thisHash%hashValues(1:thisHash%elementCount)%object
+    allocate(values(self%elementCount))
+    values=self%hashValues(1:self%elementCount)%object
 #else
     integer                                            , allocatable, dimension(:), intent(inout) :: values
-    class           ({Type¦label}Hash)                                            , intent(in   ) :: thisHash
-    !$GLC attributes unused :: thisHash, values
+    class           ({Type¦label}Hash)                                            , intent(in   ) :: self
+    !$GLC attributes unused :: self, values
 
     call Galacticus_Error_Report('values method is not supported for generic hashes'//{introspection:location})
 #endif
     return
   end subroutine {Type¦label}Values
 
-  function {Type¦label}ValueInt(thisHash,indexValue)
-    !% Returns the value of entry number {\normalfont \ttfamily index} in {\normalfont \ttfamily Hash}.
+  function {Type¦label}ValueInt(self,indexValue)
+    !!{
+    Returns the value of entry number {\normalfont \ttfamily index} in {\normalfont \ttfamily Hash}.
+    !!}
     implicit none
     {Type¦intrinsic}                  {Type¦attributes} :: {Type¦label}ValueInt
-    class           ({Type¦label}Hash), intent(in   )   :: thisHash
+    class           ({Type¦label}Hash), intent(in   )   :: self
     integer                           , intent(in   )   :: indexValue
 
-    {Type¦label}ValueInt {Type¦assignment} thisHash%hashValues(indexValue)%object
+    {Type¦label}ValueInt {Type¦assignment} self%hashValues(indexValue)%object
     return
   end function {Type¦label}ValueInt
 
-  function {Type¦label}ValueChar(thisHash,keyCH)
-    !% Returns the value of {\normalfont \ttfamily Key} in {\normalfont \ttfamily Hash}.
+  function {Type¦label}ValueChar(self,keyCH)
+    !!{
+    Returns the value of {\normalfont \ttfamily Key} in {\normalfont \ttfamily Hash}.
+    !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
     {Type¦intrinsic}                  {Type¦attributes} :: {Type¦label}ValueChar
     character       (len=*           ), intent(in   )   :: keyCH
-    class           ({Type¦label}Hash), intent(in   )   :: thisHash
+    class           ({Type¦label}Hash), intent(in   )   :: self
     type            (varying_string  ), save            :: key
     !$omp threadprivate(key)
     key=trim(keyCH)
-    {Type¦label}ValueChar {Type¦assignment} {Type¦label}ValueVarStr(thisHash,key)
+    {Type¦label}ValueChar {Type¦assignment} {Type¦label}ValueVarStr(self,key)
     return
   end function {Type¦label}ValueChar
 
-  function {Type¦label}ValueVarStr(thisHash,key)
-    !% Returns the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily thisHash}.
+  function {Type¦label}ValueVarStr(self,key)
+    !!{
+    Returns the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily self}.
+    !!}
     use            :: Arrays_Search     , only : searchArray
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: ISO_Varying_String, only : char
     implicit none
     {Type¦intrinsic}                  {Type¦attributes} :: {Type¦label}ValueVarStr
-    class           ({Type¦label}Hash), intent(in   )   :: thisHash
+    class           ({Type¦label}Hash), intent(in   )   :: self
     type            (varying_string  ), intent(in   )   :: key
     integer         (c_size_t        )                  :: iKey
 
-    if ({Type¦label}ExistsVarStr(thisHash,key)) then
-       iKey=searchArray(thisHash%hashKeys(1:thisHash%elementCount),key)
-       {Type¦label}ValueVarStr {Type¦assignment} thisHash%hashValues(iKey)%object
+    if ({Type¦label}ExistsVarStr(self,key)) then
+       iKey=searchArray(self%hashKeys(1:self%elementCount),key)
+       {Type¦label}ValueVarStr {Type¦assignment} self%hashValues(iKey)%object
     else
        {Type¦label}ValueVarStr {Type¦assignment} {Type¦null}
        call Galacticus_Error_Report('key '''//char(key)//''' does not exist in hash'//{introspection:location})
@@ -286,114 +323,122 @@ contains
     return
   end function {Type¦label}ValueVarStr
 
-  subroutine {Type¦label}SetChar(thisHash,keyCH,value)
-    !% Sets the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily thisHash} to {\normalfont \ttfamily value}.
+  subroutine {Type¦label}SetChar(self,keyCH,value)
+    !!{
+    Sets the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily self} to {\normalfont \ttfamily value}.
+    !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
     {Type¦intrinsic}                  {Type¦argumentAttributes}, intent(in   ) :: value
     character       (len=*           )                         , intent(in   ) :: keyCH
-    class           ({Type¦label}Hash)                         , intent(inout) :: thisHash
+    class           ({Type¦label}Hash)                         , intent(inout) :: self
     type            (varying_string  )                         , save          :: key
     !$omp threadprivate(key)
 
     key=trim(keyCH)
-    call {Type¦label}SetVarStr(thisHash,key,value)
+    call {Type¦label}SetVarStr(self,key,value)
     return
   end subroutine {Type¦label}SetChar
 
-  subroutine {Type¦label}SetVarStr(thisHash,key,value)
-    !% Sets the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily thisHash} to {\normalfont \ttfamily value}.
+  subroutine {Type¦label}SetVarStr(self,key,value)
+    !!{
+    Sets the value of {\normalfont \ttfamily key} in {\normalfont \ttfamily self} to {\normalfont \ttfamily value}.
+    !!}
     use            :: Arrays_Search     , only : searchArray
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: ISO_Varying_String, only : operator(==)
     implicit none
     {Type¦intrinsic}                       {Type¦argumentAttributes}, intent(in   )               :: Value
     type            (varying_string       )                         , intent(in   )               :: Key
-    class           ({Type¦label}Hash     )                         , intent(inout)               :: thisHash
+    class           ({Type¦label}Hash     )                         , intent(inout)               :: self
     integer         (c_size_t             )                                                       :: iKey           , i
     logical                                                                                       :: keyExists
     type            ({Type¦label}Container)                         , allocatable  , dimension(:) :: valuesTemporary
     type            (varying_string       )                         , allocatable  , dimension(:) :: keysTemporary
 
     ! Check if key already exists.
-    if (thisHash%elementCount > 0) then
-       keyExists=any(thisHash%hashKeys(1:thisHash%elementCount) == key)
+    if (self%elementCount > 0) then
+       keyExists=any(self%hashKeys(1:self%elementCount) == key)
     else
        keyExists=.false.
     end if
     if (keyExists) then
-       iKey=searchArray(thisHash%hashKeys(1:thisHash%elementCount),key)
+       iKey=searchArray(self%hashKeys(1:self%elementCount),key)
 #if {Type¦match¦^rank\d+[a-zA-Z]+$¦1¦0}
 #if {Type¦match¦Ptr$¦0¦1}
-       deallocate(thisHash%hashValues(iKey)%object)
+       deallocate(self%hashValues(iKey)%object)
 #endif
 #endif
-       thisHash%hashValues(iKey)%object {Type¦assignment} value
+       self%hashValues(iKey)%object {Type¦assignment} value
     else
        ! Increase hash size if necessary.
-       if (thisHash%elementCount == thisHash%allocatedSize) then
-          if (thisHash%allocatedSize > 0) then
-             allocate(valuesTemporary(thisHash%allocatedSize))
-             allocate(keysTemporary  (thisHash%allocatedSize))
-             valuesTemporary=thisHash%hashValues
-             keysTemporary  =thisHash%hashKeys
-             deallocate(thisHash%hashValues)
-             deallocate(thisHash%hashKeys  )
-             thisHash%allocatedSize=thisHash%allocatedSize+hashSizeIncrement
-             allocate(thisHash%hashValues(thisHash%allocatedSize))
-             allocate(thisHash%hashKeys  (thisHash%allocatedSize))
-             thisHash%hashValues(1:size(valuesTemporary))=valuesTemporary
-             thisHash%hashKeys  (1:size(valuesTemporary))=keysTemporary
+       if (self%elementCount == self%allocatedSize) then
+          if (self%allocatedSize > 0) then
+             allocate(valuesTemporary(self%allocatedSize))
+             allocate(keysTemporary  (self%allocatedSize))
+             valuesTemporary=self%hashValues
+             keysTemporary  =self%hashKeys
+             deallocate(self%hashValues)
+             deallocate(self%hashKeys  )
+             self%allocatedSize=self%allocatedSize+hashSizeIncrement
+             allocate(self%hashValues(self%allocatedSize))
+             allocate(self%hashKeys  (self%allocatedSize))
+             self%hashValues(1:size(valuesTemporary))=valuesTemporary
+             self%hashKeys  (1:size(valuesTemporary))=keysTemporary
              deallocate(valuesTemporary)
              deallocate(keysTemporary  )
           else
-             thisHash%allocatedSize=hashSizeIncrement
-             allocate(thisHash%hashValues(thisHash%allocatedSize))
-             allocate(thisHash%hashKeys  (thisHash%allocatedSize))
+             self%allocatedSize=hashSizeIncrement
+             allocate(self%hashValues(self%allocatedSize))
+             allocate(self%hashKeys  (self%allocatedSize))
           end if
        end if
-       if (thisHash%elementCount > 0) then
-          iKey=searchArray(thisHash%hashKeys(1:thisHash%elementCount),key)
+       if (self%elementCount > 0) then
+          iKey=searchArray(self%hashKeys(1:self%elementCount),key)
        else
           iKey=1
        end if
-       if (iKey > thisHash%elementCount) then
+       if (iKey > self%elementCount) then
           ! Insert at end.
-          thisHash%elementCount                               =                 thisHash%elementCount+1
-          thisHash%hashKeys    (thisHash%elementCount)        =                 key
-          thisHash%hashValues  (thisHash%elementCount)%object {Type¦assignment} value
+          self%elementCount                               =                 self%elementCount+1
+          self%hashKeys    (self%elementCount)        =                 key
+          self%hashValues  (self%elementCount)%object {Type¦assignment} value
        else
           ! Shift array then insert.
-          do i=thisHash%elementCount+1,iKey+2,-1
-             thisHash%hashKeys    (i     )        =                 thisHash%hashKeys    (i-1)
-             thisHash%hashValues  (i     )        =                 thisHash%hashValues  (i-1)
+          do i=self%elementCount+1,iKey+2,-1
+             self%hashKeys    (i     )        =                 self%hashKeys    (i-1)
+             self%hashValues  (i     )        =                 self%hashValues  (i-1)
           end do
-          thisHash   %hashKeys    (iKey+1)        =                 key
-          thisHash   %hashValues  (iKey+1)%object {Type¦assignment} value
-          thisHash   %elementCount                =                 thisHash%elementCount     +1
+          self   %hashKeys    (iKey+1)        =                 key
+          self   %hashValues  (iKey+1)%object {Type¦assignment} value
+          self   %elementCount                =                 self%elementCount     +1
        end if
     end if
     return
   end subroutine {Type¦label}SetVarStr
 
-  subroutine {Type¦label}Destroy(thisHash)
-    !% Destroys {\normalfont \ttfamily thisHash}.
+  subroutine {Type¦label}Destroy(self)
+    !!{
+    Destroys {\normalfont \ttfamily self}.
+    !!}
     implicit none
-    class  ({Type¦label}Hash), intent(inout) :: thisHash
+    class  ({Type¦label}Hash), intent(inout) :: self
     integer                                  :: i
 
-    if (allocated(thisHash%hashValues)) deallocate(thisHash%hashValues)
-    if (allocated(thisHash%hashKeys  )) then
-       do i=1,size(thisHash%hashKeys)
-          call thisHash%hashKeys(i)%destroy()
+    if (allocated(self%hashValues)) deallocate(self%hashValues)
+    if (allocated(self%hashKeys  )) then
+       do i=1,size(self%hashKeys)
+          call self%hashKeys(i)%destroy()
        end do
-       deallocate(thisHash%hashKeys)
+       deallocate(self%hashKeys)
     end if
     return
   end subroutine {Type¦label}Destroy
 
   subroutine {Type¦label}Destructor(self)
-    !% Destroys {\normalfont \ttfamily thisHash}.
+    !!{
+    Destroys {\normalfont \ttfamily self}.
+    !!}
     implicit none
     type({Type¦label}Hash), intent(inout) :: self
 

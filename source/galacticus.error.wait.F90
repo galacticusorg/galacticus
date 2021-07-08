@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which handles setting of error wait times.
+!!{
+Contains a module which handles setting of error wait times.
+!!}
 
 module Galacticus_Error_Wait
-  !% Handle setting of error wait times.
+  !!{
+  Handle setting of error wait times.
+  !!}
   implicit none
   private
   public :: Galacticus_Error_Wait_Set_From_Parameters
@@ -28,7 +32,9 @@ module Galacticus_Error_Wait
 contains
 
   subroutine Galacticus_Error_Wait_Set_From_Parameters(parameters)
-    !% Read the parameter that controls the verbosity level, and set that level.
+    !!{
+    Read the parameter that controls the verbosity level, and set that level.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Wait_Set
     use :: Input_Parameters, only : inputParameters          , inputParameter
     implicit none
@@ -36,12 +42,14 @@ contains
     integer                                 :: errorWaitTime
 
     ! Get the verbosity level parameter.
-    !# <inputParameter>
-    !#   <name>errorWaitTime</name>
-    !#   <defaultValue>86400</defaultValue>
-    !#   <description>The time, in seconds, for which \glc\ should sleep after a fatal error when running under MPI.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>errorWaitTime</name>
+      <defaultValue>86400</defaultValue>
+      <description>The time, in seconds, for which \glc\ should sleep after a fatal error when running under MPI.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     call Galacticus_Error_Wait_Set(errorWaitTime)
     return
   end subroutine Galacticus_Error_Wait_Set_From_Parameters

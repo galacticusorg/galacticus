@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,35 +17,45 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a satellite deceleration due to dark matter self-interactions using the model of
-  !% \cite{kummer_effective_2018}.
+  !!{
+  Implementation of a satellite deceleration due to dark matter self-interactions using the model of
+  \cite{kummer_effective_2018}.
+  !!}
 
   use :: Dark_Matter_Particles   , only : darkMatterParticleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   use :: Numerical_Interpolation , only : interpolator
 
-  !# <satelliteDecelerationSIDM name="satelliteDecelerationSIDMKummer2018">
-  !#  <description>A satellite deceleration due to dark matter self-interactions using the model of \cite{kummer_effective_2018}.</description>
-  !# </satelliteDecelerationSIDM>
+  !![
+  <satelliteDecelerationSIDM name="satelliteDecelerationSIDMKummer2018">
+   <description>A satellite deceleration due to dark matter self-interactions using the model of \cite{kummer_effective_2018}.</description>
+  </satelliteDecelerationSIDM>
+  !!]
   type, extends(satelliteDecelerationSIDMClass) :: satelliteDecelerationSIDMKummer2018
-     !% Implementation of a satellite deceleration due to dark matter self-interactions using the model of
-     !% \cite{kummer_effective_2018}.
+     !!{
+     Implementation of a satellite deceleration due to dark matter self-interactions using the model of
+     \cite{kummer_effective_2018}.
+     !!}
      private
      class           (darkMatterParticleClass  ), pointer     :: darkMatterParticle_         => null()
      class           (darkMatterProfileDMOClass), pointer     :: darkMatterProfileDMO_       => null()
      type            (interpolator             ), allocatable :: decelerationFactor
      double precision                                         :: rateScatteringNormalization          , xMaximum
    contains
-     !# <methods>
-     !#   <method description="Tabulate the deceleration factor." method="tabulate" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Tabulate the deceleration factor." method="tabulate" />
+     </methods>
+     !!]
      final     ::                 kummer2018Destructor
      procedure :: acceleration => kummer2018Acceleration
      procedure :: tabulate     => kummer2018Tabulate
   end type satelliteDecelerationSIDMKummer2018
 
   interface satelliteDecelerationSIDMKummer2018
-     !% Constructors for the {\normalfont \ttfamily kummer2018} satellite deceleration due to dark matter self-interactions class.
+     !!{
+     Constructors for the {\normalfont \ttfamily kummer2018} satellite deceleration due to dark matter self-interactions class.
+     !!}
      module procedure kummer2018ConstructorParameters
      module procedure kummer2018ConstructorInternal
   end interface satelliteDecelerationSIDMKummer2018
@@ -53,8 +63,10 @@
 contains
 
   function kummer2018ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily kummer2018} satellite deceleration due to dark matter self-interactions class
-    !% which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily kummer2018} satellite deceleration due to dark matter self-interactions class
+    which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (satelliteDecelerationSIDMKummer2018)                :: self
@@ -63,18 +75,24 @@ contains
     class(darkMatterProfileDMOClass          ), pointer       :: darkMatterProfileDMO_
 
   
-    !# <objectBuilder class="darkMatterParticle"   name="darkMatterParticle_"   source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !![
+    <objectBuilder class="darkMatterParticle"   name="darkMatterParticle_"   source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !!]
     self=satelliteDecelerationSIDMKummer2018(darkMatterParticle_,darkMatterProfileDMO_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterParticle_"  />
-    !# <objectDestructor name="darkMatterProfileDMO_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterParticle_"  />
+    <objectDestructor name="darkMatterProfileDMO_"/>
+    !!]
     return
   end function kummer2018ConstructorParameters
 
   function kummer2018ConstructorInternal(darkMatterParticle_,darkMatterProfileDMO_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily kummer2018} satellite deceleration due to dark matter self-interactions
-    !% class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily kummer2018} satellite deceleration due to dark matter self-interactions
+    class.
+    !!}
     use :: Dark_Matter_Particles           , only : darkMatterParticleSelfInteractingDarkMatter
     use :: Numerical_Constants_Prefixes    , only : centi                                     , milli   , kilo
     use :: Numerical_Constants_Astronomical, only : megaParsec                                , gigaYear, massSolar
@@ -82,7 +100,9 @@ contains
     type (satelliteDecelerationSIDMKummer2018)                        :: self
     class(darkMatterParticleClass            ), intent(in   ), target :: darkMatterParticle_
     class(darkMatterProfileDMOClass          ), intent(in   ), target :: darkMatterProfileDMO_
-    !# <constructorAssign variables="*darkMatterParticle_, *darkMatterProfileDMO_"/>
+    !![
+    <constructorAssign variables="*darkMatterParticle_, *darkMatterProfileDMO_"/>
+    !!]
 
     select type (darkMatterParticle_ => self%darkMatterParticle_)
     class is (darkMatterParticleSelfInteractingDarkMatter)
@@ -104,17 +124,23 @@ contains
   end function kummer2018ConstructorInternal
 
   subroutine kummer2018Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily kummer2018} satellite deceleration due to dark matter self-interactions class.
+    !!{
+    Destructor for the {\normalfont \ttfamily kummer2018} satellite deceleration due to dark matter self-interactions class.
+    !!}
     implicit none
     type(satelliteDecelerationSIDMKummer2018), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterParticle_"  />
-    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !![
+    <objectDestructor name="self%darkMatterParticle_"  />
+    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !!]
     return
   end subroutine kummer2018Destructor
 
   function kummer2018Acceleration(self,node)
-    !% Return a deceleration for satellites due to dark matter self-interactions using the formulation of \cite{kummer_effective_2018}.
+    !!{
+    Return a deceleration for satellites due to dark matter self-interactions using the formulation of \cite{kummer_effective_2018}.
+    !!}
     use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
     use :: Galactic_Structure_Potentials     , only : Galactic_Structure_Potential
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Radius_Enclosing_Mass
@@ -223,7 +249,9 @@ contains
   end function kummer2018Acceleration
 
   subroutine kummer2018Tabulate(self,xMaximum)
-    !% Tabulate the deceleration factor, $\chi_\mathrm{d}$.
+    !!{
+    Tabulate the deceleration factor, $\chi_\mathrm{d}$.
+    !!}
     use :: Dark_Matter_Particles, only : darkMatterParticleSelfInteractingDarkMatter
     use :: Numerical_Integration, only : integrator
     use :: Numerical_Ranges     , only : Make_Range                                 , rangeTypeLinear
@@ -266,7 +294,9 @@ contains
   contains
     
     double precision function integrandDecelerationFactor(theta)
-      !% The integrand used to evaluate $\chi_\mathrm{d}$ from \cite[][eqn.~9]{kummer_effective_2018}.
+      !!{
+      The integrand used to evaluate $\chi_\mathrm{d}$ from \cite[][eqn.~9]{kummer_effective_2018}.
+      !!}
       use :: Numerical_Constants_Math, only : Pi
       implicit none
       double precision, intent(in   ) :: theta

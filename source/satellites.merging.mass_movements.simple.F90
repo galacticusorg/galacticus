@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,26 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a merger mass movements class which uses a simple calculation.
+  !!{
+  Implements a merger mass movements class which uses a simple calculation.
+  !!}
 
   use :: Kind_Numbers, only : kind_int8
 
-  !# <mergerMassMovements name="mergerMassMovementsSimple">
-  !#  <description>
-  !#   A merger mass movements class which implements mass movements according to:
-  !#   \begin{itemize}
-  !#    \item If $M_\mathrm{satellite} &gt; f_\mathrm{major} M_\mathrm{central}$ then all mass from both satellite and central
-  !#    galaxies moves to the spheroid \gls{component} of the central galaxy;
-  !#    \item Otherwise: Gas from the satellite moves to the \gls{component} of the central specified by the {\normalfont
-  !#    \ttfamily [minorMergerGasMovesTo]} parameter (either ``{\normalfont \ttfamily disk}'' or ``{\normalfont \ttfamily
-  !#    spheroid}''), stars from the satellite moves to the spheroid of the central and mass in the central does not move.
-  !#   \end{itemize}
-  !#   Here, $f_\mathrm{major}=${\normalfont \ttfamily [majorMergerMassRatio]} is the mass ratio above which a merger is
-  !#   considered to be ``major''.
-  !#  </description>
-  !# </mergerMassMovements>
+  !![
+  <mergerMassMovements name="mergerMassMovementsSimple">
+   <description>
+    A merger mass movements class which implements mass movements according to:
+    \begin{itemize}
+     \item If $M_\mathrm{satellite} &gt; f_\mathrm{major} M_\mathrm{central}$ then all mass from both satellite and central
+     galaxies moves to the spheroid \gls{component} of the central galaxy;
+     \item Otherwise: Gas from the satellite moves to the \gls{component} of the central specified by the {\normalfont
+     \ttfamily [minorMergerGasMovesTo]} parameter (either ``{\normalfont \ttfamily disk}'' or ``{\normalfont \ttfamily
+     spheroid}''), stars from the satellite moves to the spheroid of the central and mass in the central does not move.
+    \end{itemize}
+    Here, $f_\mathrm{major}=${\normalfont \ttfamily [majorMergerMassRatio]} is the mass ratio above which a merger is
+    considered to be ``major''.
+   </description>
+  </mergerMassMovements>
+  !!]
   type, extends(mergerMassMovementsClass) :: mergerMassMovementsSimple
-     !% A merger mass movements class which uses a simple calculation.
+     !!{
+     A merger mass movements class which uses a simple calculation.
+     !!}
      private
      double precision                 :: massRatioMajorMerger
      integer                          :: destinationGasMinorMerger, destinationStarsMinorMerger
@@ -51,7 +57,9 @@
   end type mergerMassMovementsSimple
 
   interface mergerMassMovementsSimple
-     !% Constructors for the {\normalfont \ttfamily simple} merger mass movements class.
+     !!{
+     Constructors for the {\normalfont \ttfamily simple} merger mass movements class.
+     !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
   end interface mergerMassMovementsSimple
@@ -59,7 +67,9 @@
 contains
 
   function simpleConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily simple} merger mass movements class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily simple} merger mass movements class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerMassMovementsSimple)                :: self
@@ -67,36 +77,44 @@ contains
     double precision                                           :: massRatioMajorMerger
     type            (varying_string           )                :: destinationGasMinorMerger, destinationStarsMinorMerger
 
-    !# <inputParameter>
-    !#   <name>massRatioMajorMerger</name>
-    !#   <defaultValue>0.25d0</defaultValue>
-    !#   <description>The mass ratio above which mergers are considered to be ``major''.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>destinationGasMinorMerger</name>
-    !#   <defaultValue>var_str('spheroid')</defaultValue>
-    !#   <description>The component to which satellite galaxy gas moves to as a result of a minor merger.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>destinationStarsMinorMerger</name>
-    !#   <defaultValue>var_str('spheroid')</defaultValue>
-    !#   <description>The component to which satellite galaxy stars move to as a result of a minor merger.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>massRatioMajorMerger</name>
+      <defaultValue>0.25d0</defaultValue>
+      <description>The mass ratio above which mergers are considered to be ``major''.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>destinationGasMinorMerger</name>
+      <defaultValue>var_str('spheroid')</defaultValue>
+      <description>The component to which satellite galaxy gas moves to as a result of a minor merger.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>destinationStarsMinorMerger</name>
+      <defaultValue>var_str('spheroid')</defaultValue>
+      <description>The component to which satellite galaxy stars move to as a result of a minor merger.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=mergerMassMovementsSimple(massRatioMajorMerger,enumerationDestinationMergerEncode(char(destinationGasMinorMerger),includesPrefix=.false.),enumerationDestinationMergerEncode(char(destinationStarsMinorMerger),includesPrefix=.false.))
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function simpleConstructorParameters
 
   function simpleConstructorInternal(massRatioMajorMerger,destinationGasMinorMerger,destinationStarsMinorMerger) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily simple} merger mass movements class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily simple} merger mass movements class.
+    !!}
     implicit none
     type            (mergerMassMovementsSimple)                :: self
     double precision                           , intent(in   ) :: massRatioMajorMerger
     integer                                    , intent(in   ) :: destinationGasMinorMerger, destinationStarsMinorMerger
-    !# <constructorAssign variables="massRatioMajorMerger, destinationGasMinorMerger, destinationStarsMinorMerger"/>
+    !![
+    <constructorAssign variables="massRatioMajorMerger, destinationGasMinorMerger, destinationStarsMinorMerger"/>
+    !!]
 
     self%lastUniqueID             =-huge(0_kind_int8)
     self%destinationGasSatellite  =-huge(0          )
@@ -109,7 +127,9 @@ contains
   end function simpleConstructorInternal
 
   subroutine simpleAutoHook(self)
-    !% Attach to the calculation reset event.
+    !!{
+    Attach to the calculation reset event.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent, openMPThreadBindingAllLevels
     implicit none
     class(mergerMassMovementsSimple), intent(inout) :: self
@@ -120,7 +140,9 @@ contains
   end subroutine simpleAutoHook
 
   subroutine simpleDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily simple} satellite merger mass movements class
+    !!{
+    Destructor for the {\normalfont \ttfamily simple} satellite merger mass movements class
+    !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none
     type(mergerMassMovementsSimple), intent(inout) :: self
@@ -131,7 +153,9 @@ contains
   end subroutine simpleDestructor
 
   subroutine simpleCalculationReset(self,node)
-    !% Reset the dark matter profile calculation.
+    !!{
+    Reset the dark matter profile calculation.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(*       ), intent(inout) :: self
@@ -148,7 +172,9 @@ contains
   end subroutine simpleCalculationReset
 
   subroutine simpleGetHook(self,node)
-    !% Hookable wrapper around the get function.
+    !!{
+    Hookable wrapper around the get function.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (*       ), intent(inout)         :: self
@@ -167,7 +193,9 @@ contains
   end subroutine simpleGetHook
 
   subroutine simpleGet(self,node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
-    !% Determine where stars and gas move as the result of a merger event using a simple algorithm.
+    !!{
+    Determine where stars and gas move as the result of a merger event using a simple algorithm.
+    !!}
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : massTypeGalactic                , componentTypeDisk, componentTypeSpheroid
     implicit none
@@ -221,7 +249,7 @@ contains
           else
              self%destinationStarsSatellite=self%destinationStarsMinorMerger
           end if
-        self%destinationGasHost       =     destinationMergerUnmoved
+          self%destinationGasHost       =     destinationMergerUnmoved
           self%destinationStarsHost     =     destinationMergerUnmoved
        end if
     end if

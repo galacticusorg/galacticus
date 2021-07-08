@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,19 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of an infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.
+  !!{
+  Implementation of an infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.
+  !!}
 
   use :: Cooling_Radii , only : coolingRadius , coolingRadiusClass
   use :: Freefall_Radii, only : freefallRadius, freefallRadiusClass
 
-  !# <coolingInfallRadius name="coolingInfallRadiusCoolingFreefall">
-  !#  <description>
-  !#   A cooling infall radius class calculation which assumes that the infall radius is equal to the smaller of the cooling and
-  !#   freefall radii (see \refPhysics{coolingRadius} and \refPhysics{freefallRadius}).
-  !#  </description>
-  !# </coolingInfallRadius>
+  !![
+  <coolingInfallRadius name="coolingInfallRadiusCoolingFreefall">
+   <description>
+    A cooling infall radius class calculation which assumes that the infall radius is equal to the smaller of the cooling and
+    freefall radii (see \refPhysics{coolingRadius} and \refPhysics{freefallRadius}).
+   </description>
+  </coolingInfallRadius>
+  !!]
   type, extends(coolingInfallRadiusClass) :: coolingInfallRadiusCoolingFreefall
-     !% Implementation of an infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.
+     !!{
+     Implementation of an infall radius calculation in which the infall radius is the smaller of the cooling and freefall radii.
+     !!}
      private
      class(coolingRadiusClass ), pointer :: coolingRadius_ => null()
      class(freefallRadiusClass), pointer :: freefallRadius_ => null()
@@ -40,7 +46,9 @@
   end type coolingInfallRadiusCoolingFreefall
 
   interface coolingInfallRadiusCoolingFreefall
-     !% Constructors for the cooling radius infall radii class.
+     !!{
+     Constructors for the cooling radius infall radii class.
+     !!}
      module procedure coolingFreefallConstructorParameters
      module procedure coolingFreefallConstructorInternal
   end interface coolingInfallRadiusCoolingFreefall
@@ -48,7 +56,9 @@
 contains
 
   function coolingFreefallConstructorParameters(parameters) result(self)
-    !% Constructor for the cooling radius infall radii class which builds the object from a parameter set.
+    !!{
+    Constructor for the cooling radius infall radii class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (coolingInfallRadiusCoolingFreefall)                :: self
@@ -56,39 +66,53 @@ contains
     class(coolingRadiusClass                ), pointer       :: coolingRadius_
     class(freefallRadiusClass               ), pointer       :: freefallRadius_
 
-    !# <objectBuilder class="coolingRadius"  name="coolingRadius_"  source="parameters"/>
-    !# <objectBuilder class="freefallRadius" name="freefallRadius_" source="parameters"/>
+    !![
+    <objectBuilder class="coolingRadius"  name="coolingRadius_"  source="parameters"/>
+    <objectBuilder class="freefallRadius" name="freefallRadius_" source="parameters"/>
+    !!]
     self=coolingInfallRadiusCoolingFreefall(coolingRadius_,freefallRadius_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="coolingRadius_" />
-    !# <objectDestructor name="freefallRadius_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="coolingRadius_" />
+    <objectDestructor name="freefallRadius_"/>
+    !!]
     return
   end function coolingFreefallConstructorParameters
 
   function coolingFreefallConstructorInternal(coolingRadius_,freefallRadius_) result(self)
-    !% Internal constructor for the cooling radius infall radii class.
+    !!{
+    Internal constructor for the cooling radius infall radii class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (coolingInfallRadiusCoolingFreefall)                        :: self
     class(coolingRadiusClass                ), intent(in   ), target :: coolingRadius_
     class(freefallRadiusClass               ), intent(in   ), target :: freefallRadius_
-    !# <constructorAssign variables="*coolingRadius_, *freefallRadius_"/>
+    !![
+    <constructorAssign variables="*coolingRadius_, *freefallRadius_"/>
+    !!]
 
     return
   end function coolingFreefallConstructorInternal
 
   subroutine coolingFreefallDestructor(self)
-    !% Destructor for the cooling radius infall radii class.
+    !!{
+    Destructor for the cooling radius infall radii class.
+    !!}
     implicit none
     type(coolingInfallRadiusCoolingFreefall), intent(inout) :: self
 
-    !# <objectDestructor name="self%coolingRadius_"  />
-    !# <objectDestructor name="self%freefallRadius_" />
+    !![
+    <objectDestructor name="self%coolingRadius_"  />
+    <objectDestructor name="self%freefallRadius_" />
+    !!]
     return
   end subroutine coolingFreefallDestructor
 
   double precision function coolingFreefallRadius(self,node)
-    !% Return the infall radius in the ``cooling radius'' model in Mpc/Gyr.
+    !!{
+    Return the infall radius in the ``cooling radius'' model in Mpc/Gyr.
+    !!}
     implicit none
     class           (coolingInfallRadiusCoolingFreefall), intent(inout) :: self
     type            (treeNode                          ), intent(inout) :: node
@@ -101,7 +125,9 @@ contains
   end function coolingFreefallRadius
 
   double precision function coolingFreefallRadiusIncreaseRate(self,node)
-    !% Return the growth rate of the infall radius in the ``cooling radius'' model in Mpc/Gyr.
+    !!{
+    Return the growth rate of the infall radius in the ``cooling radius'' model in Mpc/Gyr.
+    !!}
     implicit none
     class           (coolingInfallRadiusCoolingFreefall), intent(inout) :: self
     type            (treeNode                          ), intent(inout) :: node

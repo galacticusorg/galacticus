@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of error functions.
+!!{
+Contains a module which implements calculations of error functions.
+!!}
 
 ! Add dependency on GSL library.
 !; gsl
 
 module Error_Functions
-  !% Implements calculations of error functions.
+  !!{
+  Implements calculations of error functions.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_double
   implicit none
   private
@@ -45,14 +49,18 @@ module Error_Functions
 
   interface
      function gsl_sf_erf(x) bind(c,name='gsl_sf_erf')
-       !% Template for the GSL error function.
+       !!{
+       Template for the GSL error function.
+       !!}
        import
        real(c_double)        :: gsl_sf_erf
        real(c_double), value :: x
      end function gsl_sf_erf
 
      function gsl_sf_erfc(x) bind(c,name='gsl_sf_erfc')
-       !% Template for the GSL error function.
+       !!{
+       Template for the GSL error function.
+       !!}
        import
        real(c_double)        :: gsl_sf_erfc
        real(c_double), value :: x
@@ -62,7 +70,9 @@ module Error_Functions
 contains
 
   double precision function Error_Function_Real(argument)
-    !% Computes the error function.
+    !!{
+    Computes the error function.
+    !!}
     implicit none
     double precision, intent(in   ) :: argument
 
@@ -71,7 +81,9 @@ contains
   end function Error_Function_Real
 
   double precision function Error_Function_Complementary_Real(argument)
-    !% Computes the complementary error function.
+    !!{
+    Computes the complementary error function.
+    !!}
     implicit none
     double precision, intent(in   ) :: argument
 
@@ -80,7 +92,9 @@ contains
   end function Error_Function_Complementary_Real
 
   elemental double complex function Error_Function_Complex(argument)
-    !% Computes the complex complementary error function.
+    !!{
+    Computes the complex complementary error function.
+    !!}
     implicit none
     double complex, intent(in   ) :: argument
 
@@ -89,7 +103,9 @@ contains
   end function Error_Function_Complex
 
   elemental double complex function Error_Function_Complementary_Complex(argument)
-    !% Computes the complex complementary error function, using the algorithm of \cite{abrarov_rapid_2013}.
+    !!{
+    Computes the complex complementary error function, using the algorithm of \cite{abrarov_rapid_2013}.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double complex  , intent(in   ) :: argument
@@ -177,7 +193,9 @@ contains
   end function Error_Function_Complementary_Complex
 
   elemental double complex function Faddeeva(argument)
-    !% The \href{http://en.wikipedia.org/wiki/Faddeeva_function}{Fadeeva function}.
+    !!{
+    The \href{http://en.wikipedia.org/wiki/Faddeeva_function}{Fadeeva function}.
+    !!}
     implicit none
     double complex  , intent(in   ) :: argument
 
@@ -186,8 +204,10 @@ contains
   end function Faddeeva
 
  function erfApproximateQuad(x)
-    !% An approximation to the error function due to \cite{winitzki_uniform_2003}.
-    !% that is designed to be very accurate in the vicinity of zero and infinity.
+    !!{
+    An approximation to the error function due to \cite{winitzki_uniform_2003}.
+    that is designed to be very accurate in the vicinity of zero and infinity.
+    !!}
     use :: Kind_Numbers            , only : kind_quad
     use :: Numerical_Constants_Math, only : PiQuadPrecision
     implicit none

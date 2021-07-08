@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function.
+!!{
+Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function.
+!!}
 
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
-  !# <transferFunction name="transferFunctionETHOSDM">
-  !#  <description>Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function.</description>
-  !# </transferFunction>
+  !![
+  <transferFunction name="transferFunctionETHOSDM">
+   <description>Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function.</description>
+  </transferFunction>
+  !!]
   type, extends(transferFunctionClass) :: transferFunctionETHOSDM
-     !% Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function.
+     !!{
+     Implements the ETHOS \citep{cyr-racine_ethoseffective_2016} transfer function.
+     !!}
      private
      double precision                                    :: alpha                         , beta    , &
           &                                                 gamma                         , sigma   , &
@@ -45,7 +51,9 @@
   end type transferFunctionETHOSDM
 
   interface transferFunctionETHOSDM
-     !% Constructors for the {\normalfont \ttfamily ETHOS} transfer function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily ETHOS} transfer function class.
+     !!}
      module procedure ETHOSDMConstructorParameters
      module procedure ETHOSDMConstructorInternal
   end interface transferFunctionETHOSDM
@@ -53,7 +61,9 @@
 contains
   
   function ETHOSDMConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily ETHOS} transfer function class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily ETHOS} transfer function class which takes a parameter set as input.
+    !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
     use :: Galacticus_Error              , only : Galacticus_Error_Report
@@ -71,93 +81,81 @@ contains
          &                                                       redshift
 
     ! Validate parameters.
-    if (.not.parameters%isPresent('transferFunctionMethod')) call Galacticus_Error_Report("an explicit 'transferFunctionMethod' must be given"//{introspection:location})
+    if (.not.parameters%isPresent('transferFunction')) call Galacticus_Error_Report("an explicit 'transferFunction' must be given"//{introspection:location})
     ! Read parameters.
-    !# <inputParameter>
-    !#   <name>alpha</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>40.0d0</defaultValue>
-    !#   <description>The parameter $\alpha$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>beta</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.5d0</defaultValue>
-    !#   <description>The parameter $\beta$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>gamma</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>-10.0d0</defaultValue>
-    !#   <description>The parameter $\gamma$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>sigma</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>-10.0d0</defaultValue>
-    !#   <description>The parameter $\sigma$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}, determines width of first peak in transfer function.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>tau</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>-10.0d0</defaultValue>
-    !#   <description>The parameter $\tau$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}, determines damping of DAO.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>kPeak</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>-10.0d0</defaultValue>
-    !#   <description>The parameter $k_\mathrm{peak}$, the wavenumber of first peak in ETHOS transfer function, apearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>hPeak</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>-10.0d0</defaultValue>
-    !#   <description>The parameter $h_\mathrm{peak}$, the amplitude of the first peak, appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>h2</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>-10.0d0</defaultValue>
-    !#   <description>The parameter $h_2$, the amplitude of the second peak, appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
-    !# <inputParameter>
-    !#   <name>redshift</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%equalityEpochMatterRadiation(requestTypeExpansionFactor))</defaultValue>
-    !#   <description>The redshift of the epoch at which the transfer function is defined.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>alpha</name>
+      <source>parameters</source>
+      <defaultValue>40.0d0</defaultValue>
+      <description>The parameter $\alpha$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>beta</name>
+      <source>parameters</source>
+      <defaultValue>1.5d0</defaultValue>
+      <description>The parameter $\beta$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>gamma</name>
+      <source>parameters</source>
+      <defaultValue>-10.0d0</defaultValue>
+      <description>The parameter $\gamma$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>sigma</name>
+      <source>parameters</source>
+      <defaultValue>-10.0d0</defaultValue>
+      <description>The parameter $\sigma$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}, determines width of first peak in transfer function.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>tau</name>
+      <source>parameters</source>
+      <defaultValue>-10.0d0</defaultValue>
+      <description>The parameter $\tau$ appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}, determines damping of DAO.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>kPeak</name>
+      <source>parameters</source>
+      <defaultValue>-10.0d0</defaultValue>
+      <description>The parameter $k_\mathrm{peak}$, the wavenumber of first peak in ETHOS transfer function, apearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>hPeak</name>
+      <source>parameters</source>
+      <defaultValue>-10.0d0</defaultValue>
+      <description>The parameter $h_\mathrm{peak}$, the amplitude of the first peak, appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>h2</name>
+      <source>parameters</source>
+      <defaultValue>-10.0d0</defaultValue>
+      <description>The parameter $h_2$, the amplitude of the second peak, appearing in the ETHOS transfer function \citep{cyr-racine_ethoseffective_2016}.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
+    <inputParameter>
+      <name>redshift</name>
+      <source>parameters</source>
+      <defaultValue>cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%equalityEpochMatterRadiation(requestTypeExpansionFactor))</defaultValue>
+      <description>The redshift of the epoch at which the transfer function is defined.</description>
+    </inputParameter>
+    !!]
     self=transferFunctionETHOSDM(transferFunctionCDM,alpha,beta,gamma,sigma,tau,kPeak,hPeak,h2,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
-    !# <objectDestructor name="transferFunctionCDM" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="transferFunctionCDM" />
+    !!]
     return
   end function ETHOSDMConstructorParameters
   
   function ETHOSDMConstructorInternal(transferFunctionCDM,alpha,beta,gamma,sigma,tau,kPeak,hPeak,h2,time,cosmologyParameters_,cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily ETHOS} transfer function class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily ETHOS} transfer function class.
+    !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     implicit none
@@ -170,25 +168,33 @@ contains
          &                                                               time
     class           (cosmologyParametersClass), target, intent(in   ) :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), target, intent(in   ) :: cosmologyFunctions_
-    !# <constructorAssign variables="*transferFunctionCDM, alpha, beta, gamma,sigma, tau, kPeak, hPeak, h2, time, *cosmologyParameters_, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="*transferFunctionCDM, alpha, beta, gamma,sigma, tau, kPeak, hPeak, h2, time, *cosmologyParameters_, *cosmologyFunctions_"/>
+    !!]
     
     self%redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(time))
     return
   end function ETHOSDMConstructorInternal
 
   subroutine ETHOSDMDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily ETHOS} transfer function class.
+    !!{
+    Destructor for the {\normalfont \ttfamily ETHOS} transfer function class.
+    !!}
     implicit none
     type(transferFunctionETHOSDM), intent(inout) :: self
     
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_" />
-    !# <objectDestructor name="self%transferFunctionCDM" />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    <objectDestructor name="self%cosmologyFunctions_" />
+    <objectDestructor name="self%transferFunctionCDM" />
+    !!]
     return
   end subroutine ETHOSDMDestructor
 
   double precision function ETHOSDMValue(self,wavenumber)
-    !% Return the transfer function at the given wavenumber.
+    !!{
+    Return the transfer function at the given wavenumber.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (transferFunctionETHOSDM), intent(inout) :: self
@@ -256,7 +262,9 @@ contains
   end function ETHOSDMValue
 
   double precision function ETHOSDMLogarithmicDerivative(self,wavenumber)
-    !% Return the logarithmic derivative of the transfer function at the given wavenumber.
+    !!{
+    Return the logarithmic derivative of the transfer function at the given wavenumber.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (transferFunctionETHOSDM), intent(inout) :: self
@@ -481,8 +489,10 @@ contains
   end function ETHOSDMLogarithmicDerivative
 
   double precision function ETHOSDMHalfModeMass(self,status)
-    !% Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
-    !% to a \gls{cdm} transfer function.
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of two relative
+    to a \gls{cdm} transfer function.
+    !!}
     use :: Galacticus_Error        , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -506,7 +516,9 @@ contains
   end function ETHOSDMHalfModeMass
 
   double precision function ETHOSDMEpochTime(self)
-    !% Return the cosmic time at the epoch at which this transfer function is defined.
+    !!{
+    Return the cosmic time at the epoch at which this transfer function is defined.
+    !!}
     implicit none
     class(transferFunctionETHOSDM), intent(inout) :: self
 

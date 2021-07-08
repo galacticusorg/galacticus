@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of vectors.
+!!{
+Contains a module which implements calculations of vectors.
+!!}
 
 module Vectors
-  !% Implements calculations of vectors.
+  !!{
+  Implements calculations of vectors.
+  !!}
   implicit none
   private
   public :: Vector_Magnitude, Vector_Product, Vector_Outer_Product, Vector_Outer_Product_Accumulate, Matrix_Copy_Upper_To_Lower_Triangle, Vector_Matrix_Multiply
@@ -37,7 +41,9 @@ module Vectors
 contains
 
   pure double precision function Vector_Magnitude(vector1)
-    !% Computes the magnitude of {\normalfont \ttfamily vector1}.
+    !!{
+    Computes the magnitude of {\normalfont \ttfamily vector1}.
+    !!}
     implicit none
     double precision, dimension(3), intent(in   ) :: vector1
 
@@ -46,7 +52,9 @@ contains
   end function Vector_Magnitude
 
   pure function Vector_Product(vector1,vector2) result(vector3)
-    !% Computes the vector product of {\normalfont \ttfamily vector1} and {\normalfont \ttfamily vector2}.
+    !!{
+    Computes the vector product of {\normalfont \ttfamily vector1} and {\normalfont \ttfamily vector2}.
+    !!}
     implicit none
     double precision, dimension(3)                :: vector3
     double precision, dimension(3), intent(in   ) :: vector1, vector2
@@ -58,7 +66,9 @@ contains
   end function Vector_Product
 
  function Vector_Outer_Product_Distinct(vector1,vector2)
-    !% Returns the outer product of two vectors.
+    !!{
+    Returns the outer product of two vectors.
+    !!}
     implicit none
     double precision, dimension(:                          ), intent(in   ) :: vector1, vector2
     double precision, dimension(size(vector1),size(vector2))                :: Vector_Outer_Product_Distinct
@@ -70,7 +80,9 @@ contains
   end function Vector_Outer_Product_Distinct
 
  function Vector_Outer_Product_Self(vector1,symmetrize)
-    !% Returns the outer product of a vector with itself.
+    !!{
+    Returns the outer product of a vector with itself.
+    !!}
     implicit none
     double precision, dimension(:                          ), intent(in   ) :: vector1
     double precision, dimension(size(vector1),size(vector1))                :: Vector_Outer_Product_Self
@@ -84,10 +96,12 @@ contains
   end function Vector_Outer_Product_Self
 
   subroutine Vector_Outer_Product_Accumulate_Self(vector1,matrix,symmetrize,sparse)
-    !% Compute the outer product of a vector with itself and accumulate it to the given
-    !% matrix. Compute only the upper triangle unless the symmetrize option is set to true. If
-    !% the sparse option is set to true, assume a sparse matrix and accumulate only non-zero
-    !% terms.
+    !!{
+    Compute the outer product of a vector with itself and accumulate it to the given
+    matrix. Compute only the upper triangle unless the symmetrize option is set to true. If
+    the sparse option is set to true, assume a sparse matrix and accumulate only non-zero
+    terms.
+    !!}
     implicit none
     double precision, dimension(:  ), intent(in   ) :: vector1
     double precision, dimension(:,:), intent(inout) :: matrix
@@ -125,7 +139,9 @@ contains
   end subroutine Vector_Outer_Product_Accumulate_Self
 
   function Matrix_Copy_Upper_To_Lower_Triangle(matrix)
-    !% Copies the upper triangle of a square matrix to the lower triangle.
+    !!{
+    Copies the upper triangle of a square matrix to the lower triangle.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision, dimension(:                 ,:                 ), intent(in   ) :: matrix
@@ -143,7 +159,9 @@ contains
   end function Matrix_Copy_Upper_To_Lower_Triangle
 
  function Vector_Matrix_Multiply(vector,matrix)
-    !% Returns the product of a vector with a matrix.
+    !!{
+    Returns the product of a vector with a matrix.
+    !!}
     implicit none
     double precision, dimension(:                   ), intent(in   ) :: vector
     double precision, dimension(:,:                 ), intent(in   ) :: matrix

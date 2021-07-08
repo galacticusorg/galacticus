@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,45 +17,51 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements on-the-fly analyses.
+!!{
+Contains a module which provides a class that implements on-the-fly analyses.
+!!}
 
 module Node_Property_Extractors
-  !% Provides a class that implements extraction of properties from nodes.
+  !!{
+  Provides a class that implements extraction of properties from nodes.
+  !!}
   use :: Galacticus_Nodes       , only : treeNode
   use :: Multi_Counters         , only : multiCounter
   use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityUnknown
   private
 
-  !# <functionClass>
-  !#  <name>nodePropertyExtractor</name>
-  !#  <descriptiveName>Output Analysis Property Extractor</descriptiveName>
-  !#  <description>Class providing extraction of properties from nodes.</description>
-  !#  <default>nodeIndices</default>
-  !#  <method name="type" >
-  !#   <description>Return the type of the extracted property.</description>
-  !#   <type>integer</type>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !#  <method name="quantity" >
-  !#   <description>Return the class of the extracted property.</description>
-  !#   <type>integer</type>
-  !#   <pass>yes</pass>
-  !#   <code>
-  !#    !$GLC attributes unused :: self
-  !#    nodePropertyExtractorQuantity=outputAnalysisPropertyQuantityUnknown
-  !#   </code>
-  !#  </method>
-  !#  <method name="addInstances" >
-  !#   <description>Add multiple instances of this property to a {\normalfont \ttfamily multiCounter} object.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode    ), intent(inout) :: node</argument>
-  !#   <argument>type(multiCounter), intent(inout) :: instance</argument>
-  !#   <code>
-  !#    !$GLC attributes unused :: self, node, instance
-  !#    ! Nothing to do.
-  !#   </code>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>nodePropertyExtractor</name>
+   <descriptiveName>Output Analysis Property Extractor</descriptiveName>
+   <description>Class providing extraction of properties from nodes.</description>
+   <default>nodeIndices</default>
+   <method name="type" >
+    <description>Return the type of the extracted property.</description>
+    <type>integer</type>
+    <pass>yes</pass>
+   </method>
+   <method name="quantity" >
+    <description>Return the class of the extracted property.</description>
+    <type>integer</type>
+    <pass>yes</pass>
+    <code>
+     !$GLC attributes unused :: self
+     nodePropertyExtractorQuantity=outputAnalysisPropertyQuantityUnknown
+    </code>
+   </method>
+   <method name="addInstances" >
+    <description>Add multiple instances of this property to a {\normalfont \ttfamily multiCounter} object.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>type(treeNode    ), intent(inout) :: node</argument>
+    <argument>type(multiCounter), intent(inout) :: instance</argument>
+    <code>
+     !$GLC attributes unused :: self, node, instance
+     ! Nothing to do.
+    </code>
+   </method>
+  </functionClass>
+  !!]
 
 end module Node_Property_Extractors

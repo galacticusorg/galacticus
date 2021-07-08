@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,88 +19,99 @@
 
   !+    Contributions to this file made by: Andrew Benson, Christoph Behrens, Xiaolong Du.
 
-  !% An implementation of cosmological density field mass variance computed using a filtered power spectrum.
+  !!{
+  An implementation of cosmological density field mass variance computed using a filtered power spectrum.
+  !!}
 
-  !# <cosmologicalMassVariance name="cosmologicalMassVarianceFilteredPower">
-  !#  <description>
-  !#   Mass variance of cosmological density fields computed from a filtered power spectrum:
-  !#   \begin{equation}
-  !#    \sigma^2(M) = {1 \over 2 \pi^2} \int_0^\infty P(k) T^2(k) W^2(k) k^2 \mathrm{d}k
-  !#   \end{equation}
-  !#   where $P(k)$ is the primordial power spectrum (see \refPhysics{powerSpectrumPrimordial}), $T(k)$ is the transfer function
-  !#   (see \refPhysics{transferFunction}), and $W(k)$ is the power spectrum variance window function (see
-  !#   \refPhysics{powerSpectrumWindowFunction}).
-  !#
-  !#   The normalization of the mass variance is specified via the {\normalfont \ttfamily [sigma\_8]} parameter, which defines the
-  !#   linear theory root-variance of the density field in spheres of radii $8h^{-1}$Mpc. Note that when computing the
-  !#   normalization of the power spectrum to match the specified value of $\sigma_8$ a top-hat real-space window function is
-  !#   \emph{always} used (as per the definition of $\sigma_8$).
-  !#
-  !#   The mass variance, $\sigma(M)$, is found by integration over the linear theory power spectrum, with the specified power
-  !#   spectrum window function. The fractional tolerance for this integration can be set via the {\normalfont \ttfamily
-  !#   [tolerance]} parameter. (The normalization of $\sigma(M)$ to give the desired $\sigma_8$ always uses a top-hat window
-  !#   function. For this integration the tolerance can be set via the {\normalfont \ttfamily [toleranceTopHat]} parameter.) This
-  !#   is tabulated across the required range.
-  !#
-  !#   Cubic spline interpolation is then used to interpolate in this table to give $\sigma(M)$ at any required value of $M$. The
-  !#   tabulation is always forced to be monotonically decreasing with $M$. However, the interpolation is not necessarily
-  !#   monotonic---for example in cases where $\sigma(M)$ becomes constant or close to constant as a function of $M$ the
-  !#   interpolation can become non-monotonic over some ranges of $M$. If strict monotonicity is required set {\normalfont
-  !#   \ttfamily [monotonicInterpolation]}={\normalfont \ttfamily true}. This causes a monotonic spline interpolator to be used
-  !#   instead which gaurantees monotonicity.
-  !#  </description>
-  !#  <deepCopy>
-  !#   <functionClass variables="powerSpectrumWindowFunctionTopHat_"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="powerSpectrumWindowFunctionTopHat_"/>
-  !#  </stateStorable>
-  !# </cosmologicalMassVariance>
+  !![
+  <cosmologicalMassVariance name="cosmologicalMassVarianceFilteredPower">
+   <description>
+    Mass variance of cosmological density fields computed from a filtered power spectrum:
+    \begin{equation}
+     \sigma^2(M) = {1 \over 2 \pi^2} \int_0^\infty P(k) T^2(k) W^2(k) k^2 \mathrm{d}k
+    \end{equation}
+    where $P(k)$ is the primordial power spectrum (see \refPhysics{powerSpectrumPrimordial}), $T(k)$ is the transfer function
+    (see \refPhysics{transferFunction}), and $W(k)$ is the power spectrum variance window function (see
+    \refPhysics{powerSpectrumWindowFunction}).
+  
+    The normalization of the mass variance is specified via the {\normalfont \ttfamily [sigma\_8]} parameter, which defines the
+    linear theory root-variance of the density field in spheres of radii $8h^{-1}$Mpc. Note that when computing the
+    normalization of the power spectrum to match the specified value of $\sigma_8$ a top-hat real-space window function is
+    used (as per the definition of $\sigma_8$), unless a different window function is explicitly defined via the {\normalfont
+    \ttfamily [powerSpectrumWindowFunctionTopHat]} parameter.
+  
+    The mass variance, $\sigma(M)$, is found by integration over the linear theory power spectrum, with the specified power
+    spectrum window function. The fractional tolerance for this integration can be set via the {\normalfont \ttfamily
+    [tolerance]} parameter. (The normalization of $\sigma(M)$ to give the desired $\sigma_8$ always uses a top-hat window
+    function. For this integration the tolerance can be set via the {\normalfont \ttfamily [toleranceTopHat]} parameter.) This
+    is tabulated across the required range.
+  
+    Cubic spline interpolation is then used to interpolate in this table to give $\sigma(M)$ at any required value of $M$. The
+    tabulation is always forced to be monotonically decreasing with $M$. However, the interpolation is not necessarily
+    monotonic---for example in cases where $\sigma(M)$ becomes constant or close to constant as a function of $M$ the
+    interpolation can become non-monotonic over some ranges of $M$. If strict monotonicity is required set {\normalfont
+    \ttfamily [monotonicInterpolation]}={\normalfont \ttfamily true}. This causes a monotonic spline interpolator to be used
+    instead which gaurantees monotonicity.
+   </description>
+  </cosmologicalMassVariance>
+  !!]
   use :: Cosmology_Functions                 , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters                , only : cosmologyParametersClass
   use :: Linear_Growth                       , only : linearGrowthClass
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredClass
-  use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionClass       , powerSpectrumWindowFunctionTopHat
+  use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionClass
   use :: Tables                              , only : table1DLinearCSpline
+  use :: File_Utilities                      , only : lockDescriptor
 
-  !# <stateStorable class="uniqueTable"/>
+  !![
+  <stateStorable class="uniqueTable"/>
+  !!]
 
   type :: uniqueTable
-     !% Type used to store unique values of the mass variance.
+     !!{
+     Type used to store unique values of the mass variance.
+     !!}
      private
      double precision, allocatable, dimension(:) :: rootVariance
      integer         , allocatable, dimension(:) :: index
   end type uniqueTable
 
   type, extends(cosmologicalMassVarianceClass) :: cosmologicalMassVarianceFilteredPower
-     !% A cosmological mass variance class computing variance from a filtered power spectrum.
+     !!{
+     A cosmological mass variance class computing variance from a filtered power spectrum.
+     !!}
      private
      class           (cosmologyParametersClass               ), pointer                   :: cosmologyParameters_                => null()
      class           (cosmologyFunctionsClass                ), pointer                   :: cosmologyFunctions_                 => null()
-     class           (powerSpectrumPrimordialTransferredClass), pointer                   :: powerSpectrumPrimordialTransferred_ => null()
+     class           (powerSpectrumPrimordialTransferredClass), pointer                   :: powerSpectrumPrimordialTransferred_ => null(), powerSpectrumPrimordialTransferredReference => null()
+     class           (cosmologicalMassVarianceClass          ), pointer                   :: cosmologicalMassVarianceReference   => null()
      class           (linearGrowthClass                      ), pointer                   :: linearGrowth_                       => null()
-     class           (powerSpectrumWindowFunctionClass       ), pointer                   :: powerSpectrumWindowFunction_        => null()
-     type            (powerSpectrumWindowFunctionTopHat      ), pointer                   :: powerSpectrumWindowFunctionTopHat_  => null()
+     class           (powerSpectrumWindowFunctionClass       ), pointer                   :: powerSpectrumWindowFunction_        => null(), powerSpectrumWindowFunctionTopHat_          => null()
      logical                                                                              :: initialized                                  , nonMonotonicIsFatal
-     double precision                                                                     :: tolerance                                    , toleranceTopHat            , &
-          &                                                                                  sigma8Value                                  , sigmaNormalization         , &
-          &                                                                                  massMinimum                                  , massMaximum                , &
-          &                                                                                  timeMinimum                                  , timeMaximum                , &
-          &                                                                                  timeMinimumLogarithmic                       , timeLogarithmicDeltaInverse
+     double precision                                                                     :: tolerance                                    , toleranceTopHat                                      , &
+          &                                                                                  sigma8Value                                  , sigmaNormalization                                   , &
+          &                                                                                  massMinimum                                  , massMaximum                                          , &
+          &                                                                                  timeMinimum                                  , timeMaximum                                          , &
+          &                                                                                  timeMinimumLogarithmic                       , timeLogarithmicDeltaInverse                          , &
+          &                                                                                  wavenumberReference
      double precision                                         , allocatable, dimension(:) :: times
      class           (table1DLinearCSpline                   ), allocatable, dimension(:) :: rootVarianceTable
      type            (varying_string                         )                            :: fileName
+     type            (lockDescriptor                         )                            :: fileLock
      ! Unique values in the variance table and their corresponding indices.
      type            (uniqueTable                            ), allocatable, dimension(:) :: rootVarianceUniqueTable
-     logical                                                                              :: monotonicInterpolation                       , growthIsMassDependent_
+     logical                                                                              :: monotonicInterpolation                       , growthIsMassDependent_                               , &
+         &                                                                                   normalizationSigma8                          , truncateAtParticleHorizon
    contains
-     !# <methods>
-     !#   <method description="Tabulate cosmological mass variance." method="retabulate" />
-     !#   <method description="Compute the interpolating factors in time." method="interpolantsTime" />
-     !#   <method description="Write the tabulated mass variance to file." method="fileWrite" />
-     !#   <method description="Read the tabulated mass variance from file." method="fileRead" />
-     !#   <method description="Return true if the table must be remade." method="remakeTable" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Tabulate cosmological mass variance."        method="retabulate"      />
+       <method description="Compute the interpolating factors in time."  method="interpolantsTime"/>
+       <method description="Write the tabulated mass variance to file."  method="fileWrite"       />
+       <method description="Read the tabulated mass variance from file." method="fileRead"        />
+       <method description="Return true if the table must be remade."    method="remakeTable"     />
+     </methods>
+     !!]
      final     ::                                        filteredPowerDestructor
      procedure :: sigma8                              => filteredPowerSigma8
      procedure :: powerNormalization                  => filteredPowerPowerNormalization
@@ -115,16 +126,19 @@
      procedure :: fileWrite                           => filteredPowerFileWrite
      procedure :: fileRead                            => filteredPowerFileRead
      procedure :: remakeTable                         => filteredPowerRemakeTable
+     procedure :: descriptor                          => filteredPowerDescriptor
   end type cosmologicalMassVarianceFilteredPower
 
   interface cosmologicalMassVarianceFilteredPower
-     !% Constructors for the {\normalfont \ttfamily filteredPower} cosmological mass variance class.
+     !!{
+     Constructors for the {\normalfont \ttfamily filteredPower} cosmological mass variance class.
+     !!}
      module procedure filteredPowerConstructorParameters
      module procedure filteredPowerConstructorInternal
   end interface cosmologicalMassVarianceFilteredPower
 
   ! Number of points per decade to use in tabulation of σ(M).
-  integer                         , parameter :: filteredPowerTablePointsPerDecade=10     , filteredPowerTimePointsPerDecade=100
+  integer                         , parameter :: filteredPowerTablePointsPerDecade=10, filteredPowerTimePointsPerDecade=100
 
   ! Module-scope time used in integrals.
   double precision                            :: filteredPowerTime
@@ -133,88 +147,194 @@
 contains
 
   function filteredPowerConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily filteredPower} cosmological mass variance class which takes a parameter set as input.
-    use :: Input_Parameters, only : inputParameter, inputParameters
+    !!{
+    Constructor for the {\normalfont \ttfamily filteredPower} cosmological mass variance class which takes a parameter set as input.
+    !!}
+    use :: Input_Parameters, only : inputParameter         , inputParameters
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (cosmologicalMassVarianceFilteredPower  )                :: self
     type            (inputParameters                        ), intent(inout) :: parameters
+    type            (inputParameters                        )                :: referenceParameters
+    class           (cosmologicalMassVarianceClass          ), pointer       :: cosmologicalMassVarianceReference
     class           (cosmologyParametersClass               ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
-    class           (powerSpectrumPrimordialTransferredClass), pointer       :: powerSpectrumPrimordialTransferred_
-    class           (powerSpectrumWindowFunctionClass       ), pointer       :: powerSpectrumWindowFunction_
+    class           (powerSpectrumPrimordialTransferredClass), pointer       :: powerSpectrumPrimordialTransferred_, powerSpectrumPrimordialTransferredReference
+    class           (powerSpectrumWindowFunctionClass       ), pointer       :: powerSpectrumWindowFunction_       , powerSpectrumWindowFunctionTopHat_
     class           (linearGrowthClass                      ), pointer       :: linearGrowth_
-    double precision                                                         :: sigma8Value                        , tolerance          , &
-         &                                                                      toleranceTopHat
-    logical                                                                  :: monotonicInterpolation             , nonMonotonicIsFatal
+    double precision                                                         :: sigma8Value                        , tolerance                                  , &
+         &                                                                      toleranceTopHat                    , wavenumberReference
+    logical                                                                  :: monotonicInterpolation             , nonMonotonicIsFatal                        , &
+         &                                                                      truncateAtParticleHorizon
 
-    ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>sigma_8</name>
-    !#   <source>parameters</source>
-    !#   <variable>sigma8Value</variable>
-    !#   <defaultValue>0.8111d0</defaultValue>
-    !#   <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
-    !#   <description>The fractional mass fluctuation in the linear density field at the present day in spheres of radius 8~Mpc/h.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>toleranceTopHat</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d-6</defaultValue>
-    !#   <description>The relative tolerance to use in integrating over the linear power spectrum using a top-hat (real space) window function to compute the cosmological mass variance.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>tolerance</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>4.0d-6</defaultValue>
-    !#   <description>The relative tolerance to use in integrating over the linear power spectrum to compute the cosmological mass variance.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>nonMonotonicIsFatal</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true any non-monotonicity in the tabulated $\sigma(M)$ is treated as a fatal error. Otherwise a only a warning is issued.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>monotonicInterpolation</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true use a monotonic cubic spline interpolator to interpolate in the $\sigma(M)$ table. Otherwise use a standard cubic spline interpoltor. Use of the monotionic interpolator can be helpful is $\sigma(M)$ must be strictly monotonic but becomes a very weak function of $M$ at low masses.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"                name="cosmologyParameters_"                source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"/>
-    !# <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_" source="parameters"/>
-    !# <objectBuilder class="powerSpectrumWindowFunction"        name="powerSpectrumWindowFunction_"        source="parameters"/>
-    !# <objectBuilder class="linearGrowth"                       name="linearGrowth_"                       source="parameters"/>
-    ! Construct the instance.
-    self=filteredPowerConstructorInternal(sigma8Value,tolerance,toleranceTopHat,nonMonotonicIsFatal,monotonicInterpolation,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"               />
-    !# <objectDestructor name="cosmologyFunctions_"                />
-    !# <objectDestructor name="linearGrowth_"                      />
-    !# <objectDestructor name="powerSpectrumPrimordialTransferred_"/>
-    !# <objectDestructor name="powerSpectrumWindowFunction_"       />
+    !![
+    <objectBuilder    class="cosmologyParameters"                name="cosmologyParameters_"                        source="parameters"                                                  />
+    <objectBuilder    class="cosmologyFunctions"                 name="cosmologyFunctions_"                         source="parameters"                                                  />
+    <objectBuilder    class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferred_"         source="parameters"                                                  />
+    <objectBuilder    class="powerSpectrumWindowFunction"        name="powerSpectrumWindowFunction_"                source="parameters"                                                  />
+    <objectBuilder    class="linearGrowth"                       name="linearGrowth_"                               source="parameters"                                                  />
+    !!]
+    if (parameters%isPresent('powerSpectrumWindowFunctionTopHat')) then
+       !![
+       <objectBuilder class="powerSpectrumWindowFunction"        name="powerSpectrumWindowFunctionTopHat_"          source="parameters" parameterName="powerSpectrumWindowFunctionTopHat"/>
+       !!]
+    else
+       nullify(powerSpectrumWindowFunctionTopHat_)
+    end if
+    if (parameters%isPresent('wavenumberReference')) then
+       if (parameters%isPresent('sigma_8')) call Galacticus_Error_Report('sigma_8 must not be specified if a power spectrum amplitude is specified'//{introspection:location})
+       if (.not.parameters%isPresent('reference',requireValue=.false.)) call Galacticus_Error_Report('parameters must contain a "reference" section'//{introspection:location})
+       referenceParameters=parameters%subParameters('reference',requireValue=.false.)
+       if (.not.referenceParameters%isPresent('cosmologicalMassVariance'          )) call Galacticus_Error_Report('"reference" section must explicitly defined a "cosmologicalMassVariance"'          //{introspection:location})
+       if (.not.referenceParameters%isPresent('powerSpectrumPrimordialTransferred')) call Galacticus_Error_Report('"reference" section must explicitly defined a "powerSpectrumPrimordialTransferred"'//{introspection:location})
+       !![
+       <objectBuilder class="cosmologicalMassVariance"           name="cosmologicalMassVarianceReference"           source="referenceParameters"                                         />
+       <objectBuilder class="powerSpectrumPrimordialTransferred" name="powerSpectrumPrimordialTransferredReference" source="referenceParameters"                                         />
+       <inputParameter>
+         <name>wavenumberReference</name>
+         <source>parameters</source>
+         <description>The reference wavenumber at which the amplitude of the power spectrum is matched to that in the reference model.</description>
+       </inputParameter>
+       !!]
+    else       
+       !![
+       <inputParameter>
+         <name>sigma_8</name>
+         <source>parameters</source>
+         <variable>sigma8Value</variable>
+         <defaultValue>0.8111d0</defaultValue>
+         <defaultSource>(\citealt{planck_collaboration_planck_2018}; TT,TE,EE$+$lowE$+$lensing)</defaultSource>
+         <description>The fractional mass fluctuation in the linear density field at the present day in spheres of radius 8~Mpc/h.</description>
+       </inputParameter>
+       !!]
+    end if
+    !![
+    <inputParameter>
+      <name>toleranceTopHat</name>
+      <source>parameters</source>
+      <defaultValue>1.0d-6</defaultValue>
+      <description>The relative tolerance to use in integrating over the linear power spectrum using a top-hat (real space) window function to compute the cosmological mass variance.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>tolerance</name>
+      <source>parameters</source>
+      <defaultValue>4.0d-6</defaultValue>
+      <description>The relative tolerance to use in integrating over the linear power spectrum to compute the cosmological mass variance.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>nonMonotonicIsFatal</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true any non-monotonicity in the tabulated $\sigma(M)$ is treated as a fatal error. Otherwise a only a warning is issued.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>monotonicInterpolation</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true use a monotonic cubic spline interpolator to interpolate in the $\sigma(M)$ table. Otherwise use a standard cubic spline interpoltor. Use of the monotonic interpolator can be helpful is $\sigma(M)$ must be strictly monotonic but becomes a very weak function of $M$ at low masses.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>truncateAtParticleHorizon</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true then integration over the power spectrum is truncated at a wavenumber $k=1/H_\mathrm{p}(t_0)$, where $/H_\mathrm{p}(t_0)$ is the comoving distance to the particle horizon at the present epoch. Otherwise, integration continues to $k=0$.</description>
+    </inputParameter>
+    <conditionalCall>
+     <call>
+      self=filteredPowerConstructorInternal(                                                                         &amp;
+       &amp;                                tolerance                          =tolerance                          , &amp;
+       &amp;                                toleranceTopHat                    =toleranceTopHat                    , &amp;
+       &amp;                                nonMonotonicIsFatal                =nonMonotonicIsFatal                , &amp;
+       &amp;                                monotonicInterpolation             =monotonicInterpolation             , &amp;
+       &amp;                                truncateAtParticleHorizon          =truncateAtParticleHorizon          , &amp;
+       &amp;                                cosmologyParameters_               =cosmologyParameters_               , &amp;
+       &amp;                                cosmologyFunctions_                =cosmologyFunctions_                , &amp;
+       &amp;                                linearGrowth_                      =linearGrowth_                      , &amp;
+       &amp;                                powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferred_, &amp;
+       &amp;                                powerSpectrumWindowFunction_       =powerSpectrumWindowFunction_         &amp;
+       &amp;                                {conditions}                                                             &amp;
+       &amp;                               )
+     </call>
+     <argument name="sigma8"                                      value="sigma8Value"                                 condition=".not.parameters%isPresent('wavenumberReference')"                   />
+     <argument name="cosmologicalMassVarianceReference"           value="cosmologicalMassVarianceReference"           condition="     parameters%isPresent('wavenumberReference')"                   />
+     <argument name="wavenumberReference"                         value="wavenumberReference"                         condition="     parameters%isPresent('wavenumberReference')"                   />
+     <argument name="powerSpectrumPrimordialTransferredReference" value="powerSpectrumPrimordialTransferredReference" condition="     parameters%isPresent('wavenumberReference')"                   />
+     <argument name="powerSpectrumWindowFunctionTopHat_"          value="powerSpectrumWindowFunctionTopHat_"          parameterPresent="parameters" parameterName="powerSpectrumWindowFunctionTopHat"/>
+    </conditionalCall>
+    <inputParametersValidate source="parameters"/>
+    !!]
+    if (parameters%isPresent('wavenumberReference')) then
+       !![
+       <objectDestructor name="powerSpectrumPrimordialTransferredReference"/>
+       <objectDestructor name="cosmologicalMassVarianceReference"          />
+       !!]
+    end if
+    !![
+    <objectDestructor    name="cosmologyParameters_"                       />
+    <objectDestructor    name="cosmologyFunctions_"                        />
+    <objectDestructor    name="linearGrowth_"                              />
+    <objectDestructor    name="powerSpectrumPrimordialTransferred_"        />
+    <objectDestructor    name="powerSpectrumWindowFunction_"               />
+    !!]
+    if (parameters%isPresent('powerSpectrumWindowFunctionTopHat')) then
+       !![
+       <objectDestructor name="powerSpectrumWindowFunctionTopHat_"         />
+       !!]
+    end if
     return
   end function filteredPowerConstructorParameters
 
-  function filteredPowerConstructorInternal(sigma8,tolerance,toleranceTopHat,nonMonotonicIsFatal,monotonicInterpolation,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
-    use :: File_Utilities  , only : Directory_Make, File_Path
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataDynamic
+  function filteredPowerConstructorInternal(sigma8,cosmologicalMassVarianceReference,powerSpectrumPrimordialTransferredReference,wavenumberReference,tolerance,toleranceTopHat,nonMonotonicIsFatal,monotonicInterpolation,truncateAtParticleHorizon,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrumPrimordialTransferred_,powerSpectrumWindowFunction_,powerSpectrumWindowFunctionTopHat_) result(self)
+    !!{
+    Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
+    !!}
+    use :: File_Utilities                 , only : Directory_Make                   , File_Path
+    use :: Galacticus_Error               , only : Galacticus_Error_Report
+    use :: Galacticus_Paths               , only : galacticusPath                   , pathTypeDataDynamic
+    use :: Power_Spectrum_Window_Functions, only : powerSpectrumWindowFunctionTopHat
     implicit none
-    type            (cosmologicalMassVarianceFilteredPower  )                        :: self
-    double precision                                         , intent(in   )         :: tolerance                          , toleranceTopHat       , &
-         &                                                                              sigma8
-    logical                                                  , intent(in   )         :: nonMonotonicIsFatal                , monotonicInterpolation
-    class           (cosmologyParametersClass               ), intent(in   ), target :: cosmologyParameters_
-    class           (cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
-    class           (powerSpectrumPrimordialTransferredClass), intent(in   ), target :: powerSpectrumPrimordialTransferred_
-    class           (powerSpectrumWindowFunctionClass       ), intent(in   ), target :: powerSpectrumWindowFunction_
-    class           (linearGrowthClass                      ), intent(in   ), target :: linearGrowth_
-    !# <constructorAssign variables="tolerance, toleranceTopHat, nonMonotonicIsFatal, monotonicInterpolation, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *powerSpectrumPrimordialTransferred_, *powerSpectrumWindowFunction_"/>
+    type            (cosmologicalMassVarianceFilteredPower  )                                  :: self
+    double precision                                         , intent(in   )                   :: tolerance                                  , toleranceTopHat
+    double precision                                         , intent(in   )        , optional :: wavenumberReference                        , sigma8
+    logical                                                  , intent(in   )                   :: nonMonotonicIsFatal                        , monotonicInterpolation, &
+         &                                                                                        truncateAtParticleHorizon
+    class           (cosmologyParametersClass               ), intent(in   ), target           :: cosmologyParameters_
+    class           (cosmologyFunctionsClass                ), intent(in   ), target           :: cosmologyFunctions_
+    class           (powerSpectrumPrimordialTransferredClass), intent(in   ), target           :: powerSpectrumPrimordialTransferred_
+    class           (powerSpectrumWindowFunctionClass       ), intent(in   ), target           :: powerSpectrumWindowFunction_
+    class           (powerSpectrumPrimordialTransferredClass), intent(in   ), target, optional :: powerSpectrumPrimordialTransferredReference
+    class           (cosmologicalMassVarianceClass          ), intent(in   ), target, optional :: cosmologicalMassVarianceReference
+    class           (powerSpectrumWindowFunctionClass       ), intent(in   ), target, optional :: powerSpectrumWindowFunctionTopHat_
+    class           (linearGrowthClass                      ), intent(in   ), target           :: linearGrowth_
+    !![
+    <constructorAssign variables="tolerance, toleranceTopHat, nonMonotonicIsFatal, monotonicInterpolation, truncateAtParticleHorizon, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *powerSpectrumPrimordialTransferred_, *powerSpectrumWindowFunction_, *powerSpectrumWindowFunctionTopHat_"/>
+    !!]
 
-    allocate(self%powerSpectrumWindowFunctionTopHat_)
-    !# <referenceConstruct isResult="yes" owner="self" object="powerSpectrumWindowFunctionTopHat_" constructor="powerSpectrumWindowFunctionTopHat(cosmologyParameters_)"/>
-    self%sigma8Value           =sigma8
+    if (.not.present(powerSpectrumWindowFunctionTopHat_)) then
+       allocate(powerSpectrumWindowFunctionTopHat :: self%powerSpectrumWindowFunctionTopHat_)
+       select type (powerSpectrumWindowFunctionTopHat__ => self%powerSpectrumWindowFunctionTopHat_)
+       type is (powerSpectrumWindowFunctionTopHat)
+          !![
+          <referenceConstruct isResult="yes" object="powerSpectrumWindowFunctionTopHat__" constructor="powerSpectrumWindowFunctionTopHat(cosmologyParameters_)"/>  
+          !!]
+       end select
+    end if
+    if (present(sigma8)) then
+       if (     present(wavenumberReference).or.     present(cosmologicalMassVarianceReference).or.     present(powerSpectrumPrimordialTransferredReference)) call Galacticus_Error_Report('sigma8 is specified, can not also specify matched power spectrum'//{introspection:location})
+       self%sigma8Value                                 =  sigma8
+       self%normalizationSigma8                         =  .true.
+       self%cosmologicalMassVarianceReference           => null()
+       self%powerSpectrumPrimordialTransferredReference => null()
+    else
+       if (.not.present(wavenumberReference).or..not.present(cosmologicalMassVarianceReference).or..not.present(powerSpectrumPrimordialTransferredReference)) call Galacticus_Error_Report('sigma8 is not specified, must specify matched power spectrum'    //{introspection:location})
+       self%sigma8Value                                 =  -1.0d0 
+       self%normalizationSigma8                         =  .false.
+       self%wavenumberReference                         =  wavenumberReference
+       !![
+       <referenceAcquire isResult="yes" owner="self" target="cosmologicalMassVarianceReference"           source="cosmologicalMassVarianceReference"          />
+       <referenceAcquire isResult="yes" owner="self" target="powerSpectrumPrimordialTransferredReference" source="powerSpectrumPrimordialTransferredReference"/>
+       !!]
+    end if
     self%initialized           =.false.
     self%growthIsMassDependent_=self%powerSpectrumPrimordialTransferred_%growthIsWavenumberDependent()
     self%fileName              =galacticusPath(pathTypeDataDynamic)              // &
@@ -228,17 +348,27 @@ contains
   end function filteredPowerConstructorInternal
 
   subroutine filteredPowerDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily filteredPower} linear growth class.
+    !!{
+    Destructor for the {\normalfont \ttfamily filteredPower} linear growth class.
+    !!}
     implicit none
     type   (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
     integer                                                       :: i
 
-    !# <objectDestructor name="self%cosmologyParameters_"               />
-    !# <objectDestructor name="self%cosmologyFunctions_"                />
-    !# <objectDestructor name="self%linearGrowth_"                      />
-    !# <objectDestructor name="self%powerSpectrumPrimordialTransferred_"/>
-    !# <objectDestructor name="self%powerSpectrumWindowFunction_"       />
-    !# <objectDestructor name="self%powerSpectrumWindowFunctionTopHat_" />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"               />
+    <objectDestructor name="self%cosmologyFunctions_"                />
+    <objectDestructor name="self%linearGrowth_"                      />
+    <objectDestructor name="self%powerSpectrumPrimordialTransferred_"/>
+    <objectDestructor name="self%powerSpectrumWindowFunction_"       />
+    <objectDestructor name="self%powerSpectrumWindowFunctionTopHat_" />
+    !!]
+    if (.not.self%normalizationSigma8) then
+       !![
+       <objectDestructor name="self%powerSpectrumPrimordialTransferredReference"/>
+       <objectDestructor name="self%cosmologicalMassVarianceReference"          />
+       !!]
+    end if
     if (self%initialized) then
        do i=1,size(self%rootVarianceTable)
           call self%rootVarianceTable(i)%destroy()
@@ -248,7 +378,9 @@ contains
   end subroutine filteredPowerDestructor
 
   double precision function filteredPowerPowerNormalization(self)
-    !% Return the normalization of the power spectrum.
+    !!{
+    Return the normalization of the power spectrum.
+    !!}
     implicit none
     class(cosmologicalMassVarianceFilteredPower), intent(inout) :: self
 
@@ -258,7 +390,9 @@ contains
   end function filteredPowerPowerNormalization
 
   double precision function filteredPowerSigma8(self)
-    !% Return the value of $\sigma_8$.
+    !!{
+    Return the value of $\sigma_8$.
+    !!}
     implicit none
     class(cosmologicalMassVarianceFilteredPower), intent(inout) :: self
 
@@ -267,8 +401,10 @@ contains
   end function filteredPowerSigma8
 
   double precision function filteredPowerRootVariance(self,mass,time)
-    !% Return the root-variance of the cosmological density field in a spherical region containing the given {\normalfont
-    !% \ttfamily mass} on average.
+    !!{
+    Return the root-variance of the cosmological density field in a spherical region containing the given {\normalfont
+    \ttfamily mass} on average.
+    !!}
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
     double precision                                       , intent(in   ) :: mass, time
@@ -288,8 +424,10 @@ contains
   end function filteredPowerRootVariance
 
   double precision function filteredPowerRootVarianceLogarithmicGradient(self,mass,time)
-    !% Return the logairhtmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical
-    !% region containing the given {\normalfont \ttfamily mass} on average.
+    !!{
+    Return the logairhtmic gradient with respect to mass of the root-variance of the cosmological density field in a spherical
+    region containing the given {\normalfont \ttfamily mass} on average.
+    !!}
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
     double precision                                       , intent(in   ) :: mass        , time
@@ -300,8 +438,10 @@ contains
   end function filteredPowerRootVarianceLogarithmicGradient
 
   double precision function filteredPowerRootVarianceLogarithmicGradientTime(self,mass,time)
-    !% Return the logarithmic gradient with respect to time of the root-variance of the cosmological density field in a spherical
-    !% region containing the given {\normalfont \ttfamily mass} on average.
+    !!{
+    Return the logarithmic gradient with respect to time of the root-variance of the cosmological density field in a spherical
+    region containing the given {\normalfont \ttfamily mass} on average.
+    !!}
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
     double precision                                       , intent(in   ) :: mass, time
@@ -331,8 +471,10 @@ contains
   end function filteredPowerRootVarianceLogarithmicGradientTime
 
   subroutine filteredPowerRootVarianceAndLogarithmicGradient(self,mass,time,rootVariance,rootVarianceLogarithmicGradient)
-    !% Return the value and logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a
-    !% spherical region containing the given {\normalfont \ttfamily mass} on average.
+    !!{
+    Return the value and logarithmic gradient with respect to mass of the root-variance of the cosmological density field in a
+    spherical region containing the given {\normalfont \ttfamily mass} on average.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
@@ -394,20 +536,28 @@ contains
   end subroutine filteredPowerRootVarianceAndLogarithmicGradient
 
   double precision function filteredPowerMass(self,rootVariance,time)
-    !% Return the mass corrresponding to the given {\normalfont \ttfamily } root-variance of the cosmological density field.
+    !!{
+    Return the mass corrresponding to the given {\normalfont \ttfamily } root-variance of the cosmological density field.
+    !!}
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
-    double precision                                       , intent(in   ) :: rootVariance   , time
-    double precision                                                       :: h              , hTime     , &
+    double precision                                       , intent(in   ) :: rootVariance      , time
+    double precision                                                       :: rootVarianceActual
+    double precision                                                       :: h                 , hTime     , &
          &                                                                    interpolantTime
-    integer                                                                :: i              , iBoundLeft, &
-         &                                                                    iBoundRight    , k         , &
+    integer                                                                :: i                 , iBoundLeft, &
+         &                                                                    iBoundRight       , k         , &
          &                                                                    j
 
+    if (self%growthIsMassDependent_) then
+       rootVarianceActual=rootVariance
+    else
+       rootVarianceActual=rootVariance/self%linearGrowth_%value(time)
+    end if
     ! If the requested root-variance is below the lowest value tabulated, attempt to tabulate to higher mass (lower
     ! root-variance).
     call self%retabulate(time=time)
-    do while (rootVariance < self%rootVarianceTable(1)%y(-1))
+    do while (rootVarianceActual < self%rootVarianceTable(1)%y(-1))
        call self%retabulate(self%rootVarianceTable(1)%x(-1)*2.0d0,time)
     end do
     ! Get interpolants in time.
@@ -418,7 +568,7 @@ contains
        hTime=0.0d0
     end if
     ! If sigma exceeds the highest value tabulated, simply return the lowest tabulated mass.
-    if (rootVariance > self%rootVarianceTable(k)%y(1)) then
+    if (rootVarianceActual > self%rootVarianceTable(k)%y(1)) then
        filteredPowerMass=self%rootVarianceTable(k)%x(1)
     else
        ! Iterate over times.
@@ -436,14 +586,14 @@ contains
           iBoundRight=size(self%rootVarianceUniqueTable(j)%rootVariance)
           do while (iBoundLeft+1 < iBoundRight)
              i=int((iBoundLeft+iBoundRight)/2)
-             if (self%rootVarianceUniqueTable(j)%rootVariance(i) < rootVariance) then
+             if (self%rootVarianceUniqueTable(j)%rootVariance(i) < rootVarianceActual) then
                 iBoundRight=i
              else
                 iBoundLeft =i
              end if
           end do
           i                =self%rootVarianceUniqueTable(j)%index(iBoundRight)
-          h                =+(     rootVariance               -self%rootVarianceTable(j)%y(i)) &
+          h                =+(     rootVarianceActual         -self%rootVarianceTable(j)%y(i)) &
                &            /(self%rootVarianceTable(j)%y(i-1)-self%rootVarianceTable(j)%y(i))
           filteredPowerMass=+filteredPowerMass                                    &
                &            +exp(                                                 &
@@ -457,10 +607,13 @@ contains
   end function filteredPowerMass
 
   subroutine filteredPowerRetabulate(self,mass,time)
-    !% Tabulate the cosmological mass variance.
+    !!{
+    Tabulate the cosmological mass variance.
+    !!}
     use :: Cosmology_Parameters    , only : hubbleUnitsLittleH
+    use :: Display                 , only : displayIndent            , displayMessage                   , displayUnindent, verbosityLevelWorking, &
+         &                                  displayMagenta           , displayReset
     use :: File_Utilities          , only : File_Lock                , File_Unlock                      , lockDescriptor
-    use :: Galacticus_Display      , only : Galacticus_Display_Indent, Galacticus_Display_Message       , Galacticus_Display_Unindent, verbosityWorking
     use :: Galacticus_Error        , only : Galacticus_Error_Report  , Galacticus_Warn
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Ranges        , only : Make_Range               , rangeTypeLogarithmic
@@ -481,20 +634,19 @@ contains
     type            (varying_string                       ), save                        :: message
     character       (len=12                               )                              :: label                     , labelLow               , &
          &                                                                                  labelHigh                 , labelTarget
-    type            (lockDescriptor                       ), save                        :: fileLock
-    ! The variables "message", and "fileLock" are saved (and made threadprivate) as their destructors are expensive, and this
-    ! functions gets called a lot.
-    !$omp threadprivate(message,fileLock)
+    ! The variable "message" is saved (and made threadprivate) as its destructor is expensive, and this functions gets called a
+    ! lot.
+    !$omp threadprivate(message)
 
     if (self%remakeTable(mass,time)) then
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
+       call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.true.)
        call self%fileRead()
-       call File_Unlock(fileLock,sync=.false.)
+       call File_Unlock(self%fileLock,sync=.false.)
     end if
     if (self%remakeTable(mass,time)) then
        ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       call File_Lock(char(self%fileName),fileLock,lockIsShared=.false.)
+       call File_Lock(char(self%fileName),self%fileLock,lockIsShared=.false.)
        ! Try again to read the file - another process/thread may have already created the file in which case we may not need to do so again.
        call self%fileRead()
        if (self%remakeTable(mass,time)) then
@@ -511,15 +663,28 @@ contains
                &          /self%cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH) &
                &         )**3
           ! Determine the normalization of the power spectrum.
-          self%sigmaNormalization=+self%sigma8Value                                                                &
-               &                  /rootVariance(time_=self%cosmologyFunctions_%cosmicTime(1.0d0),useTopHat=.true.)
+          if (self%sigma8Value > 0.0d0) then
+             ! σ₈ was given, so normalize to that.
+             self%sigmaNormalization =+self%sigma8Value                                                                &
+                  &                   /rootVariance(time_=self%cosmologyFunctions_%cosmicTime(1.0d0),useTopHat=.true.)
+          else
+             ! We must match power to a reference power spectrum at a specified wavenumber.
+             !! Compute the normalization factor assuming linear scaling.
+             self%sigmaNormalization=+sqrt(                                                                                                                                          &
+                  &                        +self%cosmologicalMassVarianceReference          %powerNormalization(                                                                   ) &
+                  &                        *self%powerSpectrumPrimordialTransferredReference%power             (self%wavenumberReference,self%cosmologyFunctions_%cosmicTime(1.0d0)) &
+                  &                        /self%powerSpectrumPrimordialTransferred_        %power             (self%wavenumberReference,self%cosmologyFunctions_%cosmicTime(1.0d0)) &
+                  &                       )
+             !! Compute the value of our σ₈.
+             self%sigma8Value=rootVariance(time_=self%cosmologyFunctions_%cosmicTime(1.0d0),useTopHat=.true.)*self%sigmaNormalization
+          end if
           ! Find suitable range of masses to tabulate.
           if (present(mass)) then
              countNewLower=0
              countNewUpper=0
              if (self%initialized) then
                 massMinimum     =min(mass/10.0d0,self%massMinimum)
-                massMaximum     =max(mass*10.0d0,self%massMaximum)
+                massMaximum     =max(mass *10.0d0,self%massMaximum)
              else
                 self%massMinimum=    mass
                 self%massMaximum=    mass
@@ -608,7 +773,7 @@ contains
           else
              allocate(table1DLogarithmicCSpline         :: self%rootVarianceTable(rootVarianceTimeCount))
           end if
-          call Galacticus_Display_Indent("retabulating σ(M)",verbosityWorking)
+          call displayIndent("retabulating σ(M)",verbosityLevelWorking)
           write    (labelLow   ,'(e9.2)') self%massMinimum
           write    (labelHigh  ,'(e9.2)') self%massMaximum
           if (present(mass)) then
@@ -616,7 +781,7 @@ contains
           else
              labelTarget="unspecified"
           end if
-          call Galacticus_Display_Message("mass range: "//labelLow//" < "//labelTarget//" < "//labelHigh//" M☉" ,verbosityWorking)
+          call displayMessage("mass range: "//labelLow//" < "//labelTarget//" < "//labelHigh//" M☉" ,verbosityLevelWorking)
           write    (labelLow   ,'(f9.4)') self%timeMinimum
           write    (labelHigh  ,'(f9.4)') self%timeMaximum
           if (present(time)) then
@@ -624,7 +789,7 @@ contains
           else
              labelTarget="unspecified"
           end if
-          call Galacticus_Display_Message("time range: "//labelLow//" < "//labelTarget//" < "//labelHigh//" Gyr",verbosityWorking)
+          call displayMessage("time range: "//labelLow//" < "//labelTarget//" < "//labelHigh//" Gyr",verbosityLevelWorking)
           do k=1,rootVarianceTimeCount
              call self%rootVarianceTable(k)%create(self%massMinimum,self%massMaximum,rootVarianceTableCount)
              allocate(rootVarianceIsUnique(rootVarianceTableCount))
@@ -664,7 +829,7 @@ contains
                 if (self%nonMonotonicIsFatal) then
                    message=         ""
                 else
-                   message=         "WARNING: "
+                   message=         displayMagenta()//"WARNING: "//displayReset()
                 end if
                 write (label,'(e12.6)') massMinimum
                 message=         "σ(M) is non-increasing below mass M="//label//"M☉"
@@ -678,22 +843,24 @@ contains
                 end if
              end if
           end do
-          call Galacticus_Display_Unindent("done",verbosityWorking)
+          call displayUnindent("done",verbosityLevelWorking)
           ! Table is now initialized.
           self%initialized=.true.
           ! Store file.
           call self%fileWrite()
        end if
-       call File_Unlock(fileLock)
+       call File_Unlock(self%fileLock)
     end if
     return
 
   contains
 
     double precision function rootVariance(time_,useTopHat)
-      !% Compute the root-variance of mass in spheres enclosing the given {\normalfont \ttfamily mass} from the power spectrum.
+      !!{
+      Compute the root-variance of mass in spheres enclosing the given {\normalfont \ttfamily mass} from the power spectrum.
+      !!}
       use :: Numerical_Constants_Math, only : Pi
-      use :: Numerical_Integration   , only : integrator, GSL_Integ_Gauss15
+      use :: Numerical_Integration   , only : GSL_Integ_Gauss15, integrator
       implicit none
       double precision            , intent(in   ) :: time_
       logical                     , intent(in   ) :: useTopHat
@@ -714,7 +881,12 @@ contains
            &             /self%cosmologyParameters_%OmegaMatter    () &
            &             /self%cosmologyParameters_%densityCritical() &
            &            )**(1.0d0/3.0d0)
-      wavenumberMinimum=0.0d0
+      if (self%truncateAtParticleHorizon) then
+         wavenumberMinimum=+1.0d0                                                                                                &
+              &            /self%cosmologyFunctions_%distanceParticleHorizonComoving(self%cosmologyFunctions_%cosmicTime(1.0d0))
+      else
+         wavenumberMinimum=+0.0d0
+      end if
       ! The integral over the power spectrum is split at a wavenumber corresponding to the smallest scale at which BAO features
       ! are significant (unless the upper limit of the integral is already below that wavenumber). This allows the oscillatory
       ! part of the integral to be computed more accurately, without affecting the non-oscillatory part at larger wavenumbers, and
@@ -759,7 +931,9 @@ contains
     end function rootVariance
 
     double precision function varianceIntegrand(wavenumber)
-      !% Integrand function used in computing the variance in (real space) top-hat spheres from the power spectrum.
+      !!{
+      Integrand function used in computing the variance in (real space) top-hat spheres from the power spectrum.
+      !!}
       implicit none
       double precision, intent(in   ) :: wavenumber
 
@@ -774,7 +948,9 @@ contains
     end function varianceIntegrand
 
     double precision function varianceIntegrandTopHat(wavenumber)
-      !% Integrand function used in computing the variance in (real space) top-hat spheres from the power spectrum.
+      !!{
+      Integrand function used in computing the variance in (real space) top-hat spheres from the power spectrum.
+      !!}
       implicit none
       double precision, intent(in   ) :: wavenumber
 
@@ -791,7 +967,9 @@ contains
   end subroutine filteredPowerRetabulate
 
   subroutine filteredPowerInterpolantsTime(self,time,i,h)
-    !% Compute interoplants in time.
+    !!{
+    Compute interoplants in time.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
@@ -813,7 +991,9 @@ contains
   end subroutine filteredPowerInterpolantsTime
 
   logical function filteredPowerGrowthIsMassDependent(self)
-    !% Return true if the growth rate of the variance is mass-dependent.
+    !!{
+    Return true if the growth rate of the variance is mass-dependent.
+    !!}
     implicit none
     class(cosmologicalMassVarianceFilteredPower), intent(inout) :: self
 
@@ -822,11 +1002,13 @@ contains
   end function filteredPowerGrowthIsMassDependent
 
   subroutine filteredPowerFileRead(self)
-    !% Read tabulated data on mass variance from file.
-    use :: File_Utilities    , only : File_Exists
-    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
-    use :: IO_HDF5           , only : hdf5Access                , hdf5Object
-    use :: Tables            , only : table1DLogarithmicCSpline , table1DLogarithmicMonotoneCSpline
+    !!{
+    Read tabulated data on mass variance from file.
+    !!}
+    use :: Display       , only : displayMessage           , verbosityLevelWorking
+    use :: File_Utilities, only : File_Exists
+    use :: IO_HDF5       , only : hdf5Access               , hdf5Object
+    use :: Tables        , only : table1DLogarithmicCSpline, table1DLogarithmicMonotoneCSpline
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
     double precision                                       , dimension(:  ), allocatable :: massTmp        , timesTmp
@@ -838,7 +1020,7 @@ contains
 
     ! Return immediately if the file does not exist.
     if (.not.File_Exists(char(self%fileName))) return
-    call Galacticus_Display_Message('reading σ(M) data from: '//self%fileName,verbosityWorking)
+    call displayMessage('reading σ(M) data from: '//self%fileName,verbosityLevelWorking)
     !$ call hdf5Access%set()
     call dataFile%openFile     (char(self%fileName)          ,overWrite                       =.false.)
     call dataFile%readDataset  ('times'                      ,     timesTmp                           )
@@ -847,6 +1029,7 @@ contains
     call dataFile%readDataset  ('rootVarianceUnique'         ,     rootVarianceUniqueTmp              )
     call dataFile%readDataset  ('indexUnique'                ,     indexTmp                           )
     call dataFile%readDataset  ('uniqueSize'                 ,     uniqueSizeTmp                      )
+    call dataFile%readAttribute('sigma8'                     ,self%sigma8Value                        )
     call dataFile%readAttribute('sigmaNormalization'         ,self%sigmaNormalization                 )
     call dataFile%readAttribute('massMinimum'                ,self%massMinimum                        )
     call dataFile%readAttribute('massMaximum'                ,self%massMaximum                        )
@@ -886,10 +1069,12 @@ contains
   end subroutine filteredPowerFileRead
 
   subroutine filteredPowerFileWrite(self)
-    !% Write tabulated data on mass variance to file.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityWorking
-    use :: HDF5              , only : hsize_t
-    use :: IO_HDF5           , only : hdf5Access                , hdf5Object
+    !!{
+    Write tabulated data on mass variance to file.
+    !!}
+    use :: Display, only : displayMessage, verbosityLevelWorking
+    use :: HDF5   , only : hsize_t
+    use :: IO_HDF5, only : hdf5Access    , hdf5Object
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
     double precision                                       , dimension(:  ), allocatable :: massTmp
@@ -899,7 +1084,7 @@ contains
     type            (hdf5Object                           )                              :: dataFile
     integer                                                                              :: i
 
-    call Galacticus_Display_Message('writing σ(M) data to: '//self%fileName,verbosityWorking)
+    call displayMessage('writing σ(M) data to: '//self%fileName,verbosityLevelWorking)
     ! Prepare data.
     allocate(massTmp              (self%rootVarianceTable(1)%size()                 ))
     allocate(rootVarianceTmp      (self%rootVarianceTable(1)%size(),size(self%times)))
@@ -924,6 +1109,7 @@ contains
     call dataFile%writeDataset  (     rootVarianceUniqueTmp      ,'rootVarianceUnique'                                                                                    )
     call dataFile%writeDataset  (     indexTmp                   ,'indexUnique'                                                                                           )
     call dataFile%writeDataset  (     uniqueSizeTmp              ,'uniqueSize'                                                                                            )
+    call dataFile%writeAttribute(self%sigma8Value                ,'sigma8'                                                                                                )
     call dataFile%writeAttribute(self%sigmaNormalization         ,'sigmaNormalization'                                                                                    )
     call dataFile%writeAttribute(self%massMinimum                ,'massMinimum'                                                                                           )
     call dataFile%writeAttribute(self%massMaximum                ,'massMaximum'                                                                                           )
@@ -942,10 +1128,12 @@ contains
   end subroutine filteredPowerFileWrite
 
   logical function filteredPowerRemakeTable(self,mass,time)
-    !% Determine if the table should be remade.
+    !!{
+    Determine if the table should be remade.
+    !!}
     implicit none
-    class           (cosmologicalMassVarianceFilteredPower  ), intent(inout)           :: self
-    double precision                                         , intent(in   ), optional :: mass, time
+    class           (cosmologicalMassVarianceFilteredPower), intent(inout)           :: self
+    double precision                                       , intent(in   ), optional :: mass, time
 
     if (self%initialized) then
        filteredPowerRemakeTable=.false.
@@ -970,3 +1158,44 @@ contains
     end if
     return
   end function filteredPowerRemakeTable
+
+  subroutine filteredPowerDescriptor(self,descriptor,includeClass)
+    !!{
+    Return an input parameter list descriptor which could be used to recreate this object.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    class    (cosmologicalMassVarianceFilteredPower), intent(inout)           :: self
+    type     (inputParameters                      ), intent(inout)           :: descriptor
+    logical                                         , intent(in   ), optional :: includeClass
+    character(len=18                               )                          :: parameterLabel
+    type     (inputParameters                      )                          :: parameters    , referenceParameters
+
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('cosmologicalMassVariance','filteredPower')
+    parameters=descriptor%subparameters('cosmologicalMassVariance')
+    if (self%normalizationSigma8) then
+       write (parameterLabel,'(e17.10)') self%sigma8Value
+       call parameters%addParameter('sigma_8'                            ,trim(adjustl(parameterLabel)))
+    else
+       write (parameterLabel,'(e17.10)') self%wavenumberReference
+       call parameters%addParameter('wavenumberReference'                ,trim(adjustl(parameterLabel)))
+       call parameters%addParameter('reference','')
+       referenceParameters=parameters%subparameters('reference')
+       call self%cosmologicalMassVarianceReference          %descriptor(referenceParameters)
+       call self%powerSpectrumPrimordialTransferredReference%descriptor(referenceParameters)
+    end if
+    write    (parameterLabel,'(e17.10)') self%toleranceTopHat
+    call    parameters%addParameter('toleranceTopHat'                    ,trim(adjustl(parameterLabel)))
+    write    (parameterLabel,'(e17.10)') self%tolerance
+    call    parameters%addParameter('tolerance'                          ,trim(adjustl(parameterLabel)))
+    write    (parameterLabel,'(l1)'    ) self%nonMonotonicIsFatal
+    call    parameters%addParameter('nonMonotonicIsFatal'                ,trim(adjustl(parameterLabel)))
+    write    (parameterLabel,'(l1)'    ) self%monotonicInterpolation
+    call    parameters%addParameter('monotonicInterpolation'             ,trim(adjustl(parameterLabel)))
+    call    self%cosmologyParameters_                       %descriptor(parameters)
+    call    self%cosmologyFunctions_                        %descriptor(parameters)
+    call    self%powerSpectrumPrimordialTransferred_        %descriptor(parameters)
+    call    self%linearGrowth_                              %descriptor(parameters)
+    call    self%powerSpectrumWindowFunction_               %descriptor(parameters)
+    return
+  end subroutine filteredPowerDescriptor

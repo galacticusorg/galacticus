@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,43 +17,53 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an object hierarchy for nodes in merger trees and all of their constituent physical
-!% components.
+!!{
+Contains a module which implements an object hierarchy for nodes in merger trees and all of their constituent physical
+components.
+!!}
 
 module Galacticus_Nodes
-  !% Implements an object hierarchy for nodes in merger trees and all of their constituent physical components.
+  !!{
+  Implements an object hierarchy for nodes in merger trees and all of their constituent physical components.
+  !!}
   use            :: Abundances_Structure            , only : abundances
   use            :: Chemical_Abundances_Structure   , only : chemicalAbundances
   use            :: Galacticus_Error                , only : Galacticus_Error_Report
-  use            :: Hashes                          , only : doubleHash                    , genericHash
-  use            :: Histories                       , only : history                       , longIntegerHistory
+  use            :: Hashes                          , only : doubleHash                , genericHash
+  use            :: Histories                       , only : history                   , longIntegerHistory
   use            :: IO_HDF5                         , only : hdf5Object
   use, intrinsic :: ISO_C_Binding                   , only : c_size_t
   use            :: ISO_Varying_String              , only : varying_string
   use            :: Kepler_Orbits                   , only : keplerOrbit
   use            :: Kind_Numbers                    , only : kind_int8
-  use            :: Memory_Management               , only : Memory_Usage_Record           , memoryTypeNodes
-  use            :: Numerical_Constants_Astronomical, only : gigaYear                      , luminosityZeroPointAB, massSolar, megaParsec
+  use            :: Memory_Management               , only : Memory_Usage_Record       , memoryTypeNodes
+  use            :: Numerical_Constants_Astronomical, only : gigaYear                  , luminosityZeroPointAB         , massSolar, megaParsec
   use            :: Numerical_Constants_Prefixes    , only : kilo
   use            :: Numerical_Random_Numbers        , only : randomNumberGeneratorClass
   use            :: Stellar_Luminosities_Structure  , only : stellarLuminosities
-  use            :: Tensors                         , only : tensorRank2Dimension3Symmetric, tensorNullR2D3Sym
+  use            :: Tensors                         , only : tensorNullR2D3Sym         , tensorRank2Dimension3Symmetric
   private
   public :: nodeClassHierarchyInitialize, nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask, nodeEventBuildFromRaw
   
   type, public :: treeNodeList
-     !% Type to give a list of treeNodes.
+     !!{
+     Type to give a list of treeNodes.
+     !!}
      type(treeNode), pointer :: node
   end type treeNodeList
   
   type, public :: treeNodeLinkedList
-     !% Type to give a linked list of treeNodes.
+     !!{
+     Type to give a linked list of treeNodes.
+     !!}
      type(treeNode          ), pointer :: node
      type(treeNodeLinkedList), pointer :: next
   end type treeNodeLinkedList
 
   type, public :: mergerTree
-     !% The merger tree object type.
+     !!{
+     The merger tree object type.
+     !!}
      integer         (kind=kind_int8            )                  :: index
      type            (hdf5Object                )                  :: hdf5Group
      double precision                                              :: volumeWeight                    , initializedUntil
@@ -65,16 +75,18 @@ module Galacticus_Nodes
      type            (doubleHash                )                  :: properties
    contains
      ! Tree creation/destruction.
-     !# <methods>
-     !#   <method description="Destroys the merger tree, including all nodes and their components." method="destroy" />
-     !#   <method description="Returns a pointer to the node with given index in the merger tree, or a null pointer if no such node exists." method="getNode" />
-     !#   <method description="Create a {\normalfont \ttfamily treeEvent} object in this tree." method="createEvent" />
-     !#   <method description="Remove a {\normalfont \ttfamily treeEvent} from this tree." method="removeEvent" />
-     !#   <method description="Return the earliest time in a merger tree." method="earliestTime" />
-     !#   <method description="Return the earliest time in an evolving merger tree." method="earliestTimeEvolving" />
-     !#   <method description="Return the latest time in a merger tree." method="latestTime" />
-     !#   <method description="Return the size (in bytes) of a merger tree." method="sizeOf" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Destroys the merger tree, including all nodes and their components." method="destroy" />
+       <method description="Returns a pointer to the node with given index in the merger tree, or a null pointer if no such node exists." method="getNode" />
+       <method description="Create a {\normalfont \ttfamily treeEvent} object in this tree." method="createEvent" />
+       <method description="Remove a {\normalfont \ttfamily treeEvent} from this tree." method="removeEvent" />
+       <method description="Return the earliest time in a merger tree." method="earliestTime" />
+       <method description="Return the earliest time in an evolving merger tree." method="earliestTimeEvolving" />
+       <method description="Return the latest time in a merger tree." method="latestTime" />
+       <method description="Return the size (in bytes) of a merger tree." method="sizeOf" />
+     </methods>
+     !!]
      procedure :: destroy              => Merger_Tree_Destroy
      procedure :: getNode              => Merger_Tree_Node_Get
      procedure :: createEvent          => Merger_Tree_Create_Event
@@ -86,12 +98,16 @@ module Galacticus_Nodes
   end type mergerTree
 
   interface mergerTree
-     !% Interface to merger tree constructors.
+     !!{
+     Interface to merger tree constructors.
+     !!}
      module procedure mergerTreeConstructor
   end interface mergerTree
     
   type, public :: treeEvent
-     !% Type for events attached to trees.
+     !!{
+     Type for events attached to trees.
+     !!}
      private
      integer         (kind=kind_int8)         , public :: ID
      type            (mergerTree    ), pointer, public :: tree
@@ -102,41 +118,57 @@ module Galacticus_Nodes
   
   ! Interface for tree event tasks.
   abstract interface
-     logical function treeEventTask(thisEvent,thisTree,deadlockStatus)
+     logical function treeEventTask(event,tree,deadlockStatus)
        import treeEvent, mergerTree
-       class  (treeEvent ), intent(in   ) :: thisEvent
-       type   (mergerTree), intent(inout) :: thisTree
+       class  (treeEvent ), intent(in   ) :: event
+       type   (mergerTree), intent(inout) :: tree
        integer            , intent(inout) :: deadlockStatus
      end function treeEventTask
   end interface
   
   type, public :: mergerTreeList
-     !% A class used for building linked lists of merger trees.
+     !!{
+     A class used for building linked lists of merger trees.
+     !!}
      type(mergerTreeList), pointer :: next
      type(mergerTree    ), pointer :: tree
   end type mergerTreeList
 
   type, public :: universe
-     !% The universe object class.
+     !!{
+     The universe object class.
+     !!}
      type   (mergerTreeList), pointer         :: trees         => null()
      logical                                  :: allTreesBuilt =  .false.
      type   (universeEvent ), pointer, public :: event
      type   (genericHash   )                  :: attributes
+     integer(kind_int8     )                  :: uniqueID
    contains
-     !# <methods>
-     !#   <method description="Create a {\normalfont \ttfamily treeEvent} object in this universe." method="createEvent" />
-     !#   <method description="Remove a {\normalfont \ttfamily treeEvent} from this universe." method="removeEvent" />
-     !#   <method description="Pop a {\normalfont \ttfamily mergerTree} from this universe." method="popTree" />
-     !#   <method description="Pop a {\normalfont \ttfamily mergerTree} from this universe." method="pushTree" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Create a {\normalfont \ttfamily treeEvent} object in this universe." method="createEvent"/>
+       <method description="Remove a {\normalfont \ttfamily treeEvent} from this universe."      method="removeEvent"/>
+       <method description="Pop a {\normalfont \ttfamily mergerTree} from this universe."        method="popTree"    />
+       <method description="Pop a {\normalfont \ttfamily mergerTree} from this universe."        method="pushTree"   />
+     </methods>
+     !!]
      procedure :: createEvent => universeCreateEvent
      procedure :: removeEvent => universeRemoveEvent
      procedure :: popTree     => universePopTree
      procedure :: pushTree    => universePushTree
   end type universe
 
+  interface universe
+     !!{
+     Interface to universe constructors.
+     !!}
+     module procedure universeConstructor
+  end interface universe
+    
   type, public :: universeEvent
-     !% Type for events attached to universes.
+     !!{
+     Type for events attached to universes.
+     !!}
      private
      integer         (kind=kind_int8   )         , public :: ID
      type            (universe         ), pointer, public :: universe
@@ -148,10 +180,10 @@ module Galacticus_Nodes
 
   ! Interface for universe event tasks.
   abstract interface
-     logical function universeEventTask(thisEvent,thisUniverse)
+     logical function universeEventTask(event,universe_)
        import universeEvent, universe
-       class  (universeEvent), intent(in   ) :: thisEvent
-       type   (universe     ), intent(inout) :: thisUniverse
+       class  (universeEvent), intent(in   ) :: event
+       type   (universe     ), intent(inout) :: universe_
      end function universeEventTask
   end interface
 
@@ -161,14 +193,17 @@ module Galacticus_Nodes
   double precision                                   , dimension(0) :: nullDouble1d
 
   ! Labels for function mapping reduction types.
-  integer                         , parameter, public               :: reductionSummation=1
-  integer                         , parameter, public               :: reductionProduct  =2
+  integer                         , parameter, public               :: reductionSummation  =1
+  integer                         , parameter, public               :: reductionProduct    =2
 
   ! Unique ID counter.
-  integer         (kind=kind_int8)                                  :: uniqueIdCount     =0
+  integer         (kind=kind_int8)                                  :: uniqueIdCount       =0
 
   ! Event ID counter.
-  integer         (kind=kind_int8)                                  :: eventID           =0
+  integer         (kind=kind_int8)                                  :: eventID             =0
+
+  ! Universe unique ID counter.
+  integer         (kind=kind_int8)                                  :: universeUniqueIdCount=0
 
   ! Enumeration for active/inactive properties.
   integer, parameter, public :: propertyTypeAll     =0
@@ -186,14 +221,20 @@ module Galacticus_Nodes
   end interface treeNode
 
   ! Include node methods.
-  !# <include directive="component" type="component">
+  !![
+  <include directive="component" type="component">
+  !!]
   include 'objects.nodes.components.inc'
-  !# </include>
+  !![
+  </include>
+  !!]
 
   !
   ! Nodes functions.
   subroutine Galacticus_Nodes_Unique_ID_Set(uniqueID)
-    !% Resets the global unique ID number.
+    !!{
+    Resets the global unique ID number.
+    !!}
     implicit none
     integer(kind=kind_int8), intent(in   ) :: uniqueID
 
@@ -204,7 +245,9 @@ module Galacticus_Nodes
   !
   ! Functions for treeNode class.
   function Tree_Node_Constructor(index,hostTree)
-    !% Return a pointer to a newly created and initialized {\normalfont \ttfamily treeNode}.
+    !!{
+    Return a pointer to a newly created and initialized {\normalfont \ttfamily treeNode}.
+    !!}
     implicit none
     type   (treeNode      ), pointer                         :: Tree_Node_Constructor
     integer(kind=kind_int8), intent(in   ), optional         :: index
@@ -214,11 +257,13 @@ module Galacticus_Nodes
     ! Allocate the object.
     allocate(Tree_Node_Constructor,stat=allocErr)
     if (allocErr/=0) call Galacticus_Error_Report('unable to allocate node'//{introspection:location})
-    !# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-    !#  <description>
-    !#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-    !#  </description>
-    !# </workaround>
+    !![
+    <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+     <description>
+      Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+     </description>
+    </workaround>
+    !!]
     !call Memory_Usage_Record(sizeof(Tree_Node_Constructor),memoryType=memoryTypeNodes)
 
     ! Initialize the node.
@@ -227,7 +272,9 @@ module Galacticus_Nodes
   end function Tree_Node_Constructor
 
   function Tree_Node_Type(self)
-    !% Returns the name of a {\normalfont \ttfamily treeNode} object.
+    !!{
+    Returns the name of a {\normalfont \ttfamily treeNode} object.
+    !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
     class(treeNode      ), intent(in   ) :: self
@@ -239,7 +286,9 @@ module Galacticus_Nodes
   end function Tree_Node_Type
 
   function Tree_Node_Index(self)
-    !% Returns the index of a {\normalfont \ttfamily treeNode}.
+    !!{
+    Returns the index of a {\normalfont \ttfamily treeNode}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
@@ -262,7 +311,9 @@ module Galacticus_Nodes
   end function Tree_Node_Index
 
   subroutine Tree_Node_Index_Set(self,index)
-    !% Sets the index of a {\normalfont \ttfamily treeNode}.
+    !!{
+    Sets the index of a {\normalfont \ttfamily treeNode}.
+    !!}
     implicit none
     class  (treeNode      ), intent(inout) :: self
     integer(kind=kind_int8), intent(in   ) :: index
@@ -272,7 +323,9 @@ module Galacticus_Nodes
   end subroutine Tree_Node_Index_Set
 
   function Tree_Node_Unique_ID(self)
-    !% Returns the unique ID of a {\normalfont \ttfamily treeNode}.
+    !!{
+    Returns the unique ID of a {\normalfont \ttfamily treeNode}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
@@ -295,7 +348,9 @@ module Galacticus_Nodes
   end function Tree_Node_Unique_ID
 
   subroutine Tree_Node_Unique_ID_Set(self,uniqueID)
-    !% Sets the index of a {\normalfont \ttfamily treeNode}.
+    !!{
+    Sets the index of a {\normalfont \ttfamily treeNode}.
+    !!}
     implicit none
     class  (treeNode      ), intent(inout)           :: self
     integer(kind=kind_int8), intent(in   ), optional :: uniqueID
@@ -313,7 +368,9 @@ module Galacticus_Nodes
   end subroutine Tree_Node_Unique_ID_Set
 
   double precision function Tree_Node_Time_Step(self)
-    !% Returns the time-step last used by a {\normalfont \ttfamily treeNode}.
+    !!{
+    Returns the time-step last used by a {\normalfont \ttfamily treeNode}.
+    !!}
     implicit none
     class(treeNode), intent(in   ) :: self
 
@@ -322,7 +379,9 @@ module Galacticus_Nodes
   end function Tree_Node_Time_Step
 
   subroutine Tree_Node_Time_Step_Set(self,timeStep)
-    !% Sets the time-step used by a {\normalfont \ttfamily treeNode}.
+    !!{
+    Sets the time-step used by a {\normalfont \ttfamily treeNode}.
+    !!}
     implicit none
     class           (treeNode      ), intent(inout) :: self
     double precision                , intent(in   ) :: timeStep
@@ -331,23 +390,48 @@ module Galacticus_Nodes
     return
   end subroutine Tree_Node_Time_Step_Set
 
- subroutine Tree_Node_Attach_Event(self,newEvent)
-    !% Create a new event in a tree node.
+  double precision function Tree_Node_Subsampling_Weight(self)
+    !!{
+    Returns the subsampling weight of a {\normalfont \ttfamily treeNode}.
+    !!}
+    implicit none
+    class(treeNode), intent(in   ) :: self
+
+    Tree_Node_Subsampling_Weight=self%subsamplingWeightValue
+    return
+  end function Tree_Node_Subsampling_Weight
+
+  subroutine Tree_Node_Subsampling_Weight_Set(self,subsamplingWeight)
+    !!{
+    Sets the time-step used by a {\normalfont \ttfamily treeNode}.
+    !!}
+    implicit none
+    class           (treeNode      ), intent(inout) :: self
+    double precision                , intent(in   ) :: subsamplingWeight
+
+    self%subsamplingWeightValue=subsamplingWeight
+    return
+  end subroutine Tree_Node_Subsampling_Weight_Set
+
+  subroutine Tree_Node_Attach_Event(self,newEvent)
+    !!{
+    Create a new event in a tree node.
+    !!}
     implicit none
     class(treeNode ), intent(inout)          :: self
     class(nodeEvent), intent(inout), pointer :: newEvent
-    class(nodeEvent)               , pointer :: thisEvent
+    class(nodeEvent)               , pointer :: event
 
     !$omp atomic
     eventID       =  eventID+1
     newEvent%ID   =  eventID
     newEvent%next => null()
     if (associated(self%event)) then
-       thisEvent => self%event
-       do while (associated(thisEvent%next))
-          thisEvent => thisEvent%next
+       event => self%event
+       do while (associated(event%next))
+          event => event%next
        end do
-       thisEvent%next => newEvent
+       event%next => newEvent
     else
        self%event => newEvent
     end if
@@ -355,34 +439,36 @@ module Galacticus_Nodes
   end subroutine Tree_Node_Attach_Event
 
   subroutine Tree_Node_Remove_Paired_Event(self,event)
-    !% Removed a paired event from {\normalfont \ttfamily self}. Matching is done on the basis of event ID.
+    !!{
+    Removed a paired event from {\normalfont \ttfamily self}. Matching is done on the basis of event ID.
+    !!}
     implicit none
     class  (treeNode ), intent(inout) :: self
     class  (nodeEvent), intent(in   ) :: event
-    class  (nodeEvent), pointer       :: lastEvent  , nextEvent, pairEvent
+    class  (nodeEvent), pointer       :: eventLast  , eventNext, eventPaired
     logical                           :: pairMatched
 
     ! Locate the paired event in self and remove it.
-    pairEvent => self%event
-    lastEvent => self%event
+    eventPaired => self%event
+    eventLast   => self%event
     ! Iterate over all events.
     pairMatched=.false.
-    do while (associated(pairEvent).and..not.pairMatched)
+    do while (associated(eventPaired).and..not.pairMatched)
        ! Match the paired event ID with the current event ID.
-       if (pairEvent%ID == event%ID) then
+       if (eventPaired%ID == event%ID) then
           pairMatched=.true.
-          if (associated(pairEvent,self%event)) then
-             self     %event => pairEvent%next
-             lastEvent       => self     %event
+          if (associated(eventPaired,self%event)) then
+             self     %event => eventPaired%next
+             eventLast       => self       %event
           else
-             lastEvent%next  => pairEvent%next
+             eventLast%next  => eventPaired%next
           end if
-          nextEvent => pairEvent%next
-          deallocate(pairEvent)
-          pairEvent => nextEvent
+          eventNext => eventPaired%next
+          deallocate(eventPaired)
+          eventPaired => eventNext
        else
-          lastEvent => pairEvent
-          pairEvent => pairEvent%next
+          eventLast   => eventPaired
+          eventPaired => eventPaired%next
        end if
     end do
     if (.not.pairMatched) call Galacticus_Error_Report('unable to find paired event'//{introspection:location})
@@ -390,7 +476,9 @@ module Galacticus_Nodes
   end subroutine Tree_Node_Remove_Paired_Event
 
   logical function Tree_Node_Is_Primary_Progenitor(self)
-    !% Returns true if {\normalfont \ttfamily self} is the primary progenitor of its parent node.
+    !!{
+    Returns true if {\normalfont \ttfamily self} is the primary progenitor of its parent node.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(treeNode), intent(inout) :: self
@@ -410,7 +498,9 @@ module Galacticus_Nodes
   end function Tree_Node_Is_Primary_Progenitor
 
   logical function Tree_Node_Is_Primary_Progenitor_Of_Index(self,targetNodeIndex)
-    !% Return true if {\normalfont \ttfamily self} is a progenitor of the node with index {\normalfont \ttfamily targetNodeIndex}.
+    !!{
+    Return true if {\normalfont \ttfamily self} is a progenitor of the node with index {\normalfont \ttfamily targetNodeIndex}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
@@ -437,7 +527,9 @@ module Galacticus_Nodes
   end function Tree_Node_Is_Primary_Progenitor_Of_Index
 
   logical function Tree_Node_Is_Primary_Progenitor_Of_Node(self,targetNode)
-    !% Return true if {\normalfont \ttfamily self} is a progenitor of {\normalfont \ttfamily targetNode}.
+    !!{
+    Return true if {\normalfont \ttfamily self} is a progenitor of {\normalfont \ttfamily targetNode}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(treeNode), intent(in   ), target  :: self
@@ -464,7 +556,9 @@ module Galacticus_Nodes
   end function Tree_Node_Is_Primary_Progenitor_Of_Node
 
   logical function Tree_Node_Is_Progenitor_Of_Index(self,targetNodeIndex)
-    !% Return true if {\normalfont \ttfamily self} is a progenitor of the node with index {\normalfont \ttfamily targetNodeIndex}.
+    !!{
+    Return true if {\normalfont \ttfamily self} is a progenitor of the node with index {\normalfont \ttfamily targetNodeIndex}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (treeNode      ), intent(in   ), target :: self
@@ -490,7 +584,9 @@ module Galacticus_Nodes
   end function Tree_Node_Is_Progenitor_Of_Index
 
   logical function Tree_Node_Is_Progenitor_Of_Node(self,targetNode)
-    !% Return true if {\normalfont \ttfamily self} is a progenitor of {\normalfont \ttfamily targetNode}.
+    !!{
+    Return true if {\normalfont \ttfamily self} is a progenitor of {\normalfont \ttfamily targetNode}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(treeNode), intent(in   ), target  :: self
@@ -516,7 +612,9 @@ module Galacticus_Nodes
   end function Tree_Node_Is_Progenitor_Of_Node
 
   logical function Tree_Node_Is_On_Main_Branch(self)
-    !% Returns true if {\normalfont \ttfamily self} is on the main branch.
+    !!{
+    Returns true if {\normalfont \ttfamily self} is on the main branch.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(treeNode), intent(inout), target :: self
@@ -539,7 +637,9 @@ module Galacticus_Nodes
   end function Tree_Node_Is_On_Main_Branch
 
   logical function Tree_Node_Is_Satellite(self)
-    !% Returns true if {\normalfont \ttfamily self} is a satellite.
+    !!{
+    Returns true if {\normalfont \ttfamily self} is a satellite.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(treeNode), intent(in   ), target :: self
@@ -572,7 +672,9 @@ module Galacticus_Nodes
   end function Tree_Node_Is_Satellite
 
   function Tree_Node_Get_Last_Satellite(self) result (satelliteNode)
-    !% Returns a pointer to the final satellite node associated with {\normalfont \ttfamily self}.
+    !!{
+    Returns a pointer to the final satellite node associated with {\normalfont \ttfamily self}.
+    !!}
     implicit none
     class(treeNode), intent(in   ) :: self
     type (treeNode), pointer       :: satelliteNode
@@ -585,7 +687,9 @@ module Galacticus_Nodes
   end function Tree_Node_Get_Last_Satellite
 
   function Tree_Node_Get_Earliest_Progenitor(self) result (progenitorNode)
-    !% Returns a pointer to the earliest progenitor of {\normalfont \ttfamily self}.
+    !!{
+    Returns a pointer to the earliest progenitor of {\normalfont \ttfamily self}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (treeNode), pointer       :: progenitorNode
@@ -604,32 +708,36 @@ module Galacticus_Nodes
     return
   end function Tree_Node_Get_Earliest_Progenitor
 
-  function Tree_Node_Merges_With_Node(thisNode)
-    !% Returns a pointer to the node with which {\normalfont \ttfamily thisNode} will merge.
+  function Tree_Node_Merges_With_Node(node)
+    !!{
+    Returns a pointer to the node with which {\normalfont \ttfamily node} will merge.
+    !!}
     implicit none
-    class(treeNode), intent(in   ) :: thisNode
+    class(treeNode), intent(in   ) :: node
     type (treeNode), pointer       :: Tree_Node_Merges_With_Node
 
     ! Check if a specific merge node has been set.
-    if (associated(thisNode%mergeTarget)) then
+    if (associated(node%mergeTarget)) then
        ! One has, so simply return it.
-       Tree_Node_Merges_With_Node => thisNode%mergeTarget
+       Tree_Node_Merges_With_Node => node%mergeTarget
     else
        ! No specific merge node has been set, assume merging with the parent node.
-       Tree_Node_Merges_With_Node => thisNode%parent
+       Tree_Node_Merges_With_Node => node%parent
     end if
     return
   end function Tree_Node_Merges_With_Node
 
   subroutine Tree_Node_Remove_From_Host(self)
-    !% Remove {\normalfont \ttfamily self} from the linked list of its host node's satellites.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
+    !!{
+    Remove {\normalfont \ttfamily self} from the linked list of its host node's satellites.
+    !!}
+    use :: Display           , only : displayMessage         , displayVerbosity, verbosityLevelInfo
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)             , operator(//)
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
     class(treeNode      ), intent(in   ), target :: self
-    type (treeNode      ), pointer               :: hostNode, previousNode, selfActual, thisNode
+    type (treeNode      ), pointer               :: nodeHost, nodePrevious, selfActual, node
     type (varying_string)                        :: message
 
     select type (self)
@@ -641,40 +749,42 @@ module Galacticus_Nodes
     end select
 
     ! Remove from the parent node satellite list.
-    hostNode => selfActual%parent
-    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+    nodeHost => selfActual%parent
+    if (displayVerbosity() >= verbosityLevelInfo) then
        message='Satellite node ['
-       message=message//selfActual%index()//'] being removed from host node ['//hostNode%index()//']'
-       call Galacticus_Display_Message(message,verbosityInfo)
+       message=message//selfActual%index()//'] being removed from host node ['//nodeHost%index()//']'
+       call displayMessage(message,verbosityLevelInfo)
     end if
-    if (associated(hostNode%firstSatellite,selfActual)) then
+    if (associated(nodeHost%firstSatellite,selfActual)) then
        ! This is the first satellite, unlink it, and link to any sibling.
-       hostNode%firstSatellite => selfActual%sibling
+       nodeHost%firstSatellite => selfActual%sibling
     else
-       thisNode     => hostNode%firstSatellite
-       previousNode => null()
-       do while (associated(thisNode))
-          if (associated(thisNode,selfActual)) then
+       node         => nodeHost%firstSatellite
+       nodePrevious => null()
+       do while (associated(node))
+          if (associated(node,selfActual)) then
              ! Found our node, link its older sibling to its younger sibling.
-             previousNode%sibling => thisNode%sibling
+             nodePrevious%sibling => node%sibling
              exit
           end if
-          previousNode => thisNode
-          thisNode     => thisNode%sibling
+          nodePrevious => node
+          node     => node%sibling
        end do
     end if
     return
   end subroutine Tree_Node_Remove_From_Host
 
   subroutine Tree_Node_Remove_from_Mergee(self)
-    !% Remove {\normalfont \ttfamily self} from the linked list of its host node's satellites.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, verbosityInfo
+    !!{
+    Remove {\normalfont \ttfamily self} from the linked list of its host node's satellites.
+    !!}
+    use :: Display           , only : displayMessage         , verbosityLevelInfo
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: ISO_Varying_String, only : assignment(=)             , operator(//)
+    use :: ISO_Varying_String, only : assignment(=)          , operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
     class(treeNode      ), intent(in   ), target :: self
-    type (treeNode      ), pointer               :: hostNode, previousNode, selfActual, thisNode
+    type (treeNode      ), pointer               :: nodeHost, nodePrevious, selfActual, node
     type (varying_string)                        :: message
 
     select type (self)
@@ -687,24 +797,24 @@ module Galacticus_Nodes
 
     ! Remove from the mergee list of any merge target.
     if (associated(selfActual%mergeTarget)) then
-       hostNode => selfActual%mergeTarget
+       nodeHost => selfActual%mergeTarget
        message='Mergee node ['
-       message=message//selfActual%index()//'] being removed from merge target ['//hostNode%index()//']'
-       call Galacticus_Display_Message(message,verbosityInfo)
-       if (associated(hostNode%firstMergee,selfActual)) then
+       message=message//selfActual%index()//'] being removed from merge target ['//nodeHost%index()//']'
+       call displayMessage(message,verbosityLevelInfo)
+       if (associated(nodeHost%firstMergee,selfActual)) then
           ! This is the first mergee, unlink it, and link to any sibling.
-          hostNode%firstMergee => selfActual%siblingMergee
+          nodeHost%firstMergee => selfActual%siblingMergee
        else
-          thisNode     => hostNode%firstMergee
-          previousNode => null()
-          do while (associated(thisNode))
-             if (associated(thisNode,selfActual)) then
+          node         => nodeHost%firstMergee
+          nodePrevious => null()
+          do while (associated(node))
+             if (associated(node,selfActual)) then
                 ! Found our node, link its older sibling to its younger sibling.
-                previousNode%siblingMergee => thisNode%siblingMergee
+                nodePrevious%siblingMergee => node%siblingMergee
                 exit
              end if
-             previousNode => thisNode
-             thisNode     => thisNode%siblingMergee
+             nodePrevious => node
+             node         => node%siblingMergee
           end do
        end if
     end if
@@ -712,11 +822,13 @@ module Galacticus_Nodes
   end subroutine Tree_Node_Remove_from_Mergee
 
   function treeNodeWalkTreeWithSatellites(self)
-    !% Merger tree walk function which also descends through satellite nodes. Note that it is
-    !% important that the walk descends to satellites before descending to children: the
-    !% routines that destroy merger tree branches rely on this since child nodes are used in
-    !% testing whether a node is a satellite---if they are destroyed prior to the test being
-    !% made then problems with dangling pointers will occur.
+    !!{
+    Merger tree walk function which also descends through satellite nodes. Note that it is
+    important that the walk descends to satellites before descending to children: the
+    routines that destroy merger tree branches rely on this since child nodes are used in
+    testing whether a node is a satellite---if they are destroyed prior to the test being
+    made then problems with dangling pointers will occur.
+    !!}
     implicit none
     type (treeNode)               , pointer :: treeNodeWalkTreeWithSatellites
     class(treeNode), intent(inout), target  :: self
@@ -760,18 +872,20 @@ module Galacticus_Nodes
   end function treeNodeWalkTreeWithSatellites
 
   function treeNodeWalkBranchWithSatellites(self,startNode)
-    !% This function provides a mechanism for walking through the branches of the merger
-    !% tree. Given a pointer {\normalfont \ttfamily self} to a branch of the tree, it will
-    !% return the next node that should be visited in the tree. Thus, if {\normalfont \ttfamily
-    !% self} is initially set to the base of the merger tree and {\normalfont \ttfamily
-    !% Merger\_Tree\_Walk\_Branch()} is called repeatedly it will walk through every node of the
-    !% branch. Once the entire branch has been walked, a {\normalfont \ttfamily null()} pointer
-    !% will be returned, indicating that there are no more nodes to walk. Each node will be
-    !% visited once and once only if the branch is walked in this way. Note that it is important
-    !% that the walk descends to satellites before descending to children: the routines that
-    !% destroy merger tree branches rely on this since child nodes are used in testing whether a
-    !% node is a satellite---if they are destroyed prior to the test being made then problems
-    !% with dangling pointers will occur.
+    !!{
+    This function provides a mechanism for walking through the branches of the merger
+    tree. Given a pointer {\normalfont \ttfamily self} to a branch of the tree, it will
+    return the next node that should be visited in the tree. Thus, if {\normalfont \ttfamily
+    self} is initially set to the base of the merger tree and {\normalfont \ttfamily
+    Merger\_Tree\_Walk\_Branch()} is called repeatedly it will walk through every node of the
+    branch. Once the entire branch has been walked, a {\normalfont \ttfamily null()} pointer
+    will be returned, indicating that there are no more nodes to walk. Each node will be
+    visited once and once only if the branch is walked in this way. Note that it is important
+    that the walk descends to satellites before descending to children: the routines that
+    destroy merger tree branches rely on this since child nodes are used in testing whether a
+    node is a satellite---if they are destroyed prior to the test being made then problems
+    with dangling pointers will occur.
+    !!}
     implicit none
     type (treeNode)               , pointer :: treeNodeWalkBranchWithSatellites
     class(treeNode), intent(inout), target  :: self
@@ -817,7 +931,9 @@ module Galacticus_Nodes
   end function treeNodeWalkBranchWithSatellites
 
   function Merger_Tree_Walk_Descend_to_Progenitors(self) result (progenitorNode)
-    !% Descend to the deepest progenitor (satellites and children) of {\normalfont \ttfamily self}.
+    !!{
+    Descend to the deepest progenitor (satellites and children) of {\normalfont \ttfamily self}.
+    !!}
     implicit none
     type(treeNode), intent(in   ), target  :: self
     type(treeNode)               , pointer :: progenitorNode
@@ -837,7 +953,9 @@ module Galacticus_Nodes
   end function Merger_Tree_Walk_Descend_to_Progenitors
 
   subroutine treeNodeDestroyBranch(self)
-    !% Destroy the tree branch rooted at this given node.
+    !!{
+    Destroy the tree branch rooted at this given node.
+    !!}
     implicit none
     class(treeNode), intent(inout), target  :: self
     type (treeNode)               , pointer :: nodeDestroy, nodeNext, &
@@ -872,7 +990,9 @@ module Galacticus_Nodes
   !
   ! Functions for nodeComponent class.
   function Node_Component_Generic_Type(self)
-    !% Returns the name of a generic tree node component.
+    !!{
+    Returns the name of a generic tree node component.
+    !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
     class(nodeComponent ), intent(in   ) :: self
@@ -884,7 +1004,9 @@ module Galacticus_Nodes
   end function Node_Component_Generic_Type
 
   subroutine Node_Component_Generic_Destroy(self)
-    !% Destroy a generic tree node component.
+    !!{
+    Destroy a generic tree node component.
+    !!}
     implicit none
     class(nodeComponent), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -894,7 +1016,9 @@ module Galacticus_Nodes
   end subroutine Node_Component_Generic_Destroy
 
   subroutine Node_Component_ODE_Step_Initialize_Null(self)
-    !% Initialize a generic tree node component for an ODE solver step.
+    !!{
+    Initialize a generic tree node component for an ODE solver step.
+    !!}
     implicit none
     class(nodeComponent), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -903,7 +1027,9 @@ module Galacticus_Nodes
   end subroutine Node_Component_ODE_Step_Initialize_Null
 
   subroutine Node_Component_Dump_Null(self)
-    !% Dump a generic tree node component.
+    !!{
+    Dump a generic tree node component.
+    !!}
     implicit none
     class(nodeComponent), intent(in   ) :: self
     !$GLC attributes unused :: self
@@ -912,7 +1038,9 @@ module Galacticus_Nodes
   end subroutine Node_Component_Dump_Null
 
   subroutine Node_Component_Dump_XML_Null(self,fileHandle)
-    !% Dump a generic tree node component to XML.
+    !!{
+    Dump a generic tree node component to XML.
+    !!}
     implicit none
     class  (nodeComponent), intent(inout) :: self
     integer               , intent(in   ) :: fileHandle
@@ -922,7 +1050,9 @@ module Galacticus_Nodes
   end subroutine Node_Component_Dump_XML_Null
 
   subroutine Node_Component_Dump_Raw_Null(self,fileHandle)
-    !% Dump a generic tree node component in binary.
+    !!{
+    Dump a generic tree node component in binary.
+    !!}
     implicit none
     class  (nodeComponent), intent(in   ) :: self
     integer               , intent(in   ) :: fileHandle
@@ -932,7 +1062,9 @@ module Galacticus_Nodes
   end subroutine Node_Component_Dump_Raw_Null
 
   subroutine Node_Component_Read_Raw_Null(self,fileHandle)
-    !% Read a generic tree node component in binary.
+    !!{
+    Read a generic tree node component in binary.
+    !!}
     implicit none
     class  (nodeComponent), intent(inout) :: self
     integer               , intent(in   ) :: fileHandle
@@ -942,7 +1074,9 @@ module Galacticus_Nodes
   end subroutine Node_Component_Read_Raw_Null
 
   subroutine Node_Component_Output_Count_Null(self,integerPropertyCount,doublePropertyCount,time,instance)
-    !% Dump a generic tree node component.
+    !!{
+    Dump a generic tree node component.
+    !!}
     implicit none
     class           (nodeComponent), intent(inout) :: self
     integer                        , intent(inout) :: doublePropertyCount, integerPropertyCount
@@ -953,40 +1087,47 @@ module Galacticus_Nodes
     return
   end subroutine Node_Component_Output_Count_Null
 
-  subroutine Node_Component_Output_Names_Null(self,integerProperty,integerPropertyNames,integerPropertyComments,integerPropertyUnitsSI,doubleProperty,doublePropertyNames,doublePropertyComments,doublePropertyUnitsSI,time,instance)
-    !% Dump a generic tree node component.
+  subroutine Node_Component_Output_Names_Null(self,integerProperty,integerProperties,doubleProperty,doubleProperties,time,instance)
+    !!{
+    Dump a generic tree node component.
+    !!}
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
     implicit none
-    class           (nodeComponent )              , intent(inout) :: self
-    double precision                              , intent(in   ) :: time
-    integer                                       , intent(inout) :: doubleProperty         , integerProperty
-    character       (len=*         ), dimension(:), intent(inout) :: doublePropertyComments , doublePropertyNames   , &
-         &                                                           integerPropertyComments, integerPropertyNames
-    double precision                , dimension(:), intent(inout) :: doublePropertyUnitsSI  , integerPropertyUnitsSI
-    integer                                       , intent(in   ) :: instance
-    !$GLC attributes unused :: self, integerProperty, integerPropertyNames, integerPropertyComments, integerPropertyUnitsSI, doubleProperty, doublePropertyNames, doublePropertyComments, doublePropertyUnitsSI, time, instance
+    class           (nodeComponent        )              , intent(inout) :: self
+    double precision                                     , intent(in   ) :: time
+    integer                                              , intent(inout) :: doubleProperty   , integerProperty
+    type            (outputPropertyInteger), dimension(:), intent(inout) :: integerProperties
+    type            (outputPropertyDouble ), dimension(:), intent(inout) :: doubleProperties
+    integer                                              , intent(in   ) :: instance
+    !$GLC attributes unused :: self, integerProperty, integerProperties, doubleProperty, doubleProperties, time, instance
 
     return
   end subroutine Node_Component_Output_Names_Null
 
-  subroutine Node_Component_Output_Null(self,integerProperty,integerBufferCount,integerBuffer,doubleProperty,doubleBufferCount,doubleBuffer,time,outputInstance,instance)
-    !% Dump a generic tree node component.
+  subroutine Node_Component_Output_Null(self,integerProperty,integerBufferCount,integerProperties,doubleProperty,doubleBufferCount,doubleProperties,time,outputInstance,instance)
+    !!{
+    Dump a generic tree node component.
+    !!}
     use :: Multi_Counters, only : multiCounter
+    use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
     implicit none
-    class           (nodeComponent    ), intent(inout) :: self
-    double precision                   , intent(in   ) :: time
-    integer                            , intent(inout) :: doubleBufferCount     , doubleProperty, integerBufferCount, &
-         &                                                integerProperty
-    integer         (kind=kind_int8   ), intent(inout) :: integerBuffer    (:,:)
-    double precision                   , intent(inout) :: doubleBuffer     (:,:)
-    type            (multiCounter     ), intent(in   ) :: outputInstance
-    integer                            , intent(in   ) :: instance
-    !$GLC attributes unused :: self, integerProperty, integerBufferCount, integerBuffer, doubleProperty, doubleBufferCount, doubleBuffer, time, outputInstance, instance
+    class           (nodeComponent        )              , intent(inout) :: self
+    double precision                                     , intent(in   ) :: time
+    integer                                              , intent(inout) :: doubleBufferCount , doubleProperty ,  &
+         &                                                                  integerBufferCount, integerProperty
+    type            (outputPropertyInteger), dimension(:), intent(inout) :: integerProperties
+    type            (outputPropertyDouble ), dimension(:), intent(inout) :: doubleProperties
+    type            (multiCounter         )              , intent(in   ) :: outputInstance
+    integer                                              , intent(in   ) :: instance
+    !$GLC attributes unused :: self, integerProperty, integerBufferCount, integerProperties, doubleProperty, doubleBufferCount, doubleProperties, time, outputInstance, instance
 
     return
   end subroutine Node_Component_Output_Null
 
   integer function Node_Component_Serialize_Count_Zero(self,propertyType)
-    !% Return the serialization count of a generic tree node component.
+    !!{
+    Return the serialization count of a generic tree node component.
+    !!}
     implicit none
     class  (nodeComponent), intent(in   ) :: self
     integer               , intent(in   ) :: propertyType
@@ -997,7 +1138,9 @@ module Galacticus_Nodes
   end function Node_Component_Serialize_Count_Zero
 
   subroutine Node_Component_Serialization_Offsets(self,count,countSubset,propertyType)
-    !% Return the serialization count of a generic tree node component.
+    !!{
+    Return the serialization count of a generic tree node component.
+    !!}
     implicit none
     class  (nodeComponent), intent(in   ) :: self
     integer               , intent(inout) :: count       , countSubset
@@ -1008,7 +1151,9 @@ module Galacticus_Nodes
   end subroutine Node_Component_Serialization_Offsets
 
   subroutine Node_Component_Serialize_Null(self,array,propertyType)
-    !% Serialize a generic tree node component.
+    !!{
+    Serialize a generic tree node component.
+    !!}
     implicit none
     class           (nodeComponent)              , intent(in   ) :: self
     double precision               , dimension(:), intent(  out) :: array
@@ -1019,7 +1164,9 @@ module Galacticus_Nodes
   end subroutine Node_Component_Serialize_Null
 
   subroutine Node_Component_Deserialize_Null(self,array,propertyType)
-    !% Deserialize a generic tree node component.
+    !!{
+    Deserialize a generic tree node component.
+    !!}
     implicit none
     class           (nodeComponent)              , intent(inout) :: self
     double precision               , dimension(:), intent(in   ) :: array
@@ -1030,7 +1177,9 @@ module Galacticus_Nodes
   end subroutine Node_Component_Deserialize_Null
 
   function Node_Component_Host_Node(self)
-    !% Return the host tree node of a tree node component.
+    !!{
+    Return the host tree node of a tree node component.
+    !!}
     implicit none
     class(nodeComponent), intent(in   ) :: self
     type (treeNode     ), pointer       :: Node_Component_Host_Node
@@ -1040,7 +1189,9 @@ module Galacticus_Nodes
   end function Node_Component_Host_Node
 
   subroutine Node_Component_Null_Void0_InOut(self)
-    !% A null {\normalfont \ttfamily void} function for rank 0 {\normalfont \ttfamily nodeComponent} arrays.
+    !!{
+    A null {\normalfont \ttfamily void} function for rank 0 {\normalfont \ttfamily nodeComponent} arrays.
+    !!}
     implicit none
     class(nodeComponent), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -1049,7 +1200,9 @@ module Galacticus_Nodes
   end subroutine Node_Component_Null_Void0_InOut
 
   double precision function Node_Component_Null_Double0_InOut(self)
-    !% A null {\normalfont \ttfamily double} function for rank 0 {\normalfont \ttfamily nodeComponent} arrays.
+    !!{
+    A null {\normalfont \ttfamily double} function for rank 0 {\normalfont \ttfamily nodeComponent} arrays.
+    !!}
     implicit none
     class(nodeComponent), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -1059,7 +1212,9 @@ module Galacticus_Nodes
   end function Node_Component_Null_Double0_InOut
 
   function Node_Component_Null_Double1_InOut(self,resultSize)
-    !% A null {\normalfont \ttfamily double} function for rank 1 {\normalfont \ttfamily nodeComponent} arrays.
+    !!{
+    A null {\normalfont \ttfamily double} function for rank 1 {\normalfont \ttfamily nodeComponent} arrays.
+    !!}
     implicit none
     class           (nodeComponent), intent(inout)         :: self
     integer                        , intent(in   )         :: resultSize
@@ -1071,7 +1226,9 @@ module Galacticus_Nodes
   end function Node_Component_Null_Double1_InOut
 
   function Node_Component_Null_TensorR2D3_InOut(self)
-    !% A null {\normalfont \ttfamily tensorRank2Dimension3Symmetric} function for {\normalfont \ttfamily nodeComponent}s.
+    !!{
+    A null {\normalfont \ttfamily tensorRank2Dimension3Symmetric} function for {\normalfont \ttfamily nodeComponent}s.
+    !!}
     implicit none
     type (tensorRank2Dimension3Symmetric)                :: Node_Component_Null_TensorR2D3_InOut
     class(nodeComponent                 ), intent(inout) :: self
@@ -1082,7 +1239,9 @@ module Galacticus_Nodes
   end function Node_Component_Null_TensorR2D3_InOut
 
   double precision function Node_Component_Enclosed_Mass_Null(self,radius,componentType,massType,weightBy,weightIndex)
-    !% A null implementation of the enclosed mass in a component. Always returns zero.
+    !!{
+    A null implementation of the enclosed mass in a component. Always returns zero.
+    !!}
     implicit none
     class           (nodeComponent), intent(inout) :: self
     integer                        , intent(in   ) :: componentType, massType, weightBy, weightIndex
@@ -1094,7 +1253,9 @@ module Galacticus_Nodes
   end function Node_Component_Enclosed_Mass_Null
 
   function Node_Component_Acceleration_Null(self,positionCartesian,componentType,massType)
-    !% A null implementation of the acceleration due to a component. Always returns zero.
+    !!{
+    A null implementation of the acceleration due to a component. Always returns zero.
+    !!}
     implicit none
     double precision               , dimension(3)                :: Node_Component_Acceleration_Null
     class           (nodeComponent)              , intent(inout) :: self
@@ -1107,7 +1268,9 @@ module Galacticus_Nodes
   end function Node_Component_Acceleration_Null
 
   function Node_Component_Chandrasekhar_Integral_Null(self,positionCartesian,velocityCartesian,componentType,massType)
-    !% A null implementation of the acceleration due to a component. Always returns zero.
+    !!{
+    A null implementation of the acceleration due to a component. Always returns zero.
+    !!}
     implicit none
     double precision               , dimension(3)                :: Node_Component_Chandrasekhar_Integral_Null
     class           (nodeComponent)              , intent(inout) :: self
@@ -1120,7 +1283,9 @@ module Galacticus_Nodes
   end function Node_Component_Chandrasekhar_Integral_Null
 
   function Node_Component_Tidal_Tensor_Null(self,positionCartesian,componentType,massType)
-    !% A null implementation of the tidal tensor due to a component. Always returns zero.
+    !!{
+    A null implementation of the tidal tensor due to a component. Always returns zero.
+    !!}
     implicit none
     type            (tensorRank2Dimension3Symmetric)                              :: Node_Component_Tidal_Tensor_Null
     class           (nodeComponent                 )              , intent(inout) :: self
@@ -1133,7 +1298,9 @@ module Galacticus_Nodes
   end function Node_Component_Tidal_Tensor_Null
 
   double precision function Node_Component_Density_Null(self,positionSpherical,componentType,massType,weightBy,weightIndex)
-    !% A null implementation of the density in a component. Always returns zero.
+    !!{
+    A null implementation of the density in a component. Always returns zero.
+    !!}
     implicit none
     class           (nodeComponent)              , intent(inout) :: self
     integer                                      , intent(in   ) :: componentType    , massType, weightBy, &
@@ -1146,7 +1313,9 @@ module Galacticus_Nodes
   end function Node_Component_Density_Null
 
   double precision function Node_Component_Surface_Density_Null(self,positionCylindrical,componentType,massType,weightBy,weightIndex)
-    !% A null implementation of the surface density in a component. Always returns zero.
+    !!{
+    A null implementation of the surface density in a component. Always returns zero.
+    !!}
     implicit none
     class           (nodeComponent)              , intent(inout) :: self
     integer                                      , intent(in   ) :: componentType      , massType   , &
@@ -1159,7 +1328,9 @@ module Galacticus_Nodes
   end function Node_Component_Surface_Density_Null
 
   double precision function Node_Component_Potential_Null(self,radius,componentType,massType,status)
-    !% A null implementation of the gravitational potential in a component. Always returns zero.
+    !!{
+    A null implementation of the gravitational potential in a component. Always returns zero.
+    !!}
     implicit none
     class           (nodeComponent), intent(inout)           :: self
     integer                        , intent(in   )           :: componentType, massType
@@ -1172,7 +1343,9 @@ module Galacticus_Nodes
   end function Node_Component_Potential_Null
 
   double precision function Node_Component_Rotation_Curve_Null(self,radius,componentType,massType)
-    !% A null implementation of the rotation curve due to a component. Always returns zero.
+    !!{
+    A null implementation of the rotation curve due to a component. Always returns zero.
+    !!}
     implicit none
     class           (nodeComponent), intent(inout) :: self
     integer                        , intent(in   ) :: componentType, massType
@@ -1184,7 +1357,9 @@ module Galacticus_Nodes
   end function Node_Component_Rotation_Curve_Null
 
   double precision function Node_Component_Rotation_Curve_Gradient_Null(self,radius,componentType,massType)
-    !% A null implementation of the gradient of the rotation curve due to a component. Always returns zero.
+    !!{
+    A null implementation of the gradient of the rotation curve due to a component. Always returns zero.
+    !!}
     implicit none
     class           (nodeComponent), intent(inout) :: self
     integer                        , intent(in   ) :: componentType, massType
@@ -1197,7 +1372,9 @@ module Galacticus_Nodes
 
   ! Simple Boolean functions.
   logical function Boolean_False()
-    !% Returns Boolean false always.
+    !!{
+    Returns Boolean false always.
+    !!}
     implicit none
 
     Boolean_False=.false.
@@ -1205,7 +1382,9 @@ module Galacticus_Nodes
   end function Boolean_False
 
   logical function Boolean_True()
-    !% Returns Boolean true always.
+    !!{
+    Returns Boolean true always.
+    !!}
     implicit none
 
     Boolean_True=.true.
@@ -1213,9 +1392,11 @@ module Galacticus_Nodes
   end function Boolean_True
 
   subroutine nodeComponentGetError(nameComponent,indexNode)
-    !% Function used to report errors when attempting to get a component from a node. Error reporting is handled here to avoid
-    !% having the relatively expensive creation/destruction of a varying string object in the actual get functions (which are
-    !% called a very large number of times).
+    !!{
+    Function used to report errors when attempting to get a component from a node. Error reporting is handled here to avoid
+    having the relatively expensive creation/destruction of a varying string object in the actual get functions (which are
+    called a very large number of times).
+    !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : assignment(=)          , operator(//), varying_string
     use :: String_Handling   , only : operator(//)
@@ -1230,8 +1411,28 @@ module Galacticus_Nodes
     return
   end subroutine nodeComponentGetError
   
+  function universeConstructor() result(self)
+    !!{
+    Constructor for the universe class.
+    !!}
+    implicit none
+    type(universe) :: self
+
+    !$omp critical(universeUniqueIDAssign)
+    universeUniqueIdCount=universeUniqueIdCount+1
+    self%uniqueID        =universeUniqueIdCount
+    !$omp end critical(universeUniqueIDAssign)
+    self%trees         => null()
+    self%event         => null()
+    self%allTreesBuilt =  .false.
+    call self%attributes%initialize()
+    return
+  end function universeConstructor
+
   function mergerTreeConstructor() result(self)
-    !% Constructor for the merger tree class. Currently does nothing.
+    !!{
+    Constructor for the merger tree class. Currently does nothing.
+    !!}
     implicit none
     type(mergerTree) :: self
     
@@ -1239,7 +1440,9 @@ module Galacticus_Nodes
   end function mergerTreeConstructor
 
   subroutine Merger_Tree_Destroy(tree)
-    !% Destroys the entire merger tree.
+    !!{
+    Destroys the entire merger tree.
+    !!}
     implicit none
     class(mergerTree), intent(inout) :: tree
     type (treeEvent ), pointer       :: event, eventNext
@@ -1263,13 +1466,17 @@ module Galacticus_Nodes
        ! Destroy the property hash.
        call tree%properties%destroy()
        ! Destroy the random number generator.
-       !# <objectDestructor name="tree%randomNumberGenerator_"/>
+       !![
+       <objectDestructor name="tree%randomNumberGenerator_"/>
+       !!]
     end select
     return
   end subroutine Merger_Tree_Destroy
 
   function Merger_Tree_Node_Get(tree,nodeIndex)
-    !% Return a pointer to a node in {\normalfont \ttfamily tree} given the index of the node.
+    !!{
+    Return a pointer to a node in {\normalfont \ttfamily tree} given the index of the node.
+    !!}
     implicit none
     class  (mergerTree    ), intent(in   ), target :: tree
     integer(kind=kind_int8), intent(in   )         :: nodeIndex
@@ -1293,7 +1500,9 @@ module Galacticus_Nodes
   end function Merger_Tree_Node_Get
 
   function Merger_Tree_Create_Event(self) result (eventNew)
-    !% Create a new event in a merger tree.
+    !!{
+    Create a new event in a merger tree.
+    !!}
     implicit none
     class(mergerTree), intent(inout) :: self
     type (treeEvent ), pointer       :: eventNew, event
@@ -1316,7 +1525,9 @@ module Galacticus_Nodes
   end function Merger_Tree_Create_Event
 
   subroutine Merger_Tree_Remove_Event(self,event)
-    !% Removed an event from {\normalfont \ttfamily self}.
+    !!{
+    Removed an event from {\normalfont \ttfamily self}.
+    !!}
     implicit none
     class  (mergerTree), intent(inout) :: self
     type   (treeEvent ), intent(in   ) :: event
@@ -1346,7 +1557,9 @@ module Galacticus_Nodes
   end subroutine Merger_Tree_Remove_Event
 
   double precision function Merger_Tree_Earliest_Time(self)
-    !% Return the earliest time in a merger tree.
+    !!{
+    Return the earliest time in a merger tree.
+    !!}
     implicit none
     class           (mergerTree        ), intent(inout), target :: self
     double precision                    , parameter             :: timeInfinity=huge(1.0d0)
@@ -1371,7 +1584,9 @@ module Galacticus_Nodes
   end function Merger_Tree_Earliest_Time
 
   double precision function Merger_Tree_Earliest_Time_Evolving(self)
-    !% Return the earliest time in a merger tree.
+    !!{
+    Return the earliest time in a merger tree.
+    !!}
     implicit none
     class           (mergerTree        ), intent(inout), target :: self
     double precision                    , parameter             :: timeInfinity=huge(1.0d0)
@@ -1396,7 +1611,9 @@ module Galacticus_Nodes
   end function Merger_Tree_Earliest_Time_Evolving
 
   double precision function Merger_Tree_Latest_Time(self)
-    !% Return the latest time in a merger tree.
+    !!{
+    Return the latest time in a merger tree.
+    !!}
     implicit none
     class           (mergerTree        ), intent(inout), target :: self
     type            (mergerTree        ), pointer               :: treeCurrent
@@ -1415,25 +1632,31 @@ module Galacticus_Nodes
   end function Merger_Tree_Latest_Time
 
   integer(c_size_t) function Merger_Tree_Size_Of(self)
-    !% Return the size (in bytes) of a merger tree.
+    !!{
+    Return the size (in bytes) of a merger tree.
+    !!}
     implicit none
     class(mergerTree), intent(in   ) :: self
     type (treeEvent ), pointer       :: event
     
-    !# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-    !#  <description>
-  !#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-  !#  </description>
-    !# </workaround>
+    !![
+    <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+     <description>
+      Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+     </description>
+    </workaround>
+    !!]
     !Merger_Tree_Size_Of=sizeof(self)
     Merger_Tree_Size_Of=0_c_size_t
     event => self%event
     do while (associated(event))
-       !# <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
-       !#  <description>
-  !#   Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
-  !#  </description>
-       !# </workaround>
+       !![
+       <workaround type="gfortran" PR="94446" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=94446">
+        <description>
+         Using the sizeof() intrinsic on a treeNode object causes a bogus "type mismatch" error when this module is used.
+        </description>
+       </workaround>
+       !!]
        ! Merger_Tree_Size_Of=Merger_Tree_Size_Of+sizeof(event)
        event => event%next
     end do
@@ -1442,10 +1665,12 @@ module Galacticus_Nodes
 
 
   function universeCreateEvent(self) result (newEvent)
-    !% Create a new event in a universe.
+    !!{
+    Create a new event in a universe.
+    !!}
     implicit none
     class(universe     ), intent(inout) :: self
-    type (universeEvent), pointer       :: newEvent, thisEvent
+    type (universeEvent), pointer       :: newEvent, event
 
     allocate(newEvent)
     nullify(newEvent%next)
@@ -1453,11 +1678,11 @@ module Galacticus_Nodes
     eventID=eventID+1
     newEvent%ID=eventID
     if (associated(self%event)) then
-       thisEvent => self%event
-       do while (associated(thisEvent%next))
-          thisEvent => thisEvent%next
+       event => self%event
+       do while (associated(event%next))
+          event => event%next
        end do
-       thisEvent%next => newEvent
+       event%next => newEvent
     else
        self%event => newEvent
     end if
@@ -1465,37 +1690,41 @@ module Galacticus_Nodes
   end function universeCreateEvent
 
   subroutine universeRemoveEvent(self,event)
-    !% Remove an event from {\normalfont \ttfamily self}.
+    !!{
+    Remove an event from {\normalfont \ttfamily self}.
+    !!}
     implicit none
     class  (universe     ), intent(inout) :: self
     type   (universeEvent), intent(in   ) :: event
-    type   (universeEvent), pointer       :: lastEvent, nextEvent, thisEvent
+    type   (universeEvent), pointer       :: eventLast, eventNext, event_
 
     ! Destroy the event.
-    lastEvent => null()
-    thisEvent => self%event
-    do while (associated(thisEvent))
+    eventLast => null()
+    event_    => self%event
+    do while (associated(event_))
        ! Match the event.
-       if (thisEvent%ID == event%ID) then
-          if (associated(thisEvent,self%event)) then
-             self     %event => thisEvent%next
-             lastEvent       => self     %event
+       if (event_%ID == event%ID) then
+          if (associated(event_,self%event)) then
+             self     %event => event_%next
+             eventLast       => self  %event
           else
-             lastEvent%next  => thisEvent%next
+             eventLast%next  => event_%next
           end if
-          nextEvent => thisEvent%next
-          deallocate(thisEvent)
-          thisEvent => nextEvent
+          eventNext => event_   %next
+          deallocate(event_)
+          event_    => eventNext
        else
-          lastEvent => thisEvent
-          thisEvent => thisEvent%next
+          eventLast => event_
+          event_    => event_%next
        end if
     end do
     return
   end subroutine universeRemoveEvent
   
   function universePopTree(self)
-    !% Pop a tree from the universe.
+    !!{
+    Pop a tree from the universe.
+    !!}
     implicit none
     type (mergerTree    ), pointer       :: universePopTree
     class(universe      ), intent(inout) :: self
@@ -1512,24 +1741,26 @@ module Galacticus_Nodes
     return
   end function universePopTree
 
-  subroutine universePushTree(self,thisTree)
-    !% Pop a tree from the universe.
+  subroutine universePushTree(self,tree)
+    !!{
+    Pop a tree from the universe.
+    !!}
     implicit none
     class(universe      ), intent(inout)          :: self
-    type (mergerTree    ), intent(in   ), pointer :: thisTree
-    type (mergerTreeList)               , pointer :: nextTree, newTree
+    type (mergerTree    ), intent(in   ), pointer :: tree
+    type (mergerTreeList)               , pointer :: treeNext, treeNew
 
-    allocate(newTree)
-    newTree%tree => thisTree
-    newTree%next => null()
+    allocate(treeNew)
+    treeNew%tree => tree
+    treeNew%next => null()
     if (associated(self%trees)) then
-       nextTree => self%trees
-       do while (associated(nextTree%next))
-          nextTree => nextTree%next
+       treeNext => self%trees
+       do while (associated(treeNext%next))
+          treeNext => treeNext%next
        end do
-       nextTree%next => newTree
+       treeNext%next => treeNew
     else
-       self%trees => newTree
+       self%trees => treeNew
     end if
     return
   end subroutine universePushTree

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an anti-$\log_{10}()$ output analysis property operator class.
+!!{
+Contains a module which implements an anti-$\log_{10}()$ output analysis property operator class.
+!!}
 
-  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorAntiLog10">
-  !#  <description>An anti-$\log_{10}()$ output analysis property operator class.</description>
-  !# </outputAnalysisPropertyOperator>
+  !![
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorAntiLog10">
+   <description>An anti-$\log_{10}()$ output analysis property operator class.</description>
+  </outputAnalysisPropertyOperator>
+  !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorAntiLog10
-     !% An anti-$\log_{10}()$ output property operator class.
+     !!{
+     An anti-$\log_{10}()$ output property operator class.
+     !!}
      private
    contains
      procedure :: operate => antiLog10Operate
   end type outputAnalysisPropertyOperatorAntiLog10
 
   interface outputAnalysisPropertyOperatorAntiLog10
-     !% Constructors for the ``antiLog10'' output analysis class.
+     !!{
+     Constructors for the ``antiLog10'' output analysis class.
+     !!}
      module procedure antiLog10ConstructorParameters
   end interface outputAnalysisPropertyOperatorAntiLog10
 
 contains
 
   function antiLog10ConstructorParameters(parameters)
-    !% Constructor for the ``antiLog10'' output analysis property operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``antiLog10'' output analysis property operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisPropertyOperatorAntiLog10)                :: antiLog10ConstructorParameters
@@ -49,7 +59,9 @@ contains
   end function antiLog10ConstructorParameters
 
   double precision function antiLog10Operate(self,propertyValue,node,propertyType,outputIndex)
-    !% Implement an antiLog10 output analysis property operator.
+    !!{
+    Implement an antiLog10 output analysis property operator.
+    !!}
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear, outputAnalysisPropertyTypeLog10, outputAnalysisPropertyTypeUnknown
     implicit none

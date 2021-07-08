@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,29 +17,35 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a class for calculations of merger remnant sizes.
+!!{
+Contains a module which implements a class for calculations of merger remnant sizes.
+!!}
 
 module Satellite_Merging_Remnant_Sizes
-  !% Implements a class for calculations of merger remnant sizes.
+  !!{
+  Implements a class for calculations of merger remnant sizes.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
 
-  !# <functionClass>
-  !#  <name>mergerRemnantSize</name>
-  !#  <descriptiveName>Merger Remnant Sizes</descriptiveName>
-  !#  <description>
-  !#   Class providing models of merger remnant sizes.
-  !#  </description>
-  !#  <default>covington2008</default>
-  !#  <method name="get" >
-  !#   <description>Determine merger remnant size and related properties.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout) :: node                                             </argument>
-  !#   <argument>double precision          , intent(  out) :: radius, velocityCircular, angularMomentumSpecific</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>mergerRemnantSize</name>
+   <descriptiveName>Merger Remnant Sizes</descriptiveName>
+   <description>
+    Class providing models of merger remnant sizes.
+   </description>
+   <default>covington2008</default>
+   <method name="get" >
+    <description>Determine merger remnant size and related properties.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>type            (treeNode), intent(inout) :: node                                             </argument>
+    <argument>double precision          , intent(  out) :: radius, velocityCircular, angularMomentumSpecific</argument>
+   </method>
+  </functionClass>
+  !!]
 
   ! Value indicating that there was no change in the remnant spheroid size.
   double precision, parameter, public :: remnantNoChange=-1.0d0

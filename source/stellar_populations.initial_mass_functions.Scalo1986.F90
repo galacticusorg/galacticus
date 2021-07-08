@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,32 +17,40 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a stellar initial mass function class for the \cite{scalo_stellar_1986} \gls{imf}.
+  !!{
+  Implements a stellar initial mass function class for the \cite{scalo_stellar_1986} \gls{imf}.
+  !!}
 
-  !# <initialMassFunction name="initialMassFunctionScalo1986">
-  !#  <description>
-  !#   A stellar initial mass function class for the \cite{scalo_stellar_1986} \gls{imf}:
-  !#   \begin{equation}
-  !#    \phi(M) \propto \left\{ \begin{array}{ll}
-  !#    M^{+1.60} &amp; \hbox{ for } 0.10M_\odot &lt; M &lt; 0.18M_\odot \\
-  !#    M^{-1.01} &amp; \hbox{ for } 0.18M_\odot &lt; M &lt; 0.42M_\odot \\
-  !#    M^{-2.75} &amp; \hbox{ for } 0.42M_\odot &lt; M &lt; 0.62M_\odot \\
-  !#    M^{-2.08} &amp; \hbox{ for } 0.62M_\odot &lt; M &lt; 1.18M_\odot \\
-  !#    M^{-3.50} &amp; \hbox{ for } 1.18M_\odot &lt; M &lt; 3.50M_\odot \\
-  !#    M^{-2.63} &amp; \hbox{ for } 3.50M_\odot &lt; M &lt; 125M_\odot \\
-  !#    0 &amp; \hbox {otherwise.} \end{array} \right.
-  !#   \end{equation}
-  !#  </description>
-  !# </initialMassFunction>
+  !![
+  <initialMassFunction name="initialMassFunctionScalo1986">
+   <description>
+    A stellar initial mass function class for the \cite{scalo_stellar_1986} \gls{imf}:
+    \begin{equation}
+     \phi(M) \propto \left\{ \begin{array}{ll}
+     M^{+1.60} &amp; \hbox{ for } 0.10M_\odot &lt; M &lt; 0.18M_\odot \\
+     M^{-1.01} &amp; \hbox{ for } 0.18M_\odot &lt; M &lt; 0.42M_\odot \\
+     M^{-2.75} &amp; \hbox{ for } 0.42M_\odot &lt; M &lt; 0.62M_\odot \\
+     M^{-2.08} &amp; \hbox{ for } 0.62M_\odot &lt; M &lt; 1.18M_\odot \\
+     M^{-3.50} &amp; \hbox{ for } 1.18M_\odot &lt; M &lt; 3.50M_\odot \\
+     M^{-2.63} &amp; \hbox{ for } 3.50M_\odot &lt; M &lt; 125M_\odot \\
+     0 &amp; \hbox {otherwise.} \end{array} \right.
+    \end{equation}
+   </description>
+  </initialMassFunction>
+  !!]
   type, extends(initialMassFunctionPiecewisePowerLaw) :: initialMassFunctionScalo1986
-     !% A stellar initial mass function class for the \cite{scalo_stellar_1986} \gls{imf}.
+     !!{
+     A stellar initial mass function class for the \cite{scalo_stellar_1986} \gls{imf}.
+     !!}
      private
    contains
      procedure :: label => scalo1986Label
   end type initialMassFunctionScalo1986
 
   interface initialMassFunctionScalo1986
-     !% Constructors for the {\normalfont \ttfamily scalo1986} initial mass function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily scalo1986} initial mass function class.
+     !!}
      module procedure scalo1986ConstructorParameters
      module procedure scalo1986ConstructorInternal
   end interface initialMassFunctionScalo1986
@@ -50,7 +58,9 @@
 contains
 
   function scalo1986ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily scalo1986} initial mass function class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily scalo1986} initial mass function class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(initialMassFunctionScalo1986)                :: self
@@ -62,7 +72,9 @@ contains
   end function scalo1986ConstructorParameters
 
   function scalo1986ConstructorInternal() result(self)
-    !% Internal constructor for the {\normalfont \ttfamily scalo1986} initial mass function.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily scalo1986} initial mass function.
+    !!}
     implicit none
     type(initialMassFunctionScalo1986):: self
 
@@ -74,7 +86,9 @@ contains
   end function scalo1986ConstructorInternal
 
   function scalo1986Label(self)
-    !% Return a label for this \gls{imf}.
+    !!{
+    Return a label for this \gls{imf}.
+    !!}
     implicit none
     class(initialMassFunctionScalo1986), intent(inout) :: self
     type (varying_string              )                :: scalo1986Label

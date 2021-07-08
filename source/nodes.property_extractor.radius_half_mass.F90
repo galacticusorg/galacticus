@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,14 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a half-stellar mass radius output analysis property extractor class.
+!!{
+Contains a module which implements a half-stellar mass radius output analysis property extractor class.
+!!}
 
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorHalfMassRadius">
-  !#  <description>A half-(stellar) mass output analysis property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorHalfMassRadius">
+   <description>A half-(stellar) mass output analysis property extractor class.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorHalfMassRadius
-     !% A half-(stellar) mass property extractor output analysis class.
+     !!{
+     A half-(stellar) mass property extractor output analysis class.
+     !!}
      private
    contains
      procedure :: extract     => halfMassRadiusExtract
@@ -35,14 +41,18 @@
   end type nodePropertyExtractorHalfMassRadius
 
   interface nodePropertyExtractorHalfMassRadius
-     !% Constructors for the ``halfMassRadius'' output analysis class.
+     !!{
+     Constructors for the ``halfMassRadius'' output analysis class.
+     !!}
      module procedure halfMassRadiusConstructorParameters
   end interface nodePropertyExtractorHalfMassRadius
 
 contains
 
   function halfMassRadiusConstructorParameters(parameters) result(self)
-    !% Constructor for the ``halfMassRadius'' output analysis property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``halfMassRadius'' output analysis property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorHalfMassRadius)                :: self
@@ -55,7 +65,9 @@ contains
   end function halfMassRadiusConstructorParameters
 
   double precision function halfMassRadiusExtract(self,node,instance)
-    !% Implement a half-mass output analysis.
+    !!{
+    Implement a half-mass output analysis.
+    !!}
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options        , only : massTypeStellar
     implicit none
@@ -69,7 +81,9 @@ contains
   end function halfMassRadiusExtract
 
   integer function halfMassRadiusType(self)
-    !% Return the type of the half-mass radius property.
+    !!{
+    Return the type of the half-mass radius property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorHalfMassRadius), intent(inout) :: self
@@ -80,7 +94,9 @@ contains
   end function halfMassRadiusType
 
   function halfMassRadiusName(self)
-    !% Return the name of the halfMassRadius property.
+    !!{
+    Return the name of the halfMassRadius property.
+    !!}
     implicit none
     type (varying_string                     )                :: halfMassRadiusName
     class(nodePropertyExtractorHalfMassRadius), intent(inout) :: self
@@ -91,7 +107,9 @@ contains
   end function halfMassRadiusName
 
   function halfMassRadiusDescription(self)
-    !% Return a description of the halfMassRadius property.
+    !!{
+    Return a description of the halfMassRadius property.
+    !!}
     implicit none
     type (varying_string                     )                :: halfMassRadiusDescription
     class(nodePropertyExtractorHalfMassRadius), intent(inout) :: self
@@ -102,7 +120,9 @@ contains
   end function halfMassRadiusDescription
 
   double precision function halfMassRadiusUnitsInSI(self)
-    !% Return the units of the halfMassRadius property in the SI system.
+    !!{
+    Return the units of the halfMassRadius property in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     implicit none
     class(nodePropertyExtractorHalfMassRadius), intent(inout) :: self

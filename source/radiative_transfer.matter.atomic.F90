@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,12 +26,17 @@
   use :: Atomic_Rates_Recombination_Radiative        , only : atomicRecombinationRateRadiativeClass
   use :: Atomic_Rates_Recombination_Radiative_Cooling, only : atomicRecombinationRateRadiativeCoolingClass
   use :: Mass_Distributions                          , only : massDistributionClass
-  
-  !# <radiativeTransferMatter name="radiativeTransferMatterAtomic">
-  !#  <description>A task which performs radiative transfer.</description>
-  !# </radiativeTransferMatter>
+  use :: Root_Finder                                 , only : rootFinder
+
+  !![
+  <radiativeTransferMatter name="radiativeTransferMatterAtomic">
+   <description>A task which performs radiative transfer.</description>
+  </radiativeTransferMatter>
+  !!]
   type, extends(radiativeTransferMatterClass) :: radiativeTransferMatterAtomic
-     !% Implementation of a radiative transfer matter class for atomic matter.
+     !!{
+     Implementation of a radiative transfer matter class for atomic matter.
+     !!}
      private
      class           (massDistributionClass                       ), pointer                     :: massDistribution_                        => null()
      class           (atomicCrossSectionIonizationPhotoClass      ), pointer                     :: atomicCrossSectionIonizationPhoto_       => null()
@@ -42,6 +47,7 @@
      class           (atomicIonizationPotentialClass              ), pointer                     :: atomicIonizationPotential_               => null()
      class           (atomicExcitationRateCollisionalClass        ), pointer                     :: atomicExcitationRateCollisional_         => null()
      class           (gauntFactorClass                            ), pointer                     :: gauntFactor_                             => null()
+     type            (rootFinder                                  )                              :: finder
      integer                                                                                     :: indexAbundancePattern                             , iterationAverageCount       , &
           &                                                                                         countElements                                     , indexHydrogen
      integer         (c_size_t                                    )                              :: countOutputs_                                     , countStatesConvergence
@@ -54,12 +60,14 @@
      integer                                                       , allocatable, dimension(:  ) :: elementAtomicNumbers
      double precision                                              , allocatable, dimension(:,:) :: crossSectionPhotoIonizationPrevious
    contains
-     !# <methods>
-     !#   <method description="Return the total rate of recombinations (in units of s$^{-1}$)." method="recombinationRateHydrogen" />
-     !#   <method description="Return the total rate of recombinations (in units of s$^{-1}$)." method="absorptionCoefficientSpecies" />
-     !#   <method description="Update the ionization state hsitory in a properties object." method="historyUpdate" />
-     !#   <method description="Compute the total photoionization cross section for the given element and ionization state." method="crossSectionPhotoIonization" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return the total rate of recombinations (in units of s$^{-1}$)." method="recombinationRateHydrogen" />
+       <method description="Return the total rate of recombinations (in units of s$^{-1}$)." method="absorptionCoefficientSpecies" />
+       <method description="Update the ionization state hsitory in a properties object." method="historyUpdate" />
+       <method description="Compute the total photoionization cross section for the given element and ionization state." method="crossSectionPhotoIonization" />
+     </methods>
+     !!]
      final     ::                                 atomicDestructor
      procedure :: propertyClass                => atomicPropertyClass
      procedure :: populateDomain               => atomicPopulateDomain
@@ -84,23 +92,29 @@
   end type radiativeTransferMatterAtomic
   
   interface radiativeTransferMatterAtomic
-     !% Constructors for the {\normalfont \ttfamily atomic} radiative transfer matter class.
+     !!{
+     Constructors for the {\normalfont \ttfamily atomic} radiative transfer matter class.
+     !!}
      module procedure atomicConstructorParameters
      module procedure atomicConstructorInternal
   end interface radiativeTransferMatterAtomic
 
   type, public :: element
-     !% Type used to store elemental states.
+     !!{
+     Type used to store elemental states.
+     !!}
      double precision                              :: densityNumber
-     double precision, dimension(:,:), allocatable :: photoIonizationRateHistory , photoHeatingRateHistory , &
+     double precision, dimension(:,:), allocatable :: photoIonizationRateHistory    , photoHeatingRateHistory , &
           &                                           ionizationStateFractionHistory
-     double precision, dimension(:  ), allocatable :: photoIonizationRate        , photoHeatingRate        , &
-          &                                           photoIonizationRatePrevious, photoHeatingRatePrevious, &
+     double precision, dimension(:  ), allocatable :: photoIonizationRate           , photoHeatingRate        , &
+          &                                           photoIonizationRatePrevious   , photoHeatingRatePrevious, &
           &                                           ionizationStateFraction
   end type element
   
   type, extends(radiativeTransferPropertiesMatter), public :: radiativeTransferPropertiesMatterAtomic
-     !% Radiative transfer matter properties class for atomic matter.
+     !!{
+     Radiative transfer matter properties class for atomic matter.
+     !!}
      integer                                              :: iterationCount
      double precision                                     :: volume        , temperature
      type            (element), dimension(:), allocatable :: elements
@@ -116,12 +130,16 @@
 
   ! Tolerance parameters.
   double precision                                         , parameter                   :: atomicIonizationStateFractionToleranceAbsolute=1.0d-12, atomicIonizationStateFractionToleranceRelative=1.0d-2
-  
+  double precision                                         , parameter                   :: temperatureToleranceRelative                  =1.0d-03, temperatureToleranceAbsolute                  =1.0d+0
+  double precision                                         , parameter                   :: temperatureMaximum                            =1.0d+10
+
 contains
 
   function atomicConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily atomic} radiative transfer matter class which takes a parameter set as input.
-    use :: Input_Parameters                , only : inputParameters , inputParameter
+    !!{
+    Constructor for the {\normalfont \ttfamily atomic} radiative transfer matter class which takes a parameter set as input.
+    !!}
+    use :: Input_Parameters                , only : inputParameter  , inputParameters
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
     type            (radiativeTransferMatterAtomic               )                             :: self
@@ -142,90 +160,100 @@ contains
     type            (varying_string                              )                             :: abundancePattern
     logical                                                                                    :: outputRates                             , outputAbsorptionCoefficients
     
-    !# <inputParameter>
-    !#   <name>iterationAverageCount</name>
-    !#   <defaultValue>5</defaultValue>
-    !#   <description>The number of iterations over which to average the photoionization rate.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>temperatureMinimum</name>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The minimum temperature that matter is allowed to reach in the case of zero photoheating.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>abundancePattern</name>
-    !#   <defaultValue>var_str('solar')</defaultValue>
-    !#   <description>The abundance pattern to use.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>metallicity</name>
-    !#   <defaultValue>metallicitySolar</defaultValue>
-    !#   <description>The metallicity to use.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>iterationAverageCount</name>
+      <defaultValue>5</defaultValue>
+      <description>The number of iterations over which to average the photoionization rate.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>temperatureMinimum</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The minimum temperature that matter is allowed to reach in the case of zero photoheating.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>abundancePattern</name>
+      <defaultValue>var_str('solar')</defaultValue>
+      <description>The abundance pattern to use.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>metallicity</name>
+      <defaultValue>metallicitySolar</defaultValue>
+      <description>The metallicity to use.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     if (parameters%isPresent('elements')) then
        allocate(elements(parameters%count('elements')))
     else
        allocate(elements(1                           ))
     end if
-    !# <inputParameter>
-    !#   <name>elements</name>
-    !#   <defaultValue>['H']</defaultValue>
-    !#   <description>The elements to include.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>outputRates</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, output photoionization and heating rates.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>outputAbsorptionCoefficients</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, output absorption coefficients of each species (at the hydrogen Lyman continuum edge).</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>convergencePercentile</name>
-    !#   <defaultValue>0.90d0</defaultValue>
-    !#   <description>The percentile used in the convergence criterion.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="massDistribution"                        name="massDistribution_"                        source="parameters"/>
-    !# <objectBuilder class="atomicCrossSectionIonizationPhoto"       name="atomicCrossSectionIonizationPhoto_"       source="parameters"/>
-    !# <objectBuilder class="atomicRecombinationRateRadiative"        name="atomicRecombinationRateRadiative_"        source="parameters"/>
-    !# <objectBuilder class="atomicRecombinationRateRadiativeCooling" name="atomicRecombinationRateRadiativeCooling_" source="parameters"/>
-    !# <objectBuilder class="atomicIonizationRateCollisional"         name="atomicIonizationRateCollisional_"         source="parameters"/>
-    !# <objectBuilder class="atomicRecombinationRateDielectronic"     name="atomicRecombinationRateDielectronic_"     source="parameters"/>
-    !# <objectBuilder class="atomicIonizationPotential"               name="atomicIonizationPotential_"               source="parameters"/>
-    !# <objectBuilder class="atomicExcitationRateCollisional"         name="atomicExcitationRateCollisional_"         source="parameters"/>
-    !# <objectBuilder class="gauntFactor"                             name="gauntFactor_"                             source="parameters"/>
+    !![
+    <inputParameter>
+      <name>elements</name>
+      <defaultValue>['H']</defaultValue>
+      <description>The elements to include.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>outputRates</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, output photoionization and heating rates.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>outputAbsorptionCoefficients</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, output absorption coefficients of each species (at the hydrogen Lyman continuum edge).</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>convergencePercentile</name>
+      <defaultValue>0.90d0</defaultValue>
+      <description>The percentile used in the convergence criterion.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="massDistribution"                        name="massDistribution_"                        source="parameters"/>
+    <objectBuilder class="atomicCrossSectionIonizationPhoto"       name="atomicCrossSectionIonizationPhoto_"       source="parameters"/>
+    <objectBuilder class="atomicRecombinationRateRadiative"        name="atomicRecombinationRateRadiative_"        source="parameters"/>
+    <objectBuilder class="atomicRecombinationRateRadiativeCooling" name="atomicRecombinationRateRadiativeCooling_" source="parameters"/>
+    <objectBuilder class="atomicIonizationRateCollisional"         name="atomicIonizationRateCollisional_"         source="parameters"/>
+    <objectBuilder class="atomicRecombinationRateDielectronic"     name="atomicRecombinationRateDielectronic_"     source="parameters"/>
+    <objectBuilder class="atomicIonizationPotential"               name="atomicIonizationPotential_"               source="parameters"/>
+    <objectBuilder class="atomicExcitationRateCollisional"         name="atomicExcitationRateCollisional_"         source="parameters"/>
+    <objectBuilder class="gauntFactor"                             name="gauntFactor_"                             source="parameters"/>
+    !!]
     self=radiativeTransferMatterAtomic(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,outputRates,outputAbsorptionCoefficients,convergencePercentile,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_)
-    !# <objectDestructor name="massDistribution_"                       />
-    !# <objectDestructor name="atomicCrossSectionIonizationPhoto_"      />
-    !# <objectDestructor name="atomicRecombinationRateRadiative_"       />
-    !# <objectDestructor name="atomicRecombinationRateRadiativeCooling_"/>
-    !# <objectDestructor name="atomicIonizationRateCollisional_"        />
-    !# <objectDestructor name="atomicRecombinationRateDielectronic_"    />
-    !# <objectDestructor name="atomicIonizationPotential_"              />
-    !# <objectDestructor name="atomicExcitationRateCollisional_"        />
-    !# <objectDestructor name="gauntFactor_"                            />
+    !![
+    <objectDestructor name="massDistribution_"                       />
+    <objectDestructor name="atomicCrossSectionIonizationPhoto_"      />
+    <objectDestructor name="atomicRecombinationRateRadiative_"       />
+    <objectDestructor name="atomicRecombinationRateRadiativeCooling_"/>
+    <objectDestructor name="atomicIonizationRateCollisional_"        />
+    <objectDestructor name="atomicRecombinationRateDielectronic_"    />
+    <objectDestructor name="atomicIonizationPotential_"              />
+    <objectDestructor name="atomicExcitationRateCollisional_"        />
+    <objectDestructor name="gauntFactor_"                            />
+    !!]
     return
   end function atomicConstructorParameters
 
   function atomicConstructorInternal(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,outputRates,outputAbsorptionCoefficients,convergencePercentile,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily atomic} radiative transfer matter class.
-    use :: Abundances_Structure            , only : abundances              , metallicityTypeLinearByMassSolar, adjustElementsReset, Abundances_Index_From_Name
-    use :: Atomic_Data                     , only : Abundance_Pattern_Lookup, Atomic_Abundance                , Atomic_Mass        , Atomic_Number
+    !!{
+    Internal constructor for the {\normalfont \ttfamily atomic} radiative transfer matter class.
+    !!}
+    use :: Abundances_Structure            , only : Abundances_Index_From_Name, abundances                   , adjustElementsReset          , metallicityTypeLinearByMassSolar
+    use :: Atomic_Data                     , only : Abundance_Pattern_Lookup  , Atomic_Abundance             , Atomic_Mass                  , Atomic_Number
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: ISO_Varying_String              , only : char
-    use :: Numerical_Constants_Astronomical, only : massSolar               , megaParsec                      , metallicitySolar
+    use :: Numerical_Constants_Astronomical, only : massSolar                 , megaParsec                   , metallicitySolar
     use :: Numerical_Constants_Atomic      , only : atomicMassUnit
     use :: Numerical_Constants_Prefixes    , only : centi
-    use :: String_Handling                 , only : String_Count_Words      , String_Split_Words
+    use :: Root_Finder                     , only : rangeExpandMultiplicative , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
+    use :: String_Handling                 , only : String_Count_Words        , String_Split_Words
     implicit none
     type            (radiativeTransferMatterAtomic               )                              :: self
     integer                                                       , intent(in   )               :: iterationAverageCount
@@ -246,8 +274,11 @@ contains
     double precision                                              , allocatable  , dimension(:) :: abundancesRelative
     double precision                                                                            :: numberDensityMassDensityRatioHydrogen    , numberDensityMassDensityRatioHelium
     type            (abundances                                  )                              :: abundances_
-    integer                                                                                     :: i                                        , countIonizationStates
-    !# <constructorAssign variables="abundancePattern, metallicity, elements, iterationAverageCount, temperatureMinimum, outputRates, outputAbsorptionCoefficients, convergencePercentile, *massDistribution_, *atomicCrossSectionIonizationPhoto_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiativeCooling_, *atomicIonizationRateCollisional_, *atomicRecombinationRateDielectronic_, *atomicIonizationPotential_, *atomicExcitationRateCollisional_, *gauntFactor_"/>
+    integer                                                                                     :: i                                        , countIonizationStates              , &
+         &                                                                                         indexElement
+    !![
+    <constructorAssign variables="abundancePattern, metallicity, elements, iterationAverageCount, temperatureMinimum, outputRates, outputAbsorptionCoefficients, convergencePercentile, *massDistribution_, *atomicCrossSectionIonizationPhoto_, *atomicRecombinationRateRadiative_, *atomicRecombinationRateRadiativeCooling_, *atomicIonizationRateCollisional_, *atomicRecombinationRateDielectronic_, *atomicIonizationPotential_, *atomicExcitationRateCollisional_, *gauntFactor_"/>
+    !!]
 
     ! Initialize count of outputs. (Just 1, for temperature.)
     self%countOutputs_=1_c_size_t
@@ -289,40 +320,61 @@ contains
        case (2)     ! Helium
           self%numberDensityMassDensityRatio(i)=+numberDensityMassDensityRatioHelium
        case default ! Metals
-          self%numberDensityMassDensityRatio(i)=+numberDensityMassDensityRatioHydrogen                                                                &
-               &                                *abundancesRelative                   (           Abundances_Index_From_Name(trim(self%elements(i)))) &
-               &                                *Atomic_Mass                          (shortLabel='H'                                               ) &
-               &                                /self%elementAtomicMasses             (                                                         i   )
+          indexElement=Abundances_Index_From_Name(trim(self%elements(i)))
+          if (indexElement <= 0) call Galacticus_Error_Report('unable to find element "'//trim(self%elements(i))//'"'//{introspection:location})
+          self%numberDensityMassDensityRatio(i)=+numberDensityMassDensityRatioHydrogen                          &
+               &                                *abundancesRelative                   (           indexElement) &
+               &                                *Atomic_Mass                          (shortLabel='H'         ) &
+               &                                /self%elementAtomicMasses             (           i           )
        end select
        countIonizationStates=countIonizationStates+self%elementAtomicNumbers(i)
     end do
     self%countStatesConvergence=min(int(dble(countIonizationStates)*(1.0d0-convergencePercentile),c_size_t)+1_c_size_t,countIonizationStates)
     ! Initialize photoionization cross section memoization.
     allocate(self%crossSectionPhotoIonizationPrevious(self%countElements,0:maxval(self%elementAtomicNumbers)-1))
-    self%wavelengthPrevious                  =-1.0d0
+    self%wavelengthPrevious                 =-1.0d0
     self%crossSectionPhotoIonizationPrevious=-1.0d0
+    ! Build a root finder for thermal state.
+    self%finder=rootFinder(                                                                  &
+         &                 rootFunction                 =     atomicStateThermalBalance    , &
+         &                 toleranceRelative            =     temperatureToleranceRelative , &
+         &                 toleranceAbsolute            =     temperatureToleranceAbsolute , &
+         &                 rangeExpandUpward            =     2.0d0                        , &
+         &                 rangeExpandDownward          =     0.5d0                        , &
+         &                 rangeExpandUpwardSignExpect  =     rangeExpandSignExpectNegative, &
+         &                 rangeExpandDownwardSignExpect=     rangeExpandSignExpectPositive, &
+         &                 rangeUpwardLimit             =     temperatureMaximum           , &
+         &                 rangeDownwardLimit           =self%temperatureMinimum           , &
+         &                 rangeExpandType              =     rangeExpandMultiplicative      &
+         &                )
     return
   end function atomicConstructorInternal
 
   subroutine atomicDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily atomic} radiative transfer matter class.
+    !!{
+    Destructor for the {\normalfont \ttfamily atomic} radiative transfer matter class.
+    !!}
     implicit none
     type(radiativeTransferMatterAtomic), intent(inout) :: self
 
-    !# <objectDestructor name="self%massDistribution_"                       />
-    !# <objectDestructor name="self%atomicCrossSectionIonizationPhoto_"      />
-    !# <objectDestructor name="self%atomicRecombinationRateRadiative_"       />
-    !# <objectDestructor name="self%atomicRecombinationRateRadiativeCooling_"/>
-    !# <objectDestructor name="self%atomicIonizationRateCollisional_"        />
-    !# <objectDestructor name="self%atomicRecombinationRateDielectronic_"    />
-    !# <objectDestructor name="self%atomicIonizationPotential_"              />
-    !# <objectDestructor name="self%atomicExcitationRateCollisional_"        />
-    !# <objectDestructor name="self%gauntFactor_"                            />
+    !![
+    <objectDestructor name="self%massDistribution_"                       />
+    <objectDestructor name="self%atomicCrossSectionIonizationPhoto_"      />
+    <objectDestructor name="self%atomicRecombinationRateRadiative_"       />
+    <objectDestructor name="self%atomicRecombinationRateRadiativeCooling_"/>
+    <objectDestructor name="self%atomicIonizationRateCollisional_"        />
+    <objectDestructor name="self%atomicRecombinationRateDielectronic_"    />
+    <objectDestructor name="self%atomicIonizationPotential_"              />
+    <objectDestructor name="self%atomicExcitationRateCollisional_"        />
+    <objectDestructor name="self%gauntFactor_"                            />
+    !!]
     return
   end subroutine atomicDestructor
 
   subroutine atomicPropertyClass(self,properties)
-    !% Return the property class to use for the computational domain.
+    !!{
+    Return the property class to use for the computational domain.
+    !!}
     implicit none
     class(radiativeTransferMatterAtomic    ), intent(inout)              :: self
     class(radiativeTransferPropertiesMatter), intent(inout), allocatable :: properties
@@ -333,7 +385,9 @@ contains
   end subroutine atomicPropertyClass
   
   subroutine atomicPopulateDomain(self,properties,integrator,onProcess)
-    !% Populate a computational domain cell with atomic matter.
+    !!{
+    Populate a computational domain cell with atomic matter.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (radiativeTransferMatterAtomic           ), intent(inout) :: self
@@ -384,7 +438,9 @@ contains
   contains
 
     double precision function atomicDensityIntegrand(coordinates)
-      !% Integrand of atomic matter density.
+      !!{
+      Integrand of atomic matter density.
+      !!}
       use :: Coordinates, only : coordinate
       implicit none
       class(coordinate), intent(in   ) :: coordinates
@@ -397,7 +453,9 @@ contains
 
 #ifdef USEMPI
   subroutine atomicBroadcastDomain(self,sendFromProcess,properties)
-    !% Broadcast populated computational domain properties to other MPI processes.
+    !!{
+    Broadcast populated computational domain properties to other MPI processes.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: MPI_Utilities   , only : mpiSelf
     implicit none
@@ -417,7 +475,9 @@ contains
 #endif
   
   subroutine atomicReset(self,properties)
-    !% Reset a computational domain cell prior to a new iteration.
+    !!{
+    Reset a computational domain cell prior to a new iteration.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (radiativeTransferMatterAtomic    ), intent(inout) :: self
@@ -441,7 +501,9 @@ contains
   end subroutine atomicReset
 
   double precision function atomicAbsorptionCoefficient(self,properties,photonPacket)
-    !% Return the absorption coefficient for the given photon packet and matter properties.
+    !!{
+    Return the absorption coefficient for the given photon packet and matter properties.
+    !!}
     implicit none
     class  (radiativeTransferMatterAtomic     ), intent(inout) :: self
     class  (radiativeTransferPropertiesMatter ), intent(inout) :: properties
@@ -459,7 +521,9 @@ contains
   end function atomicAbsorptionCoefficient
 
   double precision function atomicCrossSectionPhotoionization(self,elementIndex,ionizationState,wavelength)
-    !% Compute the photoionization cross section for the given element and ionization state.
+    !!{
+    Compute the photoionization cross section for the given element and ionization state.
+    !!}
     implicit none
     implicit none
     class           (radiativeTransferMatterAtomic), intent(inout) :: self
@@ -509,7 +573,9 @@ contains
   end function atomicCrossSectionPhotoionization
   
   double precision function atomicAbsorptionCoefficientSpecies(self,elementIndex,ionizationState,wavelength,properties)
-    !% Compute the absorption coefficient for the given species and wavelength.
+    !!{
+    Compute the absorption coefficient for the given species and wavelength.
+    !!}
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Prefixes    , only : centi
@@ -539,7 +605,9 @@ contains
   end function atomicAbsorptionCoefficientSpecies
   
   subroutine atomicAccumulatePhotonPacket(self,properties,photonPacket,absorptionCoefficient,lengthTraversed)
-    !% Accumulate a photon packet.
+    !!{
+    Accumulate a photon packet.
+    !!}
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Numerical_Constants_Astronomical, only : luminositySolar        , megaParsec
     use :: Numerical_Constants_Physical    , only : plancksConstant        , speedLight
@@ -597,7 +665,9 @@ contains
   end subroutine atomicAccumulatePhotonPacket
 
   logical function atomicInteractWithPhotonPacket(self,properties,photonPacket)
-    !% Interact with a photon packet. In this case the photon packet is always absorbed.
+    !!{
+    Interact with a photon packet. In this case the photon packet is always absorbed.
+    !!}
     implicit none
     class(radiativeTransferMatterAtomic     ), intent(inout) :: self
     class(radiativeTransferPropertiesMatter ), intent(inout) :: properties
@@ -610,7 +680,9 @@ contains
 
 #ifdef USEMPI
   subroutine atomicAccumulationReduction(self,properties)
-    !% Perform reduction of accumulated properaties across MPI processes.
+    !!{
+    Perform reduction of accumulated properaties across MPI processes.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: MPI_Utilities   , only : mpiSelf
     implicit none
@@ -632,10 +704,12 @@ contains
 #endif
 
   double precision function atomicStateThermalBalance(temperature)
-    !% Root function used in finding the equilibrium temperature for thermal balance.
-    use :: Numerical_Constants_Physical, only : boltzmannsConstant, speedLight, electronMass, fineStructure, &
-         &                                      electronRadius
+    !!{
+    Root function used in finding the equilibrium temperature for thermal balance.
+    !!}
     use :: Numerical_Constants_Math    , only : Pi
+    use :: Numerical_Constants_Physical, only : boltzmannsConstant, electronMass, electronRadius, fineStructure, &
+          &                                     speedLight
     use :: Numerical_Constants_Prefixes, only : centi
     implicit none
     double precision, intent(in   ) :: temperature
@@ -701,22 +775,21 @@ contains
   end function atomicStateThermalBalance
   
   subroutine atomicStateSolve(self,properties,status)
-    !% Solve for the state of the matter.
-    use :: Atomic_Rates_Recombination_Radiative, only : recombinationCaseA       , recombinationCaseB
-    use :: Galacticus_Display                  , only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Message   , verbosityStandard
-    use :: Galacticus_Error                    , only : Galacticus_Error_Report  , errorStatusSuccess         , errorStatusFail              , errorStatusOutOfRange
-    use :: Root_Finder                         , only : rangeExpandMultiplicative, rootFinder                 , rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
+    !!{
+    Solve for the state of the matter.
+    !!}
+    use :: Atomic_Rates_Recombination_Radiative, only : recombinationCaseA     , recombinationCaseB
+    use :: Display                             , only : displayIndent          , displayMessage    , displayUnindent      , verbosityLevelStandard
+    use :: Galacticus_Error                    , only : Galacticus_Error_Report, errorStatusFail   , errorStatusOutOfRange, errorStatusSuccess
     use :: Numerical_Roman_Numerals            , only : Roman_Numerals
     implicit none
     class           (radiativeTransferMatterAtomic    ), intent(inout) , target      :: self
     class           (radiativeTransferPropertiesMatter), intent(inout) , target      :: properties
     integer                                            , intent(  out) , optional    :: status
     double precision                                   , dimension(2)                :: temperaturePrevious                             , densityElectronsPrevious
-    double precision                                   , parameter                   :: temperatureToleranceRelative            =1.0d-02, temperatureToleranceAbsolute =1.0d+0
     integer                                            , parameter                   :: countIterationMaximum                   =1000   , temperatureOscillatingCounts =30    , &
          &                                                                              electronsOscillatingCounts              =30
     double precision                                   , parameter                   :: degreesOfFreedom                        =3.0d+00
-    double precision                                   , parameter                   :: temperatureMaximum                      =1.0d+10
     type            (element                          ), dimension( : ), allocatable :: elementsPrevious                                , elementsReference
     double precision                                                                 :: rateRecombinationRadiative                      , rateRecombinationDielectronic       , &
          &                                                                              temperatureChangePrevious                       , temperatureEquilibrium              , &
@@ -728,8 +801,6 @@ contains
          &                                                                              temperatureOscillatingCount                     , j                                   , &
          &                                                                              electronsOscillatingCount                       , statusTemperature                   , &
          &                                                                              exponentIonizationStateFractionMaximum          , exponentIonizationState
-    type            (rootFinder                       ), save                        :: finder
-    !$omp threadprivate(finder)
 #ifdef RADTRANSDEBUG
     integer                                                                          :: handlerPrevious
 #endif
@@ -744,25 +815,6 @@ contains
        ! Set module-scope pointers to self and properties.
        atomicSelf       => self
        atomicProperties => properties
-       ! Initialize root finder.
-       if (.not.finder%isInitialized()) then
-          call finder   %tolerance          (                                                                  &
-               &                             toleranceRelative            =     temperatureToleranceRelative , &
-               &                             toleranceAbsolute            =     temperatureToleranceAbsolute   &
-               &                            )
-          call finder   %rangeExpand        (                                                                  &
-               &                             rangeExpandUpward            =     2.0d0                        , &
-               &                             rangeExpandDownward          =     0.5d0                        , &
-               &                             rangeExpandUpwardSignExpect  =     rangeExpandSignExpectNegative, &
-               &                             rangeExpandDownwardSignExpect=     rangeExpandSignExpectPositive, &
-               &                             rangeUpwardLimit             =     temperatureMaximum           , &
-               &                             rangeDownwardLimit           =self%temperatureMinimum           , &
-               &                             rangeExpandType              =     rangeExpandMultiplicative      &
-               &                            )
-          call finder   %rootFunction       (                                                                  &
-               &                                                                atomicStateThermalBalance      &
-               &                            )
-       end if
        ! Append the accumulated photoionization/photoheating rates to the history arrays, compute the average over those
        ! histories, and replace the photoionization/photoheating rates with those averages.
        if (self%iterationAverageCount > 1) then
@@ -965,9 +1017,14 @@ contains
                 end do
              end do
              ! Solve for temperature - updating only if we find a solution in range.
-             temperatureEquilibrium=finder%find(rootGuess=properties%temperature,status=statusTemperature)
+             temperatureEquilibrium=self%finder%find(rootGuess=properties%temperature,status=statusTemperature)
              if (statusTemperature == errorStatusSuccess) then
-                properties%temperature=temperatureEquilibrium
+                if (countIteration > 1 .and. abs(log10(properties%temperature/temperatureEquilibrium)) > 3.0d0) then
+                   ! If a large change in temperature occurs, geometrically bisect with the previous temperature.
+                   properties%temperature=sqrt(temperatureEquilibrium*properties%temperature)
+                else
+                   properties%temperature=     temperatureEquilibrium
+                end if
              else
                 ! Temperature solution failed. Attempt to adjust the temperature slightly to allow us to find a solution on
                 ! subsequent iterations.
@@ -1022,30 +1079,30 @@ contains
                 return
              else
                 ! No solution was found - report on the state of this domain cell.
-                call Galacticus_Display_Indent('failed domain cell state report',verbosityStandard)
+                call displayIndent('failed domain cell state report',verbosityLevelStandard)
                 write (message,'(a,e23.16         )') 'volume                                    = ',properties%volume
-                call Galacticus_Display_Message(message,verbosityStandard)
+                call displayMessage(message,verbosityLevelStandard)
                 write (message,'(a,e23.16         )') 'initial temperature                       = ',temperatureReference
-                call Galacticus_Display_Message(message,verbosityStandard)
+                call displayMessage(message,verbosityLevelStandard)
                 do i=1,self%countElements
-                   call Galacticus_Display_Indent('element: '//trim(adjustl(self%elements(i))),verbosityStandard)
+                   call displayIndent('element: '//trim(adjustl(self%elements(i))),verbosityLevelStandard)
                    write (message,'(a,e23.16         )') 'density                                   = ',properties%elements(i)%densityNumber
-                   call Galacticus_Display_Message(message,verbosityStandard)
+                   call displayMessage(message,verbosityLevelStandard)
                    do j=0,self%elementAtomicNumbers(i)
-                      call Galacticus_Display_Indent('ion: '//trim(adjustl(self%elements(i)))//Roman_Numerals(j+1),verbosityStandard)
+                      call displayIndent('ion: '//trim(adjustl(self%elements(i)))//Roman_Numerals(j+1),verbosityLevelStandard)
                       if (j < self%elementAtomicNumbers(i)) then
                          write (message,'(a,e23.16,a,e23.16)') 'photoionization rate (current : previous) = ',properties%elements         (i)%photoIonizationRate    (j),' : ',properties%elements(i)%photoIonizationRatePrevious(j)
-                         call Galacticus_Display_Message(message,verbosityStandard)
+                         call displayMessage(message,verbosityLevelStandard)
                          write (message,'(a,e23.16,a,e23.16)') 'photoheating rate    (current : previous) = ',properties%elements         (i)%photoHeatingRate       (j),' : ',properties%elements(i)%photoHeatingRatePrevious   (j)
-                         call Galacticus_Display_Message(message,verbosityStandard)
+                         call displayMessage(message,verbosityLevelStandard)
                       end if
                       write    (message,'(a,e23.16,a,e23.16)') 'initial ionization state                  = ',           elementsReference(i)%ionizationStateFraction(j)
-                      call Galacticus_Display_Message(message,verbosityStandard)
-                      call Galacticus_Display_Unindent('done',verbosityStandard)
+                      call displayMessage(message,verbosityLevelStandard)
+                      call displayUnindent('done',verbosityLevelStandard)
                    end do
-                   call Galacticus_Display_Unindent('done',verbosityStandard)
+                   call displayUnindent('done',verbosityLevelStandard)
                 end do
-                call Galacticus_Display_Unindent('done',verbosityStandard)
+                call displayUnindent('done',verbosityLevelStandard)
 #ifdef RADTRANSDEBUG
                 call debugReport()                
 #endif
@@ -1089,7 +1146,9 @@ contains
     
 #ifdef RADTRANSDEBUG
     subroutine debugAbort()
-      !% Perform debug reporting and then exit.
+      !!{
+      Perform debug reporting and then exit.
+      !!}
       implicit none
       
       call debugReport()
@@ -1098,7 +1157,9 @@ contains
     end subroutine debugAbort
     
     subroutine debugReport()
-      !% Report debugging information.
+      !!{
+      Report debugging information.
+      !!}
       implicit none
       
       ! Debugging output. Writes the initial state for this failed case in a format that be directly pasted into the
@@ -1159,7 +1220,9 @@ contains
   end subroutine atomicStateSolve
   
   subroutine atomicHistoryUpdate(self,properties)
-    !% Update the ionization state history in a properties object.
+    !!{
+    Update the ionization state history in a properties object.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (radiativeTransferMatterAtomic    ), intent(inout) :: self
@@ -1188,7 +1251,9 @@ contains
   
 #ifdef USEMPI
   subroutine atomicBroadcastState(self,sendFromProcess,properties)
-    !% Broadcast computational domain state to other MPI processes.
+    !!{
+    Broadcast computational domain state to other MPI processes.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: MPI_Utilities   , only : mpiSelf
     implicit none
@@ -1215,7 +1280,9 @@ contains
 #endif
   
   double precision function atomicConvergenceMeasure(self,properties)
-    !% Return a convergence measure for the atomic matter.
+    !!{
+    Return a convergence measure for the atomic matter.
+    !!}
     use :: Arrays_Search   , only : searchArray
     use :: Disparity_Ratios, only : Disparity_Ratio
     use :: Galacticus_Error, only : Galacticus_Error_Report
@@ -1271,7 +1338,9 @@ contains
   end function atomicConvergenceMeasure
   
   double precision function atomicOutputProperty(self,properties,output)
-    !% Return a scalar property to be output.
+    !!{
+    Return a scalar property to be output.
+    !!}
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen
     implicit none
@@ -1335,7 +1404,9 @@ contains
   end function atomicOutputProperty
   
   function atomicCountOutputs(self)
-    !% Return the number of scalar properties to output.
+    !!{
+    Return the number of scalar properties to output.
+    !!}
     implicit none
     integer(c_size_t                     )                :: atomicCountOutputs
     class  (radiativeTransferMatterAtomic), intent(inout) :: self
@@ -1346,7 +1417,9 @@ contains
   end function atomicCountOutputs
 
   function atomicOutputName(self,output)
-    !% Return the name of the scalar property to be output.
+    !!{
+    Return the name of the scalar property to be output.
+    !!}
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: ISO_Varying_String      , only : operator(//)
     use :: Numerical_Roman_Numerals, only : Roman_Numerals
@@ -1405,7 +1478,9 @@ contains
   end function atomicOutputName
 
   double precision function atomicRecombinationRateHydrogen(self,properties)
-    !% Return the total recombination rate for the atomic matter.
+    !!{
+    Return the total recombination rate for the atomic matter.
+    !!}
     use :: Atomic_Rates_Recombination_Radiative, only : recombinationCaseB
     use :: Galacticus_Error                    , only : Galacticus_Error_Report
     use :: Numerical_Constants_Astronomical    , only : megaParsec

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <computationalDomainVolumeIntegrator name="computationalDomainVolumeIntegratorCartesian3D">
-  !#  <description>A computational domain volume integrator for 3D Cartesian cells.</description>
-  !# </computationalDomainVolumeIntegrator>
+  !![
+  <computationalDomainVolumeIntegrator name="computationalDomainVolumeIntegratorCartesian3D">
+   <description>A computational domain volume integrator for 3D Cartesian cells.</description>
+  </computationalDomainVolumeIntegrator>
+  !!]
   type, extends(computationalDomainVolumeIntegratorClass) :: computationalDomainVolumeIntegratorCartesian3D
-     !% Implementation of a computational domain for 3D Cartesian cells.
+     !!{
+     Implementation of a computational domain for 3D Cartesian cells.
+     !!}
      private
      double precision, dimension(3,2  ) :: boundaries
      double precision                   :: volume_
@@ -31,7 +35,9 @@
   end type computationalDomainVolumeIntegratorCartesian3D
 
   interface computationalDomainVolumeIntegratorCartesian3D
-     !% Constructors for the {\normalfont \ttfamily cartesian3D} computational domain.
+     !!{
+     Constructors for the {\normalfont \ttfamily cartesian3D} computational domain.
+     !!}
      module procedure cartesian3DConstructorParameters
      module procedure cartesian3DConstructorInternal
   end interface computationalDomainVolumeIntegratorCartesian3D
@@ -39,8 +45,10 @@
 contains
 
   function cartesian3DConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily cartesian3D} computational domain volume integrator class which takes a
-    !% parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily cartesian3D} computational domain volume integrator class which takes a
+    parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (computationalDomainVolumeIntegratorCartesian3D)                 :: self
@@ -49,38 +57,46 @@ contains
          &                                                                              zBoundaries
     double precision                                                , dimension(3,2) :: boundaries
 
-    !# <inputParameter>
-    !#   <name>xBoundaries</name>
-    !#   <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
-    !#   <description>The $x$-interval spanned by the computational domain.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>yBoundaries</name>
-    !#   <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
-    !#   <description>The $y$-interval spanned by the computational domain.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>zBoundaries</name>
-    !#   <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
-    !#   <description>The $z$-interval spanned by the computational domain.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>xBoundaries</name>
+      <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
+      <description>The $x$-interval spanned by the computational domain.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>yBoundaries</name>
+      <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
+      <description>The $y$-interval spanned by the computational domain.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>zBoundaries</name>
+      <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
+      <description>The $z$-interval spanned by the computational domain.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     boundaries(1,:)=xBoundaries
     boundaries(2,:)=yBoundaries
     boundaries(3,:)=zBoundaries
     self=computationalDomainVolumeIntegratorCartesian3D(boundaries)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function cartesian3DConstructorParameters
 
   function cartesian3DConstructorInternal(boundaries) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily cartesian3D} computational domain volume integrator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily cartesian3D} computational domain volume integrator class.
+    !!}
     implicit none
     type            (computationalDomainVolumeIntegratorCartesian3D)                                :: self
     double precision                                                , dimension(3,2), intent(in   ) :: boundaries
-    !# <constructorAssign variables="boundaries"/>
+    !![
+    <constructorAssign variables="boundaries"/>
+    !!]
 
     self%volume_=+(boundaries(1,2)-boundaries(1,1)) &
          &       *(boundaries(2,2)-boundaries(2,1)) &
@@ -89,7 +105,9 @@ contains
   end function cartesian3DConstructorInternal
 
   double precision function cartesian3DVolume(self)
-    !% Return the volume of the computational domain cell.
+    !!{
+    Return the volume of the computational domain cell.
+    !!}
     implicit none
     class(computationalDomainVolumeIntegratorCartesian3D), intent(inout) :: self
 
@@ -98,7 +116,9 @@ contains
   end function cartesian3DVolume
 
   double precision function cartesian3DIntegrate(self,integrand)
-    !% Integrate over the computational domain cell.
+    !!{
+    Integrate over the computational domain cell.
+    !!}
     use :: Numerical_Integration, only : integrator
     use :: Coordinates          , only : coordinateCartesian
     implicit none
@@ -120,7 +140,9 @@ contains
   contains
 
     double precision function cartesian3DIntegrandX(x)
-      !% $x$-integrand over Cartesian 3D computational domain cells.
+      !!{
+      $x$-integrand over Cartesian 3D computational domain cells.
+      !!}
       implicit none
       double precision            , intent(in   ) :: x
       type            (integrator)                :: integrator_
@@ -138,7 +160,9 @@ contains
     end function cartesian3DIntegrandX
 
     double precision function cartesian3DIntegrandY(y)
-      !% $y$-integrand over Cartesian 3D computational domain cells.
+      !!{
+      $y$-integrand over Cartesian 3D computational domain cells.
+      !!}
       implicit none
       double precision            , intent(in   ) :: y
       type            (integrator)                :: integrator_
@@ -156,7 +180,9 @@ contains
     end function cartesian3DIntegrandY
 
     double precision function cartesian3DIntegrandZ(z)
-      !% $z$-integrand over Cartesian 3D computational domain cells.
+      !!{
+      $z$-integrand over Cartesian 3D computational domain cells.
+      !!}
       implicit none
       double precision, intent(in   ) :: z
 

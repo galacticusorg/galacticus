@@ -17,7 +17,7 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <mergerTreeConstructorMethod value="read">
+    <mergerTreeConstructor value="read">
       <fileNames value="testSuite/outputs/test-merger-tree-write/exportedTreesGLC.hdf5"/>
       <presetSubhaloIndices value="false"/>
       <presetOrbits value="false"/>
@@ -27,26 +27,6 @@
       <presetPositions value="false"/>
       <presetScaleRadii value="false"/>
       <presetSpins value="false"/>
-    </mergerTreeConstructorMethod>
-    <nodeOperatorMethod value="multi"><!--Stellar feedback outflows-->
-      <nodeOperatorMethod value="stellarFeedbackDisks">
-        <stellarFeedbackOutflowsMethod value="rateLimit">
-          <timescaleOutflowFractionalMinimum value="0.001"/>
-          <stellarFeedbackOutflowsMethod value="powerLaw">
-            <velocityCharacteristic value="250.0"/>
-            <exponent value="3.5"/>
-          </stellarFeedbackOutflowsMethod>
-        </stellarFeedbackOutflowsMethod>
-      </nodeOperatorMethod>
-      <nodeOperatorMethod value="stellarFeedbackSpheroids">
-        <stellarFeedbackOutflowsMethod value="rateLimit">
-          <timescaleOutflowFractionalMinimum value="0.001"/>
-          <stellarFeedbackOutflowsMethod value="powerLaw">
-            <velocityCharacteristic value="250.0"/>
-            <exponent value="3.5"/>
-          </stellarFeedbackOutflowsMethod>
-        </stellarFeedbackOutflowsMethod>
-      </nodeOperatorMethod>
-    </nodeOperatorMethod>
+    </mergerTreeConstructor>
   </parameters>
 </parameterGrid>

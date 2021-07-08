@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that promotes sub-sub-halos.
+  !!{
+  Implements a node operator class that promotes sub-sub-halos.
+  !!}
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
-  !# <nodeOperator name="nodeOperatorSubsubhaloPromotion">
-  !#  <description>A node operator class that promotes sub-sub-halos.</description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorSubsubhaloPromotion">
+   <description>A node operator class that promotes sub-sub-halos.</description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSubsubhaloPromotion
-     !% A node operator class that shifts node indices at node promotion.
+     !!{
+     A node operator class that shifts node indices at node promotion.
+     !!}
      private
      class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
    contains
@@ -33,7 +39,9 @@
   end type nodeOperatorSubsubhaloPromotion
   
   interface nodeOperatorSubsubhaloPromotion
-     !% Constructors for the {\normalfont \ttfamily subsubhaloPromotion} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily subsubhaloPromotion} node operator class.
+     !!}
      module procedure subsubhaloPromotionConstructorParameters
      module procedure subsubhaloPromotionConstructorInternal
   end interface nodeOperatorSubsubhaloPromotion
@@ -41,41 +49,57 @@
 contains
   
   function subsubhaloPromotionConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily subsubhaloPromotion} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily subsubhaloPromotion} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodeOperatorSubsubhaloPromotion)                :: self
     type (inputParameters                ), intent(inout) :: parameters
     class(darkMatterProfileDMOClass      ), pointer       :: darkMatterProfileDMO_
 
-    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !![
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !!]
     self=nodeOperatorSubsubhaloPromotion(darkMatterProfileDMO_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterProfileDMO_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterProfileDMO_"/>
+    !!]
     return
   end function subsubhaloPromotionConstructorParameters
 
   function subsubhaloPromotionConstructorInternal(darkMatterProfileDMO_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily subsubhaloPromotion} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily subsubhaloPromotion} node operator class.
+    !!}
     implicit none
     type (nodeOperatorSubsubhaloPromotion)                        :: self
     class(darkMatterProfileDMOClass      ), intent(in   ), target :: darkMatterProfileDMO_
-    !# <constructorAssign variables="*darkMatterProfileDMO_"/>
+    !![
+    <constructorAssign variables="*darkMatterProfileDMO_"/>
+    !!]
 
     return
   end function subsubhaloPromotionConstructorInternal
 
   subroutine subsubhaloPromotionDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily subsubhaloPromotion} node operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily subsubhaloPromotion} node operator class.
+    !!}
     implicit none
     type(nodeOperatorSubsubhaloPromotion), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !![
+    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !!]
     return
   end subroutine subsubhaloPromotionDestructor
 
   subroutine subsubhaloPromotionDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Determine if sub-sub-halos should be promoted.
+    !!{
+    Determine if sub-sub-halos should be promoted.
+    !!}
     use :: Galacticus_Nodes, only : propertyTypeInactive, nodeComponentSatellite
     implicit none
     class           (nodeOperatorSubsubhaloPromotion), intent(inout), target  :: self
@@ -111,7 +135,9 @@ contains
   end subroutine subsubhaloPromotionDifferentialEvolution
   
   subroutine subsubhaloPromotionPromote(node)
-    !% Promote a sub-sub-halo into its host's host.
+    !!{
+    Promote a sub-sub-halo into its host's host.
+    !!}
     use :: Satellite_Promotion, only : Satellite_Move_To_New_Host
     implicit none
     type(treeNode), intent(inout), target  :: node

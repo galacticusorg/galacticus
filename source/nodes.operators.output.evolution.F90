@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that outputs complete data on node evolution.
+  !!{
+  Implements a node operator class that outputs complete data on node evolution.
+  !!}
 
   use :: Galactic_Filters, only : galacticFilterClass
   
-  !# <nodeOperator name="nodeOperatorEvolutionOutput">
-  !#  <description>A node operator class that outputs data on mergers between galaxies.</description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorEvolutionOutput">
+   <description>A node operator class that outputs data on mergers between galaxies.</description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorEvolutionOutput
-     !% A node operator class that shifts node indices at node promotion.
+     !!{
+     A node operator class that shifts node indices at node promotion.
+     !!}
      private
      type   (varying_string     )          :: outputFileName
      class  (galacticFilterClass), pointer :: galacticFilter_ => null()
@@ -36,7 +42,9 @@
   end type nodeOperatorEvolutionOutput
   
   interface nodeOperatorEvolutionOutput
-     !% Constructors for the {\normalfont \ttfamily evolutionOutput} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily evolutionOutput} node operator class.
+     !!}
      module procedure evolutionOutputConstructorParameters
      module procedure evolutionOutputConstructorInternal
   end interface nodeOperatorEvolutionOutput
@@ -44,7 +52,9 @@
 contains
   
   function evolutionOutputConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily evolutionOutput} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily evolutionOutput} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodeOperatorEvolutionOutput)                :: self
@@ -52,30 +62,38 @@ contains
     class(galacticFilterClass        ), pointer       :: galacticFilter_
     type (varying_string             )                :: outputFileName
 
-    !# <inputParameter>
-    !#   <name>outputFileName</name>
-    !#   <defaultValue>var_str('mergerTreeEvolution.xml')</defaultValue>
-    !#   <description>The name of the file to which merger tree evolution should be output.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="galacticFilter" parameterName="galacticFilterMethod" name="galacticFilter_" source="parameters">
-    !#  <default>
-    !#   <galacticFilterMethod value="always"/>
-    !#  </default>
-    !# </objectBuilder>
+    !![
+    <inputParameter>
+      <name>outputFileName</name>
+      <defaultValue>var_str('mergerTreeEvolution.xml')</defaultValue>
+      <description>The name of the file to which merger tree evolution should be output.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="galacticFilter" parameterName="galacticFilter" name="galacticFilter_" source="parameters">
+     <default>
+      <galacticFilter value="always"/>
+     </default>
+    </objectBuilder>
+    !!]
     self=nodeOperatorEvolutionOutput(outputFileName,galacticFilter_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="galacticFilter_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticFilter_"/>
+    !!]
     return
   end function evolutionOutputConstructorParameters
 
   function evolutionOutputConstructorInternal(outputFileName,galacticFilter_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily evolutionOutput} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily evolutionOutput} node operator class.
+    !!}
     implicit none
     type (nodeOperatorEvolutionOutput)                        :: self
     class(galacticFilterClass        ), intent(in   ), target :: galacticFilter_
     type (varying_string             ), intent(in   )         :: outputFileName
-    !# <constructorAssign variables="outputFileName, *galacticFilter_"/>
+    !![
+    <constructorAssign variables="outputFileName, *galacticFilter_"/>
+    !!]
     
     open(newUnit=self%outputFile,file=char(outputFileName),status='unknown',form='formatted')
     write (self%outputFile,'(a)') '<evolution>'
@@ -83,18 +101,24 @@ contains
   end function evolutionOutputConstructorInternal
   
   subroutine evolutionOutputDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily evolutionOutput} node operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily evolutionOutput} node operator class.
+    !!}
     implicit none
     type(nodeOperatorEvolutionOutput), intent(inout) :: self
 
-    !# <objectDestructor name="self%galacticFilter_"/>
+    !![
+    <objectDestructor name="self%galacticFilter_"/>
+    !!]
     write (self%outputFile,'(a)') '</evolution>'
     close(self%outputFile)
     return
   end subroutine evolutionOutputDestructor
   
   subroutine evolutionOutputDifferentialEvolutionPost(self,node)
-    !% Operate on the node after differential evolution
+    !!{
+    Operate on the node after differential evolution
+    !!}
     implicit none
     class(nodeOperatorEvolutionOutput), intent(inout) :: self
     type (treeNode                   ), intent(inout) :: node

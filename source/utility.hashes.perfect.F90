@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a perfect hash algorithm for long integer keys.
+!!{
+Contains a module which implements a perfect hash algorithm for long integer keys.
+!!}
 
 module Hashes_Perfect
-  !% Implements a perfact hash algorithm for long integer keys based on methods described by \cite{czech_fundamental_1997}. The
-  !% specific implementation follows the general structure of that given in a Dr. Dobbs
-  !% \href{https://www.drdobbs.com/architecture-and-design/generating-perfect-hash-functions/184404506}{article}.
+  !!{
+  Implements a perfact hash algorithm for long integer keys based on methods described by \cite{czech_fundamental_1997}. The
+  specific implementation follows the general structure of that given in a Dr. Dobbs
+  \href{https://www.drdobbs.com/architecture-and-design/generating-perfect-hash-functions/184404506}{article}.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   private
   public :: hashPerfect
 
   type hashPerfect
-     !% A derived type which stores perfect long integer hashes.
+     !!{
+     A derived type which stores perfect long integer hashes.
+     !!}
      private
      logical                                      :: created , hasInverseTable                                                , hasValues
      integer(c_size_t)                            :: hashSize, rowSize
@@ -36,14 +42,16 @@ module Hashes_Perfect
      integer(c_size_t), allocatable, dimension(:) :: C                         !  the shifted rows of A() collapse into C().
      integer(c_size_t), allocatable, dimension(:) :: v                         !  the values corresponding to the keys in C().
    contains
-     !# <methods>
-     !#   <method description="Create a perfect hash." method="create" />
-     !#   <method description="Destroy a perfect hash." method="destroy" />
-     !#   <method description="Test if a key is present in a perfect hash." method="isPresent" />
-     !#   <method description="Return the value corresponding to a key in a perfect hash." method="value" />
-     !#   <method description="Return the index corresponding to a key in a perfect hash." method="index" />
-     !#   <method description="Return the size of a perfect hash." method="size" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Create a perfect hash." method="create" />
+       <method description="Destroy a perfect hash." method="destroy" />
+       <method description="Test if a key is present in a perfect hash." method="isPresent" />
+       <method description="Return the value corresponding to a key in a perfect hash." method="value" />
+       <method description="Return the index corresponding to a key in a perfect hash." method="index" />
+       <method description="Return the size of a perfect hash." method="size" />
+     </methods>
+     !!]
      procedure :: create   =>Hash_Perfect_Create
      procedure :: destroy  =>Hash_Perfect_Destroy
      procedure :: index    =>Hash_Perfect_Index
@@ -53,7 +61,9 @@ module Hashes_Perfect
   end type hashPerfect
 
   type rowStructure
-     !% A row structure used in building hashes
+     !!{
+     A row structure used in building hashes
+     !!}
      integer(c_size_t) :: rowNumber    !  the row number in array A().
      integer(c_size_t) :: rowItemCount !  the number of items in this row of A().
   end type rowStructure
@@ -64,7 +74,9 @@ module Hashes_Perfect
 contains
 
   subroutine Hash_Perfect_Create(hash,keys,values,keepInverseTable)
-    !% Create a perfect hash for a given set of keys.
+    !!{
+    Create a perfect hash for a given set of keys.
+    !!}
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Kind_Numbers     , only : kind_int8
     use :: Memory_Management, only : allocateArray          , deallocateArray
@@ -207,7 +219,9 @@ contains
  end subroutine Hash_Perfect_Create
 
  subroutine Hash_Perfect_Destroy(hash)
-    !% Destroy a perfect hash.
+    !!{
+    Destroy a perfect hash.
+    !!}
     use :: Memory_Management, only : deallocateArray
     implicit none
     class(hashPerfect), intent(inout) :: hash
@@ -220,7 +234,9 @@ contains
   end subroutine Hash_Perfect_Destroy
 
  function Hash_Perfect_Size(hash)
-   !% Return the size of the hash table.
+   !!{
+   Return the size of the hash table.
+   !!}
    use :: Galacticus_Error, only : Galacticus_Error_Report
    implicit none
    integer(c_size_t   )                :: Hash_Perfect_Size
@@ -232,7 +248,9 @@ contains
  end function Hash_Perfect_Size
 
  function Hash_Perfect_Index(hash,key)
-   !% Return the index corresponding to a hash key.
+   !!{
+   Return the index corresponding to a hash key.
+   !!}
    use :: Galacticus_Error, only : Galacticus_Error_Report
    use :: Kind_Numbers    , only : kind_int8
    implicit none
@@ -249,7 +267,9 @@ contains
  end function Hash_Perfect_Index
 
  logical function Hash_Perfect_Is_Present(hash,key)
-   !% Returns true if the hash contains the key.
+   !!{
+   Returns true if the hash contains the key.
+   !!}
    use :: Galacticus_Error, only : Galacticus_Error_Report
    use :: Kind_Numbers    , only : kind_int8
    implicit none
@@ -264,7 +284,9 @@ contains
  end function Hash_Perfect_Is_Present
 
  function Hash_Perfect_Value(hash,key)
-   !% Returns the value for a specified key.
+   !!{
+   Returns the value for a specified key.
+   !!}
    use :: Galacticus_Error, only : Galacticus_Error_Report
    use :: Kind_Numbers    , only : kind_int8
    implicit none

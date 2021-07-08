@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,40 +17,46 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of the \cite{blitz_role_2006} star formation rate surface density law for galactic disks.
+  !!{
+  Implementation of the \cite{blitz_role_2006} star formation rate surface density law for galactic disks.
+  !!}
 
   use :: Kind_Numbers, only : kind_int8
 
-  !# <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksBlitz2006">
-  !#  <description>
-  !#   A star formation rate surface density class which assumes that the star formation rate is given by \citep{blitz_role_2006}:
-  !#   \begin{equation}
-  !#    \dot{\Sigma}_\star(R) = \nu_\mathrm{SF}(R) \Sigma_\mathrm{H_2, disk}(R),
-  !#   \end{equation}
-  !#   where $\nu_\mathrm{SF}$ is a frequency given by
-  !#   \begin{equation}
-  !#    \nu_\mathrm{SF}(R) = \nu_\mathrm{SF,0} \left[ 1 + \left({\Sigma_\mathrm{HI}\over \Sigma_0}\right)^q \right],
-  !#   \end{equation}
-  !#   where $q=${\normalfont \ttfamily [surfaceDensityExponent]} and $\Sigma_0=${\normalfont \ttfamily [surfaceDensityCritical]}
-  !#   are parameters and the surface density of molecular gas $\Sigma_\mathrm{H_2} = (P_\mathrm{ext}/P_0)^\alpha
-  !#   \Sigma_\mathrm{HI}$, where $\alpha=${\normalfont \ttfamily [pressureExponent]} and $P_0=${\normalfont \ttfamily
-  !#   [pressureCharacteristic]} are parameters and the hydrostatic pressure in the disk plane assuming location isothermal gas
-  !#   and stellar components is given by
-  !#   \begin{equation}
-  !#    P_\mathrm{ext} \approx {\pi\over 2} \G \Sigma_\mathrm{gas} \left[ \Sigma_\mathrm{gas} + \left({\sigma_\mathrm{gas}\over
-  !#    \sigma_\star}\right)\Sigma_\star\right]
-  !#   \end{equation}
-  !#   where we assume that the velocity dispersion in the gas is fixed at $\sigma_\mathrm{gas}=${\normalfont \ttfamily
-  !#   [velocityDispersionDiskGas]} and, assuming $\Sigma_\star \gg \Sigma_\mathrm{gas}$, we can write the stellar velocity
-  !#   dispersion in terms of the disk scale height, $h_\star$, as
-  !#   \begin{equation}
-  !#    \sigma_\star = \sqrt{\pi \G h_\star \Sigma_\star}
-  !#   \end{equation}
-  !#   where we assume $h_\star/R_\mathrm{disk}=${\normalfont \ttfamily [heightToRadialScaleDiskBlitzRosolowsky]}.
-  !#  </description>
-  !# </starFormationRateSurfaceDensityDisks>
+  !![
+  <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksBlitz2006">
+   <description>
+    A star formation rate surface density class which assumes that the star formation rate is given by \citep{blitz_role_2006}:
+    \begin{equation}
+     \dot{\Sigma}_\star(R) = \nu_\mathrm{SF}(R) \Sigma_\mathrm{H_2, disk}(R),
+    \end{equation}
+    where $\nu_\mathrm{SF}$ is a frequency given by
+    \begin{equation}
+     \nu_\mathrm{SF}(R) = \nu_\mathrm{SF,0} \left[ 1 + \left({\Sigma_\mathrm{HI}\over \Sigma_0}\right)^q \right],
+    \end{equation}
+    where $q=${\normalfont \ttfamily [surfaceDensityExponent]} and $\Sigma_0=${\normalfont \ttfamily [surfaceDensityCritical]}
+    are parameters and the surface density of molecular gas $\Sigma_\mathrm{H_2} = (P_\mathrm{ext}/P_0)^\alpha
+    \Sigma_\mathrm{HI}$, where $\alpha=${\normalfont \ttfamily [pressureExponent]} and $P_0=${\normalfont \ttfamily
+    [pressureCharacteristic]} are parameters and the hydrostatic pressure in the disk plane assuming location isothermal gas
+    and stellar components is given by
+    \begin{equation}
+     P_\mathrm{ext} \approx {\pi\over 2} \G \Sigma_\mathrm{gas} \left[ \Sigma_\mathrm{gas} + \left({\sigma_\mathrm{gas}\over
+     \sigma_\star}\right)\Sigma_\star\right]
+    \end{equation}
+    where we assume that the velocity dispersion in the gas is fixed at $\sigma_\mathrm{gas}=${\normalfont \ttfamily
+    [velocityDispersionDiskGas]} and, assuming $\Sigma_\star \gg \Sigma_\mathrm{gas}$, we can write the stellar velocity
+    dispersion in terms of the disk scale height, $h_\star$, as
+    \begin{equation}
+     \sigma_\star = \sqrt{\pi \G h_\star \Sigma_\star}
+    \end{equation}
+    where we assume $h_\star/R_\mathrm{disk}=${\normalfont \ttfamily [heightToRadialScaleDiskBlitzRosolowsky]}.
+   </description>
+  </starFormationRateSurfaceDensityDisks>
+  !!]
   type, extends(starFormationRateSurfaceDensityDisksClass) :: starFormationRateSurfaceDensityDisksBlitz2006
-     !% Implementation of the \cite{blitz_role_2006} star formation rate surface density law for galactic disks.
+     !!{
+     Implementation of the \cite{blitz_role_2006} star formation rate surface density law for galactic disks.
+     !!}
      private
      integer         (kind_int8) :: lastUniqueID
      logical                     :: factorsComputed
@@ -61,9 +67,11 @@
           &                         massGas                  , hydrogenMassFraction               , &
           &                         massStellar
    contains
-     !# <methods>
-     !#   <method description="Reset memoized calculations." method="calculationReset" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Reset memoized calculations." method="calculationReset" />
+     </methods>
+     !!]
      final     ::                     blitz2006Destructor
      procedure :: autoHook         => blitz2006AutoHook
      procedure :: calculationReset => blitz2006CalculationReset
@@ -71,7 +79,9 @@
   end type starFormationRateSurfaceDensityDisksBlitz2006
 
   interface starFormationRateSurfaceDensityDisksBlitz2006
-     !% Constructors for the {\normalfont \ttfamily blitz2006} star formation surface density rate in disks class.
+     !!{
+     Constructors for the {\normalfont \ttfamily blitz2006} star formation surface density rate in disks class.
+     !!}
      module procedure blitz2006ConstructorParameters
      module procedure blitz2006ConstructorInternal
   end interface starFormationRateSurfaceDensityDisksBlitz2006
@@ -79,7 +89,9 @@
 contains
 
   function blitz2006ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily blitz2006} star formation surface density rate in disks class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily blitz2006} star formation surface density rate in disks class which takes a parameter set as input.
+    !!}
     implicit none
     type            (starFormationRateSurfaceDensityDisksBlitz2006)                :: self
     type            (inputParameters                              ), intent(inout) :: parameters
@@ -88,62 +100,68 @@ contains
          &                                                                            starFormationFrequencyNormalization, pressureCharacteristic , &
          &                                                                            pressureExponent
 
-    !# <inputParameter>
-    !#   <name>velocityDispersionDiskGas</name>
-    !#   <defaultSource>\citep{leroy_star_2008}</defaultSource>
-    !#   <defaultValue>10.0d0</defaultValue>
-    !#   <description>The velocity dispersion of gas in disks.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>heightToRadialScaleDisk</name>
-    !#   <defaultSource>\citep{kregel_flattening_2002}</defaultSource>
-    !#   <defaultValue>0.137d0</defaultValue>
-    !#   <description>The ratio of scale height to scale radius for disks in the ``Blitz-Rosolowsky2006'' star formation timescale calculation.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>surfaceDensityCritical</name>
-    !#   <defaultSource>\citep{bigiel_star_2008}</defaultSource>
-    !#   <defaultValue>200.0d0</defaultValue>
-    !#   <description>The surface density (in units of $M_\odot$ pc$^{-2}$) in the ``Blitz-Rosolowsky2006'' star formation timescale calculation at which low-density truncation begins.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>surfaceDensityExponent</name>
-    !#   <defaultSource>\citep{bigiel_star_2008}</defaultSource>
-    !#   <defaultValue>0.4d0</defaultValue>
-    !#   <description>The exponent for surface density in the ``Blitz-Rosolowsky2006'' star formation timescale calculation at in the high density regime.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>starFormationFrequencyNormalization</name>
-    !#   <defaultSource>\citep{leroy_star_2008}</defaultSource>
-    !#   <defaultValue>5.25d-10</defaultValue>
-    !#   <description>The star formation frequency (in the low-density limit and in units of yr$^{-1}$) in the ``Blitz-Rosolowsky2006'' star formation timescale calculation.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>pressureCharacteristic</name>
-    !#   <defaultSource>\citep{blitz_role_2006}</defaultSource>
-    !#   <defaultValue>4.54d0</defaultValue>
-    !#   <description>The characteristic pressure (given as $P_0/k_\mathrm{B}$ in units of K cm$^{-3}$) in the scaling relation of molecular hydrogen fraction with disk pressure in the ``Blitz-Rosolowsky2006'' star formation timescale calculation.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>pressureExponent</name>
-    !#   <defaultSource>\citep{blitz_role_2006}</defaultSource>
-    !#   <defaultValue>0.92d0</defaultValue>
-    !#   <description>The exponent in the scaling relation of molecular hydrogen fraction with disk pressure in the ``Blitz-Rosolowsky2006'' star formation timescale calculation.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>velocityDispersionDiskGas</name>
+      <defaultSource>\citep{leroy_star_2008}</defaultSource>
+      <defaultValue>10.0d0</defaultValue>
+      <description>The velocity dispersion of gas in disks.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>heightToRadialScaleDisk</name>
+      <defaultSource>\citep{kregel_flattening_2002}</defaultSource>
+      <defaultValue>0.137d0</defaultValue>
+      <description>The ratio of scale height to scale radius for disks in the ``Blitz-Rosolowsky2006'' star formation timescale calculation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>surfaceDensityCritical</name>
+      <defaultSource>\citep{bigiel_star_2008}</defaultSource>
+      <defaultValue>200.0d0</defaultValue>
+      <description>The surface density (in units of $M_\odot$ pc$^{-2}$) in the ``Blitz-Rosolowsky2006'' star formation timescale calculation at which low-density truncation begins.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>surfaceDensityExponent</name>
+      <defaultSource>\citep{bigiel_star_2008}</defaultSource>
+      <defaultValue>0.4d0</defaultValue>
+      <description>The exponent for surface density in the ``Blitz-Rosolowsky2006'' star formation timescale calculation at in the high density regime.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>starFormationFrequencyNormalization</name>
+      <defaultSource>\citep{leroy_star_2008}</defaultSource>
+      <defaultValue>5.25d-10</defaultValue>
+      <description>The star formation frequency (in the low-density limit and in units of yr$^{-1}$) in the ``Blitz-Rosolowsky2006'' star formation timescale calculation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>pressureCharacteristic</name>
+      <defaultSource>\citep{blitz_role_2006}</defaultSource>
+      <defaultValue>4.54d0</defaultValue>
+      <description>The characteristic pressure (given as $P_0/k_\mathrm{B}$ in units of K cm$^{-3}$) in the scaling relation of molecular hydrogen fraction with disk pressure in the ``Blitz-Rosolowsky2006'' star formation timescale calculation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>pressureExponent</name>
+      <defaultSource>\citep{blitz_role_2006}</defaultSource>
+      <defaultValue>0.92d0</defaultValue>
+      <description>The exponent in the scaling relation of molecular hydrogen fraction with disk pressure in the ``Blitz-Rosolowsky2006'' star formation timescale calculation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=starFormationRateSurfaceDensityDisksBlitz2006(velocityDispersionDiskGas,heightToRadialScaleDisk,surfaceDensityCritical,surfaceDensityExponent,starFormationFrequencyNormalization,pressureCharacteristic,pressureExponent)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function blitz2006ConstructorParameters
 
   function blitz2006ConstructorInternal(velocityDispersionDiskGas,heightToRadialScaleDisk,surfaceDensityCritical,surfaceDensityExponent,starFormationFrequencyNormalization,pressureCharacteristic,pressureExponent) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily blitz2006} star formation surface density rate from disks class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily blitz2006} star formation surface density rate from disks class.
+    !!}
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Numerical_Constants_Astronomical, only : massSolar              , megaParsec
     use :: Numerical_Constants_Physical    , only : boltzmannsConstant
@@ -154,7 +172,9 @@ contains
          &                                                                            surfaceDensityCritical             , surfaceDensityExponent , &
          &                                                                            starFormationFrequencyNormalization, pressureCharacteristic , &
          &                                                                            pressureExponent
-     !# <constructorAssign variables="velocityDispersionDiskGas, heightToRadialScaleDisk, surfaceDensityCritical, surfaceDensityExponent, starFormationFrequencyNormalization, pressureCharacteristic, pressureExponent"/>
+     !![
+     <constructorAssign variables="velocityDispersionDiskGas, heightToRadialScaleDisk, surfaceDensityCritical, surfaceDensityExponent, starFormationFrequencyNormalization, pressureCharacteristic, pressureExponent"/>
+     !!]
 
     self%lastUniqueID   =-1_kind_int8
     self%factorsComputed=.false.
@@ -168,7 +188,9 @@ contains
   end function blitz2006ConstructorInternal
 
   subroutine blitz2006AutoHook(self)
-    !% Attach to the calculation reset event.
+    !!{
+    Attach to the calculation reset event.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(starFormationRateSurfaceDensityDisksBlitz2006), intent(inout) :: self
@@ -178,7 +200,9 @@ contains
   end subroutine blitz2006AutoHook
 
   subroutine blitz2006Destructor(self)
-    !% Destructor for the blitz2006 cooling radius class.
+    !!{
+    Destructor for the blitz2006 cooling radius class.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(starFormationRateSurfaceDensityDisksBlitz2006), intent(inout) :: self
@@ -188,7 +212,9 @@ contains
   end subroutine blitz2006Destructor
 
   subroutine blitz2006CalculationReset(self,node)
-    !% Reset the Kennicutt-Schmidt relation calculation.
+    !!{
+    Reset the Kennicutt-Schmidt relation calculation.
+    !!}
     implicit none
     class(starFormationRateSurfaceDensityDisksBlitz2006), intent(inout) :: self
     type (treeNode                                     ), intent(inout) :: node
@@ -199,9 +225,11 @@ contains
   end subroutine blitz2006CalculationReset
 
   double precision function blitz2006Rate(self,node,radius)
-    !% Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation
-    !% in the galactic disk of {\normalfont \ttfamily node}. The disk is assumed to obey the
-    !% \cite{blitz_role_2006} star formation rule.
+    !!{
+    Returns the star formation rate surface density (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation
+    in the galactic disk of {\normalfont \ttfamily node}. The disk is assumed to obey the
+    \cite{blitz_role_2006} star formation rule.
+    !!}
     use :: Abundances_Structure                , only : abundances
     use :: Galactic_Structure_Options          , only : componentTypeDisk                 , coordinateSystemCylindrical, massTypeGaseous, massTypeStellar
     use :: Galactic_Structure_Surface_Densities, only : Galactic_Structure_Surface_Density

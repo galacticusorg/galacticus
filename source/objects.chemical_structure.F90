@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements structures that describe chemicals.
+!!{
+Contains a module which implements structures that describe chemicals.
+!!}
 
 module Chemical_Structures
-  !% Implements structures that describe chemicals.
+  !!{
+  Implements structures that describe chemicals.
+  !!}
   use :: ISO_Varying_String          , only : varying_string
   use :: Numerical_Constants_Atomic  , only : atomicMassHydrogen, atomicMassUnit
   use :: Numerical_Constants_Physical, only : electronMass
@@ -29,19 +33,25 @@ module Chemical_Structures
   public :: chemicalStructure, atomicStructure,atomicBond, Chemical_Database_Get_Index
 
   type atomicStructure
-     !% A type that defines an atom within a chemical.
+     !!{
+     A type that defines an atom within a chemical.
+     !!}
      character       (len=10) :: name
      character       (len=2 ) :: shortLabel
      double precision         :: mass
   end type atomicStructure
 
   type atomicBond
-     !% A type that defines an atomic bond within a chemical.
+     !!{
+     A type that defines an atomic bond within a chemical.
+     !!}
      integer :: atom(2)
   end type atomicBond
 
   type chemicalStructure
-     !% A type that defines a chemical.
+     !!{
+     A type that defines a chemical.
+     !!}
      integer                                                      :: index
      type            (varying_string )                            :: name
      integer                                                      :: chargeValue
@@ -50,12 +60,14 @@ module Chemical_Structures
      type            (atomicBond     ), allocatable, dimension(:) :: bond
    contains
      ! Data methods.
-     !# <methods>
-     !#   <method description="Get a chemical from the database." method="retrieve" />
-     !#   <method description="Write a chemical structure to a CML file." method="export" />
-     !#   <method description="Return the charge of a chemical." method="charge" />
-     !#   <method description="Return the mass of a chemical in atomic mass units." method="mass" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Get a chemical from the database." method="retrieve" />
+       <method description="Write a chemical structure to a CML file." method="export" />
+       <method description="Return the charge of a chemical." method="charge" />
+       <method description="Return the mass of a chemical in atomic mass units." method="mass" />
+     </methods>
+     !!]
      procedure :: retrieve=>Chemical_Database_Get
      procedure :: export  =>Chemical_Structure_Export
      procedure :: charge  =>Chemical_Structure_Charge
@@ -77,17 +89,19 @@ module Chemical_Structures
 contains
 
   subroutine Chemical_Structure_Initialize
-    !% Initialize the chemical structure database by reading the atomic structure database. Note: this implementation is not
-    !% fully compatible with chemical markup language (CML), but only a limited subset of it.
+    !!{
+    Initialize the chemical structure database by reading the atomic structure database. Note: this implementation is not
+    fully compatible with chemical markup language (CML), but only a limited subset of it.
+    !!}
     use :: FoX_dom           , only : Node                        , destroy
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath              , pathTypeDataStatic
     use :: IO_XML            , only : XML_Get_Elements_By_Tag_Name, xmlNodeList       , XML_Parse, extractDataContent => extractDataContentTS
     use :: ISO_Varying_String, only : char                        , assignment(=)
     implicit none
-    type     (Node       ), pointer                   :: doc     , thisAtom, thisBond    , thisChemical, thisElement
-    type     (xmlNodeList), allocatable, dimension(:) :: atomList, bondList, chemicalList, thisList
-    integer                                           :: iAtom   , iBond   , iChemical   , ioErr       , jAtom
+    type     (Node       ), pointer                   :: doc     , atom    , bond        , chemical, element
+    type     (xmlNodeList), allocatable, dimension(:) :: atomList, bondList, chemicalList, list
+    integer                                           :: iAtom   , iBond   , iChemical   , ioErr   , jAtom
     character(len=128    )                            :: name
 
     ! Check if the chemical database is initialized.
@@ -104,28 +118,28 @@ contains
        ! Set the index for this chemical.
           chemicals(iChemical+1)%index=iChemical+1
           ! Get the chemical.
-          thisChemical => chemicalList(iChemical)%element
+          chemical => chemicalList(iChemical)%element
           ! Get the name of the chemical.
-          call XML_Get_Elements_By_Tag_Name(thisChemical,"id",thisList)
-          thisElement => thisList(0)%element
-          call extractDataContent(thisElement,name)
+          call XML_Get_Elements_By_Tag_Name(chemical,"id",list)
+          element => list(0)%element
+          call extractDataContent(element,name)
           chemicals(iChemical+1)%name=trim(name)
           ! Get the charge of the chemical.
-          call XML_Get_Elements_By_Tag_Name(thisChemical,"formalCharge",thisList)
-          thisElement => thisList(0)%element
-          call extractDataContent(thisElement,chemicals(iChemical+1)%chargeValue)
+          call XML_Get_Elements_By_Tag_Name(chemical,"formalCharge",list)
+          element => list(0)%element
+          call extractDataContent(element,chemicals(iChemical+1)%chargeValue)
           ! Get a list of atoms in the chemical.
-          call XML_Get_Elements_By_Tag_Name(thisChemical,"atom",atomList)
+          call XML_Get_Elements_By_Tag_Name(chemical,"atom",atomList)
           ! Allocate array for atoms
           allocate(chemicals(iChemical+1)%atom(size(atomList)))
           ! Loop over atoms.
           do iAtom=0,size(atomList)-1
              ! Get the atom.
-             thisAtom => atomList(iAtom)%element
+             atom => atomList(iAtom)%element
              ! Get the element type.
-             call XML_Get_Elements_By_Tag_Name(thisAtom,"elementType",thisList)
-             thisElement => thisList(0)%element
-             call extractDataContent(thisElement,name)
+             call XML_Get_Elements_By_Tag_Name(atom,"elementType",list)
+             element => list(0)%element
+             call extractDataContent(element,name)
              ! Find the element in the list of atoms.
              do jAtom=1,size(atoms)
                 if (trim(name) == trim(atoms(jAtom)%shortLabel)) chemicals(iChemical+1)%atom(iAtom+1)=atoms(jAtom)
@@ -134,7 +148,7 @@ contains
           ! Compute the mass of the chemical.
           chemicals(iChemical+1)%massValue=sum(chemicals(iChemical+1)%atom(:)%mass)
           ! Get a list of bonds in the chemical.
-          call XML_Get_Elements_By_Tag_Name(thisChemical,"bond",bondList)
+          call XML_Get_Elements_By_Tag_Name(chemical,"bond",bondList)
           ! Retrieve bonds if any were found.
           if (size(bondList) > 0) then
              ! Allocate array for bonds.
@@ -142,11 +156,11 @@ contains
              ! Loop over bond.
              do iBond=0,size(bondList)-1
                 ! Get the bond.
-                thisBond => bondList(iBond)%element
+                bond => bondList(iBond)%element
                 ! Get the atom references.
-                call XML_Get_Elements_By_Tag_Name(thisBond,"atomRefs2",thisList)
-                thisElement => thisList(0)%element
-                call extractDataContent(thisElement,chemicals(iChemical+1)%bond(iBond+1)%atom)
+                call XML_Get_Elements_By_Tag_Name(bond,"atomRefs2",list)
+                element => list(0)%element
+                call extractDataContent(element,chemicals(iChemical+1)%bond(iBond+1)%atom)
              end do
           end if
        end do
@@ -158,13 +172,15 @@ contains
     return
   end subroutine Chemical_Structure_Initialize
 
-  subroutine Chemical_Structure_Export(thisChemical,outputFile)
-    !% Export a chemical structure to a chemical markup language (CML) file.
+  subroutine Chemical_Structure_Export(chemical,outputFile)
+    !!{
+    Export a chemical structure to a chemical markup language (CML) file.
+    !!}
     use :: FoX_wxml          , only : xml_AddCharacters, xml_Close, xml_EndElement, xml_NewElement, &
           &                           xml_OpenFile     , xmlf_t
     use :: ISO_Varying_String, only : char
     implicit none
-    class    (chemicalStructure), intent(in   ) :: thisChemical
+    class    (chemicalStructure), intent(in   ) :: chemical
     character(len=*            ), intent(in   ) :: outputFile
     type     (xmlf_t           )                :: exportedChemicalDoc
     character(len=10           )                :: label
@@ -176,16 +192,16 @@ contains
     call xml_NewElement   (exportedChemicalDoc,"chemical")
     ! Write the chemical name.
     call xml_NewElement   (exportedChemicalDoc,"id")
-    call xml_AddCharacters(exportedChemicalDoc,char(thisChemical%name))
+    call xml_AddCharacters(exportedChemicalDoc,char(chemical%name))
     call xml_EndElement   (exportedChemicalDoc,"id")
     ! Write the charge.
     call xml_NewElement   (exportedChemicalDoc,"formalCharge")
-    call xml_AddCharacters(exportedChemicalDoc,thisChemical%chargeValue)
+    call xml_AddCharacters(exportedChemicalDoc,chemical%chargeValue)
     call xml_EndElement   (exportedChemicalDoc,"formalCharge")
     ! Begin the array of atoms.
     call xml_NewElement   (exportedChemicalDoc,"atomArray")
     ! Loop over all atoms.
-    do iAtom=1,size(thisChemical%atom)
+    do iAtom=1,size(chemical%atom)
        ! Begin the atom.
        call xml_NewElement   (exportedChemicalDoc,"atom")
        ! Write atom ID.
@@ -195,7 +211,7 @@ contains
        call xml_EndElement   (exportedChemicalDoc,"id")
        ! Write atom element type.
        call xml_NewElement   (exportedChemicalDoc,"elementType")
-       call xml_AddCharacters(exportedChemicalDoc,trim(thisChemical%atom(iAtom)%shortLabel))
+       call xml_AddCharacters(exportedChemicalDoc,trim(chemical%atom(iAtom)%shortLabel))
        call xml_EndElement   (exportedChemicalDoc,"elementType")
        ! Close the atom.
        call xml_EndElement   (exportedChemicalDoc,"atom")
@@ -203,15 +219,15 @@ contains
     ! End the atom array.
     call xml_EndElement   (exportedChemicalDoc,"atomArray")
     ! Check if we have bonds to output
-    if (allocated(thisChemical%bond)) then
+    if (allocated(chemical%bond)) then
        ! Begin the array of bonds.
        call xml_NewElement   (exportedChemicalDoc,"bondArray")
        ! Loop over all bonds.
-       do iBond=1,size(thisChemical%bond)
+       do iBond=1,size(chemical%bond)
           ! Begin the bond.
           call xml_NewElement   (exportedChemicalDoc,"bond")
           ! Write the bond atomic references.
-          write (label,'(a,i1,x,a,i1)') "a",thisChemical%bond(iBond)%atom(1),"a",thisChemical%bond(iBond)%atom(2)
+          write (label,'(a,i1,x,a,i1)') "a",chemical%bond(iBond)%atom(1),"a",chemical%bond(iBond)%atom(2)
           call xml_NewElement   (exportedChemicalDoc,"atomRefs2")
           call xml_AddCharacters(exportedChemicalDoc,trim(label))
           call xml_EndElement   (exportedChemicalDoc,"atomRefs2")
@@ -233,7 +249,9 @@ contains
   end subroutine Chemical_Structure_Export
 
   integer function Chemical_Database_Get_Index(chemicalName)
-    !% Find a chemical in the database and return it.
+    !!{
+    Find a chemical in the database and return it.
+    !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : operator(==)
     implicit none
@@ -255,34 +273,40 @@ contains
     return
   end function Chemical_Database_Get_Index
 
-  subroutine Chemical_Database_Get(thisChemical,chemicalName)
-    !% Find a chemical in the database and return it.
+  subroutine Chemical_Database_Get(chemical,chemicalName)
+    !!{
+    Find a chemical in the database and return it.
+    !!}
     implicit none
-    class    (chemicalStructure), intent(inout) :: thisChemical
+    class    (chemicalStructure), intent(inout) :: chemical
     character(len=*            ), intent(in   ) :: chemicalName
 
-    select type (thisChemical)
+    select type (chemical)
     type is (chemicalStructure)
-       thisChemical=chemicals(Chemical_Database_Get_Index(chemicalName))
+       chemical=chemicals(Chemical_Database_Get_Index(chemicalName))
     end select
     return
   end subroutine Chemical_Database_Get
 
-  integer function Chemical_Structure_Charge(thisChemical)
-    !% Return the charge on a chemical.
+  integer function Chemical_Structure_Charge(chemical)
+    !!{
+    Return the charge on a chemical.
+    !!}
     implicit none
-    class(chemicalStructure), intent(in   ) :: thisChemical
+    class(chemicalStructure), intent(in   ) :: chemical
 
-    Chemical_Structure_Charge=thisChemical%chargeValue
+    Chemical_Structure_Charge=chemical%chargeValue
     return
   end function Chemical_Structure_Charge
 
-  double precision function Chemical_Structure_Mass(thisChemical)
-    !% Return the mass of a chemical.
+  double precision function Chemical_Structure_Mass(chemical)
+    !!{
+    Return the mass of a chemical.
+    !!}
     implicit none
-    class(chemicalStructure), intent(in   ) :: thisChemical
+    class(chemicalStructure), intent(in   ) :: chemical
 
-    Chemical_Structure_Mass=thisChemical%massValue
+    Chemical_Structure_Mass=chemical%massValue
     return
   end function Chemical_Structure_Mass
 

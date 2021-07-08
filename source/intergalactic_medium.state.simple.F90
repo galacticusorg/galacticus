@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,19 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of the intergalactic medium state class for a simplistic model of instantaneous and full reionization.
+  !!{
+  An implementation of the intergalactic medium state class for a simplistic model of instantaneous and full reionization.
+  !!}
 
-  !# <intergalacticMediumState name="intergalacticMediumStateSimple">
-  !#  <description>
-  !#   An intergalactic medium state class which implements a simple model of reionization in which the universe is assumed to be
-  !#   fully neutral prior to the redshift given by {\normalfont \ttfamily [reionizationRedshift]} and fully ionized
-  !#   thereafter. The temperature is given by {\normalfont \ttfamily [preReionizationTemperature]} before reionization, and
-  !#   {\normalfont \ttfamily [reionizationTemperature]} thereafter.
-  !#  </description>
-  !# </intergalacticMediumState>
+  !![
+  <intergalacticMediumState name="intergalacticMediumStateSimple">
+   <description>
+    An intergalactic medium state class which implements a simple model of reionization in which the universe is assumed to be
+    fully neutral prior to the redshift given by {\normalfont \ttfamily [reionizationRedshift]} and fully ionized
+    thereafter. The temperature is given by {\normalfont \ttfamily [preReionizationTemperature]} before reionization, and
+    {\normalfont \ttfamily [reionizationTemperature]} thereafter.
+   </description>
+  </intergalacticMediumState>
+  !!]
   type, extends(intergalacticMediumStateClass) :: intergalacticMediumStateSimple
-     !% An \gls{igm} state class for a simple model in which the \gls{igm} is assumed to be instantaneously and fully reionized at
-     !% a fixed redshift, and heated to a fixed temperature.
+     !!{
+     An \gls{igm} state class for a simple model in which the \gls{igm} is assumed to be instantaneously and fully reionized at
+     a fixed redshift, and heated to a fixed temperature.
+     !!}
      private
      double precision :: reionizationTime, reionizationTemperature, preReionizationTemperature
    contains
@@ -43,7 +49,9 @@
   end type intergalacticMediumStateSimple
 
   interface intergalacticMediumStateSimple
-     !% Constructors for the simple intergalactic medium state class.
+     !!{
+     Constructors for the simple intergalactic medium state class.
+     !!}
      module procedure simpleIGMConstructorParameters
      module procedure simpleIGMConstructorInternal
   end interface intergalacticMediumStateSimple
@@ -51,7 +59,9 @@
 contains
 
   function simpleIGMConstructorParameters(parameters) result (self)
-    !% Constructor for the simple \gls{igm} state class which takes a parameter set as input.
+    !!{
+    Constructor for the simple \gls{igm} state class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (intergalacticMediumStateSimple)                :: self
@@ -62,47 +72,55 @@ contains
          &                                                             preReionizationTemperature
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>reionizationRedshift</name>
-    !#   <source>parameters</source>
-    !#   <variable>reionizationRedshift</variable>
-    !#   <defaultValue>9.97d0</defaultValue>
-    !#   <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
-    !#   <description>The redshift of reionization in the simple \gls{igm} state model.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>reionizationTemperature</name>
-    !#   <source>parameters</source>
-    !#   <variable>reionizationTemperature</variable>
-    !#   <defaultValue>1.0d4</defaultValue>
-    !#   <description>The post-reionization temperature (in units of Kelvin) in the simple \gls{igm} state model.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>preReionizationTemperature</name>
-    !#   <source>parameters</source>
-    !#   <variable>preReionizationTemperature</variable>
-    !#   <defaultValue>10.0d0</defaultValue>
-    !#   <description>The pre-reionization temperature (in units of Kelvin) in the simple \gls{igm} state model.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>reionizationRedshift</name>
+      <source>parameters</source>
+      <variable>reionizationRedshift</variable>
+      <defaultValue>9.97d0</defaultValue>
+      <defaultSource>(\citealt{hinshaw_nine-year_2012}; CMB$+H_0+$BAO)</defaultSource>
+      <description>The redshift of reionization in the simple \gls{igm} state model.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>reionizationTemperature</name>
+      <source>parameters</source>
+      <variable>reionizationTemperature</variable>
+      <defaultValue>1.0d4</defaultValue>
+      <description>The post-reionization temperature (in units of Kelvin) in the simple \gls{igm} state model.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>preReionizationTemperature</name>
+      <source>parameters</source>
+      <variable>preReionizationTemperature</variable>
+      <defaultValue>10.0d0</defaultValue>
+      <description>The pre-reionization temperature (in units of Kelvin) in the simple \gls{igm} state model.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !!]
     ! Construct the object.
     self=intergalacticMediumStateSimple(reionizationRedshift,reionizationTemperature,preReionizationTemperature,cosmologyFunctions_,cosmologyParameters_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
-    !# <objectDestructor name="cosmologyParameters_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="cosmologyParameters_"/>
+    !!]
     return
   end function simpleIGMConstructorParameters
 
   function simpleIGMConstructorInternal(reionizationRedshift,reionizationTemperature,preReionizationTemperature,cosmologyFunctions_,cosmologyParameters_) result(self)
-    !% Constructor for the simple \gls{igm} state class.
+    !!{
+    Constructor for the simple \gls{igm} state class.
+    !!}
     implicit none
     type            (intergalacticMediumStateSimple)                        :: self
     double precision                                , intent(in   )         :: reionizationRedshift      , reionizationTemperature, &
          &                                                                     preReionizationTemperature
     class           (cosmologyFunctionsClass       ), intent(inout), target :: cosmologyFunctions_
     class           (cosmologyParametersClass      ), intent(inout), target :: cosmologyParameters_
-    !# <constructorAssign variables="reionizationTemperature, preReionizationTemperature, *cosmologyFunctions_, *cosmologyParameters_"/>
+    !![
+    <constructorAssign variables="reionizationTemperature, preReionizationTemperature, *cosmologyFunctions_, *cosmologyParameters_"/>
+    !!]
 
     self%reionizationTime=cosmologyFunctions_%cosmicTime                 (                      &
          &                cosmologyFunctions_%expansionFactorFromRedshift (                     &
@@ -113,17 +131,23 @@ contains
   end function simpleIGMConstructorInternal
 
   subroutine simpleDestructor(self)
-    !% Destructor for the simple \gls{igm} state class.
+    !!{
+    Destructor for the simple \gls{igm} state class.
+    !!}
     implicit none
     type(intergalacticMediumStateSimple), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_" />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    <objectDestructor name="self%cosmologyFunctions_" />
+    !!]
     return
   end subroutine simpleDestructor
 
   double precision function simpleElectronFraction(self,time)
-    !% Return the electron fraction of the \gls{igm} in the simple model.
+    !!{
+    Return the electron fraction of the \gls{igm} in the simple model.
+    !!}
     use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial, hydrogenByMassPrimordial
     use :: Numerical_Constants_Atomic      , only : atomicMassHelium      , atomicMassHydrogen
     implicit none
@@ -143,7 +167,9 @@ contains
   end function simpleElectronFraction
 
   double precision function simpleNeutralHydrogenFraction(self,time)
-    !% Return the neutral hydrogen fraction of the \gls{igm} in the simple model.
+    !!{
+    Return the neutral hydrogen fraction of the \gls{igm} in the simple model.
+    !!}
     implicit none
     class           (intergalacticMediumStateSimple), intent(inout) :: self
     double precision                                , intent(in   ) :: time
@@ -157,7 +183,9 @@ contains
   end function simpleNeutralHydrogenFraction
 
   double precision function simpleNeutralHeliumFraction(self,time)
-    !% Return the neutral helium fraction of the \gls{igm} in the simple model.
+    !!{
+    Return the neutral helium fraction of the \gls{igm} in the simple model.
+    !!}
     implicit none
     class           (intergalacticMediumStateSimple), intent(inout) :: self
     double precision                                , intent(in   ) :: time
@@ -171,7 +199,9 @@ contains
   end function simpleNeutralHeliumFraction
 
   double precision function simpleSinglyIonizedHeliumFraction(self,time)
-    !% Return the singly-ionized helium fraction of the \gls{igm} in the simple model.
+    !!{
+    Return the singly-ionized helium fraction of the \gls{igm} in the simple model.
+    !!}
     implicit none
     class           (intergalacticMediumStateSimple), intent(inout) :: self
     double precision                                , intent(in   ) :: time
@@ -185,7 +215,9 @@ contains
   end function simpleSinglyIonizedHeliumFraction
 
   double precision function simpleTemperature(self,time)
-    !% Return the temperature of the \gls{igm} in the simple model.
+    !!{
+    Return the temperature of the \gls{igm} in the simple model.
+    !!}
     implicit none
     class           (intergalacticMediumStateSimple), intent(inout) :: self
     double precision                                , intent(in   ) :: time
@@ -198,18 +230,20 @@ contains
     return
   end function simpleTemperature
 
-  subroutine simpleDescriptor(self,descriptor,includeMethod)
-    !% Return an input parameter list descriptor which could be used to recreate this object.
+  subroutine simpleDescriptor(self,descriptor,includeClass)
+    !!{
+    Return an input parameter list descriptor which could be used to recreate this object.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     class    (intergalacticMediumStateSimple), intent(inout)           :: self
     type     (inputParameters               ), intent(inout)           :: descriptor
-    logical                                  , intent(in   ), optional :: includeMethod
+    logical                                  , intent(in   ), optional :: includeClass
     character(len=18                        )                          :: parameterLabel
     type     (inputParameters               )                          :: parameters
 
-    if (.not.present(includeMethod).or.includeMethod) call descriptor%addParameter('intergalacticMediumStateMethod','simple')
-    parameters=descriptor%subparameters('intergalacticMediumStateMethod')
+    if (.not.present(includeClass).or.includeClass) call descriptor%addParameter('intergalacticMediumState','simple')
+    parameters=descriptor%subparameters('intergalacticMediumState')
     write (parameterLabel,'(e17.10)') self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%reionizationTime          ))
     call parameters%addParameter('reionizationRedshift'      ,trim(adjustl(parameterLabel)))
     write (parameterLabel,'(e17.10)')                                                                                               self%reionizationTemperature

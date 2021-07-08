@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,17 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test OpenMP lock functions.
+!!{
+Contains a program to test OpenMP lock functions.
+!!}
 
 program Test_Locks
-  !% Tests of OpenMP locking functions.
-  use            :: Array_Utilities   , only : Array_Is_Monotonic        , directionIncreasing
-  use            :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level_Set, verbosityStandard
+  !!{
+  Tests of OpenMP locking functions.
+  !!}
+  use            :: Array_Utilities   , only : Array_Is_Monotonic, directionIncreasing
+  use            :: Display           , only : displayMessage    , displayVerbositySet   , verbosityLevelStandard
   use, intrinsic :: ISO_C_Binding     , only : c_size_t
-  use            :: ISO_Varying_String, only : var_str                   , varying_string                , operator(//)
+  use            :: ISO_Varying_String, only : operator(//)      , var_str               , varying_string
   use            :: Locks             , only : ompIncrementalLock
   use            :: String_Handling   , only : operator(//)
-  use            :: Unit_Tests        , only : Assert                    , Unit_Tests_Begin_Group        , Unit_Tests_End_Group, Unit_Tests_Finish
+  use            :: Unit_Tests        , only : Assert            , Unit_Tests_Begin_Group, Unit_Tests_End_Group  , Unit_Tests_Finish
   implicit none
   integer         (c_size_t          ), parameter               :: elementCount   =100_c_size_t
   integer         (c_size_t          ), dimension(elementCount) :: orderedCount
@@ -39,7 +43,7 @@ program Test_Locks
   type            (varying_string    )                          :: message
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   call Unit_Tests_Begin_Group("OpenMP")
   ! Test incremental locks. We generate a counter which is not guaranteed to be ordered in terms of OpenMP threads. Then we use an
@@ -58,12 +62,12 @@ program Test_Locks
      call random_number(uniformRandom)
      sleepTime=int(uniformRandom*3.0d0)
      message=var_str("unordered counter retrieved with value ")//unorderedCounterPrivate//var_str("; pausing for ")//sleepTime//var_str(" seconds")
-     call Galacticus_Display_Message(message)
+     call displayMessage(message)
      call sleep        (sleepTime)
      call incrementalLock%set  (unorderedCounterPrivate)
      orderedCounter                =orderedCounter         +1_c_size_t
      message=var_str("ordered counter retrieved with value ")//orderedCounter
-     call Galacticus_Display_Message(message)
+     call displayMessage(message)
      orderedCount  (orderedCounter)=unorderedCounterPrivate
      call incrementalLock%unset( )
   end do

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which computes merger rates of halos.
+!!{
+Contains a module which implements an N-body data operator which computes merger rates of halos.
+!!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
-  !# <nbodyOperator name="nbodyOperatorMergerRates">
-  !#  <description>An N-body data operator which computes merger rates of halos.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorMergerRates">
+   <description>An N-body data operator which computes merger rates of halos.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorMergerRates
-     !% An N-body data operator which computes merger rates of halos.
+     !!{
+     An N-body data operator which computes merger rates of halos.
+     !!}
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
      integer         (c_size_t               )          :: indexSnapshot
@@ -39,7 +45,9 @@
   end type nbodyOperatorMergerRates
 
   interface nbodyOperatorMergerRates
-     !% Constructors for the {\normalfont \ttfamily mergerRates} N-body operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily mergerRates} N-body operator class.
+     !!}
      module procedure mergerRatesConstructorParameters
      module procedure mergerRatesConstructorInternal
   end interface nbodyOperatorMergerRates
@@ -47,9 +55,11 @@
 contains
 
   function mergerRatesConstructorParameters(parameters) result (self)
-    !% Constructor for the {\normalfont \ttfamily mergerRates} N-body operator class which takes a parameter set as input.
-    use :: Input_Parameters  , only : inputParameters
+    !!{
+    Constructor for the {\normalfont \ttfamily mergerRates} N-body operator class which takes a parameter set as input.
+    !!}
     use :: ISO_Varying_String, only : operator(/=)
+    use :: Input_Parameters  , only : inputParameters
     implicit none
     type            (nbodyOperatorMergerRates)                :: self
     type            (inputParameters         ), intent(inout) :: parameters
@@ -60,74 +70,64 @@ contains
          &                                                       massHostMinimum    , massHostMaximum
     logical                                                   :: missingHostIsFatal , alwaysIsolatedOnly
 
-    !# <inputParameter>
-    !#   <name>indexSnapshot</name>
-    !#   <source>parameters</source>
-    !#   <description>The snapshot index for which to compute the merger rate.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMinimum</name>
-    !#   <source>parameters</source>
-    !#   <description>The minimum mass (of the secondary halo) for which to accumulate merging statistics.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMaximum</name>
-    !#   <source>parameters</source>
-    !#   <description>The maximum mass (of the secondary halo) for which to accumulate merging statistics.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massHostMinimum</name>
-    !#   <source>parameters</source>
-    !#   <description>The minimum mass (of the primary halo) for which to accumulate merging statistics.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massHostMaximum</name>
-    !#   <source>parameters</source>
-    !#   <description>The maximum mass (of the primary halo) for which to accumulate merging statistics.</description>
-    !#   <type>real</type>
-    !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>missingHostIsFatal</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true, missing host halos are cause for a fatal error. Otherwise they are ignored.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>alwaysIsolatedOnly</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true, only mergers of halos which have been always isolated are considered. Otherwise, all halos are considered.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>suffix</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>var_str('')</defaultValue>
-    !#   <description>A suffix to append to the output merger rate attribute. Useful if you want to write output multiple merger rates.</description>
-    !#   <type>boolean</type>
-    !#   <cardinality>0..1</cardinality>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>indexSnapshot</name>
+      <source>parameters</source>
+      <description>The snapshot index for which to compute the merger rate.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massMinimum</name>
+      <source>parameters</source>
+      <description>The minimum mass (of the secondary halo) for which to accumulate merging statistics.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massMaximum</name>
+      <source>parameters</source>
+      <description>The maximum mass (of the secondary halo) for which to accumulate merging statistics.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massHostMinimum</name>
+      <source>parameters</source>
+      <description>The minimum mass (of the primary halo) for which to accumulate merging statistics.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massHostMaximum</name>
+      <source>parameters</source>
+      <description>The maximum mass (of the primary halo) for which to accumulate merging statistics.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>missingHostIsFatal</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, missing host halos are cause for a fatal error. Otherwise they are ignored.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>alwaysIsolatedOnly</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, only mergers of halos which have been always isolated are considered. Otherwise, all halos are considered.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>suffix</name>
+      <source>parameters</source>
+      <defaultValue>var_str('')</defaultValue>
+      <description>A suffix to append to the output merger rate attribute. Useful if you want to write output multiple merger rates.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !!]
     self=nbodyOperatorMergerRates(indexSnapshot,massMinimum,massMaximum,massHostMinimum,massHostMaximum,missingHostIsFatal,alwaysIsolatedOnly,suffix,cosmologyFunctions_)
-    !# <objectDestructor name="cosmologyFunctions_"   />
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <objectDestructor name="cosmologyFunctions_"   />
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function mergerRatesConstructorParameters
 
   function mergerRatesConstructorInternal(indexSnapshot,massMinimum,massMaximum,massHostMinimum,massHostMaximum,missingHostIsFatal,alwaysIsolatedOnly,suffix,cosmologyFunctions_) result (self)
-    !% Internal constructor for the {\normalfont \ttfamily mergerRates} N-body operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily mergerRates} N-body operator class.
+    !!}
     implicit none
     type            (nbodyOperatorMergerRates)                        :: self
     class           (cosmologyFunctionsClass ), intent(in   ), target :: cosmologyFunctions_
@@ -136,32 +136,40 @@ contains
     double precision                          , intent(in   )         :: massMinimum        , massMaximum       , &
          &                                                               massHostMinimum    , massHostMaximum
     logical                                   , intent(in   )         :: missingHostIsFatal , alwaysIsolatedOnly
-    !# <constructorAssign variables="indexSnapshot, massMinimum, massMaximum, massHostMinimum, massHostMaximum, missingHostIsFatal, alwaysIsolatedOnly, suffix, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="indexSnapshot, massMinimum, massMaximum, massHostMinimum, massHostMaximum, missingHostIsFatal, alwaysIsolatedOnly, suffix, *cosmologyFunctions_"/>
+    !!]
 
     return
   end function mergerRatesConstructorInternal
 
   subroutine mergerRatesDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily mergerRates} N-body operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily mergerRates} N-body operator class.
+    !!}
     implicit none
     type(nbodyOperatorMergerRates), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    !!]
     return
   end subroutine mergerRatesDestructor
   
   subroutine mergerRatesOperate(self,simulations)
-    !% Compute the merger rate at a given snapshot.
-    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
-    use    :: Arrays_Search     , only : searchIndexed
-    use    :: Galacticus_Display, only : Galacticus_Display_Indent , Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                               Galacticus_Display_Message, verbosityStandard
-    use    :: Galacticus_Error  , only : Galacticus_Error_Report
-    use    :: Sorting           , only : sortIndex
-    use    :: IO_HDF5           , only : hdf5Access
+    !!{
+    Compute the merger rate at a given snapshot.
+    !!}
+    use    :: Arrays_Search   , only : searchIndexed
+    use    :: Display         , only : displayCounter         , displayCounterClear   , displayIndent, displayMessage, &
+          &                            displayUnindent        , verbosityLevelStandard
+    use    :: Galacticus_Error, only : Galacticus_Error_Report
+    use    :: IO_HDF5         , only : hdf5Access
 #ifdef USEMPI
-    use    :: MPI_Utilities     , only : mpiSelf
+    use    :: MPI_Utilities   , only : mpiSelf
 #endif
+    !$ use :: OMP_Lib         , only : OMP_Get_Thread_Num
+    use    :: Sorting         , only : sortIndex
     implicit none
     class           (nbodyOperatorMergerRates), intent(inout)               :: self
     type            (nBodyData               ), intent(inout), dimension(:) :: simulations
@@ -184,7 +192,7 @@ contains
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-    call Galacticus_Display_Indent('compute merger rates',verbosityStandard)
+    call displayIndent('compute merger rates',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif
@@ -192,7 +200,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Message(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityStandard)
+       call displayMessage(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityLevelStandard)
 #ifdef USEMPI
        end if
 #endif
@@ -222,7 +230,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Counter(0,.true.)
+          call displayCounter(0,.true.)
 #ifdef USEMPI
        end if
 #endif
@@ -305,7 +313,7 @@ contains
 #ifdef USEMPI
           if (mpiSelf%isMaster()) then
 #endif
-             call Galacticus_Display_Counter(int(100.0d0*dble(i)/dble(size(particleID))),verbosity=verbosityStandard,isNew=i == 1_c_size_t)
+             call displayCounter(int(100.0d0*dble(i)/dble(size(particleID))),verbosity=verbosityLevelStandard,isNew=i == 1_c_size_t)
 #ifdef USEMPI
           end if
 #endif
@@ -315,7 +323,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Counter_Clear()
+          call displayCounterClear()
 #ifdef USEMPI
        end if
 #endif
@@ -379,7 +387,7 @@ contains
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Unindent('done',verbosityStandard)
+       call displayUnindent('done',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif

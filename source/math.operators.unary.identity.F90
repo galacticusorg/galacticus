@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of an identity unary operator.
+  !!{
+  Implementation of an identity unary operator.
+  !!}
 
-  !# <operatorUnary name="operatorUnaryIdentity">
-  !#  <description>An identity unary operator.</description>
-  !# </operatorUnary>
+  !![
+  <operatorUnary name="operatorUnaryIdentity">
+   <description>An identity unary operator.</description>
+  </operatorUnary>
+  !!]
   type, extends(operatorUnaryClass) :: operatorUnaryIdentity
-     !% Implementation of an identity unary operator.
+     !!{
+     Implementation of an identity unary operator.
+     !!}
      private
    contains
      procedure :: operate   => identityOperate
@@ -31,15 +37,19 @@
   end type operatorUnaryIdentity
 
   interface operatorUnaryIdentity
-     !% Constructors for the {\normalfont \ttfamily identity} 1D distribution function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily identity} 1D distribution function class.
+     !!}
      module procedure identityConstructorParameters
   end interface operatorUnaryIdentity
 
 contains
 
   function identityConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily identity} 1D distribution function class which builds the object from a parameter
-    !% set.
+    !!{
+    Constructor for the {\normalfont \ttfamily identity} 1D distribution function class which builds the object from a parameter
+    set.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(operatorUnaryIdentity)                :: self
@@ -51,7 +61,9 @@ contains
   end function identityConstructorParameters
 
   double precision function identityOperate(self,x)
-    !% Apply an identity operation.
+    !!{
+    Apply an identity operation.
+    !!}
     implicit none
     class           (operatorUnaryIdentity), intent(inout) :: self
     double precision                       , intent(in   ) :: x
@@ -62,7 +74,9 @@ contains
   end function identityOperate
 
   double precision function identityUnoperate(self,f)
-    !% Unapply an identity operation.
+    !!{
+    Unapply an identity operation.
+    !!}
     implicit none
     class           (operatorUnaryIdentity), intent(inout) :: self
     double precision                       , intent(in   ) :: f

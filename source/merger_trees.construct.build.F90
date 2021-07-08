@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a merger tree constructor class which builds merger trees after drawing masses at random from a mass distribution.
+  !!{
+  Implements a merger tree constructor class which builds merger trees after drawing masses at random from a mass distribution.
+  !!}
 
   use :: Cosmology_Functions      , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters     , only : cosmologyParametersClass
@@ -27,14 +29,18 @@
   use :: Numerical_Random_Numbers , only : randomNumberGeneratorClass
   use :: Output_Times             , only : outputTimesClass
 
-  !# <mergerTreeConstructor name="mergerTreeConstructorBuild">
-  !#  <description>
-  !#   A merger tree constructor class which builds merger trees. This class first creates a distribution of tree root halo masses
-  !#   and then builds a merger tree from each root halo.
-  !#  </description>
-  !# </mergerTreeConstructor>
+  !![
+  <mergerTreeConstructor name="mergerTreeConstructorBuild">
+   <description>
+    A merger tree constructor class which builds merger trees. This class first creates a distribution of tree root halo masses
+    and then builds a merger tree from each root halo.
+   </description>
+  </mergerTreeConstructor>
+  !!]
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorBuild
-     !% A class implementing merger tree construction by building trees.
+     !!{
+     A class implementing merger tree construction by building trees.
+     !!}
      private
      class           (cosmologyParametersClass  ), pointer                   :: cosmologyParameters_   => null()
      class           (cosmologyFunctionsClass   ), pointer                   :: cosmologyFunctions_    => null()
@@ -55,16 +61,20 @@
      integer         (c_size_t                  ), allocatable, dimension(:) :: treeMassCount                   , rankMass
      logical                                                                 :: computeTreeWeights
    contains
-     !# <methods>
-     !#   <method description="Construct the set of tree masses to be built." method="constructMasses" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Construct the set of tree masses to be built." method="constructMasses" />
+     </methods>
+     !!]
      final     ::                    buildDestructor
      procedure :: construct       => buildConstruct
      procedure :: constructMasses => buildConstructMasses
   end type mergerTreeConstructorBuild
 
   interface mergerTreeConstructorBuild
-     !% Constructors for the {\normalfont \ttfamily build} merger tree constructor class.
+     !!{
+     Constructors for the {\normalfont \ttfamily build} merger tree constructor class.
+     !!}
      module procedure buildConstructorParameters
      module procedure buildConstructorInternal
   end interface mergerTreeConstructorBuild
@@ -72,7 +82,9 @@
 contains
 
   function buildConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily augment} merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily augment} merger tree operator class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
@@ -89,37 +101,39 @@ contains
     integer                                                     :: treeBeginAt
     logical                                                     :: processDescending
 
-    !# <inputParameter>
-    !#   <name>redshiftBase</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The redshift at which to plant the base node when building merger trees.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>timeSnapTolerance</name>
-    !#   <defaultValue>1.0d-6</defaultValue>
-    !#   <description>The fractional tolerance within which the tree base time will be snapped to a nearby output time.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>treeBeginAt</name>
-    !#   <defaultValue>0</defaultValue>
-    !#   <description>The index (in order of increasing base halo mass) of the tree at which to begin when building merger trees. A value of ``0'' means to begin with tree number 1 (if processing trees in ascending order), or equal to the number of trees (otherwise).</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>processDescending</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true, causes merger trees to be processed in order of decreasing mass.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
-    !# <objectBuilder class="mergerTreeBuilder"     name="mergerTreeBuilder_"     source="parameters"/>
-    !# <objectBuilder class="haloMassFunction"      name="haloMassFunction_"      source="parameters"/>
-    !# <objectBuilder class="mergerTreeBuildMasses" name="mergerTreeBuildMasses_" source="parameters"/>
-    !# <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>redshiftBase</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The redshift at which to plant the base node when building merger trees.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>timeSnapTolerance</name>
+      <defaultValue>1.0d-6</defaultValue>
+      <description>The fractional tolerance within which the tree base time will be snapped to a nearby output time.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>treeBeginAt</name>
+      <defaultValue>0</defaultValue>
+      <description>The index (in order of increasing base halo mass) of the tree at which to begin when building merger trees. A value of ``0'' means to begin with tree number 1 (if processing trees in ascending order), or equal to the number of trees (otherwise).</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>processDescending</name>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, causes merger trees to be processed in order of decreasing mass.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    <objectBuilder class="mergerTreeBuilder"     name="mergerTreeBuilder_"     source="parameters"/>
+    <objectBuilder class="haloMassFunction"      name="haloMassFunction_"      source="parameters"/>
+    <objectBuilder class="mergerTreeBuildMasses" name="mergerTreeBuildMasses_" source="parameters"/>
+    <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=mergerTreeConstructorBuild(                                                                                                        &
          &                          cosmologyFunctions_    %cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshiftBase     )), &
          &                                                                                                             timeSnapTolerance  , &
@@ -133,19 +147,23 @@ contains
          &                          outputTimes_                                                                                          , &
          &                          randomNumberGenerator_                                                                                  &
          &                         )
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"  />
-    !# <objectDestructor name="cosmologyFunctions_"   />
-    !# <objectDestructor name="mergerTreeBuilder_"    />
-    !# <objectDestructor name="haloMassFunction_"     />
-    !# <objectDestructor name="mergerTreeBuildMasses_"/>
-    !# <objectDestructor name="outputTimes_"          />
-    !# <objectDestructor name="randomNumberGenerator_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"  />
+    <objectDestructor name="cosmologyFunctions_"   />
+    <objectDestructor name="mergerTreeBuilder_"    />
+    <objectDestructor name="haloMassFunction_"     />
+    <objectDestructor name="mergerTreeBuildMasses_"/>
+    <objectDestructor name="outputTimes_"          />
+    <objectDestructor name="randomNumberGenerator_"/>
+    !!]
     return
   end function buildConstructorParameters
 
   function buildConstructorInternal(timeBase,timeSnapTolerance,treeBeginAt,processDescending,cosmologyParameters_,cosmologyFunctions_,mergerTreeBuildMasses_,mergerTreeBuilder_,haloMassFunction_,outputTimes_,randomNumberGenerator_) result(self)
-    !% Initializes the merger tree building module.
+    !!{
+    Initializes the merger tree building module.
+    !!}
     use, intrinsic :: ISO_C_Binding       , only : c_size_t
     use            :: Numerical_Comparison, only : Values_Agree
     implicit none
@@ -161,7 +179,9 @@ contains
     class           (outputTimesClass          ), intent(in   ), target :: outputTimes_
     class           (randomNumberGeneratorClass), intent(in   ), target :: randomNumberGenerator_
     integer         (c_size_t                  )                        :: i
-    !# <constructorAssign variables="timeBase, timeSnapTolerance, treeBeginAt, processDescending, *cosmologyParameters_, *cosmologyFunctions_, *mergerTreeBuildMasses_, *mergerTreeBuilder_, *haloMassFunction_, *outputTimes_, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="timeBase, timeSnapTolerance, treeBeginAt, processDescending, *cosmologyParameters_, *cosmologyFunctions_, *mergerTreeBuildMasses_, *mergerTreeBuilder_, *haloMassFunction_, *outputTimes_, *randomNumberGenerator_"/>
+    !!]
 
     ! Set offset for tree numbers.
     if (self%treeBeginAt == 0) then
@@ -179,22 +199,28 @@ contains
   end function buildConstructorInternal
 
   subroutine buildDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily build} merger tree constructor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily build} merger tree constructor class.
+    !!}
     implicit none
     type(mergerTreeConstructorBuild), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"  />
-    !# <objectDestructor name="self%cosmologyFunctions_"   />
-    !# <objectDestructor name="self%mergerTreeBuilder_"    />
-    !# <objectDestructor name="self%haloMassFunction_"     />
-    !# <objectDestructor name="self%mergerTreeBuildMasses_"/>
-    !# <objectDestructor name="self%outputTimes_"          />
-    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    !![
+    <objectDestructor name="self%cosmologyParameters_"  />
+    <objectDestructor name="self%cosmologyFunctions_"   />
+    <objectDestructor name="self%mergerTreeBuilder_"    />
+    <objectDestructor name="self%haloMassFunction_"     />
+    <objectDestructor name="self%mergerTreeBuildMasses_"/>
+    <objectDestructor name="self%outputTimes_"          />
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
     return
   end subroutine buildDestructor
 
   function buildConstruct(self,treeNumber,finished) result(tree)
-    !% Build a merger tree.
+    !!{
+    Build a merger tree.
+    !!}
     use :: Functions_Global       , only : Galacticus_State_Retrieve_, Galacticus_State_Store_
     use :: Galacticus_Nodes       , only : mergerTree                , nodeComponentBasic     , treeNode
     use :: Kind_Numbers           , only : kind_int8
@@ -243,8 +269,11 @@ contains
        ! Restart the random number sequence.
        allocate(tree%randomNumberGenerator_,mold=self%randomNumberGenerator_)
        !$omp critical(mergerTreeConstructBuildDeepCopyReset)
-       !# <deepCopyReset variables="self%randomNumberGenerator_"/>
-       !# <deepCopy source="self%randomNumberGenerator_" destination="tree%randomNumberGenerator_"/>
+       !![
+       <deepCopyReset variables="self%randomNumberGenerator_"/>
+       <deepCopy source="self%randomNumberGenerator_" destination="tree%randomNumberGenerator_"/>
+       <deepCopyFinalize variables="tree%randomNumberGenerator_"/>
+       !!]
        !$omp end critical(mergerTreeConstructBuildDeepCopyReset)
        call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
        ! Store the internal state.
@@ -297,7 +326,9 @@ contains
   end function buildConstruct
 
   subroutine buildConstructMasses(self)
-    !% Construct the set of tree masses to be built.
+    !!{
+    Construct the set of tree masses to be built.
+    !!}
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray
     use :: Sorting          , only : sortIndex

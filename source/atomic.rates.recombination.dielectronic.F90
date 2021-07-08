@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,24 +19,30 @@
 
 !+ Contributions to this file made by: Andrew Benson, Daniel McAndrew.
 
-!% Contains a module that implements a dielectronic recombination rate class.
+!!{
+Contains a module that implements a dielectronic recombination rate class.
+!!}
 
 module Atomic_Rates_Recombination_Dielectronic
-  !% Implements a dielectronic recombination rates class.
+  !!{
+  Implements a dielectronic recombination rates class.
+  !!}
   private
 
-  !# <functionClass>
-  !#  <name>atomicRecombinationRateDielectronic</name>
-  !#  <descriptiveName>Atomic dielectronic recombination rates.</descriptiveName>
-  !#  <description>Class providing atomic dielectronic recombination rates.</description>
-  !#  <default>arnaud1985</default>
-  !#  <method name="rate" >
-  !#   <description>Return the dielectroninc recombination rate (in units of cm$^3$ s$^{-1}$) for the ion of given {\normalfont \ttfamily atomicNumber} and {\normalfont \ttfamily electronNumber} at the given {\normalfont \ttfamily temperature} (in Kelvin).</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>integer         , intent(in   ) :: atomicNumber, electronNumber</argument>
-  !#   <argument>double precision, intent(in   ) :: temperature</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>atomicRecombinationRateDielectronic</name>
+   <descriptiveName>Atomic dielectronic recombination rates.</descriptiveName>
+   <description>Class providing atomic dielectronic recombination rates.</description>
+   <default>arnaud1985</default>
+   <method name="rate" >
+    <description>Return the dielectroninc recombination rate (in units of cm$^3$ s$^{-1}$) for the ion of given {\normalfont \ttfamily atomicNumber} and {\normalfont \ttfamily electronNumber} at the given {\normalfont \ttfamily temperature} (in Kelvin).</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>integer         , intent(in   ) :: atomicNumber, electronNumber</argument>
+    <argument>double precision, intent(in   ) :: temperature</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Atomic_Rates_Recombination_Dielectronic

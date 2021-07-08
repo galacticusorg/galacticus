@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,10 +19,14 @@
 
 !+    Contributions to this file made by:  Andrew Benson, Jianling Gan.
 
-!% Contains a module which implements a preset satellite orbit component.
+!!{
+Contains a module which implements a preset satellite orbit component.
+!!}
 
 module Node_Component_Satellite_Preset
-  !% Implements a preset satellite orbit component.
+  !!{
+  Implements a preset satellite orbit component.
+  !!}
   implicit none
   private
   public :: Node_Component_Satellite_Preset_Satellite_Host_Change , Node_Component_Satellite_Preset_Inter_Tree_Attach, &
@@ -30,81 +34,87 @@ module Node_Component_Satellite_Preset
        &    Node_Component_Satellite_Preset_Inter_Tree_Postprocess, Node_Component_Satellite_Preset_Thread_Initialize, &
        &    Node_Component_Satellite_Preset_Thread_Uninitialize
 
-  !# <component>
-  !#  <class>satellite</class>
-  !#  <name>preset</name>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>isOrphan</name>
-  !#     <type>logical</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#   <property>
-  !#     <name>mergeTime</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isVirtual="true" />
-  !#     <classDefault>-1.0d0</classDefault>
-  !#     <getFunction>Node_Component_Satellite_Preset_Merge_Time</getFunction>
-  !#     <setFunction>Node_Component_Satellite_Preset_Merge_Time_Set</setFunction>
-  !#     <output unitsInSI="gigaYear" comment="Time until satellite merges."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>timeOfMerging</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <classDefault>-1.0d0</classDefault>
-  !#   </property>
-  !#   <property>
-  !#     <name>boundMass</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
-  !#     <getFunction>SatellitePresetMergeBoundMass</getFunction>
-  !#     <classDefault>selfBasicComponent%mass()</classDefault>
-  !#     <output unitsInSI="massSolar" comment="Bound mass of the node."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>boundMassHistory</name>
-  !#     <type>history</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#   <property>
-  !#     <name>virialOrbit</name>
-  !#     <type>keplerOrbit</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#   <property>
-  !#     <name>nodeIndexHistory</name>
-  !#     <type>longIntegerHistory</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#   <property>
-  !#     <name>nodeIndex</name>
-  !#     <type>longInteger</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" />
-  !#     <getFunction>SatellitePresetNodeIndex</getFunction>
-  !#     <output unitsInSI="0.0d0" comment="Index of the satellite node used in preset satellite evolution."/>
-  !#     <classDefault>self%hostNode%index()</classDefault>
-  !#   </property>
-  !#  </properties>
-  !#  <functions>objects.nodes.components.satellite.preset.bound_functions.inc</functions>
-  !# </component>
+  !![
+  <component>
+   <class>satellite</class>
+   <name>preset</name>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>isOrphan</name>
+      <type>logical</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+    <property>
+      <name>mergeTime</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" isVirtual="true" />
+      <classDefault>-1.0d0</classDefault>
+      <getFunction>Node_Component_Satellite_Preset_Merge_Time</getFunction>
+      <setFunction>Node_Component_Satellite_Preset_Merge_Time_Set</setFunction>
+      <output unitsInSI="gigaYear" comment="Time until satellite merges."/>
+    </property>
+    <property>
+      <name>timeOfMerging</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <classDefault>-1.0d0</classDefault>
+    </property>
+    <property>
+      <name>boundMass</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
+      <getFunction>SatellitePresetMergeBoundMass</getFunction>
+      <classDefault>selfBasicComponent%mass()</classDefault>
+      <output unitsInSI="massSolar" comment="Bound mass of the node."/>
+    </property>
+    <property>
+      <name>boundMassHistory</name>
+      <type>history</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+    <property>
+      <name>virialOrbit</name>
+      <type>keplerOrbit</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+    <property>
+      <name>nodeIndexHistory</name>
+      <type>longIntegerHistory</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+    <property>
+      <name>nodeIndex</name>
+      <type>longInteger</type>
+      <rank>0</rank>
+      <attributes isSettable="false" isGettable="true" isEvolvable="false" />
+      <getFunction>SatellitePresetNodeIndex</getFunction>
+      <output unitsInSI="0.0d0" comment="Index of the satellite node used in preset satellite evolution."/>
+      <classDefault>self%hostNode%index()</classDefault>
+    </property>
+   </properties>
+   <functions>objects.nodes.components.satellite.preset.bound_functions.inc</functions>
+  </component>
+  !!]
 
 contains
 
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Satellite_Preset_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Satellite_Preset_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Satellite_Preset_Thread_Initialize(parameters_)
-    !% Initializes the tree node scale dark matter profile module.
+    !!{
+    Initializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent       , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     use :: Input_Parameters, only : inputParameters
@@ -117,11 +127,15 @@ contains
     return
   end subroutine Node_Component_Satellite_Preset_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Satellite_Preset_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Satellite_Preset_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Satellite_Preset_Thread_Uninitialize()
-    !% Uninitializes the tree node scale dark matter profile module.
+    !!{
+    Uninitializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none
@@ -132,8 +146,10 @@ contains
   end subroutine Node_Component_Satellite_Preset_Thread_Uninitialize
 
   subroutine nodePromotion(self,node)
-    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply copy any preset satellite orbit
-    !% from the parent.
+    !!{
+    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply copy any preset satellite orbit
+    from the parent.
+    !!}
     use :: Galacticus_Nodes, only : treeNode
     implicit none
     class(*       ), intent(inout)         :: self
@@ -145,12 +161,16 @@ contains
     return
   end subroutine nodePromotion
 
-  !# <interTreeSatelliteInsert>
-  !#  <unitName>Node_Component_Satellite_Preset_Inter_Tree_Insert</unitName>
-  !# </interTreeSatelliteInsert>
+  !![
+  <interTreeSatelliteInsert>
+   <unitName>Node_Component_Satellite_Preset_Inter_Tree_Insert</unitName>
+  </interTreeSatelliteInsert>
+  !!]
   subroutine Node_Component_Satellite_Preset_Inter_Tree_Insert(node,replaceNode)
-    !% A satellite node is being moved between trees, and being added as a new satellite. Its (future-)histories will have been
-    !% assigned to the {\normalfont \ttfamily replaceNode} so must be transferred.
+    !!{
+    A satellite node is being moved between trees, and being added as a new satellite. Its (future-)histories will have been
+    assigned to the {\normalfont \ttfamily replaceNode} so must be transferred.
+    !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentBasic, nodeComponentSatellite, treeNode
     use :: Histories       , only : history                  , longIntegerHistory
     implicit none
@@ -192,12 +212,16 @@ contains
     return
   end subroutine Node_Component_Satellite_Preset_Inter_Tree_Insert
 
-  !# <interTreeSatelliteAttach>
-  !#  <unitName>Node_Component_Satellite_Preset_Inter_Tree_Attach</unitName>
-  !# </interTreeSatelliteAttach>
+  !![
+  <interTreeSatelliteAttach>
+   <unitName>Node_Component_Satellite_Preset_Inter_Tree_Attach</unitName>
+  </interTreeSatelliteAttach>
+  !!]
   subroutine Node_Component_Satellite_Preset_Inter_Tree_Attach(node)
-    !% A satellite node is being moved between trees and attached as the primary progenitor of an existing satellite node. Ensure
-    !% that preset satellite properties are correctly handled.
+    !!{
+    A satellite node is being moved between trees and attached as the primary progenitor of an existing satellite node. Ensure
+    that preset satellite properties are correctly handled.
+    !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentBasic, nodeComponentSatellite, treeNode
     use :: Histories       , only : history                  , longIntegerHistory
     implicit none
@@ -251,21 +275,25 @@ contains
     return
   end subroutine Node_Component_Satellite_Preset_Inter_Tree_Attach
 
-  !# <interTreePostProcess>
-  !#  <unitName>Node_Component_Satellite_Preset_Inter_Tree_Postprocess</unitName>
-  !# </interTreePostProcess>
-  !# <subhaloPromotionPostProcess>
-  !#  <unitName>Node_Component_Satellite_Preset_Inter_Tree_Postprocess</unitName>
-  !# </subhaloPromotionPostProcess>
-  !# <branchJumpPostProcess>
-  !#  <unitName>Node_Component_Satellite_Preset_Inter_Tree_Postprocess</unitName>
-  !# </branchJumpPostProcess>
+  !![
+  <interTreePostProcess>
+   <unitName>Node_Component_Satellite_Preset_Inter_Tree_Postprocess</unitName>
+  </interTreePostProcess>
+  <subhaloPromotionPostProcess>
+   <unitName>Node_Component_Satellite_Preset_Inter_Tree_Postprocess</unitName>
+  </subhaloPromotionPostProcess>
+  <branchJumpPostProcess>
+   <unitName>Node_Component_Satellite_Preset_Inter_Tree_Postprocess</unitName>
+  </branchJumpPostProcess>
+  !!]
   subroutine Node_Component_Satellite_Preset_Inter_Tree_Postprocess(node)
-    !% For inter-tree node transfers, ensure that any orphaned mergees of the transferred node are transferred over to the new
-    !% branch.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
-    use :: Galacticus_Nodes  , only : nodeComponentSatellite    , treeNode                  , treeNodeLinkedList
-    use :: ISO_Varying_String, only : var_str                   , varying_string            , operator(//)
+    !!{
+    For inter-tree node transfers, ensure that any orphaned mergees of the transferred node are transferred over to the new
+    branch.
+    !!}
+    use :: Display           , only : displayMessage        , displayVerbosity, verbosityLevelInfo
+    use :: Galacticus_Nodes  , only : nodeComponentSatellite, treeNode        , treeNodeLinkedList
+    use :: ISO_Varying_String, only : operator(//)          , var_str         , varying_string
     use :: String_Handling   , only : operator(//)
     implicit none
     type (treeNode              ), intent(inout), pointer :: node
@@ -280,9 +308,9 @@ contains
     do while (associated(mergee))
        satelliteMergee => mergee%satellite()
        if (satelliteMergee%isOrphan()) then
-          if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+          if (displayVerbosity() >= verbosityLevelInfo) then
              message=var_str('Satellite node [')//mergee%index()//'] will be orphanized due to event'
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
           end if
           allocate(nodeNew)
           nodeNew  %node => mergee
@@ -317,15 +345,19 @@ contains
     return
   end subroutine Node_Component_Satellite_Preset_Inter_Tree_Postprocess
 
-  !# <satelliteHostChangeTask>
-  !#  <unitName>Node_Component_Satellite_Preset_Satellite_Host_Change</unitName>
-  !# </satelliteHostChangeTask>
+  !![
+  <satelliteHostChangeTask>
+   <unitName>Node_Component_Satellite_Preset_Satellite_Host_Change</unitName>
+  </satelliteHostChangeTask>
+  !!]
   subroutine Node_Component_Satellite_Preset_Satellite_Host_Change(node)
-    !% For satellite host changes, if the satellite is an orphan with a merge target ensure it remains in the branch of its merge
-    !% target.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
-    use :: Galacticus_Nodes  , only : nodeComponentSatellite    , treeNode                  , treeNodeLinkedList
-    use :: ISO_Varying_String, only : var_str                   , varying_string            , operator(//)
+    !!{
+    For satellite host changes, if the satellite is an orphan with a merge target ensure it remains in the branch of its merge
+    target.
+    !!}
+    use :: Display           , only : displayMessage        , displayVerbosity, verbosityLevelInfo
+    use :: Galacticus_Nodes  , only : nodeComponentSatellite, treeNode        , treeNodeLinkedList
+    use :: ISO_Varying_String, only : operator(//)          , var_str         , varying_string
     use :: String_Handling   , only : operator(//)
     implicit none
     type (treeNode              ), intent(inout), target  :: node
@@ -337,9 +369,9 @@ contains
 
     satellite => node%satellite()
     if (satellite%isOrphan().and.associated(node%mergeTarget)) then
-       if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+       if (displayVerbosity() >= verbosityLevelInfo) then
           message=var_str('Satellite node [')//node%index()//'] will be orphanized due to host change'
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end if
        ! Initialize a stack of nodes to allow us to process all mergees.
        allocate(nodeStack)
@@ -372,13 +404,17 @@ contains
     return
   end subroutine Node_Component_Satellite_Preset_Satellite_Host_Change
 
-  !# <rateComputeTask>
-  !#  <unitName>Node_Component_Satellite_Preset_Rate_Compute</unitName>
-  !# </rateComputeTask>
+  !![
+  <rateComputeTask>
+   <unitName>Node_Component_Satellite_Preset_Rate_Compute</unitName>
+  </rateComputeTask>
+  !!]
   subroutine Node_Component_Satellite_Preset_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
-    !% Interrupt differential evolution when a preset satellite becomes an orphan.
-    use :: Galacticus_Nodes, only : interruptTask, nodeComponentBasic       , nodeComponentSatellite, propertyTypeInactive, &
-          &                         treeNode     , defaultSatelliteComponent
+    !!{
+    Interrupt differential evolution when a preset satellite becomes an orphan.
+    !!}
+    use :: Galacticus_Nodes, only : defaultSatelliteComponent, interruptTask, nodeComponentBasic, nodeComponentSatellite, &
+          &                         propertyTypeInactive     , treeNode
     use :: Histories       , only : history
     implicit none
     type     (treeNode              ), intent(inout)          :: node
@@ -412,10 +448,12 @@ contains
   end subroutine Node_Component_Satellite_Preset_Rate_Compute
 
   subroutine Node_Component_Satellite_Preset_Orphanize(node)
-    !% Handle orphanization of a preset satellite component. The satellite should be moved to the branch of its target node.
-    use :: Galacticus_Display, only : Galacticus_Display_Message, Galacticus_Verbosity_Level, verbosityInfo
-    use :: Galacticus_Nodes  , only : nodeComponentBasic        , nodeComponentSatellite    , treeNode
-    use :: ISO_Varying_String, only : var_str                   , varying_string            , operator(//)
+    !!{
+    Handle orphanization of a preset satellite component. The satellite should be moved to the branch of its target node.
+    !!}
+    use :: Display           , only : displayMessage    , displayVerbosity      , verbosityLevelInfo
+    use :: Galacticus_Nodes  , only : nodeComponentBasic, nodeComponentSatellite, treeNode
+    use :: ISO_Varying_String, only : operator(//)      , var_str               , varying_string
     use :: String_Handling   , only : operator(//)
     implicit none
     type (treeNode              ), intent(inout), target  :: node
@@ -449,14 +487,14 @@ contains
        end if
     end do
     ! Report.
-    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+    if (displayVerbosity() >= verbosityLevelInfo) then
        message=var_str('Satellite node [')//node%index()//'] is being orphanized'
        if (associated(node%parent,nodeHost)) then
           message=message//' - remains in same host ['//nodeHost%index()//']'
        else
           message=message//' - moves from host ['//node%parent%index()//'] to host ['//nodeHost%index()//']'
        end if
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     ! Move to the new host. (If the new host is the same as the current host, do nothing.)
     if (.not.associated(node%parent,nodeHost)) then

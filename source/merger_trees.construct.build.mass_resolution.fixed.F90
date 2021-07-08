@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of a merger tree builder mass resolution which assumes a fixed resolution.
+  !!{
+  An implementation of a merger tree builder mass resolution which assumes a fixed resolution.
+  !!}
 
-  !# <mergerTreeMassResolution name="mergerTreeMassResolutionFixed">
-  !#  <description>
-  !#   A merger tree mass resolution class which assumes a fixed mass resolution of {\normalfont \ttfamily [massResolution]} for
-  !#   all merger trees.
-  !#  </description>
-  !# </mergerTreeMassResolution>
+  !![
+  <mergerTreeMassResolution name="mergerTreeMassResolutionFixed">
+   <description>
+    A merger tree mass resolution class which assumes a fixed mass resolution of {\normalfont \ttfamily [massResolution]} for
+    all merger trees.
+   </description>
+  </mergerTreeMassResolution>
+  !!]
   type, extends(mergerTreeMassResolutionClass) :: mergerTreeMassResolutionFixed
-     !% A merger tree mass resolution class which assumes a fixed mass resolution.
+     !!{
+     A merger tree mass resolution class which assumes a fixed mass resolution.
+     !!}
      private
      double precision :: massResolution
    contains
@@ -34,7 +40,9 @@
   end type mergerTreeMassResolutionFixed
 
   interface mergerTreeMassResolutionFixed
-     !% Constructors for the {\normalfont \ttfamily fixed} merger tree resolution class.
+     !!{
+     Constructors for the {\normalfont \ttfamily fixed} merger tree resolution class.
+     !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
   end interface mergerTreeMassResolutionFixed
@@ -42,26 +50,32 @@
 contains
 
   function fixedConstructorParameters(parameters)
-    !% Constructor for the {\normalfont \ttfamily fixed} merger tree building mass resolution class which reads parameters from a
-    !% provided parameter list.
+    !!{
+    Constructor for the {\normalfont \ttfamily fixed} merger tree building mass resolution class which reads parameters from a
+    provided parameter list.
+    !!}
     implicit none
     type(mergerTreeMassResolutionFixed)                :: fixedConstructorParameters
     type(inputParameters              ), intent(inout) :: parameters
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>massResolution</name>
-    !#   <source>parameters</source>
-    !#   <variable>fixedConstructorParameters%massResolution</variable>
-    !#   <defaultValue>5.0d9</defaultValue>
-    !#   <description>The mass resolution to use when building merger trees.</description>
-    !# </inputParameter>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParameter>
+      <name>massResolution</name>
+      <source>parameters</source>
+      <variable>fixedConstructorParameters%massResolution</variable>
+      <defaultValue>5.0d9</defaultValue>
+      <description>The mass resolution to use when building merger trees.</description>
+    </inputParameter>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(massResolution)
-    !% Internal constructor for the {\normalfont \ttfamily fixed} merger tree building mass resolution class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily fixed} merger tree building mass resolution class.
+    !!}
     implicit none
     type            (mergerTreeMassResolutionFixed)                :: fixedConstructorInternal
     double precision                               , intent(in   ) :: massResolution
@@ -71,7 +85,9 @@ contains
   end function fixedConstructorInternal
 
   double precision function fixedResolution(self,tree)
-    !% Returns a fixed mass resolution to use when building merger trees.
+    !!{
+    Returns a fixed mass resolution to use when building merger trees.
+    !!}
     implicit none
     class(mergerTreeMassResolutionFixed), intent(inout) :: self
     type (mergerTree                   ), intent(in   ) :: tree

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a rate-limiting stellar feedback model.
+  !!{
+  Implementation of a rate-limiting stellar feedback model.
+  !!}
 
-  !# <stellarFeedbackOutflows name="stellarFeedbackOutflowsRateLimit">
-  !#  <description>A rate-limiting stellar feedback model.</description>
-  !# </stellarFeedbackOutflows>
+  !![
+  <stellarFeedbackOutflows name="stellarFeedbackOutflowsRateLimit">
+   <description>A rate-limiting stellar feedback model.</description>
+  </stellarFeedbackOutflows>
+  !!]
   type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsRateLimit
-     !% Implementation of a rate-limiting stellar feedback model.
+     !!{
+     Implementation of a rate-limiting stellar feedback model.
+     !!}
      private
      class           (stellarFeedbackOutflowsClass), pointer :: stellarFeedbackOutflows_
      double precision                                        :: timescaleOutflowFractionalMinimum
@@ -33,7 +39,9 @@
   end type stellarFeedbackOutflowsRateLimit
 
   interface stellarFeedbackOutflowsRateLimit
-     !% Constructors for the rate-limiting stellar feedback class.
+     !!{
+     Constructors for the rate-limiting stellar feedback class.
+     !!}
      module procedure rateLimitConstructorParameters
      module procedure rateLimitConstructorInternal
   end interface stellarFeedbackOutflowsRateLimit
@@ -41,7 +49,9 @@
 contains
 
   function rateLimitConstructorParameters(parameters) result(self)
-    !% Constructor for the rate-limiting stellar feedback class which takes a parameter set as input.
+    !!{
+    Constructor for the rate-limiting stellar feedback class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Input_Parameters, only : inputParameter         , inputParameters
     implicit none
@@ -50,41 +60,55 @@ contains
     class           (stellarFeedbackOutflowsClass    ), pointer       :: stellarFeedbackOutflows_
     double precision                                                  :: timescaleOutflowFractionalMinimum
 
-    !# <inputParameter>
-    !#   <name>timescaleOutflowFractionalMinimum</name>
-    !#   <source>parameters</source>
-    !#   <description>The minimum timescale (in units of the component dynamical time) for outflows due to stellar feedback.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="stellarFeedbackOutflows" name="stellarFeedbackOutflows_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>timescaleOutflowFractionalMinimum</name>
+      <source>parameters</source>
+      <description>The minimum timescale (in units of the component dynamical time) for outflows due to stellar feedback.</description>
+    </inputParameter>
+    <objectBuilder class="stellarFeedbackOutflows" name="stellarFeedbackOutflows_" source="parameters"/>
+    !!]
     self=stellarFeedbackOutflowsRateLimit(timescaleOutflowFractionalMinimum,stellarFeedbackOutflows_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="stellarFeedbackOutflows_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="stellarFeedbackOutflows_"/>
+    !!]
     return
   end function rateLimitConstructorParameters
 
   function rateLimitConstructorInternal(timescaleOutflowFractionalMinimum,stellarFeedbackOutflows_) result(self)
-    !% Internal constructor for the rateLimit stellar feedback class.
+    !!{
+    Internal constructor for the rateLimit stellar feedback class.
+    !!}
     implicit none
     type            (stellarFeedbackOutflowsRateLimit)                        :: self
     class           (stellarFeedbackOutflowsClass    ), intent(in   ), target :: stellarFeedbackOutflows_
     double precision                                  , intent(in   )         :: timescaleOutflowFractionalMinimum
-    !# <constructorAssign variables="timescaleOutflowFractionalMinimum, *stellarFeedbackOutflows_"/>
+    !![
+    <constructorAssign variables="timescaleOutflowFractionalMinimum, *stellarFeedbackOutflows_"/>
+    !!]
     
     return
   end function rateLimitConstructorInternal
 
   subroutine rateLimitDestructor(self)
-    !% Internal constructor for the rateLimit stellar feedback class.
+    !!{
+    Internal constructor for the rateLimit stellar feedback class.
+    !!}
     implicit none
     type(stellarFeedbackOutflowsRateLimit), intent(inout) :: self
     
-    !# <objectDestructor name="self%stellarFeedbackOutflows_"/>
+    !![
+    <objectDestructor name="self%stellarFeedbackOutflows_"/>
+    !!]
     return
   end subroutine rateLimitDestructor
 
   subroutine rateLimitOutflowRate(self,component,rateStarFormation,rateEnergyInput,rateOutflowEjective,rateOutflowExpulsive)
-    !% Limits the outflow rate from another stellar feedback class such that the outflow timescale never falls below a given
-    !% fraction of the dynamical time.
+    !!{
+    Limits the outflow rate from another stellar feedback class such that the outflow timescale never falls below a given
+    fraction of the dynamical time.
+    !!}
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentSpheroid
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which reports on timestepping criteria.
+!!{
+Contains a module which reports on timestepping criteria.
+!!}
 
 module Evolve_To_Time_Reports
-  !% Contains functions which report on timestepping criteria.
+  !!{
+  Contains functions which report on timestepping criteria.
+  !!}
   implicit none
   private
   public :: Evolve_To_Time_Report
@@ -28,9 +32,11 @@ module Evolve_To_Time_Reports
 contains
 
   subroutine Evolve_To_Time_Report(message,time,index)
-    !% Display a report on evolution timestep criteria.
-    use :: Galacticus_Display, only : Galacticus_Display_Message
-    use :: ISO_Varying_String, only : assignment(=)             , varying_string, operator(//)
+    !!{
+    Display a report on evolution timestep criteria.
+    !!}
+    use :: Display           , only : displayMessage
+    use :: ISO_Varying_String, only : assignment(=) , operator(//), varying_string
     use :: Kind_Numbers      , only : kind_int8
     use :: String_Handling   , only : operator(//)
     implicit none
@@ -45,7 +51,7 @@ contains
     write (label        ,'(e12.6)') time
     vMessage=paddedMessage//label
     if (present(index)) vMessage=vMessage//" ["//index//"]"
-    call Galacticus_Display_Message(vMessage)
+    call displayMessage(vMessage)
     return
   end subroutine Evolve_To_Time_Report
 

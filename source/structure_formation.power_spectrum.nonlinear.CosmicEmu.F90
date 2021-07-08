@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,25 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
-!% code of \cite{lawrence_coyote_2010}.
+!!{
+Contains a module which implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
+code of \cite{lawrence_coyote_2010}.
+!!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters      , only : cosmologyParametersClass
-  use :: Numerical_Interpolation   , only : interpolator
   use :: File_Utilities            , only : lockDescriptor
+  use :: Numerical_Interpolation   , only : interpolator
   use :: Power_Spectra_Primordial  , only : powerSpectrumPrimordialClass
 
-  !# <powerSpectrumNonlinear name="powerSpectrumNonlinearCosmicEmu">
-  !#  <description>
-  !#   Provides a nonlinear power spectrum class in which the power spectrum is computed using the code of
-  !#   \cite{lawrence_coyote_2010}. The CosmicEmu code will be downloaded, compiled and run as necessary if this option is
-  !#   utilized.
-  !#  </description>
-  !# </powerSpectrumNonlinear>
+  !![
+  <powerSpectrumNonlinear name="powerSpectrumNonlinearCosmicEmu">
+   <description>
+    Provides a nonlinear power spectrum class in which the power spectrum is computed using the code of
+    \cite{lawrence_coyote_2010}. The CosmicEmu code will be downloaded, compiled and run as necessary if this option is
+    utilized.
+   </description>
+  </powerSpectrumNonlinear>
+  !!]
   type, extends(powerSpectrumNonlinearClass) :: powerSpectrumNonlinearCosmicEmu
-     !% A linear transfer function class.
+     !!{
+     A linear transfer function class.
+     !!}
      private
      integer                                                                    :: wavenumberCount
      double precision                               , allocatable, dimension(:) :: powerSpectrumTable                 , wavenumberTable
@@ -52,7 +58,9 @@
   end type powerSpectrumNonlinearCosmicEmu
 
   interface powerSpectrumNonlinearCosmicEmu
-     !% Constructors for the {\normalfont \ttfamily CosmicEmu} nonlinear power spectrum class.
+     !!{
+     Constructors for the {\normalfont \ttfamily CosmicEmu} nonlinear power spectrum class.
+     !!}
      module procedure cosmicEmuConstructorParameters
      module procedure cosmicEmuConstructorInternal
   end interface powerSpectrumNonlinearCosmicEmu
@@ -63,7 +71,9 @@
 contains
 
   function cosmicEmuConstructorParameters(parameters) result(self)
-    !% Constructor for the cosmicEmu nonlinear power spectrum class which takes a parameter set as input.
+    !!{
+    Constructor for the cosmicEmu nonlinear power spectrum class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (powerSpectrumNonlinearCosmicEmu)                :: self
@@ -75,22 +85,28 @@ contains
 
     ! Check and read parameters.
     ! Construct required objects.
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
-    !# <objectBuilder class="powerSpectrumPrimordial"  name="powerSpectrumPrimordial_"  source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    <objectBuilder class="powerSpectrumPrimordial"  name="powerSpectrumPrimordial_"  source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !!]
     ! Call the internal constructor.
     self=powerSpectrumNonlinearCosmicEmu(cosmologyFunctions_,cosmologyParameters_,powerSpectrumPrimordial_,cosmologicalMassVariance_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"      />
-    !# <objectDestructor name="cosmologyParameters_"     />
-    !# <objectDestructor name="powerSpectrumPrimordial_" />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="cosmologyParameters_"     />
+    <objectDestructor name="powerSpectrumPrimordial_" />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    !!]
     return
   end function cosmicEmuConstructorParameters
 
   function cosmicEmuConstructorInternal(cosmologyFunctions_,cosmologyParameters_,powerSpectrumPrimordial_,cosmologicalMassVariance_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily CosmicEmu} nonlinear power spectrum class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily CosmicEmu} nonlinear power spectrum class.
+    !!}
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
@@ -99,7 +115,9 @@ contains
     class(cosmologyParametersClass       ), intent(in   ), target :: cosmologyParameters_
     class(powerSpectrumPrimordialClass   ), intent(in   ), target :: powerSpectrumPrimordial_
     class(cosmologicalMassVarianceClass  ), intent(in   ), target :: cosmologicalMassVariance_
-    !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_, *powerSpectrumPrimordial_, *cosmologicalMassVariance_"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_, *powerSpectrumPrimordial_, *cosmologicalMassVariance_"/>
+    !!]
 
     ! Initialize state.
     self%timePrevious=-1.0d0
@@ -132,23 +150,29 @@ contains
   end function cosmicEmuConstructorInternal
 
   subroutine cosmicEmuDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily CosmicEmu} nonlinear power spectrum class.
+    !!{
+    Destructor for the {\normalfont \ttfamily CosmicEmu} nonlinear power spectrum class.
+    !!}
     implicit none
     type(powerSpectrumNonlinearCosmicEmu), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"      />
-    !# <objectDestructor name="self%cosmologyParameters_"     />
-    !# <objectDestructor name="self%powerSpectrumPrimordial_" />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"      />
+    <objectDestructor name="self%cosmologyParameters_"     />
+    <objectDestructor name="self%powerSpectrumPrimordial_" />
+    <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !!]
     return
   end subroutine cosmicEmuDestructor
 
   double precision function cosmicEmuValue(self,waveNumber,time)
-    !% Return a nonlinear power spectrum equal using the code of \cite{lawrence_coyote_2010}.
+    !!{
+    Return a nonlinear power spectrum equal using the code of \cite{lawrence_coyote_2010}.
+    !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
-    use :: File_Utilities      , only : Count_Lines_In_File         , Directory_Make     , File_Exists, File_Lock, &
-          &                             File_Name_Temporary         , File_Remove        , File_Unlock
-    use :: Galacticus_Display  , only : Galacticus_Display_Message  , verbosityWorking
+    use :: Display             , only : displayMessage              , verbosityLevelWorking
+    use :: File_Utilities      , only : Count_Lines_In_File         , Directory_Make       , File_Exists, File_Lock, &
+          &                             File_Name_Temporary         , File_Remove          , File_Unlock
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     use :: Galacticus_Paths    , only : galacticusPath              , pathTypeDataDynamic
     use :: ISO_Varying_String  , only : varying_string
@@ -217,19 +241,19 @@ contains
              if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.c")) then
                 ! Download the code.
                 if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")) then
-                   call Galacticus_Display_Message("downloading CosmicEmu code....",verbosityWorking)
+                   call displayMessage("downloading CosmicEmu code....",verbosityLevelWorking)
                    call System_Command_Do("wget http://www.hep.anl.gov/cosmology/CosmicEmu/CosmicEmu_v1.1.tar.gz -O "//galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")
                    if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")) &
                         & call Galacticus_Error_Report("failed to download CosmicEmu code"//{introspection:location})
                 end if
                 ! Unpack the code.
-                call Galacticus_Display_Message("unpacking CosmicEmu code....",verbosityWorking)
+                call displayMessage("unpacking CosmicEmu code....",verbosityLevelWorking)
                 call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1 -f "//galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1.tar.gz")
                 if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.c")) &
                      & call Galacticus_Error_Report("failed to unpack CosmicEmu code"//{introspection:location})
              end if
              ! Build the code.
-             call Galacticus_Display_Message("compiling CosmicEmu code....",verbosityWorking)
+             call displayMessage("compiling CosmicEmu code....",verbosityLevelWorking)
              call System_Command_Do("cd "//galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1; sed -i~ -r s/""^(\s*gcc.*\-lm)\s*$""/""\1 \-I\`gsl\-config \-\-prefix\`\n\n%.o: %.c\n\tgcc -c \$< -o \$\*\.o \-I\`gsl\-config \-\-prefix\`\n""/ makefile; make");
              if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CosmicEmu_v1.1/emu.exe")) &
                   & call Galacticus_Error_Report("failed to build Cosmic_Emu code"//{introspection:location})

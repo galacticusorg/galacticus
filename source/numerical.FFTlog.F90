@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which wraps the \gls{FFTLog} functions.
+!!{
+Contains a module which wraps the \gls{FFTLog} functions.
+!!}
 
 module FFTLogs
-  !% Wraps the \gls{FFTLog} functions.
+  !!{
+  Wraps the \gls{FFTLog} functions.
+  !!}
   private
   public :: FFTLog, FFTLogSineTransform, FFTLogCosineTransform
 
@@ -41,10 +45,12 @@ module FFTLogs
 contains
 
   subroutine FFTLogSineTransform(r,k,f,ft,direction)
-    !% Wrapper function for \hyperlink{numerical.FFTlog.F90:fftlogs:fftlog}{{\normalfont \ttfamily FFTLog()}} which performs a
-    !% Fourier sine transform. Since \hyperlink{numerical.FFTlog.F90:fftlogs:fftlog}{{\normalfont \ttfamily FFTLog()}} achieves
-    !% this by using the $J_{1/2}(x)=(2/\pi x)^{1/2} \sin(x)$ Bessel function we apply the inverse of these factors to get a sine
-    !% transform.
+    !!{
+    Wrapper function for \hyperlink{numerical.FFTlog.F90:fftlogs:fftlog}{{\normalfont \ttfamily FFTLog()}} which performs a
+    Fourier sine transform. Since \hyperlink{numerical.FFTlog.F90:fftlogs:fftlog}{{\normalfont \ttfamily FFTLog()}} achieves
+    this by using the $J_{1/2}(x)=(2/\pi x)^{1/2} \sin(x)$ Bessel function we apply the inverse of these factors to get a sine
+    transform.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ), dimension(     : ) :: r        , f
@@ -60,10 +66,12 @@ contains
   end subroutine FFTLogSineTransform
   
   subroutine FFTLogCosineTransform(r,k,f,ft,direction)
-    !% Wrapper function for \hyperlink{numerical.FFTlog.F90:fftlogs:fftlog}{{\normalfont \ttfamily FFTLog()}} which performs a
-    !% Fourier cosine transform. Since \hyperlink{numerical.FFTlog.F90:fftlogs:fftlog}{{\normalfont \ttfamily FFTLog()}} achieves
-    !% this by using the $J_{1/2}(x)=(2/\pi x)^{1/2} \cos(x)$ Bessel function we apply the inverse of these factors to get a
-    !% cosine transform.
+    !!{
+    Wrapper function for \hyperlink{numerical.FFTlog.F90:fftlogs:fftlog}{{\normalfont \ttfamily FFTLog()}} which performs a
+    Fourier cosine transform. Since \hyperlink{numerical.FFTlog.F90:fftlogs:fftlog}{{\normalfont \ttfamily FFTLog()}} achieves
+    this by using the $J_{1/2}(x)=(2/\pi x)^{1/2} \cos(x)$ Bessel function we apply the inverse of these factors to get a
+    cosine transform.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ), dimension(     : ) :: r        , f
@@ -79,7 +87,9 @@ contains
   end subroutine FFTLogCosineTransform
   
   subroutine FFTLog(r,k,f,ft,mu,direction)
-    !% Perform a discrete FFT on logarithmically spaced data.
+    !!{
+    Perform a discrete FFT on logarithmically spaced data.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision, intent(in   ), dimension(:                          ) :: r, f

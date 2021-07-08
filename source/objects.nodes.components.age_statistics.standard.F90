@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the standard galaxy age statistics component.
+!!{
+Contains a module which implements the standard galaxy age statistics component.
+!!}
 
 module Node_Component_Age_Statistics_Standard
-  !% Implements the standard galaxy age statistics component.
+  !!{
+  Implements the standard galaxy age statistics component.
+  !!}
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
   use :: Star_Formation_Rates_Disks      , only : starFormationRateDisksClass
   use :: Star_Formation_Rates_Spheroids  , only : starFormationRateSpheroidsClass
@@ -30,45 +34,47 @@ module Node_Component_Age_Statistics_Standard
        &    Node_Component_Age_Statistics_Standard_Thread_Uninitialize, Node_Component_Age_Statistics_Standard_Inactive         , &
        &    Node_Component_Age_Statistics_Standard_Initialize         , Node_Component_Age_Statistics_Standard_Thread_Initialize
 
-  !# <component>
-  !#  <class>ageStatistics</class>
-  !#  <name>standard</name>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>diskTimeWeightedIntegratedSFR</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-  !#     <classDefault>0.0d0</classDefault>
-  !#     <output unitsInSI="massSolar*gigaYear" comment="Time-weighted integral over disk star formation rate."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>spheroidTimeWeightedIntegratedSFR</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-  !#     <classDefault>0.0d0</classDefault>
-  !#     <output unitsInSI="massSolar*gigaYear" comment="Time-weighted integral over spheroid star formation rate."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>diskIntegratedSFR</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-  !#     <classDefault>0.0d0</classDefault>
-  !#     <output unitsInSI="massSolar" comment="Integral over disk star formation rate."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>spheroidIntegratedSFR</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
-  !#     <classDefault>0.0d0</classDefault>
-  !#     <output unitsInSI="massSolar" comment="Integral over spheroid star formation rate."/>
-  !#   </property>
-  !#  </properties>
-  !# </component>
+  !![
+  <component>
+   <class>ageStatistics</class>
+   <name>standard</name>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>diskTimeWeightedIntegratedSFR</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
+      <classDefault>0.0d0</classDefault>
+      <output unitsInSI="massSolar*gigaYear" comment="Time-weighted integral over disk star formation rate."/>
+    </property>
+    <property>
+      <name>spheroidTimeWeightedIntegratedSFR</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
+      <classDefault>0.0d0</classDefault>
+      <output unitsInSI="massSolar*gigaYear" comment="Time-weighted integral over spheroid star formation rate."/>
+    </property>
+    <property>
+      <name>diskIntegratedSFR</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
+      <classDefault>0.0d0</classDefault>
+      <output unitsInSI="massSolar" comment="Integral over disk star formation rate."/>
+    </property>
+    <property>
+      <name>spheroidIntegratedSFR</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" />
+      <classDefault>0.0d0</classDefault>
+      <output unitsInSI="massSolar" comment="Integral over spheroid star formation rate."/>
+    </property>
+   </properties>
+  </component>
+  !!]
   
   ! Objects used by this component.
   class  (mergerMassMovementsClass       ), pointer :: mergerMassMovements_
@@ -81,32 +87,42 @@ module Node_Component_Age_Statistics_Standard
 
 contains
 
-  !# <nodeComponentInitializationTask>
-  !#  <unitName>Node_Component_Age_Statistics_Standard_Initialize</unitName>
-  !# </nodeComponentInitializationTask>
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>Node_Component_Age_Statistics_Standard_Initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
   subroutine Node_Component_Age_Statistics_Standard_Initialize(parameters_)
-    !% Initializes the tree node standard disk methods module.
+    !!{
+    Initializes the tree node standard disk methods module.
+    !!}
     use :: Galacticus_Nodes, only : defaultAgeStatisticsComponent
     use :: Input_Parameters, only : inputParameter               , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
 
     if (defaultAgeStatisticsComponent%standardIsActive()) then
-       !# <inputParameter>
-       !#   <name>ageStatisticsStandardIsInactive</name>
-       !#   <defaultValue>.false.</defaultValue>
-       !#   <description>Specifies whether or not the variables of the standard age statistics component are inactive (i.e. do not appear in any ODE being solved).</description>
-       !#   <source>parameters_</source>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>ageStatisticsStandardIsInactive</name>
+         <defaultValue>.false.</defaultValue>
+         <description>Specifies whether or not the variables of the standard age statistics component are inactive (i.e. do not appear in any ODE being solved).</description>
+         <source>parameters_</source>
+       </inputParameter>
+       !!]
     end if
     return
   end subroutine Node_Component_Age_Statistics_Standard_Initialize
 
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Age_Statistics_Standard_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Age_Statistics_Standard_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Age_Statistics_Standard_Thread_Initialize(parameters_)
-    !% Initializes the standard age statistics component module for each thread.
+    !!{
+    Initializes the standard age statistics component module for each thread.
+    !!}
     use :: Events_Hooks    , only : satelliteMergerEvent         , openMPThreadBindingAtLevel, dependencyRegEx, dependencyDirectionAfter
     use :: Input_Parameters, only : inputParameters
     use :: Galacticus_Nodes, only : defaultAgeStatisticsComponent
@@ -118,36 +134,48 @@ contains
     if (defaultAgeStatisticsComponent%standardIsActive()) then
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call satelliteMergerEvent%attach(defaultAgeStatisticsComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentAgeStatisticsStandard',dependencies=dependencies)
-       !# <objectBuilder class="mergerMassMovements"        name="mergerMassMovements_"        source="parameters_"/>
-       !# <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters_"/>
-       !# <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters_"/>
+       !![
+       <objectBuilder class="mergerMassMovements"        name="mergerMassMovements_"        source="parameters_"/>
+       <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters_"/>
+       <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters_"/>
+       !!]
     end if
     return
   end subroutine Node_Component_Age_Statistics_Standard_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Age_Statistics_Standard_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Age_Statistics_Standard_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Age_Statistics_Standard_Thread_Uninitialize()
-    !% Uninitializes the standard disk component module for each thread.
+    !!{
+    Uninitializes the standard disk component module for each thread.
+    !!}
     use :: Events_Hooks    , only : satelliteMergerEvent
     use :: Galacticus_Nodes, only : defaultAgeStatisticsComponent
     implicit none
 
     if (defaultAgeStatisticsComponent%standardIsActive()) then
        call satelliteMergerEvent%detach(defaultAgeStatisticsComponent,satelliteMerger)
-       !# <objectDestructor name="mergerMassMovements_"       />
-       !# <objectDestructor name="starFormationRateDisks_"    />
-       !# <objectDestructor name="starFormationRateSpheroids_"/>
+       !![
+       <objectDestructor name="mergerMassMovements_"       />
+       <objectDestructor name="starFormationRateDisks_"    />
+       <objectDestructor name="starFormationRateSpheroids_"/>
+       !!]
     end if
     return
   end subroutine Node_Component_Age_Statistics_Standard_Thread_Uninitialize
 
-  !# <inactiveSetTask>
-  !#  <unitName>Node_Component_Age_Statistics_Standard_Inactive</unitName>
-  !# </inactiveSetTask>
+  !![
+  <inactiveSetTask>
+   <unitName>Node_Component_Age_Statistics_Standard_Inactive</unitName>
+  </inactiveSetTask>
+  !!]
   subroutine Node_Component_Age_Statistics_Standard_Inactive(node)
-    !% Set Jacobian zero status for properties of {\normalfont \ttfamily node}.
+    !!{
+    Set Jacobian zero status for properties of {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentAgeStatistics, nodeComponentAgeStatisticsStandard, treeNode
     implicit none
     type (treeNode                  ), intent(inout), pointer :: node
@@ -168,11 +196,15 @@ contains
     return
   end subroutine Node_Component_Age_Statistics_Standard_Inactive
 
-  !# <scaleSetTask>
-  !#  <unitName>Node_Component_Age_Statistics_Standard_Scale_Set</unitName>
-  !# </scaleSetTask>
+  !![
+  <scaleSetTask>
+   <unitName>Node_Component_Age_Statistics_Standard_Scale_Set</unitName>
+  </scaleSetTask>
+  !!]
   subroutine Node_Component_Age_Statistics_Standard_Scale_Set(node)
-    !% Set scales for properties of {\normalfont \ttfamily node}.
+    !!{
+    Set scales for properties of {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentAgeStatistics, nodeComponentAgeStatisticsStandard, nodeComponentDisk, nodeComponentSpheroid, &
           &                         treeNode                  , defaultAgeStatisticsComponent
     implicit none
@@ -205,11 +237,15 @@ contains
     return
   end subroutine Node_Component_Age_Statistics_Standard_Scale_Set
 
-  !# <rateComputeTask>
-  !#  <unitName>Node_Component_Age_Statistics_Standard_Rate_Compute</unitName>
-  !# </rateComputeTask>
+  !![
+  <rateComputeTask>
+   <unitName>Node_Component_Age_Statistics_Standard_Rate_Compute</unitName>
+  </rateComputeTask>
+  !!]
   subroutine Node_Component_Age_Statistics_Standard_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
-    !% Compute the exponential disk node mass rate of change.
+    !!{
+    Compute the exponential disk node mass rate of change.
+    !!}
     use :: Galacticus_Nodes, only : defaultAgeStatisticsComponent, interruptTask       , nodeComponentAgeStatistics, nodeComponentAgeStatisticsStandard, &
           &                         nodeComponentBasic           , nodeComponentDisk   , nodeComponentSpheroid     , propertyTypeActive                , &
           &                         propertyTypeAll              , propertyTypeInactive, treeNode
@@ -265,7 +301,9 @@ contains
   end subroutine Node_Component_Age_Statistics_Standard_Rate_Compute
 
   subroutine satelliteMerger(self,node)
-    !% Remove any age statistics quantities associated with {\normalfont \ttfamily node} and add them to the merge target.
+    !!{
+    Remove any age statistics quantities associated with {\normalfont \ttfamily node} and add them to the merge target.
+    !!}
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentAgeStatistics, nodeComponentAgeStatisticsStandard, treeNode
     use :: Satellite_Merging_Mass_Movements, only : destinationMergerDisk     , destinationMergerSpheroid         , destinationMergerUnmoved

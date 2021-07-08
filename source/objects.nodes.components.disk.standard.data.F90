@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which stores data for the standard disk node component.
+!!{
+Contains a module which stores data for the standard disk node component.
+!!}
 
 module Node_Component_Disk_Standard_Data
-  !% Stores data for the standard disk node component.
+  !!{
+  Stores data for the standard disk node component.
+  !!}
   use :: Kind_Numbers      , only : kind_int8
   use :: Mass_Distributions, only : massDistributionClass
   implicit none
@@ -48,7 +52,9 @@ module Node_Component_Disk_Standard_Data
 contains
 
   subroutine Node_Component_Disk_Standard_Reset(uniqueID)
-    !% Reset calculations for the standard disk component.
+    !!{
+    Reset calculations for the standard disk component.
+    !!}
     implicit none
     integer(kind=kind_int8), intent(in   ) :: uniqueID
 

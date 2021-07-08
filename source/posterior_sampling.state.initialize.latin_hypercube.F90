@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,20 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling convergence class which latinHypercube converges.
+  !!{
+  Implementation of a posterior sampling convergence class which latinHypercube converges.
+  !!}
 
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
-  !# <posteriorSampleStateInitialize name="posteriorSampleStateInitializeLatinHypercube">
-  !#  <description>
-  !#   This class uses a \gls{latinhypercube} design (in the cumulative prior probability distribution of each parameter) to assign
-  !#   initial state vectors. In particular, a \gls{maximin} design is used in which a number of trial \glspl{latinhypercube} are
-  !#   constructed and the hypercube with the greatest minimum distance between any pair of state vectors is selected. The {\normalfont
-  !#   \ttfamily [maximinTrialCount]} parameter is used to specify the number of trial hypercubes to construct.
-  !#  </description>
-  !# </posteriorSampleStateInitialize>
+  !![
+  <posteriorSampleStateInitialize name="posteriorSampleStateInitializeLatinHypercube">
+   <description>
+    This class uses a \gls{latinhypercube} design (in the cumulative prior probability distribution of each parameter) to assign
+    initial state vectors. In particular, a \gls{maximin} design is used in which a number of trial \glspl{latinhypercube} are
+    constructed and the hypercube with the greatest minimum distance between any pair of state vectors is selected. The {\normalfont
+    \ttfamily [maximinTrialCount]} parameter is used to specify the number of trial hypercubes to construct.
+   </description>
+  </posteriorSampleStateInitialize>
+  !!]
   type, extends(posteriorSampleStateInitializeClass) :: posteriorSampleStateInitializeLatinHypercube
-     !% Implementation of a posterior sampling state initialization class which samples the inital state at random from the priors using Latin Hypercube sampling.
+     !!{
+     Implementation of a posterior sampling state initialization class which samples the inital state at random from the priors using Latin Hypercube sampling.
+     !!}
      private
      integer                                      :: maximinTrialCount
      class  (randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()
@@ -40,7 +46,9 @@
   end type posteriorSampleStateInitializeLatinHypercube
 
   interface posteriorSampleStateInitializeLatinHypercube
-     !% Constructors for the {\normalfont \ttfamily latinHypercube} posterior sampling state initialization class.
+     !!{
+     Constructors for the {\normalfont \ttfamily latinHypercube} posterior sampling state initialization class.
+     !!}
      module procedure latinHypercubeConstructorParameters
      module procedure latinHypercubeConstructorInternal
   end interface posteriorSampleStateInitializeLatinHypercube
@@ -48,7 +56,9 @@
 contains
 
   function latinHypercubeConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily latinHypercube} posterior sampling state initialization class.
+    !!{
+    Constructor for the {\normalfont \ttfamily latinHypercube} posterior sampling state initialization class.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (posteriorSampleStateInitializeLatinHypercube)                :: self
@@ -56,41 +66,55 @@ contains
     class  (randomNumberGeneratorClass                  ), pointer       :: randomNumberGenerator_
     integer                                                              :: maximinTrialCount
 
-    !# <inputParameter>
-    !#   <name>maximinTrialCount</name>
-    !#   <defaultValue>1000</defaultValue>
-    !#   <description>The number of trial Latin Hypercubes to construct when seeking the maximum minimum separation sample.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>maximinTrialCount</name>
+      <defaultValue>1000</defaultValue>
+      <description>The number of trial Latin Hypercubes to construct when seeking the maximum minimum separation sample.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=posteriorSampleStateInitializeLatinHypercube(maximinTrialCount,randomNumberGenerator_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="randomNumberGenerator_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="randomNumberGenerator_"/>
+    !!]
     return
   end function latinHypercubeConstructorParameters
 
   function latinHypercubeConstructorInternal(maximinTrialCount,randomNumberGenerator_) result(self)
-    !% Constructor for the {\normalfont \ttfamily latinHypercube} posterior sampling state initialization class.
+    !!{
+    Constructor for the {\normalfont \ttfamily latinHypercube} posterior sampling state initialization class.
+    !!}
     implicit none
     type   (posteriorSampleStateInitializeLatinHypercube)                        :: self
     integer                                              , intent(in   )         :: maximinTrialCount
     class  (randomNumberGeneratorClass                  ), intent(in   ), target :: randomNumberGenerator_
-    !# <constructorAssign variables="maximinTrialCount, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="maximinTrialCount, *randomNumberGenerator_"/>
+    !!]
 
     return
   end function latinHypercubeConstructorInternal
 
   subroutine latinHypercubeDestructor(self)
-    !% Destructor for the  {\normalfont \ttfamily latinHypercube} posterior sampling state initialization class.
+    !!{
+    Destructor for the  {\normalfont \ttfamily latinHypercube} posterior sampling state initialization class.
+    !!}
     implicit none
     type(posteriorSampleStateInitializeLatinHypercube), intent(inout) :: self
 
-    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
     return
   end subroutine latinHypercubeDestructor
 
   subroutine latinHypercubeInitialize(self,simulationState,modelParameters_,modelLikelihood,timeEvaluatePrevious,logLikelihood,logPosterior)
-    !% Initialize simulation state by drawing at random from the parameter priors.
+    !!{
+    Initialize simulation state by drawing at random from the parameter priors.
+    !!}
     use, intrinsic :: ISO_C_Binding               , only : c_size_t
     use            :: MPI_Utilities               , only : mpiBarrier   , mpiSelf
     use            :: Models_Likelihoods_Constants, only : logImpossible

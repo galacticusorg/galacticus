@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,21 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a random error output analysis distribution operator class.
-  !# <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomError" abstract="yes">
-  !#  <description>
-  !#   A random error output analysis distribution operator class. The weight of each galaxy is integrated over every bin of the
-  !#   histogram using a Gaussian kernel. This is an abstract class---the width of the Gaussian kernel must be provided by a
-  !#   concrete class.
-  !#  </description>
-  !# </outputAnalysisDistributionOperator>
+!!{
+Contains a module which implements a random error output analysis distribution operator class.
+!!}
+  !![
+  <outputAnalysisDistributionOperator name="outputAnalysisDistributionOperatorRandomError" abstract="yes">
+   <description>
+    A random error output analysis distribution operator class. The weight of each galaxy is integrated over every bin of the
+    histogram using a Gaussian kernel. This is an abstract class---the width of the Gaussian kernel must be provided by a
+    concrete class.
+   </description>
+  </outputAnalysisDistributionOperator>
+  !!]
   type, abstract, extends(outputAnalysisDistributionOperatorClass) :: outputAnalysisDistributionOperatorRandomError
-     !% A random error output distribution operator class.
+     !!{
+     A random error output distribution operator class.
+     !!}
      private
    contains
-     !# <methods>
-     !#   <method description="Return the root-variance to apply to the distribution." method="rootVariance" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return the root-variance to apply to the distribution." method="rootVariance" />
+     </methods>
+     !!]
      procedure                                           :: operateScalar       => randomErrorOperateScalar
      procedure                                           :: operateDistribution => randomErrorOperateDistribution
      procedure(randomErrorOperateRootVariance), deferred :: rootVariance
@@ -39,7 +47,9 @@
 
   abstract interface
      double precision function randomErrorOperateRootVariance(self,propertyValue,node)
-       !% Abstract interface for the root variance method of random error output analysis distribution operators.
+       !!{
+       Abstract interface for the root variance method of random error output analysis distribution operators.
+       !!}
        import outputAnalysisDistributionOperatorRandomError, treeNode
        class           (outputAnalysisDistributionOperatorRandomError), intent(inout) :: self
        double precision                                               , intent(in   ) :: propertyValue
@@ -50,7 +60,9 @@
 contains
 
   function randomErrorOperateScalar(self,propertyValue,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !% Implement a random error output analysis distribution operator.
+    !!{
+    Implement a random error output analysis distribution operator.
+    !!}
     implicit none
     class           (outputAnalysisDistributionOperatorRandomError), intent(inout)                                        :: self
     double precision                                               , intent(in   )                                        :: propertyValue
@@ -80,7 +92,9 @@ contains
   end function randomErrorOperateScalar
 
   function randomErrorOperateDistribution(self,distribution,propertyType,propertyValueMinimum,propertyValueMaximum,outputIndex,node)
-    !% Implement a random error output analysis distribution operator.
+    !!{
+    Implement a random error output analysis distribution operator.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (outputAnalysisDistributionOperatorRandomError), intent(inout)                                        :: self

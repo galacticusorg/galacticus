@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,70 +17,80 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a preset position component in which positions are interpolated using the approach of
-!% \cite{merson_lightcone_2013}.
+!!{
+Contains a module which implements a preset position component in which positions are interpolated using the approach of
+\cite{merson_lightcone_2013}.
+!!}
 
 module Node_Component_Position_Preset_Interpolated
-  !% Implements a preset position component in which positions are interpolated using the approach of
-  !% \cite{merson_lightcone_2013}.
+  !!{
+  Implements a preset position component in which positions are interpolated using the approach of
+  \cite{merson_lightcone_2013}.
+  !!}
   implicit none
   private
   public :: threadInitialize    , threadUninitialize , &
        &    computeInterpolation, rateCompute        , &
        &    initialize
   
-  !# <component>
-  !#  <class>position</class>
-  !#  <name>presetInterpolated</name>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>position</name>
-  !#     <type>double</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <getFunction bindsTo="component">PositionPresetInterpolatedPosition</getFunction>
-  !#     <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Position of the node (in physical coordinates)."/>
-  !#     <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
-  !#   </property>
-  !#   <property>
-  !#     <name>velocity</name>
-  !#     <type>double</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <getFunction bindsTo="component">PositionPresetInterpolatedVelocity</getFunction>
-  !#     <output labels="[X,Y,Z]" unitsInSI="kilo" comment="Velocity of the node (in physical coordinates)."/>
-  !#     <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
-  !#   </property>
-  !#   <property>
-  !#     <name>positionHistory</name>
-  !#     <type>history</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#   <property>
-  !#     <name>interpolationCoefficients</name>
-  !#     <type>double</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#   <property>
-  !#     <name>interpolationTimeMaximum</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#  </properties>
-  !#  <functions>objects.nodes.components.position.preset.interpolated.bound_functions.inc</functions>
-  !# </component>
+  !![
+  <component>
+   <class>position</class>
+   <name>presetInterpolated</name>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>position</name>
+      <type>double</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <getFunction bindsTo="component">PositionPresetInterpolatedPosition</getFunction>
+      <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Position of the node (in physical coordinates)."/>
+      <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
+    </property>
+    <property>
+      <name>velocity</name>
+      <type>double</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <getFunction bindsTo="component">PositionPresetInterpolatedVelocity</getFunction>
+      <output labels="[X,Y,Z]" unitsInSI="kilo" comment="Velocity of the node (in physical coordinates)."/>
+      <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
+    </property>
+    <property>
+      <name>positionHistory</name>
+      <type>history</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+    <property>
+      <name>interpolationCoefficients</name>
+      <type>double</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+    <property>
+      <name>interpolationTimeMaximum</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+   </properties>
+   <functions>objects.nodes.components.position.preset.interpolated.bound_functions.inc</functions>
+  </component>
+  !!]
 
 contains
 
-  !# <nodeComponentInitializationTask>
-  !#  <unitName>initialize</unitName>
-  !# </nodeComponentInitializationTask>
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
   subroutine initialize(parameters_)
-    !% Initializes the ``preset-interpolated'' position component module.
+    !!{
+    Initializes the ``preset-interpolated'' position component module.
+    !!}
     use :: Galacticus_Nodes                                , only : defaultPositionComponent
     use :: Input_Parameters                                , only : inputParameter          , inputParameters
     use :: Node_Component_Position_Preset_Interpolated_Data, only : positionPresetBoxLength , isPeriodic
@@ -89,23 +99,29 @@ contains
     
     !$omp critical (nodeComponentPositionPresetInterpolatedInitialize)
     if (defaultPositionComponent%presetInterpolatedIsActive()) then
-       !# <inputParameter>
-       !#   <name>positionPresetBoxLength</name>
-       !#   <defaultValue>0.0d0</defaultValue>
-       !#   <description>The periodic length of the positions. For non-periodic positions, a value of zero should be given.</description>
-       !#   <source>parameters_</source>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>positionPresetBoxLength</name>
+         <defaultValue>0.0d0</defaultValue>
+         <description>The periodic length of the positions. For non-periodic positions, a value of zero should be given.</description>
+         <source>parameters_</source>
+       </inputParameter>
+       !!]
        isPeriodic=positionPresetBoxLength > 0.0d0
     end if
     !$omp end critical (nodeComponentPositionPresetInterpolatedInitialize)
     return
   end subroutine initialize
   
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>threadInitialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>threadInitialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine threadInitialize(parameters_)
-    !% Initializes the tree node scale dark matter profile module.
+    !!{
+    Initializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks                                    , only : nodePromotionEvent      , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes                                , only : defaultPositionComponent
     use :: Input_Parameters                                , only : inputParameters
@@ -114,32 +130,42 @@ contains
     type(inputParameters), intent(inout) :: parameters_
 
     if (defaultPositionComponent%presetInterpolatedIsActive()) then
-       !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters_"/>
+       !![
+       <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters_"/>
+       !!]
        call nodePromotionEvent%attach(defaultPositionComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentPositionPresetInterpolated')
     end if
     return
   end subroutine threadInitialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>threadUninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>threadUninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine threadUninitialize()
-    !% Uninitializes the tree node scale dark matter profile module.
+    !!{
+    Uninitializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks                                    , only : nodePromotionEvent
     use :: Galacticus_Nodes                                , only : defaultPositionComponent
     use :: Node_Component_Position_Preset_Interpolated_Data, only : cosmologyFunctions_
     implicit none
 
     if (defaultPositionComponent%presetInterpolatedIsActive()) then
-       !# <objectDestructor name="cosmologyFunctions_"/>
+       !![
+       <objectDestructor name="cosmologyFunctions_"/>
+       !!]
        call nodePromotionEvent%detach(defaultPositionComponent,nodePromotion)
     end if
     return
   end subroutine threadUninitialize
 
   subroutine nodePromotion(self,node)
-    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, update the position of {\normalfont \ttfamily
-    !% node} to that of the parent.
+    !!{
+    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, update the position of {\normalfont \ttfamily
+    node} to that of the parent.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentPosition, nodeComponentPositionPresetInterpolated, treeNode
     implicit none
     class(*                    ), intent(inout)          :: self
@@ -155,25 +181,30 @@ contains
        call position%                 velocitySet(positionParent%velocity                 ())
        call position%          positionHistorySet(positionParent%positionHistory          ())
        call position%interpolationCoefficientsSet(positionParent%interpolationCoefficients())
+       call position% interpolationTimeMaximumSet(positionParent%interpolationTimeMaximum ())
     end select
     return
   end subroutine nodePromotion
 
-  !# <nodeMergerTask>
-  !#  <unitName>computeInterpolation</unitName>
-  !# </nodeMergerTask>
-  !# <satelliteHostChangeTask>
-  !#  <unitName>computeInterpolation</unitName>
-  !# </satelliteHostChangeTask>
-  !# <mergerTreeInitializeTask>
-  !#  <unitName>computeInterpolation</unitName>
-  !# </mergerTreeInitializeTask>
+  !![
+  <nodeMergerTask>
+   <unitName>computeInterpolation</unitName>
+  </nodeMergerTask>
+  <satelliteHostChangeTask>
+   <unitName>computeInterpolation</unitName>
+  </satelliteHostChangeTask>
+  <mergerTreeInitializeTask>
+   <unitName>computeInterpolation</unitName>
+  </mergerTreeInitializeTask>
+  !!]
   subroutine computeInterpolation(node)
-    !% Compute interpolation coefficients for positions. The approach here follows that of \cite{merson_lightcone_2013}. For halos
-    !% which are not orbiting within a host halo during the current interval, interpolation is via a cubic polynomial in each
-    !% Cartesian coordinate of \emph{comoving} position matched to the position and velocity at the initial and final times. For
-    !% halos which are orbiting within a halo halo during the current interval, interpolation is via a logarithmic spiral in the
-    !% relative physical position of the halo and the center of the host halo.
+    !!{
+    Compute interpolation coefficients for positions. The approach here follows that of \cite{merson_lightcone_2013}. For halos
+    which are not orbiting within a host halo during the current interval, interpolation is via a cubic polynomial in each
+    Cartesian coordinate of \emph{comoving} position matched to the position and velocity at the initial and final times. For
+    halos which are orbiting within a halo halo during the current interval, interpolation is via a logarithmic spiral in the
+    relative physical position of the halo and the center of the host halo.
+    !!}
     use, intrinsic :: ISO_C_Binding                                   , only : c_size_t
     use            :: Galacticus_Error                                , only : Galacticus_Error_Report    
     use            :: Galacticus_Nodes                                , only : nodeComponentBasic       , nodeComponentPosition  , treeNode                          , nodeEvent                   , &
@@ -214,7 +245,6 @@ contains
     double precision                                                    :: timeParent                   , timeGrandparent
     logical                                                             :: useSpiralInterpolation       , searchEvent
 
-    
     ! If this component is not active return immediately.
     if (.not.defaultPositionComponent%presetInterpolatedIsActive()) return
     ! Get the position component of this node in which we will store the interpolation coefficients.
@@ -284,7 +314,6 @@ contains
           &  .or.                                                                             &
           &   searchEvent                                                                     &
           & ) then
-
           ! Our node exists at a time beyond the end of its position history. We must check if there is some event attached to
           ! this node which connects it to another node (which we can then use for the future position).
           event => node%event
@@ -304,8 +333,6 @@ contains
              end select
              event => event%next
           end do
-
-
           if (associated(nodeJump)) then
              ! An event which causes our node to jump to some other non-hosted node or another branch was found. We assume cubic
              ! polynomial interpolation between the initial and final locations.
@@ -313,13 +340,12 @@ contains
           else
              ! No history remains, and no event exists. This is the end of the life of this node, so we do not need to compute any
              ! interpolation.
-             
              call position%interpolationCoefficientsSet(coefficientsNull)
+             call position%interpolationTimeMaximumSet (huge(0.0d0))
              return
           end if
        else
- 
-    ! The current time of the node does not exceed the time in its position history. We can use logarithmic spiral
+          ! The current time of the node does not exceed the time in its position history. We can use logarithmic spiral
           ! interpolation if: a) this is a satellite node, and b) the current time matches or exceeds the first time in the node's
           ! position history.
           useSpiralInterpolation=useSpiralInterpolation .and. basic%time() >= positionHistory%time(1)
@@ -330,16 +356,15 @@ contains
           if (node%isSatellite() .and. Values_Less_Than(basic%time(),basicParent%time(),relTol=1.0d-2)) useSpiralInterpolation=.false.
        end if
     else
- 
        ! No position history is available - this must be an isolated node and so we must use cubic polynomial interpolation.
        useSpiralInterpolation=.false.
     end if
-
-             
-        ! Branch on the type of interpolation we are to compute.
+    ! Nullify the position interpolation for this node before attempting to compute the new interpolation. This ensures that we do
+    ! not attempt to interpolate the position of this node outside the allowed range of the previous interpolation.
+    call position%interpolationCoefficientsSet(coefficientsNull)
+    ! Branch on the type of interpolation we are to compute.
     if (.not.useSpiralInterpolation) then
-
-        ! Cubic polynomial interpolation.
+       ! Cubic polynomial interpolation.
        !! Determine the intial and final position to use for this time interval.
        if (associated(nodeJump)) then
           ! There is a node event which will jump this node to another node. Use the position of that node as the final position.
@@ -351,7 +376,6 @@ contains
           time               (2  ) =  basicParent          %time    (                     )
           positionComoving   (2,:) =  positionParent       %position(                     )
           velocityComoving   (2,:) =  positionParent       %velocity(                     )
-
        else if (node%isPrimaryProgenitor()) then
           ! The node is the primary progenitor, so use the position of its parent as the final position.
           basicParent              => node          %parent%basic   (                     )
@@ -374,7 +398,6 @@ contains
              positionComoving(2,:) =  positionHistory       %data    (1  ,1:3             )
              velocityComoving(1,:) =  position              %velocity(                    )
              velocityComoving(2,:) =  positionHistory       %data    (1  ,4:6             )
-
           else
              ! The current time is at or after the first time in the position history. Therefore, locate the point in the position
              ! history that spans the current time.
@@ -391,14 +414,13 @@ contains
        else
           ! We have no means to determine the start/end points for this interval. This node must have no future, and so we can
           ! safely set a null interpolation infinitely far into the future.
-         call position%interpolationCoefficientsSet(coefficientsNull)
+          call position%interpolationCoefficientsSet(coefficientsNull)
           call position%interpolationTimeMaximumSet (huge(0.0d0))
           return
        end if
        ! Compute the interpolation only if there is a non-zero time interval over which to interpolate. Halos about to experience
        ! a node promotion or branch jump event can exist at precisely the time of the halo they are about to become.
-
-             if (time(1) < time(2)) then
+       if (time(1) < time(2)) then
           ! Get comoving position/velocity at start/end times.
           expansionFactor (1  )=                      cosmologyFunctions_%expansionFactor(time(1))
           expansionFactor (2  )=                      cosmologyFunctions_%expansionFactor(time(2))
@@ -445,11 +467,9 @@ contains
           ! Store the computed interpolation coefficients and the time to which they are valid.
           call position%interpolationCoefficientsSet(reshape(coefficientsCubic,[12]))
           call position%interpolationTimeMaximumSet (   time(                    2 ))
-
-          end if
+       end if
     else
-
-        ! Compute logarithmic spiral interpolation.
+       ! Compute logarithmic spiral interpolation.
        basic           => node    %basic          ()
        position        => node    %position       ()
        positionHistory =  position%positionHistory()
@@ -466,24 +486,27 @@ contains
           nodeParent  => nodeParent%parent
           basicParent => nodeParent%basic ()
        end do
-       ! If the parent is not (approximately) at our initial time, back up to the prior parent.
-       if (Values_Differ(basicParent%time(),time(1),relTol=1.0d-2)) then
+       ! If the parent is not (approximately) at our initial time, back up to the prior parent (if one exists).
+       if (Values_Differ(basicParent%time(),time(1),relTol=1.0d-2) .and. associated(nodeParent%firstChild)) then
           nodeParent  => nodeParent%firstChild
           basicParent => nodeParent%basic     ()
        end if
        ! Find a grand-parent which exists at (or after) the final time.
        nodeGrandparent => nodeParent%parent
-
-
-
-
-
-       
        if (associated(nodeGrandparent)) then
           basicGrandparent => nodeGrandparent%basic()
           do while (Values_Less_Than(basicGrandparent%time(),time(2),relTol=1.0d-2))
-             nodeGrandparent  => nodeGrandparent%parent
-             basicGrandparent => nodeGrandparent%basic ()
+             nodeGrandparent => nodeGrandparent%parent
+             if (associated(nodeGrandparent)) then
+                basicGrandparent => nodeGrandparent%basic()
+             else
+                ! No grandparent halo exists at the final time. Use a null interpolation to ensure that
+                ! the fixed-at-snapshot position will be used for the node. Set the maximum time for the interpolation to infinity to
+                ! avoid an infinite loop of attempting to compute this interpolation.
+                call position%interpolationCoefficientsSet(coefficientsNull)
+                call position%interpolationTimeMaximumSet (huge(0.0d0))
+                return
+             end if
           end do
           ! Back up to the previous grandparent. This grandparent therefore exists up until our final time.
           nodeGrandparent  => nodeGrandparent%firstChild
@@ -590,26 +613,26 @@ contains
           coefficientsSpiral(17:20)=reshape(coefficientsLogRadius,[ 4])
           call position%interpolationCoefficientsSet(coefficientsSpiral   )
           call position%interpolationTimeMaximumSet (time              (2))
-          
        else
           ! No grandparent halo exists. This can occur in a tree which ceases to exist. Use a null interpolation to ensure that
           ! the fixed-at-snapshot position will be used for the node. Set the maximum time for the interpolation to infinity to
           ! avoid an infinite loop of attempting to compute this interpolation.
           call position%interpolationCoefficientsSet(coefficientsNull)
           call position%interpolationTimeMaximumSet (huge(0.0d0))
-
        end if
-   end if
-
-
+    end if
     return
   end subroutine computeInterpolation
 
-  !# <rateComputeTask>
-  !#  <unitName>rateCompute</unitName>
-  !# </rateComputeTask>
+  !![
+  <rateComputeTask>
+   <unitName>rateCompute</unitName>
+  </rateComputeTask>
+  !!]
   subroutine rateCompute(node,interrupt,interruptProcedure,propertyType)
-    !% Interrupt evolution to update position interpolation.
+    !!{
+    Interrupt evolution to update position interpolation.
+    !!}
     use :: Galacticus_Nodes, only : defaultPositionComponent, interruptTask, nodeComponentBasic, nodeComponentPosition, &
          &                          treeNode
     implicit none

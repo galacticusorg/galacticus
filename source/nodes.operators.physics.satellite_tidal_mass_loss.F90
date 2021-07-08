@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that applies tidal mass loss to orbiting satellite halos.
+  !!{
+  Implements a node operator class that applies tidal mass loss to orbiting satellite halos.
+  !!}
 
   use :: Satellite_Tidal_Stripping, only : satelliteTidalStrippingClass
 
-  !# <nodeOperator name="nodeOperatorSatelliteTidalMassLoss">
-  !#  <description>A node operator class that applies tidal mass loss to orbiting satellite halos.</description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorSatelliteTidalMassLoss">
+   <description>A node operator class that applies tidal mass loss to orbiting satellite halos.</description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteTidalMassLoss
-     !% A node operator class that applies tidal mass loss to orbiting satellite halos.
+     !!{
+     A node operator class that applies tidal mass loss to orbiting satellite halos.
+     !!}
      private
      class(satelliteTidalStrippingClass), pointer :: satelliteTidalStripping_ => null()
    contains
@@ -34,7 +40,9 @@
   end type nodeOperatorSatelliteTidalMassLoss
   
   interface nodeOperatorSatelliteTidalMassLoss
-     !% Constructors for the {\normalfont \ttfamily satelliteTidalStripping} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily satelliteTidalStripping} node operator class.
+     !!}
      module procedure satelliteTidalStrippingConstructorParameters
      module procedure satelliteTidalStrippingConstructorInternal
   end interface nodeOperatorSatelliteTidalMassLoss
@@ -42,41 +50,57 @@
 contains
 
   function satelliteTidalStrippingConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily satelliteTidalStripping} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily satelliteTidalStripping} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodeOperatorSatelliteTidalMassLoss)                :: self
     type (inputParameters                   ), intent(inout) :: parameters
     class(satelliteTidalStrippingClass      ), pointer       :: satelliteTidalStripping_
     
-    !# <objectBuilder class="satelliteTidalStripping" name="satelliteTidalStripping_" source="parameters"/>
+    !![
+    <objectBuilder class="satelliteTidalStripping" name="satelliteTidalStripping_" source="parameters"/>
+    !!]
     self=nodeOperatorSatelliteTidalMassLoss(satelliteTidalStripping_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="satelliteTidalStripping_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="satelliteTidalStripping_"/>
+    !!]
     return
   end function satelliteTidalStrippingConstructorParameters
 
   function satelliteTidalStrippingConstructorInternal(satelliteTidalStripping_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily satelliteTidalStripping} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily satelliteTidalStripping} node operator class.
+    !!}
     implicit none
     type (nodeOperatorSatelliteTidalMassLoss)                        :: self
     class(satelliteTidalStrippingClass      ), intent(in   ), target :: satelliteTidalStripping_
-    !# <constructorAssign variables="*satelliteTidalStripping_"/>
+    !![
+    <constructorAssign variables="*satelliteTidalStripping_"/>
+    !!]
 
     return
   end function satelliteTidalStrippingConstructorInternal
 
   subroutine satelliteTidalStrippingDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily satelliteTidalStripping} node operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily satelliteTidalStripping} node operator class.
+    !!}
     implicit none
     type(nodeOperatorSatelliteTidalMassLoss), intent(inout) :: self
 
-    !# <objectDestructor name="self%satelliteTidalStripping_"/>
+    !![
+    <objectDestructor name="self%satelliteTidalStripping_"/>
+    !!]
     return
   end subroutine satelliteTidalStrippingDestructor
   
   subroutine satelliteTidalStrippingDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Perform mass loss from a satellite due to tidal stripping.
+    !!{
+    Perform mass loss from a satellite due to tidal stripping.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     implicit none
     class    (nodeOperatorSatelliteTidalMassLoss), intent(inout), target  :: self

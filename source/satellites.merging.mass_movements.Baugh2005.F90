@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,32 +17,38 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a merger mass movements class using the \cite{baugh_can_2005} model.
+  !!{
+  Implements a merger mass movements class using the \cite{baugh_can_2005} model.
+  !!}
 
   use :: Kind_Numbers, only : kind_int8
 
-  !# <mergerMassMovements name="mergerMassMovementsBaugh2005">
-  !#  <description>
-  !#   A merger mass movements class which implements mass movements according to:
-  !#   \begin{itemize}
-  !#    \item If $M_\mathrm{satellite} &gt; f_\mathrm{major} M_\mathrm{central}$ then all mass from both satellite and central
-  !#    galaxies moves to the spheroid \gls{component} of the central galaxy;
-  !#    \item Otherwise:
-  !#    \begin{itemize}
-  !#     \item If $M_\mathrm{central, spheroid} &lt; f_\mathrm{burst} M_\mathrm{central}$ and the gas fraction in the host equals or
-  !#     exceeds $f_\mathrm{gas,crit}$ then all gas is moved to the host spheroid, while the host stellar disk remains in place.
-  !#     \item Otherwise, gas from the satellite moves to the \gls{component} of the central specified by the {\normalfont
-  !#     \ttfamily [destinationGasMinorMerger]} parameter (either ``{\normalfont \ttfamily disk}'' or ``{\normalfont \ttfamily
-  !#     spheroid}''), stars from the satellite moves to the spheroid of the central and mass in the central does not move.
-  !#    \end{itemize}
-  !#   \end{itemize}
-  !#   Here, $f_\mathrm{major}=${\normalfont \ttfamily [massRatioMajorMerger]} is the mass ratio above which a merger is
-  !#   considered to be ``major'', while $f_\mathrm{burst}=${\normalfont \ttfamily [ratioMassBurst]} and
-  !#   $f_\mathrm{gas,crit}=${\normalfont \ttfamily [fractionGasCriticalBurst]}.
-  !#  </description>
-  !# </mergerMassMovements>
+  !![
+  <mergerMassMovements name="mergerMassMovementsBaugh2005">
+   <description>
+    A merger mass movements class which implements mass movements according to:
+    \begin{itemize}
+     \item If $M_\mathrm{satellite} &gt; f_\mathrm{major} M_\mathrm{central}$ then all mass from both satellite and central
+     galaxies moves to the spheroid \gls{component} of the central galaxy;
+     \item Otherwise:
+     \begin{itemize}
+      \item If $M_\mathrm{central, spheroid} &lt; f_\mathrm{burst} M_\mathrm{central}$ and the gas fraction in the host equals or
+      exceeds $f_\mathrm{gas,crit}$ then all gas is moved to the host spheroid, while the host stellar disk remains in place.
+      \item Otherwise, gas from the satellite moves to the \gls{component} of the central specified by the {\normalfont
+      \ttfamily [destinationGasMinorMerger]} parameter (either ``{\normalfont \ttfamily disk}'' or ``{\normalfont \ttfamily
+      spheroid}''), stars from the satellite moves to the spheroid of the central and mass in the central does not move.
+     \end{itemize}
+    \end{itemize}
+    Here, $f_\mathrm{major}=${\normalfont \ttfamily [massRatioMajorMerger]} is the mass ratio above which a merger is
+    considered to be ``major'', while $f_\mathrm{burst}=${\normalfont \ttfamily [ratioMassBurst]} and
+    $f_\mathrm{gas,crit}=${\normalfont \ttfamily [fractionGasCriticalBurst]}.
+   </description>
+  </mergerMassMovements>
+  !!]
   type, extends(mergerMassMovementsClass) :: mergerMassMovementsBaugh2005
-     !% A merger mass movements class which uses the \cite{baugh_can_2005} calculation.
+     !!{
+     A merger mass movements class which uses the \cite{baugh_can_2005} calculation.
+     !!}
      private
      double precision                 :: massRatioMajorMerger     , ratioMassBurst           , &
           &                              fractionGasCriticalBurst
@@ -58,7 +64,9 @@
   end type mergerMassMovementsBaugh2005
 
   interface mergerMassMovementsBaugh2005
-     !% Constructors for the {\normalfont \ttfamily baugh2005} merger mass movements class.
+     !!{
+     Constructors for the {\normalfont \ttfamily baugh2005} merger mass movements class.
+     !!}
      module procedure baugh2005ConstructorParameters
      module procedure baugh2005ConstructorInternal
   end interface mergerMassMovementsBaugh2005
@@ -66,7 +74,9 @@
 contains
 
   function baugh2005ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily baugh2005} merger mass movements class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily baugh2005} merger mass movements class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerMassMovementsBaugh2005)                :: self
@@ -75,43 +85,51 @@ contains
          &                                                           fractionGasCriticalBurst
     type            (varying_string              )                :: destinationGasMinorMerger
 
-    !# <inputParameter>
-    !#   <name>massRatioMajorMerger</name>
-    !#   <defaultValue>0.25d0</defaultValue>
-    !#   <description>The mass ratio above which mergers are considered to be ``major''.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>ratioMassBurst</name>
-    !#   <defaultValue>0.05d0</defaultValue>
-    !#   <description>The mass ratio above which mergers are considered to trigger a burst.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>fractionGasCriticalBurst</name>
-    !#   <defaultValue>0.75d0</defaultValue>
-    !#   <description>The host gas fraction above which mergers are considered to trigger a burst.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>destinationGasMinorMerger</name>
-    !#   <defaultValue>var_str('spheroid')</defaultValue>
-    !#   <description>The component to which satellite galaxy gas moves to as a result of a minor merger.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>massRatioMajorMerger</name>
+      <defaultValue>0.25d0</defaultValue>
+      <description>The mass ratio above which mergers are considered to be ``major''.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>ratioMassBurst</name>
+      <defaultValue>0.05d0</defaultValue>
+      <description>The mass ratio above which mergers are considered to trigger a burst.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>fractionGasCriticalBurst</name>
+      <defaultValue>0.75d0</defaultValue>
+      <description>The host gas fraction above which mergers are considered to trigger a burst.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>destinationGasMinorMerger</name>
+      <defaultValue>var_str('spheroid')</defaultValue>
+      <description>The component to which satellite galaxy gas moves to as a result of a minor merger.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=mergerMassMovementsBaugh2005(massRatioMajorMerger,enumerationDestinationMergerEncode(char(destinationGasMinorMerger),includesPrefix=.false.),ratioMassBurst,fractionGasCriticalBurst)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function baugh2005ConstructorParameters
 
   function baugh2005ConstructorInternal(massRatioMajorMerger,destinationGasMinorMerger,ratioMassBurst,fractionGasCriticalBurst) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily baugh2005} merger mass movements.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily baugh2005} merger mass movements.
+    !!}
     implicit none
     type            (mergerMassMovementsBaugh2005)                :: self
     double precision                              , intent(in   ) :: massRatioMajorMerger     , ratioMassBurst, &
          &                                                           fractionGasCriticalBurst
     integer                                       , intent(in   ) :: destinationGasMinorMerger
-    !# <constructorAssign variables="massRatioMajorMerger, destinationGasMinorMerger, ratioMassBurst, fractionGasCriticalBurst"/>
+    !![
+    <constructorAssign variables="massRatioMajorMerger, destinationGasMinorMerger, ratioMassBurst, fractionGasCriticalBurst"/>
+    !!]
 
     self%lastUniqueID             =-huge(0_kind_int8)
     self%destinationGasSatellite  =-huge(0          )
@@ -124,7 +142,9 @@ contains
   end function baugh2005ConstructorInternal
 
   subroutine baugh2005AutoHook(self)
-    !% Attach to the calculation reset event.
+    !!{
+    Attach to the calculation reset event.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent, openMPThreadBindingAllLevels
     implicit none
     class(mergerMassMovementsBaugh2005), intent(inout) :: self
@@ -135,7 +155,9 @@ contains
   end subroutine baugh2005AutoHook
 
   subroutine baugh2005Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily baugh2005} dark matter halo profile class.
+    !!{
+    Destructor for the {\normalfont \ttfamily baugh2005} dark matter halo profile class.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none
     type(mergerMassMovementsBaugh2005), intent(inout) :: self
@@ -146,7 +168,9 @@ contains
   end subroutine baugh2005Destructor
 
   subroutine baugh2005CalculationReset(self,node)
-    !% Reset the dark matter profile calculation.
+    !!{
+    Reset the dark matter profile calculation.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(*       ), intent(inout) :: self
@@ -163,7 +187,9 @@ contains
   end subroutine baugh2005CalculationReset
 
   subroutine baugh2005GetHook(self,node)
-    !% Hookable wrapper around the get function.
+    !!{
+    Hookable wrapper around the get function.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (*       ), intent(inout)         :: self
@@ -182,8 +208,10 @@ contains
   end subroutine baugh2005GetHook
 
   subroutine baugh2005Get(self,node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
-    !% Determine how different mass components should be redistributed as the result of a merger according to the model of
-    !% \cite{baugh_can_2005}.
+    !!{
+    Determine how different mass components should be redistributed as the result of a merger according to the model of
+    \cite{baugh_can_2005}.
+    !!}
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : componentTypeSpheroid           , massTypeGalactic, massTypeGaseous
     implicit none

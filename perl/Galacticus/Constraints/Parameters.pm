@@ -38,7 +38,7 @@ sub stepCount {
     my $config  =   shift() ;
     my %options = %{shift()};
     # Read the first chain.
-    my $logFileRoot   = $config->{'posteriorSampleSimulationMethod'}->{'logFileRoot'}->{'value'};
+    my $logFileRoot   = $config->{'posteriorSampleSimulation'}->{'logFileRoot'}->{'value'};
     my $chainFileName = sprintf("%s_%4.4i.log",$logFileRoot,0);
     my $stepCount;
     open(my $chainFile,$chainFileName);
@@ -58,7 +58,7 @@ sub chainCount {
     my $config  =   shift() ;
     my %options = %{shift()};
     # Determine number of chains.
-    my $logFileRoot = $config->{'posteriorSampleSimulationMethod'}->{'logFileRoot'}->{'value'};
+    my $logFileRoot = $config->{'posteriorSampleSimulation'}->{'logFileRoot'}->{'value'};
     my $chainCount  = 0;
     while () {
 	++$chainCount;
@@ -74,7 +74,7 @@ sub parameterCount {
     my $config  =   shift() ;
     my %options = %{shift()};
     # Read the first chain.
-    my $logFileRoot   = $config->{'posteriorSampleSimulationMethod'}->{'logFileRoot'}->{'value'};
+    my $logFileRoot   = $config->{'posteriorSampleSimulation'}->{'logFileRoot'}->{'value'};
     my $chainFileName = sprintf("%s_%4.4i.log",$logFileRoot,0);
     my $parameterCount;
     open(my $chainFile,$chainFileName);
@@ -87,7 +87,7 @@ sub parameterCount {
     die("Galacticus::Constraints::Parameters::parametersCount(): could not determine number of parameters")
 	unless ( defined($parameterCount) );
     $parameterCount /= 2
-	if ( $config->{'posteriorSampleSimulationMethod'}->{'value'} eq "particleSwarm" );
+	if ( $config->{'posteriorSampleSimulation'}->{'value'} eq "particleSwarm" );
     return $parameterCount;
 }
 
@@ -95,7 +95,7 @@ sub maximumPosteriorParameterVector {
     my $config  =   shift() ;
     my %options = %{shift()};
     # Determine the MCMC directory.
-    my $logFileRoot = $config->{'posteriorSampleSimulationMethod'}->{'logFileRoot'}->{'value'};
+    my $logFileRoot = $config->{'posteriorSampleSimulation'}->{'logFileRoot'}->{'value'};
     (my $mcmcDirectory  = $logFileRoot) =~ s/\/[^\/]+$//;    
     # Determine number of chains.
     my $chainCount = &chainCount($config,\%options);
@@ -143,7 +143,7 @@ sub maximumPosteriorParameterVector {
 	unless ( @maximumLikelihoodParameters );
     # Convert parameters to a PDL.
     my $maximumLikelihoodVector;
-    if ( $config->{'posteriorSampleSimulationMethod'}->{'value'} eq "particleSwarm" ) {
+    if ( $config->{'posteriorSampleSimulation'}->{'value'} eq "particleSwarm" ) {
 	my $indexMaximum = scalar(@maximumLikelihoodParameters)/2-1;
 	$maximumLikelihoodVector = pdl @maximumLikelihoodParameters[0..$indexMaximum];
     } else {
@@ -159,7 +159,7 @@ sub parameterVector {
     my $state   =   shift() ;
     my %options = %{shift()};
     # Determine the MCMC directory.
-    my $logFileRoot = $config->{'posteriorSampleSimulationMethod'}->{'logFileRoot'}->{'value'};
+    my $logFileRoot = $config->{'posteriorSampleSimulation'}->{'logFileRoot'}->{'value'};
     (my $mcmcDirectory  = $logFileRoot) =~ s/\/[^\/]+$//;    
     # Determine number of chains.
     my $chainCount = &chainCount($config,\%options);
@@ -206,7 +206,7 @@ sub parameterMatrix {
     my $chain   =   shift() ;
     my %options = %{shift()};
     # Determine the MCMC directory.
-    my $logFileRoot = $config->{'posteriorSampleSimulationMethod'}->{'logFileRoot'}->{'value'};
+    my $logFileRoot = $config->{'posteriorSampleSimulation'}->{'logFileRoot'}->{'value'};
     (my $mcmcDirectory  = $logFileRoot) =~ s/\/[^\/]+$//;    
     # Determine number of chains.
     my $chainCount = &chainCount($config,\%options);
@@ -315,13 +315,13 @@ sub parameterVectorApply {
     # Get a hash of the parameter values.
     my $xml            = new XML::Simple();
     my $parser         = XML::LibXML->new();
-    my $fileName       = exists($options{'baseParameters'}) ? $options{'baseParameters'} : $model->{'posteriorSampleLikelihoodMethod'}->{'baseParametersFileName'}->{'value'};
+    my $fileName       = exists($options{'baseParameters'}) ? $options{'baseParameters'} : $model->{'posteriorSampleLikelihood'}->{'baseParametersFileName'}->{'value'};
     my $dom            = $parser->load_xml(location => $fileName);
     $parser->process_xincludes($dom);
     my $parameters     = $xml->XMLin($dom->serialize());
     # Apply vector of parameter values to parameters structure.
     my $i               = -1;  
-    foreach my $modelParameter ( &List::ExtraUtils::as_array($config->{'posteriorSampleSimulationMethod'}->{'modelParameterMethod'}) ) {
+    foreach my $modelParameter ( &List::ExtraUtils::as_array($config->{'posteriorSampleSimulation'}->{'modelParameter'}) ) {
 	# Determine the value to set.
 	my $parameterValue;
 	if      ( $modelParameter->{'value'} eq "active" ) {
@@ -361,7 +361,7 @@ sub parameterVectorApply {
     while ( ! $dependenciesResolved ) {
 	my $progress = 0;
 	$dependenciesResolved = 1;
-	foreach my $modelParameter ( &List::ExtraUtils::as_array($config->{'posteriorSampleSimulationMethod'}->{'modelParameterMethod'}), @derivedParameters ) {
+	foreach my $modelParameter ( &List::ExtraUtils::as_array($config->{'posteriorSampleSimulation'}->{'modelParameter'}), @derivedParameters ) {
 	    # Skip parameters not applicable to this model.
 	    next
 		unless (
@@ -447,29 +447,29 @@ sub modelList {
     # Begin building a stack of likelihood models to evaluate.
     my @galaxyPopulationModels;
     my $instance               = 0;
-    my @allParameterNames      = map {$_->{'name'}->{'value'}} &List::ExtraUtils::as_array($config->{'posteriorSampleSimulationMethod'}->{'modelParameterMethod'});
+    my @allParameterNames      = map {$_->{'name'}->{'value'}} &List::ExtraUtils::as_array($config->{'posteriorSampleSimulation'}->{'modelParameter'});
     my @modelStack             = ( 
 	{
-	    posteriorSampleLikelihoodMethod => $config->{'posteriorSampleLikelihoodMethod'},
-	    parameters                      => \@allParameterNames
+	    posteriorSampleLikelihood => $config->{'posteriorSampleLikelihood'},
+	    parameters                => \@allParameterNames
 	} 
 	);
     # Iterate over likelihood models.
     while ( scalar(@modelStack) > 0 ) {
 	# Pop a model off of the stack.
 	my $model = shift(@modelStack);
-	if ( $model->{'posteriorSampleLikelihoodMethod'}->{'value'} eq "galaxyPopulation" ) {
+	if ( $model->{'posteriorSampleLikelihood'}->{'value'} eq "galaxyPopulation" ) {
 	    ++$instance;
 	    push(@galaxyPopulationModels,$model)
 		if ( ! exists($options{'modelInstance'}) || $options{'modelInstance'} eq "all" || $options{'modelInstance'} == $instance );
 	}
 	# Add any sub-models to the stack.
-	if ( exists($model->{'posteriorSampleLikelihoodMethod'}->{'posteriorSampleLikelihoodMethod'}) ) {
-	    my @likelihoods           = &List::ExtraUtils::as_array($model->{'posteriorSampleLikelihoodMethod'}->{'posteriorSampleLikelihoodMethod'});
-	    my @parameterMapsActive   = &List::ExtraUtils::as_array($model->{'posteriorSampleLikelihoodMethod'}->{'parameterMap'                   })
-		if ( exists($model->{'posteriorSampleLikelihoodMethod'}->{'parameterMap'        }) );
-	    my @parameterMapsInactive = &List::ExtraUtils::as_array($model->{'posteriorSampleLikelihoodMethod'}->{'parameterInactiveMap'           })
-		if ( exists($model->{'posteriorSampleLikelihoodMethod'}->{'parameterInactiveMap'}) );
+	if ( exists($model->{'posteriorSampleLikelihood'}->{'posteriorSampleLikelihood'}) ) {
+	    my @likelihoods           = &List::ExtraUtils::as_array($model->{'posteriorSampleLikelihood'}->{'posteriorSampleLikelihood'});
+	    my @parameterMapsActive   = &List::ExtraUtils::as_array($model->{'posteriorSampleLikelihood'}->{'parameterMap'             })
+		if ( exists($model->{'posteriorSampleLikelihood'}->{'parameterMap'        }) );
+	    my @parameterMapsInactive = &List::ExtraUtils::as_array($model->{'posteriorSampleLikelihood'}->{'parameterInactiveMap'     })
+		if ( exists($model->{'posteriorSampleLikelihood'}->{'parameterInactiveMap'}) );
 	    for(my $i=0;$i<scalar(@likelihoods);++$i) {
 		my @parameterNames;
 		push(@parameterNames,split(" ",$parameterMapsActive  [$i]->{'value'}))
@@ -477,8 +477,8 @@ sub modelList {
 		push(@parameterNames,split(" ",$parameterMapsInactive[$i]->{'value'}))
 		    if ( @parameterMapsInactive );
 		my $childModel;
-		$childModel->{'posteriorSampleLikelihoodMethod'} = $likelihoods[$i];
-		$childModel->{'parameters'                     } = \@parameterNames;
+		$childModel->{'posteriorSampleLikelihood'} = $likelihoods[$i];
+		$childModel->{'parameters'               } = \@parameterNames;
 		push(
 		    @modelStack,
 		    $childModel
@@ -517,7 +517,7 @@ sub parameterNames {
     my $config = shift();
     my @names;
     # Extract parameters from config file.
-    my @parameters = &List::ExtraUtils::as_array($config->{'posteriorSampleSimulationMethod'}->{'modelParameterMethod'});
+    my @parameters = &List::ExtraUtils::as_array($config->{'posteriorSampleSimulation'}->{'modelParameter'});
     # Extract names.
     foreach my $parameter ( @parameters ) {
 	push(@names,$parameter->{'name'}->{'value'})
@@ -531,7 +531,7 @@ sub parameterMappings {
     my $config = shift();
     my @mappings;
     # Extract parameters from config file.
-    my @parameters = &List::ExtraUtils::as_array($config->{'posteriorSampleSimulationMethod'}->{'modelParameterMethod'});
+    my @parameters = &List::ExtraUtils::as_array($config->{'posteriorSampleSimulation'}->{'modelParameter'});
     # Extract names.
     foreach my $parameter ( @parameters ) {
 	push(@mappings,$parameter->{'operatorUnaryMapper'}->{'value'})
@@ -554,7 +554,7 @@ sub step {
 #     my $workDirectory = $config->{'likelihood'}->{'workDirectory'};
 #     # Get a hash of the parameter values.
 #     my $xml        = new XML::Simple();
-#     my $parameters = $xml->XMLin($config->{'posteriorSampleLikelihoodMethod'}->{'baseParameters'}->{'value'});
+#     my $parameters = $xml->XMLin($config->{'posteriorSampleLikelihood'}->{'baseParameters'}->{'value'});
 #     # Get a matrix of sampled states.
 #     my $sampleMatrix = &Sample_Matrix($config,\%options);
 #     # Run model for each sample.

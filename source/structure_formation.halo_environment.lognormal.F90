@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a log-normal halo environment.
+!!{
+Contains a module which implements a log-normal halo environment.
+!!}
 
   use :: Cosmology_Functions     , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters    , only : cosmologyParametersClass
   use :: Linear_Growth           , only : linearGrowthClass
   use :: Statistics_Distributions, only : distributionFunction1DLogNormal
 
-  !# <haloEnvironment name="haloEnvironmentLogNormal">
-  !#  <description>Implements a log-normal halo environment.</description>
-  !# </haloEnvironment>
+  !![
+  <haloEnvironment name="haloEnvironmentLogNormal">
+   <description>Implements a log-normal halo environment.</description>
+  </haloEnvironment>
+  !!]
   type, extends(haloEnvironmentClass) :: haloEnvironmentLogNormal
-     !% A logNormal halo environment class.
+     !!{
+     A logNormal halo environment class.
+     !!}
      private
      class           (cosmologyParametersClass       ), pointer :: cosmologyParameters_        => null()
      class           (cosmologyFunctionsClass        ), pointer :: cosmologyFunctions_         => null()
@@ -51,7 +57,9 @@
   end type haloEnvironmentLogNormal
 
   interface haloEnvironmentLogNormal
-     !% Constructors for the {\normalfont \ttfamily logNormal} halo environment class.
+     !!{
+     Constructors for the {\normalfont \ttfamily logNormal} halo environment class.
+     !!}
      module procedure logNormalConstructorParameters
      module procedure logNormalConstructorInternal
   end interface haloEnvironmentLogNormal
@@ -59,7 +67,9 @@
 contains
 
   function logNormalConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily logNormal} halo environment class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily logNormal} halo environment class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (haloEnvironmentLogNormal     )                :: self
@@ -71,30 +81,36 @@ contains
     class           (criticalOverdensityClass     ), pointer       :: criticalOverdensity_
     double precision                                               :: radiusEnvironment
 
-    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
-    !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
-    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
-    !# <inputParameter>
-    !#   <name>radiusEnvironment</name>
-    !#   <source>parameters</source>
-    !#   <variable>radiusEnvironment</variable>
-    !#   <defaultValue>7.0d0</defaultValue>
-    !#   <description>The radius of the sphere used to determine the variance in the environmental density.</description>
-    !# </inputParameter>
+    !![
+    <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
+    <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    <inputParameter>
+      <name>radiusEnvironment</name>
+      <source>parameters</source>
+      <variable>radiusEnvironment</variable>
+      <defaultValue>7.0d0</defaultValue>
+      <description>The radius of the sphere used to determine the variance in the environmental density.</description>
+    </inputParameter>
+    !!]
     self=haloEnvironmentLogNormal(radiusEnvironment,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"     />
-    !# <objectDestructor name="cosmologyFunctions_"      />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
-    !# <objectDestructor name="linearGrowth_"            />
-    !# <objectDestructor name="criticalOverdensity_"     />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"     />
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    <objectDestructor name="linearGrowth_"            />
+    <objectDestructor name="criticalOverdensity_"     />
+    !!]
     return
   end function logNormalConstructorParameters
 
   function logNormalConstructorInternal(radiusEnvironment,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily logNormal} halo mass function class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily logNormal} halo mass function class.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (haloEnvironmentLogNormal     )                           :: self
@@ -105,7 +121,9 @@ contains
     class           (criticalOverdensityClass     ), target   , intent(in   ) :: criticalOverdensity_
     double precision                                          , intent(in   ) :: radiusEnvironment
     double precision                               , parameter                :: densityContrastMean        =1.0d0
-    !# <constructorAssign variables="radiusEnvironment, *cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_, *linearGrowth_, *criticalOverdensity_" />
+    !![
+    <constructorAssign variables="radiusEnvironment, *cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_, *linearGrowth_, *criticalOverdensity_" />
+    !!]
 
     self%variance                   =self%cosmologicalMassVariance_%rootVariance(                                                        &
          &                                                                       +4.0d0                                                  &
@@ -118,34 +136,42 @@ contains
          &                                                                      )                                                   **2
     ! Construct a log-normal distribution, for 1+δ.
     allocate(self%distributionDensityContrast)
-    !# <referenceConstruct owner="self" isResult="yes" object="distributionDensityContrast">
-    !#  <constructor>
-    !#   distributionFunction1DLogNormal(                                                                    &amp;
-    !#     &amp;                                    +densityContrastMean                                   , &amp;
-    !#     &amp;                                    +self%variance                                         , &amp;
-    !#     &amp;                         limitUpper=+1.0d0                                                   &amp;
-    !#     &amp;                                    +self%criticalOverdensity_%value(expansionFactor=1.0d0)  &amp;
-    !#     &amp;                        )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct owner="self" isResult="yes" object="distributionDensityContrast">
+     <constructor>
+      distributionFunction1DLogNormal(                                                                    &amp;
+        &amp;                                    +densityContrastMean                                   , &amp;
+        &amp;                                    +self%variance                                         , &amp;
+        &amp;                         limitUpper=+1.0d0                                                   &amp;
+        &amp;                                    +self%criticalOverdensity_%value(expansionFactor=1.0d0)  &amp;
+        &amp;                        )
+     </constructor>
+    </referenceConstruct>
+    !!]
     return
   end function logNormalConstructorInternal
 
   subroutine logNormalDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily logNormal} halo mass function class.
+    !!{
+    Destructor for the {\normalfont \ttfamily logNormal} halo mass function class.
+    !!}
     implicit none
     type(haloEnvironmentLogNormal), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"      />
-    !# <objectDestructor name="self%cosmologicalMassVariance_" />
-    !# <objectDestructor name="self%linearGrowth_"             />
-    !# <objectDestructor name="self%criticalOverdensity_"      />
-    !# <objectDestructor name="self%cosmologyFunctions_"       />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"      />
+    <objectDestructor name="self%cosmologicalMassVariance_" />
+    <objectDestructor name="self%linearGrowth_"             />
+    <objectDestructor name="self%criticalOverdensity_"      />
+    <objectDestructor name="self%cosmologyFunctions_"       />
+    !!]
     return
   end subroutine logNormalDestructor
 
   double precision function logNormalOverdensityLinear(self,node,presentDay)
-    !% Return the environment of the given {\normalfont \ttfamily node}.
+    !!{
+    Return the environment of the given {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     use :: Kind_Numbers    , only : kind_int8
     implicit none
@@ -156,7 +182,9 @@ contains
     integer         (kind_int8                      ), save                    :: uniqueIDPrevious           =-1_kind_int8
     double precision                                 , save                    :: overdensityPrevious
     !$omp threadprivate(uniqueIDPrevious,overdensityPrevious)
-    !# <optionalArgument name="presentDay" defaultsTo=".false." />
+    !![
+    <optionalArgument name="presentDay" defaultsTo=".false." />
+    !!]
 
     if (node%hostTree%baseNode%uniqueID() /= uniqueIDPrevious) then
        uniqueIDPrevious=node%hostTree%baseNode%uniqueID()
@@ -181,7 +209,9 @@ contains
   end function logNormalOverdensityLinear
 
   double precision function logNormalOverdensityLinearGradientTime(self,node)
-    !% Return the time gradient of the environment of the given {\normalfont \ttfamily node}.
+    !!{
+    Return the time gradient of the environment of the given {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(haloEnvironmentLogNormal), intent(inout) :: self
@@ -198,7 +228,9 @@ contains
   end function logNormalOverdensityLinearGradientTime
 
   double precision function logNormalOverdensityNonLinear(self,node)
-    !% Return the environment of the given {\normalfont \ttfamily node}.
+    !!{
+    Return the environment of the given {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(haloEnvironmentLogNormal), intent(inout) :: self
@@ -210,7 +242,9 @@ contains
   end function logNormalOverdensityNonLinear
 
   double precision function logNormalEnvironmentRadius(self)
-    !% Return the radius of the environment.
+    !!{
+    Return the radius of the environment.
+    !!}
     implicit none
     class(haloEnvironmentLogNormal), intent(inout) :: self
 
@@ -219,7 +253,9 @@ contains
   end function logNormalEnvironmentRadius
 
   double precision function logNormalEnvironmentMass(self)
-    !% Return the mass of the environment.
+    !!{
+    Return the mass of the environment.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class(haloEnvironmentLogNormal), intent(inout) :: self
@@ -233,7 +269,9 @@ contains
   end function logNormalEnvironmentMass
 
   double precision function logNormalOverdensityLinearMinimum(self)
-    !% Return the minimum overdensity for which the \gls{pdf} is non-zero.
+    !!{
+    Return the minimum overdensity for which the \gls{pdf} is non-zero.
+    !!}
     implicit none
     class(haloEnvironmentLogNormal), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -243,7 +281,9 @@ contains
   end function logNormalOverdensityLinearMinimum
 
   double precision function logNormalPDF(self,overdensity)
-    !% Return the PDF of the environmental overdensity.
+    !!{
+    Return the PDF of the environmental overdensity.
+    !!}
     implicit none
     class           (haloEnvironmentLogNormal), intent(inout) :: self
     double precision                          , intent(in   ) :: overdensity
@@ -253,7 +293,9 @@ contains
   end function logNormalPDF
 
   double precision function logNormalCDF(self,overdensity)
-    !% Return the CDF of the environmental overdensity.
+    !!{
+    Return the CDF of the environmental overdensity.
+    !!}
     implicit none
     class           (haloEnvironmentLogNormal), intent(inout) :: self
     double precision                          , intent(in   ) :: overdensity
@@ -263,7 +305,9 @@ contains
   end function logNormalCDF
 
   subroutine logNormalOverdensityLinearSet(self,node,overdensity)
-    !% Return the CDF of the environmental overdensity.
+    !!{
+    Return the CDF of the environmental overdensity.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (haloEnvironmentLogNormal), intent(inout) :: self

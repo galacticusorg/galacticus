@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,16 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a merger tree filter class which is the ``any'' combination of a set of other filters.
+!!{
+Contains a module which implements a merger tree filter class which is the ``any'' combination of a set of other filters.
+!!}
 
-  !# <mergerTreeFilter name="mergerTreeFilterAny">
-  !#  <description>A merger tree filter class which is the ``any'' combination of a set of other filters.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="mergerTreeFilterClass"/>
-  !#  </deepCopy>
-  !# </mergerTreeFilter>
+  !![
+  <mergerTreeFilter name="mergerTreeFilterAny">
+   <description>A merger tree filter class which is the ``any'' combination of a set of other filters.</description>
+   <deepCopy>
+    <linkedList type="filterList" variable="filters" next="next" object="filter_" objectType="mergerTreeFilterClass"/>
+   </deepCopy>
+   <stateStore>
+    <linkedList type="filterList" variable="filters" next="next" object="filter_"/>
+   </stateStore>
+  </mergerTreeFilter>
+  !!]
   type, extends(mergerTreeFilterClass) :: mergerTreeFilterAny
-     !% A merger tree filter class which is the ``any'' combination of a set of other filters.
+     !!{
+     A merger tree filter class which is the ``any'' combination of a set of other filters.
+     !!}
      private
      type(filterList), pointer :: filters => null()
   contains
@@ -35,7 +44,9 @@
   end type mergerTreeFilterAny
 
   interface mergerTreeFilterAny
-     !% Constructors for the any merger tree filter class.
+     !!{
+     Constructors for the any merger tree filter class.
+     !!}
      module procedure anyConstructorParameters
      module procedure anyConstructorInternal
   end interface mergerTreeFilterAny
@@ -43,7 +54,9 @@
 contains
 
   function anyConstructorParameters(parameters) result(self)
-    !% Constructor for the ``any'' merger tree filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``any'' merger tree filter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (mergerTreeFilterAny)                :: self
@@ -53,7 +66,7 @@ contains
 
     self   %filters => null()
     filter_         => null()
-    do i=1,parameters%copiesCount('mergerTreeFilterMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('mergerTreeFilter',zeroIfNotPresent=.true.)
        if (associated(filter_)) then
           allocate(filter_%next)
           filter_ => filter_%next
@@ -61,13 +74,17 @@ contains
           allocate(self%filters)
           filter_ => self%filters
        end if
-       !# <objectBuilder class="mergerTreeFilter" name="filter_%filter_" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="mergerTreeFilter" name="filter_%filter_" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function anyConstructorParameters
 
   function anyConstructorInternal(filters) result(self)
-    !% Internal constructor for the ``any'' filter class.
+    !!{
+    Internal constructor for the ``any'' filter class.
+    !!}
     implicit none
     type(mergerTreeFilterAny)                        :: self
     type(filterList         ), target, intent(in   ) :: filters
@@ -76,14 +93,18 @@ contains
     self   %filters => filters
     filter_         => filters
     do while (associated(filter_))
-       !# <referenceCountIncrement owner="filter_" object="filter_"/>
+       !![
+       <referenceCountIncrement owner="filter_" object="filter_"/>
+       !!]
        filter_ => filter_%next
     end do
     return
   end function anyConstructorInternal
 
   subroutine anyDestructor(self)
-    !% Destructor for the ``any'' merger tree filter class.
+    !!{
+    Destructor for the ``any'' merger tree filter class.
+    !!}
     implicit none
     type(mergerTreeFilterAny), intent(inout) :: self
     type(filterList         ), pointer       :: filter_, filterNext
@@ -92,7 +113,9 @@ contains
        filter_ => self%filters
        do while (associated(filter_))
           filterNext => filter_%next
-          !# <objectDestructor name="filter_%filter_"/>
+          !![
+          <objectDestructor name="filter_%filter_"/>
+          !!]
           deallocate(filter_)
           filter_ => filterNext
        end do
@@ -101,7 +124,9 @@ contains
   end subroutine anyDestructor
 
   logical function anyPasses(self,tree)
-    !% Apply a set of filters to a {\normalfont \ttfamily tree} combined with ``any'' operations.
+    !!{
+    Apply a set of filters to a {\normalfont \ttfamily tree} combined with ``any'' operations.
+    !!}
     implicit none
     class(mergerTreeFilterAny), intent(inout) :: self
     type (mergerTree         ), intent(in   ) :: tree

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,26 +19,34 @@
 
 !+    Contributions to this file made by:  Luiz Felippe S. Rodrigues.
 
-  !% An implementation of the intergalactic medium state class in which state is computed using {\normalfont \scshape RecFast}.
+  !!{
+  An implementation of the intergalactic medium state class in which state is computed using {\normalfont \scshape RecFast}.
+  !!}
 
   use :: File_Utilities, only : lockDescriptor
 
-  !# <intergalacticMediumState name="intergalacticMediumStateRecFast">
-  !#  <description>
-  !#   An intergalactic medium state class which computes the state of the intergalactic medium using the
-  !#   \href{https://www.astro.ubc.ca/people/scott/recfast.html}{{\normalfont \scshape RecFast}} code
-  !#   \cite{seager_how_2000,wong_how_2008}. The {\normalfont \scshape RecFast} code will be downloaded and run to compute the
-  !#   intergalactic medium state as needed, which will then be stored for future use.
-  !#  </description>
-  !# </intergalacticMediumState>
+  !![
+  <intergalacticMediumState name="intergalacticMediumStateRecFast">
+   <description>
+    An intergalactic medium state class which computes the state of the intergalactic medium using the
+    \href{https://www.astro.ubc.ca/people/scott/recfast.html}{{\normalfont \scshape RecFast}} code
+    \cite{seager_how_2000,wong_how_2008}. The {\normalfont \scshape RecFast} code will be downloaded and run to compute the
+    intergalactic medium state as needed, which will then be stored for future use.
+   </description>
+  </intergalacticMediumState>
+  !!]
   type, extends(intergalacticMediumStateFile) :: intergalacticMediumStateRecFast
-     !% An \gls{igm} state class which computes state using {\normalfont \scshape RecFast}.
+     !!{
+     An \gls{igm} state class which computes state using {\normalfont \scshape RecFast}.
+     !!}
      private
      type (lockDescriptor) :: fileLock
   end type intergalacticMediumStateRecFast
 
   interface intergalacticMediumStateRecFast
-     !% Constructors for the {\normalfont \scshape RecFast} intergalactic medium state class.
+     !!{
+     Constructors for the {\normalfont \scshape RecFast} intergalactic medium state class.
+     !!}
      module procedure recFastConstructorParameters
      module procedure recFastConstructorInternal
   end interface intergalacticMediumStateRecFast
@@ -46,7 +54,9 @@
 contains
 
   function recFastConstructorParameters(parameters) result(self)
-    !% Default constructor for the {\normalfont \scshape RecFast} \gls{igm} state class.
+    !!{
+    Default constructor for the {\normalfont \scshape RecFast} \gls{igm} state class.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (intergalacticMediumStateRecFast)                :: self
@@ -55,17 +65,23 @@ contains
     class(cosmologyParametersClass       ), pointer       :: cosmologyParameters_
 
     ! Check and read parameters.
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !!]
     self=intergalacticMediumStateRecFast(cosmologyFunctions_,cosmologyParameters_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
-    !# <objectDestructor name="cosmologyParameters_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="cosmologyParameters_"/>
+    !!]
     return
   end function recFastConstructorParameters
 
   function recFastConstructorInternal(cosmologyFunctions_,cosmologyParameters_) result(self)
-    !% Constructor for the {\normalfont \scshape RecFast} \gls{igm} state class.
+    !!{
+    Constructor for the {\normalfont \scshape RecFast} \gls{igm} state class.
+    !!}
     use :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsStandard
     use :: Dates_and_Times                 , only : Formatted_Date_and_Time
     use :: File_Utilities                  , only : Count_Lines_in_File         , Directory_Make     , File_Exists, File_Lock, &
@@ -94,15 +110,19 @@ contains
          &                                                                            provenance          , recFastProvenance
     logical                                                                        :: buildFile
     type            (lockDescriptor                 )                              :: fileLock
-    !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_"/>
+    !!]
 
     ! Compute dark matter density.
     omegaDarkMatter=self%cosmologyParameters_%OmegaMatter()-self%cosmologyParameters_%OmegaBaryon()
     ! Construct the file name.
     self%fileName=char(galacticusPath(pathTypeDataDynamic))//'intergalacticMedium/recFast'
-    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    !# </workaround>
+    !![
+    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+     <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    </workaround>
+    !!]
 #ifdef THREADSAFEIO
     !$omp critical(gfortranInternalIO)
 #endif

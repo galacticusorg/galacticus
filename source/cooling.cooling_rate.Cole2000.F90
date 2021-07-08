@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,25 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a cooling rate class for the \cite{cole_hierarchical_2000} cooling rate calculation.
+  !!{
+  Implementation of a cooling rate class for the \cite{cole_hierarchical_2000} cooling rate calculation.
+  !!}
 
   use :: Cooling_Infall_Radii       , only : coolingInfallRadiusClass
   use :: Hot_Halo_Mass_Distributions, only : hotHaloMassDistributionClass
 
-  !# <coolingRate name="coolingRateCole2000">
-  !#  <description>
-  !#   A cooling rate class that uses the algorithm of \cite{cole_hierarchical_2000}. The cooling rate is given by
-  !#   \begin{equation}
-  !#   \dot{M}_\mathrm{cool} = \left\{ \begin{array}{ll} 4 \pi r_\mathrm{infall}^2 \rho(r_\mathrm{infall}) \dot{r}_\mathrm{infall}
-  !#   &amp; \hbox{ if } r_\mathrm{infall} &lt; r_\mathrm{hot, outer} \\ 0 &amp; \hbox{ if } r_\mathrm{infall} \ge r_\mathrm{hot,
-  !#   outer}, \end{array} \right.
-  !#   \end{equation}
-  !#   where $\rho(r)$ is the density profile of the hot halo, and $r_\mathrm{infall}$ is the infall radius (see
-  !#   \refPhysics{coolingInfallRadius}).
-  !#  </description>
-  !# </coolingRate>
+  !![
+  <coolingRate name="coolingRateCole2000">
+   <description>
+    A cooling rate class that uses the algorithm of \cite{cole_hierarchical_2000}. The cooling rate is given by
+    \begin{equation}
+    \dot{M}_\mathrm{cool} = \left\{ \begin{array}{ll} 4 \pi r_\mathrm{infall}^2 \rho(r_\mathrm{infall}) \dot{r}_\mathrm{infall}
+    &amp; \hbox{ if } r_\mathrm{infall} &lt; r_\mathrm{hot, outer} \\ 0 &amp; \hbox{ if } r_\mathrm{infall} \ge r_\mathrm{hot,
+    outer}, \end{array} \right.
+    \end{equation}
+    where $\rho(r)$ is the density profile of the hot halo, and $r_\mathrm{infall}$ is the infall radius (see
+    \refPhysics{coolingInfallRadius}).
+   </description>
+  </coolingRate>
+  !!]
   type, extends(coolingRateClass) :: coolingRateCole2000
-     !% Implementation of cooling rate class for the \cite{cole_hierarchical_2000} cooling rate calculation.
+     !!{
+     Implementation of cooling rate class for the \cite{cole_hierarchical_2000} cooling rate calculation.
+     !!}
      private
      class(coolingInfallRadiusClass    ), pointer :: coolingInfallRadius_ => null()
      class(hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_ => null()
@@ -45,7 +51,9 @@
   end type coolingRateCole2000
 
   interface coolingRateCole2000
-     !% Constructors for the \cite{cole_hierarchical_2000} cooling rate class.
+     !!{
+     Constructors for the \cite{cole_hierarchical_2000} cooling rate class.
+     !!}
      module procedure cole2000ConstructorParameters
      module procedure cole2000ConstructorInternal
   end interface coolingRateCole2000
@@ -53,7 +61,9 @@
 contains
 
   function cole2000ConstructorParameters(parameters) result(self)
-    !% Constructor for the \cite{cole_hierarchical_2000} cooling rate class which builds the object from a parameter set.
+    !!{
+    Constructor for the \cite{cole_hierarchical_2000} cooling rate class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (coolingRateCole2000         )                :: self
@@ -61,39 +71,53 @@ contains
     class(coolingInfallRadiusClass    ), pointer       :: coolingInfallRadius_
     class(hotHaloMassDistributionClass), pointer       :: hotHaloMassDistribution_
 
-    !# <objectBuilder class="coolingInfallRadius"     name="coolingInfallRadius_"     source="parameters"/>
-    !# <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
+    !![
+    <objectBuilder class="coolingInfallRadius"     name="coolingInfallRadius_"     source="parameters"/>
+    <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
+    !!]
     self=coolingRateCole2000(coolingInfallRadius_,hotHaloMassDistribution_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="coolingInfallRadius_"    />
-    !# <objectDestructor name="hotHaloMassDistribution_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="coolingInfallRadius_"    />
+    <objectDestructor name="hotHaloMassDistribution_"/>
+    !!]
     return
   end function cole2000ConstructorParameters
 
   function cole2000ConstructorInternal(coolingInfallRadius_,hotHaloMassDistribution_) result(self)
-    !% Internal constructor for the \cite{cole_hierarchical_2000} cooling rate class.
+    !!{
+    Internal constructor for the \cite{cole_hierarchical_2000} cooling rate class.
+    !!}
     implicit none
     type (coolingRateCole2000         )                        :: self
     class(coolingInfallRadiusClass    ), intent(in   ), target :: coolingInfallRadius_
     class(hotHaloMassDistributionClass), intent(in   ), target :: hotHaloMassDistribution_
-    !# <constructorAssign variables="*coolingInfallRadius_, *hotHaloMassDistribution_"/>
+    !![
+    <constructorAssign variables="*coolingInfallRadius_, *hotHaloMassDistribution_"/>
+    !!]
 
     return
   end function cole2000ConstructorInternal
 
   subroutine cole2000Destructor(self)
-    !% Destructor for the \cite{cole_hierarchical_2000} cooling rate class.
+    !!{
+    Destructor for the \cite{cole_hierarchical_2000} cooling rate class.
+    !!}
     implicit none
     type(coolingRateCole2000), intent(inout) :: self
 
-    !# <objectDestructor name="self%coolingInfallRadius_"    />
-    !# <objectDestructor name="self%hotHaloMassDistribution_"/>
+    !![
+    <objectDestructor name="self%coolingInfallRadius_"    />
+    <objectDestructor name="self%hotHaloMassDistribution_"/>
+    !!]
     return
   end subroutine cole2000Destructor
 
   double precision function cole2000Rate(self,node)
-    !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for the \cite{white_galaxy_1991} cooling rate
-    !% model.
+    !!{
+    Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for the \cite{white_galaxy_1991} cooling rate
+    model.
+    !!}
     use :: Galacticus_Nodes        , only : nodeComponentBasic, nodeComponentHotHalo, treeNode
     use :: Numerical_Constants_Math, only : Pi
     implicit none

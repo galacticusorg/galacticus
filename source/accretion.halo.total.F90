@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,33 +17,39 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class for calculations of the intergalactic medium thermal and ionization state.
+!!{
+Contains a module which provides a class for calculations of the intergalactic medium thermal and ionization state.
+!!}
 
 module Accretion_Halo_Totals
-  !% Provides a class for calculations of the total accretion rate onto halos for use by the halo accretion classes which compute
-  !% the accretion rates of baryonic material.
+  !!{
+  Provides a class for calculations of the total accretion rate onto halos for use by the halo accretion classes which compute
+  the accretion rates of baryonic material.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
-  !# <functionClass>
-  !#  <name>accretionHaloTotal</name>
-  !#  <descriptiveName>Halo Total Accretion Rates</descriptiveName>
-  !#  <description>
-  !#   Class providing total accretion rates onto halos, i.e. the mass which would be accreted in a dark matter-only universe.
-  !#  </description>
-  !#  <default>simple</default>
-  !#  <method name="accretionRate" >
-  !#   <description>Return the total accretion rate onto the given {\normalfont \ttfamily node}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !#  <method name="accretedMass" >
-  !#   <description>Return the total accreted mass in the given {\normalfont \ttfamily node}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>accretionHaloTotal</name>
+   <descriptiveName>Halo Total Accretion Rates</descriptiveName>
+   <description>
+    Class providing total accretion rates onto halos, i.e. the mass which would be accreted in a dark matter-only universe.
+   </description>
+   <default>simple</default>
+   <method name="accretionRate" >
+    <description>Return the total accretion rate onto the given {\normalfont \ttfamily node}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+   <method name="accretedMass" >
+    <description>Return the total accreted mass in the given {\normalfont \ttfamily node}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Accretion_Halo_Totals

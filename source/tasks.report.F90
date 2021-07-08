@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <task name="taskReport">
-  !#  <description>A task which reports on version and build information.</description>
-  !# </task>
+  !![
+  <task name="taskReport">
+   <description>A task which reports on version and build information.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskReport
-     !% Implementation of a task which reports on version and build information.
+     !!{
+     Implementation of a task which reports on version and build information.
+     !!}
      private
    contains
      procedure :: perform            => reportPerform
@@ -29,14 +33,18 @@
   end type taskReport
 
   interface taskReport
-     !% Constructors for the {\normalfont \ttfamily report} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily report} task.
+     !!}
      module procedure reportParameters
   end interface taskReport
 
 contains
 
   function reportParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily report} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily report} task class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(taskReport     )                :: self
@@ -48,9 +56,11 @@ contains
   end function reportParameters
 
   subroutine reportPerform(self,status)
-    !% Builds the tabulation.
+    !!{
+    Builds the tabulation.
+    !!}
+    use :: Display              , only : displayIndent            , displayMessage, displayUnindent
     use :: Galacticus_Build     , only : Galacticus_Build_String
-    use :: Galacticus_Display   , only : Galacticus_Display_Indent, Galacticus_Display_Message, Galacticus_Display_Unindent
     use :: Galacticus_Error     , only : errorStatusSuccess
     use :: Galacticus_Versioning, only : Galacticus_Version_String
     implicit none
@@ -58,16 +68,18 @@ contains
     integer            , intent(  out), optional :: status
     !$GLC attributes unused :: self
 
-    call Galacticus_Display_Indent  ('Begin task: report'                               )
-    call Galacticus_Display_Message ('This is Galacticus: '//Galacticus_Version_String())
-    call Galacticus_Display_Message ('Built with: '        //Galacticus_Build_String  ())
-    call Galacticus_Display_Unindent('Done task: report'                                )
+    call displayIndent  ('Begin task: report'                               )
+    call displayMessage ('This is Galacticus: '//Galacticus_Version_String())
+    call displayMessage ('Built with: '        //Galacticus_Build_String  ())
+    call displayUnindent('Done task: report'                                )
     if (present(status)) status=errorStatusSuccess
     return
   end subroutine reportPerform
 
   logical function reportRequiresOutputFile(self)
-    !% Specifies that this task does not requires the main output file.
+    !!{
+    Specifies that this task does not requires the main output file.
+    !!}
     implicit none
     class(taskReport), intent(inout) :: self
     !$GLC attributes unused :: self

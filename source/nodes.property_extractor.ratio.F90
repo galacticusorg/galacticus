@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a ratio output analysis property extractor class.
+!!{
+Contains a module which implements a ratio output analysis property extractor class.
+!!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorRatio">
-  !#  <description>A ratio output analysis property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorRatio">
+   <description>A ratio output analysis property extractor class.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRatio
-     !% A ratio extractor output analysis class. This extractor extracts two other properties and takes their ratio.
+     !!{
+     A ratio extractor output analysis class. This extractor extracts two other properties and takes their ratio.
+     !!}
      private
      class           (nodePropertyExtractorClass), pointer :: propertyNumerator_ => null(), propertyDenominator_ => null()
      type            (varying_string            )          :: name_                       , description_
@@ -38,7 +44,9 @@
   end type nodePropertyExtractorRatio
 
   interface nodePropertyExtractorRatio
-     !% Constructors for the ``ratio'' output analysis class.
+     !!{
+     Constructors for the ``ratio'' output analysis class.
+     !!}
      module procedure ratioConstructorParameters
      module procedure ratioConstructorInternal
   end interface nodePropertyExtractorRatio
@@ -46,7 +54,9 @@
 contains
 
   function ratioConstructorParameters(parameters) result(self)
-    !% Constructor for the ``ratio'' output analysis property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``ratio'' output analysis property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorRatio)                :: self
@@ -54,33 +64,41 @@ contains
     class(nodePropertyExtractorClass), pointer       :: propertyNumerator_, propertyDenominator_
     type (varying_string            )                :: name              , description
 
-    !# <inputParameter>
-    !#   <name>name</name>
-    !#   <source>parameters</source>
-    !#   <description>The name of this property.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>description</name>
-    !#   <source>parameters</source>
-    !#   <description>A description of this property.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="nodePropertyExtractor" name="propertyNumerator_"   parameterName="nodePropertyExtractorNumerator"   source="parameters"/>
-    !# <objectBuilder class="nodePropertyExtractor" name="propertyDenominator_" parameterName="nodePropertyExtractorDenominator" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>name</name>
+      <source>parameters</source>
+      <description>The name of this property.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>description</name>
+      <source>parameters</source>
+      <description>A description of this property.</description>
+    </inputParameter>
+    <objectBuilder class="nodePropertyExtractor" name="propertyNumerator_"   parameterName="nodePropertyExtractorNumerator"   source="parameters"/>
+    <objectBuilder class="nodePropertyExtractor" name="propertyDenominator_" parameterName="nodePropertyExtractorDenominator" source="parameters"/>
+    !!]
     self=nodePropertyExtractorRatio(char(name),char(description),propertyNumerator_,propertyDenominator_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="propertyNumerator_"  />
-    !# <objectDestructor name="propertyDenominator_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="propertyNumerator_"  />
+    <objectDestructor name="propertyDenominator_"/>
+    !!]
     return
   end function ratioConstructorParameters
 
   function ratioConstructorInternal(name,description,propertyNumerator_,propertyDenominator_) result(self)
-    !% Internal constructor for the ``ratio'' output analysis property extractor class.
+    !!{
+    Internal constructor for the ``ratio'' output analysis property extractor class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type     (nodePropertyExtractorRatio)                        :: self
     class    (nodePropertyExtractorClass), intent(inout), target :: propertyNumerator_, propertyDenominator_
     character(len=*                     ), intent(in   )         :: name              , description
-    !# <constructorAssign variables="*propertyNumerator_, *propertyDenominator_"/>
+    !![
+    <constructorAssign variables="*propertyNumerator_, *propertyDenominator_"/>
+    !!]
 
     self%name_       =name
     self%description_=description
@@ -101,17 +119,23 @@ contains
   end function ratioConstructorInternal
 
   subroutine ratioDestructor(self)
-    !% Destructor for the ``ratio'' output analysis property extractor class.
+    !!{
+    Destructor for the ``ratio'' output analysis property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorRatio), intent(inout) :: self
 
-    !# <objectDestructor name="self%propertyNumerator_"  />
-    !# <objectDestructor name="self%propertyDenominator_"/>
+    !![
+    <objectDestructor name="self%propertyNumerator_"  />
+    <objectDestructor name="self%propertyDenominator_"/>
+    !!]
     return
   end subroutine ratioDestructor
 
   double precision function ratioExtract(self,node,instance)
-    !% Implement a ratio output analysis.
+    !!{
+    Implement a ratio output analysis.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (nodePropertyExtractorRatio), intent(inout)           :: self
@@ -143,7 +167,9 @@ contains
   end function ratioExtract
 
   function ratioName(self)
-    !% Return the name of this property.
+    !!{
+    Return the name of this property.
+    !!}
     implicit none
     type (varying_string            )                :: ratioName
     class(nodePropertyExtractorRatio), intent(inout) :: self
@@ -153,7 +179,9 @@ contains
   end function ratioName
 
   function ratioDescription(self)
-    !% Return the description of this property.
+    !!{
+    Return the description of this property.
+    !!}
     implicit none
     type (varying_string            )                :: ratioDescription
     class(nodePropertyExtractorRatio), intent(inout) :: self
@@ -163,7 +191,9 @@ contains
   end function ratioDescription
 
   double precision function ratioUnitsInSI(self)
-    !% Return the description of this property.
+    !!{
+    Return the description of this property.
+    !!}
     implicit none
     class(nodePropertyExtractorRatio), intent(inout) :: self
 
@@ -172,7 +202,9 @@ contains
   end function ratioUnitsInSI
 
   integer function ratioType(self)
-    !% Return the type of the ratio property.
+    !!{
+    Return the type of the ratio property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRatio), intent(inout) :: self

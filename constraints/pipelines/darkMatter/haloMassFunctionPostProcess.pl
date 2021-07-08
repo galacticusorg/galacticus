@@ -116,7 +116,8 @@ foreach my $simulation ( @simulations ) {
     $job->{'ppn'       } = 1;
     $job->{'nodes'     } = 1;
     $job->{'mpi'       } = "yes";
-    push(@jobs,$job);
+    push(@jobs,$job)
+	unless ( -e $outputDirectory."/haloMassFunction_".$simulation->{'label'}.":MPI0000.hdf5" );
 }
 &{$Galacticus::Launch::Hooks::moduleHooks{$queueManager->{'manager'}}->{'jobArrayLaunch'}}(\%options,@jobs)
     if ( scalar(@jobs) > 0 );
@@ -154,7 +155,7 @@ foreach my $simulation ( @simulations ) {
 }
 
 # Begin creating the plots.
-{
+unless ( -e $outputDirectory."/haloMassFunction.pdf" ) {
     ## Halo mass function.
     my $plot;
     my $gnuPlot;
@@ -228,7 +229,7 @@ foreach my $simulation ( @simulations ) {
     &GnuPlot::LaTeX::GnuPlot2PDF($plotFileTeX);
 }
 
-{
+unless ( -e $outputDirectory."/haloMassFunctionResidualsFractional.pdf" ) {
     ## Halo mass function residuals, fractional.
     my $plot;
     my $gnuPlot;
@@ -283,7 +284,7 @@ foreach my $simulation ( @simulations ) {
     &GnuPlot::LaTeX::GnuPlot2PDF($plotFileTeX);
 }
 
-{
+unless ( -e $outputDirectory."/haloMassFunctionResidualsNormalized.pdf" ) {
     ## Halo mass function residuals, normalized.
     my $plot;
     my $gnuPlot;
@@ -339,5 +340,5 @@ foreach my $simulation ( @simulations ) {
     close($gnuPlot);
     &GnuPlot::LaTeX::GnuPlot2PDF($plotFileTeX);
 }
- 
+
 exit 0;

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,14 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% A dark matter halo profile heating class which computes heating due to two-body relaxation.
+  !!{
+  A dark matter halo profile heating class which computes heating due to two-body relaxation.
+  !!}
 
-  !# <darkMatterProfileHeating name="darkMatterProfileHeatingTwoBodyRelaxation">
-  !#  <description>A dark matter profile heating model which computes heating due to two-body relaxation.</description>
-  !# </darkMatterProfileHeating>
+  !![
+  <darkMatterProfileHeating name="darkMatterProfileHeatingTwoBodyRelaxation">
+   <description>A dark matter profile heating model which computes heating due to two-body relaxation.</description>
+  </darkMatterProfileHeating>
+  !!]
 
   type, extends(darkMatterProfileHeatingClass) :: darkMatterProfileHeatingTwoBodyRelaxation
-     !% A dark matter profile heating class which computes heating due to two-body relaxation.
+     !!{
+     A dark matter profile heating class which computes heating due to two-body relaxation.
+     !!}
      private
      double precision :: massParticle, lengthSoftening, &
           &              timeStart   , efficiency
@@ -35,7 +41,9 @@
   end type darkMatterProfileHeatingTwoBodyRelaxation
 
   interface darkMatterProfileHeatingTwoBodyRelaxation
-     !% Constructors for the {\normalfont \ttfamily twoBodyRelaxation} dark matter profile heating class.
+     !!{
+     Constructors for the {\normalfont \ttfamily twoBodyRelaxation} dark matter profile heating class.
+     !!}
      module procedure twoBodyRelaxationConstructorParameters
      module procedure twoBodyRelaxationConstructorInternal
   end interface darkMatterProfileHeatingTwoBodyRelaxation
@@ -43,7 +51,9 @@
 contains
 
   function twoBodyRelaxationConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily twoBodyRelaxation} dark matter profile heating scales class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily twoBodyRelaxation} dark matter profile heating scales class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (darkMatterProfileHeatingTwoBodyRelaxation), target        :: self
@@ -51,52 +61,61 @@ contains
     double precision                                                           :: massParticle, lengthSoftening, &
          &                                                                        timeStart   , efficiency
 
-    !# <inputParameter>
-    !#   <name>massParticle</name>
-    !#   <source>parameters</source>
-    !#   <description>The particle mass to use for two-body relaxation calculations.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>lengthSoftening</name>
-    !#   <source>parameters</source>
-    !#   <description>The softening length to use for two-body relaxation calculations.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>timeStart</name>
-    !#   <source>parameters</source>
-    !#   <description>The time at which two-body relaxation is assumed to have begun.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>efficiency</name>
-    !#   <source>parameters</source>
-    !#   <description>The fractional efficiency of two-body relaxation heating.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>massParticle</name>
+      <source>parameters</source>
+      <description>The particle mass to use for two-body relaxation calculations.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>lengthSoftening</name>
+      <source>parameters</source>
+      <description>The softening length to use for two-body relaxation calculations.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>timeStart</name>
+      <source>parameters</source>
+      <description>The time at which two-body relaxation is assumed to have begun.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>efficiency</name>
+      <source>parameters</source>
+      <description>The fractional efficiency of two-body relaxation heating.</description>
+    </inputParameter>
+    !!]
     self=darkMatterProfileHeatingTwoBodyRelaxation(massParticle,lengthSoftening,timeStart,efficiency)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function twoBodyRelaxationConstructorParameters
 
   function twoBodyRelaxationConstructorInternal(massParticle,lengthSoftening,timeStart,efficiency) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily twoBodyRelaxation} dark matter profile heating scales class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily twoBodyRelaxation} dark matter profile heating scales class.
+    !!}
     implicit none
     type            (darkMatterProfileHeatingTwoBodyRelaxation)                :: self
     double precision                                           , intent(in   ) :: massParticle, lengthSoftening, &
          &                                                                        timeStart   , efficiency
-    !# <constructorAssign variables="massParticle, lengthSoftening, timeStart, efficiency"/>
+    !![
+    <constructorAssign variables="massParticle, lengthSoftening, timeStart, efficiency"/>
+    !!]
 
     return
   end function twoBodyRelaxationConstructorInternal
 
   double precision function twoBodyRelaxationSpecificEnergy(self,node,darkMatterProfileDMO_,radius)
-    !% Returns the specific energy of heating in the given {\normalfont \ttfamily node}. The assumption here is that the mean
-    !% fractional change in energy for a particle per crossing time is $8 \log \Lambda / N$ where $N$ is the number of particles
-    !% within radius $r=${\normalfont \ttfamily radius}. The crossing time is approximated by $r/V(r)$ where $V(r)$ is the
-    !% circular velocity at $r$. The Coulomb logarithm is given by $\log\Lambda=\hbox{max}(\epsilon,b_{90})$ where $\epsilon$ is
-    !% the softening length, $b_{90}=2\mathrm{G}m_\mathrm{p}/V^2(r)$, and $m_\mathrm{p}$ is the particle mass. Finally, the
-    !% specific energy is assumed to be $\sigma^2(r)/2\approx V^2(r)/4$.
-    use :: Galacticus_Nodes                , only : nodeComponentBasic             , treeNode
-    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
-    use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
+    !!{
+    Returns the specific energy of heating in the given {\normalfont \ttfamily node}. The assumption here is that the mean
+    fractional change in energy for a particle per crossing time is $8 \log \Lambda / N$ where $N$ is the number of particles
+    within radius $r=${\normalfont \ttfamily radius}. The crossing time is approximated by $r/V(r)$ where $V(r)$ is the
+    circular velocity at $r$. The Coulomb logarithm is given by $\log\Lambda=\hbox{max}(\epsilon,b_{90})$ where $\epsilon$ is
+    the softening length, $b_{90}=2\mathrm{G}m_\mathrm{p}/V^2(r)$, and $m_\mathrm{p}$ is the particle mass. Finally, the
+    specific energy is assumed to be $\sigma^2(r)/2\approx V^2(r)/4$.
+    !!}
+    use :: Galacticus_Nodes                , only : nodeComponentBasic, treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear          , megaParsec, gravitationalConstantGalacticus
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (darkMatterProfileHeatingTwoBodyRelaxation), intent(inout) :: self
@@ -147,8 +166,10 @@ contains
   end function twoBodyRelaxationSpecificEnergy
 
   double precision function twoBodyRelaxationSpecificEnergyGradient(self,node,darkMatterProfileDMO_,radius)
-    !% Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
-    use :: Galacticus_Nodes            , only : nodeComponentBasic             , treeNode
+    !!{
+    Returns the gradient of the specific energy of heating in the given {\normalfont \ttfamily node}.
+    !!}
+    use :: Galacticus_Nodes                , only : nodeComponentBasic             , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileHeatingTwoBodyRelaxation), intent(inout) :: self
@@ -220,7 +241,9 @@ contains
   end function twoBodyRelaxationSpecificEnergyGradient
 
   logical function twoBodyRelaxationSpecificEnergyIsEverywhereZero(self,node,darkMatterProfileDMO_)
-    !% Returns true if the specific energy is everywhere zero in the given {\normalfont \ttfamily node}.
+    !!{
+    Returns true if the specific energy is everywhere zero in the given {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(darkMatterProfileHeatingTwoBodyRelaxation), intent(inout) :: self

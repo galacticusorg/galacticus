@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a filter which passes only halos that have always been isolated.
+!!{
+Contains a module which implements a filter which passes only halos that have always been isolated.
+!!}
 
-  !# <galacticFilter name="galacticFilterHaloAlwaysIsolated">
-  !#  <description>A filter which passes only halos that have always been isolated.</description>
-  !# </galacticFilter>
+  !![
+  <galacticFilter name="galacticFilterHaloAlwaysIsolated">
+   <description>A filter which passes only halos that have always been isolated.</description>
+  </galacticFilter>
+  !!]
   type, extends(galacticFilterClass) :: galacticFilterHaloAlwaysIsolated
-     !% A galactic filter class which passes only halos that have always been isolated.
+     !!{
+     A galactic filter class which passes only halos that have always been isolated.
+     !!}
      private
    contains
      procedure :: passes => haloAlwaysIsolatedPasses
   end type galacticFilterHaloAlwaysIsolated
 
   interface galacticFilterHaloAlwaysIsolated
-     !% Constructors for the ``haloAlwaysIsolated'' galactic filter class.
+     !!{
+     Constructors for the ``haloAlwaysIsolated'' galactic filter class.
+     !!}
      module procedure haloAlwaysIsolatedConstructorParameters
   end interface galacticFilterHaloAlwaysIsolated
 
 contains
 
   function haloAlwaysIsolatedConstructorParameters(parameters) result(self)
-    !% Constructor for the ``haloAlwaysIsolated'' galactic filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``haloAlwaysIsolated'' galactic filter class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Component_List        , Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent
     use :: Input_Parameters, only : inputParameters
@@ -61,7 +71,9 @@ contains
   end function haloAlwaysIsolatedConstructorParameters
 
   logical function haloAlwaysIsolatedPasses(self,node)
-    !% Implement a galactic filter which passes only isolated halos.
+    !!{
+    Implement a galactic filter which passes only isolated halos.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentMergingStatistics
     implicit none
     class(galacticFilterHaloAlwaysIsolated), intent(inout)         :: self

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a zero acceleration satellite dynamical friction class.
+  !!{
+  Implementation of a zero acceleration satellite dynamical friction class.
+  !!}
 
-  !# <satelliteDynamicalFriction name="satelliteDynamicalFrictionZero">
-  !#  <description>A satellite dynamical friction class in which the acceleration is always zero.</description>
-  !# </satelliteDynamicalFriction>
+  !![
+  <satelliteDynamicalFriction name="satelliteDynamicalFrictionZero">
+   <description>A satellite dynamical friction class in which the acceleration is always zero.</description>
+  </satelliteDynamicalFriction>
+  !!]
   type, extends(satelliteDynamicalFrictionClass) :: satelliteDynamicalFrictionZero
-     !% Implementation of a satellite dyanmical fiction class in which the acceleration is always zero.
+     !!{
+     Implementation of a satellite dyanmical fiction class in which the acceleration is always zero.
+     !!}
      private
    contains
      procedure :: acceleration => zeroAcceleration
   end type satelliteDynamicalFrictionZero
 
   interface satelliteDynamicalFrictionZero
-     !% Constructors for the zero satellite dynamical friction class.
+     !!{
+     Constructors for the zero satellite dynamical friction class.
+     !!}
      module procedure zeroConstructorParameters
   end interface satelliteDynamicalFrictionZero
 
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !% Constructor for the zero satellite dynamical friction class which builds the object from a parameter set.
+    !!{
+    Constructor for the zero satellite dynamical friction class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(satelliteDynamicalFrictionZero)                :: self
@@ -49,7 +59,9 @@ contains
   end function zeroConstructorParameters
 
   function zeroAcceleration(self,node)
-    !% Return a zero acceleration for satellites due to dynamical friction.
+    !!{
+    Return a zero acceleration for satellites due to dynamical friction.
+    !!}
     implicit none
     double precision                                , dimension(3)  :: zeroAcceleration
     class           (satelliteDynamicalFrictionZero), intent(inout) :: self

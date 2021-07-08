@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,32 +17,42 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Provides a node merger class implementing a single level hierarchy.
+  !!{
+  Provides a node merger class implementing a single level hierarchy.
+  !!}
 
-  !# <mergerTreeNodeMerger name="mergerTreeNodeMergerSingleLevelHierarchy">
-  !#  <description>
-  !#   A merger tree node merger class which maintains a single level hierarchy of substructure, i.e. it tracks only
-  !#   substructures, not sub-substructures or deeper levels. When a \gls{node} first becomes a satellite it is appended to the
-  !#   list of satellites associated with its host halo. If the \gls{node} contains its own satellites they will be detached from
-  !#   the \gls{node} and appended to the list of satellites of the new host (and assigned new merging times).
-  !#  </description>
-  !# </mergerTreeNodeMerger>
+  !![
+  <mergerTreeNodeMerger name="mergerTreeNodeMergerSingleLevelHierarchy">
+   <description>
+    A merger tree node merger class which maintains a single level hierarchy of substructure, i.e. it tracks only
+    substructures, not sub-substructures or deeper levels. When a \gls{node} first becomes a satellite it is appended to the
+    list of satellites associated with its host halo. If the \gls{node} contains its own satellites they will be detached from
+    the \gls{node} and appended to the list of satellites of the new host (and assigned new merging times).
+   </description>
+  </mergerTreeNodeMerger>
+  !!]
   type, extends(mergerTreeNodeMergerClass) :: mergerTreeNodeMergerSingleLevelHierarchy
-     !% Implementation of the standars merger tree evolver.
+     !!{
+     Implementation of the standars merger tree evolver.
+     !!}
      private
    contains
      procedure :: process  => singleLevelHierarchyProcess
   end type mergerTreeNodeMergerSingleLevelHierarchy
 
   interface mergerTreeNodeMergerSingleLevelHierarchy
-     !% Constructors for the {\normalfont \ttfamily singleLevelHierarchy} merger tree evolver.
+     !!{
+     Constructors for the {\normalfont \ttfamily singleLevelHierarchy} merger tree evolver.
+     !!}
      module procedure singleLevelHierarchyConstructorParameters
   end interface mergerTreeNodeMergerSingleLevelHierarchy
 
 contains
 
   function singleLevelHierarchyConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily singleLevelHierarchy} merger tree evolver class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily singleLevelHierarchy} merger tree evolver class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeNodeMergerSingleLevelHierarchy)                :: self
@@ -54,7 +64,10 @@ contains
   end function singleLevelHierarchyConstructorParameters
 
   subroutine singleLevelHierarchyProcess(self,node)
-    !% Processes a node merging event, utilizing a single level substructure hierarchy.
+    !!{
+    Processes a node merging event, utilizing a single level substructure hierarchy.
+    !!}
+    use :: Display            , only : displayGreen              , displayReset
     use :: Galacticus_Error   , only : Galacticus_Error_Report
     use :: Galacticus_Nodes   , only : treeNode
     use :: Satellite_Promotion, only : Satellite_Move_To_New_Host
@@ -75,7 +88,7 @@ contains
        message='attempting to make node '
        message=message//node%index()//' a satellite, but it is the primary progenitor'//char(10)
        message=message//'this can happen if branch jumps are allowed and the tree is postprocessed to remove nodes'//char(10)
-       message=message//'HELP: to resolve this issue, either switch off postprocessing of the tree, or prevent'//char(10)
+       message=message//displayGreen()//'HELP:'//displayReset()//' to resolve this issue, either switch off postprocessing of the tree, or prevent'//char(10)
        message=message//'branch jumps by setting [mergerTreeReadAllowBranchJumps]=false'
        call Galacticus_Error_Report(message//{introspection:location})
     end if

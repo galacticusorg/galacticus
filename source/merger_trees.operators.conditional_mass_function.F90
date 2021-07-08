@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,136 +17,142 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a merger tree operator which accumulates conditional mass functions for trees.
+  !!{
+  Contains a module which implements a merger tree operator which accumulates conditional mass functions for trees.
+  !!}
 
   use    :: Cosmology_Functions              , only : cosmologyFunctionsClass
   !$ use :: OMP_Lib                          , only : omp_lock_kind
   use    :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
 
-  !# <mergerTreeOperator name="mergerTreeOperatorConditionalMF">
-  !#  <description>
-  !#   Provides a merger tree operator which accumulates conditional mass functions for trees. In
-  !#   addition to the cumulative mass function, 1$^\mathrm{st}$ through $n^\mathrm{th}$ most-massive
-  !#   progenitor mass functions, formation rate functions, and unevolved subhalo mass functions \citep{jiang_generating_2014}
-  !#   split by hierarchy depth are computed and output. Mass functions are accumulated in
-  !#   logarithmically-spaced bins of parent halo mass, logarithmically-spaced bins of mass ratio
-  !#   (the ratio of progenitor to parent halo mass), and at pairs of parent/progenitor
-  !#   redshifts. The following parameters control the operator:
-  !#   \begin{description}
-  !#   \item[{\normalfont \ttfamily parentMassCount}] The number of bins in parent halo mass to use;
-  !#   \item[{\normalfont \ttfamily parentMassMinimum}] The minimum parent halo mass to consider;
-  !#   \item[{\normalfont \ttfamily parentMassMaximum}] The maximum parent halo mass to consider;
-  !#   \item[{\normalfont \ttfamily massRatioCount}] The number of bins in mass ratio to use;
-  !#   \item[{\normalfont \ttfamily massRatioMinimum}] The minimum mass ratio to consider;
-  !#   \item[{\normalfont \ttfamily massRatioMaximum}] The maximum mass ratio to consider;
-  !#   \item[{\normalfont \ttfamily parentRedshifts}] A list of redshifts at which to identify parent halos;
-  !#   \item[{\normalfont \ttfamily progenitorRedshifts}] A corresponding list of redshifts at which to identify progenitor halos;
-  !#   \item[{\normalfont \ttfamily primaryProgenitorDepth}] The number of $i^\mathrm{th}$ most-massive progenitor mass functions to compute (starting from the 1$^\mathrm{st}$ most-massive);
-  !#   \item[{\normalfont \ttfamily subhaloHierarchyDepth}] The maximum depth in the subhalo hierarchy for which to compute the unevolved subhalo mass function;
-  !#   \item[{\normalfont \ttfamily formationRateTimeFraction}] The fraction of the current time over which to estimate the formation rate of halos when computing merger tree statistics;
-  !#   \item[{\normalfont \ttfamily outputGroupName}] The name of the \gls{hdf5} group to which mass functions will be written.
-  !#   \end{description}
-  !#   If the operator finds the named \gls{hdf5} group already in existance, it will accumulate its
-  !#   mass functions to those already written to the group, weighting by the inverse of the variance
-  !#   in each bin. The structure of the \gls{hdf5} group is as follows:
-  !#   \begin{verbatim}
-  !#   {
-  !#     DATASET "conditionalMassFunction" {
-  !#     COMMENT "Conditional mass functions []"
-  !#        DATATYPE  H5T_IEEE_F64LE
-  !#        DATASPACE  SIMPLE { ( Nratio, Nparent, Nz ) }
-  !#     }
-  !#     DATASET "conditionalMassFunctionError" {
-  !#     COMMENT "Conditional mass function errors []"
-  !#        DATATYPE  H5T_IEEE_F64LE
-  !#        DATASPACE  SIMPLE { ( Nratio, Nparent, Nz ) }
-  !#     }
-  !#     DATASET "conditionalMassFunctionCovariance" {
-  !#     COMMENT "Conditional mass function covariances []"
-  !#        DATATYPE  H5T_IEEE_F64LE
-  !#        DATASPACE  SIMPLE { ( Nratio, Nparent, Nz, Nratio, Nparent, Nz ) }
-  !#     }
-  !#     DATASET "formationRateFunction" {
-  !#     COMMENT "Formation rate functions []"
-  !#        DATATYPE  H5T_IEEE_F64LE
-  !#        DATASPACE  SIMPLE { ( 2, Nratio, Nparent, Nz ) }
-  !#     }
-  !#     DATASET "formationRateFunctionError" {
-  !#     COMMENT "Formation rate function errors []"
-  !#        DATATYPE  H5T_IEEE_F64LE
-  !#        DATASPACE  SIMPLE { ( 2, Nratio, Nparent, Nz ) }
-  !#     }
-  !#     DATASET "massParent" {
-  !#     COMMENT "Mass of parent node [Msolar]"
-  !#        DATATYPE  H5T_IEEE_F64LE
-  !#        DATASPACE  SIMPLE { ( Nparent ) }
-  !#        ATTRIBUTE "unitsInSI" {
-  !#           DATATYPE  H5T_IEEE_F64LE
-  !#           DATASPACE  SCALAR
-  !#           DATA {
-  !#           (0): 1.98892e+30
-  !#           }
-  !#         }
-  !#     }
-  !#     DATASET "massRatio" {
-  !#     COMMENT "Mass of ratio node [Msolar]"
-  !#        DATATYPE  H5T_IEEE_F64LE
-  !#        DATASPACE  SIMPLE { ( Nratio ) }
-  !#        ATTRIBUTE "unitsInSI" {
-  !#           DATATYPE  H5T_IEEE_F64LE
-  !#           DATASPACE  SCALAR
-  !#           DATA {
-  !#           (0): 1.98892e+30
-  !#           }
-  !#        }
-  !#     }
-  !#     DATASET "primaryProgenitorMassFunction" {
-  !#     COMMENT "Primary progenitor mass functions []"
-  !#        DATATYPE  H5T_IEEE_F64LE
-  !#        DATASPACE  SIMPLE { ( Ndepth, Nratio, Nparent, Nz ) }
-  !#     }
-  !#     DATASET "primaryProgenitorMassFunctionError" {
-  !#     COMMENT "Primary progenitor mass function errors []"
-  !#        DATATYPE  H5T_IEEE_F64LE
-  !#        DATASPACE  SIMPLE { ( Ndepth, Nratio, Nparent, Nz ) }
-  !#     }
-  !#     DATASET "redshiftParent" {
-  !#     COMMENT "Redshift of parent node []"
-  !#        DATATYPE  H5T_IEEE_F64LE
-  !#        DATASPACE  SIMPLE { ( Nz ) }
-  !#     }
-  !#     DATASET "redshiftProgenitor" {
-  !#     COMMENT "Redshift of progenitor node []"
-  !#        DATATYPE  H5T_IEEE_F64LE
-  !#        DATASPACE  SIMPLE { ( Nz ) }
-  !#     }
-  !#     DATASET "subhaloMassFunction" {
-  !#     COMMENT "Unevolved subhalo mass functions []"
-  !#        DATATYPE  H5T_IEEE_F64LE
-  !#        DATASPACE  SIMPLE { ( Nhierarchy, Nratio, Nparent ) }
-  !#     }
-  !#     DATASET "subhaloMassFunctionError" {
-  !#     COMMENT "Unevolved subhalo mass function errors []"
-  !#        DATATYPE  H5T_IEEE_F64LE
-  !#        DATASPACE  SIMPLE { ( Nhierarchy, Nratio, Nparent ) }
-  !#     }
-  !#   }
-  !#   \end{verbatim}
-  !#   Where {\normalfont \ttfamily Nratio} is the number of bins in mass ratio, {\normalfont \ttfamily
-  !#   Nparent} is the number of bins in mass ratio, {\normalfont \ttfamily Nz} is the number of
-  !#   parent/progenitor redshift pairs, {\normalfont \ttfamily Ndepth} is the maximum depth in the
-  !#   ranking of most-massive progenitor mass functions, {\normalfont \ttfamily Nhierarchy} is the
-  !#   maximum depth in the subhalo hierarchy for subhalo mass functions. The first dimension of the
-  !#   {\normalfont \ttfamily formationRateFunction} dataset stores two different versions of the
-  !#   formation rate function. The first uses the mass of the forming halo at the time of formation,
-  !#   the second uses the mass of the node immediately prior to it becoming a subhalo.
-  !#
-  !#   Mass functions are output as $\mathrm{d}N/\mathrm{d}\log_{10}m$ where $N$ is the number of halos per
-  !#   parent halo, and $m$ is the mass ratio.
-  !#  </description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorConditionalMF">
+   <description>
+    Provides a merger tree operator which accumulates conditional mass functions for trees. In
+    addition to the cumulative mass function, 1$^\mathrm{st}$ through $n^\mathrm{th}$ most-massive
+    progenitor mass functions, formation rate functions, and unevolved subhalo mass functions \citep{jiang_generating_2014}
+    split by hierarchy depth are computed and output. Mass functions are accumulated in
+    logarithmically-spaced bins of parent halo mass, logarithmically-spaced bins of mass ratio
+    (the ratio of progenitor to parent halo mass), and at pairs of parent/progenitor
+    redshifts. The following parameters control the operator:
+    \begin{description}
+    \item[{\normalfont \ttfamily parentMassCount}] The number of bins in parent halo mass to use;
+    \item[{\normalfont \ttfamily parentMassMinimum}] The minimum parent halo mass to consider;
+    \item[{\normalfont \ttfamily parentMassMaximum}] The maximum parent halo mass to consider;
+    \item[{\normalfont \ttfamily massRatioCount}] The number of bins in mass ratio to use;
+    \item[{\normalfont \ttfamily massRatioMinimum}] The minimum mass ratio to consider;
+    \item[{\normalfont \ttfamily massRatioMaximum}] The maximum mass ratio to consider;
+    \item[{\normalfont \ttfamily parentRedshifts}] A list of redshifts at which to identify parent halos;
+    \item[{\normalfont \ttfamily progenitorRedshifts}] A corresponding list of redshifts at which to identify progenitor halos;
+    \item[{\normalfont \ttfamily primaryProgenitorDepth}] The number of $i^\mathrm{th}$ most-massive progenitor mass functions to compute (starting from the 1$^\mathrm{st}$ most-massive);
+    \item[{\normalfont \ttfamily subhaloHierarchyDepth}] The maximum depth in the subhalo hierarchy for which to compute the unevolved subhalo mass function;
+    \item[{\normalfont \ttfamily formationRateTimeFraction}] The fraction of the current time over which to estimate the formation rate of halos when computing merger tree statistics;
+    \item[{\normalfont \ttfamily outputGroupName}] The name of the \gls{hdf5} group to which mass functions will be written.
+    \end{description}
+    If the operator finds the named \gls{hdf5} group already in existance, it will accumulate its
+    mass functions to those already written to the group, weighting by the inverse of the variance
+    in each bin. The structure of the \gls{hdf5} group is as follows:
+    \begin{verbatim}
+    {
+      DATASET "conditionalMassFunction" {
+      COMMENT "Conditional mass functions []"
+         DATATYPE  H5T_IEEE_F64LE
+         DATASPACE  SIMPLE { ( Nratio, Nparent, Nz ) }
+      }
+      DATASET "conditionalMassFunctionError" {
+      COMMENT "Conditional mass function errors []"
+         DATATYPE  H5T_IEEE_F64LE
+         DATASPACE  SIMPLE { ( Nratio, Nparent, Nz ) }
+      }
+      DATASET "conditionalMassFunctionCovariance" {
+      COMMENT "Conditional mass function covariances []"
+         DATATYPE  H5T_IEEE_F64LE
+         DATASPACE  SIMPLE { ( Nratio, Nparent, Nz, Nratio, Nparent, Nz ) }
+      }
+      DATASET "formationRateFunction" {
+      COMMENT "Formation rate functions []"
+         DATATYPE  H5T_IEEE_F64LE
+         DATASPACE  SIMPLE { ( 2, Nratio, Nparent, Nz ) }
+      }
+      DATASET "formationRateFunctionError" {
+      COMMENT "Formation rate function errors []"
+         DATATYPE  H5T_IEEE_F64LE
+         DATASPACE  SIMPLE { ( 2, Nratio, Nparent, Nz ) }
+      }
+      DATASET "massParent" {
+      COMMENT "Mass of parent node [Msolar]"
+         DATATYPE  H5T_IEEE_F64LE
+         DATASPACE  SIMPLE { ( Nparent ) }
+         ATTRIBUTE "unitsInSI" {
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SCALAR
+            DATA {
+            (0): 1.98892e+30
+            }
+          }
+      }
+      DATASET "massRatio" {
+      COMMENT "Mass of ratio node [Msolar]"
+         DATATYPE  H5T_IEEE_F64LE
+         DATASPACE  SIMPLE { ( Nratio ) }
+         ATTRIBUTE "unitsInSI" {
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SCALAR
+            DATA {
+            (0): 1.98892e+30
+            }
+         }
+      }
+      DATASET "primaryProgenitorMassFunction" {
+      COMMENT "Primary progenitor mass functions []"
+         DATATYPE  H5T_IEEE_F64LE
+         DATASPACE  SIMPLE { ( Ndepth, Nratio, Nparent, Nz ) }
+      }
+      DATASET "primaryProgenitorMassFunctionError" {
+      COMMENT "Primary progenitor mass function errors []"
+         DATATYPE  H5T_IEEE_F64LE
+         DATASPACE  SIMPLE { ( Ndepth, Nratio, Nparent, Nz ) }
+      }
+      DATASET "redshiftParent" {
+      COMMENT "Redshift of parent node []"
+         DATATYPE  H5T_IEEE_F64LE
+         DATASPACE  SIMPLE { ( Nz ) }
+      }
+      DATASET "redshiftProgenitor" {
+      COMMENT "Redshift of progenitor node []"
+         DATATYPE  H5T_IEEE_F64LE
+         DATASPACE  SIMPLE { ( Nz ) }
+      }
+      DATASET "subhaloMassFunction" {
+      COMMENT "Unevolved subhalo mass functions []"
+         DATATYPE  H5T_IEEE_F64LE
+         DATASPACE  SIMPLE { ( Nhierarchy, Nratio, Nparent ) }
+      }
+      DATASET "subhaloMassFunctionError" {
+      COMMENT "Unevolved subhalo mass function errors []"
+         DATATYPE  H5T_IEEE_F64LE
+         DATASPACE  SIMPLE { ( Nhierarchy, Nratio, Nparent ) }
+      }
+    }
+    \end{verbatim}
+    Where {\normalfont \ttfamily Nratio} is the number of bins in mass ratio, {\normalfont \ttfamily
+    Nparent} is the number of bins in mass ratio, {\normalfont \ttfamily Nz} is the number of
+    parent/progenitor redshift pairs, {\normalfont \ttfamily Ndepth} is the maximum depth in the
+    ranking of most-massive progenitor mass functions, {\normalfont \ttfamily Nhierarchy} is the
+    maximum depth in the subhalo hierarchy for subhalo mass functions. The first dimension of the
+    {\normalfont \ttfamily formationRateFunction} dataset stores two different versions of the
+    formation rate function. The first uses the mass of the forming halo at the time of formation,
+    the second uses the mass of the node immediately prior to it becoming a subhalo.
+  
+    Mass functions are output as $\mathrm{d}N/\mathrm{d}\log_{10}m$ where $N$ is the number of halos per
+    parent halo, and $m$ is the mass ratio.
+   </description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorConditionalMF
-     !% A merger tree operator class which accumulates conditional mass functions for trees.
+     !!{
+     A merger tree operator class which accumulates conditional mass functions for trees.
+     !!}
      private
      class           (nbodyHaloMassErrorClass), pointer                             :: haloMassError_ => null()
      class           (cosmologyFunctionsClass), pointer                             :: cosmologyFunctions_ => null()
@@ -172,10 +178,12 @@
      type            (varying_string         )                                      :: outputGroupName
      !$ integer      (omp_lock_kind          )                                      :: accumulateLock
    contains
-     !# <methods>
-     !#   <method description="Compute weights for a halo in each bin of the mass function." method="binWeights" />
-     !#   <method description="Compute weights for a halo in each bin of a 2D mass function." method="binWeights2D" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Compute weights for a halo in each bin of the mass function." method="binWeights" />
+       <method description="Compute weights for a halo in each bin of a 2D mass function." method="binWeights2D" />
+     </methods>
+     !!]
      final     ::                        conditionalMFDestructor
      procedure :: operatePreEvolution => conditionalMFOperatePreEvolution
      procedure :: finalize            => conditionalMFFinalize
@@ -184,7 +192,9 @@
   end type mergerTreeOperatorConditionalMF
 
   interface mergerTreeOperatorConditionalMF
-     !% Constructors for the conditional mass function merger tree operator class.
+     !!{
+     Constructors for the conditional mass function merger tree operator class.
+     !!}
      module procedure conditionalMFConstructorParameters
      module procedure conditionalMFConstructorInternal
   end interface mergerTreeOperatorConditionalMF
@@ -192,7 +202,9 @@
 contains
 
   function conditionalMFConstructorParameters(parameters) result(self)
-    !% Constructor for the conditional mass function merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the conditional mass function merger tree operator class which takes a parameter set as input.
+    !!}
     use    :: Memory_Management, only : allocateArray
     !$ use :: OMP_Lib          , only : OMP_Init_Lock
     implicit none
@@ -210,100 +222,106 @@ contains
          &                                                                            computeCovariances
     type            (varying_string                 )                              :: outputGroupName
 
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="nbodyHaloMassError" name="haloMassError_"      source="parameters"/>
-    !# <inputParameter>
-    !#   <name>parentMassCount</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of bins in parent mass when constructing conditional halo mass functions.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>parentMassMinimum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d10</defaultValue>
-    !#   <description>The minimum parent halo mass to bin when constructing conditional halo mass functions.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>parentMassMaximum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d15</defaultValue>
-    !#   <description>The maximum parent halo mass to bin when constructing conditional halo mass functions.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massRatioCount</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of bins in mass ratio when constructing conditional halo mass functions.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massRatioMinimum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d-4</defaultValue>
-    !#   <description>The minimum mass ratio to bin when constructing conditional halo mass functions.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massRatioMaximum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d1</defaultValue>
-    !#   <description>The maximum mass ratio to bin when constructing conditional halo mass functions.</description>
-    !# </inputParameter>
+    !![
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    <objectBuilder class="nbodyHaloMassError" name="haloMassError_"      source="parameters"/>
+    <inputParameter>
+      <name>parentMassCount</name>
+      <source>parameters</source>
+      <defaultValue>10</defaultValue>
+      <description>The number of bins in parent mass when constructing conditional halo mass functions.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>parentMassMinimum</name>
+      <source>parameters</source>
+      <defaultValue>1.0d10</defaultValue>
+      <description>The minimum parent halo mass to bin when constructing conditional halo mass functions.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>parentMassMaximum</name>
+      <source>parameters</source>
+      <defaultValue>1.0d15</defaultValue>
+      <description>The maximum parent halo mass to bin when constructing conditional halo mass functions.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massRatioCount</name>
+      <source>parameters</source>
+      <defaultValue>10</defaultValue>
+      <description>The number of bins in mass ratio when constructing conditional halo mass functions.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massRatioMinimum</name>
+      <source>parameters</source>
+      <defaultValue>1.0d-4</defaultValue>
+      <description>The minimum mass ratio to bin when constructing conditional halo mass functions.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massRatioMaximum</name>
+      <source>parameters</source>
+      <defaultValue>1.0d1</defaultValue>
+      <description>The maximum mass ratio to bin when constructing conditional halo mass functions.</description>
+    </inputParameter>
+    !!]
     call allocateArray(parentRedshifts    ,[max(1,parameters%count('parentRedshifts'    ,zeroIfNotPresent=.true.))])
-    !# <inputParameter>
-    !#   <name>parentRedshifts</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>[0.0d0]</defaultValue>
-    !#   <description>The set of parent halo redshifts to use when constructing conditional halo mass functions.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>parentRedshifts</name>
+      <source>parameters</source>
+      <defaultValue>[0.0d0]</defaultValue>
+      <description>The set of parent halo redshifts to use when constructing conditional halo mass functions.</description>
+    </inputParameter>
+    !!]
     call allocateArray(progenitorRedshifts,[max(1,parameters%count('progenitorRedshifts',zeroIfNotPresent=.true.))])
-    !# <inputParameter>
-    !#   <name>progenitorRedshifts</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>[1.0d0]</defaultValue>
-    !#   <description>The set of progenitor halo redshifts to use when constructing conditional halo mass functions.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>primaryProgenitorDepth</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>2</defaultValue>
-    !#   <description>The depth in progenitor ranking for which to store ranked progenitor mass functions. For example, a value of 2 means store mass functions for the most massive, and second most massive progenitor.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>subhaloHierarchyDepth</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>2</defaultValue>
-    !#   <description>The depth in the subhalo hierarchy for which to store unevolved subhalo mass functions.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>formationRateTimeFraction</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.01d0</defaultValue>
-    !#   <description>The fraction of the current time over which to estimate the formation rate of halos when computing merger tree statistics.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>alwaysIsolatedHalosOnly</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Include only halos which have always been isolated when computing merger tree statistics?</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>extendedStatistics</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Compute extended statistics (formation rate function, $N^\mathrm{th}$ most-massive progenitor mass functions, etc.)?</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>computeCovariances</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Compute covariances for accumulated statistics?</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>outputGroupName</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>var_str('conditionalMassFunction')</defaultValue>
-    !#   <description>The name of the HDF5 group to which the conditional mass function should be output.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>progenitorRedshifts</name>
+      <source>parameters</source>
+      <defaultValue>[1.0d0]</defaultValue>
+      <description>The set of progenitor halo redshifts to use when constructing conditional halo mass functions.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>primaryProgenitorDepth</name>
+      <source>parameters</source>
+      <defaultValue>2</defaultValue>
+      <description>The depth in progenitor ranking for which to store ranked progenitor mass functions. For example, a value of 2 means store mass functions for the most massive, and second most massive progenitor.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>subhaloHierarchyDepth</name>
+      <source>parameters</source>
+      <defaultValue>2</defaultValue>
+      <description>The depth in the subhalo hierarchy for which to store unevolved subhalo mass functions.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>formationRateTimeFraction</name>
+      <source>parameters</source>
+      <defaultValue>0.01d0</defaultValue>
+      <description>The fraction of the current time over which to estimate the formation rate of halos when computing merger tree statistics.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>alwaysIsolatedHalosOnly</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>Include only halos which have always been isolated when computing merger tree statistics?</description>
+    </inputParameter>
+    <inputParameter>
+      <name>extendedStatistics</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>Compute extended statistics (formation rate function, $N^\mathrm{th}$ most-massive progenitor mass functions, etc.)?</description>
+    </inputParameter>
+    <inputParameter>
+      <name>computeCovariances</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>Compute covariances for accumulated statistics?</description>
+    </inputParameter>
+    <inputParameter>
+      <name>outputGroupName</name>
+      <source>parameters</source>
+      <defaultValue>var_str('conditionalMassFunction')</defaultValue>
+      <description>The name of the HDF5 group to which the conditional mass function should be output.</description>
+    </inputParameter>
+    !!]
     ! Construct the instance.
     self=mergerTreeOperatorConditionalMF(                           &
          &                               parentMassCount          , &
@@ -324,14 +342,18 @@ contains
          &                               cosmologyFunctions_      , &
          &                               haloMassError_             &
          &                              )
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
-    !# <objectDestructor name="haloMassError_"     />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    <objectDestructor name="haloMassError_"     />
+    !!]
     return
   end function conditionalMFConstructorParameters
 
   function conditionalMFConstructorInternal(parentMassCount,parentMassMinimum,parentMassMaximum,massRatioCount,massRatioMinimum,massRatioMaximum,parentRedshifts,progenitorRedshifts,primaryProgenitorDepth,formationRateTimeFraction,subhaloHierarchyDepth,alwaysIsolatedHalosOnly,extendedStatistics,computeCovariances,outputGroupName,cosmologyFunctions_,haloMassError_) result(self)
-    !% Internal constructor for the conditional mass function merger tree operator class.
+    !!{
+    Internal constructor for the conditional mass function merger tree operator class.
+    !!}
     use :: Galacticus_Error , only : Galacticus_Component_List        , Galacticus_Error_Report
     use :: Galacticus_Nodes , only : defaultMergingStatisticsComponent
     use :: Memory_Management, only : allocateArray
@@ -350,7 +372,9 @@ contains
     class           (cosmologyFunctionsClass        ), intent(in   ), target       :: cosmologyFunctions_
     class           (nbodyHaloMassErrorClass        ), intent(in   ), target       :: haloMassError_
     integer                                                                        :: i
-    !# <constructorAssign variables="parentMassCount,massRatioCount,primaryProgenitorDepth,subhaloHierarchyDepth,formationRateTimeFraction,alwaysIsolatedHalosOnly,extendedStatistics,computeCovariances,outputGroupName,*haloMassError_,*cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="parentMassCount,massRatioCount,primaryProgenitorDepth,subhaloHierarchyDepth,formationRateTimeFraction,alwaysIsolatedHalosOnly,extendedStatistics,computeCovariances,outputGroupName,*haloMassError_,*cosmologyFunctions_"/>
+    !!]
 
     ! Store array sizes.
     self%timeCount                       =size(parentRedshifts)
@@ -565,20 +589,26 @@ contains
   end function conditionalMFConstructorInternal
 
   subroutine conditionalMFDestructor(self)
-    !% Destructor for the merger tree operator function class.
+    !!{
+    Destructor for the merger tree operator function class.
+    !!}
     !$ use :: OMP_Lib, only : OMP_Destroy_Lock
     implicit none
     type(mergerTreeOperatorConditionalMF), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
-    !# <objectDestructor name="self%haloMassError_"     />
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    <objectDestructor name="self%haloMassError_"     />
+    !!]
     ! Destroy OpenMP lock.
     !$ call OMP_Destroy_Lock(self%accumulateLock)
     return
   end subroutine conditionalMFDestructor
 
   subroutine conditionalMFOperatePreEvolution(self,tree)
-    !% Compute conditional mass function on {\normalfont \ttfamily tree}.
+    !!{
+    Compute conditional mass function on {\normalfont \ttfamily tree}.
+    !!}
     use    :: Galacticus_Error    , only : Galacticus_Error_Report
     use    :: Galacticus_Nodes    , only : mergerTree                   , nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     use    :: Merger_Tree_Walkers , only : mergerTreeWalkerIsolatedNodes
@@ -1007,7 +1037,9 @@ contains
   end subroutine conditionalMFOperatePreEvolution
 
   function conditionalMFBinWeights(self,mass,time,massLogarithmicMinimumBins,massLogarithmicWidthInverseBins,countBins)
-    !% Computes the weight that a given halo contributes to an array of bins.
+    !!{
+    Computes the weight that a given halo contributes to an array of bins.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (mergerTreeOperatorConditionalMF), intent(inout)        :: self
@@ -1073,7 +1105,9 @@ contains
   end function conditionalMFBinWeights
 
   function conditionalMFBinWeights2D(self,mass1,time1,mass2,time2,massLogarithmicMinimumBins1,massLogarithmicWidthInverseBins1,countBins1,massRatioLogarithmicMinimumBins2,massRatioLogarithmicWidthInverseBins2,countBins2,moment)
-    !% Computes the weight that a given halo contributes to a 2D array of bins.
+    !!{
+    Computes the weight that a given halo contributes to a 2D array of bins.
+    !!}
     use :: Galacticus_Error     , only : Galacticus_Error_Report
     use :: Galacticus_Nodes     , only : nodeComponentBasic     , treeNode
     use :: Numerical_Integration, only : integrator
@@ -1223,7 +1257,9 @@ contains
   contains
 
     double precision function conditionalMFBinWeights2DIntegrand(mass1Primed)
-      !% Integrand used in finding the weight given to a bin in the space of parent mass vs. progenitor mass ratio.
+      !!{
+      Integrand used in finding the weight given to a bin in the space of parent mass vs. progenitor mass ratio.
+      !!}
       use :: Galacticus_Error        , only : Galacticus_Error_Report
       use :: Numerical_Constants_Math, only : Pi
       implicit none
@@ -1423,7 +1459,9 @@ contains
   end function conditionalMFBinWeights2D
 
   subroutine conditionalMFFinalize(self)
-    !% Outputs conditional mass function.
+    !!{
+    Outputs conditional mass function.
+    !!}
     use    :: Galacticus_HDF5                 , only : galacticusOutputFile
     use    :: IO_HDF5                         , only : hdf5Access          , hdf5Object
     use    :: Memory_Management               , only : allocateArray       , deallocateArray

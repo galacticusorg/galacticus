@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,11 +20,15 @@
   use :: NBody_Importers, only : nbodyImporter, nbodyImporterClass
   use :: NBody_Operators, only : nbodyOperator, nbodyOperatorClass
 
-  !# <task name="taskNBodyAnalyze">
-  !#  <description>A task which analyzes N-body simulation data.</description>
-  !# </task>
+  !![
+  <task name="taskNBodyAnalyze">
+   <description>A task which analyzes N-body simulation data.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskNBodyAnalyze
-     !% Implementation of a task which analyzes N-body simulation data.
+     !!{
+     Implementation of a task which analyzes N-body simulation data.
+     !!}
      private
      class  (nbodyImporterClass), pointer :: nbodyImporter_
      class  (nbodyOperatorClass), pointer :: nbodyOperator_
@@ -38,7 +42,9 @@
   end type taskNBodyAnalyze
 
   interface taskNBodyAnalyze
-     !% Constructors for the {\normalfont \ttfamily nbodyAnalyze} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily nbodyAnalyze} task.
+     !!}
      module procedure nbodyAnalyzeConstructorParameters
      module procedure nbodyAnalyzeConstructorInternal
   end interface taskNBodyAnalyze
@@ -46,7 +52,9 @@
 contains
 
   function nbodyAnalyzeConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily nbodyAnalyze} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily nbodyAnalyze} task class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Input_Parameters, only : inputParameter              , inputParameters
     use :: Node_Components , only : Node_Components_Initialize
@@ -71,30 +79,38 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
-    !# <inputParameter>
-    !#   <name>storeBackToImported</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true, computed properties and results will be stored back to the file from which a simulation ws imported (assuming it is of HDF5 type).</description>
-    !# </inputParameter>
-    !# <objectBuilder class="nbodyImporter" name="nbodyImporter_" source="parameters"/>
-    !# <objectBuilder class="nbodyOperator" name="nbodyOperator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>storeBackToImported</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, computed properties and results will be stored back to the file from which a simulation ws imported (assuming it is of HDF5 type).</description>
+    </inputParameter>
+    <objectBuilder class="nbodyImporter" name="nbodyImporter_" source="parameters"/>
+    <objectBuilder class="nbodyOperator" name="nbodyOperator_" source="parameters"/>
+    !!]
     self=taskNBodyAnalyze(storeBackToImported,nbodyImporter_,nbodyOperator_,parametersRoot)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="nbodyImporter_"/>
-    !# <objectDestructor name="nbodyOperator_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="nbodyImporter_"/>
+    <objectDestructor name="nbodyOperator_"/>
+    !!]
     return
   end function nbodyAnalyzeConstructorParameters
 
   function nbodyAnalyzeConstructorInternal(storeBackToImported,nbodyImporter_,nbodyOperator_,parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily nbodyAnalyze} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily nbodyAnalyze} task class which takes a parameter set as input.
+    !!}
     implicit none
     type   (taskNBodyAnalyze  )                        :: self
     logical                    , intent(in   )         :: storeBackToImported
     class  (nbodyImporterClass), intent(in   ), target :: nbodyImporter_
     class  (nbodyOperatorClass), intent(in   ), target :: nbodyOperator_
     type   (inputParameters   ), intent(in   ), target :: parameters
-    !# <constructorAssign variables="storeBackToImported, *nbodyImporter_, *nbodyOperator_"/>
+    !![
+    <constructorAssign variables="storeBackToImported, *nbodyImporter_, *nbodyOperator_"/>
+    !!]
 
     self%parameters=inputParameters(parameters)
     call self%parameters%parametersGroupCopy(parameters)
@@ -103,20 +119,26 @@ contains
   end function nbodyAnalyzeConstructorInternal
 
   subroutine nbodyAnalyzeDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily nbodyAnalyze} task class.
+    !!{
+    Destructor for the {\normalfont \ttfamily nbodyAnalyze} task class.
+    !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
     type(taskNBodyAnalyze), intent(inout) :: self
 
-    !# <objectDestructor name="self%nbodyOperator_"/>
-    !# <objectDestructor name="self%nbodyImporter_"/>
+    !![
+    <objectDestructor name="self%nbodyOperator_"/>
+    <objectDestructor name="self%nbodyImporter_"/>
+    !!]
     call Node_Components_Uninitialize()
     return
   end subroutine nbodyAnalyzeDestructor
 
   subroutine nbodyAnalyzePerform(self,status)
-    !% Compute and output the halo mass function.
-    use :: Galacticus_Display   , only : Galacticus_Display_Indent        , Galacticus_Display_Unindent
+    !!{
+    Compute and output the halo mass function.
+    !!}
+    use :: Display              , only : displayIndent                    , displayUnindent
     use :: Galacticus_Error     , only : errorStatusSuccess
     use :: Galacticus_HDF5      , only : galacticusOutputFile
     use :: IO_HDF5              , only : hdf5Access
@@ -129,7 +151,7 @@ contains
     integer                                                  :: i
     character(len=32          )                              :: label
     
-    call Galacticus_Display_Indent('Begin task: N-body analyze')
+    call displayIndent('Begin task: N-body analyze')
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
     call Node_Components_Thread_Initialize(self%parameters)
     ! Import N-body data.
@@ -156,12 +178,14 @@ contains
     ! Done.
     call Node_Components_Thread_Uninitialize()
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: N-body analyze' )
+    call displayUnindent('Done task: N-body analyze' )
     return
   end subroutine nbodyAnalyzePerform
 
   logical function nbodyAnalyzeRequiresOutputFile(self)
-    !% Specifies that this task does not requires the main output file.
+    !!{
+    Specifies that this task does not requires the main output file.
+    !!}
     implicit none
     class(taskNBodyAnalyze), intent(inout) :: self
 

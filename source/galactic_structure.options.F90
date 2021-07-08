@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,61 +17,77 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides various enumerations for the galactic structure functions.
+!!{
+Contains a module which provides various enumerations for the galactic structure functions.
+!!}
 
 module Galactic_Structure_Options
-  !% Provides various internal option codes for the galactic structure functions.
+  !!{
+  Provides various internal option codes for the galactic structure functions.
+  !!}
   implicit none
   public
 
-  !# <enumeration>
-  !#  <name>massType</name>
-  !#  <description>Used to specify the mass type(s) to be queried in galactic structure functions.</description>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <entry label="all"       />
-  !#  <entry label="dark"      />
-  !#  <entry label="baryonic"  />
-  !#  <entry label="galactic"  />
-  !#  <entry label="gaseous"   />
-  !#  <entry label="stellar"   />
-  !#  <entry label="blackHole" />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>massType</name>
+   <description>Used to specify the mass type(s) to be queried in galactic structure functions.</description>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="all"       />
+   <entry label="dark"      />
+   <entry label="baryonic"  />
+   <entry label="galactic"  />
+   <entry label="gaseous"   />
+   <entry label="stellar"   />
+   <entry label="blackHole" />
+  </enumeration>
+  !!]
 
 
-  !# <enumeration>
-  !#  <name>componentType</name>
-  !#  <description>Used to specify the component(s) to be queried in galactic structure functions.</description>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <entry label="all"       />
-  !#  <entry label="disk"      />
-  !#  <entry label="spheroid"  />
-  !#  <entry label="hotHalo"   />
-  !#  <entry label="coldHalo"  />
-  !#  <entry label="darkHalo"  />
-  !#  <entry label="blackHole" />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>componentType</name>
+   <description>Used to specify the component(s) to be queried in galactic structure functions.</description>
+   <encodeFunction>yes</encodeFunction>
+   <decodeFunction>yes</decodeFunction>
+   <validator>yes</validator>
+   <entry label="all"       />
+   <entry label="disk"      />
+   <entry label="spheroid"  />
+   <entry label="hotHalo"   />
+   <entry label="coldHalo"  />
+   <entry label="darkHalo"  />
+   <entry label="blackHole" />
+  </enumeration>
+  !!]
 
-  !# <enumeration>
-  !#  <name>coordinateSystem</name>
-  !#  <description>Used to specify the coordinate system of the input coordinates in galactic structure functions.</description>
-  !#  <entry label="spherical"   />
-  !#  <entry label="cylindrical" />
-  !#  <entry label="cartesian"   />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>coordinateSystem</name>
+   <description>Used to specify the coordinate system of the input coordinates in galactic structure functions.</description>
+   <entry label="spherical"   />
+   <entry label="cylindrical" />
+   <entry label="cartesian"   />
+  </enumeration>
+  !!]
 
-  !# <enumeration>
-  !#  <name>weightBy</name>
-  !#  <description>Used to specify by which quantity to weight the results in galactic structure functions.</description>
-  !#  <entry label="mass"       />
-  !#  <entry label="luminosity" />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>weightBy</name>
+   <description>Used to specify by which quantity to weight the results in galactic structure functions.</description>
+   <entry label="mass"       />
+   <entry label="luminosity" />
+  </enumeration>
+  !!]
 
-  !# <enumeration>
-  !#  <name>structureErrorCode</name>
-  !#  <description>Error codes for galactic structure functions.</description>
-  !#  <entry label="success"  description="Successful completeion."/>
-  !#  <entry label="infinite" description="Result is ±∞."          />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>structureErrorCode</name>
+   <description>Error codes for galactic structure functions.</description>
+   <entry label="success"  description="Successful completion."/>
+   <entry label="infinite" description="Result is ±∞."         />
+  </enumeration>
+  !!]
 
   ! Null value to use when no weighting is to be applied.
   integer         , parameter, public :: weightIndexNull=0

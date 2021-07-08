@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,29 +17,35 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling convergence class which implements the Gelman-Rubin statistic.
+  !!{
+  Implementation of a posterior sampling convergence class which implements the Gelman-Rubin statistic.
+  !!}
 
   use :: ISO_Varying_String, only : varying_string
 
-  !# <posteriorSampleConvergence name="posteriorSampleConvergenceGelmanRubin">
-  !#  <description>
-  !#   This class adopts the convergence criterion proposed by
-  !#   \citeauthor{gelman_a._inference_1992}~(\citeyear{gelman_a._inference_1992}; see also \citealt{brooks_general_1998}), which
-  !#   compares the variance in parameter values within chains to that between chains. Outlier detection is applied to the chains using a
-  !#   standard Grubb's outlier test. The behavior of this criterion is controlled by the following subparameters:
-  !#   \begin{description}
-  !#   \item [{\normalfont \ttfamily Rhat}] The correlation coefficient, $\hat{R}$, value at which to declare convergence.
-  !#   \item [{\normalfont \ttfamily burnCount}] Set number of steps to burn before applying the convergence test.
-  !#   \item [{\normalfont \ttfamily testCount}] Set the number of steps between successive applications of the convergence test.
-  !#   \item [{\normalfont \ttfamily outlierSignificance}] The significance level required in outlier detection.
-  !#   \item [{\normalfont \ttfamily outlierLogLikelihoodOffset}] The offset in log-likelihood from the current maximum likelihood chain
-  !#     required for a chain to be declared to be an outlier.
-  !#   \item [{\normalfont \ttfamily outlierCountMaximum}] The maximum number of outlier chains allowed.
-  !#   \end{description}
-  !#  </description>
-  !# </posteriorSampleConvergence>
+  !![
+  <posteriorSampleConvergence name="posteriorSampleConvergenceGelmanRubin">
+   <description>
+    This class adopts the convergence criterion proposed by
+    \citeauthor{gelman_a._inference_1992}~(\citeyear{gelman_a._inference_1992}; see also \citealt{brooks_general_1998}), which
+    compares the variance in parameter values within chains to that between chains. Outlier detection is applied to the chains using a
+    standard Grubb's outlier test. The behavior of this criterion is controlled by the following subparameters:
+    \begin{description}
+    \item [{\normalfont \ttfamily Rhat}] The correlation coefficient, $\hat{R}$, value at which to declare convergence.
+    \item [{\normalfont \ttfamily burnCount}] Set number of steps to burn before applying the convergence test.
+    \item [{\normalfont \ttfamily testCount}] Set the number of steps between successive applications of the convergence test.
+    \item [{\normalfont \ttfamily outlierSignificance}] The significance level required in outlier detection.
+    \item [{\normalfont \ttfamily outlierLogLikelihoodOffset}] The offset in log-likelihood from the current maximum likelihood chain
+      required for a chain to be declared to be an outlier.
+    \item [{\normalfont \ttfamily outlierCountMaximum}] The maximum number of outlier chains allowed.
+    \end{description}
+   </description>
+  </posteriorSampleConvergence>
+  !!]
   type, extends(posteriorSampleConvergenceClass) :: posteriorSampleConvergenceGelmanRubin
-     !% Implementation of a posterior sampling convergence class which implements the Gelman-Rubin statistic.
+     !!{
+     Implementation of a posterior sampling convergence class which implements the Gelman-Rubin statistic.
+     !!}
      private
      double precision                                            :: thresholdHatR             , outlierSignificance , &
           &                                                         outlierLogLikelihoodOffset
@@ -52,10 +58,12 @@
      double precision                , allocatable, dimension(:) :: correctedHatR
      logical                         , allocatable, dimension(:) :: chainMask
    contains
-     !# <methods>
-     !#   <method description="Return the current convergence measure, $\hat{R}$." method="convergenceMeasure" />
-     !#   <method description="Return the target convergence measure, $\hat{R}$." method="convergenceMeasureTarget" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return the current convergence measure, $\hat{R}$." method="convergenceMeasure" />
+       <method description="Return the target convergence measure, $\hat{R}$." method="convergenceMeasureTarget" />
+     </methods>
+     !!]
      final     ::                             gelmanRubinDestructor
      procedure :: isConverged              => gelmanRubinIsConverged
      procedure :: convergedAtStep          => gelmanRubinConvergedAtStep
@@ -67,7 +75,9 @@
   end type posteriorSampleConvergenceGelmanRubin
 
   interface posteriorSampleConvergenceGelmanRubin
-     !% Constructors for the {\normalfont \ttfamily gelmanRubin} posterior sampling convergence class.
+     !!{
+     Constructors for the {\normalfont \ttfamily gelmanRubin} posterior sampling convergence class.
+     !!}
      module procedure gelmanRubinConstructorParameters
      module procedure gelmanRubinConstructorInternal
   end interface posteriorSampleConvergenceGelmanRubin
@@ -75,8 +85,10 @@
 contains
 
   function gelmanRubinConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily gelmanRubin} posterior sampling convergence class which builds the object from a
-    !% parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily gelmanRubin} posterior sampling convergence class which builds the object from a
+    parameter set.
+    !!}
     use :: ISO_Varying_String, only : varying_string
     use :: Input_Parameters  , only : inputParameter, inputParameters
     implicit none
@@ -88,60 +100,66 @@ contains
          &                                                                    outlierCountMaximum       , reportCount
     type            (varying_string                       )                :: logFileName
 
-    !# <inputParameter>
-    !#   <name>thresholdHatR</name>
-    !#   <defaultValue>1.2d0</defaultValue>
-    !#   <description>The $\hat{R}$ value at which convergence is declared.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>burnCount</name>
-    !#   <defaultValue>0</defaultValue>
-    !#   <description>The number of steps to burn before computing convergence.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>testCount</name>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The interval in number of steps at which to check convergence.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>outlierCountMaximum</name>
-    !#   <defaultValue>0</defaultValue>
-    !#   <description>The maximum number of outlier states allowed.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>outlierSignificance</name>
-    !#   <defaultValue>0.05d0</defaultValue>
-    !#   <description>The significance at which to declare a state an outlier.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>outlierLogLikelihoodOffset</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The log-likelihood offset at which to declare a state an outlier.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>reportCount</name>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The interval in number of steps at which to report on convergence status.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>logFileName</name>
-    !#   <description>The name of the file to which convergence state should be logged.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>thresholdHatR</name>
+      <defaultValue>1.2d0</defaultValue>
+      <description>The $\hat{R}$ value at which convergence is declared.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>burnCount</name>
+      <defaultValue>0</defaultValue>
+      <description>The number of steps to burn before computing convergence.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>testCount</name>
+      <defaultValue>10</defaultValue>
+      <description>The interval in number of steps at which to check convergence.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>outlierCountMaximum</name>
+      <defaultValue>0</defaultValue>
+      <description>The maximum number of outlier states allowed.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>outlierSignificance</name>
+      <defaultValue>0.05d0</defaultValue>
+      <description>The significance at which to declare a state an outlier.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>outlierLogLikelihoodOffset</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The log-likelihood offset at which to declare a state an outlier.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>reportCount</name>
+      <defaultValue>10</defaultValue>
+      <description>The interval in number of steps at which to report on convergence status.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>logFileName</name>
+      <description>The name of the file to which convergence state should be logged.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=posteriorSampleConvergenceGelmanRubin(thresholdHatR,burnCount,testCount,outlierCountMaximum,outlierSignificance,outlierLogLikelihoodOffset,reportCount,logFileName)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function gelmanRubinConstructorParameters
 
   function gelmanRubinConstructorInternal(thresholdHatR,burnCount,testCount,outlierCountMaximum,outlierSignificance,outlierLogLikelihoodOffset,reportCount,logFileName) result(self)
-    !% Constructor for ``GelmanRubin'' convergence class.
+    !!{
+    Constructor for ``GelmanRubin'' convergence class.
+    !!}
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: MPI_Utilities    , only : mpiSelf
     use :: Memory_Management, only : allocateArray
@@ -151,7 +169,9 @@ contains
     integer                                                , intent(in   ) :: burnCount                 , testCount          , &
          &                                                                    outlierCountMaximum       , reportCount
     type            (varying_string                       ), intent(in   ) :: logFileName
-    !# <constructorAssign variables="thresholdHatR,burnCount,testCount,outlierCountMaximum,outlierSignificance,outlierLogLikelihoodOffset,reportCount,logFileName"/>
+    !![
+    <constructorAssign variables="thresholdHatR,burnCount,testCount,outlierCountMaximum,outlierSignificance,outlierLogLikelihoodOffset,reportCount,logFileName"/>
+    !!]
 
     call allocateArray(self%chainMask,[mpiSelf%count()])
     self%estimateCount       = 0
@@ -167,7 +187,9 @@ contains
   end function gelmanRubinConstructorInternal
 
   subroutine gelmanRubinDestructor(self)
-    !% Destroy a Gelman-Rubin convergence object.
+    !!{
+    Destroy a Gelman-Rubin convergence object.
+    !!}
     use :: MPI_Utilities, only : mpiSelf
     implicit none
     type(posteriorSampleConvergenceGelmanRubin), intent(inout) :: self
@@ -178,8 +200,10 @@ contains
   end subroutine gelmanRubinDestructor
 
   logical function gelmanRubinIsConverged(self,simulationState,logLikelihood)
-    !% Return whether the simulation is converged.
-    use :: Galacticus_Display      , only : Galacticus_Display_Message
+    !!{
+    Return whether the simulation is converged.
+    !!}
+    use :: Display                 , only : displayMessage
     use :: ISO_Varying_String      , only : varying_string
     use :: MPI_Utilities           , only : mpiBarrier                    , mpiSelf
     use :: Memory_Management       , only : allocateArray
@@ -339,7 +363,7 @@ contains
           write (label,'(i16)') simulationState%count()
           message="Gelman-Rubin statistic at "//trim(adjustl(label))
           message=message//" steps cannot be computed (zero variances)"
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
        end if
        gelmanRubinIsConverged=.false.
        return
@@ -438,7 +462,7 @@ contains
           message=message//" steps min/max="//trim(adjustl(label))//"/"
           write (label,'(f6.2)') maxval(self%correctedHatR)
           message=message//trim(adjustl(label))//")"
-          call Galacticus_Display_Message(message)
+          call displayMessage(message)
           if (activeChainCount < mpiSelf%count()) then
              message='outlier chains:'
              label=''
@@ -448,9 +472,9 @@ contains
                    label=","
                 end if
              end do
-             call Galacticus_Display_Message(message)
+             call displayMessage(message)
           else
-             call Galacticus_Display_Message('no outlier chains')
+             call displayMessage('no outlier chains')
           end if
        end if
        write (self%logFileUnit,*) "outliers    ",simulationState%count(),self%chainMask
@@ -461,7 +485,9 @@ contains
   end function gelmanRubinIsConverged
 
   integer function gelmanRubinConvergedAtStep(self)
-    !% Return the step at which the simulation converged.
+    !!{
+    Return the step at which the simulation converged.
+    !!}
     implicit none
     class(posteriorSampleConvergenceGelmanRubin), intent(inout) :: self
 
@@ -470,7 +496,9 @@ contains
   end function gelmanRubinConvergedAtStep
 
   subroutine gelmanRubinReset(self)
-    !% Reset the convergence object.
+    !!{
+    Reset the convergence object.
+    !!}
     implicit none
     class(posteriorSampleConvergenceGelmanRubin), intent(inout) :: self
 
@@ -480,7 +508,9 @@ contains
   end subroutine gelmanRubinReset
 
   subroutine gelmanRubinLogReport(self,fileUnit)
-    !% Write a convergence report to the given {\normalfont \ttfamily fileUnit}.
+    !!{
+    Write a convergence report to the given {\normalfont \ttfamily fileUnit}.
+    !!}
     implicit none
     class    (posteriorSampleConvergenceGelmanRubin), intent(inout) :: self
     integer                                         , intent(in   ) :: fileUnit
@@ -498,7 +528,9 @@ contains
   end subroutine gelmanRubinLogReport
 
   logical function gelmanRubinStateIsOutlier(self,stateIndex)
-    !% Return true if the specified chain is deemed to be an outlier.
+    !!{
+    Return true if the specified chain is deemed to be an outlier.
+    !!}
     implicit none
     class  (posteriorSampleConvergenceGelmanRubin), intent(inout) :: self
     integer                                       , intent(in   ) :: stateIndex
@@ -508,7 +540,9 @@ contains
   end function gelmanRubinStateIsOutlier
 
   double precision function gelmanRubinConvergenceMeasure(self)
-    !% Return the current maximum $\hat{R}$ convergence measure.
+    !!{
+    Return the current maximum $\hat{R}$ convergence measure.
+    !!}
     implicit none
     class           (posteriorSampleConvergenceGelmanRubin), intent(inout) :: self
     double precision                                       , parameter     :: convergenceMeasureLarge=100.0d0
@@ -523,7 +557,9 @@ contains
   end function gelmanRubinConvergenceMeasure
 
   double precision function gelmanRubinConvergenceMeasureTarget(self)
-    !% Return the target $\hat{R}$ convergence measure.
+    !!{
+    Return the target $\hat{R}$ convergence measure.
+    !!}
     implicit none
     class(posteriorSampleConvergenceGelmanRubin), intent(inout) :: self
 

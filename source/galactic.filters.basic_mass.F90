@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a galactic high-pass filter for the default ``basic'' halo mass.
+!!{
+Contains a module which implements a galactic high-pass filter for the default ``basic'' halo mass.
+!!}
 
-  !# <galacticFilter name="galacticFilterBasicMass">
-  !#  <description>
-  !#  A high-pass filter for basic mass. Halos with a basic mass mass greater than or equal to a fixed threshold,
-  !#  $M_0=${\normalfont \ttfamily [massThreshold]}.
-  !#  </description>
-  !# </galacticFilter>
+  !![
+  <galacticFilter name="galacticFilterBasicMass">
+   <description>
+   A high-pass filter for basic mass. Halos with a basic mass mass greater than or equal to a fixed threshold,
+   $M_0=${\normalfont \ttfamily [massThreshold]}.
+   </description>
+  </galacticFilter>
+  !!]
   type, extends(galacticFilterClass) :: galacticFilterBasicMass
-     !% A galactic high-pass filter class for basic mass.
+     !!{
+     A galactic high-pass filter class for basic mass.
+     !!}
      private
      double precision :: massThreshold
    contains
@@ -34,7 +40,9 @@
   end type galacticFilterBasicMass
 
   interface galacticFilterBasicMass
-     !% Constructors for the ``basicMass'' galactic filter class.
+     !!{
+     Constructors for the ``basicMass'' galactic filter class.
+     !!}
      module procedure basicMassConstructorParameters
      module procedure basicMassConstructorInternal
   end interface galacticFilterBasicMass
@@ -42,34 +50,44 @@
 contains
 
   function basicMassConstructorParameters(parameters)
-    !% Constructor for the ``basicMass'' galactic filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``basicMass'' galactic filter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(galacticFilterBasicMass)                :: basicMassConstructorParameters
     type(inputParameters        ), intent(inout) :: parameters
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>massThreshold</name>
-    !#   <source>parameters</source>
-    !#   <variable>basicMassConstructorParameters%massThreshold</variable>
-    !#   <description>The parameter $M_0$ (in units of $M_\odot$) appearing in the basic mass threshold for the basic mass galactic filter class.</description>
-    !# </inputParameter>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParameter>
+      <name>massThreshold</name>
+      <source>parameters</source>
+      <variable>basicMassConstructorParameters%massThreshold</variable>
+      <description>The parameter $M_0$ (in units of $M_\odot$) appearing in the basic mass threshold for the basic mass galactic filter class.</description>
+    </inputParameter>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function basicMassConstructorParameters
 
   function basicMassConstructorInternal(massThreshold)
-    !% Internal constructor for the ``basicMass'' galactic filter class.
+    !!{
+    Internal constructor for the ``basicMass'' galactic filter class.
+    !!}
     implicit none
     type            (galacticFilterBasicMass)                :: basicMassConstructorInternal
     double precision                         , intent(in   ) :: massThreshold
-    !# <constructorAssign variables="massThreshold"/>
+    !![
+    <constructorAssign variables="massThreshold"/>
+    !!]
     return
   end function basicMassConstructorInternal
 
   logical function basicMassPasses(self,node)
-    !% Implement a  basic mass high-pass galactic filter.
+    !!{
+    Implement a  basic mass high-pass galactic filter.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(galacticFilterBasicMass), intent(inout)         :: self

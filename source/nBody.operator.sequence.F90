@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,21 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which applies a sequence of other operators.
+!!{
+Contains a module which implements an N-body data operator which applies a sequence of other operators.
+!!}
 
   type, public :: nbodyOperatorList
      class(nbodyOperatorClass), pointer :: operator_
-     type (nbodyOperatorList ), pointer :: next     => null()
+     type (nbodyOperatorList ), pointer :: next      => null()
   end type nbodyOperatorList
 
-  !# <nbodyOperator name="nbodyOperatorSequence">
-  !#  <description>An N-body data operator which applies a sequence of other operators.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="nbodyOperatorList" variable="operators" next="next" object="operator_" objectType="nbodyOperatorClass"/>
-  !#  </deepCopy>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorSequence">
+   <description>An N-body data operator which applies a sequence of other operators.</description>
+   <deepCopy>
+    <linkedList type="nbodyOperatorList" variable="operators" next="next" object="operator_" objectType="nbodyOperatorClass"/>
+   </deepCopy>
+   <stateStore>
+    <linkedList type="nbodyOperatorList" variable="operators" next="next" object="operator_"/>
+   </stateStore>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSequence
-     !% An N-body data operator which applies a sequence of other operators.
+     !!{
+     An N-body data operator which applies a sequence of other operators.
+     !!}
      private
      type(nbodyOperatorList), pointer :: operators => null()
    contains
@@ -40,7 +49,9 @@
   end type nbodyOperatorSequence
 
   interface nbodyOperatorSequence
-     !% Constructors for the ``sequence'' N-body operator class.
+     !!{
+     Constructors for the ``sequence'' N-body operator class.
+     !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal
   end interface nbodyOperatorSequence
@@ -48,7 +59,9 @@
 contains
 
   function sequenceConstructorParameters(parameters) result (self)
-    !% Constructor for the ``sequence'' N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``sequence'' N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nbodyOperatorSequence)                :: self
@@ -58,7 +71,7 @@ contains
 
     self     %operators => null()
     operator_           => null()
-    do i=1,parameters%copiesCount('nbodyOperatorMethod',zeroIfNotPresent=.true.)
+    do i=1,parameters%copiesCount('nbodyOperator',zeroIfNotPresent=.true.)
        if (associated(operator_)) then
           allocate(operator_%next)
           operator_ => operator_%next
@@ -66,13 +79,17 @@ contains
           allocate(self%operators)
           operator_ => self%operators
        end if
-       !# <objectBuilder class="nbodyOperator" name="operator_%operator_" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="nbodyOperator" name="operator_%operator_" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function sequenceConstructorParameters
 
   function sequenceConstructorInternal(operators) result (self)
-    !% Internal constructor for the ``sequence'' N-body operator class.
+    !!{
+    Internal constructor for the ``sequence'' N-body operator class.
+    !!}
     implicit none
     type(nbodyOperatorSequence)                        :: self
     type(nbodyOperatorList    ), target, intent(in   ) :: operators
@@ -81,14 +98,18 @@ contains
     self     %operators => operators
     operator_           => operators
     do while (associated(operator_))
-       !# <referenceCountIncrement owner="operator_" object="operator_"/>
+       !![
+       <referenceCountIncrement owner="operator_" object="operator_"/>
+       !!]
        operator_ => operator_%next
     end do
     return
   end function sequenceConstructorInternal
 
   subroutine sequenceDestructor(self)
-    !% Destructor for the sequence N-body operator class.
+    !!{
+    Destructor for the sequence N-body operator class.
+    !!}
     implicit none
     type(nbodyOperatorSequence), intent(inout) :: self
     type(nbodyOperatorList    ), pointer       :: operator_, operatorNext
@@ -97,7 +118,9 @@ contains
        operator_ => self%operators
        do while (associated(operator_))
           operatorNext => operator_%next
-          !# <objectDestructor name="operator_%operator_"/>
+          !![
+          <objectDestructor name="operator_%operator_"/>
+          !!]
           deallocate(operator_)
           operator_ => operatorNext
        end do
@@ -106,7 +129,9 @@ contains
   end subroutine sequenceDestructor
 
   subroutine sequenceOperate(self,simulations)
-    !% Apply a sequence of N-body simulation operators.
+    !!{
+    Apply a sequence of N-body simulation operators.
+    !!}
     implicit none
     class(nbodyOperatorSequence), intent(inout)               :: self
     type (nBodyData            ), intent(inout), dimension(:) :: simulations

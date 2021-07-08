@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,27 +19,37 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-  !% Contains a class which implements a tidal heating rate model in which the heating rate is always zero.
+  !!{
+  Contains a class which implements a tidal heating rate model in which the heating rate is always zero.
+  !!}
 
-  !# <satelliteTidalHeatingRate name="satelliteTidalHeatingRateZero">
-  !#  <description>A satellite tidal heating rate class which implements a tidal heating rate model in which the heating rate is always zero.</description>
-  !# </satelliteTidalHeatingRate>
+  !![
+  <satelliteTidalHeatingRate name="satelliteTidalHeatingRateZero">
+   <description>A satellite tidal heating rate class which implements a tidal heating rate model in which the heating rate is always zero.</description>
+  </satelliteTidalHeatingRate>
+  !!]
   type, extends(satelliteTidalHeatingRateClass) :: satelliteTidalHeatingRateZero
-     !% A satellite tidal heating rate class which implements a tidal heating rate model in which the heating rate is always zero.
+     !!{
+     A satellite tidal heating rate class which implements a tidal heating rate model in which the heating rate is always zero.
+     !!}
      private
    contains
      procedure :: heatingRate => zeroHeatingRate
   end type satelliteTidalHeatingRateZero
 
   interface satelliteTidalHeatingRateZero
-     !% Constructors for the zero satellite tidal heating rate class.
+     !!{
+     Constructors for the zero satellite tidal heating rate class.
+     !!}
      module procedure zeroConstructorParameters
   end interface satelliteTidalHeatingRateZero
 
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily zero} satellite tidal heating rate class which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily zero} satellite tidal heating rate class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(satelliteTidalHeatingRateZero)                :: self
@@ -51,7 +61,9 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroHeatingRate(self,node)
-    !% Return the the tidal heating rate for the given node.
+    !!{
+    Return the the tidal heating rate for the given node.
+    !!}
     implicit none
     class(satelliteTidalHeatingRateZero), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node

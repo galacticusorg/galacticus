@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,8 +17,12 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of the cosmological functions class for cosmologies consisting of collisionless
-  !% matter and dark energy with an equation of state of the form: $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.
+  !!{
+  An implementation of the cosmological functions class for cosmologies consisting of collisionless
+  matter and dark energy with an equation of state of the form: $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.
+  !!}
+
+  use :: Root_Finder, only : rootFinder
 
   integer         , parameter :: matterDarkEnergyAgeTableNPointsPerDecade     =300
   double precision, parameter :: matterDarkEnergyAgeTableNPointsPerOctave     =dble(matterDarkEnergyAgeTableNPointsPerDecade)*log(2.0d0)/log(10.0d0)
@@ -32,22 +36,29 @@
   double precision            :: matterDarkEnergyDominateFactorCurrent
   !$omp threadprivate(matterDarkEnergyDominateFactorCurrent)
 
-  !# <cosmologyFunctions name="cosmologyFunctionsMatterDarkEnergy">
-  !#  <description>
-  !#   Cosmological relations are computed assuming a universe that contains only collisionless matter and dark energy with an
-  !#   equation of state $w(a)=w_0+w_1a(1-a)$ \citep{jassal_wmap_2005}, with $w_0=${\normalfont \ttfamily
-  !#   [darkEnergyEquationOfStateW0]}, and $w_1=${\normalfont \ttfamily [darkEnergyEquationOfStateW1]}.
-  !#  </description>
-  !# </cosmologyFunctions>
+  !![
+  <cosmologyFunctions name="cosmologyFunctionsMatterDarkEnergy">
+   <description>
+    Cosmological relations are computed assuming a universe that contains only collisionless matter and dark energy with an
+    equation of state $w(a)=w_0+w_1a(1-a)$ \citep{jassal_wmap_2005}, with $w_0=${\normalfont \ttfamily
+    [darkEnergyEquationOfStateW0]}, and $w_1=${\normalfont \ttfamily [darkEnergyEquationOfStateW1]}.
+   </description>
+  </cosmologyFunctions>
+  !!]
   type, extends(cosmologyFunctionsMatterLambda) :: cosmologyFunctionsMatterDarkEnergy
-     !% A cosmological functions class for cosmologies consisting of matter plus dark energy with equation of state $w(a)=w_0+a(1-a)w_1$.
+     !!{
+     A cosmological functions class for cosmologies consisting of matter plus dark energy with equation of state $w(a)=w_0+a(1-a)w_1$.
+     !!}
      private
-     double precision :: darkEnergyEquationOfStateW0, darkEnergyEquationOfStateW1
+     double precision             :: darkEnergyEquationOfStateW0, darkEnergyEquationOfStateW1
+     type            (rootFinder) :: finderDomination           , finderEquality
    contains
-     !# <methods>
-     !#   <method description="Set a module-scope pointer to {\normalfont \ttfamily self}." method="targetSelf" />
-     !#   <method description="Return the derivative of the dark energy exponent with respect to expansion factor." method="exponentDarkEnergyDerivative" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Set a module-scope pointer to {\normalfont \ttfamily self}." method="targetSelf" />
+       <method description="Return the derivative of the dark energy exponent with respect to expansion factor." method="exponentDarkEnergyDerivative" />
+     </methods>
+     !!]
      procedure :: cosmicTime                    => matterDarkEnergyCosmicTime
      procedure :: omegaDarkEnergyEpochal        => matterDarkEnergyOmegaDarkEnergyEpochal
      procedure :: hubbleParameterEpochal        => matterDarkEnergyHubbleParameterEpochal
@@ -69,7 +80,9 @@
   !$omp threadprivate(matterDarkEnergySelfGlobal)
 
   interface cosmologyFunctionsMatterDarkEnergy
-     !% Constructors for the matter plus dark energy cosmological functions class.
+     !!{
+     Constructors for the matter plus dark energy cosmological functions class.
+     !!}
      module procedure matterDarkEnergyConstructorParameters
      module procedure matterDarkEnergyConstructorInternal
   end interface cosmologyFunctionsMatterDarkEnergy
@@ -77,7 +90,9 @@
 contains
 
   function matterDarkEnergyConstructorParameters(parameters) result(self)
-    !% Default constructor for the matter plus dark energy cosmological functions class.
+    !!{
+    Default constructor for the matter plus dark energy cosmological functions class.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (cosmologyFunctionsMatterDarkEnergy)                :: self
@@ -85,47 +100,100 @@ contains
     class           (cosmologyParametersClass          ), pointer       :: cosmologyParameters_
     double precision                                                    :: darkEnergyEquationOfStateW0, darkEnergyEquationOfStateW1
 
-    !# <inputParameter>
-    !#   <name>darkEnergyEquationOfStateW0</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>-1.0d0</defaultValue>
-    !#   <description>The equation of state parameter for dark energy, $w_0$, defined such that $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>darkEnergyEquationOfStateW1</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The equation of state parameter for dark energy, $w_1$, defined such that $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>darkEnergyEquationOfStateW0</name>
+      <source>parameters</source>
+      <defaultValue>-1.0d0</defaultValue>
+      <description>The equation of state parameter for dark energy, $w_0$, defined such that $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>darkEnergyEquationOfStateW1</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The equation of state parameter for dark energy, $w_1$, defined such that $P=\rho^w$ with $w(a)=w_0+w_1 a (1-a)$.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !!]
     ! Use it to construct a matter plus dark energy cosmological functions class.
     self=cosmologyFunctionsMatterDarkEnergy(                             &
          &                                  cosmologyParameters_       , &
          &                                  darkEnergyEquationOfStateW0, &
          &                                  darkEnergyEquationOfStateW1  &
          &                                 )
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    !!]
     return
   end function matterDarkEnergyConstructorParameters
 
   function matterDarkEnergyConstructorInternal(cosmologyParameters_,darkEnergyEquationOfStateW0,darkEnergyEquationOfStateW1) result(self)
-    !% Constructor for the matter plus dark energy cosmological functions class.
+    !!{
+    Constructor for the matter plus dark energy cosmological functions class.
+    !!}
     use :: Cosmology_Parameters, only : cosmologyParametersClass
+    use :: Root_Finder         , only : rangeExpandMultiplicative
     implicit none
     type            (cosmologyFunctionsMatterDarkEnergy)                        :: self
     class           (cosmologyParametersClass          ), intent(in   ), target :: cosmologyParameters_
-    double precision                                    , intent(in   )         :: darkEnergyEquationOfStateW0        , darkEnergyEquationOfStateW1
-    !# <constructorAssign variables="*cosmologyParameters_, darkEnergyEquationOfStateW0, darkEnergyEquationOfStateW1"/>
+    double precision                                    , intent(in   )         :: darkEnergyEquationOfStateW0, darkEnergyEquationOfStateW1
+    double precision                                                            :: rangeExpandDownward        , rangeExpandUpward          , &
+         &                                                                         darkEnergyExponentCurrent
+    !![
+    <constructorAssign variables="*cosmologyParameters_, darkEnergyEquationOfStateW0, darkEnergyEquationOfStateW1"/>
+    !!]
 
     self%enableRangeChecks=.true.
+    ! Build root finder for epoch of matter domination.
+    if (self%cosmologyParameters_%OmegaDarkEnergy() /= 0.0d0)                             &
+         & self%finderDomination=rootFinder(                                              &
+         &                                  rootFunction     =matterDarkEnergyDomination, &
+         &                                  toleranceAbsolute=0.0d+0                    , &
+         &                                  toleranceRelative=1.0d-6                      &
+         &                                 )
+    ! Build root finder for epoch of matter equality.
+    darkEnergyExponentCurrent=self%exponentDarkEnergy(expansionFactor=1.0d0)
+    if (darkEnergyExponentCurrent > -3.0d0) then
+       ! Dark energy density is decaying less rapidly than matter.
+       if (self%cosmologyParameters_%OmegaMatter() < self%cosmologyParameters_%OmegaDarkEnergy()) then
+          ! Matter density is less than dark energy density. Search backward for epoch of domination.
+          rangeExpandUpward  =1.0d0
+          rangeExpandDownward=0.5d0
+       else
+          ! Matter density is greater than dark energy density. Search forward for epoch of domination.
+          rangeExpandUpward  =2.0d0
+          rangeExpandDownward=1.0d0
+       end if
+    else
+       ! Dark energy density is decaying more rapidly than matter.
+       if (self%cosmologyParameters_%OmegaMatter() < self%cosmologyParameters_%OmegaDarkEnergy()) then
+          ! Matter density is less than dark energy density. Search forward for epoch of domination.
+          rangeExpandUpward  =2.0d0
+          rangeExpandDownward=1.0d0
+       else
+          ! Matter density is greater than dark energy density. Search backward for epoch of domination.
+          rangeExpandUpward  =1.0d0
+          rangeExpandDownward=0.50d0
+       end if
+    end if
+    self%finderEquality=rootFinder(                                                &
+         &                         rootFunction       =matterDarkEnergyDomination, &
+         &                         toleranceAbsolute  =0.0d0                     , &
+         &                         toleranceRelative  =1.0d-6                    , &
+         &                         rangeExpandUpward  =rangeExpandUpward         , &
+         &                         rangeExpandDownward=rangeExpandDownward       , &
+         &                         rangeExpandType    =rangeExpandMultiplicative   &
+         &                        )
     ! Force a build of the expansion factor table, which will determine if this Universe collapses.
     call self%expansionFactorTabulate()
    return
   end function matterDarkEnergyConstructorInternal
 
   double precision function matterDarkEnergyCosmicTime(self,expansionFactor,collapsingPhase)
-    !% Return the cosmological matter density in units of the critical density at the present day.
+    !!{
+    Return the cosmological matter density in units of the critical density at the present day.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
@@ -162,7 +230,9 @@ contains
   end function matterDarkEnergyCosmicTime
 
   double precision function matterDarkEnergyOmegaDarkEnergyEpochal(self,time,expansionFactor,collapsingPhase)
-    !% Return the dark energy density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
+    !!{
+    Return the dark energy density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
+    !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     implicit none
@@ -190,11 +260,9 @@ contains
 
   double precision function matterDarkEnergyDominationEpochMatter(self,dominateFactor)
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
-    use :: Root_Finder                   , only : rangeExpandMultiplicative , rootFinder
+    use :: Root_Finder                   , only : rangeExpandMultiplicative
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout) :: self
-    type            (rootFinder                        ), save          :: finder
-    !$omp threadprivate(finder)
     double precision                                    , intent(in   ) :: dominateFactor
     double precision                                                    :: aDominantCurvature , aDominantDarkEnergy      , &
          &                                                                 aMatterEquality    , darkEnergyExponentCurrent, &
@@ -204,47 +272,38 @@ contains
     matterDarkEnergyDominationEpochMatter=1.0d0
     ! Case where dark energy is present.
     if (self%cosmologyParameters_%OmegaDarkEnergy() /= 0.0d0) then
-       if (.not.finder%isInitialized()) then
-          darkEnergyExponentCurrent=self%exponentDarkEnergy(expansionFactor=1.0d0)
-          if (darkEnergyExponentCurrent > -3.0d0) then
-             ! Dark energy density is decaying less rapidly than matter.
-             if (self%cosmologyParameters_%OmegaMatter() < dominateFactor*self%cosmologyParameters_%OmegaDarkEnergy()) then
-                ! Matter density is less than dominated dark energy density. Search backward for epoch of domination.
-                rangeExpandUpward  =1.0d0
-                rangeExpandDownward=0.5d0
-             else
-                ! Matter density is greater than dominated dark energy density. Search forward for epoch of domination.
-                rangeExpandUpward  =2.0d0
-                rangeExpandDownward=1.0d0
-             end if
+       darkEnergyExponentCurrent=self%exponentDarkEnergy(expansionFactor=1.0d0)
+       if (darkEnergyExponentCurrent > -3.0d0) then
+          ! Dark energy density is decaying less rapidly than matter.
+          if (self%cosmologyParameters_%OmegaMatter() < dominateFactor*self%cosmologyParameters_%OmegaDarkEnergy()) then
+             ! Matter density is less than dominated dark energy density. Search backward for epoch of domination.
+             rangeExpandUpward  =1.0d0
+             rangeExpandDownward=0.5d0
           else
-             ! Dark energy density is decaying more rapidly than matter.
-             if (self%cosmologyParameters_%OmegaMatter() < dominateFactor*self%cosmologyParameters_%OmegaDarkEnergy()) then
-                ! Matter density is less than dominated dark energy density. Search forward for epoch of domination.
-                rangeExpandUpward  =2.0d0
-                rangeExpandDownward=1.0d0
-             else
-                ! Matter density is greater than dominated dark energy density. Search backward for epoch of domination.
-                rangeExpandUpward  =1.0d0
-                rangeExpandDownward=0.50d0
-             end if
+             ! Matter density is greater than dominated dark energy density. Search forward for epoch of domination.
+             rangeExpandUpward  =2.0d0
+             rangeExpandDownward=1.0d0
           end if
-          call finder%rootFunction(                                               &
-               &                   matterDarkEnergyDomination                     &
-               &                  )
-          call finder%tolerance   (                                               &
-               &                   toleranceAbsolute  =0.0d0                    , &
-               &                   toleranceRelative  =1.0d-6                     &
-               &                  )
-          call finder%rangeExpand (                                               &
-               &                   rangeExpandUpward  =rangeExpandUpward        , &
-               &                   rangeExpandDownward=rangeExpandDownward      , &
-               &                   rangeExpandType    =rangeExpandMultiplicative  &
-               &                  )
+       else
+          ! Dark energy density is decaying more rapidly than matter.
+          if (self%cosmologyParameters_%OmegaMatter() < dominateFactor*self%cosmologyParameters_%OmegaDarkEnergy()) then
+             ! Matter density is less than dominated dark energy density. Search forward for epoch of domination.
+             rangeExpandUpward  =2.0d0
+             rangeExpandDownward=1.0d0
+          else
+             ! Matter density is greater than dominated dark energy density. Search backward for epoch of domination.
+             rangeExpandUpward  =1.0d0
+             rangeExpandDownward=0.50d0
+          end if
        end if
-       matterDarkEnergyDominateFactorCurrent = dominateFactor
+       call self%finderDomination%rangeExpand(                                               &
+            &                                 rangeExpandUpward  =rangeExpandUpward        , &
+            &                                 rangeExpandDownward=rangeExpandDownward      , &
+            &                                 rangeExpandType    =rangeExpandMultiplicative  &
+            &                                )
+       matterDarkEnergyDominateFactorCurrent = dominateFactor       
        call self%targetSelf()
-       aDominantDarkEnergy  =finder%find(rootGuess=1.0d0)
+       aDominantDarkEnergy  =self%finderDomination%find(rootGuess=1.0d0)
        ! Choose earliest expansion factor.
        matterDarkEnergyDominationEpochMatter=min(matterDarkEnergyDominationEpochMatter,aDominantDarkEnergy)
     end if
@@ -261,7 +320,9 @@ contains
   end function matterDarkEnergyDominationEpochMatter
 
   double precision function matterDarkEnergyHubbleParameterEpochal(self,time,expansionFactor,collapsingPhase)
-    !% Returns the Hubble parameter at the request cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
+    !!{
+    Returns the Hubble parameter at the request cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
+    !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     implicit none
@@ -302,7 +363,9 @@ contains
   end function matterDarkEnergyHubbleParameterEpochal
 
   double precision function matterDarkEnergyHubbleParameterRateOfChange(self,time,expansionFactor,collapsingPhase)
-    !% Returns the rate of change of the Hubble parameter at the requested cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
+    !!{
+    Returns the rate of change of the Hubble parameter at the requested cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
@@ -347,64 +410,23 @@ contains
   end function matterDarkEnergyHubbleParameterRateOfChange
 
   double precision function matterDarkEnergyEqualityEpochMatterDarkEnergy(self,requestType)
-    !% Return the epoch of matter-dark energy magnitude equality (either expansion factor or cosmic time).
+    !!{
+    Return the epoch of matter-dark energy magnitude equality (either expansion factor or cosmic time).
+    !!}
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor, requestTypeTime
-    use :: Root_Finder                   , only : rangeExpandMultiplicative , rootFinder
     implicit none
-    class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
-    integer                                             , intent(in   ), optional :: requestType
-    type            (rootFinder                        ), save                    :: finder
-    !$omp threadprivate(finder)
-    integer                                                                       :: requestTypeActual
-    double precision                                                              :: darkEnergyExponentCurrent, rangeExpandDownward, &
-         &                                                                           rangeExpandUpward
+    class  (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
+    integer                                    , intent(in   ), optional :: requestType
+    integer                                                              :: requestTypeActual
 
     if (present(requestType)) then
        requestTypeActual=requestType
     else
        requestTypeActual=requestTypeExpansionFactor
     end if
-    if (.not.finder%isInitialized()) then
-       darkEnergyExponentCurrent=self%exponentDarkEnergy(expansionFactor=1.0d0)
-       if (darkEnergyExponentCurrent > -3.0d0) then
-          ! Dark energy density is decaying less rapidly than matter.
-          if (self%cosmologyParameters_%OmegaMatter() < self%cosmologyParameters_%OmegaDarkEnergy()) then
-             ! Matter density is less than dark energy density. Search backward for epoch of domination.
-             rangeExpandUpward  =1.0d0
-             rangeExpandDownward=0.5d0
-          else
-             ! Matter density is greater than dark energy density. Search forward for epoch of domination.
-             rangeExpandUpward  =2.0d0
-             rangeExpandDownward=1.0d0
-          end if
-       else
-          ! Dark energy density is decaying more rapidly than matter.
-          if (self%cosmologyParameters_%OmegaMatter() < self%cosmologyParameters_%OmegaDarkEnergy()) then
-             ! Matter density is less than dark energy density. Search forward for epoch of domination.
-             rangeExpandUpward  =2.0d0
-             rangeExpandDownward=1.0d0
-          else
-             ! Matter density is greater than dark energy density. Search backward for epoch of domination.
-             rangeExpandUpward  =1.0d0
-             rangeExpandDownward=0.50d0
-          end if
-       end if
-       call finder%rootFunction(                                               &
-            &                   matterDarkEnergyDomination                     &
-            &                  )
-       call finder%tolerance   (                                               &
-            &                   toleranceAbsolute  =0.0d0                    , &
-            &                   toleranceRelative  =1.0d-6                     &
-            &                  )
-       call finder%rangeExpand (                                               &
-            &                   rangeExpandUpward  =rangeExpandUpward        , &
-            &                   rangeExpandDownward=rangeExpandDownward      , &
-            &                   rangeExpandType    =rangeExpandMultiplicative  &
-            &                  )
-    end if
     matterDarkEnergyDominateFactorCurrent =  1.0d0
     call self%targetSelf()
-    matterDarkEnergyEqualityEpochMatterDarkEnergy=finder%find(rootGuess=1.0d0)
+    matterDarkEnergyEqualityEpochMatterDarkEnergy=self%finderEquality%find(rootGuess=1.0d0)
     if (present(requestType)) then
        if (requestType == requestTypeTime)                                    &
             &                  matterDarkEnergyEqualityEpochMatterDarkEnergy  &
@@ -414,7 +436,9 @@ contains
   end function matterDarkEnergyEqualityEpochMatterDarkEnergy
 
   double precision function matterDarkEnergyDomination(expansionFactor)
-    !% Function used in root finding when seeking epoch at which matter dominates over dark energy.
+    !!{
+    Function used in root finding when seeking epoch at which matter dominates over dark energy.
+    !!}
     implicit none
     double precision, intent(in   ) :: expansionFactor
 
@@ -428,7 +452,9 @@ contains
   end function matterDarkEnergyDomination
 
   subroutine matterDarkEnergyTargetSelf(self)
-    !% Set a module-scope pointer to the current dark energy cosmology functions object.
+    !!{
+    Set a module-scope pointer to the current dark energy cosmology functions object.
+    !!}
     implicit none
     class(cosmologyFunctionsMatterDarkEnergy), intent(in   ), target :: self
 
@@ -437,7 +463,9 @@ contains
   end subroutine matterDarkEnergyTargetSelf
 
   subroutine matterDarkEnergyMakeExpansionFactorTable(self,time)
-    !% Builds a table of expansion factor vs. time for dark energy universes.
+    !!{
+    Builds a table of expansion factor vs. time for dark energy universes.
+    !!}
     use :: Cosmology_Parameters, only : hubbleUnitsTime
     use :: Memory_Management   , only : allocateArray  , deallocateArray
     use :: Numerical_Ranges    , only : Make_Range     , rangeTypeLogarithmic
@@ -591,8 +619,10 @@ contains
   end subroutine matterDarkEnergyMakeExpansionFactorTable
 
   double precision function matterDarkEnergyExpansionFactorChange(timeStart,timeEnd,expansionFactorStart)
-    !% Compute the expansion factor at time {\normalfont \ttfamily timeEnd} given an initial value {\normalfont \ttfamily
-    !% expansionFactorStart} at time {\normalfont \ttfamily timeStart}.
+    !!{
+    Compute the expansion factor at time {\normalfont \ttfamily timeEnd} given an initial value {\normalfont \ttfamily
+    expansionFactorStart} at time {\normalfont \ttfamily timeStart}.
+    !!}
     use :: Numerical_ODE_Solvers, only : odeSolver
     implicit none
     double precision           , intent(in   ) :: expansionFactorStart       , timeEnd                     , &
@@ -611,7 +641,9 @@ contains
   end function matterDarkEnergyExpansionFactorChange
 
   integer function matterDarkEnergyAgeTableODEs(t,a,dadt)
-    !% System of differential equations to solve for expansion factor vs. age.
+    !!{
+    System of differential equations to solve for expansion factor vs. age.
+    !!}
     use :: Interface_GSL, only : GSL_Success
     implicit none
     double precision              , intent(in   ) :: t
@@ -628,7 +660,9 @@ contains
   end function matterDarkEnergyAgeTableODEs
 
   double precision function matterDarkEnergyTimeAtDistanceComoving(self,comovingDistance)
-    !% Returns the cosmological time corresponding to given {\normalfont \ttfamily comovingDistance}.
+    !!{
+    Returns the cosmological time corresponding to given {\normalfont \ttfamily comovingDistance}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout) :: self
@@ -641,7 +675,9 @@ contains
   end function matterDarkEnergyTimeAtDistanceComoving
 
   double precision function matterDarkEnergyDistanceComoving(self,time)
-    !% Returns the comoving distance to cosmological time {\normalfont \ttfamily time}.
+    !!{
+    Returns the comoving distance to cosmological time {\normalfont \ttfamily time}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout) :: self
@@ -654,7 +690,9 @@ contains
    end function matterDarkEnergyDistanceComoving
 
   double precision function matterDarkEnergyDistanceComovingConvert(self,output,distanceLuminosity,distanceModulus,distanceModulusKCorrected,redshift)
-    !% Convert bewteen different measures of distance.
+    !!{
+    Convert bewteen different measures of distance.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
@@ -669,7 +707,9 @@ contains
   end function matterDarkEnergyDistanceComovingConvert
 
   double precision function matterDarkEnergyEquationOfStateDarkEnergy(self,time,expansionFactor)
-    !% Return the dark energy equation of state.
+    !!{
+    Return the dark energy equation of state.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
@@ -695,7 +735,9 @@ contains
   end function matterDarkEnergyEquationOfStateDarkEnergy
 
   double precision function matterDarkEnergyExponentDarkEnergy(self,time,expansionFactor)
-    !% Return the dark energy exponent.
+    !!{
+    Return the dark energy exponent.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self
@@ -719,7 +761,9 @@ contains
   end function matterDarkEnergyExponentDarkEnergy
 
   double precision function matterDarkEnergyExponentDarkEnergyDerivative(self,time,expansionFactor)
-    !% Return the derivative of the dark energy exponent with respect to expansion factor.
+    !!{
+    Return the derivative of the dark energy exponent with respect to expansion factor.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterDarkEnergy), intent(inout)           :: self

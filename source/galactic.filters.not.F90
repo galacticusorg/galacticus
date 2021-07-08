@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an inverting filter.
+!!{
+Contains a module which implements an inverting filter.
+!!}
 
-  !# <galacticFilter name="galacticFilterNot">
-  !#  <description>A filter which simply inverts the result of another filter.</description>
-  !# </galacticFilter>
+  !![
+  <galacticFilter name="galacticFilterNot">
+   <description>A filter which simply inverts the result of another filter.</description>
+  </galacticFilter>
+  !!]
   type, extends(galacticFilterClass) :: galacticFilterNot
-     !% A galactic filter which simply inverts the result of another filter.
+     !!{
+     A galactic filter which simply inverts the result of another filter.
+     !!}
      private
      class(galacticFilterClass), pointer :: galacticFilter_ => null()
    contains
@@ -32,7 +38,9 @@
   end type galacticFilterNot
 
   interface galacticFilterNot
-     !% Constructors for the ``not'' galactic filter class.
+     !!{
+     Constructors for the ``not'' galactic filter class.
+     !!}
      module procedure notConstructorParameters
      module procedure notConstructorInternal
   end interface galacticFilterNot
@@ -40,41 +48,57 @@
 contains
 
   function notConstructorParameters(parameters) result(self)
-    !% Constructor for the ``not'' galactic filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``not'' galactic filter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (galacticFilterNot  )                :: self
     type (inputParameters    ), intent(inout) :: parameters
     class(galacticFilterClass), pointer       :: galacticFilter_
 
-    !# <objectBuilder class="galacticFilter" name="galacticFilter_" source="parameters"/>
+    !![
+    <objectBuilder class="galacticFilter" name="galacticFilter_" source="parameters"/>
+    !!]
     self=galacticFilterNot(galacticFilter_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="galacticFilter_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticFilter_"/>
+    !!]
     return
   end function notConstructorParameters
 
   function notConstructorInternal(galacticFilter_) result(self)
-    !% Internal constructor for the ``not'' galactic filter class.
+    !!{
+    Internal constructor for the ``not'' galactic filter class.
+    !!}
     implicit none
     type (galacticFilterNot  )                        :: self
     class(galacticFilterClass), intent(in   ), target :: galacticFilter_
-    !# <constructorAssign variables="*galacticFilter_"/>
+    !![
+    <constructorAssign variables="*galacticFilter_"/>
+    !!]
 
     return
   end function notConstructorInternal
 
   subroutine notDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily not} galactic filter class.
+    !!{
+    Destructor for the {\normalfont \ttfamily not} galactic filter class.
+    !!}
     implicit none
     type(galacticFilterNot), intent(inout) :: self
 
-    !# <objectDestructor name="self%galacticFilter_"/>
+    !![
+    <objectDestructor name="self%galacticFilter_"/>
+    !!]
     return
   end subroutine notDestructor
 
   logical function notPasses(self,node)
-    !% Implement a not galactic filter.
+    !!{
+    Implement a not galactic filter.
+    !!}
     implicit none
     class(galacticFilterNot), intent(inout)         :: self
     type (treeNode         ), intent(inout), target :: node

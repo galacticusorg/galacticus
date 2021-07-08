@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an fixed critical overdensity class.
+!!{
+Contains a module which implements an fixed critical overdensity class.
+!!}
 
-  !# <criticalOverdensity name="criticalOverdensityFixed">
-  !#  <description>
-  !#   A critical overdensity class in which the critical overdensity is set to a fixed number given by {\normalfont \ttfamily
-  !#   [criticalOverdensity]}.
-  !#  </description>
-  !# </criticalOverdensity>
+  !![
+  <criticalOverdensity name="criticalOverdensityFixed">
+   <description>
+    A critical overdensity class in which the critical overdensity is set to a fixed number given by {\normalfont \ttfamily
+    [criticalOverdensity]}.
+   </description>
+  </criticalOverdensity>
+  !!]
   type, extends(criticalOverdensityClass) :: criticalOverdensityFixed
-     !% A fixed critical overdensity class.
+     !!{
+     A fixed critical overdensity class.
+     !!}
      private
      double precision :: criticalOverdensity_
     contains
@@ -39,7 +45,9 @@
   end type criticalOverdensityFixed
 
   interface criticalOverdensityFixed
-     !% Constructors for the fixed critical overdensity class.
+     !!{
+     Constructors for the fixed critical overdensity class.
+     !!}
      module procedure fixedConstructorParameters
      module procedure fixedConstructorInternal
   end interface criticalOverdensityFixed
@@ -47,7 +55,9 @@
 contains
 
   function fixedConstructorParameters(parameters) result(self)
-    !% Constructor for the fixed critical overdensity class which takes a parameter set as input.
+    !!{
+    Constructor for the fixed critical overdensity class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters        , only : inputParameter, inputParameters
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -59,50 +69,64 @@ contains
     class           (cosmologicalMassVarianceClass), pointer       :: cosmologicalMassVariance_
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>criticalOverdensity</name>
-    !#   <variable>criticalOverdensity_</variable>
-    !#   <source>parameters</source>
-    !#   <defaultValue>(3.0d0/20.0d0)*(12.0d0*Pi)**(2.0d0/3.0d0)</defaultValue>
-    !#   <description>The value to use for the critical overdensity for collapse of dark matter halos when using a fixed value.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>criticalOverdensity</name>
+      <variable>criticalOverdensity_</variable>
+      <source>parameters</source>
+      <defaultValue>(3.0d0/20.0d0)*(12.0d0*Pi)**(2.0d0/3.0d0)</defaultValue>
+      <description>The value to use for the critical overdensity for collapse of dark matter halos when using a fixed value.</description>
+    </inputParameter>
+    <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !!]
     self=criticalOverdensityFixed(criticalOverdensity_,linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="linearGrowth_"            />
-    !# <objectDestructor name="cosmologyFunctions_"      />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="linearGrowth_"            />
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    !!]
     return
   end function fixedConstructorParameters
 
   function fixedConstructorInternal(criticalOverdensity_,linearGrowth_,cosmologyFunctions_,cosmologicalMassVariance_) result(self)
-    !% Internal constructor for the fixed critical overdensity class.
+    !!{
+    Internal constructor for the fixed critical overdensity class.
+    !!}
     implicit none
     type            (criticalOverdensityFixed     )                        :: self
     double precision                                       , intent(in   ) :: criticalOverdensity_
     class           (cosmologyFunctionsClass      ), target, intent(in   ) :: cosmologyFunctions_
     class           (linearGrowthClass            ), target, intent(in   ) :: linearGrowth_
     class           (cosmologicalMassVarianceClass), target, intent(in   ) :: cosmologicalMassVariance_
-    !# <constructorAssign variables="criticalOverdensity_, *linearGrowth_, *cosmologyFunctions_, *cosmologicalMassVariance_"/>
+    !![
+    <constructorAssign variables="criticalOverdensity_, *linearGrowth_, *cosmologyFunctions_, *cosmologicalMassVariance_"/>
+    !!]
 
     return
   end function fixedConstructorInternal
 
   subroutine fixedDestructor(self)
-    !% Destructor for the fixed critical overdensity class.
+    !!{
+    Destructor for the fixed critical overdensity class.
+    !!}
     implicit none
     type(criticalOverdensityFixed), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_"      />
-    !# <objectDestructor name="self%linearGrowth_"            />
+    !![
+    <objectDestructor name="self%cosmologicalMassVariance_"/>
+    <objectDestructor name="self%cosmologyFunctions_"      />
+    <objectDestructor name="self%linearGrowth_"            />
+    !!]
     return
   end subroutine fixedDestructor
 
   double precision function fixedValue(self,time,expansionFactor,collapsing,mass,node)
-    !% Return the critical overdensity at the given time and mass.
+    !!{
+    Return the critical overdensity at the given time and mass.
+    !!}
     implicit none
     class           (criticalOverdensityFixed), intent(inout)           :: self
     double precision                          , intent(in   ), optional :: time      , expansionFactor
@@ -116,7 +140,9 @@ contains
   end function fixedValue
 
   double precision function fixedGradientTime(self,time,expansionFactor,collapsing,mass,node)
-    !% Return the gradient with respect to time of critical overdensity at the given time and mass.
+    !!{
+    Return the gradient with respect to time of critical overdensity at the given time and mass.
+    !!}
     implicit none
     class           (criticalOverdensityFixed), intent(inout)           :: self
     double precision                          , intent(in   ), optional :: time      , expansionFactor
@@ -130,7 +156,9 @@ contains
   end function fixedGradientTime
 
   double precision function fixedGradientMass(self,time,expansionFactor,collapsing,mass,node)
-    !% Return the gradient with respect to mass of critical overdensity at the given time and mass.
+    !!{
+    Return the gradient with respect to mass of critical overdensity at the given time and mass.
+    !!}
     implicit none
     class           (criticalOverdensityFixed), intent(inout)           :: self
     double precision                          , intent(in   ), optional :: time      , expansionFactor
@@ -144,7 +172,9 @@ contains
   end function fixedGradientMass
 
   logical function fixedIsMassDependent(self)
-    !% Return whether the critical overdensity is mass dependent.
+    !!{
+    Return whether the critical overdensity is mass dependent.
+    !!}
     implicit none
     class(criticalOverdensityFixed), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -154,7 +184,9 @@ contains
   end function fixedIsMassDependent
 
   logical function fixedIsNodeDependent(self)
-    !% Return whether the critical overdensity is node dependent.
+    !!{
+    Return whether the critical overdensity is node dependent.
+    !!}
     implicit none
     class(criticalOverdensityFixed), intent(inout) :: self
     !$GLC attributes unused :: self

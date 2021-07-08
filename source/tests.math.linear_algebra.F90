@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,17 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test linear algebra functions.
+!!{
+Contains a program to test linear algebra functions.
+!!}
 
 program Test_Math_Linear_Algebra
-  !% Tests of linear algebra functions.
-  use :: Galacticus_Display      , only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: Linear_Algebra          , only : vector                        , matrix                 , assignment(=)       , operator(*)      , &
-       &                                  matrixLU                      , matrixRotation
-  use :: Numerical_Constants_Math, only : Pi
-  use :: Sorting                 , only : sortIndex
-  use :: Unit_Tests              , only : Assert                         , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
-  use, intrinsic :: ISO_C_Binding, only : c_size_t
+  !!{
+  Tests of linear algebra functions.
+  !!}
+  use            :: Display                 , only : displayVerbositySet, verbosityLevelStandard
+  use, intrinsic :: ISO_C_Binding           , only : c_size_t
+  use            :: Linear_Algebra          , only : assignment(=)      , matrix                , matrixLU            , matrixRotation   , &
+          &                                          operator(*)        , vector
+  use            :: Numerical_Constants_Math, only : Pi
+  use            :: Sorting                 , only : sortIndex
+  use            :: Unit_Tests              , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   type            (vector  ), allocatable    :: vector1          , vector2          , &
        &                                        vector3          , vectorE
@@ -45,7 +49,7 @@ program Test_Math_Linear_Algebra
   double precision                           :: angle
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Math: linear algebra")
   !! Build the vectors.

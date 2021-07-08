@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module of integrands for unit tests.
+!!{
+Contains a module of integrands for unit tests.
+!!}
 
 module Test_Integration2_Functions
-  !% Contains integrands for unit tests.
+  !!{
+  Contains integrands for unit tests.
+  !!}
   use :: ISO_Varying_String    , only : varying_string
   use :: Numerical_Integration2, only : integrator2   , integratorMulti
   implicit none
@@ -33,14 +37,18 @@ module Test_Integration2_Functions
        &    testFunctionsInitialize
 
   type :: testIntegrator
-     !% Type used for testing numerical integrators.
+     !!{
+     Type used for testing numerical integrators.
+     !!}
      class  (integrator2   ), allocatable :: integrator_
      type   (varying_string)              :: description
      integer                              :: order
   end type testIntegrator
 
   type :: testFunction
-     !% Type used for referencing functions.
+     !!{
+     Type used for referencing functions.
+     !!}
      character       (len=22         )                  :: description
      double precision                                   :: rangeLow   , rangeHigh, solution
      procedure       (function1Scalar), pointer, nopass :: scalar
@@ -48,14 +56,18 @@ module Test_Integration2_Functions
   end type testFunction
 
   type :: testIntegratorMulti
-     !% Type used for testing multi-integrand numerical integrators.
+     !!{
+     Type used for testing multi-integrand numerical integrators.
+     !!}
      class  (integratorMulti), allocatable :: integrator_
      type   (varying_string )              :: description
      integer                               :: order
   end type testIntegratorMulti
 
   type :: testFunctionMulti
-     !% Type used for referencing functions.
+     !!{
+     Type used for referencing functions.
+     !!}
      character       (len=22         )                             :: description
      double precision                                              :: rangeLow   , rangeHigh
      double precision                  , allocatable, dimension(:) :: solution
@@ -69,7 +81,9 @@ module Test_Integration2_Functions
 contains
 
   subroutine testFunctionsInitialize()
-    !% Initalize an array of test functions for integration tests.
+    !!{
+    Initalize an array of test functions for integration tests.
+    !!}
     implicit none
     testFunctions     =[                                                                                                                                                      &
          &              testFunction     ('log(x) sin( x)    ',1.0d0,10.0d0,  1.549173238901735869d0                        ,function1Scalar,function1Vector               ), &
@@ -84,7 +98,9 @@ contains
   end subroutine testFunctionsInitialize
 
   double precision function function1Scalar(x)
-    !% Test function number 1 for numerical integration tests: scalar version.
+    !!{
+    Test function number 1 for numerical integration tests: scalar version.
+    !!}
     implicit none
     double precision, intent(in   ) :: x
 
@@ -93,7 +109,9 @@ contains
   end function function1Scalar
 
   function function1Vector(x)
-    !% Test function number 1 for numerical integration tests: vector version.
+    !!{
+    Test function number 1 for numerical integration tests: vector version.
+    !!}
     double precision, intent(in   ), dimension(     : ) :: x
     double precision               , dimension(size(x)) :: function1Vector
 
@@ -102,7 +120,9 @@ contains
   end function function1Vector
 
   double precision function function2Scalar(x)
-    !% Test function number 1 for numerical integration tests: scalar version.
+    !!{
+    Test function number 1 for numerical integration tests: scalar version.
+    !!}
     implicit none
     double precision, intent(in   ) :: x
 
@@ -111,7 +131,9 @@ contains
   end function function2Scalar
 
   function function2Vector(x)
-    !% Test function number 2 for numerical integration tests: vector version.
+    !!{
+    Test function number 2 for numerical integration tests: vector version.
+    !!}
     double precision, intent(in   ), dimension(     : ) :: x
     double precision               , dimension(size(x)) :: function2Vector
 
@@ -120,7 +142,9 @@ contains
   end function function2Vector
 
   double precision function function3Scalar(x)
-    !% Test function number 3 for numerical integration tests: scalar version.
+    !!{
+    Test function number 3 for numerical integration tests: scalar version.
+    !!}
     implicit none
     double precision, intent(in   ) :: x
 
@@ -129,7 +153,9 @@ contains
   end function function3Scalar
 
   function function3Vector(x)
-    !% Test function number 3 for numerical integration tests: vector version.
+    !!{
+    Test function number 3 for numerical integration tests: vector version.
+    !!}
     implicit none
     double precision, intent(in   ), dimension(     : ) :: x
     double precision               , dimension(size(x)) :: function3Vector
@@ -139,7 +165,9 @@ contains
   end function function3Vector
 
   double precision function function4Scalar(x)
-    !% Test function number 4 for numerical integration tests: scalar version.
+    !!{
+    Test function number 4 for numerical integration tests: scalar version.
+    !!}
     implicit none
     double precision, intent(in   ) :: x
 
@@ -148,7 +176,9 @@ contains
   end function function4Scalar
 
   function function4Vector(x)
-    !% Test function number 4 for numerical integration tests: vector version.
+    !!{
+    Test function number 4 for numerical integration tests: vector version.
+    !!}
     implicit none
     double precision, intent(in   ), dimension(     : ) :: x
     double precision               , dimension(size(x)) :: function4Vector
@@ -158,7 +188,9 @@ contains
   end function function4Vector
 
   subroutine function14Vector(n,x,e,integrand)
-    !% Combined functions number 1 and 4 for numerical integration tests: vector version.
+    !!{
+    Combined functions number 1 and 4 for numerical integration tests: vector version.
+    !!}
     implicit none
     integer         , intent(in   )                       :: n
     double precision, intent(in   ), dimension(       : ) :: x

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,21 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which filters out particles based on a property range.
+!!{
+Contains a module which implements an N-body data operator which filters out particles based on a property range.
+!!}
   
   type :: propertyRange
-     !% Type used to store filter ranges.
+     !!{
+     Type used to store filter ranges.
+     !!}
      type            (varying_string) :: name
      double precision                 :: rangeLowReal   , rangeHighReal
      integer         (c_size_t      ) :: rangeLowInteger, rangeHighInteger
      integer                          :: type
   end type propertyRange
   
-  !# <nbodyOperator name="nbodyOperatorFilterProperties">
-  !#  <description>An N-body data operator which filters out particles based on a property range.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorFilterProperties">
+   <description>An N-body data operator which filters out particles based on a property range.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorFilterProperties
-     !% An N-body data operator which filters out particles based on a property range.
+     !!{
+     An N-body data operator which filters out particles based on a property range.
+     !!}
      private
      type(varying_string), allocatable, dimension(:) :: rangeLow      , rangeHigh, &
           &                                             propertyNames
@@ -41,7 +49,9 @@
   end type nbodyOperatorFilterProperties
 
   interface nbodyOperatorFilterProperties
-     !% Constructors for the {\normalfont \ttfamily filterProperties} N-body operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily filterProperties} N-body operator class.
+     !!}
      module procedure filterPropertiesConstructorParameters
      module procedure filterPropertiesConstructorInternal
   end interface nbodyOperatorFilterProperties
@@ -49,9 +59,11 @@
 contains
 
   function filterPropertiesConstructorParameters(parameters) result (self)
-    !% Constructor for the {\normalfont \ttfamily filterProperties} N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily filterProperties} N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters     , only : inputParameters
-    use :: NBody_Simulation_Data, only : propertyTypeInteger, propertyTypeReal, propertyTypeUnknown, nBodyDataPropertyType
+    use :: NBody_Simulation_Data, only : nBodyDataPropertyType, propertyTypeInteger, propertyTypeReal, propertyTypeUnknown
     implicit none
     type     (nbodyOperatorFilterProperties)                              :: self
     type     (inputParameters              ), intent(inout)               :: parameters
@@ -66,21 +78,23 @@ contains
     allocate(rangeHigh    (parameters%count('rangeHigh'    ,zeroIfNotPresent=.true.)))
     if (size(rangeLow ) /= size(propertyNames)) call Galacticus_Error_Report('[rangeLow] must have same cardinality as [propertyNames]' //{introspection:location})
     if (size(rangeHigh) /= size(propertyNames)) call Galacticus_Error_Report('[rangeHigh] must have same cardinality as [propertyNames]'//{introspection:location})
-    !# <inputParameter>
-    !#   <name>propertyNames</name>
-    !#   <source>parameters</source>
-    !#   <description>A list of named properties on which to filter.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>rangeLow</name>
-    !#   <source>parameters</source>
-    !#   <description>The lowest value of each property to pass (``{\normalfont \ttfamily -infinity}'' is interpreted as the lowest possible value for the property.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>rangeHigh</name>
-    !#   <source>parameters</source>
-    !#   <description>The highest value of each property to pass (``{\normalfont \ttfamily +infinity}'' is interpreted as the lowest possible value for the property.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>propertyNames</name>
+      <source>parameters</source>
+      <description>A list of named properties on which to filter.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>rangeLow</name>
+      <source>parameters</source>
+      <description>The lowest value of each property to pass (``{\normalfont \ttfamily -infinity}'' is interpreted as the lowest possible value for the property.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>rangeHigh</name>
+      <source>parameters</source>
+      <description>The highest value of each property to pass (``{\normalfont \ttfamily +infinity}'' is interpreted as the lowest possible value for the property.</description>
+    </inputParameter>
+    !!]
     allocate(propertyRanges(size(propertyNames)))
     do i=1,size(propertyNames)
        propertyRanges(i)%name=                           propertyNames(i)
@@ -117,19 +131,25 @@ contains
        end select
     end do
     self=nbodyOperatorFilterProperties(propertyRanges)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function filterPropertiesConstructorParameters
 
   function filterPropertiesConstructorInternal(propertyRanges) result (self)
-    !% Internal constructor for the {\normalfont \ttfamily filterProperties} N-body operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily filterProperties} N-body operator class.
+    !!}
     use :: Galacticus_Error     , only : Galacticus_Error_Report
     use :: NBody_Simulation_Data, only : propertyTypeInteger    , propertyTypeReal
     implicit none
     type   (nbodyOperatorFilterProperties)                              :: self
     type   (propertyRange                ), intent(in   ), dimension(:) :: propertyRanges
     integer                                                             :: i
-    !# <constructorAssign variables="propertyRanges"/>
+    !![
+    <constructorAssign variables="propertyRanges"/>
+    !!]
 
     ! Validate ranges.
     do i=1,size(propertyRanges)
@@ -146,10 +166,12 @@ contains
   end function filterPropertiesConstructorInternal
 
   subroutine filterPropertiesOperate(self,simulations)
-    !% Identify and flag particles which have been always isolated.
-    use :: Galacticus_Display   , only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Message, verbosityStandard
+    !!{
+    Identify and flag particles which have been always isolated.
+    !!}
+    use :: Display              , only : displayIndent          , displayMessage  , displayUnindent, verbosityLevelStandard
     use :: Galacticus_Error     , only : Galacticus_Error_Report
-    use :: NBody_Simulation_Data, only : propertyTypeInteger      , propertyTypeReal
+    use :: NBody_Simulation_Data, only : propertyTypeInteger    , propertyTypeReal
     implicit none
     class           (nbodyOperatorFilterProperties), intent(inout)                 :: self
     type            (nBodyData                    ), intent(inout), dimension(  :) :: simulations
@@ -162,7 +184,7 @@ contains
          &                                                                            k
     integer         (c_size_t                     )                                :: countFiltered
     
-    call Galacticus_Display_Indent('filter on property ranges',verbosityStandard)
+    call displayIndent('filter on property ranges',verbosityLevelStandard)
     do i=1,size(simulations)
        do j=1,size(self%propertyRanges)
           select case (self%propertyRanges(j)%type)
@@ -246,6 +268,6 @@ contains
        end do
        deallocate(mask)
     end do
-    call Galacticus_Display_Unindent('done',verbosityStandard)
+    call displayUnindent('done',verbosityLevelStandard)
     return
   end subroutine filterPropertiesOperate

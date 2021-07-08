@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,38 +17,44 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a the Kennicutt-Schmidt star formation rate surface density for galactic disks.
+  !!{
+  Implementation of a the Kennicutt-Schmidt star formation rate surface density for galactic disks.
+  !!}
 
   use :: Kind_Numbers, only : kind_int8
 
-  !# <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksKennicuttSchmidt">
-  !#  <description>
-  !#   A star formation rate surface density class which assumes that the Kennicutt-Schmidt law holds
-  !#   \citep{schmidt_rate_1959,kennicutt_global_1998}:
-  !#   \begin{equation}
-  !#   \dot{\Sigma}_\star = A \left({\Sigma_\mathrm{H} \over M_\odot \hbox{pc}^{-2}} \right)^N,
-  !#   \end{equation}
-  !#   where $A=${\normalfont \ttfamily [normalization]} and $N=${\normalfont \ttfamily [exponent]} are parameters. Optionally, if
-  !#   the {\normalfont \ttfamily [truncate]} parameter is set to true, then the star formation rate is truncated below a critical
-  !#   surface dexponentensity such that
-  !#   \begin{equation}
-  !#   \dot{\Sigma}_\star = \left\{ \begin{array}{ll} A \left({\Sigma_\mathrm{H} \over M_\odot \hbox{pc}^{-2}} \right)^N &amp;
-  !#   \hbox{ if } \Sigma_\mathrm{gas,disk} &gt; \Sigma_\mathrm{crit} \\ A \left({\Sigma_\mathrm{H} \over M_\odot \hbox{pc}^{-2}}
-  !#   \right)^N \left(\Sigma_\mathrm{gas,disk}/\Sigma_\mathrm{crit}\right)^\alpha &amp; \hbox{ otherwise.} \end{array} \right.
-  !#   \end{equation}
-  !#   Here, $\alpha=${\normalfont \ttfamily [exponentTruncated]} and $\Sigma_\mathrm{crit}$ is a critical surface density for
-  !#   star formation which we specify as
-  !#   \begin{equation}
-  !#   \Sigma_\mathrm{crit} = {q_\mathrm{crit} \kappa \sigma_\mathrm{gas} \over \pi \G},
-  !#   \end{equation}
-  !#   where $\kappa$ is the epicyclic frequency in the disk, $\sigma_\mathrm{gas}$ is the velocity dispersion of gas in the disk
-  !#   and $q_\mathrm{crit}=${\normalfont \ttfamily [toomreParameterCritical]} is a dimensionless constant of order unity which
-  !#   controls where the critical density occurs. We assume that $\sigma_\mathrm{gas}$ is a constant equal to {\normalfont
-  !#   \ttfamily [velocityDispersionDiskGas]} and that the disk has a flat rotation curve such that $\kappa = \sqrt{2} V/R$.
-  !#  </description>
-  !# </starFormationRateSurfaceDensityDisks>
+  !![
+  <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksKennicuttSchmidt">
+   <description>
+    A star formation rate surface density class which assumes that the Kennicutt-Schmidt law holds
+    \citep{schmidt_rate_1959,kennicutt_global_1998}:
+    \begin{equation}
+    \dot{\Sigma}_\star = A \left({\Sigma_\mathrm{H} \over M_\odot \hbox{pc}^{-2}} \right)^N,
+    \end{equation}
+    where $A=${\normalfont \ttfamily [normalization]} and $N=${\normalfont \ttfamily [exponent]} are parameters. Optionally, if
+    the {\normalfont \ttfamily [truncate]} parameter is set to true, then the star formation rate is truncated below a critical
+    surface dexponentensity such that
+    \begin{equation}
+    \dot{\Sigma}_\star = \left\{ \begin{array}{ll} A \left({\Sigma_\mathrm{H} \over M_\odot \hbox{pc}^{-2}} \right)^N &amp;
+    \hbox{ if } \Sigma_\mathrm{gas,disk} &gt; \Sigma_\mathrm{crit} \\ A \left({\Sigma_\mathrm{H} \over M_\odot \hbox{pc}^{-2}}
+    \right)^N \left(\Sigma_\mathrm{gas,disk}/\Sigma_\mathrm{crit}\right)^\alpha &amp; \hbox{ otherwise.} \end{array} \right.
+    \end{equation}
+    Here, $\alpha=${\normalfont \ttfamily [exponentTruncated]} and $\Sigma_\mathrm{crit}$ is a critical surface density for
+    star formation which we specify as
+    \begin{equation}
+    \Sigma_\mathrm{crit} = {q_\mathrm{crit} \kappa \sigma_\mathrm{gas} \over \pi \G},
+    \end{equation}
+    where $\kappa$ is the epicyclic frequency in the disk, $\sigma_\mathrm{gas}$ is the velocity dispersion of gas in the disk
+    and $q_\mathrm{crit}=${\normalfont \ttfamily [toomreParameterCritical]} is a dimensionless constant of order unity which
+    controls where the critical density occurs. We assume that $\sigma_\mathrm{gas}$ is a constant equal to {\normalfont
+    \ttfamily [velocityDispersionDiskGas]} and that the disk has a flat rotation curve such that $\kappa = \sqrt{2} V/R$.
+   </description>
+  </starFormationRateSurfaceDensityDisks>
+  !!]
   type, extends(starFormationRateSurfaceDensityDisksClass) :: starFormationRateSurfaceDensityDisksKennicuttSchmidt
-     !% Implementation of a Kennicutt-Schmidt star formation rate surface density for galactic disks.
+     !!{
+     Implementation of a Kennicutt-Schmidt star formation rate surface density for galactic disks.
+     !!}
      private
      double precision            :: normalization               , exponent                 , &
           &                         exponentTruncated           , velocityDispersionDiskGas, &
@@ -58,9 +64,11 @@
      logical                     :: factorsComputed
      double precision            :: surfaceDensityCriticalFactor, hydrogenMassFraction
    contains
-     !# <methods>
-     !#   <method description="Reset memoized calculations." method="calculationReset" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Reset memoized calculations." method="calculationReset" />
+     </methods>
+     !!]
      final     ::                     kennicuttSchmidtDestructor
      procedure :: autoHook         => kennicuttSchmidtAutoHook
      procedure :: calculationReset => kennicuttSchmidtCalculationReset
@@ -68,7 +76,9 @@
   end type starFormationRateSurfaceDensityDisksKennicuttSchmidt
 
   interface starFormationRateSurfaceDensityDisksKennicuttSchmidt
-     !% Constructors for the {\normalfont \ttfamily kennicuttSchmidt} star formation surface density rate in disks class.
+     !!{
+     Constructors for the {\normalfont \ttfamily kennicuttSchmidt} star formation surface density rate in disks class.
+     !!}
      module procedure kennicuttSchmidtConstructorParameters
      module procedure kennicuttSchmidtConstructorInternal
   end interface starFormationRateSurfaceDensityDisksKennicuttSchmidt
@@ -76,7 +86,9 @@
 contains
 
   function kennicuttSchmidtConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily kennicuttSchmidt} star formation surface density rate in disks class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily kennicuttSchmidt} star formation surface density rate in disks class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (starFormationRateSurfaceDensityDisksKennicuttSchmidt)                :: self
@@ -86,53 +98,59 @@ contains
          &                                                                                   toomreParameterCritical
     logical                                                                               :: truncate
 
-    !# <inputParameter>
-    !#   <name>normalization</name>
-    !#   <defaultSource>\citep{kennicutt_global_1998}</defaultSource>
-    !#   <defaultValue>0.147d0</defaultValue>
-    !#   <description>The normalization of the Kennicutt-Schmidt star formation law [$M_\odot$ Gyr$^{-1}$pc$^{-2}$].</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>exponent</name>
-    !#   <defaultSource>\citep{kennicutt_global_1998}</defaultSource>
-    !#   <defaultValue>1.400d0</defaultValue>
-    !#   <description>The exponent in the Kennicutt-Schmidt star formation law.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>truncate</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether or not to truncate star formation below a critical surface density in disks.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>exponentTruncated</name>
-    !#   <defaultValue>6.0d0</defaultValue>
-    !#   <description>The exponent of the $\Sigma_\mathrm{gas}/\Sigma_\mathrm{crit}$ term used in truncating the Kennicutt-Schmidt star formation law.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>velocityDispersionDiskGas</name>
-    !#   <defaultSource>\citep{leroy_star_2008}</defaultSource>
-    !#   <defaultValue>10.0d0</defaultValue>
-    !#   <description>The velocity dispersion of gas in disks.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>toomreParameterCritical</name>
-    !#   <defaultSource>\citep{kennicutt_star_1989}</defaultSource>
-    !#   <defaultValue>0.4d0</defaultValue>
-    !#   <description>The critical Toomre parameter for star formation in disks.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>normalization</name>
+      <defaultSource>\citep{kennicutt_global_1998}</defaultSource>
+      <defaultValue>0.147d0</defaultValue>
+      <description>The normalization of the Kennicutt-Schmidt star formation law [$M_\odot$ Gyr$^{-1}$pc$^{-2}$].</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>exponent</name>
+      <defaultSource>\citep{kennicutt_global_1998}</defaultSource>
+      <defaultValue>1.400d0</defaultValue>
+      <description>The exponent in the Kennicutt-Schmidt star formation law.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>truncate</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Specifies whether or not to truncate star formation below a critical surface density in disks.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>exponentTruncated</name>
+      <defaultValue>6.0d0</defaultValue>
+      <description>The exponent of the $\Sigma_\mathrm{gas}/\Sigma_\mathrm{crit}$ term used in truncating the Kennicutt-Schmidt star formation law.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>velocityDispersionDiskGas</name>
+      <defaultSource>\citep{leroy_star_2008}</defaultSource>
+      <defaultValue>10.0d0</defaultValue>
+      <description>The velocity dispersion of gas in disks.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>toomreParameterCritical</name>
+      <defaultSource>\citep{kennicutt_star_1989}</defaultSource>
+      <defaultValue>0.4d0</defaultValue>
+      <description>The critical Toomre parameter for star formation in disks.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=starFormationRateSurfaceDensityDisksKennicuttSchmidt(normalization,exponent,truncate,exponentTruncated,velocityDispersionDiskGas,toomreParameterCritical)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function kennicuttSchmidtConstructorParameters
 
   function kennicuttSchmidtConstructorInternal(normalization,exponent,truncate,exponentTruncated,velocityDispersionDiskGas,toomreParameterCritical) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily kennicuttSchmidt} star formation surface density rate from disks class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily kennicuttSchmidt} star formation surface density rate from disks class.
+    !!}
     use :: Numerical_Constants_Prefixes, only : mega
     implicit none
     type            (starFormationRateSurfaceDensityDisksKennicuttSchmidt)                :: self
@@ -140,7 +158,9 @@ contains
          &                                                                                   exponentTruncated      , velocityDispersionDiskGas, &
          &                                                                                   toomreParameterCritical
     logical                                                               , intent(in   ) :: truncate
-    !# <constructorAssign variables="normalization, exponent, truncate, exponentTruncated, velocityDispersionDiskGas, toomreParameterCritical"/>
+    !![
+    <constructorAssign variables="normalization, exponent, truncate, exponentTruncated, velocityDispersionDiskGas, toomreParameterCritical"/>
+    !!]
 
     self%lastUniqueID   =-1_kind_int8
     self%factorsComputed=.false.
@@ -151,7 +171,9 @@ contains
   end function kennicuttSchmidtConstructorInternal
 
   subroutine kennicuttSchmidtAutoHook(self)
-    !% Attach to the calculation reset event.
+    !!{
+    Attach to the calculation reset event.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(starFormationRateSurfaceDensityDisksKennicuttSchmidt), intent(inout) :: self
@@ -161,7 +183,9 @@ contains
   end subroutine kennicuttSchmidtAutoHook
 
   subroutine kennicuttSchmidtDestructor(self)
-    !% Destructor for the kennicuttSchmidt cooling radius class.
+    !!{
+    Destructor for the kennicuttSchmidt cooling radius class.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(starFormationRateSurfaceDensityDisksKennicuttSchmidt), intent(inout) :: self
@@ -171,7 +195,9 @@ contains
   end subroutine kennicuttSchmidtDestructor
 
   subroutine kennicuttSchmidtCalculationReset(self,node)
-    !% Reset the Kennicutt-Schmidt relation calculation.
+    !!{
+    Reset the Kennicutt-Schmidt relation calculation.
+    !!}
     implicit none
     class(starFormationRateSurfaceDensityDisksKennicuttSchmidt), intent(inout) :: self
     type (treeNode                                            ), intent(inout) :: node
@@ -182,19 +208,21 @@ contains
   end subroutine kennicuttSchmidtCalculationReset
 
   double precision function kennicuttSchmidtRate(self,node,radius)
-    !% Returns the star formation rate surface density  (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation in the galactic disk of {\normalfont \ttfamily node}. The disk is assumed to obey the Kennicutt-Schmidt law:
-    !% \begin{equation}
-    !% \Sigma_\star = A \left(x_\mathrm{H} {\Sigma_\mathrm{gas}\over M_\odot \hbox{pc}^{-2}}\right)^N,
-    !% \end{equation}
-    !% where $A=${\normalfont \ttfamily [normalization]} and $N=${\normalfont \ttfamily
-    !% [exponent]}. Optionally, star formation is truncated for gas surface densities below a critical density of:
-    !% \begin{equation}
-    !% \Sigma_\mathrm{crit} = {q_\mathrm{crit} \kappa \sigma_\mathrm{gas} \over \pi \G},
-    !% \end{equation}
-    !% where $\kappa$ is the epicyclic frequency in the disk, $\sigma_\mathrm{gas}$ is the velocity dispersion of gas in the disk and
-    !% $q_\mathrm{crit}=${\normalfont \ttfamily [toomreParameterCritical]} is a dimensionless constant of order unity which controls where the critical
-    !% density occurs. $\sigma_\mathrm{gas}$ is assumed to be a constant equal to {\normalfont \ttfamily [velocityDispersionDiskGas]} and the disk is
-    !% assumed to have a flat rotation curve such that $\kappa = \sqrt{2} V/R$.
+    !!{
+    Returns the star formation rate surface density  (in $M_\odot$ Gyr$^{-1}$ Mpc$^{-2}$) for star formation in the galactic disk of {\normalfont \ttfamily node}. The disk is assumed to obey the Kennicutt-Schmidt law:
+    \begin{equation}
+    \Sigma_\star = A \left(x_\mathrm{H} {\Sigma_\mathrm{gas}\over M_\odot \hbox{pc}^{-2}}\right)^N,
+    \end{equation}
+    where $A=${\normalfont \ttfamily [normalization]} and $N=${\normalfont \ttfamily
+    [exponent]}. Optionally, star formation is truncated for gas surface densities below a critical density of:
+    \begin{equation}
+    \Sigma_\mathrm{crit} = {q_\mathrm{crit} \kappa \sigma_\mathrm{gas} \over \pi \G},
+    \end{equation}
+    where $\kappa$ is the epicyclic frequency in the disk, $\sigma_\mathrm{gas}$ is the velocity dispersion of gas in the disk and
+    $q_\mathrm{crit}=${\normalfont \ttfamily [toomreParameterCritical]} is a dimensionless constant of order unity which controls where the critical
+    density occurs. $\sigma_\mathrm{gas}$ is assumed to be a constant equal to {\normalfont \ttfamily [velocityDispersionDiskGas]} and the disk is
+    assumed to have a flat rotation curve such that $\kappa = \sqrt{2} V/R$.
+    !!}
     use :: Abundances_Structure                , only : abundances
     use :: Galactic_Structure_Options          , only : componentTypeDisk                 , coordinateSystemCylindrical, massTypeGaseous
     use :: Galactic_Structure_Surface_Densities, only : Galactic_Structure_Surface_Density

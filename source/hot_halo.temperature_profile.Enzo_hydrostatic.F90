@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,23 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% An implementation of the hot halo temperature class which uses the ``hydrostatic'' solution from the Enzo code.
+!!{
+An implementation of the hot halo temperature class which uses the ``hydrostatic'' solution from the Enzo code.
+!!}
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
 
-  !# <hotHaloTemperatureProfile name="hotHaloTemperatureProfileEnzoHydrostatic">
-  !#  <description>
-  !#   A hot halo temperature profile class wjocj implements the ``hydrostatic'' temperature profile available in the \gls{enzo}
-  !#   code. Specifically,
-  !#   \begin{equation}
-  !#     T(r) = \hbox{max}\left( {\mathrm{G} M(&lt;r) \mu m_\mathrm{H} \over 3 \mathrm{k_B} r} , T_\mathrm{min} \right),
-  !#   \end{equation}
-  !#   where $M(&lt;r)$ is the total mass enclosed within radius $r$, $\mu$ is the primordial mean atomic mass, and
-  !#   $T_\mathrm{min}=100$~K is a temperature floor introduced so as to avoid the temperature reaching abitrarily low masses.
-  !#  </description>
-  !# </hotHaloTemperatureProfile>
+  !![
+  <hotHaloTemperatureProfile name="hotHaloTemperatureProfileEnzoHydrostatic">
+   <description>
+    A hot halo temperature profile class wjocj implements the ``hydrostatic'' temperature profile available in the \gls{enzo}
+    code. Specifically,
+    \begin{equation}
+      T(r) = \hbox{max}\left( {\mathrm{G} M(&lt;r) \mu m_\mathrm{H} \over 3 \mathrm{k_B} r} , T_\mathrm{min} \right),
+    \end{equation}
+    where $M(&lt;r)$ is the total mass enclosed within radius $r$, $\mu$ is the primordial mean atomic mass, and
+    $T_\mathrm{min}=100$~K is a temperature floor introduced so as to avoid the temperature reaching abitrarily low masses.
+   </description>
+  </hotHaloTemperatureProfile>
+  !!]
   type, extends(hotHaloTemperatureProfileClass) :: hotHaloTemperatureProfileEnzoHydrostatic
-     !% An implementation of the hot halo temperature profile class which uses the ``hydrostatic'' solution from the Enzo code.
+     !!{
+     An implementation of the hot halo temperature profile class which uses the ``hydrostatic'' solution from the Enzo code.
+     !!}
      private
      class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
    contains
@@ -43,7 +49,9 @@
   end type hotHaloTemperatureProfileEnzoHydrostatic
 
   interface hotHaloTemperatureProfileEnzoHydrostatic
-     !% Constructors for the enzoHydrostatic hot halo temperature profile class.
+     !!{
+     Constructors for the enzoHydrostatic hot halo temperature profile class.
+     !!}
      module procedure enzoHydrostaticConstructorParameters
      module procedure enzoHydrostaticConstructorInternal
   end interface hotHaloTemperatureProfileEnzoHydrostatic
@@ -53,41 +61,57 @@
 contains
 
   function enzoHydrostaticConstructorParameters(parameters) result(self)
-    !% Constructor for the enzoHydrostatic cooling rate class which builds the object from a parameter set.
+    !!{
+    Constructor for the enzoHydrostatic cooling rate class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (hotHaloTemperatureProfileEnzoHydrostatic)                :: self
     type (inputParameters                         ), intent(inout) :: parameters
     class(darkMatterProfileDMOClass               ), pointer       :: darkMatterProfileDMO_
 
-    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !![
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !!]
     self=hotHaloTemperatureProfileEnzoHydrostatic(darkMatterProfileDMO_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterProfileDMO_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterProfileDMO_"/>
+    !!]
     return
   end function enzoHydrostaticConstructorParameters
 
   function enzoHydrostaticConstructorInternal(darkMatterProfileDMO_) result(self)
-    !% Internal constructor for the enzoHydrostatic cooling rate class.
+    !!{
+    Internal constructor for the enzoHydrostatic cooling rate class.
+    !!}
     implicit none
     type (hotHaloTemperatureProfileEnzoHydrostatic)                        :: self
     class(darkMatterProfileDMOClass               ), intent(in   ), target :: darkMatterProfileDMO_
-    !# <constructorAssign variables="*darkMatterProfileDMO_"/>
+    !![
+    <constructorAssign variables="*darkMatterProfileDMO_"/>
+    !!]
 
     return
   end function enzoHydrostaticConstructorInternal
 
   subroutine enzoHydrostaticDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily enzoHydrostatic} hot halo temperature profile class.
+    !!{
+    Destructor for the {\normalfont \ttfamily enzoHydrostatic} hot halo temperature profile class.
+    !!}
     implicit none
     type(hotHaloTemperatureProfileEnzoHydrostatic), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !![
+    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !!]
     return
   end subroutine enzoHydrostaticDestructor
 
   double precision function enzoHydrostaticTemperature(self,node,radius)
-    !% Return the density in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
+    !!{
+    Return the density in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
+    !!}
     use :: Numerical_Constants_Astronomical, only : meanAtomicMassPrimordial, gravitationalConstantGalacticus
     use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
     use :: Numerical_Constants_Physical    , only : boltzmannsConstant
@@ -121,8 +145,10 @@ contains
   end function enzoHydrostaticTemperature
 
   double precision function enzoHydrostaticTemperatureLogSlope(self,node,radius)
-    !% Return the logarithmic slope of the density profile in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass
-    !% distribution.
+    !!{
+    Return the logarithmic slope of the density profile in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass
+    distribution.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (hotHaloTemperatureProfileEnzoHydrostatic), intent(inout) :: self

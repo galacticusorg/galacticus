@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module of functions for testing the functionality of the event hook infrastructure.
+!!{
+Contains a module of functions for testing the functionality of the event hook infrastructure.
+!!}
 
 module Tests_Event_Hook_Functions
-  !% Module providing functions used in testing the functionality of the event hook infrastructure.
+  !!{
+  Module providing functions used in testing the functionality of the event hook infrastructure.
+  !!}
   private
   public :: testEventHooksInitialize
 
@@ -35,7 +39,9 @@ module Tests_Event_Hook_Functions
 contains
 
   subroutine testEventHooksInitialize()
-    !% Initialize all hooks into the test event.
+    !!{
+    Initialize all hooks into the test event.
+    !!}
     use :: Events_Hooks, only : testEventEvent, openMPThreadBindingAtLevel, dependencyExact, dependencyRegEx, dependencyDirectionAfter, dependencyDirectionBefore
     implicit none
     integer                                :: dummySelf
@@ -50,7 +56,9 @@ contains
   end subroutine testEventHooksInitialize
 
   subroutine hookedFunction1(self,testValue)
-    !% A function used in testing the event hook infrastructure.
+    !!{
+    A function used in testing the event hook infrastructure.
+    !!}
     implicit none
     class  (*), intent(inout) :: self
     integer   , intent(in   ) :: testValue
@@ -63,7 +71,9 @@ contains
   end subroutine hookedFunction1
   
   subroutine hookedFunction2(self,testValue)
-    !% A function used in testing the event hook infrastructure.
+    !!{
+    A function used in testing the event hook infrastructure.
+    !!}
     implicit none
     class  (*), intent(inout) :: self
     integer   , intent(in   ) :: testValue
@@ -76,7 +86,9 @@ contains
   end subroutine hookedFunction2
 
   subroutine hookedFunction3(self,testValue)
-    !% A function used in testing the event hook infrastructure.
+    !!{
+    A function used in testing the event hook infrastructure.
+    !!}
     implicit none
     class  (*), intent(inout) :: self
     integer   , intent(in   ) :: testValue
@@ -88,7 +100,9 @@ contains
   end subroutine hookedFunction3
 
   subroutine hookedFunction4(self,testValue)
-    !% A function used in testing the event hook infrastructure.
+    !!{
+    A function used in testing the event hook infrastructure.
+    !!}
     implicit none
     class  (*), intent(inout) :: self
     integer   , intent(in   ) :: testValue

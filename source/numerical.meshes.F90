@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides tools for working with grids.
+!!{
+Contains a module which provides tools for working with grids.
+!!}
 
 module Meshes
-  !% Provide tools for working with grids.
+  !!{
+  Provide tools for working with grids.
+  !!}
   private
   public :: Meshes_Apply_Point
 
@@ -32,7 +36,9 @@ module Meshes
 contains
 
   subroutine Meshes_Apply_Point(mesh,boxLength,pointPosition,pointWeight,cloudType)
-    !% Apply a point to a mesh.
+    !!{
+    Apply a point to a mesh.
+    !!}
     use            :: Galacticus_Error, only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding   , only : c_double_complex
     implicit none
@@ -111,7 +117,9 @@ contains
   end subroutine Meshes_Apply_Point
 
   elemental double precision function Triangular_Shaped_Cloud_Integral(cellFraction)
-    !% Return the integral over a triangular shaped cloud given the fraction of the cloud length in a cell.
+    !!{
+    Return the integral over a triangular shaped cloud given the fraction of the cloud length in a cell.
+    !!}
     implicit none
     double precision, intent(in   ) :: cellFraction
 

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,29 +17,39 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that triggers merging of satellites based on their orbital radius.
+  !!{
+  Implements a node operator class that triggers merging of satellites based on their orbital radius.
+  !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
-  !# <nodeOperator name="nodeOperatorSatelliteMergingRadiusTrigger">
-  !#  <description>A node operator class that triggers merging of satellites based on their orbital radius.</description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorSatelliteMergingRadiusTrigger">
+   <description>A node operator class that triggers merging of satellites based on their orbital radius.</description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorSatelliteMergingRadiusTrigger
-     !% A node operator class that triggers merging of satellites based on their orbital radius.
+     !!{
+     A node operator class that triggers merging of satellites based on their orbital radius.
+     !!}
      private
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: radiusVirialFraction
    contains
-     !# <methods>
-     !#   <method description="Compute the radius at which the satellite will be merged." method="radiusMerge" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Compute the radius at which the satellite will be merged." method="radiusMerge" />
+     </methods>
+     !!]
      final     ::                          satelliteMergingRadiusTriggerDestructor
      procedure :: differentialEvolution => satelliteMergingRadiusTriggerDifferentialEvolution
      procedure :: radiusMerge           => satelliteMergingRadiusTriggerRadiusMerge
   end type nodeOperatorSatelliteMergingRadiusTrigger
   
   interface nodeOperatorSatelliteMergingRadiusTrigger
-     !% Constructors for the {\normalfont \ttfamily satelliteMergingRadiusTrigger} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily satelliteMergingRadiusTrigger} node operator class.
+     !!}
      module procedure satelliteMergingRadiusTriggerConstructorParameters
      module procedure satelliteMergingRadiusTriggerConstructorInternal
   end interface nodeOperatorSatelliteMergingRadiusTrigger
@@ -47,7 +57,9 @@
 contains
 
   function satelliteMergingRadiusTriggerConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily satelliteMergingRadiusTrigger} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily satelliteMergingRadiusTrigger} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (nodeOperatorSatelliteMergingRadiusTrigger)                :: self
@@ -55,41 +67,55 @@ contains
     class           (darkMatterHaloScaleClass                 ), pointer       :: darkMatterHaloScale_
     double precision                                                           :: radiusVirialFraction
 
-    !# <inputParameter>
-    !#   <name>radiusVirialFraction</name>
-    !#   <defaultValue>0.01d0</defaultValue>
-    !#   <description>The fraction of the virial radius below which satellites are merged.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>radiusVirialFraction</name>
+      <defaultValue>0.01d0</defaultValue>
+      <description>The fraction of the virial radius below which satellites are merged.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !!]
     self=nodeOperatorSatelliteMergingRadiusTrigger(radiusVirialFraction,darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
+    !!]
     return
   end function satelliteMergingRadiusTriggerConstructorParameters
 
   function satelliteMergingRadiusTriggerConstructorInternal(radiusVirialFraction,darkMatterHaloScale_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily satelliteMergingRadiusTrigger} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily satelliteMergingRadiusTrigger} node operator class.
+    !!}
     implicit none
     type            (nodeOperatorSatelliteMergingRadiusTrigger)                        :: self
     double precision                                           , intent(in   )         :: radiusVirialFraction
     class           (darkMatterHaloScaleClass                 ), intent(in   ), target :: darkMatterHaloScale_
-    !# <constructorAssign variables="radiusVirialFraction, *darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="radiusVirialFraction, *darkMatterHaloScale_"/>
+    !!]
     
     return
   end function satelliteMergingRadiusTriggerConstructorInternal
   
   subroutine satelliteMergingRadiusTriggerDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily satelliteMergingRadiusTrigger} node operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily satelliteMergingRadiusTrigger} node operator class.
+    !!}
     implicit none
     type(nodeOperatorSatelliteMergingRadiusTrigger), intent(inout) :: self
     
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    !!]
     return
   end subroutine satelliteMergingRadiusTriggerDestructor
   
   subroutine satelliteMergingRadiusTriggerDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Trigger merging of a satellite halo based on its orbital radius.
+    !!{
+    Trigger merging of a satellite halo based on its orbital radius.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     use :: Vectors         , only : Vector_Magnitude
     implicit none
@@ -121,7 +147,9 @@ contains
   end subroutine satelliteMergingRadiusTriggerDifferentialEvolution
 
   subroutine mergerTrigger(node)
-    !% Trigger a merger of the satellite by setting the time until merging to zero.
+    !!{
+    Trigger a merger of the satellite by setting the time until merging to zero.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
     implicit none
     type (treeNode              ), intent(inout), target  :: node
@@ -133,7 +161,9 @@ contains
   end subroutine mergerTrigger
 
   double precision function satelliteMergingRadiusTriggerRadiusMerge(self,node)
-    !% Compute the merging radius for a node.
+    !!{
+    Compute the merging radius for a node.
+    !!}
     use :: Galacticus_Nodes                  , only : treeNode
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options        , only : massTypeGalactic                , radiusLarge

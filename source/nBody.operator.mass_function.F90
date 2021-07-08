@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which computes mass functions.
+!!{
+Contains a module which implements an N-body data operator which computes mass functions.
+!!}
 
-  use, intrinsic :: ISO_C_Binding       , only : c_size_t
   use            :: Cosmology_Parameters, only : cosmologyParametersClass
+  use, intrinsic :: ISO_C_Binding       , only : c_size_t
 
-  !# <nbodyOperator name="nbodyOperatorMassFunction">
-  !#  <description>An N-body data operator which computes mass functions.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorMassFunction">
+   <description>An N-body data operator which computes mass functions.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorMassFunction
-     !% An N-body data operator which computes mass functions.
+     !!{
+     An N-body data operator which computes mass functions.
+     !!}
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      double precision                                    :: massMinimum                   , massMaximum
@@ -39,7 +45,9 @@
   end type nbodyOperatorMassFunction
 
   interface nbodyOperatorMassFunction
-     !% Constructors for the ``massFunction'' N-body operator class.
+     !!{
+     Constructors for the ``massFunction'' N-body operator class.
+     !!}
      module procedure massFunctionConstructorParameters
      module procedure massFunctionConstructorInternal
   end interface nbodyOperatorMassFunction
@@ -47,7 +55,9 @@
 contains
 
   function massFunctionConstructorParameters(parameters) result (self)
-    !% Constructor for the ``massFunction'' N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``massFunction'' N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyOperatorMassFunction)                :: self
@@ -58,45 +68,51 @@ contains
     type            (varying_string           )                :: simulationReference , simulationURL, &
          &                                                        description
 
-    !# <inputParameter>
-    !#   <name>massMinimum</name>
-    !#   <source>parameters</source>
-    !#   <description>The minimum mass to consider counts.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMaximum</name>
-    !#   <source>parameters</source>
-    !#   <description>The maximum mass to consider.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massCountPerDecade</name>
-    !#   <source>parameters</source>
-    !#   <description>The number of bins per decade of mass.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>description</name>
-    !#   <source>parameters</source>
-    !#   <description>A description of this mass function.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>simulationReference</name>
-    !#   <source>parameters</source>
-    !#   <description>A reference for the simulation.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>simulationURL</name>
-    !#   <source>parameters</source>
-    !#   <description>A URL for the simulation.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>massMinimum</name>
+      <source>parameters</source>
+      <description>The minimum mass to consider counts.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massMaximum</name>
+      <source>parameters</source>
+      <description>The maximum mass to consider.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massCountPerDecade</name>
+      <source>parameters</source>
+      <description>The number of bins per decade of mass.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>description</name>
+      <source>parameters</source>
+      <description>A description of this mass function.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>simulationReference</name>
+      <source>parameters</source>
+      <description>A reference for the simulation.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>simulationURL</name>
+      <source>parameters</source>
+      <description>A URL for the simulation.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !!]
     self=nbodyOperatorMassFunction(massMinimum,massMaximum,massCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    !!]
     return
   end function massFunctionConstructorParameters
 
   function massFunctionConstructorInternal(massMinimum,massMaximum,massCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
-    !% Internal constructor for the ``massFunction'' N-body operator class.
+    !!{
+    Internal constructor for the ``massFunction'' N-body operator class.
+    !!}
     implicit none
     type            (nbodyOperatorMassFunction)                        :: self
     double precision                           , intent(in   )         :: massMinimum         , massMaximum
@@ -104,32 +120,40 @@ contains
     type            (varying_string           ), intent(in   )         :: simulationReference , simulationURL, &
 &                                                                         description
     class           (cosmologyParametersClass ), intent(in   ), target :: cosmologyParameters_
-    !# <constructorAssign variables="massMinimum, massMaximum, massCountPerDecade, description, simulationReference, simulationURL, *cosmologyParameters_"/>
+    !![
+    <constructorAssign variables="massMinimum, massMaximum, massCountPerDecade, description, simulationReference, simulationURL, *cosmologyParameters_"/>
+    !!]
 
     return
   end function massFunctionConstructorInternal
   
   subroutine massFunctionDestructor(self)
-    !% Destructor for the ``massFunction'' N-body operator class.
+    !!{
+    Destructor for the ``massFunction'' N-body operator class.
+    !!}
     implicit none
     type(nbodyOperatorMassFunction), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    !!]
     return
   end subroutine massFunctionDestructor
 
   subroutine massFunctionOperate(self,simulations)
-    !% Compute mass functions of particles.
-    !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num
-    use    :: Galacticus_Display, only : Galacticus_Display_Indent , Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                               Galacticus_Display_Message, verbosityStandard
-    use    :: IO_HDF5           , only : hdf5Access                , hdf5Object
-    use    :: ISO_Varying_String, only : var_str
-    use    :: Numerical_Ranges  , only : Make_Range                , rangeTypeLogarithmic
+    !!{
+    Compute mass functions of particles.
+    !!}
     use    :: Dates_and_Times   , only : Formatted_Date_and_Time
+    use    :: Display           , only : displayCounter         , displayCounterClear   , displayIndent, displayMessage, &
+          &                              displayUnindent        , verbosityLevelStandard
+    use    :: IO_HDF5           , only : hdf5Access             , hdf5Object
+    use    :: ISO_Varying_String, only : var_str
 #ifdef USEMPI
     use    :: MPI_Utilities     , only : mpiSelf
 #endif
+    use    :: Numerical_Ranges  , only : Make_Range             , rangeTypeLogarithmic
+    !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num
     implicit none
     class           (nbodyOperatorMassFunction), intent(inout)               :: self
     type            (nBodyData                ), intent(inout), dimension(:) :: simulations
@@ -144,7 +168,7 @@ contains
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Indent('compute mass function',verbosityStandard)
+       call displayIndent('compute mass function',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif
@@ -160,7 +184,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Message(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityStandard)
+       call displayMessage(var_str('simulation "')//simulations(iSimulation)%label//'"',verbosityLevelStandard)
 #ifdef USEMPI
        end if
 #endif
@@ -181,7 +205,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Counter(0,.true.)
+          call displayCounter(0,.true.)
 #ifdef USEMPI
        end if
 #endif
@@ -202,14 +226,14 @@ contains
 #ifdef USEMPI
           if (mpiSelf%isMaster()) then
 #endif
-             call Galacticus_Display_Counter(                                      &
-                  &                          int(                                  &
-                  &                              +100.0d0                          &
-                  &                              *float(i                       )  &
-                  &                              /float(size(mass,kind=c_size_t))  &
-                  &                             )                                , &
-                  &                          .false.                               &
-                  &                         )
+             call displayCounter(                                      &
+                  &              int(                                  &
+                  &                  +100.0d0                          &
+                  &                  *float(i                       )  &
+                  &                  /float(size(mass,kind=c_size_t))  &
+                  &                 )                                , &
+                  &              .false.                               &
+                  &             )
 #ifdef USEMPI
           end if
 #endif
@@ -219,7 +243,7 @@ contains
 #ifdef USEMPI
        if (mpiSelf%isMaster()) then
 #endif
-          call Galacticus_Display_Counter_Clear()
+          call displayCounterClear()
 #ifdef USEMPI
        end if
 #endif
@@ -253,12 +277,12 @@ contains
 #ifdef USEMPI
        end if
 #endif
-       deallocate(mass)
+       nullify(mass)
     end do
 #ifdef USEMPI
     if (mpiSelf%isMaster()) then
 #endif
-       call Galacticus_Display_Unindent('done',verbosityStandard)
+       call displayUnindent('done',verbosityLevelStandard)
 #ifdef USEMPI
     end if
 #endif

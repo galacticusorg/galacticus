@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,29 +17,39 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements calculations of incompleteness assuming a complete sample.
+  !!{
+  Implements calculations of incompleteness assuming a complete sample.
+  !!}
 
-  !# <massFunctionIncompleteness name="massFunctionIncompletenessComplete">
-  !#  <description>
-  !# A mass function incompleteness class which assumes a fully complete mass function.
-  !#  </description>
-  !# </massFunctionIncompleteness>
+  !![
+  <massFunctionIncompleteness name="massFunctionIncompletenessComplete">
+   <description>
+  A mass function incompleteness class which assumes a fully complete mass function.
+   </description>
+  </massFunctionIncompleteness>
+  !!]
   type, extends(massFunctionIncompletenessClass) :: massFunctionIncompletenessComplete
-     !% A class implementing incompleteness calculations for a complete survey.
+     !!{
+     A class implementing incompleteness calculations for a complete survey.
+     !!}
      private
    contains
      procedure :: completeness => completeCompleteness
   end type massFunctionIncompletenessComplete
 
   interface massFunctionIncompletenessComplete
-     !% Constructors for the {\normalfont \ttfamily complete} incompleteness class.
+     !!{
+     Constructors for the {\normalfont \ttfamily complete} incompleteness class.
+     !!}
      module procedure completeConstructorParameters
   end interface massFunctionIncompletenessComplete
 
 contains
 
   function completeConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily complete} incompleteness class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily complete} incompleteness class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(massFunctionIncompletenessComplete)                :: self
@@ -51,7 +61,9 @@ contains
   end function completeConstructorParameters
 
   double precision function completeCompleteness(self,mass)
-    !% Return the completeness.
+    !!{
+    Return the completeness.
+    !!}
     implicit none
     class           (massFunctionIncompletenessComplete), intent(inout) :: self
     double precision                                    , intent(in   ) :: mass

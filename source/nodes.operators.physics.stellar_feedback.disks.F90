@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that performs stellar feedback in disks.
+  !!{
+  Implements a node operator class that performs stellar feedback in disks.
+  !!}
 
   use :: Star_Formation_Rates_Disks   , only : starFormationRateDisksClass
   use :: Stellar_Population_Properties, only : stellarPopulationPropertiesClass
   use :: Stellar_Feedback_Outflows    , only : stellarFeedbackOutflowsClass
   
-  !# <nodeOperator name="nodeOperatorStellarFeedbackDisks">
-  !#  <description>A node operator class that performs stellar feedback in disks.</description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorStellarFeedbackDisks">
+   <description>A node operator class that performs stellar feedback in disks.</description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorStellarFeedbackDisks
-     !% A node operator class that performs stellar feedback in disks.
+     !!{
+     A node operator class that performs stellar feedback in disks.
+     !!}
      private
      class(starFormationRateDisksClass     ), pointer :: starFormationRateDisks_      => null()
      class(stellarPopulationPropertiesClass), pointer :: stellarPopulationProperties_ => null()
@@ -38,7 +44,9 @@
   end type nodeOperatorStellarFeedbackDisks
   
   interface nodeOperatorStellarFeedbackDisks
-     !% Constructors for the {\normalfont \ttfamily stellarFeedbackDisks} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily stellarFeedbackDisks} node operator class.
+     !!}
      module procedure stellarFeedbackDisksConstructorParameters
      module procedure stellarFeedbackDisksConstructorInternal
   end interface nodeOperatorStellarFeedbackDisks
@@ -46,7 +54,9 @@
 contains
 
   function stellarFeedbackDisksConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily starFormation} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily starFormation} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (nodeOperatorStellarFeedbackDisks)                :: self
@@ -55,42 +65,56 @@ contains
     class(stellarPopulationPropertiesClass), pointer       :: stellarPopulationProperties_
     class(stellarFeedbackOutflowsClass    ), pointer       :: stellarFeedbackOutflows_
     
-    !# <objectBuilder class="starFormationRateDisks"      name="starFormationRateDisks_"      source="parameters"/>
-    !# <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters"/>
-    !# <objectBuilder class="stellarFeedbackOutflows"     name="stellarFeedbackOutflows_"     source="parameters"/>
+    !![
+    <objectBuilder class="starFormationRateDisks"      name="starFormationRateDisks_"      source="parameters"/>
+    <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters"/>
+    <objectBuilder class="stellarFeedbackOutflows"     name="stellarFeedbackOutflows_"     source="parameters"/>
+    !!]
     self=nodeOperatorStellarFeedbackDisks(starFormationRateDisks_,stellarPopulationProperties_,stellarFeedbackOutflows_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="starFormationRateDisks_"     />
-    !# <objectDestructor name="stellarPopulationProperties_"/>
-    !# <objectDestructor name="stellarFeedbackOutflows_"    />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="starFormationRateDisks_"     />
+    <objectDestructor name="stellarPopulationProperties_"/>
+    <objectDestructor name="stellarFeedbackOutflows_"    />
+    !!]
     return
   end function stellarFeedbackDisksConstructorParameters
 
   function stellarFeedbackDisksConstructorInternal(starFormationRateDisks_,stellarPopulationProperties_,stellarFeedbackOutflows_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily stellarFeedbackDisks} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily stellarFeedbackDisks} node operator class.
+    !!}
     implicit none
     type (nodeOperatorStellarFeedbackDisks)                        :: self
     class(starFormationRateDisksClass     ), intent(in   ), target :: starFormationRateDisks_
     class(stellarPopulationPropertiesClass), intent(in   ), target :: stellarPopulationProperties_
     class(stellarFeedbackOutflowsClass    ), intent(in   ), target :: stellarFeedbackOutflows_
-    !# <constructorAssign variables="*starFormationRateDisks_, *stellarPopulationProperties_, *stellarFeedbackOutflows_"/>
+    !![
+    <constructorAssign variables="*starFormationRateDisks_, *stellarPopulationProperties_, *stellarFeedbackOutflows_"/>
+    !!]
 
     return
   end function stellarFeedbackDisksConstructorInternal
 
   subroutine stellarFeedbackDisksDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily stellarFeedbackDisks} node operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily stellarFeedbackDisks} node operator class.
+    !!}
     implicit none
     type(nodeOperatorStellarFeedbackDisks), intent(inout) :: self
 
-    !# <objectDestructor name="self%starFormationRateDisks_"     />
-    !# <objectDestructor name="self%stellarPopulationProperties_"/>
-    !# <objectDestructor name="self%stellarFeedbackOutflows_"    />
+    !![
+    <objectDestructor name="self%starFormationRateDisks_"     />
+    <objectDestructor name="self%stellarPopulationProperties_"/>
+    <objectDestructor name="self%stellarFeedbackOutflows_"    />
+    !!]
     return
   end subroutine stellarFeedbackDisksDestructor
   
   subroutine stellarFeedbackDisksDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Perform star formation in a disk.
+    !!{
+    Perform star formation in a disk.
+    !!}
     use :: Abundances_Structure          , only : abundances          , zeroAbundances
     use :: Galacticus_Nodes              , only : propertyTypeInactive, nodeComponentDisk, nodeComponentHotHalo
     use :: Histories                     , only : history

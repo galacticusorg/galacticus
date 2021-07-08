@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a deforestation operator on merger trees (i.e. removes all but the most massive tree in a forest).
+!!{
+Contains a module which implements a deforestation operator on merger trees (i.e. removes all but the most massive tree in a forest).
+!!}
 
-  !# <mergerTreeOperator name="mergerTreeOperatorDeforest">
-  !#  <description>Provides a deforestation operator for merger trees. Given a forest, this operator will destroy all but the first tree in the forest.</description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorDeforest">
+   <description>Provides a deforestation operator for merger trees. Given a forest, this operator will destroy all but the first tree in the forest.</description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorDeforest
-     !% A deforestation merger tree operator class.
+     !!{
+     A deforestation merger tree operator class.
+     !!}
      private
    contains
      procedure :: operatePreEvolution => deforestOperatePreEvolution
   end type mergerTreeOperatorDeforest
 
   interface mergerTreeOperatorDeforest
-     !% Constructors for the deforestation merger tree operator class.
+     !!{
+     Constructors for the deforestation merger tree operator class.
+     !!}
      module procedure deforestConstructorParameters
   end interface mergerTreeOperatorDeforest
 
 contains
 
   function deforestConstructorParameters(parameters)
-    !% Constructor for the deforestation merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the deforestation merger tree operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeOperatorDeforest)                :: deforestConstructorParameters
@@ -49,7 +59,9 @@ contains
   end function deforestConstructorParameters
 
   subroutine deforestOperatePreEvolution(self,tree)
-    !% Perform a deforestation operation on a merger tree.
+    !!{
+    Perform a deforestation operation on a merger tree.
+    !!}
     use :: Galacticus_Nodes, only : mergerTree, nodeComponentBasic, treeNode
     implicit none
     class           (mergerTreeOperatorDeforest), intent(inout), target :: self

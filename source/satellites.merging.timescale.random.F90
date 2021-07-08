@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,29 +19,39 @@
 
   !+    Contributions to this file made by:  Alex Merson.
 
-  !% Implements calculations of satellite merging times that are chosen to occur randomly between snapshots.
+  !!{
+  Implements calculations of satellite merging times that are chosen to occur randomly between snapshots.
+  !!}
 
-  !# <satelliteMergingTimescales name="satelliteMergingTimescalesRandom">
-  !#  <description>Returns a random timescale for merging.</description>
-  !# </satelliteMergingTimescales>
+  !![
+  <satelliteMergingTimescales name="satelliteMergingTimescalesRandom">
+   <description>Returns a random timescale for merging.</description>
+  </satelliteMergingTimescales>
+  !!]
 
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesRandom
-     !% A class implementing satellite merging timescales that are chosen to occur randomly between snapshots.
+     !!{
+     A class implementing satellite merging timescales that are chosen to occur randomly between snapshots.
+     !!}
      private
    contains
      procedure :: timeUntilMerging => randomTimeUntilMerging
   end type satelliteMergingTimescalesRandom
 
   interface satelliteMergingTimescalesRandom
-     !% Constructors for the {\normalfont \ttfamily random} satellite merging timescale class.
+     !!{
+     Constructors for the {\normalfont \ttfamily random} satellite merging timescale class.
+     !!}
      module procedure randomConstructorParameters
   end interface satelliteMergingTimescalesRandom
 
 contains
 
   function randomConstructorParameters(parameters) result(self)
-    !% A constructor for the {\normalfont \ttfamily random} satellite merging timescale class which builds the object from a
-    !% parameter set.
+    !!{
+    A constructor for the {\normalfont \ttfamily random} satellite merging timescale class which builds the object from a
+    parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(satelliteMergingTimescalesRandom)                  :: self
@@ -53,7 +63,9 @@ contains
   end function randomConstructorParameters
 
   double precision function randomTimeUntilMerging(self,node,orbit)
-    !% Return a randomly chosen timescale for merging satellites.
+    !!{
+    Return a randomly chosen timescale for merging satellites.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     use :: Kepler_Orbits   , only : keplerOrbit
     implicit none

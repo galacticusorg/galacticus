@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a $\log_{10}\rightarrow \log$ output analysis distribution normalizer class.
+  !!{
+  Contains a module which implements a $\log_{10}\rightarrow \log$ output analysis distribution normalizer class.
+  !!}
 
-  !# <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerLog10ToLog">
-  !#  <description>A $\log_{10}\rightarrow \log$ output analysis distribution normalizer class.</description>
-  !# </outputAnalysisDistributionNormalizer>
+  !![
+  <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerLog10ToLog">
+   <description>A $\log_{10}\rightarrow \log$ output analysis distribution normalizer class.</description>
+  </outputAnalysisDistributionNormalizer>
+  !!]
   type, extends(outputAnalysisDistributionNormalizerClass) :: outputAnalysisDistributionNormalizerLog10ToLog
-     !% A $\log_{10}\rightarrow \log$ output distribution normalizer class.
+     !!{
+     A $\log_{10}\rightarrow \log$ output distribution normalizer class.
+     !!}
      private
    contains
      procedure :: normalize => log10ToLogNormalize
   end type outputAnalysisDistributionNormalizerLog10ToLog
 
   interface outputAnalysisDistributionNormalizerLog10ToLog
-     !% Constructors for the ``log10ToLog'' output analysis distribution normalizer class.
+     !!{
+     Constructors for the ``log10ToLog'' output analysis distribution normalizer class.
+     !!}
      module procedure log10ToLogConstructorParameters
   end interface outputAnalysisDistributionNormalizerLog10ToLog
 
 contains
 
   function log10ToLogConstructorParameters(parameters) result(self)
-    !% Constructor for the ``log10ToLog'' output analysis distribution normalizer class which takes a parameter set as input.
+    !!{
+    Constructor for the ``log10ToLog'' output analysis distribution normalizer class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisDistributionNormalizerLog10ToLog)                :: self
@@ -49,7 +59,9 @@ contains
   end function log10ToLogConstructorParameters
 
   subroutine log10ToLogNormalize(self,distribution,covariance,propertyValueMinimum,propertyValueMaximum)
-    !% Implement a bin width output analysis distribution normalizer.
+    !!{
+    Implement a bin width output analysis distribution normalizer.
+    !!}
     implicit none
     class           (outputAnalysisDistributionNormalizerLog10ToLog), intent(inout)                 :: self
     double precision                                                , intent(inout), dimension(:  ) :: distribution

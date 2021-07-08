@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,19 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of dark matter halo scales based on virial density contrast.
+  !!{
+  An implementation of dark matter halo scales based on virial density contrast.
+  !!}
 
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters   , only : cosmologyParametersClass
   use :: Kind_Numbers           , only : kind_int8
   use :: Tables                 , only : table1DLogarithmicLinear
   use :: Virial_Density_Contrast, only : virialDensityContrastClass
-
-  !# <darkMatterHaloScale name="darkMatterHaloScaleVirialDensityContrastDefinition" recursive="yes">
-  !#  <description>Dark matter halo scales derived from virial density contrasts.</description>
-  !# </darkMatterHaloScale>
+  
+  !![
+  <darkMatterHaloScale name="darkMatterHaloScaleVirialDensityContrastDefinition" recursive="yes">
+   <description>Dark matter halo scales derived from virial density contrasts.</description>
+   <deepCopy>
+    <ignore variables="recursiveSelf"/>
+   </deepCopy>
+  </darkMatterHaloScale>
+  !!]
   type, extends(darkMatterHaloScaleClass) :: darkMatterHaloScaleVirialDensityContrastDefinition
-     !% A dark matter halo scale contrast class using virial density contrasts.
+     !!{
+     A dark matter halo scale contrast class using virial density contrasts.
+     !!}
      private
      logical                                                                       :: isRecursive                         , parentDeferred
      class           (darkMatterHaloScaleVirialDensityContrastDefinition), pointer :: recursiveSelf              => null()
@@ -50,9 +59,11 @@
      double precision                                                              :: meanDensityTimeMaximum              , meanDensityTimeMinimum   =-1.0d0
      type            (table1DLogarithmicLinear                          )          :: meanDensityTable
    contains
-     !# <methods>
-     !#   <method description="Reset memoized calculations." method="calculationReset" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Reset memoized calculations." method="calculationReset" />
+     </methods>
+     !!]
      final     ::                                        virialDensityContrastDefinitionDestructor
      procedure :: autoHook                            => virialDensityContrastDefinitionAutoHook
      procedure :: calculationReset                    => virialDensityContrastDefinitionCalculationReset
@@ -66,10 +77,14 @@
      procedure :: meanDensity                         => virialDensityContrastDefinitionMeanDensity
      procedure :: meanDensityGrowthRate               => virialDensityContrastDefinitionMeanDensityGrowthRate
      procedure :: deepCopy                            => virialDensityContrastDefinitionDeepCopy
+     procedure :: deepCopyReset                       => virialDensityContrastDefinitionDeepCopyReset
+     procedure :: deepCopyFinalize                    => virialDensityContrastDefinitionDeepCopyFinalize
   end type darkMatterHaloScaleVirialDensityContrastDefinition
 
   interface darkMatterHaloScaleVirialDensityContrastDefinition
-     !% Constructors for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
+     !!{
+     Constructors for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
+     !!}
      module procedure virialDensityContrastDefinitionParameters
      module procedure virialDensityContrastDefinitionInternal
   end interface darkMatterHaloScaleVirialDensityContrastDefinition
@@ -79,7 +94,9 @@
 contains
 
   recursive function virialDensityContrastDefinitionParameters(parameters,recursiveConstruct,recursiveSelf) result(self)
-    !% Constructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (darkMatterHaloScaleVirialDensityContrastDefinition), target                  :: self
@@ -90,19 +107,25 @@ contains
     class  (cosmologyFunctionsClass                           ), pointer                 :: cosmologyFunctions_
     class  (virialDensityContrastClass                        ), pointer                 :: virialDensityContrast_
 
-    !# <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
-    !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    !!]
     self=darkMatterHaloScaleVirialDensityContrastDefinition(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,recursiveConstruct,recursiveSelf)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"  />
-    !# <objectDestructor name="cosmologyFunctions_"   />
-    !# <objectDestructor name="virialDensityContrast_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"  />
+    <objectDestructor name="cosmologyFunctions_"   />
+    <objectDestructor name="virialDensityContrast_"/>
+    !!]
     return
   end function virialDensityContrastDefinitionParameters
 
   recursive function virialDensityContrastDefinitionInternal(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,recursiveConstruct,recursiveSelf) result(self)
-    !% Default constructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
+    !!{
+    Default constructor for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (darkMatterHaloScaleVirialDensityContrastDefinition)                                  :: self
@@ -111,8 +134,10 @@ contains
     class  (virialDensityContrastClass                        ), intent(in   ), target           :: virialDensityContrast_
     logical                                                    , intent(in   )        , optional :: recursiveConstruct
     class  (darkMatterHaloScaleClass                          ), intent(in   ), target, optional :: recursiveSelf
-    !# <optionalArgument name="recursiveConstruct" defaultsTo=".false." />
-    !# <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_"/>
+    !![
+    <optionalArgument name="recursiveConstruct" defaultsTo=".false." />
+    <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *virialDensityContrast_"/>
+    !!]
 
     self%lastUniqueID              =-1_kind_int8
     self%dynamicalTimescaleComputed=.false.
@@ -138,7 +163,9 @@ contains
   end function virialDensityContrastDefinitionInternal
 
   subroutine virialDensityContrastDefinitionAutoHook(self)
-    !% Attach to the calculation reset event.
+    !!{
+    Attach to the calculation reset event.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
@@ -148,21 +175,27 @@ contains
   end subroutine virialDensityContrastDefinitionAutoHook
 
   subroutine virialDensityContrastDefinitionDestructor(self)
-    !% Destructir for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
+    !!{
+    Destructir for the {\normalfont \ttfamily virialDensityContrastDefinition} dark matter halo scales class.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"  />
-    !# <objectDestructor name="self%cosmologyFunctions_"   />
-    !# <objectDestructor name="self%virialDensityContrast_"/>
+    !![
+    <objectDestructor name="self%cosmologyParameters_"  />
+    <objectDestructor name="self%cosmologyFunctions_"   />
+    <objectDestructor name="self%virialDensityContrast_"/>
+    !!]
     if (self%meanDensityTimeMinimum >= 0.0d0) call self%meanDensityTable%destroy()
     call calculationResetEvent%detach(self,virialDensityContrastDefinitionCalculationReset)
     return
   end subroutine virialDensityContrastDefinitionDestructor
 
   subroutine virialDensityContrastDefinitionCalculationReset(self,node)
-    !% Reset the halo scales calculation.
+    !!{
+    Reset the halo scales calculation.
+    !!}
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
     type (treeNode                                          ), intent(inout) :: node
@@ -176,7 +209,9 @@ contains
   end subroutine virialDensityContrastDefinitionCalculationReset
 
   double precision function virialDensityContrastDefinitionDynamicalTimescale(self,node)
-    !% Returns the dynamical timescale for {\normalfont \ttfamily node}.
+    !!{
+    Returns the dynamical timescale for {\normalfont \ttfamily node}.
+    !!}
     use :: Numerical_Constants_Astronomical, only : gigaYear, megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
@@ -185,7 +220,6 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
-       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionDynamicalTimescale=self%recursiveSelf%dynamicalTimescale(node)
        return
     end if
@@ -204,7 +238,9 @@ contains
   end function virialDensityContrastDefinitionDynamicalTimescale
 
   double precision function virialDensityContrastDefinitionVirialVelocity(self,node)
-    !% Returns the virial velocity scale for {\normalfont \ttfamily node}.
+    !!{
+    Returns the virial velocity scale for {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes            , only : nodeComponentBasic             , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
@@ -214,7 +250,6 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
-       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionVirialVelocity=self%recursiveSelf%virialVelocity(node)
        return
     end if
@@ -236,7 +271,9 @@ contains
   end function virialDensityContrastDefinitionVirialVelocity
 
   double precision function virialDensityContrastDefinitionVirialVelocityGrowthRate(self,node)
-    !% Returns the growth rate of the virial velocity scale for {\normalfont \ttfamily node}.
+    !!{
+    Returns the growth rate of the virial velocity scale for {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
@@ -245,7 +282,6 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
-       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionVirialVelocityGrowthRate=self%recursiveSelf%virialVelocityGrowthRate(node)
        return
     end if
@@ -264,7 +300,9 @@ contains
   end function virialDensityContrastDefinitionVirialVelocityGrowthRate
 
   double precision function virialDensityContrastDefinitionVirialTemperature(self,node)
-    !% Returns the virial temperature (in Kelvin) for {\normalfont \ttfamily node}.
+    !!{
+    Returns the virial temperature (in Kelvin) for {\normalfont \ttfamily node}.
+    !!}
     use :: Numerical_Constants_Astronomical, only : meanAtomicMassPrimordial
     use :: Numerical_Constants_Atomic      , only : atomicMassUnit
     use :: Numerical_Constants_Physical    , only : boltzmannsConstant
@@ -275,7 +313,6 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
-       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionVirialTemperature=self%recursiveSelf%virialTemperature(node)
        return
     end if
@@ -293,7 +330,9 @@ contains
   end function virialDensityContrastDefinitionVirialTemperature
 
   double precision function virialDensityContrastDefinitionVirialRadius(self,node)
-    !% Returns the virial radius scale for {\normalfont \ttfamily node}.
+    !!{
+    Returns the virial radius scale for {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes        , only : nodeComponentBasic, treeNode
     use :: Math_Exponentiation     , only : cubeRoot
     use :: Numerical_Constants_Math, only : Pi
@@ -304,7 +343,6 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
-       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionVirialRadius=self%recursiveSelf%virialRadius(node)
        return
     end if
@@ -325,7 +363,9 @@ contains
   end function virialDensityContrastDefinitionVirialRadius
 
   double precision function virialDensityContrastDefinitionVirialRadiusGradientLogMass(self,node)
-    !% Returns the logarithmic gradient of virial radius with halo mass at fixed epoch for {\normalfont \ttfamily node}.
+    !!{
+    Returns the logarithmic gradient of virial radius with halo mass at fixed epoch for {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
     type (treeNode                                          ), intent(inout) :: node
@@ -333,7 +373,6 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
-       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionVirialRadiusGradientLogMass=self%recursiveSelf%virialRadiusGradientLogarithmicMass(node)
        return
     end if
@@ -343,7 +382,9 @@ contains
   end function virialDensityContrastDefinitionVirialRadiusGradientLogMass
 
   double precision function virialDensityContrastDefinitionVirialRadiusGrowthRate(self,node)
-    !% Returns the growth rate of the virial radius scale for {\normalfont \ttfamily node}.
+    !!{
+    Returns the growth rate of the virial radius scale for {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
@@ -352,7 +393,6 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
-       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionVirialRadiusGrowthRate=self%recursiveSelf%virialRadiusGrowthRate(node)
        return
     end if
@@ -365,7 +405,9 @@ contains
   end function virialDensityContrastDefinitionVirialRadiusGrowthRate
 
   double precision function virialDensityContrastDefinitionMeanDensity(self,node)
-    !% Returns the mean density for {\normalfont \ttfamily node}.
+    !!{
+    Returns the mean density for {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
@@ -376,7 +418,6 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
-       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionMeanDensity=self%recursiveSelf%meanDensity(node)
        return
     end if
@@ -397,11 +438,11 @@ contains
        ! Retabulate the mean density vs. time if necessary.
        if (time < self%meanDensityTimeMinimum .or. time > self%meanDensityTimeMaximum) then
           if (self%meanDensityTimeMinimum <= 0.0d0) then
-             self%meanDensityTimeMinimum=                                time/10.0d0
-             self%meanDensityTimeMaximum=                                time* 2.0d0
+             self%meanDensityTimeMinimum=                                time/2.0d0
+             self%meanDensityTimeMaximum=                                time*2.0d0
           else
-             self%meanDensityTimeMinimum=min(self%meanDensityTimeMinimum,time/10.0d0)
-             self%meanDensityTimeMaximum=max(self%meanDensityTimeMaximum,time* 2.0d0)
+             self%meanDensityTimeMinimum=min(self%meanDensityTimeMinimum,time/2.0d0)
+             self%meanDensityTimeMaximum=max(self%meanDensityTimeMaximum,time*2.0d0)
           end if
           meanDensityTablePoints=int(log10(self%meanDensityTimeMaximum/self%meanDensityTimeMinimum)*dble(virialDensityContrastDefinitionMeanDensityTablePointsPerDecade))+1
           call self%meanDensityTable%destroy()
@@ -424,7 +465,9 @@ contains
   end function virialDensityContrastDefinitionMeanDensity
 
   double precision function virialDensityContrastDefinitionMeanDensityGrowthRate(self,node)
-    !% Returns the growth rate of the mean density for {\normalfont \ttfamily node}.
+    !!{
+    Returns the growth rate of the mean density for {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
@@ -434,7 +477,6 @@ contains
 
     ! Use recursive self if necessary.
     if (self%isRecursive) then
-       call virialDensityContrastFindParent(self)
        virialDensityContrastDefinitionMeanDensityGrowthRate=self%recursiveSelf%meanDensityGrowthRate(node)
        return
     end if
@@ -469,8 +511,39 @@ contains
     return
   end function virialDensityContrastDefinitionMeanDensityGrowthRate
 
+  subroutine virialDensityContrastDefinitionDeepCopyReset(self)
+    !!{
+    Perform a deep copy reset of the object.
+    !!}
+    implicit none
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
+    
+    self                           %   copiedSelf => null()
+    if (.not.self%isRecursive) self%recursiveSelf => null()
+    if (associated(self%cosmologyParameters_  )) call self%cosmologyParameters_  %deepCopyReset()
+    if (associated(self%cosmologyFunctions_   )) call self%cosmologyFunctions_   %deepCopyReset()
+    if (associated(self%virialDensityContrast_)) call self%virialDensityContrast_%deepCopyReset()
+    return
+  end subroutine virialDensityContrastDefinitionDeepCopyReset
+  
+  subroutine virialDensityContrastDefinitionDeepCopyFinalize(self)
+    !!{
+    Finalize a deep reset of the object.
+    !!}
+    implicit none
+    class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
+
+    if (self%isRecursive) call virialDensityContrastFindParent(self)
+    if (associated(self%cosmologyParameters_  )) call self%cosmologyParameters_  %deepCopyFinalize()
+    if (associated(self%cosmologyFunctions_   )) call self%cosmologyFunctions_   %deepCopyFinalize()
+    if (associated(self%virialDensityContrast_)) call self%virialDensityContrast_%deepCopyFinalize()
+    return
+  end subroutine virialDensityContrastDefinitionDeepCopyFinalize
+  
   subroutine virialDensityContrastDefinitionDeepCopy(self,destination)
-    !% Perform a deep copy of the object.
+    !!{
+    Perform a deep copy of the object.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
@@ -569,7 +642,9 @@ contains
   end subroutine virialDensityContrastDefinitionDeepCopy
 
   subroutine virialDensityContrastDefinitionDeepCopyAssign(self,destination)
-    !% Perform pointer assignment during a deep copy of the object.
+    !!{
+    Perform pointer assignment during a deep copy of the object.
+    !!}
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout)         :: self
     class(darkMatterHaloScaleClass                          ), intent(inout), target :: destination
@@ -582,7 +657,9 @@ contains
   end subroutine virialDensityContrastDefinitionDeepCopyAssign
 
   subroutine virialDensityContrastFindParent(self)
-    !% Find the deep-copied parent of a recursive child.
+    !!{
+    Find the deep-copied parent of a recursive child.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(darkMatterHaloScaleVirialDensityContrastDefinition), intent(inout) :: self
@@ -591,7 +668,7 @@ contains
        if (associated(self%recursiveSelf%recursiveSelf)) then
           self%recursiveSelf => self%recursiveSelf%recursiveSelf
        else
-          call Galacticus_Error_Report("recursive child's parent was not copied"//{introspection:location})
+         call Galacticus_Error_Report("recursive child's parent was not copied"//{introspection:location})
        end if
        self%parentDeferred=.false.
     end if

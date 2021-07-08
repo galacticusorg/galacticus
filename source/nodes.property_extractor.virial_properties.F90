@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,18 +19,22 @@
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorVirialProperties">
-  !#  <description>
-  !#   A node property extractor which extracts the following quantities related to the virialized region of each node:
-  !#   \begin{description}
-  !#    \item [{\normalfont \ttfamily nodeVirialRadius}] The virial radius (following whatever definition of virial overdensity is
-  !#    specified by the virial density contrast (see \refPhysics{virialDensityContrast}) in units of Mpc;
-  !#    \item [{\normalfont \ttfamily nodeVirialVelocity}] The circular velocity at the virial radius (in km/s).
-  !#   \end{description}
-  !#  </description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorVirialProperties">
+   <description>
+    A node property extractor which extracts the following quantities related to the virialized region of each node:
+    \begin{description}
+     \item [{\normalfont \ttfamily nodeVirialRadius}] The virial radius (following whatever definition of virial overdensity is
+     specified by the virial density contrast (see \refPhysics{virialDensityContrast}) in units of Mpc;
+     \item [{\normalfont \ttfamily nodeVirialVelocity}] The circular velocity at the virial radius (in km/s).
+    \end{description}
+   </description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorVirialProperties
-     !% A property extractor which extracts virialProperties properties.
+     !!{
+     A property extractor which extracts virialProperties properties.
+     !!}
      private
      class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
    contains
@@ -44,7 +48,9 @@
   end type nodePropertyExtractorVirialProperties
 
   interface nodePropertyExtractorVirialProperties
-     !% Constructors for the ``virialProperties'' output extractor class.
+     !!{
+     Constructors for the ``virialProperties'' output extractor class.
+     !!}
      module procedure virialPropertiesConstructorParameters
      module procedure virialPropertiesConstructorInternal
   end interface nodePropertyExtractorVirialProperties
@@ -52,41 +58,57 @@
 contains
 
   function virialPropertiesConstructorParameters(parameters) result(self)
-    !% Constructor for the ``virialProperties'' property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``virialProperties'' property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorVirialProperties)                :: self
     type (inputParameters                      ), intent(inout) :: parameters
     class(darkMatterHaloScaleClass             ), pointer       :: darkMatterHaloScale_
 
-    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    !![
+    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    !!]
     self=nodePropertyExtractorVirialProperties(darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_" />
+    !!]
     return
   end function virialPropertiesConstructorParameters
 
   function virialPropertiesConstructorInternal(darkMatterHaloScale_) result(self)
-    !% Internal constructor for the ``virialProperties'' output extractor property extractor class.
+    !!{
+    Internal constructor for the ``virialProperties'' output extractor property extractor class.
+    !!}
     implicit none
     type (nodePropertyExtractorVirialProperties)                        :: self
     class(darkMatterHaloScaleClass             ), intent(in   ), target :: darkMatterHaloScale_
-    !# <constructorAssign variables="*darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="*darkMatterHaloScale_"/>
+    !!]
 
     return
   end function virialPropertiesConstructorInternal
 
   subroutine virialPropertiesDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily virialProperties} property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily virialProperties} property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorVirialProperties), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_" />
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_" />
+    !!]
     return
   end subroutine virialPropertiesDestructor
 
   integer function virialPropertiesElementCount(self,time)
-    !% Return the number of elements in the {\normalfont \ttfamily virialProperties} property extractors.
+    !!{
+    Return the number of elements in the {\normalfont \ttfamily virialProperties} property extractors.
+    !!}
     implicit none
     class           (nodePropertyExtractorVirialProperties), intent(inout) :: self
     double precision                                       , intent(in   ) :: time
@@ -97,7 +119,9 @@ contains
   end function virialPropertiesElementCount
 
   function virialPropertiesExtract(self,node,time,instance)
-    !% Implement a virialProperties output extractor.
+    !!{
+    Implement a virialProperties output extractor.
+    !!}
     implicit none
     double precision                                       , dimension(:) , allocatable :: virialPropertiesExtract
     class           (nodePropertyExtractorVirialProperties), intent(inout), target      :: self
@@ -115,7 +139,9 @@ contains
   end function virialPropertiesExtract
 
   function virialPropertiesNames(self,time)
-    !% Return the names of the {\normalfont \ttfamily virialProperties} properties.
+    !!{
+    Return the names of the {\normalfont \ttfamily virialProperties} properties.
+    !!}
     implicit none
     type            (varying_string                       ), dimension(:) , allocatable :: virialPropertiesNames
     class           (nodePropertyExtractorVirialProperties), intent(inout)              :: self
@@ -131,7 +157,9 @@ contains
   end function virialPropertiesNames
 
   function virialPropertiesDescriptions(self,time)
-    !% Return the descriptions of the {\normalfont \ttfamily virialProperties} properties.
+    !!{
+    Return the descriptions of the {\normalfont \ttfamily virialProperties} properties.
+    !!}
     implicit none
     type            (varying_string                       ), dimension(:) , allocatable :: virialPropertiesDescriptions
     class           (nodePropertyExtractorVirialProperties), intent(inout)              :: self
@@ -147,7 +175,9 @@ contains
   end function virialPropertiesDescriptions
 
   function virialPropertiesUnitsInSI(self,time)
-    !% Return the units of the {\normalfont \ttfamily virialProperties} properties in the SI system.
+    !!{
+    Return the units of the {\normalfont \ttfamily virialProperties} properties in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
@@ -165,7 +195,9 @@ contains
   end function virialPropertiesUnitsInSI
 
   integer function virialPropertiesType(self)
-    !% Return the type of the virialProperties property.
+    !!{
+    Return the type of the virialProperties property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorVirialProperties), intent(inout) :: self

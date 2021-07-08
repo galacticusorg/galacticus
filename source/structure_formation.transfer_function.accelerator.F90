@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a transfer function accelerator class which tabulates a transfer function for rapid interpolation.
+  !!{
+  Implements a transfer function accelerator class which tabulates a transfer function for rapid interpolation.
+  !!}
 
   use :: Tables, only : table1DLinearLinear
 
-  !# <transferFunction name="transferFunctionAccelerator">
-  !#  <description>A transfer function class which accelerates calculations of another transfer function class by tabulation for rapid interpolation.</description>
-  !# </transferFunction>
+  !![
+  <transferFunction name="transferFunctionAccelerator">
+   <description>A transfer function class which accelerates calculations of another transfer function class by tabulation for rapid interpolation.</description>
+  </transferFunction>
+  !!]
   type, extends(transferFunctionClass) :: transferFunctionAccelerator
-     !% A transfer function class which accelerates calculations of another transfer function class by tabulation for rapid interpolation.
+     !!{
+     A transfer function class which accelerates calculations of another transfer function class by tabulation for rapid interpolation.
+     !!}
      private
      type            (table1DLinearLinear  )          :: transferTable
      class           (transferFunctionClass), pointer :: transferFunction_ => null()
@@ -42,7 +48,9 @@
   end type transferFunctionAccelerator
 
   interface transferFunctionAccelerator
-     !% Constructors for the accelerator transfer function class.
+     !!{
+     Constructors for the accelerator transfer function class.
+     !!}
      module procedure acceleratorConstructorParameters
      module procedure acceleratorConstructorInternal
   end interface transferFunctionAccelerator
@@ -50,33 +58,43 @@
 contains
 
   function acceleratorConstructorParameters(parameters) result(self)
-    !% Constructor for the accelerator transfer function class which takes a parameter set as input.
+    !!{
+    Constructor for the accelerator transfer function class which takes a parameter set as input.
+    !!}
     implicit none
     type  (transferFunctionAccelerator)                :: self
     type  (inputParameters            ), intent(inout) :: parameters
     class (transferFunctionClass      ), pointer       :: transferFunction_
     integer                                            :: tablePointsPerDecade
 
-    !# <inputParameter>
-    !#   <name>tablePointsPerDecade</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of points per decade of wavenumber at which to tabulate the transfer function.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="transferFunction" name="transferFunction_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>tablePointsPerDecade</name>
+      <source>parameters</source>
+      <defaultValue>10</defaultValue>
+      <description>The number of points per decade of wavenumber at which to tabulate the transfer function.</description>
+    </inputParameter>
+    <objectBuilder class="transferFunction" name="transferFunction_" source="parameters"/>
+    !!]
     self=transferFunctionAccelerator(transferFunction_,tablePointsPerDecade)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="transferFunction_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="transferFunction_"/>
+    !!]
     return
   end function acceleratorConstructorParameters
 
   function acceleratorConstructorInternal(transferFunction_,tablePointsPerDecade) result(self)
-    !% Internal constructor for the accelerator transfer function class.
+    !!{
+    Internal constructor for the accelerator transfer function class.
+    !!}
     implicit none
     type   (transferFunctionAccelerator)                        :: self
     class  (transferFunctionClass      ), intent(in   ), target :: transferFunction_
     integer                             , intent(in   )         :: tablePointsPerDecade
-    !# <constructorAssign variables="*transferFunction_, tablePointsPerDecade"/>
+    !![
+    <constructorAssign variables="*transferFunction_, tablePointsPerDecade"/>
+    !!]
 
     self%tableInitialized            =.false.
     self%wavenumberLogarithmicMinimum=log(1.0d-6)
@@ -85,17 +103,23 @@ contains
   end function acceleratorConstructorInternal
 
   subroutine acceleratorDestructor(self)
-    !% Destructor for the accelerator transfer function class.
+    !!{
+    Destructor for the accelerator transfer function class.
+    !!}
     implicit none
     type(transferFunctionAccelerator), intent(inout) :: self
 
-    !# <objectDestructor name="self%transferFunction_"/>
+    !![
+    <objectDestructor name="self%transferFunction_"/>
+    !!]
     if (self%tableInitialized) call self%transferTable%destroy()
     return
   end subroutine acceleratorDestructor
 
   double precision function acceleratorValue(self,wavenumber)
-    !% Return the transfer function at the given wavenumber.
+    !!{
+    Return the transfer function at the given wavenumber.
+    !!}
     implicit none
     class           (transferFunctionAccelerator), intent(inout) :: self
     double precision                             , intent(in   ) :: wavenumber
@@ -108,7 +132,9 @@ contains
   end function acceleratorValue
 
   double precision function acceleratorLogarithmicDerivative(self,wavenumber)
-    !% Return the logarithmic derivative of the transfer function at the given wavenumber.
+    !!{
+    Return the logarithmic derivative of the transfer function at the given wavenumber.
+    !!}
     implicit none
     class           (transferFunctionAccelerator), intent(inout) :: self
     double precision                             , intent(in   ) :: wavenumber
@@ -121,7 +147,9 @@ contains
   end function acceleratorLogarithmicDerivative
 
   double precision function acceleratorEpochTime(self)
-    !% Return the cosmic time at the epoch at which this transfer function is defined.
+    !!{
+    Return the cosmic time at the epoch at which this transfer function is defined.
+    !!}
     implicit none
     class(transferFunctionAccelerator), intent(inout) :: self
 
@@ -130,8 +158,10 @@ contains
   end function acceleratorEpochTime
 
   double precision function acceleratorHalfModeMass(self,status)
-    !% Compute the mass corresponding to the wavenumber at which the transfer function is
-    !% suppressed by a factor of two relative to a \gls{cdm} transfer function
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is
+    suppressed by a factor of two relative to a \gls{cdm} transfer function
+    !!}
     implicit none
     class  (transferFunctionAccelerator), intent(inout)           :: self
     integer                             , intent(  out), optional :: status
@@ -141,7 +171,9 @@ contains
   end function acceleratorHalfModeMass
 
   subroutine acceleratorTabulate(self,wavenumberLogarithmic)
-    !% Tabulate the transfer function for rapid interpolation.
+    !!{
+    Tabulate the transfer function for rapid interpolation.
+    !!}
     implicit none
     class           (transferFunctionAccelerator), intent(inout) :: self
     double precision                             , intent(in   ) :: wavenumberLogarithmic

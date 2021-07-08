@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,17 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test ODE-IV2 solver routines.
+!!{
+Contains a program to test ODE-IV2 solver routines.
+!!}
 
 program Test_ODE_Solver
-  !% Tests that ODE solver routines work.
-  use            :: Galacticus_Display       , only : Galacticus_Verbosity_Level_Set                  , verbosityStandard
+  !!{
+  Tests that ODE solver routines work.
+  !!}
+  use            :: Display                  , only : displayVerbositySet                             , verbosityLevelStandard
   use, intrinsic :: ISO_C_Binding            , only : C_Null_FunPtr                                   , c_size_t
   use            :: Numerical_Integration2   , only : integratorMultiVectorizedCompositeGaussKronrod1D
-  use            :: Numerical_ODE_Solvers    , only : odeSolver                                       , gsl_odeiv2_step_msbdf      , gsl_odeiv2_step_msbdfactive
-  use            :: Test_ODE_Solver_Functions, only : Integrands_Set_2                                , Jacobian_Set_1             , Jacobian_Set_2             , ODE_Set_1        , &
+  use            :: Numerical_ODE_Solvers    , only : gsl_odeiv2_step_msbdf                           , gsl_odeiv2_step_msbdfactive, odeSolver
+  use            :: Test_ODE_Solver_Functions, only : Integrands_Set_2                                , Jacobian_Set_1             , Jacobian_Set_2      , ODE_Set_1        , &
           &                                           ODE_Set_2
-  use            :: Unit_Tests               , only : Assert                                          , Unit_Tests_Begin_Group     , Unit_Tests_End_Group       , Unit_Tests_Finish
+  use            :: Unit_Tests               , only : Assert                                          , Unit_Tests_Begin_Group     , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision                                                  , dimension(10  ) :: xEnd
   double precision                                                  , dimension(   2) :: y            , z
@@ -46,7 +50,7 @@ program Test_ODE_Solver
   type            (integratorMultiVectorizedCompositeGaussKronrod1D)                  :: integrator_
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("ODE-IV2 solver")

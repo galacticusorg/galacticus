@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,29 +17,39 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a merger tree operator which prunes tips of branches (i.e. sections from the leaf node to
-  !% the first node with a sibling).
+  !!{
+  Contains a module which implements a merger tree operator which prunes tips of branches (i.e. sections from the leaf node to
+  the first node with a sibling).
+  !!}
 
-  !# <mergerTreeOperator name="mergerTreeOperatorPruneBranchTips">
-  !#  <description>Cmplements a merger tree operator which prunes tips of branches (i.e. sections from the leaf node to the first node with a sibling).</description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorPruneBranchTips">
+   <description>Cmplements a merger tree operator which prunes tips of branches (i.e. sections from the leaf node to the first node with a sibling).</description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneBranchTips
-     !% A merger tree operator class which prunes tips of branches (i.e. sections from the leaf node to the first node with a
-     !% sibling).
+     !!{
+     A merger tree operator class which prunes tips of branches (i.e. sections from the leaf node to the first node with a
+     sibling).
+     !!}
      private
    contains
      procedure :: operatePreEvolution => pruneBranchTipsOperatePreEvolution
   end type mergerTreeOperatorPruneBranchTips
 
   interface mergerTreeOperatorPruneBranchTips
-     !% Constructors for the prune-branchTips merger tree operator class.
+     !!{
+     Constructors for the prune-branchTips merger tree operator class.
+     !!}
      module procedure pruneBranchTipsConstructorParameters
   end interface mergerTreeOperatorPruneBranchTips
 
 contains
 
   function pruneBranchTipsConstructorParameters(parameters) result(self)
-    !% Constructor for the prune-branchTips merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the prune-branchTips merger tree operator class which takes a parameter set as input.
+    !!}
     implicit none
     type   (mergerTreeOperatorPruneBranchTips)                :: self
     type   (inputParameters                  ), intent(inout) :: parameters
@@ -50,7 +60,9 @@ contains
   end function pruneBranchTipsConstructorParameters
 
   subroutine pruneBranchTipsOperatePreEvolution(self,tree)
-    !% Perform a prune-branchTips operation on a merger tree.
+    !!{
+    Perform a prune-branchTips operation on a merger tree.
+    !!}
     use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
     use :: Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Clean_Branch, Merger_Tree_Prune_Uniqueify_IDs, Merger_Tree_Prune_Unlink_Parent
     implicit none

@@ -40,8 +40,8 @@ sub Process_Enumerations {
 		foreach ( &List::ExtraUtils::as_array($node->{'directive'}->{'entry'}) );
 	    my $enumerationCount   = $i+1-$indexing;
 	    if ( $validator eq "yes" ) {
-		$enumerationSource .= "  integer, parameter, ".$visibility." :: ".$node->{'directive'}->{'name'}."Min  =0\n";
-		$enumerationSource .= "  integer, parameter, ".$visibility." :: ".$node->{'directive'}->{'name'}."Max  =".$i."\n";
+		$enumerationSource .= "  integer, parameter, ".$visibility." :: ".$node->{'directive'}->{'name'}."Min  =".$indexing        ."\n";
+		$enumerationSource .= "  integer, parameter, ".$visibility." :: ".$node->{'directive'}->{'name'}."Max  =".$i               ."\n";
 		$enumerationSource .= "  integer, parameter, ".$visibility." :: ".$node->{'directive'}->{'name'}."Count=".$enumerationCount."\n";
 	    }
 	    $enumerationSource .= "  ! End auto-generated enumeration\n\n";
@@ -57,10 +57,12 @@ sub Process_Enumerations {
 		$validatorFunction .= "\n";
 		$validatorFunction .= "  ! Auto-generated enumeration function\n";
 		$validatorFunction .= "  logical function ".$functionName."(enumerationValue)\n";
-		$validatorFunction .= "    !% Validate a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration value.\n";
+		$validatorFunction .= "    !!{\n";
+		$validatorFunction .= "    Validate a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration value.\n";
+		$validatorFunction .= "    !!}\n";
 		$validatorFunction .= "    implicit none\n\n";
 		$validatorFunction .= "    integer, intent(in   ) :: enumerationValue\n";
-		$validatorFunction .= "    ".$functionName."=(enumerationValue >= 0 .and. enumerationValue < ".$node->{'directive'}->{'name'}."Count)\n";
+		$validatorFunction .= "    ".$functionName."=(enumerationValue >= ".$node->{'directive'}->{'name'}."Min .and. enumerationValue <= ".$node->{'directive'}->{'name'}."Max)\n";
 		$validatorFunction .= "    return\n";
 		$validatorFunction .= "  end function ".$functionName."\n";
 		$validatorFunction .= "  ! End auto-generated enumeration function\n";
@@ -71,17 +73,22 @@ sub Process_Enumerations {
 		# Set the visibility.
 		&Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$functionName,$visibility);
 	    }
-	    # Construct encode functions as necessary.
+	    # Construct encode function as necessary.
 	    if ( exists($node->{'directive'}->{'encodeFunction'}) && $node->{'directive'}->{'encodeFunction'} eq "yes" ) {
 		# Generate function code.
 		my $encodeFunctionName = "enumeration".ucfirst($node->{'directive'}->{'name'})."Encode";
-		my $decodeFunctionName = "enumeration".ucfirst($node->{'directive'}->{'name'})."Decode";
+		my $onError;
+		$onError = $node->{'directive'}->{'errorValue'}
+		    if ( exists($node->{'directive'}->{'errorValue'}) );
 		my $function;
 		$function .= "\n";
 		$function .= "  ! Auto-generated enumeration function\n";
 		$function .= "  integer function ".$encodeFunctionName."(name,includesPrefix)\n";
-		$function .= "    !% Encode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier.\n";
-		$function .= "    use Galacticus_Error\n";
+		$function .= "    !!{\n";
+		$function .= "    Encode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier.\n";
+		$function .= "    !!}\n";
+		$function .= "    use Galacticus_Error\n"
+		    unless ( $onError );
 		$function .= "    implicit none\n\n";
 		$function .= "    character(len=*), intent(in   )           :: name\n";
 		$function .= "    logical         , intent(in   ), optional :: includesPrefix\n";
@@ -107,15 +114,36 @@ sub Process_Enumerations {
 			$function .= "        ".$encodeFunctionName."=".++$i."\n";
 		    }
 		    $function .= "      case default\n";
-		    $function .= "      ".$encodeFunctionName."=-1\n";
-		    $function .= "      call Galacticus_Error_Report('unrecognized enumeration member ['//trim(name)//']'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+		    if ( $onError ) {
+			$function .= "      ".$encodeFunctionName."=".$onError."\n";
+		    } else {
+			$function .= "      ".$encodeFunctionName."=-1\n";
+			$function .= "      call Galacticus_Error_Report('unrecognized enumeration member ['//trim(name)//']'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
+		    }
 		    $function .= "      end select\n";
 		}
 		$function .= "    end if\n";
 		$function .= "    return\n";
 		$function .= "  end function ".$encodeFunctionName."\n\n";
+		$function .= "  ! End auto-generated enumeration function\n";
+		# Insert into the module.
+		my $encodeTree = &Galacticus::Build::SourceTree::ParseCode($function,"Galacticus::Build::SourceTree::Process::Enumeration()");
+		my @encodeNodes = &Galacticus::Build::SourceTree::Children($encodeTree);
+		&Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},\@encodeNodes);
+		# Set the visibility.
+		&Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$encodeFunctionName,$visibility);
+	    }
+	    # Construct decode function as necessary.
+	    if ( exists($node->{'directive'}->{'decodeFunction'}) && $node->{'directive'}->{'decodeFunction'} eq "yes" ) {
+		# Generate function code.
+		my $decodeFunctionName = "enumeration".ucfirst($node->{'directive'}->{'name'})."Decode";
+		my $function;
+		$function .= "\n";
+		$function .= "  ! Auto-generated enumeration function\n";
 		$function .= "  function ".$decodeFunctionName."(enumerationValue,includePrefix)\n";
-		$function .= "    !% Decode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration to a string.\n";
+		$function .= "    !!{\n";
+		$function .= "    Decode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration to a string.\n";
+		$function .= "    !!}\n";
 		$function .= "    use ISO_Varying_String\n";
 		$function .= "    use Galacticus_Error\n";
 		$function .= "    implicit none\n\n";
@@ -150,19 +178,17 @@ sub Process_Enumerations {
 		$function .= "    return\n";
 		$function .= "  end function ".$decodeFunctionName."\n";
 		$function .= "  ! End auto-generated enumeration function\n";
-
 		# Insert into the module.
-		my $encodeTree = &Galacticus::Build::SourceTree::ParseCode($function,"Galacticus::Build::SourceTree::Process::Enumeration()");
-		my @encodeNodes = &Galacticus::Build::SourceTree::Children($encodeTree);
-		&Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},\@encodeNodes);
+		my $decodeTree = &Galacticus::Build::SourceTree::ParseCode($function,"Galacticus::Build::SourceTree::Process::Enumeration()");
+		my @decodeNodes = &Galacticus::Build::SourceTree::Children($decodeTree);
+		&Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},\@decodeNodes);
 		# Set the visibility.
-		&Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$encodeFunctionName,$visibility);
 		&Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$decodeFunctionName,$visibility);
 	    }
 	    # Create documentation.
 	    system("mkdir -p doc/enumerations/definitions");
 	    open(my $defHndl,">doc/enumerations/definitions/".$node->{'directive'}->{'name'}.".tex");
-	    print $defHndl "\\subsubsection{\\large {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."}}\\hypertarget{ht:AutoEnumerations".ucfirst($node->{'directive'}->{'name'})."}{}\\label{sec:AutoEnumerations".ucfirst($node->{'directive'}->{'name'})."}\\index{enumerations!".$node->{'directive'}->{'name'}."\@{\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."}}\n\n";
+	    print $defHndl "\\subsection{\\large {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."}}\\hypertarget{ht:AutoEnumerations".ucfirst($node->{'directive'}->{'name'})."}{}\\label{sec:AutoEnumerations".ucfirst($node->{'directive'}->{'name'})."}\\index{enumerations!".$node->{'directive'}->{'name'}."\@{\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."}}\n\n";
 	    print $defHndl "\\begin{tabular}{rp{130mm}}\n";
 	    print $defHndl "Description: & ".$node->{'directive'}->{'description'}." \\\\\n";
 	    my $moduleNode = $node;

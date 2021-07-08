@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which handles node subhalo promotion events.
+!!{
+Contains a module which handles node subhalo promotion events.
+!!}
 
 module Node_Subhalo_Promotions
-  !% Handles subhalo promotion events.
+  !!{
+  Handles subhalo promotion events.
+  !!}
   implicit none
   private
   public :: nodeSubhaloPromotionPerform
@@ -28,10 +32,12 @@ module Node_Subhalo_Promotions
 contains
 
   logical function nodeSubhaloPromotionPerform(event,node,deadlockStatus)
-    !% Promotes a subhalo to be an isolated node.
-    use :: Galacticus_Display                 , only : Galacticus_Display_Message   , Galacticus_Verbosity_Level    , verbosityInfo
-    use :: Galacticus_Nodes                   , only : nodeComponentBasic           , nodeEvent    , treeNode
-    use :: ISO_Varying_String                 , only : varying_string               , assignment(=)                 , operator(//)
+    !!{
+    Promotes a subhalo to be an isolated node.
+    !!}
+    use :: Display                            , only : displayMessage               , displayVerbosity, verbosityLevelInfo
+    use :: Galacticus_Nodes                   , only : nodeComponentBasic           , nodeEvent       , treeNode
+    use :: ISO_Varying_String                 , only : assignment(=)                , operator(//)    , varying_string
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsNotDeadlocked
     use :: String_Handling                    , only : operator(//)
     implicit none
@@ -51,11 +57,11 @@ contains
        return
     end if
     ! Report.
-    if (Galacticus_Verbosity_Level() >= verbosityInfo) then
+    if (displayVerbosity() >= verbosityLevelInfo) then
        write (label,'(f12.6)') event%time
        message='Satellite node ['
        message=message//node%index()//'] promoting to isolated node ['//event%node%index()//'] at time '//trim(label)//' Gyr'
-       call Galacticus_Display_Message(message)
+       call displayMessage(message)
     end if
     ! Remove the subhalo from its host.
     call node%removeFromHost  ()
@@ -65,15 +71,17 @@ contains
     node         %sibling    => null()
     nodePromotion%firstChild => node
     ! Trigger the event.
-    !# <eventHook name="subhaloPromotion">
-    !#  <import>
-    !#   <module name="Galacticus_Nodes" symbols="treeNode"/>
-    !#  </import>
-    !#  <interface>
-    !#   type(treeNode), intent(inout), pointer :: node, nodePromotion
-    !#  </interface>
-    !#  <callWith>node,nodePromotion</callWith>
-    !# </eventHook>
+    !![
+    <eventHook name="subhaloPromotion">
+     <import>
+      <module name="Galacticus_Nodes" symbols="treeNode"/>
+     </import>
+     <interface>
+      type(treeNode), intent(inout), pointer :: node, nodePromotion
+     </interface>
+     <callWith>node,nodePromotion</callWith>
+    </eventHook>
+    !!]
     ! Since we changed the tree, record that the tree is not deadlocked.
     deadlockStatus=deadlockStatusIsNotDeadlocked
     ! Record that the task was performed.

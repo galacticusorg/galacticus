@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,56 +17,66 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a merger progenitor properties class which uses the algorithm of \cite{cole_hierarchical_2000}.
+  !!{
+  Implements a merger progenitor properties class which uses the algorithm of \cite{cole_hierarchical_2000}.
+  !!}
 
+  use :: Root_Finder                     , only : rootFinder
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
 
-  !# <mergerProgenitorProperties name="mergerProgenitorPropertiesCole2000">
-  !#  <description>
-  !#   A merger progenitor properties class which uses the algorithms of \cite{cole_hierarchical_2000} to compute progenitor
-  !#   properties. Masses of progenitors are set to
-  !#   \begin{equation}
-  !#    M_\mathrm{host|satellite} = \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j},
-  !#   \end{equation}
-  !#   where $M_{i,j}$ is the mass of mass type $j$ in \gls{component} $i$. Masses of progenitors that will end up in the remnant
-  !#   spheroid are set to
-  !#   \begin{equation}
-  !#    M_\mathrm{spheroid\,\,host|satellite} = \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j} \delta_{i,j},
-  !#   \end{equation}
-  !#   where $\delta_{i,j}=0$ of mass type $j$ in \gls{component} $i$ will end up in the remnant spheroid and $0$ otherwise. Radii
-  !#   of material that will end up in the spheroid are set by finding the solution to:
-  !#   \begin{equation}
-  !#   \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j}(r) \delta_{i,j} = {1 \over 2}
-  !#   \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j} \delta_{i,j},
-  !#   \end{equation}
-  !#   such that the radii are the half-mass radii of the material that will end up in the remnant spheroid. Finally, the angular
-  !#   momentum factor is set to
-  !#   \begin{equation}
-  !#    f_\mathrm{AM\,\,host|satellite} = {1 \over M_\mathrm{spheroid\,\,host|satellite}} \sum_{i=\mathrm{disk|spheroid}}
-  !#    \sum_{j=\mathrm{stars|gas}} M_{i,j} {J_{i,j} \over \mathrm{G} M^{3/2}_{i,j} r_{1/2\,\,i,j}} \delta_{i,j},
-  !#   \end{equation}
-  !#   where $J_{i,j}$ is the angular momentum or pseudo-angular momentum of mass type $j$ in \gls{component} $i$\footnote{This is
-  !#   technically not quite what \protect\cite{cole_hierarchical_2000} do. Instead, when computing the masses of the material
-  !#   which ends up in the spheroid they include twice the mass of dark matter (accounting for the effects of adiabatic
-  !#   contraction) within the half-mass radius of each galaxy (as calculated above). The final angular momentum is then
-  !#   $j=\sqrt{\mathrm{G} M_\mathrm{remnant} r_\mathrm{remnant}/2}$ (where $M_\mathrm{remnant}$ includes the contribution from
-  !#   dark matter and the factor of $2$ appears to make this the half-mass). This approach is currently not used in \protect\glc\
-  !#   since there is no way to get the mass of dark matter enclosed accounting for adiabatic contraction in the general
-  !#   case. This is a solvable problem, and so this algorithm is expected to be modified to match that of
-  !#   \protect\cite{cole_hierarchical_2000} precisely in a future version of \protect\glc.}.
-  !#  </description>
-  !# </mergerProgenitorProperties>
+  !![
+  <mergerProgenitorProperties name="mergerProgenitorPropertiesCole2000">
+   <description>
+    A merger progenitor properties class which uses the algorithms of \cite{cole_hierarchical_2000} to compute progenitor
+    properties. Masses of progenitors are set to
+    \begin{equation}
+     M_\mathrm{host|satellite} = \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j},
+    \end{equation}
+    where $M_{i,j}$ is the mass of mass type $j$ in \gls{component} $i$. Masses of progenitors that will end up in the remnant
+    spheroid are set to
+    \begin{equation}
+     M_\mathrm{spheroid\,\,host|satellite} = \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j} \delta_{i,j},
+    \end{equation}
+    where $\delta_{i,j}=0$ of mass type $j$ in \gls{component} $i$ will end up in the remnant spheroid and $0$ otherwise. Radii
+    of material that will end up in the spheroid are set by finding the solution to:
+    \begin{equation}
+    \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j}(r) \delta_{i,j} = {1 \over 2}
+    \sum_{i=\mathrm{disk|spheroid}} \sum_{j=\mathrm{stars|gas}} M_{i,j} \delta_{i,j},
+    \end{equation}
+    such that the radii are the half-mass radii of the material that will end up in the remnant spheroid. Finally, the angular
+    momentum factor is set to
+    \begin{equation}
+     f_\mathrm{AM\,\,host|satellite} = {1 \over M_\mathrm{spheroid\,\,host|satellite}} \sum_{i=\mathrm{disk|spheroid}}
+     \sum_{j=\mathrm{stars|gas}} M_{i,j} {J_{i,j} \over \mathrm{G} M^{3/2}_{i,j} r_{1/2\,\,i,j}} \delta_{i,j},
+    \end{equation}
+    where $J_{i,j}$ is the angular momentum or pseudo-angular momentum of mass type $j$ in \gls{component} $i$\footnote{This is
+    technically not quite what \protect\cite{cole_hierarchical_2000} do. Instead, when computing the masses of the material
+    which ends up in the spheroid they include twice the mass of dark matter (accounting for the effects of adiabatic
+    contraction) within the half-mass radius of each galaxy (as calculated above). The final angular momentum is then
+    $j=\sqrt{\mathrm{G} M_\mathrm{remnant} r_\mathrm{remnant}/2}$ (where $M_\mathrm{remnant}$ includes the contribution from
+    dark matter and the factor of $2$ appears to make this the half-mass). This approach is currently not used in \protect\glc\
+    since there is no way to get the mass of dark matter enclosed accounting for adiabatic contraction in the general
+    case. This is a solvable problem, and so this algorithm is expected to be modified to match that of
+    \protect\cite{cole_hierarchical_2000} precisely in a future version of \protect\glc.}.
+   </description>
+  </mergerProgenitorProperties>
+  !!]
   type, extends(mergerProgenitorPropertiesClass) :: mergerProgenitorPropertiesCole2000
-     !% A merger progenitor properties class which uses the algorithm of \cite{cole_hierarchical_2000}.
+     !!{
+     A merger progenitor properties class which uses the algorithm of \cite{cole_hierarchical_2000}.
+     !!}
      private
      class(mergerMassMovementsClass), pointer :: mergerMassMovements_ => null()
+     type (rootFinder              )          :: finder
    contains
      final     ::        cole2000Destructor
      procedure :: get => cole2000Get
   end type mergerProgenitorPropertiesCole2000
 
   interface mergerProgenitorPropertiesCole2000
-     !% Constructors for the {\normalfont \ttfamily cole2000} merger progenitor properties class.
+     !!{
+     Constructors for the {\normalfont \ttfamily cole2000} merger progenitor properties class.
+     !!}
      module procedure cole2000ConstructorParameters
      module procedure cole2000ConstructorInternal
   end interface mergerProgenitorPropertiesCole2000
@@ -80,7 +90,9 @@
 contains
 
   function cole2000ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily cole2000} merger progenitor properties class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily cole2000} merger progenitor properties class which takes a parameter list as input.
+    !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultDiskComponent     , defaultSpheroidComponent
@@ -131,40 +143,64 @@ contains
          &                                  )                                                                                                                       // &
          &         {introspection:location}                                                                                                                            &
          &        )
-    !# <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters"/>
+    !![
+    <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters"/>
+    !!]
     self=mergerProgenitorPropertiesCole2000(mergerMassMovements_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="mergerMassMovements_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="mergerMassMovements_"/>
+    !!]
     return
   end function cole2000ConstructorParameters
 
  function cole2000ConstructorInternal(mergerMassMovements_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily cole2000} merger progenitor properties class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily cole2000} merger progenitor properties class.
+    !!}
+    use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
     type (mergerProgenitorPropertiesCole2000)                        :: self
     class(mergerMassMovementsClass          ), intent(in   ), target :: mergerMassMovements_
-    !# <constructorAssign variables="*mergerMassMovements_"/>
-
+    !![
+    <constructorAssign variables="*mergerMassMovements_"/>
+    !!]
+    
+    self%finder=rootFinder(                                                             &
+         &                 rootFunction                 =cole2000HalfMassRadiusRoot   , &
+         &                 toleranceAbsolute            =0.0d+0                       , &
+         &                 toleranceRelative            =1.0d-6                       , &
+         &                 rangeExpandUpward            =2.0d+0                       , &
+         &                 rangeExpandDownward          =0.5d+0                       , &
+         &                 rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
+         &                 rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
+         &                 rangeExpandType              =rangeExpandMultiplicative      &
+         &                )
     return
   end function cole2000ConstructorInternal
 
   subroutine cole2000Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily cole2000} merger progenitor properties class.
+    !!{
+    Destructor for the {\normalfont \ttfamily cole2000} merger progenitor properties class.
+    !!}
     implicit none
     type(mergerProgenitorPropertiesCole2000), intent(inout) :: self
 
-    !# <objectDestructor name="self%mergerMassMovements_"/>
+    !![
+    <objectDestructor name="self%mergerMassMovements_"/>
+    !!]
     return
   end subroutine cole2000Destructor
 
   subroutine cole2000Get(self,nodeSatellite,nodeHost,massSatellite,massHost,massSpheroidSatellite,massSpheroidHost,massSpheroidHostPreMerger,radiusSatellite,radiusHost,factorAngularMomentum,massSpheroidRemnant,massGasSpheroidRemnant)
-    !% Computes various properties of the progenitor galaxies useful for calculations of merger remnant sizes.
+    !!{
+    Computes various properties of the progenitor galaxies useful for calculations of merger remnant sizes.
+    !!}
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options        , only : massTypeGalactic                , radiusLarge
     use :: Galacticus_Error                  , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                  , only : nodeComponentDisk               , nodeComponentSpheroid                   , treeNode
-    use :: Numerical_Constants_Astronomical      , only : gravitationalConstantGalacticus
-    use :: Root_Finder                       , only : rangeExpandMultiplicative       , rangeExpandSignExpectNegative           , rangeExpandSignExpectPositive, rootFinder
+    use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus
     use :: Satellite_Merging_Mass_Movements  , only : destinationMergerDisk           , destinationMergerSpheroid               , destinationMergerUnmoved
     implicit none
     class           (mergerProgenitorPropertiesCole2000), intent(inout)         :: self
@@ -176,8 +212,6 @@ contains
          &                                                                         radiusSatellite                , massSpheroidSatellite
     class           (nodeComponentDisk                 ), pointer               :: diskHost                       , diskSatelite
     class           (nodeComponentSpheroid             ), pointer               :: spheroidHost                   , spheroidSatellite
-    type            (rootFinder                        ), save                  :: finder
-    !$omp threadprivate(finder)
     double precision                                                            :: massComponent                  , factorDarkMatterDiskHost         , &
          &                                                                         radiusHalfMassDiskHost         , factorDarkMatterSpheroidHost     , &
          &                                                                         radiusHalfMassSpheroidHost     , factorDarkMatterDiskSatellite    , &
@@ -189,18 +223,6 @@ contains
 
     ! Find how mass is moved by the merger.
     call self%mergerMassMovements_%get(nodeSatellite,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
-    ! Initialize our root finder.
-    if (.not.finder%isInitialized()) then
-       call finder%rootFunction(cole2000HalfMassRadiusRoot                      )
-       call finder%tolerance   (toleranceAbsolute=0.0d0,toleranceRelative=1.0d-6)
-       call finder%rangeExpand (                                                             &
-            &                   rangeExpandUpward            =2.0d0                        , &
-            &                   rangeExpandDownward          =0.5d0                        , &
-            &                   rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative, &
-            &                   rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
-            &                   rangeExpandType              =rangeExpandMultiplicative      &
-            &                  )
-    end if
     ! Get the disk and spheroid components of host and satellite.
     diskHost          => nodeHost     %disk    ()
     spheroidHost      => nodeHost     %spheroid()
@@ -328,12 +350,12 @@ contains
        cole2000HalfMass   =  0.0d0 ! Set to zero here so that cole2000HalfMassRadiusRoot() returns the actual half mass.
        cole2000HalfMass   =  0.5d0*cole2000HalfMassRadiusRoot(radiusLarge)
        if (cole2000HalfMassRadiusRoot(0.0d0) <= 0.0d0) then
-          radiusHost=finder%find(rootGuess=Galactic_Structure_Radius_Enclosing_Mass(                                 &
-               &                                                                                   cole2000Node    , &
-               &                                                                    fractionalMass=0.50d0          , &
-               &                                                                    massType      =massTypeGalactic  &
-               &                                                                   )                                 &
-               &                )
+          radiusHost=self%finder%find(rootGuess=Galactic_Structure_Radius_Enclosing_Mass(                                 &
+               &                                                                                        cole2000Node    , &
+               &                                                                         fractionalMass=0.50d0          , &
+               &                                                                         massType      =massTypeGalactic  &
+               &                                                                        )                                 &
+               &                     )
        else
           radiusHost      =0.0d0
           massSpheroidHost=0.0d0
@@ -348,12 +370,12 @@ contains
        cole2000HalfMass   =  0.0d0 ! Set to zero here so that cole2000HalfMassRadiusRoot() returns the actual half mass.
        cole2000HalfMass   =  0.50d0*cole2000HalfMassRadiusRoot(radiusLarge)
        if (cole2000HalfMassRadiusRoot(0.0d0) <= 0.0d0) then
-          radiusSatellite=finder%find(rootGuess=Galactic_Structure_Radius_Enclosing_Mass(                                 &
-               &                                                                                        cole2000Node    , &
-               &                                                                         fractionalMass=0.50d0          , &
-               &                                                                         massType      =massTypeGalactic  &
-               &                                                                        )                                 &
-               &                     )
+          radiusSatellite=self%finder%find(rootGuess=Galactic_Structure_Radius_Enclosing_Mass(                                 &
+               &                                                                                             cole2000Node    , &
+               &                                                                              fractionalMass=0.50d0          , &
+               &                                                                              massType      =massTypeGalactic  &
+               &                                                                             )                                 &
+               &                          )
        else
           radiusSatellite      =0.0d0
           massSpheroidSatellite=0.0d0
@@ -373,7 +395,9 @@ contains
   end subroutine cole2000Get
 
   double precision function cole2000HalfMassRadiusRoot(radius)
-    !% Function used in root finding for progenitor galaxy half-mass radii.
+    !!{
+    Function used in root finding for progenitor galaxy half-mass radii.
+    !!}
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : componentTypeDisk               , componentTypeSpheroid   , massTypeGaseous, massTypeStellar
     use :: Satellite_Merging_Mass_Movements  , only : destinationMergerSpheroid       , destinationMergerUnmoved

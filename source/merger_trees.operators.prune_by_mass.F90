@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a pruning-by-mass operator on merger trees.
+!!{
+Contains a module which implements a pruning-by-mass operator on merger trees.
+!!}
 
-  !# <mergerTreeOperator name="mergerTreeOperatorPruneByMass">
-  !#  <description>
-  !#   A merger tree operator class which allows for branches of merger trees to be pruned---i.e. nodes below a specified mass
-  !#   limit are removed from the tree prior to any evolution. This can be useful for convergence studies for example. Set
-  !#   {\normalfont \ttfamily [massThreshold]} to the desired mass threshold below which nodes will be pruned.
-  !#  </description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorPruneByMass">
+   <description>
+    A merger tree operator class which allows for branches of merger trees to be pruned---i.e. nodes below a specified mass
+    limit are removed from the tree prior to any evolution. This can be useful for convergence studies for example. Set
+    {\normalfont \ttfamily [massThreshold]} to the desired mass threshold below which nodes will be pruned.
+   </description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneByMass
-     !% A pruning-by-mass merger tree operator class.
+     !!{
+     A pruning-by-mass merger tree operator class.
+     !!}
      private
      double precision :: massThreshold
      logical          :: preservePrimaryProgenitor
@@ -36,7 +42,9 @@
   end type mergerTreeOperatorPruneByMass
 
   interface mergerTreeOperatorPruneByMass
-     !% Constructors for the pruning-by-mass merger tree operator class.
+     !!{
+     Constructors for the pruning-by-mass merger tree operator class.
+     !!}
      module procedure pruneByMassConstructorParameters
      module procedure pruneByMassConstructorInternal
   end interface mergerTreeOperatorPruneByMass
@@ -44,32 +52,38 @@
 contains
 
   function pruneByMassConstructorParameters(parameters)
-    !% Constructor for the prune-by-mass merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the prune-by-mass merger tree operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(mergerTreeOperatorPruneByMass)                :: pruneByMassConstructorParameters
     type(inputParameters              ), intent(inout) :: parameters
 
-    !# <inputParameter>
-    !#   <name>massThreshold</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <variable>pruneByMassConstructorParameters%massThreshold</variable>
-    !#   <description>Threshold mass below which merger tree branches should be pruned.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>preservePrimaryProgenitor</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <variable>pruneByMassConstructorParameters%preservePrimaryProgenitor</variable>
-    !#   <description>If true, primary progenitor status is preserved even if the primary progenitor is pruned from the tree.</description>
-    !# </inputParameter>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParameter>
+      <name>massThreshold</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <variable>pruneByMassConstructorParameters%massThreshold</variable>
+      <description>Threshold mass below which merger tree branches should be pruned.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>preservePrimaryProgenitor</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <variable>pruneByMassConstructorParameters%preservePrimaryProgenitor</variable>
+      <description>If true, primary progenitor status is preserved even if the primary progenitor is pruned from the tree.</description>
+    </inputParameter>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function pruneByMassConstructorParameters
 
   function pruneByMassConstructorInternal(massThreshold,preservePrimaryProgenitor)
-    !% Internal constructor for the prune-by-mass merger tree operator class.
+    !!{
+    Internal constructor for the prune-by-mass merger tree operator class.
+    !!}
     implicit none
     type            (mergerTreeOperatorPruneByMass)                :: pruneByMassConstructorInternal
     double precision                               , intent(in   ) :: massThreshold
@@ -81,7 +95,9 @@ contains
   end function pruneByMassConstructorInternal
 
   subroutine pruneByMassOperatePreEvolution(self,tree)
-    !% Perform a prune-by-mass operation on a merger tree.
+    !!{
+    Perform a prune-by-mass operation on a merger tree.
+    !!}
     use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic             , treeNode
     use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
     use :: Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Clean_Branch, Merger_Tree_Prune_Uniqueify_IDs, Merger_Tree_Prune_Unlink_Parent

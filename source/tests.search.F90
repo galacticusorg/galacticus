@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test array search functions.
+!!{
+Contains a program to test array search functions.
+!!}
 
 program Test_Search
-  !% Tests that array search functions work.
-  use :: Arrays_Search     , only : searchArray                   , searchArrayClosest
-  use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: ISO_Varying_String, only : var_str                       , varying_string          , assignment(=)
+  !!{
+  Tests that array search functions work.
+  !!}
+  use :: Arrays_Search     , only : searchArray        , searchArrayClosest
+  use :: Display           , only : displayVerbositySet, verbosityLevelStandard
+  use :: ISO_Varying_String, only : assignment(=)      , var_str               , varying_string
   use :: Kind_Numbers      , only : kind_int8
-  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group  , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
   double precision                , dimension(10) :: myArray    =[0.0d0,1.0d0,2.0d0,3.0d0,4.0d0,5.0d0,6.0d0,7.0d0,8.0d0,9.0d0]
   double precision                , dimension(10) :: mySearch   =[3.4d0,9.0d0,4.2d0,-1.0d0,10.0d0,5.5d0,5.999999d0,6.000001d0,1.1d0,7.5d0]
@@ -37,7 +41,7 @@ program Test_Search
   integer                                         :: i
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Define an array of varying strings.
   stringArray=[            &

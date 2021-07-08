@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a luminosity function output analysis class.
+!!{
+Contains a module which implements a luminosity function output analysis class.
+!!}
 
   use :: Cosmology_Functions              , only : cosmologyFunctionsClass
   use :: Geometry_Surveys                 , only : surveyGeometryClass
   use :: Stellar_Spectra_Dust_Attenuations, only : stellarSpectraDustAttenuationClass
 
-  !# <outputAnalysis name="outputAnalysisLuminosityFunctionHalpha">
-  !#  <description>A luminosity function output analysis class.</description>
-  !# </outputAnalysis>
+  !![
+  <outputAnalysis name="outputAnalysisLuminosityFunctionHalpha">
+   <description>A luminosity function output analysis class.</description>
+  </outputAnalysis>
+  !!]
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisLuminosityFunctionHalpha
-     !% A luminosity function output analysis class.
+     !!{
+     A luminosity function output analysis class.
+     !!}
      private
      class(surveyGeometryClass               ), pointer :: surveyGeometry_                => null()
      class(cosmologyFunctionsClass           ), pointer :: cosmologyFunctions_            => null(), cosmologyFunctionsData => null()
@@ -37,7 +43,9 @@
   end type outputAnalysisLuminosityFunctionHalpha
 
   interface outputAnalysisLuminosityFunctionHalpha
-     !% Constructors for the ``luminosityFunctionHalpha'' output analysis class.
+     !!{
+     Constructors for the ``luminosityFunctionHalpha'' output analysis class.
+     !!}
      module procedure luminosityFunctionHalphaConstructorParameters
      module procedure luminosityFunctionHalphaConstructorInternal
      module procedure luminosityFunctionHalphaConstructorFile
@@ -46,7 +54,9 @@
 contains
 
   function luminosityFunctionHalphaConstructorParameters(parameters) result (self)
-    !% Constructor for the ``luminosityFunctionHalpha'' output analysis class which takes a parameter set as input.
+    !!{
+    Constructor for the ``luminosityFunctionHalpha'' output analysis class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters              , only : inputParameter                 , inputParameters
     use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
     use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
@@ -76,71 +86,77 @@ contains
     ! Check and read parameters.
     dataAnalysisParameters=parameters%subParameters('dataAnalysis',requirePresent=.false.,requireValue=.false.)
     allocate(luminosities(parameters%count('luminosities')))
-    !# <inputParameter>
-    !#   <name>label</name>
-    !#   <source>parameters</source>
-    !#   <description>A label for the luminosity function.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>comment</name>
-    !#   <source>parameters</source>
-    !#   <description>A descriptive comment for the luminosity function.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>luminosities</name>
-    !#   <source>parameters</source>
-    !#   <description>The luminosities corresponding to bin centers.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceBinomialBinsPerDecade</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of bins per decade of halo mass to use when constructing luminosity function covariance matrices for main branch galaxies.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceBinomialMassHaloMinimum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d8</defaultValue>
-    !#   <description>The minimum halo mass to consider when constructing luminosity function covariance matrices for main branch galaxies.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>covarianceBinomialMassHaloMaximum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d16</defaultValue>
-    !#   <description>The maximum halo mass to consider when constructing luminosity function covariance matrices for main branch galaxies.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>includeNitrogenII</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, include contimination by the [NII] (6548\AA $+$ 6584\AA) doublet.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>depthOpticalISMCoefficient</name>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>Multiplicative coefficient for optical depth in the ISM.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>label</name>
+      <source>parameters</source>
+      <description>A label for the luminosity function.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>comment</name>
+      <source>parameters</source>
+      <description>A descriptive comment for the luminosity function.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>luminosities</name>
+      <source>parameters</source>
+      <description>The luminosities corresponding to bin centers.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>covarianceBinomialBinsPerDecade</name>
+      <source>parameters</source>
+      <defaultValue>10</defaultValue>
+      <description>The number of bins per decade of halo mass to use when constructing luminosity function covariance matrices for main branch galaxies.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>covarianceBinomialMassHaloMinimum</name>
+      <source>parameters</source>
+      <defaultValue>1.0d8</defaultValue>
+      <description>The minimum halo mass to consider when constructing luminosity function covariance matrices for main branch galaxies.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>covarianceBinomialMassHaloMaximum</name>
+      <source>parameters</source>
+      <defaultValue>1.0d16</defaultValue>
+      <description>The maximum halo mass to consider when constructing luminosity function covariance matrices for main branch galaxies.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>includeNitrogenII</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, include contimination by the [NII] (6548\AA $+$ 6584\AA) doublet.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>depthOpticalISMCoefficient</name>
+      <defaultValue>1.0d0</defaultValue>
+      <source>parameters</source>
+      <description>Multiplicative coefficient for optical depth in the ISM.</description>
+    </inputParameter>
+    !!]
     if (parameters%isPresent('targetLabel')) then
-       !# <inputParameter>
-       !#   <name>targetLabel</name>
-       !#   <source>parameters</source>
-       !#   <description>Label for the target dataset.</description>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>targetLabel</name>
+         <source>parameters</source>
+         <description>Label for the target dataset.</description>
+       </inputParameter>
+       !!]
     end if
     if (parameters%isPresent('functionValueTarget')) then
        if (parameters%isPresent('functionCovarianceTarget')) then
-          !# <inputParameter>
-          !#   <name>functionValueTarget</name>
-          !#   <source>parameters</source>
-          !#   <description>The target function for likelihood calculations.</description>
-          !# </inputParameter>
-          !# <inputParameter>
-          !#   <name>functionCovarianceTarget</name>
-          !#   <source>parameters</source>
-          !#   <variable>functionCovarianceTarget1D</variable>
-          !#   <description>The target function covariance for likelihood calculations.</description>
-          !# </inputParameter>
+          !![
+          <inputParameter>
+            <name>functionValueTarget</name>
+            <source>parameters</source>
+            <description>The target function for likelihood calculations.</description>
+          </inputParameter>
+          <inputParameter>
+            <name>functionCovarianceTarget</name>
+            <source>parameters</source>
+            <variable>functionCovarianceTarget1D</variable>
+            <description>The target function covariance for likelihood calculations.</description>
+          </inputParameter>
+          !!]
           if (size(functionCovarianceTarget1D) == size(functionValueTarget)**2) then
              allocate(functionCovarianceTarget(size(functionValueTarget),size(functionValueTarget)))
              functionCovarianceTarget=reshape(functionCovarianceTarget1D,shape(functionCovarianceTarget))
@@ -153,38 +169,42 @@ contains
     else
        if (parameters%isPresent('functionCovariance')) call Galacticus_Error_Report('functionTarget must be specified if functionCovariance is present'//{introspection:location})
     end if
-    !# <objectBuilder class="galacticFilter"                     name="galacticFilter_"                     source="parameters"            />
-    !# <objectBuilder class="outputTimes"                        name="outputTimes_"                        source="parameters"            />
-    !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"            />
-    !# <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctionsData"              source="dataAnalysisParameters"/>
-    !# <objectBuilder class="outputAnalysisPropertyOperator"     name="outputAnalysisPropertyOperator_"     source="parameters"            />
-    !# <objectBuilder class="outputAnalysisDistributionOperator" name="outputAnalysisDistributionOperator_" source="parameters"            />
-    !# <objectBuilder class="surveyGeometry"                     name="surveyGeometry_"                     source="parameters"            />
-    !# <objectBuilder class="starFormationRateDisks"             name="starFormationRateDisks_"             source="parameters"            />
-    !# <objectBuilder class="starFormationRateSpheroids"         name="starFormationRateSpheroids_"         source="parameters"            />
-    !# <objectBuilder class="stellarSpectraDustAttenuation"      name="stellarSpectraDustAttenuation_"      source="parameters"            />
-    !# <conditionalCall>
-    !#  <call>self=outputAnalysisLuminosityFunctionHalpha(label,comment,luminosities,includeNitrogenII,depthOpticalISMCoefficient,galacticFilter_,surveyGeometry_,stellarSpectraDustAttenuation_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum{conditions})</call>
-    !#  <argument name="targetLabel"              value="targetLabel"              parameterPresent="parameters"/>
-    !#  <argument name="functionValueTarget"      value="functionValueTarget"      parameterPresent="parameters"/>
-    !#  <argument name="functionCovarianceTarget" value="functionCovarianceTarget" parameterPresent="parameters"/>
-    !# </conditionalCall>
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="galacticFilter_"                    />
-    !# <objectDestructor name="outputTimes_"                       />
-    !# <objectDestructor name="cosmologyFunctions_"                />
-    !# <objectDestructor name="cosmologyFunctionsData"             />
-    !# <objectDestructor name="outputAnalysisPropertyOperator_"    />
-    !# <objectDestructor name="outputAnalysisDistributionOperator_"/>
-    !# <objectDestructor name="surveyGeometry_"                    />
-    !# <objectDestructor name="starFormationRateDisks_"            />
-    !# <objectDestructor name="starFormationRateSpheroids_"        />
-    !# <objectDestructor name="stellarSpectraDustAttenuation_"     />
+    !![
+    <objectBuilder class="galacticFilter"                     name="galacticFilter_"                     source="parameters"            />
+    <objectBuilder class="outputTimes"                        name="outputTimes_"                        source="parameters"            />
+    <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"            />
+    <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctionsData"              source="dataAnalysisParameters"/>
+    <objectBuilder class="outputAnalysisPropertyOperator"     name="outputAnalysisPropertyOperator_"     source="parameters"            />
+    <objectBuilder class="outputAnalysisDistributionOperator" name="outputAnalysisDistributionOperator_" source="parameters"            />
+    <objectBuilder class="surveyGeometry"                     name="surveyGeometry_"                     source="parameters"            />
+    <objectBuilder class="starFormationRateDisks"             name="starFormationRateDisks_"             source="parameters"            />
+    <objectBuilder class="starFormationRateSpheroids"         name="starFormationRateSpheroids_"         source="parameters"            />
+    <objectBuilder class="stellarSpectraDustAttenuation"      name="stellarSpectraDustAttenuation_"      source="parameters"            />
+    <conditionalCall>
+     <call>self=outputAnalysisLuminosityFunctionHalpha(label,comment,luminosities,includeNitrogenII,depthOpticalISMCoefficient,galacticFilter_,surveyGeometry_,stellarSpectraDustAttenuation_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum{conditions})</call>
+     <argument name="targetLabel"              value="targetLabel"              parameterPresent="parameters"/>
+     <argument name="functionValueTarget"      value="functionValueTarget"      parameterPresent="parameters"/>
+     <argument name="functionCovarianceTarget" value="functionCovarianceTarget" parameterPresent="parameters"/>
+    </conditionalCall>
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticFilter_"                    />
+    <objectDestructor name="outputTimes_"                       />
+    <objectDestructor name="cosmologyFunctions_"                />
+    <objectDestructor name="cosmologyFunctionsData"             />
+    <objectDestructor name="outputAnalysisPropertyOperator_"    />
+    <objectDestructor name="outputAnalysisDistributionOperator_"/>
+    <objectDestructor name="surveyGeometry_"                    />
+    <objectDestructor name="starFormationRateDisks_"            />
+    <objectDestructor name="starFormationRateSpheroids_"        />
+    <objectDestructor name="stellarSpectraDustAttenuation_"     />
+    !!]
     return
   end function luminosityFunctionHalphaConstructorParameters
 
   function luminosityFunctionHalphaConstructorFile(label,comment,fileName,includeNitrogenII,depthOpticalISMCoefficient,galacticFilter_,surveyGeometry_,stellarSpectraDustAttenuation_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum) result (self)
-    !% Constructor for the ``luminosityFunctionHalpha'' output analysis class which reads bin information from a standard format file.
+    !!{
+    Constructor for the ``luminosityFunctionHalpha'' output analysis class which reads bin information from a standard format file.
+    !!}
     use :: IO_HDF5                       , only : hdf5Access, hdf5Object
     use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
     use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
@@ -232,17 +252,21 @@ contains
        end do
     end if
     ! Construct the object.
-    !# <conditionalCall>
-    !#  <call>self=outputAnalysisLuminosityFunctionHalpha(label,comment,luminosities,includeNitrogenII,depthOpticalISMCoefficient,galacticFilter_,surveyGeometry_,stellarSpectraDustAttenuation_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum{conditions})</call>
-    !#  <argument name="targetLabel"              value="targetLabel"              condition="haveTarget"/>
-    !#  <argument name="functionValueTarget"      value="functionValueTarget"      condition="haveTarget"/>
-    !#  <argument name="functionCovarianceTarget" value="functionCovarianceTarget" condition="haveTarget"/>
-    !# </conditionalCall>
+    !![
+    <conditionalCall>
+     <call>self=outputAnalysisLuminosityFunctionHalpha(label,comment,luminosities,includeNitrogenII,depthOpticalISMCoefficient,galacticFilter_,surveyGeometry_,stellarSpectraDustAttenuation_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum{conditions})</call>
+     <argument name="targetLabel"              value="targetLabel"              condition="haveTarget"/>
+     <argument name="functionValueTarget"      value="functionValueTarget"      condition="haveTarget"/>
+     <argument name="functionCovarianceTarget" value="functionCovarianceTarget" condition="haveTarget"/>
+    </conditionalCall>
+    !!]
     return
   end function luminosityFunctionHalphaConstructorFile
 
   function luminosityFunctionHalphaConstructorInternal(label,comment,luminosities,includeNitrogenII,depthOpticalISMCoefficient,galacticFilter_,surveyGeometry_,stellarSpectraDustAttenuation_,cosmologyFunctions_,cosmologyFunctionsData,outputAnalysisPropertyOperator_,outputAnalysisDistributionOperator_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
-    !% Constructor for the ``luminosityFunctionHalpha'' output analysis class which takes a parameter set as input.
+    !!{
+    Constructor for the ``luminosityFunctionHalpha'' output analysis class which takes a parameter set as input.
+    !!}
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
     use :: Galactic_Filters                        , only : galacticFilterClass
     use :: Galacticus_Error                        , only : Galacticus_Error_Report
@@ -298,7 +322,9 @@ contains
     double precision                                                 , parameter                               :: bufferWidth                                     =1.0d0
     integer         (c_size_t                                       ), parameter                               :: bufferCountMinimum                              =5
     integer         (c_size_t                                       )                                          :: iBin                                                  , bufferCount
-    !# <constructorAssign variables="*surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData"/>
+    !![
+    <constructorAssign variables="*surveyGeometry_, *cosmologyFunctions_, *cosmologyFunctionsData"/>
+    !!]
 
     ! Compute weights that apply to each output redshift.
     self%binCount=size(luminosities,kind=c_size_t)
@@ -315,20 +341,30 @@ contains
        allocate(lineNames(1))
        lineNames=[var_str('balmerAlpha6563')                                                    ]
     end if
-    !# <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorLmnstyEmssnLine           (starFormationRateDisks_,starFormationRateSpheroids_,stellarSpectraDustAttenuation_,outputTimes_           ,lineNames,depthOpticalISMCoefficient,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
+    !![
+    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorLmnstyEmssnLine           (starFormationRateDisks_,starFormationRateSpheroids_,stellarSpectraDustAttenuation_,outputTimes_           ,lineNames,depthOpticalISMCoefficient,outputMask=sum(outputWeight,dim=1) > 0.0d0)"/>
+    !!]
     ! Prepend log10 and cosmological luminosity distance property operators.
     allocate(outputAnalysisPropertyOperatorLog10_            )
-    !# <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10            (                                                                                                                                      )"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyOperatorLog10_"             constructor="outputAnalysisPropertyOperatorLog10            (                                                                                                                                      )"/>
+    !!]
     allocate(outputAnalysisPropertyOperatorAntiLog10_        )
-    !# <referenceConstruct object="outputAnalysisPropertyOperatorAntiLog10_"         constructor="outputAnalysisPropertyOperatorAntiLog10        (                                                                                                                                      )"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyOperatorAntiLog10_"         constructor="outputAnalysisPropertyOperatorAntiLog10        (                                                                                                                                      )"/>
+    !!]
     allocate(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
-    !# <referenceConstruct object="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc(cosmologyFunctions_           ,cosmologyFunctionsData,outputTimes_                                                                    )"/>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_" constructor="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc(cosmologyFunctions_           ,cosmologyFunctionsData,outputTimes_                                                                    )"/>
+    !!]
     select type (outputAnalysisPropertyOperator_)
     type is (outputAnalysisPropertyOperatorSequence)
        ! Existing property operator is a sequence operator - simply prepend our magnitude and cosmological luminosity distance operators to it.
        call outputAnalysisPropertyOperator_%prepend(outputAnalysisPropertyOperatorLog10_            )
        call outputAnalysisPropertyOperator_%prepend(outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_)
-       !# <referenceAcquire target="outputAnalysisPropertyOperatorSequence_" source="outputAnalysisPropertyOperator_"/>
+       !![
+       <referenceAcquire target="outputAnalysisPropertyOperatorSequence_" source="outputAnalysisPropertyOperator_"/>
+       !!]
     class default
        ! Existing operator is some other type - combine with our operators into a sequence operator.
        allocate(propertyOperatorSequence          )
@@ -338,22 +374,32 @@ contains
        propertyOperatorSequence%next     %operator_ => outputAnalysisPropertyOperatorLog10_
        propertyOperatorSequence%next%next%operator_ => outputAnalysisPropertyOperator_
        allocate(outputAnalysisPropertyOperatorSequence_)
-       !# <referenceConstruct object="outputAnalysisPropertyOperatorSequence_" constructor="outputAnalysisPropertyOperatorSequence(propertyOperatorSequence)"/>
+       !![
+       <referenceConstruct object="outputAnalysisPropertyOperatorSequence_" constructor="outputAnalysisPropertyOperatorSequence(propertyOperatorSequence)"/>
+       !!]
     end select
     ! Create a cosmological volume correction weight operator.
     allocate(outputAnalysisWeightOperator_)
-    !# <referenceConstruct object="outputAnalysisWeightOperator_"                    constructor="outputAnalysisWeightOperatorCsmlgyVolume       (cosmologyFunctions_,cosmologyFunctionsData                    ,surveyGeometry_)"/>
+    !![
+    <referenceConstruct object="outputAnalysisWeightOperator_"                    constructor="outputAnalysisWeightOperatorCsmlgyVolume       (cosmologyFunctions_,cosmologyFunctionsData                    ,surveyGeometry_)"/>
+    !!]
     ! Create a bin width distribution normalizer.
     allocate(outputAnalysisDistributionNormalizerBinWidth_  )
-    !# <referenceConstruct object="outputAnalysisDistributionNormalizerBinWidth_"   constructor="outputAnalysisDistributionNormalizerBinWidth  ()"/>
+    !![
+    <referenceConstruct object="outputAnalysisDistributionNormalizerBinWidth_"   constructor="outputAnalysisDistributionNormalizerBinWidth  ()"/>
+    !!]
     allocate(outputAnalysisDistributionNormalizerLog10ToLog_)
-    !# <referenceConstruct object="outputAnalysisDistributionNormalizerLog10ToLog_" constructor="outputAnalysisDistributionNormalizerLog10ToLog()"/>
+    !![
+    <referenceConstruct object="outputAnalysisDistributionNormalizerLog10ToLog_" constructor="outputAnalysisDistributionNormalizerLog10ToLog()"/>
+    !!]
     allocate(normalizerSequence     )
     allocate(normalizerSequence%next)
     normalizerSequence     %normalizer_ => outputAnalysisDistributionNormalizerBinWidth_
     normalizerSequence%next%normalizer_ => outputAnalysisDistributionNormalizerLog10ToLog_
     allocate(outputAnalysisDistributionNormalizer_)
-    !# <referenceConstruct object="outputAnalysisDistributionNormalizer_"            constructor="outputAnalysisDistributionNormalizerSequence(normalizerSequence)"/>
+    !![
+    <referenceConstruct object="outputAnalysisDistributionNormalizer_"            constructor="outputAnalysisDistributionNormalizerSequence(normalizerSequence)"/>
+    !!]
     ! Compute the number of buffer bins to add to either side of the luminosity function - these are needed to ensure that, e.g.,
     ! convolution operations on the distribution function are unaffected by edge effects.
     bufferCount=max(int(bufferWidth/log10(luminosities(2)/luminosities(1)))+1,bufferCountMinimum)
@@ -395,28 +441,34 @@ contains
          &                                functionCovarianceTarget                                                                     &
          &                               )
     ! Clean up.
-    !# <objectDestructor name="nodePropertyExtractor_"                          />
-    !# <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
-    !# <objectDestructor name="outputAnalysisPropertyOperatorAntiLog10_"        />
-    !# <objectDestructor name="outputAnalysisPropertyOperatorSequence_"         />
-    !# <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>
-    !# <objectDestructor name="outputAnalysisDistributionNormalizer_"           />
-    !# <objectDestructor name="outputAnalysisWeightOperator_"                   />
-    !# <objectDestructor name="outputAnalysisDistributionNormalizerBinWidth_"   />
-    !# <objectDestructor name="outputAnalysisDistributionNormalizerLog10ToLog_" />
+    !![
+    <objectDestructor name="nodePropertyExtractor_"                          />
+    <objectDestructor name="outputAnalysisPropertyOperatorLog10_"            />
+    <objectDestructor name="outputAnalysisPropertyOperatorAntiLog10_"        />
+    <objectDestructor name="outputAnalysisPropertyOperatorSequence_"         />
+    <objectDestructor name="outputAnalysisPropertyOperatorCsmlgyLmnstyDstnc_"/>
+    <objectDestructor name="outputAnalysisDistributionNormalizer_"           />
+    <objectDestructor name="outputAnalysisWeightOperator_"                   />
+    <objectDestructor name="outputAnalysisDistributionNormalizerBinWidth_"   />
+    <objectDestructor name="outputAnalysisDistributionNormalizerLog10ToLog_" />
+    !!]
     nullify(propertyOperatorSequence)
     nullify(normalizerSequence      )
     return
   end function luminosityFunctionHalphaConstructorInternal
 
   subroutine luminosityFunctionHalphaDestructor(self)
-    !% Destructor for  the ``luminosityFunctionHalpha'' output analysis class.
+    !!{
+    Destructor for  the ``luminosityFunctionHalpha'' output analysis class.
+    !!}
     type(outputAnalysisLuminosityFunctionHalpha), intent(inout) :: self
 
-    !# <objectDestructor name="self%surveyGeometry_"               />
-    !# <objectDestructor name="self%stellarSpectraDustAttenuation_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_"           />
-    !# <objectDestructor name="self%cosmologyFunctionsData"        />
+    !![
+    <objectDestructor name="self%surveyGeometry_"               />
+    <objectDestructor name="self%stellarSpectraDustAttenuation_"/>
+    <objectDestructor name="self%cosmologyFunctions_"           />
+    <objectDestructor name="self%cosmologyFunctionsData"        />
+    !!]
     return
   end subroutine luminosityFunctionHalphaDestructor
 

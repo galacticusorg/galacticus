@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,24 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements profiling of merger tree evolution.
+!!{
+Contains a module which provides a class that implements profiling of merger tree evolution.
+!!}
 
 module Merger_Tree_Evolve_Profilers
-  !% Provides a class that implements profiling of merger tree evolution.
+  !!{
+  Provides a class that implements profiling of merger tree evolution.
+  !!}
   private
 
-  !# <functionClass>
-  !#  <name>mergerTreeEvolveProfiler</name>
-  !#  <descriptiveName>Merger Tree Evolver Profiler</descriptiveName>
-  !#  <description>Class providing profilers for merger tree evolution.</description>
-  !#  <default>null</default>
-  !#  <method name="profile" >
-  !#   <description>Profile a differential evolution step.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision                , intent(in   ) :: timeStep</argument>
-  !#   <argument>type            (varying_string), intent(in   ) :: propertyName</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>mergerTreeEvolveProfiler</name>
+   <descriptiveName>Merger Tree Evolver Profiler</descriptiveName>
+   <description>Class providing profilers for merger tree evolution.</description>
+   <default>null</default>
+   <method name="profile" >
+    <description>Profile a differential evolution step.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>double precision                , intent(in   ) :: timeStep</argument>
+    <argument>type            (varying_string), intent(in   ) :: propertyName</argument>
+   </method>
+  </functionClass>
+  !!]
   
 end module Merger_Tree_Evolve_Profilers

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,95 +17,190 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program that tests power spectrum calculations.
+!!{
+Contains a program that tests power spectrum calculations.
+!!}
 
 program Tests_Power_Spectrum
-  !% Tests power spectrum calculations.
-  use :: Cosmological_Density_Field          , only : cosmologicalMassVariance                , cosmologicalMassVarianceClass
-  use :: Cosmology_Functions                 , only : cosmologyFunctions                      , cosmologyFunctionsClass
-  use :: Cosmology_Parameters                , only : cosmologyParameters                     , cosmologyParametersClass     , hubbleUnitsLittleH
+  !!{
+  Tests power spectrum calculations.
+  !!}
+  use :: Cosmological_Density_Field          , only : cosmologicalMassVarianceFilteredPower
+  use :: Cosmology_Functions                 , only : cosmologyFunctionsMatterLambda
+  use :: Cosmology_Parameters                , only : cosmologyParametersSimple               , hubbleUnitsLittleH
   use :: Dark_Matter_Particles               , only : darkMatterParticleCDM
-  use :: Galacticus_Display                  , only : Galacticus_Verbosity_Level_Set          , verbosityStandard
-  use :: ISO_Varying_String                  , only : varying_string                          , assignment(=)
-  use :: Input_Parameters                    , only : inputParameters
-  use :: Linear_Growth                       , only : linearGrowth                            , linearGrowthClass
+  use :: Display                             , only : displayVerbositySet                     , verbosityLevelStandard
+  use :: Linear_Growth                       , only : linearGrowthCollisionlessMatter
   use :: Numerical_Constants_Math            , only : Pi
   use :: Power_Spectra                       , only : powerSpectrum                           , powerSpectrumClass
   use :: Power_Spectra_Primordial            , only : powerSpectrumPrimordialPowerLaw
   use :: Power_Spectra_Primordial_Transferred, only : powerSpectrumPrimordialTransferredSimple
-  use :: Transfer_Functions                  , only : transferFunctionEisensteinHu1999
-  use :: Unit_Tests                          , only : Assert                                  , Unit_Tests_Begin_Group       , Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Power_Spectrum_Window_Functions     , only : powerSpectrumWindowFunctionTopHat
+  use :: Power_Spectra                       , only : powerSpectrumStandard
+  use :: Transfer_Functions                  , only : transferFunctionEisensteinHu1999        , transferFunctionIdentity
+  use :: Unit_Tests                          , only : Assert                                  , Unit_Tests_Begin_Group  , Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  type            (inputParameters                         ), target       :: parameters
-  double precision                                          , parameter    :: radiusNormalization                      =8.0d0 ! Radius for σ(M) normalization in Mpc/h.
-  type            (darkMatterParticleCDM                   ), target       :: darkMatterParticleCDM_
-  class           (cosmologyParametersClass                ), pointer      :: cosmologyParameters_
-  class           (cosmologyFunctionsClass                 ), pointer      :: cosmologyFunctions_
-  type            (powerSpectrumPrimordialPowerLaw         ), target       :: powerSpectrumPrimordialPowerLaw_
-  type            (powerSpectrumPrimordialTransferredSimple), target       :: powerSpectrumPrimordialTransferredSimple_
-  type            (transferFunctionEisensteinHu1999        ), target       :: transferFunctionEisensteinHu1999_
-  class           (cosmologicalMassVarianceClass           ), pointer      :: cosmologicalMassVariance_
-  class           (powerSpectrumClass                      ), pointer      :: powerSpectrum_
-  class           (linearGrowthClass                       ), pointer      :: linearGrowth_
-  double precision                                          , dimension(5) :: powerComputed                                                   , &
-       &                                                                      transferComputed                                                , &
-       &                                                                      powerTransferredComputed                                        , &
-       &                                                                      wavenumber                               =[                       &
-       &                                                                                                                 0.1000000000000000d+0, &
-       &                                                                                                                 0.3000000000000000d+0, &
-       &                                                                                                                 1.0000000000000000d+0, &
-       &                                                                                                                 3.0000000000000000d+0, &
-       &                                                                                                                 1.0000000000000000d+1  &
-       &                                                                                                                ]                     , &
-       &                                                                      transferExpected                         =[                       &
-       &                                                                                                                 7.7501624542585204d-2, &
-       &                                                                                                                 1.5825809489746621d-2, &
-       &                                                                                                                 2.2732135149658283d-3, &
-       &                                                                                                                 3.4629417179195417d-4, &
-       &                                                                                                                 4.0676349951660953d-5  &
-       &                                                                                                                ]
-  integer                                                                  :: i
-  type            (varying_string                          )               :: parameterFile
-  double precision                                                         :: mass                                                            , &
-       &                                                                      ratio                                                           , &
-       &                                                                      sigma
+  double precision                                         , parameter    :: radiusNormalization                      =8.0d0 ! Radius for σ(M) normalization in Mpc/h.
+  type           (darkMatterParticleCDM                   )               :: darkMatterParticleCDM_
+  type           (cosmologyParametersSimple               )               :: cosmologyParameters_
+  type           (cosmologyFunctionsMatterLambda          )               :: cosmologyFunctions_
+  type           (powerSpectrumPrimordialPowerLaw         )               :: powerSpectrumPrimordialPowerLaw_                                , powerSpectrumPrimordialScaleFree_
+  type           (powerSpectrumPrimordialTransferredSimple)               :: powerSpectrumPrimordialTransferredSimple_                       , powerSpectrumPrimordialTransferredScaleFree_
+  type           (transferFunctionEisensteinHu1999        )               :: transferFunctionEisensteinHu1999_
+  type           (transferFunctionIdentity                )               :: transferFunctionScaleFree_
+  type           (cosmologicalMassVarianceFilteredPower   )               :: cosmologicalMassVariance_
+  type           (powerSpectrumWindowFunctionTopHat       )               :: powerSpectrumWindowFunction_
+  type           (powerSpectrumStandard                   )               :: powerSpectrum_
+  type           (linearGrowthCollisionlessMatter         )               :: linearGrowth_
+  double precision                                         , dimension(5) :: powerComputed                                                                                                 , &
+       &                                                                     transferComputed                                                                                              , &
+       &                                                                     powerTransferredComputed                                                                                      , &
+       &                                                                     wavenumber                               =[                                                                     &
+       &                                                                                                                0.1000000000000000d+0                                              , &
+       &                                                                                                                0.3000000000000000d+0                                              , &
+       &                                                                                                                1.0000000000000000d+0                                              , &
+       &                                                                                                                3.0000000000000000d+0                                              , &
+       &                                                                                                                1.0000000000000000d+1                                                &
+       &                                                                                                               ]                                                                   , &
+       &                                                                     transferExpected                         =[                                                                     &
+       &                                                                                                                7.7501624542585204d-2                                              , &
+       &                                                                                                                1.5825809489746621d-2                                              , &
+       &                                                                                                                2.2732135149658283d-3                                              , &
+       &                                                                                                                3.4629417179195417d-4                                              , &
+       &                                                                                                                4.0676349951660953d-5                                                &
+       &                                                                                                               ]
+  integer                                                                 :: i
+  double precision                                                        :: mass                                                                                                          , &
+       &                                                                     ratio                                                                                                         , &
+       &                                                                     sigma
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
-  ! Read parameters.
-  parameterFile='testSuite/parameters/powerSpectrum.xml'
-  parameters=inputParameters(parameterFile)
-  call parameters%markGlobal()
+  call displayVerbositySet(verbosityLevelStandard)
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Power spectra")
-  ! Get required objects.
-  darkMatterParticleCDM_    =  darkMatterParticleCDM   ()
-  cosmologyParameters_      => cosmologyParameters     ()
-  cosmologyFunctions_       => cosmologyFunctions      ()
-  cosmologicalMassVariance_ => cosmologicalMassVariance()
-  powerSpectrum_            => powerSpectrum           ()
-  linearGrowth_             => linearGrowth            ()
   ! Build primordial power spectrum, transfer function, and transferred power spectrum.
-  powerSpectrumPrimordialPowerLaw_         =                                                                   &
-       & powerSpectrumPrimordialPowerLaw         (                                                             &
-       &                                          index                   =1.000d0                           , &
-       &                                          running                 =0.000d0                           , &
-       &                                          wavenumberReference     =1.000d0                             &
-       &                                         )
-  transferFunctionEisensteinHu1999_        =                                                                   &
-       & transferFunctionEisensteinHu1999        (                                                             &
-       &                                          neutrinoNumberEffective =3.046d0                           , &
-       &                                          neutrinoMassSummed      =0.000d0                           , &
-       &                                          darkMatterParticle_     =darkMatterParticleCDM_            , &
-       &                                          cosmologyParameters_    =cosmologyParameters_              , &
-       &                                          cosmologyFunctions_     =cosmologyFunctions_                 &
-       &                                         )
-  powerSpectrumPrimordialTransferredSimple_=                                                                  &
-       & powerSpectrumPrimordialTransferredSimple(                                                            &
-       &                                          powerSpectrumPrimordial_=powerSpectrumPrimordialPowerLaw_ , &
-       &                                          transferFunction_       =transferFunctionEisensteinHu1999_, &
-       &                                          linearGrowth_           =linearGrowth_                      &
-       &                                         )
+  !![
+  <referenceConstruct object="darkMatterParticleCDM_"                      >
+   <constructor>
+     darkMatterParticleCDM                  (                                                                                           &amp;
+      &amp;                                 )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="cosmologyParameters_"                        >
+   <constructor>
+    cosmologyParametersSimple               (                                                                                           &amp;
+     &amp;                                   OmegaMatter                        = 0.28120d0                                           , &amp;
+     &amp;                                   OmegaBaryon                        = 0.04611d0                                           , &amp;
+     &amp;                                   OmegaDarkEnergy                    = 0.71880d0                                           , &amp;
+     &amp;                                   temperatureCMB                     = 2.72548d0                                           , &amp;
+     &amp;                                   HubbleConstant                     =69.70000d0                                             &amp;
+     &amp;                                  )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="cosmologyFunctions_"                         >
+   <constructor>
+    cosmologyFunctionsMatterLambda          (                                                                                           &amp;
+     &amp;                                   cosmologyParameters_               =cosmologyParameters_                                   &amp;
+     &amp;                                  )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="linearGrowth_"                               >
+   <constructor>
+    linearGrowthCollisionlessMatter         (                                                                                           &amp;
+     &amp;                                   cosmologyParameters_               =cosmologyParameters_                                 , &amp;
+     &amp;                                   cosmologyFunctions_                =cosmologyFunctions_                                    &amp;
+     &amp;                                  )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="powerSpectrumPrimordialPowerLaw_"            >
+   <constructor>
+     powerSpectrumPrimordialPowerLaw        (                                                                                           &amp;
+      &amp;                                  index_                             =1.000d0                                              , &amp;
+      &amp;                                  running                            =0.000d0                                              , &amp;
+      &amp;                                  runningRunning                     =0.000d0                                              , &amp;
+      &amp;                                  wavenumberReference                =1.000d0                                                &amp;
+      &amp;                                 )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="transferFunctionEisensteinHu1999_"           >
+   <constructor>
+      transferFunctionEisensteinHu1999      (                                                                                           &amp;
+      &amp;                                  neutrinoNumberEffective            =3.046d0                                              , &amp;
+      &amp;                                  neutrinoMassSummed                 =0.000d0                                              , &amp;
+      &amp;                                  darkMatterParticle_                =darkMatterParticleCDM_                               , &amp;
+      &amp;                                  cosmologyParameters_               =cosmologyParameters_                                 , &amp;
+      &amp;                                  cosmologyFunctions_                =cosmologyFunctions_                                    &amp;
+      &amp;                                 )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="powerSpectrumPrimordialTransferredSimple_"   >
+   <constructor>
+    powerSpectrumPrimordialTransferredSimple(                                                                                           &amp;
+     &amp;                                   powerSpectrumPrimordial_           =powerSpectrumPrimordialPowerLaw_                     , &amp;
+     &amp;                                   transferFunction_                  =transferFunctionEisensteinHu1999_                    , &amp;
+     &amp;                                   linearGrowth_                      =linearGrowth_                                          &amp;
+     &amp;                                  )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="powerSpectrumPrimordialScaleFree_"           >
+   <constructor>
+     powerSpectrumPrimordialPowerLaw        (                                                                                           &amp;
+      &amp;                                  index_                             =-1.000d0                                             , &amp;
+      &amp;                                  running                            =+0.000d0                                             , &amp;
+      &amp;                                  runningRunning                     =+0.000d0                                             , &amp;
+      &amp;                                  wavenumberReference                =+1.000d0                                               &amp;
+      &amp;                                 )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="transferFunctionScaleFree_"                  >
+   <constructor>
+      transferFunctionIdentity              (                                                                                           &amp;
+      &amp;                                  time                               =cosmologyFunctions_%cosmicTime(expansionFactor=1.0d0)  &amp;
+      &amp;                                 )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="powerSpectrumPrimordialTransferredScaleFree_">
+   <constructor>
+    powerSpectrumPrimordialTransferredSimple(                                                                                           &amp;
+     &amp;                                   powerSpectrumPrimordial_           =powerSpectrumPrimordialScaleFree_                    , &amp;
+     &amp;                                   transferFunction_                  =transferFunctionScaleFree_                           , &amp;
+     &amp;                                   linearGrowth_                      =linearGrowth_                                          &amp;
+     &amp;                                  )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="powerSpectrumWindowFunction_"                >
+   <constructor>
+    powerSpectrumWindowFunctionTopHat       (                                                                                           &amp;
+     &amp;                                   cosmologyParameters_               =cosmologyParameters_                                   &amp;
+     &amp;                                  )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="cosmologicalMassVariance_"                   >
+   <constructor>
+    cosmologicalMassVarianceFilteredPower   (                                                                                           &amp;
+     &amp;                                   sigma8                             =0.8d+0                                               , &amp;
+     &amp;                                   tolerance                          =4.0d-6                                               , &amp;
+     &amp;                                   toleranceTopHat                    =1.0d-6                                               , &amp;
+     &amp;                                   nonMonotonicIsFatal                =.true.                                               , &amp;
+     &amp;                                   monotonicInterpolation             =.false.                                              , &amp;
+     &amp;                                   truncateAtParticleHorizon          =.false.                                              , &amp;
+     &amp;                                   cosmologyParameters_               =cosmologyParameters_                                 , &amp;
+     &amp;                                   cosmologyFunctions_                =cosmologyFunctions_                                  , &amp;
+     &amp;                                   linearGrowth_                      =linearGrowth_                                        , &amp;
+     &amp;                                   powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferredScaleFree_         , &amp;
+     &amp;                                   powerSpectrumWindowFunction_       =powerSpectrumWindowFunction_                           &amp;
+     &amp;                                  )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="powerSpectrum_"                              >
+   <constructor>
+    powerSpectrumStandard                   (                                                                                           &amp;
+     &amp;                                   cosmologicalMassVariance_          =cosmologicalMassVariance_                            , &amp;
+     &amp;                                   powerSpectrumPrimordialTransferred_=powerSpectrumPrimordialTransferredScaleFree_           &amp;
+     &amp;                                  )
+   </constructor>
+  </referenceConstruct>
+  !!]
   ! Test that σ₈ is correctly recovered.
   mass   =+4.0d0                                                      &
        &  /3.0d0                                                      &

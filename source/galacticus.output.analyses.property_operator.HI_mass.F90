@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a conversion of ISM mass to HI mass analysis property operator class.
+!!{
+Contains a module which implements a conversion of ISM mass to HI mass analysis property operator class.
+!!}
 
   use :: Output_Analysis_Molecular_Ratios, only : outputAnalysisMolecularRatioClass
 
-  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorHIMass">
-  !#  <description>A conversion of ISM mass to HI mass analysis property operator class.</description>
-  !# </outputAnalysisPropertyOperator>
+  !![
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorHIMass">
+   <description>A conversion of ISM mass to HI mass analysis property operator class.</description>
+  </outputAnalysisPropertyOperator>
+  !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorHIMass
-     !% A conversion of ISM mass to HI mass property operator class.
+     !!{
+     A conversion of ISM mass to HI mass property operator class.
+     !!}
      private
      class(outputAnalysisMolecularRatioClass), pointer :: outputAnalysisMolecularRatio_ => null()
    contains
@@ -34,7 +40,9 @@
   end type outputAnalysisPropertyOperatorHIMass
 
   interface outputAnalysisPropertyOperatorHIMass
-     !% Constructors for the ``hiMass'' output analysis class.
+     !!{
+     Constructors for the ``hiMass'' output analysis class.
+     !!}
      module procedure hiMassConstructorParameters
      module procedure hiMassConstructorInternal
   end interface outputAnalysisPropertyOperatorHIMass
@@ -42,7 +50,9 @@
 contains
 
   function hiMassConstructorParameters(parameters) result(self)
-    !% Constructor for the ``hiMass'' output analysis property operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``hiMass'' output analysis property operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (outputAnalysisPropertyOperatorHIMass)                :: self
@@ -50,34 +60,48 @@ contains
     class(outputAnalysisMolecularRatioClass   ), pointer       :: outputAnalysisMolecularRatio_
 
     ! Check and read parameters.
-    !# <objectBuilder class="outputAnalysisMolecularRatio" name="outputAnalysisMolecularRatio_" source="parameters" />
+    !![
+    <objectBuilder class="outputAnalysisMolecularRatio" name="outputAnalysisMolecularRatio_" source="parameters" />
+    !!]
     self=outputAnalysisPropertyOperatorHIMass(outputAnalysisMolecularRatio_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="outputAnalysisMolecularRatio_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="outputAnalysisMolecularRatio_"/>
+    !!]
     return
   end function hiMassConstructorParameters
 
   function hiMassConstructorInternal(outputAnalysisMolecularRatio_) result (self)
-    !% Internal constructor for the ``hiMass'' output analysis distribution operator class.
+    !!{
+    Internal constructor for the ``hiMass'' output analysis distribution operator class.
+    !!}
     implicit none
     type (outputAnalysisPropertyOperatorHIMass)                        :: self
     class(outputAnalysisMolecularRatioClass   ), intent(in   ), target :: outputAnalysisMolecularRatio_
-    !# <constructorAssign variables="*outputAnalysisMolecularRatio_"/>
+    !![
+    <constructorAssign variables="*outputAnalysisMolecularRatio_"/>
+    !!]
 
     return
   end function hiMassConstructorInternal
 
   subroutine hiMassDestructor(self)
-    !% Destructor for the ``hiMass'' output analysis distribution operator class.
+    !!{
+    Destructor for the ``hiMass'' output analysis distribution operator class.
+    !!}
     implicit none
     type (outputAnalysisPropertyOperatorHIMass), intent(inout) :: self
 
-    !# <objectDestructor name="self%outputAnalysisMolecularRatio_"/>
+    !![
+    <objectDestructor name="self%outputAnalysisMolecularRatio_"/>
+    !!]
   return
   end subroutine hiMassDestructor
 
   double precision function hiMassOperate(self,propertyValue,node,propertyType,outputIndex)
-    !% Implement an hiMass output analysis property operator.
+    !!{
+    Implement an hiMass output analysis property operator.
+    !!}
     use            :: Galacticus_Error, only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     implicit none

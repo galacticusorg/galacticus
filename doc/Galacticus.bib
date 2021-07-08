@@ -2323,6 +2323,23 @@ fractions in both high-density and low-density universes.},
 	pages = {5--15}
 },
 
+@article{fakhouri_environmental_2009,
+	title = {Environmental dependence of dark matter halo growth - {I}. {Halo} merger rates},
+	volume = {394},
+	issn = {0035-8711},
+	url = {http://adsabs.harvard.edu/abs/2009MNRAS.394.1825F},
+	doi = {10.1111/j.1365-2966.2009.14480.x},
+	abstract = {In an earlier paper, we quantified the mean merger rate of dark matter haloes as a function of redshift z, descendant halo mass M0, and progenitor halo mass ratio ξ using the Millennium simulation of the Λ cold dark matter cosmology. Here, we broaden that study and investigate the dependence of the merger rate of haloes on their surrounding environment. A number of local mass overdensity variables, both including and excluding the halo mass itself, are tested as measures of a halo's environment. The simple functional dependence on z, M0, and ξ of the merger rate found in our earlier work, is largely preserved in different environments, but we find that the overall amplitude of the merger rate has a strong positive correlation with the environmental densities. For galaxy-mass haloes, we find mergers to occur {\textasciitilde}2.5 times more frequently in the densest regions than in voids at both z = 0 and higher redshifts. Higher mass haloes show similar trends. We present a fitting form for this environmental dependence that is a function of both mass and local density and valid out to z = 2. The amplitude of the progenitor (or conditional) mass function shows a similar correlation with local overdensity, suggesting that the extended Press-Schechter model for halo growth needs to be modified to incorporate environmental effects.},
+	urldate = {2021-03-10},
+	journal = {Monthly Notices of the Royal Astronomical Society},
+	author = {Fakhouri, Onsi and Ma, Chung-Pei},
+	month = apr,
+	year = {2009},
+	keywords = {cosmology: theory, dark matter, galaxy: formation, galaxy: halo, large-scale structure of Universe},
+	pages = {1825--1840},
+	file = {Full Text PDF:/home/abensonca/.mozilla/firefox/f54gqgdx.default/zotero/storage/29JGQIGJ/Fakhouri and Ma - 2009 - Environmental dependence of dark matter halo growt.pdf:application/pdf}
+}
+
 @article{fakhouri_merger_2010,
 	title = {The merger rates and mass assembly histories of dark matter haloes in the two {Millennium} simulations},
 	volume = {406},
@@ -2695,6 +2712,33 @@ the number of ingredients that are calibrated from n-body simulations.},
 	howpublished = {{http://adsabs.harvard.edu/abs/2010arXiv1003.4740G}}
 },
 
+@article{gnedin_self-consistent_1999,
+	title = {On the {Self}-consistent {Response} of {Stellar} {Systems} to {Gravitational} {Shocks}},
+	volume = {513},
+	issn = {0004-637X},
+	url = {http://adsabs.harvard.edu/abs/1999ApJ...513..626G},
+	doi = {10.1086/306864},
+	abstract = {We study the reaction of a globular star cluster to a time-varying tidal perturbation (gravitational shock) using self-consistent N-body
+simulations and address two questions. First, to what extent is the cluster interior protected by adiabatic invariants? Second, how much further energy change does the postshock evolution of the cluster potential produce and how much does it affect the dispersion of stellar energies? We introduce the ``adiabatic correction'' as ratio of the energy change, {\textless}ΔE{\textgreater}, to its value in the impulse
+approximation. When the potential is kept fixed, the numerical results for the adiabatic correction for stars with orbital frequency ω
+can be approximated as
+(1+ω2τ2)-γ. For shocks
+with the characteristic duration of the order of the half-mass dynamical time of the cluster, τ{\textless}{\textasciitilde}tdyn,h, the exponent
+γ=5/2. For more prolonged shocks, τ{\textgreater}{\textasciitilde}4tdyn,h,
+the adiabatic correction is shallower, γ=3/2. When we allow for
+self-gravity and potential oscillations that follow the shock, the energy of stars in the core changes significantly while the total energy of the system is conserved. Paradoxically, the postshock potential fluctuations reduce the total amount of energy dispersion,
+{\textless}ΔE2{\textgreater}. The effect is small but real and is due to
+the postshock energy change being statistically anticorrelated with the shock-induced heating. These results are to be applied to Fokker-Planck models of the evolution of globular clusters.},
+	urldate = {2021-02-03},
+	journal = {The Astrophysical Journal},
+	author = {Gnedin, Oleg Y. and Ostriker, Jeremiah P.},
+	month = mar,
+	year = {1999},
+	keywords = {Celestial Mechanics, CELESTIAL MECHANICS, globular clusters: general, GLOBULAR CLUSTERS: GENERAL, methods: numerical, METHODS: NUMERICAL, Stellar Dynamics, STELLAR DYNAMICS},
+	pages = {626--637},
+	file = {Full Text PDF:/home/abensonca/.mozilla/firefox/f54gqgdx.default/zotero/storage/PAD69UED/Gnedin and Ostriker - 1999 - On the Self-consistent Response of Stellar Systems.pdf:application/pdf}
+}
+
 @article{gnedin_tidal_1999,
 	title = {Tidal Shocking by Extended Mass Distributions},
 	volume = {514},
@@ -3021,6 +3065,44 @@ galaxy-halo connection.},
 	year = {2013},
 	keywords = {Astrophysics - Cosmology and Extragalactic Astrophysics},
 	pages = {6747}
+}
+
+@article{hearin_differentiable_2021,
+	title = {A {Differentiable} {Model} of the {Assembly} of {Individual} and {Populations} of {Dark} {Matter} {Halos}},
+	volume = {2105},
+	url = {http://adsabs.harvard.edu/abs/2021arXiv210505859H},
+	abstract = {We present a new empirical model for the mass assembly of dark matter 
+halos. We approximate the growth of individual halos as a simple
+power-law function of time, where the power-law index smoothly decreases
+as the halo transitions from the fast-accretion regime at early times,
+to the slow-accretion regime at late times. Using large samples of halo
+merger trees taken from high-resolution cosmological simulations, we
+demonstrate that our 3-parameter model can approximate halo growth with
+a typical accuracy of 0.1 dex for t {\textgreater} 1 Gyr for all halos of
+present-day mass greater than 10{\textasciicircum}11Msun, including subhalos and host
+halos in gravity-only simulations, as well as in the TNG hydrodynamical
+simulation. We additionally present a new model for the assembly of halo
+populations, which not only reproduces average mass growth across time,
+but also faithfully captures the diversity with which halos assemble
+their mass. Our python implementation is based on the autodiff library
+JAX, and so our model self-consistently captures the mean and variance
+of halo mass accretion rate across cosmic time. We show that the
+connection between halo assembly and the large-scale density field,
+known as halo assembly bias, is accurately captured by our model, and
+that residual errors in our approximations to halo assembly history
+exhibit a negligible residual correlation with the density field. Our
+publicly available source code can be used to generate Monte Carlo
+realizations of cosmologically representative halo histories; our
+differentiable implementation facilitates the incorporation of our model
+into existing analytical halo model frameworks.},
+	urldate = {2021-05-14},
+	journal = {arXiv e-prints},
+	author = {Hearin, Andrew P. and Chaves-Montero, Jonás and Becker, Matthew R. and Alarcon, Alex},
+	month = may,
+	year = {2021},
+	keywords = {Astrophysics - Astrophysics of Galaxies, Astrophysics - Cosmology and Nongalactic Astrophysics},
+	pages = {arXiv:2105.05859},
+	file = {Full Text PDF:/home/abensonca/.mozilla/firefox/f54gqgdx.default/zotero/storage/QNP5SKWU/Hearin et al. - 2021 - A Differentiable Model of the Assembly of Individu.pdf:application/pdf}
 }
 
 @article{heger_nucleosynthetic_2002,
@@ -3901,6 +3983,28 @@ redshift z {\textasciitilde} 0.},
 	author = {Klein, O and Nishina, Y},
 	year = {1929},
 	pages = {853--868}
+}
+
+@article{klypin_cdm-based_2002,
+	title = {Λ{CDM}-based {Models} for the {Milky} {Way} and {M31}. {I}. {Dynamical} {Models}},
+	volume = {573},
+	issn = {0004-637X},
+	url = {http://adsabs.harvard.edu/abs/2002ApJ...573..597K},
+	doi = {10.1086/340656},
+	abstract = {We apply standard disk formation theory with adiabatic contraction within cuspy halo models predicted by the standard cold dark matter (ΛCDM) cosmology. The resulting models are confronted with the
+broad range of observational data available for the Milky Way and M31 galaxies. We find that there is a narrow range of parameters that can satisfy the observational constraints, but within this range, the models score remarkably well. Our favored models have virial masses of
+1012 and 1.6×1012 Msolar for the Galaxy and for M31, respectively, average spin parameters
+λ{\textasciitilde}0.03-0.05, and concentrations Cvir=10-17, typical
+for halos of this mass in the standard ΛCDM cosmology. The models require neither dark matter modifications nor flat cores to fit the observational data. We explore two types of models, with and without the exchange of angular momentum between the dark matter and the baryons. The models without exchange give reasonable rotation curves, fulfill constraints in the solar neighborhood, and satisfy constraints at larger radii, but they may be problematic for fast rotating central bars. We explore models in which the baryons experience additional contraction due to loss of angular momentum to the surrounding dark matter. These models produce similar global properties, but the dark matter is only a 25\% of the total mass in the central 3 kpc region, allowing a fast rotating bar to persist. According to preliminary calculations, our model galaxies probably have sufficient baryonic mass in the central {\textasciitilde}3.5 kpc to reproduce recent observational values of the optical depth to microlensing events toward the Galactic center. Our dynamical models unequivocally require that about 50\% of all the gas inside the virial radius must not be in the disk or in the bulge, a result that is obtained naturally in standard semianalytic models. Assuming that the Milky Way is ``typical,'' we investigate whether the range of virial masses allowed by our dynamical models is compatible with constraints from the galaxy luminosity function. We find that if the Milky Way has a luminosity MK=-24.0, then these constraints are satisfied, but if it is more luminous (as expected if it lies on the Tully-Fisher relation), then the predicted space density is larger than the observed space density of galaxies of the corresponding luminosity by a factor of 1.5-2. We conclude that observed rotation curves and dynamical
+properties of ``normal'' spiral galaxies appear to be consistent with standard ΛCDM.},
+	urldate = {2021-01-08},
+	journal = {The Astrophysical Journal},
+	author = {Klypin, Anatoly and Zhao, HongSheng and Somerville, Rachel S.},
+	month = jul,
+	year = {2002},
+	keywords = {Cosmology: Theory, Galaxies: Individual: Messier Number: M31, Galaxy: Structure},
+	pages = {597--613},
+	file = {Full Text PDF:/home/abensonca/.mozilla/firefox/f54gqgdx.default/zotero/storage/U4EZJP5V/Klypin et al. - 2002 - ΛCDM-based Models for the Milky Way and M31. I. Dy.pdf:application/pdf}
 }
 
 @article{klypin_multidark_2014,
@@ -5687,6 +5791,23 @@ Omega.},
 	file = {Non-linear evolution of cosmological power spectra:/home/abenson/.mozilla/firefox/f54gqgdx.default/zotero/storage/ZP66P328/1996MNRAS.280L..html:text/html}
 }
 
+@article{penarrubia_impact_2010,
+	title = {The impact of dark matter cusps and cores on the satellite galaxy population around spiral galaxies},
+	volume = {406},
+	issn = {0035-8711},
+	url = {https://doi.org/10.1111/j.1365-2966.2010.16762.x},
+	doi = {10.1111/j.1365-2966.2010.16762.x},
+	abstract = {We use N-body simulations to study the effects that a divergent (i.e. ‘cuspy’) dark matter profile introduces on the tidal evolution of dwarf spheroidal galaxies (dSphs). Our models assume cosmologically motivated initial conditions where dSphs are dark-matter-dominated systems on eccentric orbits about a host galaxy composed of a dark halo and a baryonic disc. We find that the resilience of dSphs to tidal stripping is extremely sensitive to the cuspiness of the inner halo profile; whereas dwarfs with a cored profile can be easily destroyed by the disc component, those with cusps always retain a bound remnant, even after losing more than 99.99 per cent of the original mass. For a given halo profile, the evolution of the structural parameters as driven by tides is controlled solely by the total amount of mass lost. This information is used to construct a semi-analytic code that follows the tidal evolution of individual satellites as they fall into a more massive host, which allows us to simulate the hierarchical build-up of spiral galaxies assuming different halo profiles and disc masses. We find that tidal encounters with discs tend to decrease the average mass of satellite galaxies at all galactocentric radii. Of all satellites, those accreted before re-ionization (z≳ 6), which may be singled out by anomalous metallicity patterns, provide the strongest constraints on the inner profile of dark haloes. These galaxies move on orbits that penetrate the disc repeatedly and survive to the present day only if haloes have an inner density cusp. We show that the size–mass relationship established from Milky Way (MW) dwarfs strongly supports the presence of cusps in the majority of these systems, as cored models systematically underestimate the masses of the known ultra-faint dSphs. Our models also indicate that a massive M31 disc may explain why many of its dSphs with suitable kinematic data fall below the size–mass relationship derived from MW dSphs. We also examine whether our modelling can constrain the mass threshold below which star formation is suppressed in dark matter haloes. We find that luminous satellites must be accreted with masses above 108–109 M⊙ in order to explain the size–mass relation observed in MW dwarfs.},
+	number = {2},
+	urldate = {2021-03-11},
+	journal = {Monthly Notices of the Royal Astronomical Society},
+	author = {Peñarrubia, Jorge and Benson, Andrew J. and Walker, Matthew G. and Gilmore, Gerard and McConnachie, Alan W. and Mayer, Lucio},
+	month = aug,
+	year = {2010},
+	pages = {1290--1305},
+	file = {Full Text PDF:/home/abensonca/.mozilla/firefox/f54gqgdx.default/zotero/storage/2MGGPVA5/Peñarrubia et al. - 2010 - The impact of dark matter cusps and cores on the s.pdf:application/pdf;Snapshot:/home/abensonca/.mozilla/firefox/f54gqgdx.default/zotero/storage/DWYUMF46/1003419.html:text/html}
+}
+
 @article{pequignot_total_1991,
 	title = {Total and effective radiative recombination coefficients},
 	volume = {251},
@@ -5840,6 +5961,48 @@ galaxy population.},
 	year = {2007},
 	pages = {945--972}
 },
+
+@article{planck_collaboration_planck_2013,
+	title = {Planck intermediate results. {XI}. {The} gas content of dark matter halos: the {Sunyaev}-{Zeldovich}-stellar mass relation for locally brightest galaxies},
+	volume = {557},
+	issn = {0004-6361},
+	shorttitle = {Planck intermediate results. {XI}. {The} gas content of dark matter halos},
+	url = {http://adsabs.harvard.edu/abs/2013A%26A...557A..52P},
+	doi = {10.1051/0004-6361/201220941},
+	abstract = {We present the scaling relation between Sunyaev-Zeldovich (SZ) signal 
+and stellar mass for almost 260,000 locally brightest galaxies (LBGs)
+selected from the Sloan Digital Sky Survey (SDSS). These are
+predominantly the central galaxies of their dark matter halos. We
+calibrate the stellar-to-halo mass conversion using realistic mock
+catalogues based on the Millennium Simulation. Applying a
+multi-frequency matched filter to the Planck data for each LBG, and
+averaging the results in bins of stellar mass, we measure the mean SZ
+signal down to M∗ {\textasciitilde} 2 × 1011
+M⊙, with a clear indication of signal at even lower
+stellar mass. We derive the scaling relation between SZ signal and halo
+mass by assigning halo properties from our mock catalogues to the real
+LBGs and simulating the Planck observation process. This relation shows
+no evidence for deviation from a power law over a halo mass range
+extending from rich clusters down to M500 {\textasciitilde} 2 ×
+1013 M⊙, and there is a clear indication of
+signal down to M500 {\textasciitilde} 4 × 1012
+M⊙. Planck's SZdetections in such low-mass halos imply
+that about a quarter of all baryons have now been seen in the form of
+hot halo gas, and that this gas must be less concentrated than the dark
+matter in such halos in order to remain consistent with X-ray
+observations. At the high-mass end, the measured SZ signal is 20\% lower
+than found from observations of X-ray clusters, a difference consistent
+with the magnitude of Malmquist bias effects that were previously
+estimated for the X-ray sample.},
+	urldate = {2021-01-11},
+	journal = {Astronomy and Astrophysics},
+	author = {{Planck Collaboration} and Ade, P. A. R. and Aghanim, N. and Arnaud, M. and Ashdown, M. and Atrio-Barandela, F. and Aumont, J. and Baccigalupi, C. and Balbi, A. and Banday, A. J. and Barreiro, R. B. and Barrena, R. and Bartlett, J. G. and Battaner, E. and Benabed, K. and Bernard, J.-P. and Bersanelli, M. and Bikmaev, I. and Bock, J. J. and Böhringer, H. and Bonaldi, A. and Bond, J. R. and Borrill, J. and Bouchet, F. R. and Bourdin, H. and Burenin, R. and Burigana, C. and Butler, R. C. and Cabella, P. and Chamballu, A. and Chary, R.-R. and Chiang, L.-Y. and Chon, G. and Christensen, P. R. and Clements, D. L. and Colafrancesco, S. and Colombi, S. and Colombo, L. P. L. and Comis, B. and Coulais, A. and Crill, B. P. and Cuttaia, F. and Da Silva, A. and Dahle, H. and Davis, R. J. and de Bernardis, P. and de Gasperis, G. and de Rosa, A. and de Zotti, G. and Delabrouille, J. and Démoclès, J. and Diego, J. M. and Dole, H. and Donzelli, S. and Doré, O. and Douspis, M. and Dupac, X. and Efstathiou, G. and Enßlin, T. A. and Finelli, F. and Flores-Cacho, I. and Forni, O. and Frailis, M. and Franceschi, E. and Frommert, M. and Galeotta, S. and Ganga, K. and Génova-Santos, R. T. and Giard, M. and Giraud-Héraud, Y. and González-Nuevo, J. and Górski, K. M. and Gregorio, A. and Gruppuso, A. and Hansen, F. K. and Harrison, D. and Hernández-Monteagudo, C. and Herranz, D. and Hildebrandt, S. R. and Hivon, E. and Hobson, M. and Holmes, W. A. and Hornstrup, A. and Hovest, W. and Huffenberger, K. M. and Hurier, G. and Jaffe, T. R. and Jaffe, A. H. and Jones, W. C. and Juvela, M. and Keihänen, E. and Keskitalo, R. and Khamitov, I. and Kisner, T. S. and Kneissl, R. and Knoche, J. and Kunz, M. and Kurki-Suonio, H. and Lähteenmäki, A. and Lamarre, J.-M. and Lasenby, A. and Lawrence, C. R. and Le Jeune, M. and Leonardi, R. and Lilje, P. B. and Linden-Vørnle, M. and López-Caniego, M. and Lubin, P. M. and Luzzi, G. and Macías-Pérez, J. F. and MacTavish, C. J. and Maffei, B. and Maino, D. and Mandolesi, N. and Maris, M. and Marleau, F. and Marshall, D. J. and Martínez-González, E. and Masi, S. and Massardi, M. and Matarrese, S. and Mazzotta, P. and Mei, S. and Melchiorri, A. and Melin, J.-B. and Mendes, L. and Mennella, A. and Mitra, S. and Miville-Deschênes, M.-A. and Moneti, A. and Montier, L. and Morgante, G. and Mortlock, D. and Munshi, D. and Murphy, J. A. and Naselsky, P. and Nati, F. and Natoli, P. and Nørgaard-Nielsen, H. U. and Noviello, F. and Novikov, D. and Novikov, I. and Osborne, S. and Oxborrow, C. A. and Pajot, F. and Paoletti, D. and Perotto, L. and Perrotta, F. and Piacentini, F. and Piat, M. and Pierpaoli, E. and Piffaretti, R. and Plaszczynski, S. and Pointecouteau, E. and Polenta, G. and Popa, L. and Poutanen, T. and Pratt, G. W. and Prunet, S. and Puget, J.-L. and Rachen, J. P. and Rebolo, R. and Reinecke, M. and Remazeilles, M. and Renault, C. and Ricciardi, S. and Ristorcelli, I. and Rocha, G. and Roman, M. and Rosset, C. and Rossetti, M. and Rubiño-Martín, J. A. and Rusholme, B. and Sandri, M. and Savini, G. and Scott, D. and Spencer, L. and Starck, J.-L. and Stolyarov, V. and Sudiwala, R. and Sunyaev, R. and Sutton, D. and Suur-Uski, A.-S. and Sygnet, J.-F. and Tauber, J. A. and Terenzi, L. and Toffolatti, L. and Tomasi, M. and Tristram, M. and Valenziano, L. and Van Tent, B. and Vielva, P. and Villa, F. and Vittorio, N. and Wade, L. A. and Wandelt, B. D. and Wang, W. and Welikala, N. and Weller, J. and White, S. D. M. and White, M. and Yvon, D. and Zacchei, A. and Zonca, A.},
+	month = sep,
+	year = {2013},
+	keywords = {cosmic background radiation, cosmology: observations, galaxies: clusters: general, large-scale structure of Universe},
+	pages = {A52},
+	file = {Full Text PDF:/home/abensonca/.mozilla/firefox/f54gqgdx.default/zotero/storage/652AB3BN/Planck Collaboration et al. - 2013 - Planck intermediate results. XI. The gas content o.pdf:application/pdf}
+}
 
 @article{planck_collaboration_planck_2018,
 	title = {Planck 2018 results. {X}. {Constraints} on inflation},
@@ -6846,6 +7009,24 @@ extrapolation methods. The results are accurate to the level of {\textasciitilde
         file = {NASA/ADS Full Text PDF:/home/abenson/.mozilla/firefox/f54gqgdx.default/zotero/storage/MG487H9Z/Takeda et al. - 1984 - Ram pressure stripping in a changing environment.pdf:application/pdf}
 }
 
+@article{taylor_dynamics_2001,
+	title = {The {Dynamics} of {Sinking} {Satellites} around {Disk} {Galaxies}: {A} {Poor} {Man}'s {Alternative} to {High}-{Resolution} {Numerical} {Simulations}},
+	volume = {559},
+	issn = {0004-637X},
+	shorttitle = {The {Dynamics} of {Sinking} {Satellites} around {Disk} {Galaxies}},
+	url = {http://adsabs.harvard.edu/abs/2001ApJ...559..716T},
+	doi = {10.1086/322276;},
+	abstract = {We have developed a simple yet surprisingly accurate analytic scheme for tracking the dynamical evolution of substructure within dark matter halos. The scheme incorporates the effects of dynamical friction, tidal mass loss, and tidal heating via physically motivated approximations. Using our scheme, we can predict the orbital evolution and mass-loss history of individual subhalos in detail. We are also able to determine the impact and importance of the different physical processes on the dynamical evolution of the subhalos. To test and calibrate this model, we compare it with a set of recent high-resolution numerical simulations of mergers between galaxies and small companions. We find that we can reproduce the orbits and mass-loss rates seen in all of these simulations with considerable accuracy, using a single set of values for the three free parameters in our model. Computationally, our scheme is more than 1000 times faster than the simplest of the high-resolution numerical simulations. This means that we can carry out detailed and statistically meaningful investigations into the characteristics of the subhalo population in different cosmologies, the stripping and disruption of the subhalos, and the interactions of the subhalos with other dynamical structures such as a thin disk. This last point is of particular interest given the ubiquity of minor mergers in hierarchical models. In this regard, our method's simplicity and speed makes it particularly attractive for incorporation into semianalytic models of galaxy formation.},
+	urldate = {2013-08-26},
+	journal = {The Astrophysical Journal},
+	author = {Taylor, James E. and Babul, Arif},
+	month = oct,
+	year = {2001},
+	keywords = {methods: numerical, Cosmology: Dark Matter, GALAXIES: INTERACTIONS, galaxies: kinematics and dynamics},
+	pages = {716--735},
+	file = {NASA/ADS Full Text PDF:/home/abensonca/.mozilla/firefox/f54gqgdx.default/zotero/storage/HJ558FAA/Taylor and Babul - 2001 - The Dynamics of Sinking Satellites around Disk Gal.pdf:application/pdf}
+}
+
 @article{tegmark_small_1997,
 	title = {How Small Were the First Cosmological Objects?},
 	volume = {474},
@@ -7744,6 +7925,23 @@ through the radiation field.},
 	year = {2006},
 	keywords = {Cosmology: {Large-Scale} Structure of Universe, cosmology: theory, Galaxies: Halos, {GALAXIES:} {INTERGALACTIC} {MEDIUM}, {GALAXIES:} {STRUCTURE}, {METHODS:} {ANALYTICAL}, methods: numerical},
 	pages = {641--646}
+}
+
+@article{zhao_analytical_1996,
+	title = {Analytical models for galactic nuclei},
+	volume = {278},
+	issn = {0035-8711},
+	url = {https://doi.org/10.1093/mnras/278.2.488},
+	doi = {10.1093/mnras/278.2.488},
+	abstract = {I present a general family of dynamical models with simple analytical potential-density pairs suited to modelling galactic bulges and nuclei with double power-law radial density profiles and an optional central black hole. Analytical expressions for the potential and velocity dispersion of these models are given for the spherical case. Many previously known analytical spherical models, including the recent γ/η-models by Dehnen and Tremaine et al., are special cases of this family. The family also forms a complete set for constructing general galaxy models or solving Poisson's equation in the non-spherical case. In particular, a generalized Clutton-Brock and Hernquist-Ostriker orthogonal basis set is given.},
+	number = {2},
+	urldate = {2021-03-11},
+	journal = {Monthly Notices of the Royal Astronomical Society},
+	author = {Zhao, HongSheng},
+	month = jan,
+	year = {1996},
+	pages = {488--496},
+	file = {Full Text PDF:/home/abensonca/.mozilla/firefox/f54gqgdx.default/zotero/storage/9ULEVX8G/Zhao - 1996 - Analytical models for galactic nuclei.pdf:application/pdf;Snapshot:/home/abensonca/.mozilla/firefox/f54gqgdx.default/zotero/storage/AJ79ADRI/951933.html:text/html}
 }
 
 @article{zhao_accurate_2009,

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,28 +17,34 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an ISM mass output analysis property extractor class.
+!!{
+Contains a module which implements an ISM mass output analysis property extractor class.
+!!}
 
   use :: Output_Times, only : outputTimes, outputTimesClass
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorDescendents">
-  !#  <description>
-  !#   A node property extractor which extracts the index of the node containing the galaxy to which each current galaxy will
-  !#   belong at the next output time (i.e. the \gls{forwardDescendent}). To clarify, this will be the index of the node into
-  !#   which the galaxy descends, or the index of a node with which it merges prior to the next output time (and if that node
-  !#   merges with another, the index will be of that node and so on).
-  !#
-  !#   Note that, to operate correctly, information about which node a given node may merge with (and when this merger will
-  !#   happen) must be available. This is typically available in merger trees read from file (i.e. using the ``{\normalfont
-  !#   \ttfamily read}'' \refClass{mergerTreeConstructorClass}) providing {\normalfont \ttfamily [presetMergerNodes]} and {\normalfont
-  !#   \ttfamily [presetMergerTimes]} are both set to {\normalfont \ttfamily true}. When using randomly assigned satellite orbits
-  !#   and merger times, information on when merging occurs does not exist until a node becomes a satellite. Thus, if the node
-  !#   becomes a satellite after the current output, but before the next output, there is no way to know which node it will belong
-  !#   to at the next output (in such cases, the fallback assumption is no merging).
-  !#  </description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorDescendents">
+   <description>
+    A node property extractor which extracts the index of the node containing the galaxy to which each current galaxy will
+    belong at the next output time (i.e. the \gls{forwardDescendent}). To clarify, this will be the index of the node into
+    which the galaxy descends, or the index of a node with which it merges prior to the next output time (and if that node
+    merges with another, the index will be of that node and so on).
+  
+    Note that, to operate correctly, information about which node a given node may merge with (and when this merger will
+    happen) must be available. This is typically available in merger trees read from file (i.e. using the ``{\normalfont
+    \ttfamily read}'' \refClass{mergerTreeConstructorClass}) providing {\normalfont \ttfamily [presetMergerNodes]} and {\normalfont
+    \ttfamily [presetMergerTimes]} are both set to {\normalfont \ttfamily true}. When using randomly assigned satellite orbits
+    and merger times, information on when merging occurs does not exist until a node becomes a satellite. Thus, if the node
+    becomes a satellite after the current output, but before the next output, there is no way to know which node it will belong
+    to at the next output (in such cases, the fallback assumption is no merging).
+   </description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorIntegerScalar) :: nodePropertyExtractorDescendents
-     !% A node property extractor descendent indices.
+     !!{
+     A node property extractor descendent indices.
+     !!}
      private
      class(outputTimesClass), pointer :: outputTimes_ => null()
    contains
@@ -50,7 +56,9 @@
   end type nodePropertyExtractorDescendents
 
   interface nodePropertyExtractorDescendents
-     !% Constructors for the ``descendents'' output analysis class.
+     !!{
+     Constructors for the ``descendents'' output analysis class.
+     !!}
      module procedure descendentsConstructorParameters
      module procedure descendentsConstructorInternal
   end interface nodePropertyExtractorDescendents
@@ -58,41 +66,57 @@
 contains
 
   function descendentsConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily descendents} node property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily descendents} node property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorDescendents)                :: self
     type (inputParameters                 ), intent(inout) :: parameters
     class(outputTimesClass                ), pointer       :: outputTimes_
 
-    !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
+    !![
+    <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
+    !!]
     self=nodePropertyExtractorDescendents(outputTimes_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="outputTimes_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="outputTimes_"/>
+    !!]
     return
   end function descendentsConstructorParameters
 
   function descendentsConstructorInternal(outputTimes_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily descendents} node property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily descendents} node property extractor class.
+    !!}
     implicit none
     type (nodePropertyExtractorDescendents)                        :: self
     class(outputTimesClass                ), intent(in   ), target :: outputTimes_
-    !# <constructorAssign variables="*outputTimes_"/>
+    !![
+    <constructorAssign variables="*outputTimes_"/>
+    !!]
 
     return
   end function descendentsConstructorInternal
 
   subroutine descendentsDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily descendents} property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily descendents} property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorDescendents), intent(inout) :: self
 
-    !# <objectDestructor name="self%outputTimes_"/>
+    !![
+    <objectDestructor name="self%outputTimes_"/>
+    !!]
     return
   end subroutine descendentsDestructor
 
   function descendentsExtract(self,node,time,instance)
-    !% Implement a {\normalfont \ttfamily descendents} node property extractor.
+    !!{
+    Implement a {\normalfont \ttfamily descendents} node property extractor.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite, treeNode
     implicit none
     integer         (kind_int8                       )                          :: descendentsExtract
@@ -170,7 +194,9 @@ contains
   end function descendentsExtract
 
   integer function descendentsType(self)
-    !% Return the type of the stellar mass property.
+    !!{
+    Return the type of the stellar mass property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorDescendents), intent(inout) :: self
@@ -181,7 +207,9 @@ contains
   end function descendentsType
 
   function descendentsName(self)
-    !% Return the name of the descendents property.
+    !!{
+    Return the name of the descendents property.
+    !!}
     implicit none
     type (varying_string                  )                :: descendentsName
     class(nodePropertyExtractorDescendents), intent(inout) :: self
@@ -192,7 +220,9 @@ contains
   end function descendentsName
 
   function descendentsDescription(self)
-    !% Return a description of the descendents property.
+    !!{
+    Return a description of the descendents property.
+    !!}
     implicit none
     type (varying_string                  )                :: descendentsDescription
     class(nodePropertyExtractorDescendents), intent(inout) :: self

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an log10 output analysis property operator class.
+!!{
+Contains a module which implements an log10 output analysis property operator class.
+!!}
 
-  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorLog10">
-  !#  <description>An log10 output analysis property operator class.</description>
-  !# </outputAnalysisPropertyOperator>
+  !![
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorLog10">
+   <description>An log10 output analysis property operator class.</description>
+  </outputAnalysisPropertyOperator>
+  !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorLog10
-     !% An log10 output property operator class.
+     !!{
+     An log10 output property operator class.
+     !!}
      private
    contains
      procedure :: operate => log10Operate
   end type outputAnalysisPropertyOperatorLog10
 
   interface outputAnalysisPropertyOperatorLog10
-     !% Constructors for the ``log10'' output analysis class.
+     !!{
+     Constructors for the ``log10'' output analysis class.
+     !!}
      module procedure log10ConstructorParameters
   end interface outputAnalysisPropertyOperatorLog10
 
 contains
 
   function log10ConstructorParameters(parameters)
-    !% Constructor for the ``log10'' output analysis property operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``log10'' output analysis property operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisPropertyOperatorLog10)                :: log10ConstructorParameters
@@ -49,7 +59,9 @@ contains
   end function log10ConstructorParameters
 
   double precision function log10Operate(self,propertyValue,node,propertyType,outputIndex)
-    !% Implement an log10 output analysis property operator.
+    !!{
+    Implement an log10 output analysis property operator.
+    !!}
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear, outputAnalysisPropertyTypeLog10, outputAnalysisPropertyTypeUnknown
     implicit none

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of atomic recombination recombination rates which computes rates from the corresponding photoionziation
-  !% cross section using detailed balance (i.e. the Milne relation---see for example ``Astrophysics of the Diffuse Universe'' by
-  !% Dopita \& Sutherland, 2004, Springer Science \& Business Media, section 5.3.3).
+  !!{
+  An implementation of atomic recombination recombination rates which computes rates from the corresponding photoionziation
+  cross section using detailed balance (i.e. the Milne relation---see for example ``Astrophysics of the Diffuse Universe'' by
+  Dopita \& Sutherland, 2004, Springer Science \& Business Media, section 5.3.3).
+  !!}
 
   use :: Atomic_Cross_Sections_Ionization_Photo , only : atomicCrossSectionIonizationPhotoClass
   use :: Atomic_Ionization_Potentials           , only : atomicIonizationPotentialClass
 
-  !# <atomicRecombinationRateRadiative name="atomicRecombinationRateRadiativeComputed">
-  !#  <description>Atomic radiative recombination rates computed from the corresponding photoionziation cross section using detailed balance (i.e. the Milne relation---see for example ``Astrophysics of the Diffuse Universe'' by Dopita \&amp; Sutherland, 2004, Springer Science \&amp; Business Media, section 5.3.3).</description>
-  !# </atomicRecombinationRateRadiative>
+  !![
+  <atomicRecombinationRateRadiative name="atomicRecombinationRateRadiativeComputed">
+   <description>Atomic radiative recombination rates computed from the corresponding photoionziation cross section using detailed balance (i.e. the Milne relation---see for example ``Astrophysics of the Diffuse Universe'' by Dopita \&amp; Sutherland, 2004, Springer Science \&amp; Business Media, section 5.3.3).</description>
+  </atomicRecombinationRateRadiative>
+  !!]
   type, extends(atomicRecombinationRateRadiativeClass) :: atomicRecombinationRateRadiativeComputed
-     !% A recombination recombination rate class assuming a thermal electron distribution.
+     !!{
+     A recombination recombination rate class assuming a thermal electron distribution.
+     !!}
      private
      class(atomicCrossSectionIonizationPhotoClass), pointer :: atomicCrossSectionIonizationPhoto_ => null()
      class(atomicIonizationPotentialClass        ), pointer :: atomicIonizationPotential_         => null()
@@ -38,7 +44,9 @@
   end type atomicRecombinationRateRadiativeComputed
 
   interface atomicRecombinationRateRadiativeComputed
-     !% Constructors for the {\normalfont \ttfamily computed} atomic radiative recombination class.
+     !!{
+     Constructors for the {\normalfont \ttfamily computed} atomic radiative recombination class.
+     !!}
      module procedure computedConstructorParameters
      module procedure computedConstructorInternal
   end interface atomicRecombinationRateRadiativeComputed
@@ -46,7 +54,9 @@
 contains
 
   function computedConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily computed} atomic radiative recombination class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily computed} atomic radiative recombination class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (atomicRecombinationRateRadiativeComputed)                :: self
@@ -55,39 +65,53 @@ contains
     class(atomicIonizationPotentialClass          ), pointer       :: atomicIonizationPotential_
 
 
-    !# <objectBuilder class="atomicCrossSectionIonizationPhoto" name="atomicCrossSectionIonizationPhoto_" source="parameters"/>
-    !# <objectBuilder class="atomicIonizationPotential"         name="atomicIonizationPotential_"         source="parameters"/>
+    !![
+    <objectBuilder class="atomicCrossSectionIonizationPhoto" name="atomicCrossSectionIonizationPhoto_" source="parameters"/>
+    <objectBuilder class="atomicIonizationPotential"         name="atomicIonizationPotential_"         source="parameters"/>
+    !!]
     self=atomicRecombinationRateRadiativeComputed(atomicCrossSectionIonizationPhoto_,atomicIonizationPotential_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="atomicCrossSectionIonizationPhoto_"/>
-    !# <objectDestructor name="atomicIonizationPotential_"        />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="atomicCrossSectionIonizationPhoto_"/>
+    <objectDestructor name="atomicIonizationPotential_"        />
+    !!]
     return
   end function computedConstructorParameters
 
   function computedConstructorInternal(atomicCrossSectionIonizationPhoto_,atomicIonizationPotential_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily computed} atomic radiative recombination class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily computed} atomic radiative recombination class.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type (atomicRecombinationRateRadiativeComputed)                        :: self
     class(atomicCrossSectionIonizationPhotoClass  ), intent(in   ), target :: atomicCrossSectionIonizationPhoto_
     class(atomicIonizationPotentialClass          ), intent(in   ), target :: atomicIonizationPotential_
-    !# <constructorAssign variables="*atomicCrossSectionIonizationPhoto_, *atomicIonizationPotential_"/>
+    !![
+    <constructorAssign variables="*atomicCrossSectionIonizationPhoto_, *atomicIonizationPotential_"/>
+    !!]
 
     return
   end function computedConstructorInternal
 
   subroutine computedDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily computed} recombination recombination class.
+    !!{
+    Destructor for the {\normalfont \ttfamily computed} recombination recombination class.
+    !!}
     implicit none
     type(atomicRecombinationRateRadiativeComputed), intent(inout) :: self
 
-    !# <objectDestructor name="self%atomicCrossSectionIonizationPhoto_"/>
-    !# <objectDestructor name="self%atomicIonizationPotential_"        />
+    !![
+    <objectDestructor name="self%atomicCrossSectionIonizationPhoto_"/>
+    <objectDestructor name="self%atomicIonizationPotential_"        />
+    !!]
     return
   end subroutine computedDestructor
 
   double precision function computedRate(self,atomicNumber,ionizationState,temperature,level)
-    !% Returns the recombination rate coefficient.
+    !!{
+    Returns the recombination rate coefficient.
+    !!}
     use :: Galacticus_Error            , only : Galacticus_Error_Report
     use :: Numerical_Integration       , only : integrator
     use :: Numerical_Constants_Physical, only : boltzmannsConstant     , electronMass
@@ -123,9 +147,11 @@ contains
   contains
 
     double precision function rateIntegrand(velocity)
-      !% Integrand for the recombination coefficient due to recombination, see equation (2.5) of
-      !% \cite{osterbrock_astrophysics_2006}, but note that their expression for the Maxwell-Boltzmann distribution function in
-      !% equation (2.6) is missing a factor (1/2) in the exponential term.
+      !!{
+      Integrand for the recombination coefficient due to recombination, see equation (2.5) of
+      \cite{osterbrock_astrophysics_2006}, but note that their expression for the Maxwell-Boltzmann distribution function in
+      equation (2.6) is missing a factor (1/2) in the exponential term.
+      !!}
       use :: Numerical_Constants_Math    , only : Pi
       use :: Numerical_Constants_Units   , only : angstromsPerMeter, electronVolt
       use :: Numerical_Constants_Physical, only : plancksConstant  , speedLight  , electronMass, fineStructure

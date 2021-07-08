@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,23 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program which wraps the {\normalfont \ttfamily dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
-!% \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} to produce a table of X-ray absorption cross-sections in the
-!% \gls{ism}. This program assumes that various files from \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} have been
-!% downloaded into the {\normalfont \ttfamily aux/XSpec} folder---usually this program will be run automatically as needed by the {\normalfont \ttfamily
-!% Galacticus::ISMCrossSections} module.
+!!{
+Contains a program which wraps the {\normalfont \ttfamily dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
+\href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} to produce a table of X-ray absorption cross-sections in the
+\gls{ism}. This program assumes that various files from \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} have been
+downloaded into the {\normalfont \ttfamily aux/XSpec} folder---usually this program will be run automatically as needed by the {\normalfont \ttfamily
+Galacticus::ISMCrossSections} module.
+!!}
 
 ! Add explicit dependencies on the XSpec files.
 !: aux/XSpec/dotbvabs.o aux/XSpec/gphoto.o aux/XSpec/j4save.o aux/XSpec/phfit2.o
 !/ exclude
 
 program XRay_Absorption_ISM_Wilms2000
-  !% Wraps the {\normalfont \ttfamily dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
-  !% \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} to produce a table of X-ray absorption
-  !% cross-sections in the \gls{ism}. This program assumes that various files from
-  !% \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} have been downloaded into the {\normalfont
-  !% \ttfamily aux/XSpec} folder---usually this program will be run automatically as needed by the {\normalfont \ttfamily
-  !% Galacticus::ISMColumnDensity} module.
+  !!{
+  Wraps the {\normalfont \ttfamily dotbvabs} function (which implements the model of \citealt{wilms_absorption_2000}) from
+  \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} to produce a table of X-ray absorption
+  cross-sections in the \gls{ism}. This program assumes that various files from
+  \href{http://heasarc.gsfc.nasa.gov/xanadu/xspec/}{\normalfont \scshape XSpec} have been downloaded into the {\normalfont
+  \ttfamily aux/XSpec} folder---usually this program will be run automatically as needed by the {\normalfont \ttfamily
+  Galacticus::ISMColumnDensity} module.
+  !!}
   use :: Atomic_Cross_Sections_Compton, only : Atomic_Cross_Section_Compton
   use :: Dates_and_Times              , only : Formatted_Date_and_Time
   use :: IO_HDF5                      , only : hdf5Object
@@ -115,7 +119,9 @@ program XRay_Absorption_ISM_Wilms2000
 end program XRay_Absorption_ISM_Wilms2000
 
 subroutine xwrite(msg,i)
-  !% Message display function required by {\normalfont \ttfamily dotbvabs}.
+  !!{
+  Message display function required by {\normalfont \ttfamily dotbvabs}.
+  !!}
   implicit none
   character(len=*), intent(in   ) :: msg
   integer         , intent(in   ) :: i
@@ -125,7 +131,9 @@ subroutine xwrite(msg,i)
 end subroutine xwrite
 
 subroutine xermsg(a,b,c,i,j)
-  !% Error message function required by {\normalfont \ttfamily dotbvabs}.
+  !!{
+  Error message function required by {\normalfont \ttfamily dotbvabs}.
+  !!}
   use :: Galacticus_Error, only : Galacticus_Error_Report
   implicit none
   character(len=*), intent(in   ) :: a, b, c
@@ -139,7 +147,9 @@ subroutine xermsg(a,b,c,i,j)
 end subroutine xermsg
 
 real function fgabnd(c)
-  !% Function to return the abundance (relative to hydrogen) of elements. Required by {\normalfont \ttfamily dotbvabs}.
+  !!{
+  Function to return the abundance (relative to hydrogen) of elements. Required by {\normalfont \ttfamily dotbvabs}.
+  !!}
   use :: Galacticus_Error, only : Galacticus_Error_Report
   implicit none
   character(len=2), intent(in   ) :: c

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,18 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test tensor functionality.
+!!{
+Contains a program to test tensor functionality.
+!!}
 
 program Test_Tensors
-  !% Tests of coordinate system functions.
-  use :: Galacticus_Display, only : Galacticus_Verbosity_Level_Set, verbosityStandard
-  use :: Tensors           , only : assignment(=)                 , operator(*)           , tensorIdentityR2D3Sym, tensorNullR2D3Sym, &
-          &                         tensorRank2Dimension3Symmetric
-  use :: Unit_Tests        , only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group , Unit_Tests_Finish
+  !!{
+  Tests of coordinate system functions.
+  !!}
+  use :: Display   , only : displayVerbositySet           , verbosityLevelStandard
+  use :: Tensors   , only : assignment(=)                 , operator(*)           , tensorIdentityR2D3Sym, tensorNullR2D3Sym, &
+          &                 tensorRank2Dimension3Symmetric
+  use :: Unit_Tests, only : Assert                        , Unit_Tests_Begin_Group, Unit_Tests_End_Group , Unit_Tests_Finish
   type(tensorRank2Dimension3Symmetric) :: tensorR2D3Sym,resultTensor
 
   ! Set verbosity level.
-  call Galacticus_Verbosity_Level_Set(verbosityStandard)
+  call displayVerbositySet(verbosityLevelStandard)
 
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Tensors")

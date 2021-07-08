@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,24 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a fixed halo environment.
+!!{
+Contains a module which implements a fixed halo environment.
+!!}
 
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Linear_Growth             , only : linearGrowthClass
   use :: Spherical_Collapse_Solvers, only : sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt
   use :: Tables                    , only : table2DLinLinLin
 
-  !# <haloEnvironment name="haloEnvironmentFixed">
-  !#  <description>Implements a fixed halo environment.</description>
-  !#  <deepCopy>
-  !#   <functionClass variables="sphericalCollapseSolver_"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="sphericalCollapseSolver_"/>
-  !#  </stateStorable>
-  !# </haloEnvironment>
+  !![
+  <haloEnvironment name="haloEnvironmentFixed">
+   <description>Implements a fixed halo environment.</description>
+   <deepCopy>
+    <functionClass variables="sphericalCollapseSolver_"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="sphericalCollapseSolver_"/>
+   </stateStorable>
+  </haloEnvironment>
+  !!]
   type, extends(haloEnvironmentClass) :: haloEnvironmentFixed
-     !% A fixed halo environment class.
+     !!{
+     A fixed halo environment class.
+     !!}
      private
      class           (cosmologyFunctionsClass                          ), pointer :: cosmologyFunctions_          => null()
      class           (linearGrowthClass                                ), pointer :: linearGrowth_                => null()
@@ -57,7 +63,9 @@
   end type haloEnvironmentFixed
 
   interface haloEnvironmentFixed
-     !% Constructors for the {\normalfont \ttfamily fixed} halo environment class.
+     !!{
+     Constructors for the {\normalfont \ttfamily fixed} halo environment class.
+     !!}
      module procedure fixedHEConstructorParameters
      module procedure fixedHEConstructorInternal
   end interface haloEnvironmentFixed
@@ -65,7 +73,9 @@
 contains
 
   function fixedHEConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily fixed} halo environment class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily fixed} halo environment class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (haloEnvironmentFixed   )                :: self
@@ -75,38 +85,42 @@ contains
     double precision                                         :: radiusEnvironment  , massEnvironment, &
          &                                                      overdensity
 
-    !# <inputParameter>
-    !#   <name>overdensity</name>
-    !#   <source>parameters</source>
-    !#   <description>The overdensity of the environment.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>radiusEnvironment</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The radius of the sphere used to determine the variance in the environmental density.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massEnvironment</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>1.0d15</defaultValue>
-    !#   <description>The mass within the sphere sphere used to determine the variance in the environmental density.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
-    !# <objectBuilder class="linearGrowth"       name="linearGrowth_"       source="parameters"/>
-    !# <conditionalCall>
-    !#  <call>self=haloEnvironmentFixed(cosmologyFunctions_,linearGrowth_,overdensity{conditions})</call>
-    !#  <argument name="massEnvironment" value="massEnvironment" parameterPresent="parameters"/>
-    !#  <argument name="radiusEnvironment" value="radiusEnvironment" parameterPresent="parameters"/>
-    !# </conditionalCall>
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"      />
-    !# <objectDestructor name="linearGrowth_"            />
+    !![
+    <inputParameter>
+      <name>overdensity</name>
+      <source>parameters</source>
+      <description>The overdensity of the environment.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>radiusEnvironment</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The radius of the sphere used to determine the variance in the environmental density.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massEnvironment</name>
+      <source>parameters</source>
+      <defaultValue>1.0d15</defaultValue>
+      <description>The mass within the sphere sphere used to determine the variance in the environmental density.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    <objectBuilder class="linearGrowth"       name="linearGrowth_"       source="parameters"/>
+    <conditionalCall>
+     <call>self=haloEnvironmentFixed(cosmologyFunctions_,linearGrowth_,overdensity{conditions})</call>
+     <argument name="massEnvironment" value="massEnvironment" parameterPresent="parameters"/>
+     <argument name="radiusEnvironment" value="radiusEnvironment" parameterPresent="parameters"/>
+    </conditionalCall>
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="linearGrowth_"            />
+    !!]
     return
   end function fixedHEConstructorParameters
 
   function fixedHEConstructorInternal(cosmologyFunctions_,linearGrowth_,overdensity,radiusEnvironment,massEnvironment) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily fixed} halo mass function class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily fixed} halo mass function class.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (haloEnvironmentFixed        )                         :: self
@@ -114,11 +128,15 @@ contains
     class           (linearGrowthClass            ) , intent(in   ), target :: linearGrowth_
     double precision                                        , intent(in   ) :: overdensity
     double precision                                        , intent(in   ), optional :: radiusEnvironment,massEnvironment
-    !# <constructorAssign variables="*cosmologyFunctions_, *linearGrowth_, overdensity, radiusEnvironment, massEnvironment"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_, *linearGrowth_, overdensity, radiusEnvironment, massEnvironment"/>
+    !!]
 
     ! Construct a spherical collapse solver.
     allocate(self%sphericalCollapseSolver_)
-    !# <referenceConstruct owner="self" isResult="yes" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt(self%cosmologyFunctions_,self%linearGrowth_)"/>
+    !![
+    <referenceConstruct owner="self" isResult="yes" object="sphericalCollapseSolver_" constructor="sphericalCollapseSolverCllsnlssMttrCsmlgclCnstnt(self%cosmologyFunctions_,self%linearGrowth_)"/>
+    !!]
 
     
     if (present(radiusEnvironment).and.present(massEnvironment)) call Galacticus_Error_Report('only one of radiusEnvironment and massEnvironment may be specified'//{introspection:location})
@@ -143,25 +161,33 @@ contains
   end function fixedHEConstructorInternal
 
   subroutine fixedHEDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily fixed} halo mass function class.
+    !!{
+    Destructor for the {\normalfont \ttfamily fixed} halo mass function class.
+    !!}
     implicit none
     type(haloEnvironmentFixed), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"     />
-    !# <objectDestructor name="self%linearGrowth_"           />
-    !# <objectDestructor name="self%sphericalCollapseSolver_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"     />
+    <objectDestructor name="self%linearGrowth_"           />
+    <objectDestructor name="self%sphericalCollapseSolver_"/>
+    !!]
     return
   end subroutine fixedHEDestructor
 
   double precision function fixedHEOverdensityLinear(self,node,presentDay)
-    !% Return the environment of the given {\normalfont \ttfamily node}.
+    !!{
+    Return the environment of the given {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (haloEnvironmentFixed              ), intent(inout)           :: self
     type            (treeNode                          ), intent(inout)           :: node
     logical                                             , intent(in   ), optional :: presentDay
     class           (nodeComponentBasic                ), pointer                 :: basic
-    !# <optionalArgument name="presentDay" defaultsTo=".false." />
+    !![
+    <optionalArgument name="presentDay" defaultsTo=".false." />
+    !!]
 
     fixedHEOverdensityLinear=self%overdensity
     if (.not.presentDay_) then
@@ -173,7 +199,9 @@ contains
   end function fixedHEOverdensityLinear
 
   double precision function fixedHEOverdensityLinearGradientTime(self,node)
-    !% Return the time gradient of the environment of the given {\normalfont \ttfamily node}.
+    !!{
+    Return the time gradient of the environment of the given {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(haloEnvironmentFixed), intent(inout) :: self
@@ -190,7 +218,9 @@ contains
   end function fixedHEOverdensityLinearGradientTime
 
   double precision function fixedHEOverdensityNonLinear(self,node)
-    !% Return the environment of the given {\normalfont \ttfamily node}.
+    !!{
+    Return the environment of the given {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(haloEnvironmentFixed), intent(inout) :: self
@@ -209,7 +239,9 @@ contains
   end function fixedHEOverdensityNonLinear
 
   double precision function fixedHEEnvironmentRadius(self)
-    !% Return the radius of the environment.
+    !!{
+    Return the radius of the environment.
+    !!}
     implicit none
     class(haloEnvironmentFixed), intent(inout) :: self
 
@@ -218,7 +250,9 @@ contains
   end function fixedHEEnvironmentRadius
 
   double precision function fixedHEEnvironmentMass(self)
-    !% Return the mass of the environment.
+    !!{
+    Return the mass of the environment.
+    !!}
     implicit none
     class(haloEnvironmentFixed), intent(inout) :: self
 
@@ -227,7 +261,9 @@ contains
   end function fixedHEEnvironmentMass
 
   double precision function fixedHEOverdensityLinearMaximum(self)
-    !% Return the maximum overdensity for which the \gls{pdf} is non-zero.
+    !!{
+    Return the maximum overdensity for which the \gls{pdf} is non-zero.
+    !!}
     implicit none
     class(haloEnvironmentFixed), intent(inout) :: self
 
@@ -236,7 +272,9 @@ contains
   end function fixedHEOverdensityLinearMaximum
 
   double precision function fixedHEPDF(self,overdensity)
-    !% Return the PDF of the environmental overdensity.
+    !!{
+    Return the PDF of the environmental overdensity.
+    !!}
     implicit none
     class           (haloEnvironmentFixed), intent(inout) :: self
     double precision                      , intent(in   ) :: overdensity
@@ -248,7 +286,9 @@ contains
   end function fixedHEPDF
 
   double precision function fixedHECDF(self,overdensity)
-    !% Return the CDF of the environmental overdensity.
+    !!{
+    Return the CDF of the environmental overdensity.
+    !!}
     implicit none
     class           (haloEnvironmentFixed), intent(inout) :: self
     double precision                      , intent(in   ) :: overdensity
@@ -263,7 +303,9 @@ contains
   end function fixedHECDF
 
   subroutine fixedHEOverdensityLinearSet(self,node,overdensity)
-    !% Set the overdensity of the environmental overdensity.
+    !!{
+    Set the overdensity of the environmental overdensity.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (haloEnvironmentFixed), intent(inout) :: self

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a standard stellar population class.
+  !!{
+  Implements a standard stellar population class.
+  !!}
 
   use :: Numerical_Interpolation                   , only : interpolator
   use :: Stellar_Astrophysics                      , only : stellarAstrophysics     , stellarAstrophysicsClass
@@ -27,14 +29,18 @@
   use :: Supernovae_Type_Ia                        , only : supernovaeTypeIa        , supernovaeTypeIaClass
 
   abstract interface
-     !% Interface for stellar population property integrands.
+     !!{
+     Interface for stellar population property integrands.
+     !!}
      double precision function integrandTemplate(massInitial)
        double precision, intent(in   ) :: massInitial
      end function integrandTemplate
   end interface
 
   type :: populationTable
-     !% Table used to store properties of the stellar population as a function of age and metallicity.
+     !!{
+     Table used to store properties of the stellar population as a function of age and metallicity.
+     !!}
      type            (varying_string   )                              :: label
      procedure       (integrandTemplate), pointer    , nopass         :: integrand
      double precision                   , allocatable, dimension(:  ) :: age              , metallicity
@@ -45,15 +51,21 @@
   end type populationTable
 
   interface populationTable
-     !% Constructors for the {\normalfont \ttfamily populationTable} class.
+     !!{
+     Constructors for the {\normalfont \ttfamily populationTable} class.
+     !!}
      module procedure populationTableConstructor
   end interface populationTable
 
-  !# <stellarPopulation name="stellarPopulationStandard">
-  !#  <description>A standard stellar population class.</description>
-  !# </stellarPopulation>
+  !![
+  <stellarPopulation name="stellarPopulationStandard">
+   <description>A standard stellar population class.</description>
+  </stellarPopulation>
+  !!]
   type, extends(stellarPopulationClass) :: stellarPopulationStandard
-     !% A standard stellar population class.
+     !!{
+     A standard stellar population class.
+     !!}
      private
      logical                                                                    :: instantaneousRecyclingApproximation          , metalYieldInitialized, &
           &                                                                        recycledFractionInitialized
@@ -69,10 +81,12 @@
      type            (populationTable              )                            :: energyOutput
      type            (populationTable              ), allocatable, dimension(:) :: yield
    contains
-     !# <methods>
-     !#   <method description="Return true if the star of given initial mass and metallicity has evolved off of the main sequence by the given age." method="starIsEvolved" />
-     !#   <method description="Interpolate in the given property to return the mean rate of production of that property from the stellar population between the given minimum and maximum ages." method="interpolate" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return true if the star of given initial mass and metallicity has evolved off of the main sequence by the given age." method="starIsEvolved" />
+       <method description="Interpolate in the given property to return the mean rate of production of that property from the stellar population between the given minimum and maximum ages." method="interpolate" />
+     </methods>
+     !!]
      final     ::                                  standardDestructor
      procedure :: rateRecycling                 => standardRateRecycling
      procedure :: rateYield                     => standardRateYield
@@ -85,7 +99,9 @@
   end type stellarPopulationStandard
 
   interface stellarPopulationStandard
-     !% Constructors for the {\normalfont \ttfamily standard} stellar population class.
+     !!{
+     Constructors for the {\normalfont \ttfamily standard} stellar population class.
+     !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
   end interface stellarPopulationStandard
@@ -114,20 +130,26 @@
 contains
 
   function populationTableConstructor(label,integrand,toleranceAbsolute,toleranceRelative) result(self)
-    !% Constructor for the {\normalfont \ttfamily standard} stellar population class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily standard} stellar population class which takes a parameter list as input.
+    !!}
     implicit none
     type            (populationTable)                :: self
     character       (len=*          ), intent(in   ) :: label
     double precision                 , external      :: integrand
     double precision                 , intent(in   ) :: toleranceAbsolute, toleranceRelative
-    !# <constructorAssign variables="label, *integrand, toleranceAbsolute, toleranceRelative"/>
+    !![
+    <constructorAssign variables="label, *integrand, toleranceAbsolute, toleranceRelative"/>
+    !!]
 
     self%computed=.false.
     return
   end function populationTableConstructor
 
   function standardConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily standard} stellar population class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily standard} stellar population class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (stellarPopulationStandard    )                :: self
@@ -142,70 +164,74 @@ contains
          &                                                            recycledFraction                   , metalYield
     !$GLC attributes initialized :: self
 
-    !# <inputParameter>
-    !#   <name>instantaneousRecyclingApproximation</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, then use an instantaneous recycling approximation when computing recycling, yield, and energy input rates.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massLongLived</name>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The mass below which stars are assumed to be infinitely long-lived in the instantaneous approximation for stellar evolution.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>ageEffective</name>
-    !#   <defaultValue>13.8d0</defaultValue>
-    !#   <description>The effective age to use for computing SNeIa yield when using the instantaneous stellar evolution approximation.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>recycledFraction</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The recycled fraction to use in the instantaneous stellar evolution approximation. (If not specified it will be computed internally.)</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>metalYield</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The metal yield to use in the instantaneous stellar evolution approximation. (If not specified it will be computed internally.)</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="initialMassFunction"      name="initialMassFunction_"      source="parameters"/>
-    !# <objectBuilder class="stellarAstrophysics"      name="stellarAstrophysics_"      source="parameters"/>
-    !# <objectBuilder class="stellarFeedback"          name="stellarFeedback_"          source="parameters"/>
-    !# <objectBuilder class="supernovaeTypeIa"         name="supernovaeTypeIa_"         source="parameters"/>
-    !# <objectBuilder class="stellarPopulationSpectra" name="stellarPopulationSpectra_" source="parameters"/>
-    !# <conditionalCall>
-    !# <call>
-    !#  self=stellarPopulationStandard(                                                                &amp;
-    !#   &amp;                                                    instantaneousRecyclingApproximation, &amp;
-    !#   &amp;                                                    massLongLived                      , &amp;
-    !#   &amp;                                                    ageEffective                       , &amp;
-    !#   &amp;                          initialMassFunction_     =initialMassFunction_               , &amp;
-    !#   &amp;                          stellarAstrophysics_     =stellarAstrophysics_               , &amp;
-    !#   &amp;                          stellarFeedback_         =stellarFeedback_                   , &amp;
-    !#   &amp;                          supernovaeTypeIa_        =supernovaeTypeIa_                  , &amp;
-    !#   &amp;                          stellarPopulationSpectra_=stellarPopulationSpectra_            &amp;
-    !#   &amp;                          {conditions}                                                   &amp;
-    !#   &amp;                         )
-    !#  </call>
-    !#  <argument name="recycledFraction" value="recycledFraction" parameterPresent="parameters"/>
-    !#  <argument name="metalYield"       value="metalYield"       parameterPresent="parameters"/>
-    !# </conditionalCall>
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="initialMassFunction_"     />
-    !# <objectDestructor name="stellarAstrophysics_"     />
-    !# <objectDestructor name="stellarFeedback_"         />
-    !# <objectDestructor name="supernovaeTypeIa_"        />
-    !# <objectDestructor name="stellarPopulationSpectra_"/>
+    !![
+    <inputParameter>
+      <name>instantaneousRecyclingApproximation</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, then use an instantaneous recycling approximation when computing recycling, yield, and energy input rates.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massLongLived</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The mass below which stars are assumed to be infinitely long-lived in the instantaneous approximation for stellar evolution.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>ageEffective</name>
+      <defaultValue>13.8d0</defaultValue>
+      <description>The effective age to use for computing SNeIa yield when using the instantaneous stellar evolution approximation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>recycledFraction</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The recycled fraction to use in the instantaneous stellar evolution approximation. (If not specified it will be computed internally.)</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>metalYield</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The metal yield to use in the instantaneous stellar evolution approximation. (If not specified it will be computed internally.)</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="initialMassFunction"      name="initialMassFunction_"      source="parameters"/>
+    <objectBuilder class="stellarAstrophysics"      name="stellarAstrophysics_"      source="parameters"/>
+    <objectBuilder class="stellarFeedback"          name="stellarFeedback_"          source="parameters"/>
+    <objectBuilder class="supernovaeTypeIa"         name="supernovaeTypeIa_"         source="parameters"/>
+    <objectBuilder class="stellarPopulationSpectra" name="stellarPopulationSpectra_" source="parameters"/>
+    <conditionalCall>
+    <call>
+     self=stellarPopulationStandard(                                                                &amp;
+      &amp;                                                    instantaneousRecyclingApproximation, &amp;
+      &amp;                                                    massLongLived                      , &amp;
+      &amp;                                                    ageEffective                       , &amp;
+      &amp;                          initialMassFunction_     =initialMassFunction_               , &amp;
+      &amp;                          stellarAstrophysics_     =stellarAstrophysics_               , &amp;
+      &amp;                          stellarFeedback_         =stellarFeedback_                   , &amp;
+      &amp;                          supernovaeTypeIa_        =supernovaeTypeIa_                  , &amp;
+      &amp;                          stellarPopulationSpectra_=stellarPopulationSpectra_            &amp;
+      &amp;                          {conditions}                                                   &amp;
+      &amp;                         )
+     </call>
+     <argument name="recycledFraction" value="recycledFraction" parameterPresent="parameters"/>
+     <argument name="metalYield"       value="metalYield"       parameterPresent="parameters"/>
+    </conditionalCall>
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="initialMassFunction_"     />
+    <objectDestructor name="stellarAstrophysics_"     />
+    <objectDestructor name="stellarFeedback_"         />
+    <objectDestructor name="supernovaeTypeIa_"        />
+    <objectDestructor name="stellarPopulationSpectra_"/>
+    !!]
     return
   end function standardConstructorParameters
 
   function standardConstructorInternal(instantaneousRecyclingApproximation,massLongLived,ageEffective,recycledFraction,metalYield,initialMassFunction_,stellarAstrophysics_,stellarFeedback_,supernovaeTypeIa_,stellarPopulationSpectra_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily standard} stellar population.
-    use :: Abundances_Structure, only : Abundances_Property_Count, Abundances_Names
+    !!{
+    Internal constructor for the {\normalfont \ttfamily standard} stellar population.
+    !!}
+    use :: Abundances_Structure, only : Abundances_Names, Abundances_Property_Count
     implicit none
     type            (stellarPopulationStandard    )                          :: self
     logical                                        , intent(in   )           :: instantaneousRecyclingApproximation
@@ -217,7 +243,9 @@ contains
     class           (supernovaeTypeIaClass        ), intent(in   ), target   :: supernovaeTypeIa_
     class           (stellarPopulationSpectraClass), intent(in   ), target   :: stellarPopulationSpectra_
     integer                                                                  :: i                                  , countElements
-    !# <constructorAssign variables="instantaneousRecyclingApproximation, massLongLived, ageEffective, *initialMassFunction_, *stellarAstrophysics_, *stellarFeedback_, *supernovaeTypeIa_, *stellarPopulationSpectra_"/>
+    !![
+    <constructorAssign variables="instantaneousRecyclingApproximation, massLongLived, ageEffective, *initialMassFunction_, *stellarAstrophysics_, *stellarFeedback_, *supernovaeTypeIa_, *stellarPopulationSpectra_"/>
+    !!]
 
     self%recycledFractionInitialized=present(recycledFraction)
     self%metalYieldInitialized      =present(metalYield      )
@@ -246,22 +274,28 @@ contains
   end function standardConstructorInternal
 
   subroutine standardDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily standard} stellar population class.
+    !!{
+    Destructor for the {\normalfont \ttfamily standard} stellar population class.
+    !!}
     implicit none
     type(stellarPopulationStandard), intent(inout) :: self
 
-    !# <objectDestructor name="self%initialMassFunction_"     />
-    !# <objectDestructor name="self%stellarAstrophysics_"     />
-    !# <objectDestructor name="self%stellarFeedback_"         />
-    !# <objectDestructor name="self%supernovaeTypeIa_"        />
-    !# <objectDestructor name="self%stellarPopulationSpectra_"/>
+    !![
+    <objectDestructor name="self%initialMassFunction_"     />
+    <objectDestructor name="self%stellarAstrophysics_"     />
+    <objectDestructor name="self%stellarFeedback_"         />
+    <objectDestructor name="self%supernovaeTypeIa_"        />
+    <objectDestructor name="self%stellarPopulationSpectra_"/>
+    !!]
     return
   end subroutine standardDestructor
 
   double precision function standardRateRecycling(self,abundances_,ageMinimum,ageMaximum)
-    !% Return the rate at which mass is being recycled from this stellar population. The mean recycling rate (i.e. the fraction of
-    !% the population's mass returned to the \gls{ism} per Gyr) is computed between the given {\normalfont \ttfamily ageMinimum}
-    !% and {\normalfont \ttfamily ageMaximum} (in Gyr).
+    !!{
+    Return the rate at which mass is being recycled from this stellar population. The mean recycling rate (i.e. the fraction of
+    the population's mass returned to the \gls{ism} per Gyr) is computed between the given {\normalfont \ttfamily ageMinimum}
+    and {\normalfont \ttfamily ageMaximum} (in Gyr).
+    !!}
     implicit none
     class           (stellarPopulationStandard), intent(inout) :: self
     double precision                           , intent(in   ) :: ageMinimum , ageMaximum
@@ -272,16 +306,20 @@ contains
   end function standardRateRecycling
 
   double precision function standardRateYield(self,abundances_,ageMinimum,ageMaximum,elementIndex)
-    !% Return the rate at which mass is being recycled from this stellar population. The mean recycling rate (i.e. the fraction of
-    !% the population's mass returned to the \gls{ism} per Gyr) is computed between the given {\normalfont \ttfamily ageMinimum}
-    !% and {\normalfont \ttfamily ageMaximum} (in Gyr).
+    !!{
+    Return the rate at which mass is being recycled from this stellar population. The mean recycling rate (i.e. the fraction of
+    the population's mass returned to the \gls{ism} per Gyr) is computed between the given {\normalfont \ttfamily ageMinimum}
+    and {\normalfont \ttfamily ageMaximum} (in Gyr).
+    !!}
     use :: Abundances_Structure, only : Abundances_Atomic_Index
     implicit none
     class           (stellarPopulationStandard), intent(inout)           :: self
     double precision                           , intent(in   )           :: ageMinimum  , ageMaximum
     type            (abundances               ), intent(in   )           :: abundances_
     integer                                    , intent(in   ), optional :: elementIndex
-    !# <optionalArgument name="elementIndex" defaultsTo="1"/>
+    !![
+    <optionalArgument name="elementIndex" defaultsTo="1"/>
+    !!]
 
     standardElementIndex=Abundances_Atomic_Index(elementIndex_)
     standardRateYield   =self%interpolate(abundances_,ageMinimum,ageMaximum,self%yield(elementIndex_))
@@ -289,9 +327,11 @@ contains
   end function standardRateYield
 
   double precision function standardRateEnergy(self,abundances_,ageMinimum,ageMaximum)
-    !% Return the rate at which energy is being output by this stellar population in (km/s)$^2$ Gyr$^{-1}$. The mean energy output
-    !% rate per Gyr is computed between the given {\normalfont \ttfamily ageMinimum} and {\normalfont \ttfamily ageMaximum} (in
-    !% Gyr).
+    !!{
+    Return the rate at which energy is being output by this stellar population in (km/s)$^2$ Gyr$^{-1}$. The mean energy output
+    rate per Gyr is computed between the given {\normalfont \ttfamily ageMinimum} and {\normalfont \ttfamily ageMaximum} (in
+    Gyr).
+    !!}
     implicit none
     class           (stellarPopulationStandard), intent(inout) :: self
     double precision                           , intent(in   ) :: ageMinimum , ageMaximum
@@ -302,15 +342,17 @@ contains
   end function standardRateEnergy
 
   double precision function standardInterpolate(self,abundances_,ageMinimum,ageMaximum,property)
-    !% Return the rate at which at cumulative property is being produced from this stellar population. The cumulative property is
-    !% computed on a grid of age and metallicity. This is stored to file and will be read back in on subsequent runs. This is
-    !% useful as computation of the table is relatively slow.
+    !!{
+    Return the rate at which at cumulative property is being produced from this stellar population. The cumulative property is
+    computed on a grid of age and metallicity. This is stored to file and will be read back in on subsequent runs. This is
+    useful as computation of the table is relatively slow.
+    !!}
     use            :: Abundances_Structure            , only : Abundances_Get_Metallicity
     use            :: Dates_and_Times                 , only : Formatted_Date_and_Time
-    use            :: File_Utilities                  , only : Directory_Make                   , File_Exists                        , File_Lock                , File_Unlock                , &
-          &                                                    File_Path                        , lockDescriptor
-    use            :: Galacticus_Display              , only : Galacticus_Display_Counter       , Galacticus_Display_Counter_Clear   , Galacticus_Display_Indent, Galacticus_Display_Unindent, &
-         &                                                     verbosityWorking
+    use            :: Display                         , only : displayCounter                   , displayCounterClear , displayIndent, displayUnindent, &
+          &                                                    verbosityLevelWorking
+    use            :: File_Utilities                  , only : Directory_Make                   , File_Exists         , File_Lock    , File_Path      , &
+          &                                                    File_Unlock                      , lockDescriptor
     use            :: Galacticus_Error                , only : Galacticus_Error_Report
     use            :: Galacticus_Paths                , only : galacticusPath                   , pathTypeDataDynamic
     use            :: IO_HDF5                         , only : hdf5Access                       , hdf5Object
@@ -352,14 +394,14 @@ contains
        call File_Lock(char(fileName),lock,lockIsShared=.false.)
        if (File_Exists(fileName)) then
           ! Open the file containing cumulative property data.
-          call Galacticus_Display_Indent('Reading file: '//fileName,verbosityWorking)
+          call displayIndent('Reading file: '//fileName,verbosityLevelWorking)
           !$ call hdf5Access%set()
           call file%openFile(char(fileName))
           call file%readAttribute('fileFormat',fileFormat)
           if (fileFormat /= standardFileFormatCurrent) then
              makeFile=.true.
              call file%close()
-             call Galacticus_Display_Unindent('done',verbosityWorking)
+             call displayUnindent('done',verbosityLevelWorking)
           end if
           !$ call hdf5Access%unset()
        else
@@ -373,7 +415,7 @@ contains
           call file%readDataset(char(property%label),property%property   )
           call file%close      (                                         )
           call hdf5Access%unset()
-          call Galacticus_Display_Unindent('done',verbosityWorking)
+          call displayUnindent('done',verbosityLevelWorking)
        else
           call allocateArray(property%age        ,[standardTableAgeCount                              ])
           call allocateArray(property%metallicity,[                      standardTableMetallicityCount])
@@ -383,7 +425,7 @@ contains
           property%age                                         =Make_Range(standardTableAgeMinimum        ,standardTableAgeMaximum        ,standardTableAgeCount          ,rangeType=rangeTypeLogarithmic)
           ! Open file to output the data to.
           descriptor=inputParameters()
-          call self%descriptor(descriptor,includeMethod=.true.)
+          call self%descriptor(descriptor,includeClass=.true.)
           descriptorString=descriptor%serializeToString()
           call hdf5Access%set()
           call file%openFile(char(fileName))
@@ -400,8 +442,8 @@ contains
           call dataset%close()
           call hdf5Access%unset()
           ! Loop over ages and metallicities and compute the property.
-          call Galacticus_Display_Indent('Tabulating property: '//char(property%label),verbosityWorking)
-          call Galacticus_Display_Counter(0,.true.,verbosityWorking)
+          call displayIndent('Tabulating property: '//char(property%label),verbosityLevelWorking)
+          call displayCounter(0,.true.,verbosityLevelWorking)
           loopCountTotal=  +standardTableMetallicityCount &
                &           *standardTableAgeCount
           loopCount     =   0
@@ -412,11 +454,14 @@ contains
           allocate(standardStellarFeedback_    ,mold=self%stellarFeedback_    )
           allocate(standardSupernovaeTypeIa_   ,mold=self%supernovaeTypeIa_   )
           !$omp critical(stellarPopulationsStandardDeepCopy)
-          !# <deepCopyReset variables="self%stellarAstrophysics_ self%initialMassFunction_ self%stellarFeedback_ self%supernovaeTypeIa_"/>
-          !# <deepCopy source="self%stellarAstrophysics_" destination="standardStellarAstrophysics_"/>
-          !# <deepCopy source="self%initialMassFunction_" destination="standardInitialMassFunction_"/>
-          !# <deepCopy source="self%stellarFeedback_"     destination="standardStellarFeedback_"    />
-          !# <deepCopy source="self%supernovaeTypeIa_"    destination="standardSupernovaeTypeIa_"   />
+          !![
+          <deepCopyReset variables="self%stellarAstrophysics_ self%initialMassFunction_ self%stellarFeedback_ self%supernovaeTypeIa_"/>
+          <deepCopy source="self%stellarAstrophysics_" destination="standardStellarAstrophysics_"/>
+          <deepCopy source="self%initialMassFunction_" destination="standardInitialMassFunction_"/>
+          <deepCopy source="self%stellarFeedback_"     destination="standardStellarFeedback_"    />
+          <deepCopy source="self%supernovaeTypeIa_"    destination="standardSupernovaeTypeIa_"   />
+          <deepCopyFinalize variables="standardStellarAstrophysics_ standardInitialMassFunction_ standardStellarFeedback_ standardSupernovaeTypeIa_"/>
+          !!]
           !$omp end critical(stellarPopulationsStandardDeepCopy)
           call integrator_%initialize  (24                        ,61                        )
           call integrator_%toleranceSet(property%toleranceAbsolute,property%toleranceRelative)
@@ -440,10 +485,10 @@ contains
              ! Update the counter.
              !$omp atomic
              loopCount=loopCount+1
-             call Galacticus_Display_Counter(                                                   &
+             call displayCounter(                                                   &
                   &                          int(100.0d0*dble(loopCount)/dble(loopCountTotal)), &
                   &                          .false.                                          , &
-                  &                          verbosityWorking                                   &
+                  &                          verbosityLevelWorking                                   &
                   &                         )
           end do
           !$omp end do
@@ -464,8 +509,8 @@ contains
                      &       )
              end do
           end do
-          call Galacticus_Display_Counter_Clear(           verbosityWorking)
-          call Galacticus_Display_Unindent     ('finished',verbosityWorking)
+          call displayCounterClear(           verbosityLevelWorking)
+          call displayUnindent     ('finished',verbosityLevelWorking)
           call hdf5Access%set()
           call file%writeDataset(property%property,char(property%label))
           call file%close()
@@ -510,7 +555,9 @@ contains
   end function standardInterpolate
 
   double precision function standardIntegrandRecycledFraction(massInitial)
-    !% Integrand used in evaluating recycled fractions.
+    !!{
+    Integrand used in evaluating recycled fractions.
+    !!}
     implicit none
     double precision, intent(in   ) :: massInitial
 
@@ -524,7 +571,9 @@ contains
   end function standardIntegrandRecycledFraction
 
   double precision function standardIntegrandYield(massInitial)
-    !% Integrand used in evaluating metal yields.
+    !!{
+    Integrand used in evaluating metal yields.
+    !!}
     implicit none
     double precision                          , intent(in   ) :: massInitial
     double precision                                          :: sneIaLifetime       , yieldMass
@@ -566,7 +615,9 @@ contains
   end function standardIntegrandYield
 
   double precision function standardIntegrandEnergyOutput(massInitial)
-    !% Integrand used in evaluating energy output.
+    !!{
+    Integrand used in evaluating energy output.
+    !!}
     implicit none
     double precision, intent(in   ) :: massInitial
     double precision                :: lifetime
@@ -590,7 +641,9 @@ contains
   end function standardIntegrandEnergyOutput
 
   logical function standardStarIsEvolved(self,massInitial,metallicity,age)
-    !% Returns true if the specified star is evolved by the given {\normalfont \ttfamily age}.
+    !!{
+    Returns true if the specified star is evolved by the given {\normalfont \ttfamily age}.
+    !!}
     implicit none
     class          (stellarPopulationStandard), intent(inout) :: self
     double precision                          , intent(in   ) :: age        , massInitial, &
@@ -607,7 +660,9 @@ contains
   end function standardStarIsEvolved
 
   double precision function standardRecycledFractionInstantaneous(self)
-    !% Return the recycled fraction from the stellar population in the instantaneous approximation.
+    !!{
+    Return the recycled fraction from the stellar population in the instantaneous approximation.
+    !!}
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
     class(stellarPopulationStandard), intent(inout) :: self
@@ -623,7 +678,9 @@ contains
   end function standardRecycledFractionInstantaneous
 
   double precision function standardYieldInstantaneous(self)
-    !% Return the metal yield from the stellar population in the instantaneous approximation.
+    !!{
+    Return the metal yield from the stellar population in the instantaneous approximation.
+    !!}
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
     class(stellarPopulationStandard), intent(inout) :: self
@@ -638,13 +695,17 @@ contains
     return
   end function standardYieldInstantaneous
 
-  !# <workaround type="gfortran" PR="93422" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=93422">
-  !#  <description>
-  !#   If the function name is used as the result variable, instead of using "result(spectra)", this PR is triggered.
-  !#  </description>
-  !# </workaround>
+  !![
+  <workaround type="gfortran" PR="93422" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=93422">
+   <description>
+    If the function name is used as the result variable, instead of using "result(spectra)", this PR is triggered.
+   </description>
+  </workaround>
+  !!]
   function standardSpectra(self) result(spectra)
-    !% Return the stellar spectra associated with this population.
+    !!{
+    Return the stellar spectra associated with this population.
+    !!}
     implicit none
     class(stellarPopulationSpectraClass), pointer       :: spectra
     class(stellarPopulationStandard    ), intent(inout) :: self

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,32 +19,42 @@
 
 !+    Contributions to this file made by:  Markus Haider.
 
-  !% Implements a satellite merging timescale class in which merging timescales are always infinite.
+  !!{
+  Implements a satellite merging timescale class in which merging timescales are always infinite.
+  !!}
 
-  !# <satelliteMergingTimescales name="satelliteMergingTimescalesInfinite">
-  !#  <description>
-  !#   A satellite merging timescale class which always gives an infinite timescale for merging (technically, it returns a value
-  !#   close to the largest representable double precision floating point number which should be sufficiently close to infinity
-  !#   for practical purposes).
-  !#  </description>
-  !# </satelliteMergingTimescales>
+  !![
+  <satelliteMergingTimescales name="satelliteMergingTimescalesInfinite">
+   <description>
+    A satellite merging timescale class which always gives an infinite timescale for merging (technically, it returns a value
+    close to the largest representable double precision floating point number which should be sufficiently close to infinity
+    for practical purposes).
+   </description>
+  </satelliteMergingTimescales>
+  !!]
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesInfinite
-     !% A class implementing satellite merging timescales that are always infinite.
+     !!{
+     A class implementing satellite merging timescales that are always infinite.
+     !!}
      private
    contains
      procedure :: timeUntilMerging => infiniteTimeUntilMerging
   end type satelliteMergingTimescalesInfinite
 
   interface satelliteMergingTimescalesInfinite
-     !% Constructors for the {\normalfont \ttfamily infinite} satellite merging timescale class.
+     !!{
+     Constructors for the {\normalfont \ttfamily infinite} satellite merging timescale class.
+     !!}
      module procedure infiniteConstructorParameters
   end interface satelliteMergingTimescalesInfinite
 
 contains
 
   function infiniteConstructorParameters(parameters) result(self)
-    !% A constructor for the {\normalfont \ttfamily infinite} satellite merging timescale class which builds the object from a
-    !% parameter set.
+    !!{
+    A constructor for the {\normalfont \ttfamily infinite} satellite merging timescale class which builds the object from a
+    parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(satelliteMergingTimescalesInfinite)                :: self
@@ -56,7 +66,9 @@ contains
   end function infiniteConstructorParameters
 
   double precision function infiniteTimeUntilMerging(self,node,orbit)
-    !% Return a infinite timescale for satellite merging.
+    !!{
+    Return a infinite timescale for satellite merging.
+    !!}
     implicit none
     class(satelliteMergingTimescalesInfinite), intent(inout) :: self
     type (treeNode                          ), intent(inout) :: node

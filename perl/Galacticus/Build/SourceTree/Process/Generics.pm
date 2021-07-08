@@ -7,7 +7,6 @@ use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
 use XML::Simple;
-use LaTeX::Encode;
 use Storable qw(dclone);
 use Scalar::Util qw(reftype);
 use List::ExtraUtils;
@@ -52,8 +51,9 @@ sub Process_Generics {
 				# Replace generic tags in opener, closer, and name.
 				foreach my $element ( 'opener', 'closer', 'name' ) {
 				    if ( exists($copyNode->{$element}) ) {
-					$copyNode->{$element} = &ReplaceGeneric($copyNode->{$element},$node->{'directive'}->{'identifier'},$instance,$_)
+					$copyNode->{$element} = &ReplaceGeneric           ($copyNode->{$element},$node->{'directive'}->{'identifier'},$instance,$_)
 					    foreach ( keys(%{$instance}) );
+					$copyNode->{$element} = &ReplaceGenericConditional($copyNode->{$element},$node->{'directive'}->{'identifier'},$instance   );
 				    }
 				}
 				# Replace generic tags in code.
@@ -61,11 +61,12 @@ sub Process_Generics {
 				    my $newCode;
 				    open(my $code,"<",\$copyNode->{'content'});
 				    while ( my $line = <$code> ) {
-					$line = &ReplaceGeneric($line,$node->{'directive'}->{'identifier'},$instance,$_)
+					$line = &ReplaceGeneric           ($line,$node->{'directive'}->{'identifier'},$instance,$_)
 					    foreach ( keys(%{$instance}) );
+					$line = &ReplaceGenericConditional($line,$node->{'directive'}->{'identifier'},$instance   );
 					$newCode .= $line;
 				    }
-				    close($code);				    
+				    close($code);
 				    $copyNode->{'content'} = $newCode;
 				    # Check if the code is part of a variable declaration.
 				    if ( $copyNode->{'parent'}->{'type'} eq "declaration" ) {
@@ -80,8 +81,10 @@ sub Process_Generics {
 				# Move to the next node in the copied tree.
 				$copyNode = &Galacticus::Build::SourceTree::Walk_Tree($copyNode,\$copyDepth);
 			    }
+			    # Reparse the new content.
+			    my $copyReparsed = &Galacticus::Build::SourceTree::ParseCode(&Galacticus::Build::SourceTree::Serialize($copy),$tree->{'name'}, instrument => 0 ,reinstateBlocks => 1);
 			    # Push copy to list of copies.
-			    push(@copies,$copy);
+			    push(@copies,$copyReparsed);
 			}
 			# Replace the subtree with the array of copies.
 			&Galacticus::Build::SourceTree::ReplaceNode($subTreeNode->{'node'},\@copies);
@@ -112,8 +115,9 @@ sub Process_Generics {
 				    # Iterate over instances.
 				    foreach my $instance ( &List::ExtraUtils::as_array($node->{'directive'}->{'instance'}) ) {
 					my $copiedLine = $line;
-					$copiedLine = &ReplaceGeneric($copiedLine,$node->{'directive'}->{'identifier'},$instance,$_)
+					$copiedLine = &ReplaceGeneric           ($copiedLine,$node->{'directive'}->{'identifier'},$instance,$_)
 					    foreach ( keys(%{$instance}) );
+					$copiedLine = &ReplaceGenericConditional($copiedLine,$node->{'directive'}->{'identifier'},$instance   );
 					$newCode .= $copiedLine;
 				    }
 				} else {
@@ -156,6 +160,15 @@ sub ReplaceGeneric {
     } else {
 	$line      =~ s/\{$identifier(¦$modifier)?\}/$instance->{$modifier}/g;
     }
+    # Return the modified line.   
+    return $line;
+}
+
+sub ReplaceGenericConditional {
+    # Replace a generic conditional directive.
+    my $line       = shift();
+    my $identifier = shift();
+    my $instance   = shift();
     # Replace any inline conditionals.
     while ( $line =~ m/\{$identifier¦match¦([^¦]*)¦([^¦]*)¦([^¦]*)\}/ ) {
 	my $instanceRegEx = qr/$1/;

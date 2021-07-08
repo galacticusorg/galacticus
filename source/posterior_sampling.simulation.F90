@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,22 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a class of posterior sampling simulators.
+!!{
+Contains a module which implements a class of posterior sampling simulators.
+!!}
 
 module Posterior_Sampling_Simulation
-  !% Implements a class of posterior sampling simulators.
+  !!{
+  Implements a class of posterior sampling simulators.
+  !!}
   private
 
-  !# <functionClass>
-  !#  <name>posteriorSampleSimulation</name>
-  !#  <descriptiveName>Posterior Sampling Simulations</descriptiveName>
-  !#  <description>Class providing simulators for posterior sampling.</description>
-  !#  <default>differentialEvolution</default>
-  !#  <method name="simulate" >
-  !#   <description>Perform the simulation.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>posteriorSampleSimulation</name>
+   <descriptiveName>Posterior Sampling Simulations</descriptiveName>
+   <description>Class providing simulators for posterior sampling.</description>
+   <default>differentialEvolution</default>
+   <method name="simulate" >
+    <description>Perform the simulation.</description>
+    <type>void</type>
+    <pass>yes</pass>
+   </method>
+  </functionClass>
+  !!]
 
 end module Posterior_Sampling_Simulation

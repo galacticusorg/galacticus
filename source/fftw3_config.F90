@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,10 +20,10 @@
 ! Exclude from "make all".
 !/ exclude
 
-!% Contains a test code used to see if FFTW3 is available.
+! Contains a test code used to see if FFTW3 is available.
 
 program fftw3_config
-  !% Test code used to see if FFTW3 is available.
+  ! Test code used to see if FFTW3 is available.
   use, intrinsic :: ISO_C_Binding, only : c_ptr           , c_int     , c_funptr, c_float        , &
        &                                  c_double        , c_int32_t , c_size_t, c_float_complex, &
        &                                  c_double_complex, c_intptr_t, c_char

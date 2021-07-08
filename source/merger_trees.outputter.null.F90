@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,28 +17,39 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a merger trees outputter class which does no output.
+  !!{
+  Implements a merger trees outputter class which does no output.
+  !!}
 
-  !# <mergerTreeOutputter name="mergerTreeOutputterNull">
-  !#  <description>A merger tree outputter which does no output.</description>
-  !# </mergerTreeOutputter>
+  !![
+  <mergerTreeOutputter name="mergerTreeOutputterNull">
+   <description>A merger tree outputter which does no output.</description>
+  </mergerTreeOutputter>
+  !!]
   type, extends(mergerTreeOutputterClass) :: mergerTreeOutputterNull
-     !% Implementation of a merger tree outputter which does no output.
+     !!{
+     Implementation of a merger tree outputter which does no output.
+     !!}
      private
    contains
-     procedure :: output   => nullOutput
-     procedure :: finalize => nullFinalize
+     procedure :: outputTree => nullOutputTree
+     procedure :: outputNode => nullOutputNode
+     procedure :: finalize   => nullFinalize
   end type mergerTreeOutputterNull
 
   interface mergerTreeOutputterNull
-     !% Constructors for the {\normalfont \ttfamily null} merger tree outputter.
+     !!{
+     Constructors for the {\normalfont \ttfamily null} merger tree outputter.
+     !!}
      module procedure nullConstructorParameters
   end interface mergerTreeOutputterNull
 
 contains
 
   function nullConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily null} merger tree outputter class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily null} merger tree outputter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeOutputterNull)                :: self
@@ -49,21 +60,37 @@ contains
     return
   end function nullConstructorParameters
 
-  subroutine nullOutput(self,tree,indexOutput,time,isLastOutput)
-    !% Perform no output.
+  subroutine nullOutputTree(self,tree,indexOutput,time)
+    !!{
+    Perform no output.
+    !!}
     implicit none
-    class           (mergerTreeOutputterNull), intent(inout)           :: self
-    type            (mergerTree             ), intent(inout), target   :: tree
-    integer         (c_size_t               ), intent(in   )           :: indexOutput
-    double precision                         , intent(in   )           :: time
-    logical                                  , intent(in   ), optional :: isLastOutput
-    !$GLC attributes unused :: self, tree, indexOutput, time, isLastOutput
+    class           (mergerTreeOutputterNull), intent(inout)         :: self
+    type            (mergerTree             ), intent(inout), target :: tree
+    integer         (c_size_t               ), intent(in   )         :: indexOutput
+    double precision                         , intent(in   )         :: time
+    !$GLC attributes unused :: self, tree, indexOutput, time
 
     return
-  end subroutine nullOutput
+  end subroutine nullOutputTree
+
+  subroutine nullOutputNode(self,node,indexOutput)
+    !!{
+    Perform no output.
+    !!}
+    implicit none
+    class           (mergerTreeOutputterNull), intent(inout) :: self
+    type            (treeNode               ), intent(inout) :: node
+    integer         (c_size_t               ), intent(in   ) :: indexOutput
+    !$GLC attributes unused :: self, node, indexOutput
+
+    return
+  end subroutine nullOutputNode
 
   subroutine nullFinalize(self)
-    !% Finalize merger tree output.
+    !!{
+    Finalize merger tree output.
+    !!}
     implicit none
     class(mergerTreeOutputterNull), intent(inout) :: self
     !$GLC attributes unused :: self

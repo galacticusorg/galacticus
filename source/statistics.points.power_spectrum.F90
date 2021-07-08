@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which computes power spectra from point distributions.
+!!{
+Contains a module which computes power spectra from point distributions.
+!!}
 
 module Statistics_Points_Power_Spectra
-  !% Compute power spectra from point distributions.
+  !!{
+  Compute power spectra from point distributions.
+  !!}
   private
   public :: Statistics_Points_Power_Spectrum
 
 contains
 
   subroutine Statistics_Points_Power_Spectrum(dataPosition,boxLength,wavenumberMinimum,wavenumberMaximum,wavenumberCount,wavenumber,powerSpectrum)
-    !% Compute the power spectrum from a set of points in a periodic cube.
-    use            :: FFTW3                   , only : fftw_plan_dft_3d          , FFTW_FORWARD        , FFTW_ESTIMATE, fftw_execute_dft, &
-         &                                             fftw_destroy_plan         , FFTW_Wavenumber
-    use            :: Galacticus_Display      , only : Galacticus_Display_Message
+    !!{
+    Compute the power spectrum from a set of points in a periodic cube.
+    !!}
+    use            :: Display                 , only : displayMessage
+    use            :: FFTW3                   , only : FFTW_ESTIMATE          , FFTW_FORWARD        , FFTW_Wavenumber, fftw_destroy_plan, &
+          &                                            fftw_execute_dft       , fftw_plan_dft_3d
     use            :: Galacticus_Error        , only : Galacticus_Error_Report
-    use, intrinsic :: ISO_C_Binding           , only : c_double_complex          , c_ptr
+    use, intrinsic :: ISO_C_Binding           , only : c_double_complex       , c_ptr
     use            :: ISO_Varying_String      , only : varying_string
-    use            :: Memory_Management       , only : allocateArray             , deallocateArray
-    use            :: Meshes                  , only : Meshes_Apply_Point        , cloudTypePoint
+    use            :: Memory_Management       , only : allocateArray          , deallocateArray
+    use            :: Meshes                  , only : Meshes_Apply_Point     , cloudTypePoint
     use            :: Numerical_Constants_Math, only : Pi
-    use            :: Numerical_Ranges        , only : Make_Range                , rangeTypeLogarithmic
+    use            :: Numerical_Ranges        , only : Make_Range             , rangeTypeLogarithmic
     use            :: String_Handling         , only : operator(//)
     implicit none
     double precision                  , intent(in   ), dimension(:,:  )              :: dataPosition
@@ -78,7 +84,7 @@ contains
     gridCount=2**int(log(wavenumberMaximum*boxLength/sqrt(3.0d0)/Pi)/log(2.0d0)+1.0d0)
     message='Constructing power spectrum using grid of '
     message=message//gridCount//"³ cells"
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     allocate(density       (gridCount,gridCount,gridCount))
     allocate(densityFourier(gridCount,gridCount,gridCount))
     density=0.0d0

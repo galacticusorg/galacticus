@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,23 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a transfer function class for fuzzy dark matter using the fitting function of
-  !% \cite{murgia_non-cold_2017}.
+  !!{
+  Contains a module which implements a transfer function class for fuzzy dark matter using the fitting function of
+  \cite{murgia_non-cold_2017}.
+  !!}
 
   use :: Dark_Matter_Particles, only : darkMatterParticleClass
 
-  !# <transferFunction name="transferFunctionFuzzyDM">
-  !#  <description>A transfer function class for fuzzy dark matter using the fitting function of \cite{murgia_non-cold_2017}.</description>
-  !# </transferFunction>
+  !![
+  <transferFunction name="transferFunctionFuzzyDM">
+   <description>A transfer function class for fuzzy dark matter using the fitting function of \cite{murgia_non-cold_2017}.</description>
+  </transferFunction>
+  !!]
   type, extends(transferFunctionMurgia2017) :: transferFunctionFuzzyDM
-     !% A transfer function class for fuzzy dark matter using the fitting function of \cite{murgia_non-cold_2017}.
+     !!{
+     A transfer function class for fuzzy dark matter using the fitting function of \cite{murgia_non-cold_2017}.
+     !!}
      private
      double precision                                   :: m22
      class           (darkMatterParticleClass), pointer :: darkMatterParticle_ => null()
   end type transferFunctionFuzzyDM
    
   interface transferFunctionFuzzyDM
-     !% Constructors for the {\normalfont \ttfamily fuzzyDM} transfer function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily fuzzyDM} transfer function class.
+     !!}
      module procedure fuzzyDMConstructorParameters
      module procedure fuzzyDMConstructorInternal
   end interface transferFunctionFuzzyDM
@@ -41,7 +49,9 @@
 contains
 
   function fuzzyDMConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily fuzzyDM} transfer function class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily fuzzyDM} transfer function class which takes a parameter set as input.
+    !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions        , cosmologyFunctionsClass
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor
     use :: Input_Parameters              , only : inputParameter            , inputParameters
@@ -56,49 +66,50 @@ contains
          &                                                       redshift
 
     ! Validate parameters.
-    if (.not.parameters%isPresent('transferFunctionMethod')) call Galacticus_Error_Report("an explicit 'transferFunctionMethod' must be given"//{introspection:location})
+    if (.not.parameters%isPresent('transferFunction')) call Galacticus_Error_Report("an explicit 'transferFunction' must be given"//{introspection:location})
     ! Read parameters.
-    !# <inputParameter>
-    !#   <name>beta</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>5.475d0</defaultValue>
-    !#   <defaultSource>\citep[][average of values in Table~4]{murgia_non-cold_2017}</defaultSource>
-    !#   <description>The parameter $\beta$, which controls the shape of the cut-off, appearing in the transfer function \citep{murgia_non-cold_2017}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>gamma</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>-2.0d0</defaultValue>
-    !#   <defaultSource>\citep[][average of values in Table~4]{murgia_non-cold_2017}</defaultSource>
-    !#   <description>The parameter $\gamma$, which controls the shape of the cut-off, appearing in the transfer function \citep{murgia_non-cold_2017}.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
-    !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
-    !# <inputParameter>
-    !#   <name>redshift</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%equalityEpochMatterRadiation(requestTypeExpansionFactor))</defaultValue>
-    !#   <description>The redshift of the epoch at which the transfer function is defined.</description>
-    !#   <type>real</type>
-    !#   <cardinality>1</cardinality>
-    !# </inputParameter>
+
+    !![
+    <inputParameter>
+      <name>beta</name>
+      <source>parameters</source>
+      <defaultValue>5.475d0</defaultValue>
+      <defaultSource>\citep[][average of values in Table~4]{murgia_non-cold_2017}</defaultSource>
+      <description>The parameter $\beta$, which controls the shape of the cut-off, appearing in the transfer function \citep{murgia_non-cold_2017}.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>gamma</name>
+      <source>parameters</source>
+      <defaultValue>-2.0d0</defaultValue>
+      <defaultSource>\citep[][average of values in Table~4]{murgia_non-cold_2017}</defaultSource>
+      <description>The parameter $\gamma$, which controls the shape of the cut-off, appearing in the transfer function \citep{murgia_non-cold_2017}.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="transferFunction"    name="transferFunctionCDM"  source="parameters"/>
+    <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
+    <inputParameter>
+      <name>redshift</name>
+      <source>parameters</source>
+      <defaultValue>cosmologyFunctions_%redshiftFromExpansionFactor(cosmologyFunctions_%equalityEpochMatterRadiation(requestTypeExpansionFactor))</defaultValue>
+      <description>The redshift of the epoch at which the transfer function is defined.</description>
+    </inputParameter>
+    !!]
     self=transferFunctionFuzzyDM(transferFunctionCDM,beta,gamma,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
-    !# <objectDestructor name="transferFunctionCDM" />
-    !# <objectDestructor name="darkMatterParticle_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="transferFunctionCDM" />
+    <objectDestructor name="darkMatterParticle_" />
+    !!]
     return
   end function fuzzyDMConstructorParameters
 
   function fuzzyDMConstructorInternal(transferFunctionCDM,beta,gamma,time,cosmologyParameters_,cosmologyFunctions_,darkMatterParticle_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily fuzzyDM} transfer function class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily fuzzyDM} transfer function class.
+    !!}
     use :: Dark_Matter_Particles       , only : darkMatterParticleFuzzyDarkMatter
     use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
@@ -111,7 +122,9 @@ contains
     class           (darkMatterParticleClass ), target, intent(in   ) :: darkMatterParticle_
     double precision                                                  :: alpha
     double precision                                                  :: wavenumberHalfMode
-    !# <constructorAssign variables="*darkMatterParticle_"/>
+    !![
+    <constructorAssign variables="*darkMatterParticle_"/>
+    !!]
 
     select type (darkMatterParticle__ => self%darkMatterParticle_)
     class is (darkMatterParticleFuzzyDarkMatter)

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,25 +17,35 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a fuzzy dark matter particle class.
+!!{
+Contains a module which implements a fuzzy dark matter particle class.
+!!}
 
-  !# <darkMatterParticle name="darkMatterParticleFuzzyDarkMatter">
-  !#  <description>Provides a fuzzy dark matter particle.</description>
-  !# </darkMatterParticle>
+  !![
+  <darkMatterParticle name="darkMatterParticleFuzzyDarkMatter">
+   <description>Provides a fuzzy dark matter particle.</description>
+  </darkMatterParticle>
+  !!]
   type, extends(darkMatterParticleClass) :: darkMatterParticleFuzzyDarkMatter
-     !% A fuzzy dark matter particle class.
+     !!{
+     A fuzzy dark matter particle class.
+     !!}
      private
      double precision :: massValue, densityFractionValue
    contains
-     !# <methods>
-     !#   <method description="Return the density fraction of the fuzzy dark matter with respect to the total dark matter density." method="densityFraction" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return the density fraction of the fuzzy dark matter with respect to the total dark matter density." method="densityFraction" />
+     </methods>
+     !!]
      procedure :: mass            => fuzzyDMMass
      procedure :: densityFraction => fuzzyDMDensityFraction
   end type darkMatterParticleFuzzyDarkMatter
 
   interface darkMatterParticleFuzzyDarkMatter
-     !% Constructors for the ``{\normalfont \ttfamily fuzzyDarkMatter}'' dark matter particle class.
+     !!{
+     Constructors for the ``{\normalfont \ttfamily fuzzyDarkMatter}'' dark matter particle class.
+     !!}
      module procedure fuzzyDMConstructorParameters
      module procedure fuzzyDMConstructorInternal
   end interface darkMatterParticleFuzzyDarkMatter
@@ -43,34 +53,42 @@
 contains
 
   function fuzzyDMConstructorParameters(parameters) result(self)
-    !% Constructor for the ``{\normalfont \ttfamily fuzzyDarkMatter}'' dark matter particle class which takes a parameter set as input.
+    !!{
+    Constructor for the ``{\normalfont \ttfamily fuzzyDarkMatter}'' dark matter particle class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (darkMatterParticleFuzzyDarkMatter)                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
     double precision                                                   :: massValue , densityFractionValue
 
-    !# <inputParameter>
-    !#   <name>mass</name>
-    !#   <source>parameters</source>
-    !#   <variable>massValue</variable>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The mass (in units of $10^{-22}$~eV) of the fuzzy dark matter particle.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>densityFraction</name>
-    !#   <source>parameters</source>
-    !#   <variable>densityFractionValue</variable>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The density fraction of the fuzzy dark matter with respect to the total dark matter density.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>mass</name>
+      <source>parameters</source>
+      <variable>massValue</variable>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The mass (in units of $10^{-22}$~eV) of the fuzzy dark matter particle.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>densityFraction</name>
+      <source>parameters</source>
+      <variable>densityFractionValue</variable>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The density fraction of the fuzzy dark matter with respect to the total dark matter density.</description>
+    </inputParameter>
+    !!]
     self=darkMatterParticleFuzzyDarkMatter(massValue,densityFractionValue)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function fuzzyDMConstructorParameters
 
   function fuzzyDMConstructorInternal(mass,densityFraction) result(self)
-    !% Internal constructor for the ``{\normalfont \ttfamily fuzzyDarkMatter}'' dark matter particle class.
+    !!{
+    Internal constructor for the ``{\normalfont \ttfamily fuzzyDarkMatter}'' dark matter particle class.
+    !!}
     use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
     type            (darkMatterParticleFuzzyDarkMatter)                   :: self
@@ -84,7 +102,9 @@ contains
   end function fuzzyDMConstructorInternal
 
   double precision function fuzzyDMMass(self)
-    !% Return the mass, in units of keV, of a fuzzy dark matter particle.
+    !!{
+    Return the mass, in units of keV, of a fuzzy dark matter particle.
+    !!}
     implicit none
     class(darkMatterParticleFuzzyDarkMatter), intent(inout) :: self
 
@@ -93,7 +113,9 @@ contains
   end function fuzzyDMMass
 
   double precision function fuzzyDMDensityFraction(self)
-    !% Return the density fraction of the fuzzy dark matter with respect to the total dark matter density.
+    !!{
+    Return the density fraction of the fuzzy dark matter with respect to the total dark matter density.
+    !!}
     implicit none
     class(darkMatterParticleFuzzyDarkMatter), intent(inout) :: self
 

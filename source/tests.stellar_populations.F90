@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test stellar populations.
+!!{
+Contains a program to test stellar populations.
+!!}
 
 program Test_Stellar_Populations
-  !% Tests of stellar populations.
+  !!{
+  Tests of stellar populations.
+  !!}
   use :: Abundances_Structure                      , only : abundances
-  use :: Galacticus_Display                        , only : Galacticus_Verbosity_Level_Set         , verbosityWorking
+  use :: Display                                   , only : displayVerbositySet                    , verbosityLevelWorking
+  use :: Functions_Global_Utilities                , only : Functions_Global_Set
   use :: Galacticus_Paths                          , only : galacticusPath                         , pathTypeDataStatic
-  use :: Input_Parameters                          , only : inputParameters
   use :: ISO_Varying_String                        , only : char
+  use :: Input_Parameters                          , only : inputParameters
+  use :: Node_Components                           , only : Node_Components_Initialize
   use :: Numerical_Constants_Astronomical          , only : metallicitySolar
   use :: Stellar_Astrophysics                      , only : stellarAstrophysics                    , stellarAstrophysicsFile
   use :: Stellar_Astrophysics_Tracks               , only : stellarTracksFile
@@ -52,9 +58,10 @@ program Test_Stellar_Populations
   type            (stellarPopulationSpectraFSPS           )            :: stellarPopulationSpectra_
   double precision                                                     :: recycledMass                   , yieldMetals
 
-  call Galacticus_Verbosity_Level_Set(verbosityWorking)
+  call displayVerbositySet(verbosityLevelWorking)
   parameters=inputParameters()
-  call parameters %markGlobal    (                )
+  call Functions_Global_Set      (          )
+  call Node_Components_Initialize(parameters)
   call abundances_%metallicitySet(metallicitySolar)
   initialMassFunction_     =initialMassFunctionChabrier2001        (                                                                                                                                        &
        &                                                            massLower                          =+0.10d0                                                                                           , &

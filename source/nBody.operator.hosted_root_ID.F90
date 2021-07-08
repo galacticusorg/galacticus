@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements an N-body data operator which determines an ID of the root halo found by following hosts.
+  !!{
+  Contains a module which implements an N-body data operator which determines an ID of the root halo found by following hosts.
+  !!}
 
-  !# <nbodyOperator name="nbodyOperatorHostedRootID">
-  !#  <description>An N-body data operator which determines an ID of the root halo found by following hosts.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorHostedRootID">
+   <description>An N-body data operator which determines an ID of the root halo found by following hosts.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorHostedRootID
-     !% An N-body data operator which determines an ID of the root halo found by following hosts.
+     !!{
+     An N-body data operator which determines an ID of the root halo found by following hosts.
+     !!}
      private
      logical :: missingHalosAreFatal
    contains
@@ -31,7 +37,9 @@
   end type nbodyOperatorHostedRootID
 
   interface nbodyOperatorHostedRootID
-     !% Constructors for the {\normalfont \ttfamily hostedRootID} N-body operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily hostedRootID} N-body operator class.
+     !!}
      module procedure hostedRootIDConstructorParameters
      module procedure hostedRootIDConstructorInternal
   end interface nbodyOperatorHostedRootID
@@ -39,43 +47,55 @@
 contains
 
   function hostedRootIDConstructorParameters(parameters) result (self)
-    !% Constructor for the {\normalfont \ttfamily hostedRootID} N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily hostedRootID} N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type   (nbodyOperatorHostedRootID)                :: self
     type   (inputParameters          ), intent(inout) :: parameters
     logical                                           :: missingHalosAreFatal
 
-    !# <inputParameter>
-    !#   <name>missingHalosAreFatal</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true, if a halo is not found during the search through hosts and descendents then a fatal error occurs. Otherwise, such missing halos are ignored, and a {\normalfont \ttfamily hostedRootID} value of $-1$ is assigned to the particle.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>missingHalosAreFatal</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, if a halo is not found during the search through hosts and descendents then a fatal error occurs. Otherwise, such missing halos are ignored, and a {\normalfont \ttfamily hostedRootID} value of $-1$ is assigned to the particle.</description>
+    </inputParameter>
+    !!]
     self=nbodyOperatorHostedRootID(missingHalosAreFatal)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function hostedRootIDConstructorParameters
 
   function hostedRootIDConstructorInternal(missingHalosAreFatal) result (self)
-    !% Internal constructor for the {\normalfont \ttfamily hostedRootID} N-body operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily hostedRootID} N-body operator class.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type   (nbodyOperatorHostedRootID)                :: self
     logical                           , intent(in   ) :: missingHalosAreFatal
-    !# <constructorAssign variables="missingHalosAreFatal"/>
+    !![
+    <constructorAssign variables="missingHalosAreFatal"/>
+    !!]
     
     return
   end function hostedRootIDConstructorInternal
 
   subroutine hostedRootIDOperate(self,simulations)
-    !% Determine an ID of the root halo found by following hosts.
-    !$ use :: OMP_Lib, only : OMP_Get_Thread_Num
+    !!{
+    Determine an ID of the root halo found by following hosts.
+    !!}
     use    :: Arrays_Search     , only : searchIndexed
-    use    :: Galacticus_Display, only : Galacticus_Display_Indent, Galacticus_Display_Unindent, Galacticus_Display_Counter, Galacticus_Display_Counter_Clear, &
-         &                               verbosityStandard
-    use    :: ISO_Varying_String, only : var_str
+    use    :: Display           , only : displayCounter         , displayCounterClear, displayIndent, displayUnindent, &
+          &                              verbosityLevelStandard
     use    :: Galacticus_Error  , only : Galacticus_Error_Report
+    use    :: ISO_Varying_String, only : var_str
+    !$ use :: OMP_Lib           , only : OMP_Get_Thread_Num
     use    :: Sorting           , only : sortIndex
     use    :: String_Handling   , only : operator(//)
     implicit none
@@ -88,7 +108,7 @@ contains
          &                                                             k           , l             , &
          &                                                             iSimulation
 
-    call Galacticus_Display_Indent('determine hosted root IDs',verbosityStandard)
+    call displayIndent('determine hosted root IDs',verbosityLevelStandard)
     do iSimulation=1,size(simulations)
        ! Retrieve required properties.
        particleIDs    => simulations(iSimulation)%propertiesInteger%value('particleID'    )
@@ -152,16 +172,16 @@ contains
              hostedRootID(i)=particleIDs(j)
           end if
           !$ if (OMP_Get_Thread_Num() == 0) then
-          call Galacticus_Display_Counter(int(100.0d0*dble(i)/dble(size(hostedRootID))),verbosity=verbosityStandard,isNew=i == 1_c_size_t)
+          call displayCounter(int(100.0d0*dble(i)/dble(size(hostedRootID))),verbosity=verbosityLevelStandard,isNew=i == 1_c_size_t)
           !$ end if
        end do
        !$omp end parallel do
-       call Galacticus_Display_Counter_Clear(verbosityStandard)
+       call displayCounterClear(verbosityLevelStandard)
        ! Store results.
        call simulations(iSimulation)%propertiesInteger%set('hostedRootID',hostedRootID)
        deallocate(indexID     )
        nullify   (hostedRootID)
     end do
-    call Galacticus_Display_Unindent('done',verbosityStandard)
+    call displayUnindent('done',verbosityLevelStandard)
     return
   end subroutine hostedRootIDOperate

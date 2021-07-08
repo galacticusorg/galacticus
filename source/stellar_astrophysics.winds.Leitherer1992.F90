@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,19 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a stellar winds class based on \cite{leitherer_deposition_1992}.
+  !!{
+  Implements a stellar winds class based on \cite{leitherer_deposition_1992}.
+  !!}
 
   use :: Numerical_Constants_Astronomical, only : metallicitySolar
   use :: Stellar_Astrophysics_Tracks     , only : stellarTracksClass
 
-  !# <stellarWinds name="stellarWindsLeitherer1992">
-  !#  <description>
-  !#   A stellar winds class using the fitting formulae of \cite{leitherer_deposition_1992} to compute stellar wind energy input
-  !#   from the luminosity and effective temperature of a star.
-  !#  </description>
-  !# </stellarWinds>
+  !![
+  <stellarWinds name="stellarWindsLeitherer1992">
+   <description>
+    A stellar winds class using the fitting formulae of \cite{leitherer_deposition_1992} to compute stellar wind energy input
+    from the luminosity and effective temperature of a star.
+   </description>
+  </stellarWinds>
+  !!]
   type, extends(stellarWindsClass) :: stellarWindsLeitherer1992
-     !% A stellar winds class based on \cite{leitherer_deposition_1992}.
+     !!{
+     A stellar winds class based on \cite{leitherer_deposition_1992}.
+     !!}
      private
      class(stellarTracksClass), pointer :: stellarTracks_ => null()
    contains
@@ -39,7 +45,9 @@
   end type stellarWindsLeitherer1992
 
   interface stellarWindsLeitherer1992
-     !% Constructors for the {\normalfont \ttfamily leitherer1992} stellar winds class.
+     !!{
+     Constructors for the {\normalfont \ttfamily leitherer1992} stellar winds class.
+     !!}
      module procedure leitherer1992ConstructorParameters
      module procedure leitherer1992ConstructorInternal
   end interface stellarWindsLeitherer1992
@@ -50,42 +58,58 @@
 contains
 
   function leitherer1992ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily leitherer1992} stellar winds class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily leitherer1992} stellar winds class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (stellarWindsLeitherer1992)                :: self
     type (inputParameters          ), intent(inout) :: parameters
     class(stellarTracksClass       ), pointer       :: stellarTracks_
 
-    !# <objectBuilder class="stellarTracks" name="stellarTracks_" source="parameters"/>
+    !![
+    <objectBuilder class="stellarTracks" name="stellarTracks_" source="parameters"/>
+    !!]
     self=stellarWindsLeitherer1992(stellarTracks_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="stellarTracks_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="stellarTracks_"/>
+    !!]
     return
   end function leitherer1992ConstructorParameters
 
   function leitherer1992ConstructorInternal(stellarTracks_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily leitherer1992} stellar winds class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily leitherer1992} stellar winds class.
+    !!}
     implicit none
     type (stellarWindsLeitherer1992)                        :: self
     class(stellarTracksClass       ), intent(in   ), target :: stellarTracks_
-    !# <constructorAssign variables="*stellarTracks_"/>
+    !![
+    <constructorAssign variables="*stellarTracks_"/>
+    !!]
 
     return
   end function leitherer1992ConstructorInternal
 
   subroutine leitherer1992Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily leitherer1992} stellar winds class.
+    !!{
+    Destructor for the {\normalfont \ttfamily leitherer1992} stellar winds class.
+    !!}
     implicit none
     type(stellarWindsLeitherer1992), intent(inout) :: self
 
-    !# <objectDestructor name="self%stellarTracks_"/>
+    !![
+    <objectDestructor name="self%stellarTracks_"/>
+    !!]
     return
   end subroutine leitherer1992Destructor
 
   double precision function leitherer1992RateMassLoss(self,initialMass,age,metallicity)
-    !% Compute the mass loss rate (in $M_\odot$/Gyr) from a star of given {\normalfont \ttfamily initialMass}, {\normalfont
-    !% \ttfamily age} and {\normalfont \ttfamily metallicity} using the fitting formula of \cite{leitherer_deposition_1992}.
+    !!{
+    Compute the mass loss rate (in $M_\odot$/Gyr) from a star of given {\normalfont \ttfamily initialMass}, {\normalfont
+    \ttfamily age} and {\normalfont \ttfamily metallicity} using the fitting formula of \cite{leitherer_deposition_1992}.
+    !!}
     implicit none
     class           (stellarWindsLeitherer1992), intent(inout) :: self
     double precision                           , intent(in   ) :: age                        , initialMass       , &
@@ -117,8 +141,10 @@ contains
   end function leitherer1992RateMassLoss
 
   double precision function leitherer1992VelocityTerminal(self,initialMass,age,metallicity)
-    !% Compute the terminal velocity (in km/s) from a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity} using
-    !% the fitting formula of \cite{leitherer_deposition_1992}.
+    !!{
+    Compute the terminal velocity (in km/s) from a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity} using
+    the fitting formula of \cite{leitherer_deposition_1992}.
+    !!}
     implicit none
      class           (stellarWindsLeitherer1992), intent(inout) :: self
      double precision                           , intent(in   ) :: age                        , initialMass       , &

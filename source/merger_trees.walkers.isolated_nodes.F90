@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,20 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a depth-first merger tree walker over all isolated nodes.
+!!{
+Contains a module which implements a depth-first merger tree walker over all isolated nodes.
+!!}
 
-  !# <mergerTreeWalker name="mergerTreeWalkerIsolatedNodes">
-  !#  <description>Provides a merger tree walker which iterates depth-first over all isolated nodes.</description>
-  !# </mergerTreeWalker>
+  !![
+  <mergerTreeWalker name="mergerTreeWalkerIsolatedNodes">
+   <description>Provides a merger tree walker which iterates depth-first over all isolated nodes.</description>
+  </mergerTreeWalker>
+  !!]
   type, extends(mergerTreeWalkerAllNodes) :: mergerTreeWalkerIsolatedNodes
-     !% A merger tree walker which iterates depth-first over all isolated nodes.
+     !!{
+     A merger tree walker which iterates depth-first over all isolated nodes.
+     !!}
      private
    contains
      procedure :: next => isolatedNodesNext
   end type mergerTreeWalkerIsolatedNodes
 
   interface mergerTreeWalkerIsolatedNodes
-     !% Constructors for the {\normalfont \ttfamily isolatedNodes} merger tree walker class.
+     !!{
+     Constructors for the {\normalfont \ttfamily isolatedNodes} merger tree walker class.
+     !!}
      module procedure isolatedNodesParameters
      module procedure isolatedNodesInternal
   end interface mergerTreeWalkerIsolatedNodes
@@ -38,7 +46,9 @@
 contains
 
   function isolatedNodesParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily isolatedNodes} merger tree walker class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily isolatedNodes} merger tree walker class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -51,7 +61,9 @@ contains
   end function isolatedNodesParameters
 
   function isolatedNodesInternal(tree,spanForest) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily isolatedNodes} merger tree walker class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily isolatedNodes} merger tree walker class.
+    !!}
     implicit none
     type(mergerTreeWalkerIsolatedNodes)                          :: self
     type(mergerTree                   ), intent(in   ), target   :: tree
@@ -62,10 +74,12 @@ contains
   end function isolatedNodesInternal
 
   logical function isolatedNodesNext(self,node)
-    !% This function will update to given {\normalfont \ttfamily node} to the next node which should be visited in a tree to
-    !% perform a depth-first walk. Once the entire tree has been walked, a {\normalfont \ttfamily null()} pointer will be set, and
-    !% a value of {\normalfont \ttfamily false} returned indicating that there are no more nodes to walk. Each node will be
-    !% visited once and once only if the tree is walked in this way.
+    !!{
+    This function will update to given {\normalfont \ttfamily node} to the next node which should be visited in a tree to
+    perform a depth-first walk. Once the entire tree has been walked, a {\normalfont \ttfamily null()} pointer will be set, and
+    a value of {\normalfont \ttfamily false} returned indicating that there are no more nodes to walk. Each node will be
+    visited once and once only if the tree is walked in this way.
+    !!}
     implicit none
     class(mergerTreeWalkerIsolatedNodes), intent(inout)          :: self
     type (treeNode                     ), intent(inout), pointer :: node

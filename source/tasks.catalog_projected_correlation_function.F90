@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -22,11 +22,15 @@
   use :: Geometry_Surveys        , only : surveyGeometry            , surveyGeometryClass
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
-  !# <task name="taskCatalogProjectedCorrelationFunction">
-  !#  <description>A task which computes projected correlation functions based on a simple halo model approach.</description>
-  !# </task>
+  !![
+  <task name="taskCatalogProjectedCorrelationFunction">
+   <description>A task which computes projected correlation functions based on a simple halo model approach.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskCatalogProjectedCorrelationFunction
-     !% Implementation of a task which computes projected correlation functions based on a simple halo model approach.
+     !!{
+     Implementation of a task which computes projected correlation functions based on a simple halo model approach.
+     !!}
      private
      class           (cosmologyParametersClass  ), pointer      :: cosmologyParameters_    => null()
      class           (cosmologyFunctionsClass   ), pointer      :: cosmologyFunctions_     => null()
@@ -50,23 +54,29 @@
   end type taskCatalogProjectedCorrelationFunction
 
   interface taskCatalogProjectedCorrelationFunction
-     !% Constructors for the {\normalfont \ttfamily catalogProjectedCorrelationFunction} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily catalogProjectedCorrelationFunction} task.
+     !!}
      module procedure catalogProjectedCorrelationFunctionConstructorParameters
      module procedure catalogProjectedCorrelationFunctionConstructorInternal
   end interface taskCatalogProjectedCorrelationFunction
 
-  !# <enumeration>
-  !#  <name>randomSampleCountType</name>
-  !#  <description>Used to specify the type of random sample count.</description>
-  !#  <visibility>private</visibility>
-  !#  <entry label="fixed"        />
-  !#  <entry label="multiplicative"/>
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>randomSampleCountType</name>
+   <description>Used to specify the type of random sample count.</description>
+   <visibility>private</visibility>
+   <entry label="fixed"        />
+   <entry label="multiplicative"/>
+  </enumeration>
+  !!]
 
 contains
 
   function catalogProjectedCorrelationFunctionConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily catalogProjectedCorrelationFunction} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily catalogProjectedCorrelationFunction} task class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Nodes        , only : nodeClassHierarchyInitialize
     use :: Input_Parameters        , only : inputParameter              , inputParameters
     use :: Node_Components         , only : Node_Components_Initialize
@@ -104,48 +114,50 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
-    !# <inputParameter>
-    !#   <name>galaxyCatalogFileName</name>
-    !#   <description>The file name from which the galaxy catalog should be read.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMinimum</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The minimum mass galaxy to include in a mock catalog correlation function calculation.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMaximum</name>
-    !#   <defaultValue>1.0d16</defaultValue>
-    !#   <description>The maximum mass galaxy to include in a mock catalog correlation function calculation.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>separationMinimum</name>
-    !#   <defaultValue>0.1d0</defaultValue>
-    !#   <description>The minimum separation to compute in a mock catalog correlation function calculation.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>separationMaximum</name>
-    !#   <defaultValue>30.0d0</defaultValue>
-    !#   <description>The maximum separation to compute in a mock catalog correlation function calculation.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>separationCount</name>
-    !#   <defaultValue>15</defaultValue>
-    !#   <description>The number of bins in separation to compute in a mock catalog correlation function calculation.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>randomSampleCount</name>
-    !#   <defaultValue>var_str('*10')</defaultValue>
-    !#   <variable>randomSampleCountText</variable>
-    !#   <description>The number of random points to use when constructing random catalogs. Can be either a fixed number or, if prefixed with ``{\normalfont \ttfamily *}'', a multiplicative factor.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>galaxyCatalogFileName</name>
+      <description>The file name from which the galaxy catalog should be read.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massMinimum</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The minimum mass galaxy to include in a mock catalog correlation function calculation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massMaximum</name>
+      <defaultValue>1.0d16</defaultValue>
+      <description>The maximum mass galaxy to include in a mock catalog correlation function calculation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>separationMinimum</name>
+      <defaultValue>0.1d0</defaultValue>
+      <description>The minimum separation to compute in a mock catalog correlation function calculation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>separationMaximum</name>
+      <defaultValue>30.0d0</defaultValue>
+      <description>The maximum separation to compute in a mock catalog correlation function calculation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>separationCount</name>
+      <defaultValue>15</defaultValue>
+      <description>The number of bins in separation to compute in a mock catalog correlation function calculation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>randomSampleCount</name>
+      <defaultValue>var_str('*10')</defaultValue>
+      <variable>randomSampleCountText</variable>
+      <description>The number of random points to use when constructing random catalogs. Can be either a fixed number or, if prefixed with ``{\normalfont \ttfamily *}'', a multiplicative factor.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     if (extract(randomSampleCountText,1,1) == "*") then
        randomSampleCountType=randomSampleCountTypeMultiplicative
        label=char(extract(randomSampleCountText,2))
@@ -155,60 +167,66 @@ contains
        label=char(randomSampleCountText)
        read (label,*) randomSampleCount
     end if
-    !# <inputParameter>
-    !#   <name>separationRadialMaximum</name>
-    !#   <defaultValue>40.0d0</defaultValue>
-    !#   <description>The maximum radial separation of galaxies to consider when computing projected correlation functions.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>halfIntegral</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Set to {\normalfont \ttfamily true} if the projected correlation function is computed as $w_\mathrm{p}(r_\mathrm{p})=\int_0^{+\pi_\mathrm{max}} \xi(r_\mathrm{p},\pi) \mathrm{d} \pi$, instead of the usual $w_\mathrm{p}(r_\mathrm{p})=\int_{-\pi_\mathrm{max}}^{+\pi_\mathrm{max}} \xi(r_\mathrm{p},\pi) \mathrm{d} \pi$.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>widthBuffer</name>
-    !#   <defaultValue>30.0d0</defaultValue>
-    !#   <description>The width of the buffer region around survey geometry to ensure galaxies are not lost when moving to redshift space.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
-    !# <objectBuilder class="surveyGeometry"        name="surveyGeometry_"        source="parameters"/>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
-    !# <inputParameter>
-    !#   <name>origin</name>
-    !#   <defaultValue>[randomNumberGenerator_%uniformSample(),randomNumberGenerator_%uniformSample(),randomNumberGenerator_%uniformSample()]</defaultValue>
-    !#   <defaultSource>Uniformly random distribution within the box.</defaultSource>
-    !#   <description>The vector (in units of the box length) giving the origin of the coordinate system to use in mock catalog construction.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>vectorRotation</name>
-    !#   <defaultValue>[acos(2.0d0*randomNumberGenerator_%uniformSample()-1.0d0),2.0d0*Pi*randomNumberGenerator_%uniformSample()]</defaultValue>
-    !#   <defaultSource>Isotropically random on the unit sphere.</defaultSource>
-    !#   <description>The vector, in spherical coordinates $(\theta,\phi)$, about which the mock catalog should be rotated.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>angleRotation</name>
-    !#   <defaultValue>2.0d0*Pi*randomNumberGenerator_%uniformSample()</defaultValue>
-    !#   <defaultSource>Uniformly random distribution between $0$ and $2\pi$.</defaultSource>
-    !#   <description>The angle through which the mock catalog should be rotated.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>separationRadialMaximum</name>
+      <defaultValue>40.0d0</defaultValue>
+      <description>The maximum radial separation of galaxies to consider when computing projected correlation functions.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>halfIntegral</name>
+      <defaultValue>.false.</defaultValue>
+      <description>Set to {\normalfont \ttfamily true} if the projected correlation function is computed as $w_\mathrm{p}(r_\mathrm{p})=\int_0^{+\pi_\mathrm{max}} \xi(r_\mathrm{p},\pi) \mathrm{d} \pi$, instead of the usual $w_\mathrm{p}(r_\mathrm{p})=\int_{-\pi_\mathrm{max}}^{+\pi_\mathrm{max}} \xi(r_\mathrm{p},\pi) \mathrm{d} \pi$.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>widthBuffer</name>
+      <defaultValue>30.0d0</defaultValue>
+      <description>The width of the buffer region around survey geometry to ensure galaxies are not lost when moving to redshift space.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    <objectBuilder class="surveyGeometry"        name="surveyGeometry_"        source="parameters"/>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    <inputParameter>
+      <name>origin</name>
+      <defaultValue>[randomNumberGenerator_%uniformSample(),randomNumberGenerator_%uniformSample(),randomNumberGenerator_%uniformSample()]</defaultValue>
+      <defaultSource>Uniformly random distribution within the box.</defaultSource>
+      <description>The vector (in units of the box length) giving the origin of the coordinate system to use in mock catalog construction.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>vectorRotation</name>
+      <defaultValue>[acos(2.0d0*randomNumberGenerator_%uniformSample()-1.0d0),2.0d0*Pi*randomNumberGenerator_%uniformSample()]</defaultValue>
+      <defaultSource>Isotropically random on the unit sphere.</defaultSource>
+      <description>The vector, in spherical coordinates $(\theta,\phi)$, about which the mock catalog should be rotated.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>angleRotation</name>
+      <defaultValue>2.0d0*Pi*randomNumberGenerator_%uniformSample()</defaultValue>
+      <defaultSource>Uniformly random distribution between $0$ and $2\pi$.</defaultSource>
+      <description>The angle through which the mock catalog should be rotated.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=taskCatalogProjectedCorrelationFunction(galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCount,randomSampleCountType,halfIntegral,cosmologyParameters_,cosmologyFunctions_,surveyGeometry_,randomNumberGenerator_,parametersRoot)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"  />
-    !# <objectDestructor name="cosmologyFunctions_"   />
-    !# <objectDestructor name="surveyGeometry_"       />
-    !# <objectDestructor name="randomNumberGenerator_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"  />
+    <objectDestructor name="cosmologyFunctions_"   />
+    <objectDestructor name="surveyGeometry_"       />
+    <objectDestructor name="randomNumberGenerator_"/>
+    !!]
     return
   end function catalogProjectedCorrelationFunctionConstructorParameters
 
   function catalogProjectedCorrelationFunctionConstructorInternal(galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCount,randomSampleCountType,halfIntegral,cosmologyParameters_,cosmologyFunctions_,surveyGeometry_,randomNumberGenerator_,parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily catalogProjectedCorrelationFunction} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily catalogProjectedCorrelationFunction} task class which takes a parameter set as input.
+    !!}
     implicit none
     type            (taskCatalogProjectedCorrelationFunction)                              :: self
     type            (varying_string                         ), intent(in   )               :: galaxyCatalogFileName
@@ -226,7 +244,9 @@ contains
     class           (surveyGeometryClass                    ), intent(in   ), target       :: surveyGeometry_
     class           (randomNumberGeneratorClass             ), intent(in   ), target       :: randomNumberGenerator_
     type            (inputParameters                        ), intent(in   ), target :: parameters
-    !# <constructorAssign variables="galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCount, randomSampleCountType, halfIntegral, *cosmologyParameters_, *cosmologyFunctions_, *surveyGeometry_, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="galaxyCatalogFileName,massMinimum,massMaximum,separationCount,separationMinimum, separationMaximum, separationRadialMaximum,widthBuffer,origin,vectorRotation,angleRotation,randomSampleCount, randomSampleCountType, halfIntegral, *cosmologyParameters_, *cosmologyFunctions_, *surveyGeometry_, *randomNumberGenerator_"/>
+    !!]
 
     self%parameters=inputParameters(parameters)
     call self%parameters%parametersGroupCopy(parameters)
@@ -234,22 +254,28 @@ contains
   end function catalogProjectedCorrelationFunctionConstructorInternal
 
   subroutine catalogProjectedCorrelationFunctionDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily catalogProjectedCorrelationFunction} task class.
+    !!{
+    Destructor for the {\normalfont \ttfamily catalogProjectedCorrelationFunction} task class.
+    !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
     type(taskCatalogProjectedCorrelationFunction), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"  />
-    !# <objectDestructor name="self%cosmologyFunctions_"   />
-    !# <objectDestructor name="self%surveyGeometry_"       />
-    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    !![
+    <objectDestructor name="self%cosmologyParameters_"  />
+    <objectDestructor name="self%cosmologyFunctions_"   />
+    <objectDestructor name="self%surveyGeometry_"       />
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
     call Node_Components_Uninitialize()
     return
   end subroutine catalogProjectedCorrelationFunctionDestructor
 
   subroutine catalogProjectedCorrelationFunctionPerform(self,status)
-    !% Compute the projected correlation function from a galaxy catalog.
-    use :: Galacticus_Display              , only : Galacticus_Display_Indent        , Galacticus_Display_Message        , Galacticus_Display_Unindent
+    !!{
+    Compute the projected correlation function from a galaxy catalog.
+    !!}
+    use :: Display                         , only : displayIndent                    , displayMessage                     , displayUnindent
     use :: Galacticus_Error                , only : Galacticus_Error_Report          , errorStatusSuccess
     use :: Galacticus_HDF5                 , only : galacticusOutputFile
     use :: IO_HDF5                         , only : hdf5Object
@@ -258,7 +284,7 @@ contains
     use :: Memory_Management               , only : allocateArray                    , deallocateArray
     use :: Node_Components                 , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use :: Numerical_Constants_Astronomical, only : megaParsec
-    use :: Points                          , only : Points_Prune                     , Points_Replicate                   , Points_Rotate              , Points_Survey_Geometry, &
+    use :: Points                          , only : Points_Prune                     , Points_Replicate                   , Points_Rotate  , Points_Survey_Geometry, &
           &                                         Points_Translate
     use :: Statistics_Points_Correlations  , only : Statistics_Points_Correlation
     use :: String_Handling                 , only : operator(//)
@@ -273,7 +299,7 @@ contains
          &                                                                                      correlationSurvey
     double precision                                                        , dimension(3  ) :: rotationAxis
     type            (varying_string                         )                                :: message
-    type            (hdf5Object                             )                                :: thisDataset          , correlationFunctionGroup
+    type            (hdf5Object                             )                                :: dataset              , correlationFunctionGroup
     type            (irate                                  )                                :: galaxyFile
     double precision                                                                         :: simulationBoxSize    , time                    , &
          &                                                                                      redshift
@@ -281,11 +307,11 @@ contains
          &                                                                                      i                    , j                       , &
          &                                                                                      replicatedGalaxyCount
 
-    call Galacticus_Display_Indent('Begin task: catalog projected correlation function')
+    call displayIndent('Begin task: catalog projected correlation function')
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
     call Node_Components_Thread_Initialize(self%parameters)
     ! Read the galaxy catalog.
-    call Galacticus_Display_Indent("Reading galaxy catalog")
+    call displayIndent("Reading galaxy catalog")
     galaxyFile=irate(char(self%galaxyCatalogFileName),self%cosmologyParameters_,self%cosmologyFunctions_)
     call galaxyFile%readHalos     (                            &
          &                         snapshot=1                , &
@@ -299,11 +325,13 @@ contains
          &                         )
     message="Read "
     message=message//size(galaxyPosition,dim=2)//" galaxies"
-    call Galacticus_Display_Message(message)
-    call Galacticus_Display_Unindent("done")
+    call displayMessage(message)
+    call displayUnindent("done")
     ! Copy data.
-    allocate(galaxyPosition(size(galaxyPosition_,dim=1),size(galaxyPosition_,dim=2)))
-    allocate(galaxyVelocity(size(galaxyVelocity_,dim=1),size(galaxyVelocity_,dim=2)))
+    !![
+    <allocate variable="galaxyPosition" shape="galaxyPosition_"/>
+    <allocate variable="galaxyVelocity" shape="galaxyVelocity_"/>
+    !!]
     galaxyPosition=galaxyPosition_
     galaxyVelocity=galaxyVelocity_
     deallocate(galaxyPosition_)
@@ -315,7 +343,7 @@ contains
     call Points_Prune(galaxyVelocity,galaxyMass >= self%massMinimum .and. galaxyMass < self%massMaximum)
     message="Pruned on mass leaving "
     message=message//size(galaxyPosition,dim=2)//" galaxies"
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     ! Generate random points.
     select case (self%randomSampleCountType)
     case (randomSampleCountTypeFixed         )
@@ -354,7 +382,7 @@ contains
     call Points_Replicate(galaxyPosition,simulationBoxSize,-replications*[1,1,1],+replications*[1,1,1])
     message="Replicated to cover survey volume giving "
     message=message//size(galaxyPosition,dim=2)//" galaxies"
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     replicatedGalaxyCount=size(galaxyPosition,dim=2)
     ! Shift points into redshift space.
     call pointsToRedshiftSpace()
@@ -369,7 +397,7 @@ contains
     call Points_Survey_Geometry(galaxyPosition,self%surveyGeometry_,self%massMaximum)
     message="Pruned on survey geometry leaving "
     message=message//size(galaxyPosition,dim=2)//" galaxies"
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     ! Generate random points.
     select case (self%randomSampleCountType)
     case (randomSampleCountTypeFixed         )
@@ -389,11 +417,11 @@ contains
     end do
     message="Generated "
     message=message//size(randomPosition,dim=2)//" random points"
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     call Points_Survey_Geometry(randomPosition,self%surveyGeometry_,self%massMaximum)
     message="Pruned on survey geometry leaving "
     message=message//size(randomPosition,dim=2)//" random points"
-    call Galacticus_Display_Message(message)
+    call displayMessage(message)
     ! Compute the correlation function.
     call Statistics_Points_Correlation(                                                                       &
          &                             galaxyPosition                                                       , &
@@ -409,15 +437,15 @@ contains
          &                            )
     ! Write correlations to file.
     correlationFunctionGroup=galacticusOutputFile%openGroup('projectedCorrelationFunction')
-    call correlationFunctionGroup%writeDataset(separation       ,'separation'                ,commentText='Galaxy separation.'                                ,datasetReturned=thisDataset)
-    call thisDataset%writeAttribute(megaParsec,'unitsInSI')
-    call thisDataset%close         (                      )
-    call correlationFunctionGroup%writeDataset(correlation      ,'projectedCorrelation'      ,commentText='Projected correlation function from the full mock.',datasetReturned=thisDataset)
-    call thisDataset%writeAttribute(megaParsec,'unitsInSI')
-    call thisDataset%close         (                      )
-    call correlationFunctionGroup%writeDataset(correlationSurvey,'projectedCorrelationSurvey',commentText='Projected correlation function from survey region.',datasetReturned=thisDataset)
-    call thisDataset%writeAttribute(megaParsec,'unitsInSI')
-    call thisDataset%close         (                      )
+    call correlationFunctionGroup%writeDataset(separation       ,'separation'                ,commentText='Galaxy separation.'                                ,datasetReturned=dataset)
+    call dataset%writeAttribute(megaParsec,'unitsInSI')
+    call dataset%close         (                      )
+    call correlationFunctionGroup%writeDataset(correlation      ,'projectedCorrelation'      ,commentText='Projected correlation function from the full mock.',datasetReturned=dataset)
+    call dataset%writeAttribute(megaParsec,'unitsInSI')
+    call dataset%close         (                      )
+    call correlationFunctionGroup%writeDataset(correlationSurvey,'projectedCorrelationSurvey',commentText='Projected correlation function from survey region.',datasetReturned=dataset)
+    call dataset%writeAttribute(megaParsec,'unitsInSI')
+    call dataset%close         (                      )
     call correlationFunctionGroup%close()
     ! Clean up.
     deallocate(galaxyPosition)
@@ -425,12 +453,14 @@ contains
     deallocate(galaxyMass    )
     call Node_Components_Thread_Uninitialize()
     if (present(status)) status=errorStatusSuccess
-    call Galacticus_Display_Unindent('Done task: catalog projected correlation function' )
+    call displayUnindent('Done task: catalog projected correlation function' )
 
   contains
 
     subroutine pointsToRedshiftSpace()
-      !% Shift the set of points into redshift space.
+      !!{
+      Shift the set of points into redshift space.
+      !!}
       use :: Vectors, only : Vector_Magnitude
       implicit none
       integer          :: galaxyCount       , replicantCount, i, j, k, l

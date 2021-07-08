@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,65 +17,71 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a preset position component.
+!!{
+Contains a module which implements a preset position component.
+!!}
 
 module Node_Component_Position_Preset_Orphans
-  !% Implements a preset position component with placement of orphan galaxies.
+  !!{
+  Implements a preset position component with placement of orphan galaxies.
+  !!}
   use :: Satellite_Oprhan_Distributions, only : satelliteOrphanDistributionClass
   implicit none
   private
   public :: Node_Component_Position_Preset_Orphans_Initialize         , Node_Component_Position_Preset_Orphans_Thread_Initialize, &
        &    Node_Component_Position_Preset_Orphans_Thread_Uninitialize
 
-  !# <component>
-  !#  <class>position</class>
-  !#  <name>presetOrphans</name>
-  !#  <extends>
-  !#   <class>position</class>
-  !#   <name>preset</name>
-  !#  </extends>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>position</name>
-  !#     <type>double</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <getFunction bindsTo="component">PositionPresetOrphansPosition</getFunction>
-  !#     <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Position of the node (in physical coordinates)."/>
-  !#     <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
-  !#   </property>
-  !#   <property>
-  !#     <name>positionOrphan</name>
-  !#     <type>double</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="get" />
-  !#   </property>
-  !#   <property>
-  !#     <name>velocity</name>
-  !#     <type>double</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <getFunction bindsTo="component">PositionPresetOrphansVelocity</getFunction>
-  !#     <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Velocity of the node (peculiar, in physical coordinates)."/>
-  !#     <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
-  !#   </property>
-  !#   <property>
-  !#     <name>velocityOrphan</name>
-  !#     <type>double</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="get" />
-  !#   </property>
-  !#   <property>
-  !#     <name>timeAssign</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <classDefault>-1.0d0</classDefault>
-  !#   </property>
-  !#  </properties>
-  !#  <functions>objects.nodes.components.position.preset.orphans.bound_functions.inc</functions>
-  !# </component>
+  !![
+  <component>
+   <class>position</class>
+   <name>presetOrphans</name>
+   <extends>
+    <class>position</class>
+    <name>preset</name>
+   </extends>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>position</name>
+      <type>double</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <getFunction bindsTo="component">PositionPresetOrphansPosition</getFunction>
+      <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Position of the node (in physical coordinates)."/>
+      <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
+    </property>
+    <property>
+      <name>positionOrphan</name>
+      <type>double</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="get" />
+    </property>
+    <property>
+      <name>velocity</name>
+      <type>double</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <getFunction bindsTo="component">PositionPresetOrphansVelocity</getFunction>
+      <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Velocity of the node (peculiar, in physical coordinates)."/>
+      <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
+    </property>
+    <property>
+      <name>velocityOrphan</name>
+      <type>double</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="get" />
+    </property>
+    <property>
+      <name>timeAssign</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <classDefault>-1.0d0</classDefault>
+    </property>
+   </properties>
+   <functions>objects.nodes.components.position.preset.orphans.bound_functions.inc</functions>
+  </component>
+  !!]
 
   ! Objects used by this component.
   class(satelliteOrphanDistributionClass), pointer :: satelliteOrphanDistribution_
@@ -83,9 +89,11 @@ module Node_Component_Position_Preset_Orphans
 
 contains
 
-  !# <nodeComponentInitializationTask>
-  !#  <unitName>Node_Component_Position_Preset_Orphans_Initialize</unitName>
-  !# </nodeComponentInitializationTask>
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>Node_Component_Position_Preset_Orphans_Initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
   subroutine Node_Component_Position_Preset_Orphans_Initialize(parameters_)
     use :: Galacticus_Nodes, only : defaultPositionComponent, nodeComponentPositionPresetOrphans
     use :: Input_Parameters, only : inputParameters
@@ -103,38 +111,52 @@ contains
     return
   end subroutine Node_Component_Position_Preset_Orphans_Initialize
 
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Position_Preset_Orphans_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Position_Preset_Orphans_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Position_Preset_Orphans_Thread_Initialize(parameters_)
-    !% Initializes the tree node preset orphans position module.
+    !!{
+    Initializes the tree node preset orphans position module.
+    !!}
     use :: Galacticus_Nodes, only : defaultPositionComponent
     use :: Input_Parameters, only : inputParameter          , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
 
     if (defaultPositionComponent%presetOrphansIsActive()) then
-       !# <objectBuilder class="satelliteOrphanDistribution" name="satelliteOrphanDistribution_" source="parameters_"/>
+       !![
+       <objectBuilder class="satelliteOrphanDistribution" name="satelliteOrphanDistribution_" source="parameters_"/>
+       !!]
     end if
     return
   end subroutine Node_Component_Position_Preset_Orphans_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Position_Preset_Orphans_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Position_Preset_Orphans_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Position_Preset_Orphans_Thread_Uninitialize()
-    !% Uninitializes the tree node preset orphans position module.
+    !!{
+    Uninitializes the tree node preset orphans position module.
+    !!}
     use :: Galacticus_Nodes, only : defaultPositionComponent
     implicit none
 
     if (defaultPositionComponent%presetOrphansIsActive()) then
-       !# <objectDestructor name="satelliteOrphanDistribution_"/>
+       !![
+       <objectDestructor name="satelliteOrphanDistribution_"/>
+       !!]
     end if
     return
   end subroutine Node_Component_Position_Preset_Orphans_Thread_Uninitialize
 
   function Node_Component_Position_Preset_Orphans_Position_Orphan(self)
-    !% Return the position of the orphan node.
+    !!{
+    Return the position of the orphan node.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentPositionPresetOrphans, treeNode
     implicit none
     double precision                                    , allocatable  , dimension(:) :: Node_Component_Position_Preset_Orphans_Position_Orphan
@@ -154,7 +176,9 @@ contains
   end function Node_Component_Position_Preset_Orphans_Position_Orphan
 
   function Node_Component_Position_Preset_Orphans_Velocity_Orphan(self)
-    !% Return the velocity of the orphan node.
+    !!{
+    Return the velocity of the orphan node.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentPositionPresetOrphans, treeNode
     implicit none
     double precision                                    , allocatable  , dimension(:) :: Node_Component_Position_Preset_Orphans_Velocity_Orphan

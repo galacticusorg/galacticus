@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,25 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling likelihood class which implements a likelihood for \glc\ models.
+  !!{
+  Implementation of a posterior sampling likelihood class which implements a likelihood for \glc\ models.
+  !!}
 
   use :: FoX_DOM         , only : node
   use :: Input_Parameters, only : inputParameter, inputParameters
   use :: Output_Analyses , only : outputAnalysis, outputAnalysisClass
 
   type :: parameterList
-     !% Type used to maintain a list of pointers to parameters to be modified.
+     !!{
+     Type used to maintain a list of pointers to parameters to be modified.
+     !!}
      type   (inputParameter), pointer :: parameter_
      integer                          :: indexElement
      type   (varying_string)          :: definition
      logical                          :: resolved
   end type parameterList
 
-  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodGalaxyPopulation">
-  !#  <description>A posterior sampling likelihood class which implements a likelihood for \glc\ models.</description>
-  !# </posteriorSampleLikelihood>
+  !![
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodGalaxyPopulation">
+   <description>A posterior sampling likelihood class which implements a likelihood for \glc\ models.</description>
+  </posteriorSampleLikelihood>
+  !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodGalaxyPopulation
-     !% Implementation of a posterior sampling likelihood class which implements a likelihood for \glc\ models.
+     !!{
+     Implementation of a posterior sampling likelihood class which implements a likelihood for \glc\ models.
+     !!}
      private
      type   (varying_string     )                            :: baseParametersFileName          , failedParametersFileName
      logical                                                 :: randomize
@@ -52,7 +60,9 @@
   end type posteriorSampleLikelihoodGalaxyPopulation
 
   interface posteriorSampleLikelihoodGalaxyPopulation
-     !% Constructors for the {\normalfont \ttfamily galaxyPopulation} posterior sampling likelihood class.
+     !!{
+     Constructors for the {\normalfont \ttfamily galaxyPopulation} posterior sampling likelihood class.
+     !!}
      module procedure galaxyPopulationConstructorParameters
      module procedure galaxyPopulationConstructorInternal
   end interface posteriorSampleLikelihoodGalaxyPopulation
@@ -60,10 +70,12 @@
 contains
 
   function galaxyPopulationConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily galaxyPopulation} posterior sampling likelihood class which builds the object
-    !% from a parameter set.
-    use :: Galacticus_Display, only : Galacticus_Verbosity_Level
-    use :: Input_Parameters  , only : inputParameter            , inputParameters
+    !!{
+    Constructor for the {\normalfont \ttfamily galaxyPopulation} posterior sampling likelihood class which builds the object
+    from a parameter set.
+    !!}
+    use :: Display         , only : displayVerbosity
+    use :: Input_Parameters, only : inputParameter  , inputParameters
     implicit none
     type   (posteriorSampleLikelihoodGalaxyPopulation)                :: self
     type   (inputParameters                          ), intent(inout) :: parameters
@@ -72,52 +84,62 @@ contains
     integer                                                           :: evolveForestsVerbosity
     type   (inputParameters                          ), pointer       :: parametersModel
 
-    !# <inputParameter>
-    !#   <name>baseParametersFileName</name>
-    !#   <description>The base set of parameters to use.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>randomize</name>
-    !#   <description>If true, randomize models (i.e. change the random seed).</description>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>evolveForestsVerbosity</name>
-    !#   <description>The verbosity level to use while performing evolve forests tasks.</description>
-    !#   <defaultValue>Galacticus_Verbosity_Level()</defaultValue>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>failedParametersFileName</name>
-    !#   <description>The filename to which parameters of failed models should be written.</description>
-    !#   <defaultValue>var_str('./failedParameters.xml')</defaultValue>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>baseParametersFileName</name>
+      <description>The base set of parameters to use.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>randomize</name>
+      <description>If true, randomize models (i.e. change the random seed).</description>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>evolveForestsVerbosity</name>
+      <description>The verbosity level to use while performing evolve forests tasks.</description>
+      <defaultValue>displayVerbosity()</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>failedParametersFileName</name>
+      <description>The filename to which parameters of failed models should be written.</description>
+      <defaultValue>var_str('./failedParameters.xml')</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     allocate(parametersModel)
     parametersModel=inputParameters                          (baseParametersFileName,noOutput=.true.)
     self           =posteriorSampleLikelihoodGalaxyPopulation(parametersModel,randomize,evolveForestsVerbosity,failedParametersFileName)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     nullify(parametersModel)
     return
   end function galaxyPopulationConstructorParameters
 
   function galaxyPopulationConstructorInternal(parametersModel,randomize,evolveForestsVerbosity,failedParametersFileName) result(self)
-    !% Constructor for ``galaxyPopulation'' posterior sampling likelihood class.
+    !!{
+    Constructor for ``galaxyPopulation'' posterior sampling likelihood class.
+    !!}
     implicit none
     type   (posteriorSampleLikelihoodGalaxyPopulation)                        :: self
     type   (inputParameters                          ), intent(inout), target :: parametersModel
     logical                                           , intent(in   )         :: randomize
     integer                                           , intent(in   )         :: evolveForestsVerbosity
     type   (varying_string                           ), intent(in   )         :: failedParametersFileName
-    !# <constructorAssign variables="*parametersModel, randomize, evolveForestsVerbosity, failedParametersFileName"/>
+    !![
+    <constructorAssign variables="*parametersModel, randomize, evolveForestsVerbosity, failedParametersFileName"/>
+    !!]
 
     return
   end function galaxyPopulationConstructorInternal
 
   subroutine galaxyPopulationDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily galaxyPopulation} posterior sampling likelihood class.
+    !!{
+    Destructor for the {\normalfont \ttfamily galaxyPopulation} posterior sampling likelihood class.
+    !!}
     implicit none
     type(posteriorSampleLikelihoodGalaxyPopulation), intent(inout) :: self
 
@@ -127,16 +149,18 @@ contains
   end subroutine galaxyPopulationDestructor
 
   double precision function galaxyPopulationEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
-    !% Return the log-likelihood for the \glc\ likelihood function.
+    !!{
+    Return the log-likelihood for the \glc\ likelihood function.
+    !!}
+    use :: Display                       , only : displayIndent                  , displayMessage               , displayUnindent             , displayVerbosity, &
+          &                                       displayVerbositySet            , verbosityLevelSilent         , verbosityLevelStandard
     use :: Functions_Global              , only : Tasks_Evolve_Forest_Construct_ , Tasks_Evolve_Forest_Destruct_, Tasks_Evolve_Forest_Perform_
-    use :: Galacticus_Display            , only : Galacticus_Display_Indent      , Galacticus_Display_Message   , Galacticus_Display_Unindent , Galacticus_Verbosity_Level, &
-          &                                       Galacticus_Verbosity_Level_Set , verbosityStandard            , verbositySilent
     use :: Galacticus_Error              , only : Galacticus_Error_Report        , errorStatusSuccess
-    use :: Kind_Numbers                  , only : kind_int8
     use :: ISO_Varying_String            , only : char                           , operator(//)                 , var_str
+    use :: Kind_Numbers                  , only : kind_int8
     use :: MPI_Utilities                 , only : mpiBarrier                     , mpiSelf
-    use :: Models_Likelihoods_Constants  , only : logImpossible                  , logImprobable
     use :: Model_Parameters              , only : modelParameterDerived
+    use :: Models_Likelihoods_Constants  , only : logImpossible                  , logImprobable
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
     use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
     use :: String_Handling               , only : String_Count_Words             , String_Join                  , String_Split_Words          , operator(//)
@@ -175,8 +199,8 @@ contains
     !$GLC attributes unused :: logPriorCurrent, logLikelihoodCurrent, forceAcceptance, temperature, simulationConvergence
 
     ! Switch verbosity level.
-    verbosityLevel=Galacticus_Verbosity_Level()
-    call Galacticus_Verbosity_Level_Set(self%evolveForestsVerbosity)
+    verbosityLevel=displayVerbosity()
+    call displayVerbositySet(self%evolveForestsVerbosity)
     ! Initialize likelihood to impossible.
     galaxyPopulationEvaluate=logImpossible
     if (present(logLikelihoodVariance)) logLikelihoodVariance=0.0d0
@@ -371,15 +395,15 @@ contains
                 end select
              end do
              if (.not.dependenciesUpdated) then
-                call Galacticus_Verbosity_Level_Set(verbosityStandard)
-                call Galacticus_Display_Indent('unresolved parameters')
+                call displayVerbositySet(verbosityLevelStandard)
+                call displayIndent('unresolved parameters')
                 do i=1,size(modelParametersInactive_)
                    select type (modelParameter_ => modelParametersInactive_(i)%modelParameter_)
                       class is (modelParameterDerived)
-                      if (index(self%modelParametersInactive_(i)%definition,"%[") /= 0) call Galacticus_Display_Message(modelParametersInactive_(i)%modelParameter_%name()//" : "//self%modelParametersInactive_(i)%definition)
+                      if (index(self%modelParametersInactive_(i)%definition,"%[") /= 0) call displayMessage(modelParametersInactive_(i)%modelParameter_%name()//" : "//self%modelParametersInactive_(i)%definition)
                    end select
                 end do
-                call Galacticus_Display_Unindent('unresolved parameters')
+                call displayUnindent('unresolved parameters')
                 call Galacticus_Error_Report('can not resolve parameter dependencies'//{introspection:location})
              end if
              firstIteration=.false.
@@ -387,7 +411,9 @@ contains
        end if
        ! Build the task and outputter objects.
        call Tasks_Evolve_Forest_Construct_(self%parametersModel,self%task_)
-       !# <objectBuilder class="outputAnalysis" name="self%outputAnalysis_" source="self%parametersModel"/>
+       !![
+       <objectBuilder class="outputAnalysis" name="self%outputAnalysis_" source="self%parametersModel"/>
+       !!]
        ! Perform the forest evolution tasks.
        call CPU_Time(timeBegin)
        call Tasks_Evolve_Forest_Perform_(self%task_,status)
@@ -412,24 +438,28 @@ contains
           ! Record timing information.
           call CPU_Time(timeEnd)
           timeEvaluate=timeEnd-timeBegin
-          if (verbosityLevel >= verbosityStandard) then
+          if (verbosityLevel >= verbosityLevelStandard) then
              write (valueText,'(e12.4)') logLikelihoodProposed
              message=var_str("Chain ")//simulationState%chainIndex()//" has logℒ="//trim(valueText)
-             call Galacticus_Display_Message(message,verbositySilent)
+             call displayMessage(message,verbosityLevelSilent)
           end if
        end if
        call mpiBarrier()
        call Tasks_Evolve_Forest_Destruct_(self%task_)
-       !# <objectDestructor name="self%outputAnalysis_"/>
+       !![
+       <objectDestructor name="self%outputAnalysis_"/>
+       !!]
        call self%parametersModel%reset()
     end do
     ! Restore verbosity level.
-    call Galacticus_Verbosity_Level_Set(verbosityLevel)
+    call displayVerbositySet(verbosityLevel)
     return
   end function galaxyPopulationEvaluate
 
   subroutine galaxyPopulationFunctionChanged(self)
-    !% Respond to possible changes in the likelihood function.
+    !!{
+    Respond to possible changes in the likelihood function.
+    !!}
     implicit none
     class(posteriorSampleLikelihoodGalaxyPopulation), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -438,7 +468,9 @@ contains
   end subroutine galaxyPopulationFunctionChanged
 
   logical function galaxyPopulationWillEvaluate(self,simulationState,modelParameters_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed)
-    !% Return true if the log-likelihood will be evaluated.
+    !!{
+    Return true if the log-likelihood will be evaluated.
+    !!}
     use :: Models_Likelihoods_Constants  , only : logImpossible
     use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
     use :: Posterior_Sampling_State      , only : posteriorSampleStateClass

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,57 +17,65 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a preset position component.
+!!{
+Contains a module which implements a preset position component.
+!!}
 
 module Node_Component_Position_Preset
-  !% Implements a preset position component.
+  !!{
+  Implements a preset position component.
+  !!}
   implicit none
   private
   public :: Node_Component_Position_Preset_Initialize         , Node_Component_Position_Preset_Inter_Tree_Insert, &
        &    Node_Component_Position_Preset_Move               , Node_Component_Position_Preset_Thread_Initialize, &
        &    Node_Component_Position_Preset_Thread_Uninitialize
 
-  !# <component>
-  !#  <class>position</class>
-  !#  <name>preset</name>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>position</name>
-  !#     <type>double</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <getFunction bindsTo="component">PositionPresetPosition</getFunction>
-  !#     <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Position of the node (in physical coordinates)."/>
-  !#     <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
-  !#   </property>
-  !#   <property>
-  !#     <name>velocity</name>
-  !#     <type>double</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <getFunction bindsTo="component">PositionPresetVelocity</getFunction>
-  !#     <output labels="[X,Y,Z]" unitsInSI="kilo" comment="Velocity of the node (in physical coordinates)."/>
-  !#     <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
-  !#   </property>
-  !#   <property>
-  !#     <name>positionHistory</name>
-  !#     <type>history</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#  </properties>
-  !#  <functions>objects.nodes.components.position.preset.bound_functions.inc</functions>
-  !# </component>
+  !![
+  <component>
+   <class>position</class>
+   <name>preset</name>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>position</name>
+      <type>double</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <getFunction bindsTo="component">PositionPresetPosition</getFunction>
+      <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Position of the node (in physical coordinates)."/>
+      <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
+    </property>
+    <property>
+      <name>velocity</name>
+      <type>double</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <getFunction bindsTo="component">PositionPresetVelocity</getFunction>
+      <output labels="[X,Y,Z]" unitsInSI="kilo" comment="Velocity of the node (in physical coordinates)."/>
+      <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
+    </property>
+    <property>
+      <name>positionHistory</name>
+      <type>history</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+   </properties>
+   <functions>objects.nodes.components.position.preset.bound_functions.inc</functions>
+  </component>
+  !!]
 
   ! Options.
   logical :: positionsPresetSatelliteToHost
 
 contains
 
-  !# <nodeComponentInitializationTask>
-  !#  <unitName>Node_Component_Position_Preset_Initialize</unitName>
-  !# </nodeComponentInitializationTask>
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>Node_Component_Position_Preset_Initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
   subroutine Node_Component_Position_Preset_Initialize(parameters_)
     use :: Galacticus_Nodes, only : defaultPositionComponent
     use :: Input_Parameters, only : inputParameter          , inputParameters
@@ -77,21 +85,27 @@ contains
     ! Initialize the module if necessary.
     if (defaultPositionComponent%presetIsActive()) then
       ! Read parameters controlling the physical implementation.
-       !# <inputParameter>
-       !#   <name>positionsPresetSatelliteToHost</name>
-       !#   <defaultValue>.false.</defaultValue>
-       !#   <description>If true, the position of satellite halos will be adjusted to match that of their host halo.</description>
-       !#   <source>parameters_</source>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>positionsPresetSatelliteToHost</name>
+         <defaultValue>.false.</defaultValue>
+         <description>If true, the position of satellite halos will be adjusted to match that of their host halo.</description>
+         <source>parameters_</source>
+       </inputParameter>
+       !!]
     end if
     return
   end subroutine Node_Component_Position_Preset_Initialize
 
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Position_Preset_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Position_Preset_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Position_Preset_Thread_Initialize(parameters_)
-    !% Initializes the tree node scale dark matter profile module.
+    !!{
+    Initializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent   , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultPositionComponent
     use :: Input_Parameters, only : inputParameters
@@ -104,11 +118,15 @@ contains
     return
   end subroutine Node_Component_Position_Preset_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Position_Preset_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Position_Preset_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Position_Preset_Thread_Uninitialize()
-    !% Uninitializes the tree node scale dark matter profile module.
+    !!{
+    Uninitializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent
     use :: Galacticus_Nodes, only : defaultPositionComponent
     implicit none
@@ -118,46 +136,52 @@ contains
     return
   end subroutine Node_Component_Position_Preset_Thread_Uninitialize
 
-  subroutine nodePromotion(self,thisNode)
-    !% Ensure that {\normalfont \ttfamily thisNode} is ready for promotion to its parent. In this case, update the position of {\normalfont \ttfamily
-    !% thisNode} to that of the parent.
+  subroutine nodePromotion(self,node)
+    !!{
+    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, update the position of {\normalfont \ttfamily
+    node} to that of the parent.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentPosition, nodeComponentPositionPreset, treeNode
     implicit none
     class(*                    ), intent(inout)          :: self
-    type (treeNode             ), intent(inout), target  :: thisNode
-    class(nodeComponentPosition)               , pointer :: parentPositionComponent, thisPositionComponent, &
-         &                                                  satellitePosition
-    type (treeNode             )               , pointer :: satelliteNode
+    type (treeNode             ), intent(inout), target  :: node
+    class(nodeComponentPosition)               , pointer :: positionParent   , position, &
+         &                                                  positionSatellite
+    type (treeNode             )               , pointer :: nodeSatellite
     !$GLC attributes unused :: self
     
-    thisPositionComponent   => thisNode       %position()
-    parentPositionComponent => thisNode%parent%position()
-    select type (parentPositionComponent)
+    position       => node       %position()
+    positionParent => node%parent%position()
+    select type (positionParent)
     class is (nodeComponentPositionPreset)
-       call thisPositionComponent%       positionSet(parentPositionComponent%position       ())
-       call thisPositionComponent%       velocitySet(parentPositionComponent%velocity       ())
-       call thisPositionComponent%positionHistorySet(parentPositionComponent%positionHistory())
+       call position%       positionSet(positionParent%position       ())
+       call position%       velocitySet(positionParent%velocity       ())
+       call position%positionHistorySet(positionParent%positionHistory())
     end select
     if (positionsPresetSatelliteToHost) then
-       satelliteNode => thisNode%firstSatellite
-       do while (associated(satelliteNode))
-          satellitePosition => satelliteNode%position()
-          call satellitePosition%positionSet(parentPositionComponent%position())
-          call satellitePosition%velocitySet(parentPositionComponent%velocity())
-          satelliteNode => satelliteNode%sibling
+       nodeSatellite => node%firstSatellite
+       do while (associated(nodeSatellite))
+          positionSatellite => nodeSatellite%position()
+          call positionSatellite%positionSet(positionParent%position())
+          call positionSatellite%velocitySet(positionParent%velocity())
+          nodeSatellite => nodeSatellite%sibling
        end do
     end if
     return
   end subroutine nodePromotion
 
-  !# <nodeMergerTask>
-  !#  <unitName>Node_Component_Position_Preset_Move</unitName>
-  !# </nodeMergerTask>
-  !# <satelliteHostChangeTask>
-  !#  <unitName>Node_Component_Position_Preset_Move</unitName>
-  !# </satelliteHostChangeTask>
+  !![
+  <nodeMergerTask>
+   <unitName>Node_Component_Position_Preset_Move</unitName>
+  </nodeMergerTask>
+  <satelliteHostChangeTask>
+   <unitName>Node_Component_Position_Preset_Move</unitName>
+  </satelliteHostChangeTask>
+  !!]
   subroutine Node_Component_Position_Preset_Move(node)
-    !% Optionally move a satellite to coincide with the postion of its host.
+    !!{
+    Optionally move a satellite to coincide with the postion of its host.
+    !!}
     use :: Galacticus_Nodes, only : defaultPositionComponent, nodeComponentPosition, treeNode
     implicit none
     type (treeNode             ), intent(inout) :: node
@@ -176,12 +200,16 @@ contains
     return
   end subroutine Node_Component_Position_Preset_Move
 
-  !# <interTreePositionInsert>
-  !#  <unitName>Node_Component_Position_Preset_Inter_Tree_Insert</unitName>
-  !# </interTreePositionInsert>
+  !![
+  <interTreePositionInsert>
+   <unitName>Node_Component_Position_Preset_Inter_Tree_Insert</unitName>
+  </interTreePositionInsert>
+  !!]
   subroutine Node_Component_Position_Preset_Inter_Tree_Insert(node,replaceNode)
-    !% A satellite node is being moved between trees, and being added as a new satellite. Its (future-)histories will have been
-    !% assigned to the {\normalfont \ttfamily replaceNode} so must be transferred.
+    !!{
+    A satellite node is being moved between trees, and being added as a new satellite. Its (future-)histories will have been
+    assigned to the {\normalfont \ttfamily replaceNode} so must be transferred.
+    !!}
     use :: Galacticus_Nodes, only : defaultPositionComponent, nodeComponentBasic, nodeComponentPosition, treeNode
     use :: Histories       , only : history
     implicit none

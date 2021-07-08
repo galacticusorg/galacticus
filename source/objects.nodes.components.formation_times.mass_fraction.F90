@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,58 +17,74 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module of halo formation time methods.
+!!{
+Contains a module of halo formation time methods.
+!!}
 
 module Node_Component_Formation_Times_Mass_Fraction
-  !% Implement tracking of halo formation times.
+  !!{
+  Implement tracking of halo formation times.
+  !!}
   implicit none
   private
   public :: Node_Component_Formation_Times_Mass_Fraction_Tree_Initialize, Node_Component_Formation_Times_Mass_Fraction_Initialize   , &
        &    Node_Component_Formation_Times_Mass_Fraction_Thread_Init    , Node_Component_Formation_Times_Mass_Fraction_Thread_Uninit
 
-  !# <component>
-  !#  <class>formationTime</class>
-  !#  <name>massFraction</name>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>formationTime</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <output unitsInSI="gigaYear" comment="The time at which a fixed fraction of the node''s mass was assembled."/>
-  !#   </property>
-  !#  </properties>
-  !# </component>
+  !![
+  <component>
+   <class>formationTime</class>
+   <name>massFraction</name>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>formationTime</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <output unitsInSI="gigaYear" comment="The time at which a fixed fraction of the node''s mass was assembled."/>
+    </property>
+   </properties>
+  </component>
+  !!]
 
   ! Fractional mass of primary progenitor used to define formation time.
   double precision :: formationTimeMassFraction
 
 contains
 
-  !# <nodeComponentInitializationTask>
-  !#  <unitName>Node_Component_Formation_Times_Mass_Fraction_Initialize</unitName>
-  !# </nodeComponentInitializationTask>
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>Node_Component_Formation_Times_Mass_Fraction_Initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
   subroutine Node_Component_Formation_Times_Mass_Fraction_Initialize(parameters_)
-    !% Initializes the tree node formation time tracking module.
+    !!{
+    Initializes the tree node formation time tracking module.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
 
-    !# <inputParameter>
-    !#   <name>formationTimeMassFraction</name>
-    !#   <defaultValue>0.5d0</defaultValue>
-    !#   <source>parameters_</source>
-    !#   <description>Fractional mass of primary progenitor used to define formation time.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>formationTimeMassFraction</name>
+      <defaultValue>0.5d0</defaultValue>
+      <source>parameters_</source>
+      <description>Fractional mass of primary progenitor used to define formation time.</description>
+    </inputParameter>
+    !!]
     return
   end subroutine Node_Component_Formation_Times_Mass_Fraction_Initialize
 
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Formation_Times_Mass_Fraction_Thread_Init</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Formation_Times_Mass_Fraction_Thread_Init</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Formation_Times_Mass_Fraction_Thread_Init(parameters_)
-    !% Initializes the tree node scale dark matter profile module.
+    !!{
+    Initializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent       , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultFormationTimeComponent
     use :: Input_Parameters, only : inputParameters
@@ -81,11 +97,15 @@ contains
     return
   end subroutine Node_Component_Formation_Times_Mass_Fraction_Thread_Init
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Formation_Times_Mass_Fraction_Thread_Uninit</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Formation_Times_Mass_Fraction_Thread_Uninit</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Formation_Times_Mass_Fraction_Thread_Uninit()
-    !% Uninitializes the tree node scale dark matter profile module.
+    !!{
+    Uninitializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent
     use :: Galacticus_Nodes, only : defaultFormationTimeComponent
     implicit none
@@ -96,7 +116,9 @@ contains
   end subroutine Node_Component_Formation_Times_Mass_Fraction_Thread_Uninit
 
   subroutine nodePromotion(self,node)
-    !% Handle node promotion for formation times.
+    !!{
+    Handle node promotion for formation times.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentFormationTime, nodeComponentFormationTimeMassFraction, treeNode
     implicit none
@@ -114,11 +136,15 @@ contains
     return
   end subroutine nodePromotion
 
-  !# <mergerTreeInitializeTask>
-  !#  <unitName>Node_Component_Formation_Times_Mass_Fraction_Tree_Initialize</unitName>
-  !# </mergerTreeInitializeTask>
+  !![
+  <mergerTreeInitializeTask>
+   <unitName>Node_Component_Formation_Times_Mass_Fraction_Tree_Initialize</unitName>
+  </mergerTreeInitializeTask>
+  !!]
   subroutine Node_Component_Formation_Times_Mass_Fraction_Tree_Initialize(node)
-    !% Initialize the formation node pointer for any childless node.
+    !!{
+    Initialize the formation node pointer for any childless node.
+    !!}
     use :: Galacticus_Nodes, only : defaultFormationTimeComponent, nodeComponentBasic, nodeComponentFormationTime, treeNode
     implicit none
     type            (treeNode                  ), intent(inout), pointer :: node

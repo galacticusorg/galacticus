@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,34 +17,40 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements algorithms for the temperature exponent of proposal size in tempered differential evolution
-!% algorithms.
+!!{
+Contains a module which implements algorithms for the temperature exponent of proposal size in tempered differential evolution
+algorithms.
+!!}
 
 module Posterior_Sampling_Prop_Size_Temp_Exp
-  !% Implements algorithms for the temperature exponent of proposal size in tempered differential evolution
-  !% algorithms.
+  !!{
+  Implements algorithms for the temperature exponent of proposal size in tempered differential evolution
+  algorithms.
+  !!}
   use :: Posterior_Sampling_Convergence, only : posteriorSampleConvergenceClass
   use :: Posterior_Sampling_State      , only : posteriorSampleStateClass
   private
 
-  !# <functionClass>
-  !#  <name>posteriorSampleDffrntlEvltnPrpslSzTmpExp</name>
-  !#  <descriptiveName>Posterior Sampling Differential Evolution Proposal Size Temperature Exponent</descriptiveName>
-  !#  <description>
-  !#   Class providing temperature-dependence exponents for proposal sizes for differential evolution posterior
-  !#   samplers. Specifically, theis class provides the exponent, $\alpha$, for the temperature scaling of the proposal size
-  !#   parameter, $\gamma$ (the fraction of the vector connecting to chain state to be used as the proposal for another chain),
-  !#   for use in tempered differential evolution simulations
-  !#  </description>
-  !#  <method name="exponent" >
-  !#   <description>Return the temperature exponent.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>class           (posteriorSampleStateClass      ), intent(inout), dimension(:) :: temperedStates</argument>
-  !#   <argument>double precision                                 , intent(in   ), dimension(:) :: temperatures</argument>
-  !#   <argument>class           (posteriorSampleStateClass      ), intent(inout)               :: simulationState</argument>
-  !#   <argument>class           (posteriorSampleConvergenceClass), intent(inout)               :: simulationConvergence</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>posteriorSampleDffrntlEvltnPrpslSzTmpExp</name>
+   <descriptiveName>Posterior Sampling Differential Evolution Proposal Size Temperature Exponent</descriptiveName>
+   <description>
+    Class providing temperature-dependence exponents for proposal sizes for differential evolution posterior
+    samplers. Specifically, theis class provides the exponent, $\alpha$, for the temperature scaling of the proposal size
+    parameter, $\gamma$ (the fraction of the vector connecting to chain state to be used as the proposal for another chain),
+    for use in tempered differential evolution simulations
+   </description>
+   <method name="exponent" >
+    <description>Return the temperature exponent.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>class           (posteriorSampleStateClass      ), intent(inout), dimension(:) :: temperedStates</argument>
+    <argument>double precision                                 , intent(in   ), dimension(:) :: temperatures</argument>
+    <argument>class           (posteriorSampleStateClass      ), intent(inout)               :: simulationState</argument>
+    <argument>class           (posteriorSampleConvergenceClass), intent(inout)               :: simulationConvergence</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Posterior_Sampling_Prop_Size_Temp_Exp

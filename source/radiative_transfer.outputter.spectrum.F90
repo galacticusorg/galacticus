@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,11 +19,15 @@
 
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   
-  !# <radiativeTransferOutputter name="radiativeTransferOutputterSpectrum">
-  !#  <description>A radiative transfer outputter class which outputs a binned spectrum of both total emitted and emergent photons.</description>
-  !# </radiativeTransferOutputter>
+  !![
+  <radiativeTransferOutputter name="radiativeTransferOutputterSpectrum">
+   <description>A radiative transfer outputter class which outputs a binned spectrum of both total emitted and emergent photons.</description>
+  </radiativeTransferOutputter>
+  !!]
   type, extends(radiativeTransferOutputterClass) :: radiativeTransferOutputterSpectrum
-     !% Implementation of a radiative transfer outputter class which outputs a binned spectrum of both total emitted and emergent photons.
+     !!{
+     Implementation of a radiative transfer outputter class which outputs a binned spectrum of both total emitted and emergent photons.
+     !!}
      private
      integer         (c_size_t     )                                 :: wavelengthCountPerDecade, countWavelengths  , &
           &                                                             countThetas
@@ -45,7 +49,9 @@
   end type radiativeTransferOutputterSpectrum
 
   interface radiativeTransferOutputterSpectrum
-     !% Constructors for the {\normalfont \ttfamily spectrum} radiative transfer outputter class.
+     !!{
+     Constructors for the {\normalfont \ttfamily spectrum} radiative transfer outputter class.
+     !!}
      module procedure spectrumConstructorParameters
      module procedure spectrumConstructorInternal
   end interface radiativeTransferOutputterSpectrum
@@ -53,8 +59,10 @@
 contains
 
   function spectrumConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily spectrum} radiative transfer outputter class which takes a parameter set as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily spectrum} radiative transfer outputter class which takes a parameter set as
+    input.
+    !!}
     use :: Input_Parameters        , only : inputParameters
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -64,49 +72,55 @@ contains
     double precision                                                    :: wavelengthMinimum       , wavelengthMaximum, &
          &                                                                 thetaMinimum            , thetaMaximum
 
-    !# <inputParameter>
-    !#   <name>wavelengthMinimum</name>
-    !#   <defaultValue>0.3d4</defaultValue>
-    !#   <description>The minimum wavelength at which to compute spectra.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>wavelengthMaximum</name>
-    !#   <defaultValue>10.0d4</defaultValue>
-    !#   <description>The maximum wavelength at which to compute spectra.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>wavelengthCountPerDecade</name>
-    !#   <defaultValue>10_c_size_t</defaultValue>
-    !#   <description>The number of wavelengths per decade at which to compute spectra.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>thetaMinimum</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The minimum angle $\theta$ at which to bin the emergent spectrum.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>thetaMaximum</name>
-    !#   <defaultValue>+Pi</defaultValue>
-    !#   <description>The maximum angle $\theta$ at which to bin the emergent spectrum.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>countThetas</name>
-    !#   <defaultValue>1_c_size_t</defaultValue>
-    !#   <description>The number of bins in angle $\theta$ at which to compute spectra.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>wavelengthMinimum</name>
+      <defaultValue>0.3d4</defaultValue>
+      <description>The minimum wavelength at which to compute spectra.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>wavelengthMaximum</name>
+      <defaultValue>10.0d4</defaultValue>
+      <description>The maximum wavelength at which to compute spectra.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>wavelengthCountPerDecade</name>
+      <defaultValue>10_c_size_t</defaultValue>
+      <description>The number of wavelengths per decade at which to compute spectra.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>thetaMinimum</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The minimum angle $\theta$ at which to bin the emergent spectrum.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>thetaMaximum</name>
+      <defaultValue>+Pi</defaultValue>
+      <description>The maximum angle $\theta$ at which to bin the emergent spectrum.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>countThetas</name>
+      <defaultValue>1_c_size_t</defaultValue>
+      <description>The number of bins in angle $\theta$ at which to compute spectra.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=radiativeTransferOutputterSpectrum(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,thetaMinimum,thetaMaximum,countThetas)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function spectrumConstructorParameters
 
   function spectrumConstructorInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,thetaMinimum,thetaMaximum,countThetas) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily spectrum} radiative transfer outputter class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily spectrum} radiative transfer outputter class.
+    !!}
     use :: Numerical_Constants_Math    , only : Pi
     use :: Numerical_Constants_Physical, only : plancksConstant  , speedLight
     use :: Numerical_Constants_Units   , only : angstromsPerMeter, electronVolt
@@ -116,7 +130,9 @@ contains
     integer         (c_size_t                          ), intent(in   ) :: wavelengthCountPerDecade, countThetas
     double precision                                    , intent(in   ) :: wavelengthMinimum       , wavelengthMaximum, &
          &                                                                 thetaMinimum            , thetaMaximum
-    !# <constructorAssign variables="wavelengthMinimum, wavelengthMaximum, wavelengthCountPerDecade, thetaMinimum, thetaMaximum, countThetas"/>
+    !![
+    <constructorAssign variables="wavelengthMinimum, wavelengthMaximum, wavelengthCountPerDecade, thetaMinimum, thetaMaximum, countThetas"/>
+    !!]
 
     self%countWavelengths=int(log10(wavelengthMaximum/wavelengthMinimum)*dble(wavelengthCountPerDecade),c_size_t)+1_c_size_t
     allocate(self%wavelengths       (self%countWavelengths                 ))
@@ -152,7 +168,9 @@ contains
   end function spectrumConstructorInternal
   
   subroutine spectrumReset(self)
-    !% Reset the accumulated spectrum.
+    !!{
+    Reset the accumulated spectrum.
+    !!}
     implicit none
     class(radiativeTransferOutputterSpectrum), intent(inout) :: self
 
@@ -162,7 +180,9 @@ contains
   end subroutine spectrumReset
 
   subroutine spectrumSourceProperties(self,radiativeTransferSource_,outputGroup)
-    !% Compute and output the emission spectrum.
+    !!{
+    Compute and output the emission spectrum.
+    !!}
     use :: IO_HDF5                         , only : hdf5Access
     use :: Numerical_Constants_Astronomical, only : luminositySolar
     use :: Numerical_Integration           , only : integrator
@@ -220,7 +240,9 @@ contains
   contains
 
     double precision function integrand(wavelength)
-      !% Integrand over the source spectrum.
+      !!{
+      Integrand over the source spectrum.
+      !!}
       implicit none
       double precision, intent(in   ) :: wavelength
       
@@ -231,7 +253,9 @@ contains
   end subroutine spectrumSourceProperties
 
   subroutine spectrumPhotonPacketEscapes(self,photonPacket)
-    !% Process an escaping photon packet.
+    !!{
+    Process an escaping photon packet.
+    !!}
     use :: Arrays_Search, only : searchArray
     implicit none
     class           (radiativeTransferOutputterSpectrum), intent(inout) :: self
@@ -266,7 +290,9 @@ contains
   end subroutine spectrumPhotonPacketEscapes
 
   subroutine spectrumFinalize(self)
-    !% Finalize the spectrum.
+    !!{
+    Finalize the spectrum.
+    !!}
     use :: MPI_Utilities, only : mpiSelf
     implicit none
     class(radiativeTransferOutputterSpectrum), intent(inout) :: self
@@ -278,7 +304,9 @@ contains
   end subroutine spectrumFinalize
 
   subroutine spectrumOutput(self,outputGroup)
-    !% Output the spectrum.
+    !!{
+    Output the spectrum.
+    !!}
     !$ use :: IO_HDF5                      , only : hdf5Access
     use :: Numerical_Constants_Astronomical, only : luminositySolar
     use :: String_Handling                 , only : String_Upper_Case_First

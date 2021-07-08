@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,56 +17,74 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements calculations of attenuation of stellar spectra using the model of \cite{witt_multiple_2000}.
+  !!{
+  Implements calculations of attenuation of stellar spectra using the model of \cite{witt_multiple_2000}.
+  !!}
 
-  !# <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationWittGordon2000">
-  !#  <description>Returns the dust attenuation of stellar spectra according to the model of \cite{witt_multiple_2000}.</description>
-  !# </stellarSpectraDustAttenuation>
+  !![
+  <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationWittGordon2000">
+   <description>Returns the dust attenuation of stellar spectra according to the model of \cite{witt_multiple_2000}.</description>
+  </stellarSpectraDustAttenuation>
+  !!]
   type, extends(stellarSpectraDustAttenuationTabulated) :: stellarSpectraDustAttenuationWittGordon2000
-     !% A class implementing calculations of attenuation of stellar spectra using the model of \cite{witt_multiple_2000}.
+     !!{
+     A class implementing calculations of attenuation of stellar spectra using the model of \cite{witt_multiple_2000}.
+     !!}
      private
    contains
   end type stellarSpectraDustAttenuationWittGordon2000
 
   interface stellarSpectraDustAttenuationWittGordon2000
-     !% Constructors for the ``wittGordon2003'' stellar spectra dust attenuation class.
+     !!{
+     Constructors for the ``wittGordon2003'' stellar spectra dust attenuation class.
+     !!}
      module procedure wittGordon2003ConstructorParameters
      module procedure wittGordon2003ConstructorInternal
   end interface stellarSpectraDustAttenuationWittGordon2000
 
-  !# <enumeration>
-  !#  <name>wittGordon2000Model</name>
-  !#  <description>Enumerates the models available in the {\normalfont \ttfamily wittGorden2000} dust attenutation class.</description>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <validator>yes</validator>
-  !#  <visibility>public</visibility>
-  !#  <entry label="milkyWayShellTau3"/>
-  !#  <entry label="SMCShellTau3"     />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>wittGordon2000Model</name>
+   <description>Enumerates the models available in the {\normalfont \ttfamily wittGorden2000} dust attenutation class.</description>
+   <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
+   <visibility>public</visibility>
+   <entry label="milkyWayShellTau3"/>
+   <entry label="SMCShellTau3"     />
+  </enumeration>
+  !!]
 
 contains
 
   function wittGordon2003ConstructorParameters(parameters) result(self)
-    !% Default constructor for the ``wittGordon2003'' stellar spectra dust attenuation class.
+    !!{
+    Default constructor for the ``wittGordon2003'' stellar spectra dust attenuation class.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(stellarSpectraDustAttenuationWittGordon2000)                :: self
     type(inputParameters                            ), intent(inout) :: parameters
     type(varying_string                             )                :: model
 
-    !# <inputParameter>
-    !#   <name>model</name>
-    !#   <defaultValue>var_str('MilkyWayShellTau3.0')</defaultValue>
-    !#   <description>The name of the model from \cite{witt_multiple_2000} to use in dust attenuation calculations.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>model</name>
+      <defaultValue>var_str('MilkyWayShellTau3.0')</defaultValue>
+      <description>The name of the model from \cite{witt_multiple_2000} to use in dust attenuation calculations.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=stellarSpectraDustAttenuationWittGordon2000(enumerationWittGordon2000ModelEncode(char(model),includesPrefix=.false.))
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function wittGordon2003ConstructorParameters
 
   function wittGordon2003ConstructorInternal(model) result(self)
-    !% Constructor for the ``wittGordon2003'' stellar spectra dust attenuation class.
+    !!{
+    Constructor for the ``wittGordon2003'' stellar spectra dust attenuation class.
+    !!}
     use :: Array_Utilities                 , only : Array_Reverse
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Numerical_Constants_Astronomical, only : magnitudesPerOpticalDepth

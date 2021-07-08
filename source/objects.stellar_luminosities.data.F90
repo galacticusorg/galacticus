@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,10 +19,14 @@
 
 !+    Contributions to this file made by:  Alex Merson.
 
-!% Contains a module which holds data for the stellar luminosities class.
+!!{
+Contains a module which holds data for the stellar luminosities class.
+!!}
 
 module Stellar_Luminosities_Data
-  !% Holds data for the stellar luminosities class.
+  !!{
+  Holds data for the stellar luminosities class.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   implicit none
   public

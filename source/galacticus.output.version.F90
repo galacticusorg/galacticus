@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements writing of the version number and run time to the \glc\ output file.
+!!{
+Contains a module which implements writing of the version number and run time to the \glc\ output file.
+!!}
 
 module Galacticus_Versioning
-  !% Implements writing of the version number and run time to the \glc\ output file.
+  !!{
+  Implements writing of the version number and run time to the \glc\ output file.
+  !!}
   implicit none
   private
   public :: Galacticus_Version_Output, Galacticus_Version_String, Galacticus_Version
@@ -31,7 +35,9 @@ module Galacticus_Versioning
 contains
 
   subroutine Galacticus_Version(gitHash_,gitBranch_,buildTime_)
-    !% Return version information
+    !!{
+    Return version information
+    !!}
     use :: ISO_Varying_String, only : varying_string, assignment(=)
     implicit none
     character(len=42        ), intent(  out), optional :: gitHash_
@@ -44,7 +50,9 @@ contains
   end subroutine Galacticus_Version
 
   function Galacticus_Version_String()
-    !% Returns a string describing the version of \glc.
+    !!{
+    Returns a string describing the version of \glc.
+    !!}
     use :: ISO_Varying_String, only : var_str, varying_string, operator(//)
     implicit none
     type(varying_string) :: Galacticus_Version_String
@@ -53,11 +61,15 @@ contains
     return
   end function Galacticus_Version_String
 
-  !# <outputFileOpenTask>
-  !#  <unitName>Galacticus_Version_Output</unitName>
-  !# </outputFileOpenTask>
+  !![
+  <outputFileOpenTask>
+   <unitName>Galacticus_Version_Output</unitName>
+  </outputFileOpenTask>
+  !!]
   subroutine Galacticus_Version_Output
-    !% Output version information to the main output file.
+    !!{
+    Output version information to the main output file.
+    !!}
     use :: Dates_and_Times   , only : Formatted_Date_and_Time
     use :: File_Utilities    , only : File_Exists
     use :: FoX_dom           , only : destroy                          , node

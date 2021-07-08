@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -19,27 +19,33 @@
 
 !+    Contributions to this file made by:  Stéphane Mangeon, Andrew Benson.
 
-!% Contains a module which implements a class for black hole binary recoil velocities.
+!!{
+Contains a module which implements a class for black hole binary recoil velocities.
+!!}
 
 module Black_Hole_Binary_Recoil_Velocities
-  !% Implements a class for black hole binary recoil velocities.
+  !!{
+  Implements a class for black hole binary recoil velocities.
+  !!}
   use :: Galacticus_Nodes, only : nodeComponentBlackHole
   implicit none
   private
 
-  !# <functionClass>
-  !#  <name>blackHoleBinaryRecoil</name>
-  !#  <descriptiveName>Black Hole Binaries Recoil</descriptiveName>
-  !#  <description>
-  !#   Class providing models of black hole binary recoil.
-  !#  </description>
-  !#  <default>zero</default>
-  !#  <method name="velocity" >
-  !#   <description>Computes the recoil velocity of the given pair of merging black holes.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>class(nodeComponentBlackHole), intent(inout) :: blackHole1, blackHole2</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>blackHoleBinaryRecoil</name>
+   <descriptiveName>Black Hole Binaries Recoil</descriptiveName>
+   <description>
+    Class providing models of black hole binary recoil.
+   </description>
+   <default>zero</default>
+   <method name="velocity" >
+    <description>Computes the recoil velocity of the given pair of merging black holes.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>class(nodeComponentBlackHole), intent(inout) :: blackHole1, blackHole2</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Black_Hole_Binary_Recoil_Velocities

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling likelihood class which implements a likelihood for SED fitting.
+  !!{
+  Implementation of a posterior sampling likelihood class which implements a likelihood for SED fitting.
+  !!}
 
   use :: Cosmology_Functions                       , only : cosmologyFunctionsClass
   use :: Stellar_Population_Selectors              , only : stellarPopulationSelectorClass
   use :: Stellar_Population_Spectra_Postprocess    , only : stellarPopulationSpectraPostprocessorBuilderClass, stellarPopulationSpectraPostprocessorList
   use :: Stellar_Population_Broad_Band_Luminosities, only : stellarPopulationBroadBandLuminositiesClass
 
-  !# <posteriorSampleLikelihood name="posteriorSampleLikelihoodSEDFit">
-  !#  <description>A posterior sampling likelihood class which implements a likelihood for SED fitting.</description>
-  !# </posteriorSampleLikelihood>
+  !![
+  <posteriorSampleLikelihood name="posteriorSampleLikelihoodSEDFit">
+   <description>A posterior sampling likelihood class which implements a likelihood for SED fitting.</description>
+  </posteriorSampleLikelihood>
+  !!]
   type, extends(posteriorSampleLikelihoodClass) :: posteriorSampleLikelihoodSEDFit
-     !% Implementation of a posterior sampling likelihood class which implements a likelihood for SED fitting.
+     !!{
+     Implementation of a posterior sampling likelihood class which implements a likelihood for SED fitting.
+     !!}
      private
      class           (cosmologyFunctionsClass                          ), pointer                   :: cosmologyFunctions_                           => null()
      class           (stellarPopulationSelectorClass                   ), pointer                   :: stellarPopulationSelector_                    => null()
@@ -52,40 +58,48 @@
   end type posteriorSampleLikelihoodSEDFit
 
   interface posteriorSampleLikelihoodSEDFit
-     !% Constructors for the {\normalfont \ttfamily sedFit} posterior sampling convergence class.
+     !!{
+     Constructors for the {\normalfont \ttfamily sedFit} posterior sampling convergence class.
+     !!}
      module procedure sedFitConstructorParameters
      module procedure sedFitConstructorInternal
   end interface posteriorSampleLikelihoodSEDFit
 
-  !# <enumeration>
-  !#  <name>sedFitDustType</name>
-  !#  <description>Used to specify the type of dust model to use in SED fitting likelihoods.</description>
-  !#  <visibility>private</visibility>
-  !#  <validator>yes</validator>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <entry label="null"           />
-  !#  <entry label="charlotFall2000"/>
-  !#  <entry label="cardelli1989"   />
-  !#  <entry label="gordon2003"     />
-  !#  <entry label="calzetti2000"   />
-  !#  <entry label="wittGordon2000" />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>sedFitDustType</name>
+   <description>Used to specify the type of dust model to use in SED fitting likelihoods.</description>
+   <visibility>private</visibility>
+   <validator>yes</validator>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="null"           />
+   <entry label="charlotFall2000"/>
+   <entry label="cardelli1989"   />
+   <entry label="gordon2003"     />
+   <entry label="calzetti2000"   />
+   <entry label="wittGordon2000" />
+  </enumeration>
+  !!]
 
-  !# <enumeration>
-  !#  <name>sedFitStartTime</name>
-  !#  <description>Used to specify the type of start time to use in SED fitting likelihoods.</description>
-  !#  <visibility>private</visibility>
-  !#  <validator>yes</validator>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <entry label="time"/>
-  !#  <entry label="age" />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>sedFitStartTime</name>
+   <description>Used to specify the type of start time to use in SED fitting likelihoods.</description>
+   <visibility>private</visibility>
+   <validator>yes</validator>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="time"/>
+   <entry label="age" />
+  </enumeration>
+  !!]
 
 contains
 
   function sedFitConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily sedFit} posterior sampling convergence class which builds the object from a
-    !% parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily sedFit} posterior sampling convergence class which builds the object from a
+    parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleLikelihoodSEDFit                  )                              :: self
@@ -99,45 +113,47 @@ contains
     class           (stellarPopulationSpectraPostprocessorBuilderClass), pointer                     :: stellarPopulationSpectraPostprocessorBuilder_
     class           (stellarPopulationBroadBandLuminositiesClass      ), pointer                     :: stellarPopulationBroadBandLuminosities_
 
-    !# <inputParameter>
-    !#   <name>magnitude</name>
-    !#   <description>The magnitudes of the broad-band SED.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>error</name>
-    !#   <description>The errors on the magnitudes of the broad-band SED.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>filter</name>
-    !#   <description>The names of the filters in the broad-band SED.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>system</name>
-    !#   <description>The photometric system (AB or Vega) of the broad-band SED.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>burstCount</name>
-    !#   <description>The number of bursts events to include in the star formation history.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>dustType</name>
-    !#   <description>The type of dust model to apply to the SED.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>startTime</name>
-    !#   <description>The definition of start time (absolute {\normalfont \ttfamily time} or {\normalfont \ttfamily age}).</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"                           name="cosmologyFunctions_"                           source="parameters"/>
-    !# <objectBuilder class="stellarPopulationSelector"                    name="stellarPopulationSelector_"                    source="parameters"/>
-    !# <objectBuilder class="stellarPopulationSpectraPostprocessorBuilder" name="stellarPopulationSpectraPostprocessorBuilder_" source="parameters"/>
-    !# <objectBuilder class="stellarPopulationBroadBandLuminosities"       name="stellarPopulationBroadBandLuminosities_"       source="parameters"/>
+    !![
+    <inputParameter>
+      <name>magnitude</name>
+      <description>The magnitudes of the broad-band SED.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>error</name>
+      <description>The errors on the magnitudes of the broad-band SED.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>filter</name>
+      <description>The names of the filters in the broad-band SED.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>system</name>
+      <description>The photometric system (AB or Vega) of the broad-band SED.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>burstCount</name>
+      <description>The number of bursts events to include in the star formation history.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>dustType</name>
+      <description>The type of dust model to apply to the SED.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>startTime</name>
+      <description>The definition of start time (absolute {\normalfont \ttfamily time} or {\normalfont \ttfamily age}).</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions"                           name="cosmologyFunctions_"                           source="parameters"/>
+    <objectBuilder class="stellarPopulationSelector"                    name="stellarPopulationSelector_"                    source="parameters"/>
+    <objectBuilder class="stellarPopulationSpectraPostprocessorBuilder" name="stellarPopulationSpectraPostprocessorBuilder_" source="parameters"/>
+    <objectBuilder class="stellarPopulationBroadBandLuminosities"       name="stellarPopulationBroadBandLuminosities_"       source="parameters"/>
+    !!]
     self=posteriorSampleLikelihoodSEDFit(                                                                                                              &
          &                                                                     magnitude                                                             , &
          &                                                                     error                                                                 , &
@@ -151,16 +167,20 @@ contains
          &                                                                     stellarPopulationSpectraPostprocessorBuilder_                         , &
          &                                                                     stellarPopulationBroadBandLuminosities_                                 &
          &                              )
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"                          />
-    !# <objectDestructor name="stellarPopulationSelector_"                   />
-    !# <objectDestructor name="stellarPopulationSpectraPostprocessorBuilder_"/>
-    !# <objectDestructor name="stellarPopulationBroadBandLuminosities_"      />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"                          />
+    <objectDestructor name="stellarPopulationSelector_"                   />
+    <objectDestructor name="stellarPopulationSpectraPostprocessorBuilder_"/>
+    <objectDestructor name="stellarPopulationBroadBandLuminosities_"      />
+    !!]
     return
   end function sedFitConstructorParameters
 
   function sedFitConstructorInternal(magnitude,error,filter,system,burstCount,dustType,startTimeType,cosmologyFunctions_,stellarPopulationSelector_,stellarPopulationSpectraPostprocessorBuilder_,stellarPopulationBroadBandLuminosities_) result(self)
-    !% Constructor for ``sedFit'' posterior sampling likelihood class.
+    !!{
+    Constructor for ``sedFit'' posterior sampling likelihood class.
+    !!}
     use :: Galacticus_Error   , only : Galacticus_Error_Report
     use :: ISO_Varying_String , only : var_str                , varying_string
     use :: Instruments_Filters, only : Filter_Get_Index       , Filter_Vega_Offset, Filter_Wavelength_Effective
@@ -176,7 +196,9 @@ contains
     class           (stellarPopulationSpectraPostprocessorBuilderClass), intent(in   ), target       :: stellarPopulationSpectraPostprocessorBuilder_
     class           (stellarPopulationBroadBandLuminositiesClass      ), intent(in   ), target       :: stellarPopulationBroadBandLuminosities_
     integer                                                                                          :: i
-    !# <constructorAssign variables="magnitude, error, filter, system, burstCount, dustType, startTimeType, *cosmologyFunctions_, *stellarPopulationSelector_, *stellarPopulationSpectraPostprocessorBuilder_, *stellarPopulationBroadBandLuminosities_"/>
+    !![
+    <constructorAssign variables="magnitude, error, filter, system, burstCount, dustType, startTimeType, *cosmologyFunctions_, *stellarPopulationSelector_, *stellarPopulationSpectraPostprocessorBuilder_, *stellarPopulationBroadBandLuminosities_"/>
+    !!]
 
     self%photometryCount=size(magnitude)
     allocate          (self%postprocessor            (self%photometryCount))
@@ -211,19 +233,25 @@ contains
   end function sedFitConstructorInternal
 
   subroutine sedFitDestructor(self)
-    !% Destructor for ``sedFit'' posterior sampling likelihood class.
+    !!{
+    Destructor for ``sedFit'' posterior sampling likelihood class.
+    !!}
     implicit none
     type(posteriorSampleLikelihoodSEDFit), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"                          />
-    !# <objectDestructor name="self%stellarPopulationSelector_"                   />
-    !# <objectDestructor name="self%stellarPopulationSpectraPostprocessorBuilder_"/>
-    !# <objectDestructor name="self%stellarPopulationBroadBandLuminosities_"      />
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"                          />
+    <objectDestructor name="self%stellarPopulationSelector_"                   />
+    <objectDestructor name="self%stellarPopulationSpectraPostprocessorBuilder_"/>
+    <objectDestructor name="self%stellarPopulationBroadBandLuminosities_"      />
+    !!]
     return
   end subroutine sedFitDestructor
 
   double precision function sedFitEvaluate(self,simulationState,modelParametersActive_,modelParametersInactive_,simulationConvergence,temperature,logLikelihoodCurrent,logPriorCurrent,logPriorProposed,timeEvaluate,logLikelihoodVariance,forceAcceptance)
-    !% Return the log-likelihood for the SED fitting likelihood function.
+    !!{
+    Return the log-likelihood for the SED fitting likelihood function.
+    !!}
     use            :: Abundances_Structure             , only : abundances                          , max                                      , metallicityTypeLinearByMassSolar
     use            :: Galacticus_Error                 , only : Galacticus_Error_Report
     use            :: Galacticus_Nodes                 , only : nodeComponentDisk
@@ -556,7 +584,9 @@ contains
   contains
 
     double precision function luminosityIntegrand(time)
-      !% Star formation rate integrand.
+      !!{
+      Star formation rate integrand.
+      !!}
       use :: Numerical_Constants_Math, only : Pi
       implicit none
       double precision, intent(in   ) :: time
@@ -638,7 +668,9 @@ contains
   end function sedFitEvaluate
 
   subroutine sedFitFunctionChanged(self)
-    !% Respond to possible changes in the likelihood function.
+    !!{
+    Respond to possible changes in the likelihood function.
+    !!}
     implicit none
     class(posteriorSampleLikelihoodSEDFit), intent(inout) :: self
     !$GLC attributes unused :: self

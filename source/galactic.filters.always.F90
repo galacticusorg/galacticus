@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a galactic filter which always passes.
+!!{
+Contains a module which implements a galactic filter which always passes.
+!!}
 
-  !# <galacticFilter name="galacticFilterAlways">
-  !#  <description>A galactic filter which always passes. (Used mostly for testing purposes.)</description>
-  !# </galacticFilter>
+  !![
+  <galacticFilter name="galacticFilterAlways">
+   <description>A galactic filter which always passes. (Used mostly for testing purposes.)</description>
+  </galacticFilter>
+  !!]
   type, extends(galacticFilterClass) :: galacticFilterAlways
-     !% A galactic filter class which always passes.
+     !!{
+     A galactic filter class which always passes.
+     !!}
      private
    contains
      procedure :: passes => alwaysPasses
   end type galacticFilterAlways
 
   interface galacticFilterAlways
-     !% Constructors for the ``always'' galactic filter class.
+     !!{
+     Constructors for the ``always'' galactic filter class.
+     !!}
      module procedure alwaysConstructorParameters
   end interface galacticFilterAlways
 
 contains
 
   function alwaysConstructorParameters(parameters)
-    !% Constructor for the ``always'' galactic filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``always'' galactic filter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(galacticFilterAlways)                :: alwaysConstructorParameters
@@ -49,7 +59,9 @@ contains
   end function alwaysConstructorParameters
 
   logical function alwaysPasses(self,node)
-    !% Implement an always-pass galactic filter.
+    !!{
+    Implement an always-pass galactic filter.
+    !!}
     implicit none
     class(galacticFilterAlways), intent(inout)         :: self
     type (treeNode            ), intent(inout), target :: node

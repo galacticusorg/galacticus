@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,22 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a merger tree operator which prunes all branches which do not contain an ``essential''
-  !% node.
+  !!{
+  Contains a module which implements a merger tree operator which prunes all branches which do not contain an ``essential''
+  node.
+  !!}
 
   use :: Kind_Numbers, only : kind_int8
 
-  !# <mergerTreeOperator name="mergerTreeOperatorPruneNonEssential">
-  !#  <description>
-  !#   A merger tree operator class which prunes branches that do not directly influence an ``essential'' node. Any branch which
-  !#   does not connect to the branch into which the node identified by ID {\normalfont \ttfamily [essentialNodeID]} descends by
-  !#   time {\normalfont \ttfamily essetialNodeTime]} will be pruned. Specifying the time is important---if the node is a
-  !#   satellite at this time, then the pruning will not remove any progenitors of the parent node in which the essential node
-  !#   lives at the specified time.
-  !#  </description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorPruneNonEssential">
+   <description>
+    A merger tree operator class which prunes branches that do not directly influence an ``essential'' node. Any branch which
+    does not connect to the branch into which the node identified by ID {\normalfont \ttfamily [essentialNodeID]} descends by
+    time {\normalfont \ttfamily essetialNodeTime]} will be pruned. Specifying the time is important---if the node is a
+    satellite at this time, then the pruning will not remove any progenitors of the parent node in which the essential node
+    lives at the specified time.
+   </description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneNonEssential
-     !% A merger tree operator class which prunes branches which do not contain an ``essential'' node.
+     !!{
+     A merger tree operator class which prunes branches which do not contain an ``essential'' node.
+     !!}
      private
      integer         (kind=kind_int8) :: essentialNodeID
      double precision                 :: essentialNodeTime
@@ -41,7 +47,9 @@
   end type mergerTreeOperatorPruneNonEssential
 
   interface mergerTreeOperatorPruneNonEssential
-     !% Constructors for the prune-non-essential merger tree operator class.
+     !!{
+     Constructors for the prune-non-essential merger tree operator class.
+     !!}
      module procedure pruneNonEssentialConstructorParameters
      module procedure pruneNonEssentialConstructorInternal
   end interface mergerTreeOperatorPruneNonEssential
@@ -49,29 +57,35 @@
 contains
 
   function pruneNonEssentialConstructorParameters(parameters)
-    !% Constructor for the prune-non-essential merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the prune-non-essential merger tree operator class which takes a parameter set as input.
+    !!}
     implicit none
     type   (mergerTreeOperatorPruneNonEssential)                :: pruneNonEssentialConstructorParameters
     type   (inputParameters                    ), intent(inout) :: parameters
 
-    !# <inputParameter>
-    !#   <name>essentialNodeID</name>
-    !#   <source>parameters</source>
-    !#   <variable>pruneNonEssentialConstructorParameters%essentialNodeID</variable>
-    !#   <description>ID of the essential node to avoid pruning.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>essentialNodeTime</name>
-    !#   <source>parameters</source>
-    !#   <variable>pruneNonEssentialConstructorParameters%essentialNodeTime</variable>
-    !#   <description>Time of the essential node to avoid pruning.</description>
-    !# </inputParameter>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParameter>
+      <name>essentialNodeID</name>
+      <source>parameters</source>
+      <variable>pruneNonEssentialConstructorParameters%essentialNodeID</variable>
+      <description>ID of the essential node to avoid pruning.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>essentialNodeTime</name>
+      <source>parameters</source>
+      <variable>pruneNonEssentialConstructorParameters%essentialNodeTime</variable>
+      <description>Time of the essential node to avoid pruning.</description>
+    </inputParameter>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function pruneNonEssentialConstructorParameters
 
   function pruneNonEssentialConstructorInternal(essentialNodeID,essentialNodeTime)
-    !% Internal constructor for the prune-non-essential merger tree operator class.
+    !!{
+    Internal constructor for the prune-non-essential merger tree operator class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (mergerTreeOperatorPruneNonEssential)                :: pruneNonEssentialConstructorInternal
@@ -84,7 +98,9 @@ contains
   end function pruneNonEssentialConstructorInternal
 
   subroutine pruneNonEssentialOperatePreEvolution(self,tree)
-    !% Perform a prune-non-essential operation on a merger tree.
+    !!{
+    Perform a prune-non-essential operation on a merger tree.
+    !!}
     use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic             , treeNode
     use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes
     use :: Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Clean_Branch, Merger_Tree_Prune_Uniqueify_IDs, Merger_Tree_Prune_Unlink_Parent
@@ -114,7 +130,7 @@ contains
           do while (treeWalker%next(node))
              ! Record the parent node to which we will return.
              if     (                                                &
-                  &   associated(nodePrevious)                       &
+                  &   associated(node%parent)                        &
                   &  .and.                                           &
                   &   .not.                                          &
                   &    (                                             &
@@ -128,7 +144,7 @@ contains
                 ! Decouple from other nodes.
                 call Merger_Tree_Prune_Unlink_Parent(                                                    &
                      &                               node                                              , &
-                     &                               nodePrevious                                      , &
+                     &                               node%parent                                       , &
                      &                               .not.                                               &
                      &                                    (                                              &
                      &                                      nodePrevious %isProgenitorOf(nodeEssential)  &

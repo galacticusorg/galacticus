@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,29 +17,34 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements calculations of the specific angular momentum of cooling gas.
+!!{
+Contains a module that implements calculations of the specific angular momentum of cooling gas.
+!!}
 
 module Cooling_Specific_Angular_Momenta
-  !% Provides a class that implements calculations of the specific angular momentum of cooling gas.
+  !!{
+  Provides a class that implements calculations of the specific angular momentum of cooling gas.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
 
-  !# <functionClass>
-  !#  <name>coolingSpecificAngularMomentum</name>
-  !#  <descriptiveName>Specific angular momentua of cooling gas.</descriptiveName>
-  !#  <description>
-  !#   Class providing models of the specific angular momentum of gas in the hot atmosphere surrounding a galaxy.
-  !#  </description>
-  !#  <default>constantRotation</default>
-  !#  <calculationReset>yes</calculationReset>
-  !#  <method name="angularMomentumSpecific" >
-  !#   <description>Return the specific angular momentum (in units of km/s Mpc) of cooling gas in {\normalfont \ttfamily node}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
-  !#   <argument>double precision          , intent(in   ) :: radius</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>coolingSpecificAngularMomentum</name>
+   <descriptiveName>Specific angular momentua of cooling gas.</descriptiveName>
+   <description>
+    Class providing models of the specific angular momentum of gas in the hot atmosphere surrounding a galaxy.
+   </description>
+   <default>constantRotation</default>
+   <method name="angularMomentumSpecific" >
+    <description>Return the specific angular momentum (in units of km/s Mpc) of cooling gas in {\normalfont \ttfamily node}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type            (treeNode), intent(inout) :: node</argument>
+    <argument>double precision          , intent(in   ) :: radius</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Cooling_Specific_Angular_Momenta

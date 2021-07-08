@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,21 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements structure tasks related to the dark matter halo density profile.
+!!{
+Contains a module which implements structure tasks related to the dark matter halo density profile.
+!!}
 
 module Dark_Matter_Profile_Structure_Tasks
-  !% Implements structure tasks related to the dark matter halo density profile.
+  !!{
+  Implements structure tasks related to the dark matter halo density profile.
+  !!}
   private
   public :: Dark_Matter_Profile_Enclosed_Mass_Task         , Dark_Matter_Profile_Density_Task     , Dark_Matter_Profile_Rotation_Curve_Task, Dark_Matter_Profile_Potential_Task             , &
        &   Dark_Matter_Profile_Rotation_Curve_Gradient_Task, Dark_Matter_Profile_Acceleration_Task, Dark_Matter_Profile_Tidal_Tensor_Task  , Dark_Matter_Profile_Chandrasekhar_Integral_Task
 
 contains
 
-  !# <enclosedMassTask>
-  !#  <unitName>Dark_Matter_Profile_Enclosed_Mass_Task</unitName>
-  !# </enclosedMassTask>
+  !![
+  <enclosedMassTask>
+   <unitName>Dark_Matter_Profile_Enclosed_Mass_Task</unitName>
+  </enclosedMassTask>
+  !!]
   double precision function Dark_Matter_Profile_Enclosed_Mass_Task(node,radius,componentType,massType,weightBy,weightIndex)
-    !% Computes the mass within a given radius for a dark matter profile.
+    !!{
+    Computes the mass within a given radius for a dark matter profile.
+    !!}
     use :: Dark_Matter_Profiles      , only : darkMatterProfile , darkMatterProfileClass
     use :: Galactic_Structure_Options, only : componentTypeAll  , componentTypeDarkHalo , massTypeAll, massTypeDark, &
           &                                   radiusLarge       , weightByMass
@@ -67,11 +75,15 @@ contains
     return
   end function Dark_Matter_Profile_Enclosed_Mass_Task
 
-  !# <accelerationTask>
-  !#  <unitName>Dark_Matter_Profile_Acceleration_Task</unitName>
-  !# </accelerationTask>
+  !![
+  <accelerationTask>
+   <unitName>Dark_Matter_Profile_Acceleration_Task</unitName>
+  </accelerationTask>
+  !!]
   function Dark_Matter_Profile_Acceleration_Task(node,positionCartesian,componentType,massType)
-    !% Computes the acceleration due to a dark matter profile.
+    !!{
+    Computes the acceleration due to a dark matter profile.
+    !!}
     use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull
     use :: Galacticus_Nodes                , only : treeNode
     use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
@@ -95,11 +107,15 @@ contains
     return
   end function Dark_Matter_Profile_Acceleration_Task
 
-  !# <chandrasekharIntegralTask>
-  !#  <unitName>Dark_Matter_Profile_Chandrasekhar_Integral_Task</unitName>
-  !# </chandrasekharIntegralTask>
+  !![
+  <chandrasekharIntegralTask>
+   <unitName>Dark_Matter_Profile_Chandrasekhar_Integral_Task</unitName>
+  </chandrasekharIntegralTask>
+  !!]
   function Dark_Matter_Profile_Chandrasekhar_Integral_Task(node,positionCartesian,velocityCartesian,componentType,massType)
-    !% Computes the Chandrasekhar integral due to a dark matter profile.
+    !!{
+    Computes the Chandrasekhar integral due to a dark matter profile.
+    !!}
     use :: Dark_Matter_Profiles      , only : darkMatterProfile, darkMatterProfileClass
     use :: Galactic_Structure_Options, only : weightByMass     , weightIndexNull
     use :: Galacticus_Nodes          , only : treeNode
@@ -138,11 +154,15 @@ contains
     return
   end function Dark_Matter_Profile_Chandrasekhar_Integral_Task
 
-  !# <tidalTensorTask>
-  !#  <unitName>Dark_Matter_Profile_Tidal_Tensor_Task</unitName>
-  !# </tidalTensorTask>
+  !![
+  <tidalTensorTask>
+   <unitName>Dark_Matter_Profile_Tidal_Tensor_Task</unitName>
+  </tidalTensorTask>
+  !!]
   function Dark_Matter_Profile_Tidal_Tensor_Task(node,positionCartesian,componentType,massType)
-    !% Computes the tidalTensor due to a dark matter profile.
+    !!{
+    Computes the tidalTensor due to a dark matter profile.
+    !!}
     use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
     use :: Galacticus_Nodes            , only : treeNode
     use :: Numerical_Constants_Math    , only : Pi
@@ -173,11 +193,15 @@ contains
     return
   end function Dark_Matter_Profile_Tidal_Tensor_Task
 
-  !# <rotationCurveTask>
-  !#  <unitName>Dark_Matter_Profile_Rotation_Curve_Task</unitName>
-  !# </rotationCurveTask>
+  !![
+  <rotationCurveTask>
+   <unitName>Dark_Matter_Profile_Rotation_Curve_Task</unitName>
+  </rotationCurveTask>
+  !!]
   double precision function Dark_Matter_Profile_Rotation_Curve_Task(node,radius,componentType,massType)
-    !% Computes the rotation curve at a given radius for a dark matter profile.
+    !!{
+    Computes the rotation curve at a given radius for a dark matter profile.
+    !!}
     use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
     use :: Galacticus_Nodes            , only : treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
@@ -199,11 +223,15 @@ contains
     return
   end function Dark_Matter_Profile_Rotation_Curve_Task
 
-  !# <densityTask>
-  !#  <unitName>Dark_Matter_Profile_Density_Task</unitName>
-  !# </densityTask>
+  !![
+  <densityTask>
+   <unitName>Dark_Matter_Profile_Density_Task</unitName>
+  </densityTask>
+  !!]
   double precision function Dark_Matter_Profile_Density_Task(node,positionSpherical,componentType,massType,weightBy,weightIndex)
-    !% Computes the density at a given position for a dark matter profile.
+    !!{
+    Computes the density at a given position for a dark matter profile.
+    !!}
     use :: Dark_Matter_Profiles      , only : darkMatterProfile, darkMatterProfileClass
     use :: Galactic_Structure_Options, only : componentTypeAll , componentTypeDarkHalo , massTypeAll, massTypeDark, &
           &                                   weightByMass
@@ -228,11 +256,15 @@ contains
     return
   end function Dark_Matter_Profile_Density_Task
 
-  !# <rotationCurveGradientTask>
-  !#  <unitName>Dark_Matter_Profile_Rotation_Curve_Gradient_Task</unitName>
-  !# </rotationCurveGradientTask>
+  !![
+  <rotationCurveGradientTask>
+   <unitName>Dark_Matter_Profile_Rotation_Curve_Gradient_Task</unitName>
+  </rotationCurveGradientTask>
+  !!]
   double precision function Dark_Matter_Profile_Rotation_Curve_Gradient_Task(node,radius,componentType,massType)
-    !% Computes the rotation curve gradient for the dark matter.
+    !!{
+    Computes the rotation curve gradient for the dark matter.
+    !!}
     use :: Galactic_Structure_Options  , only : componentTypeAll               , componentTypeDarkHalo, massTypeAll, massTypeDark, &
           &                                     weightByMass                   , weightIndexNull
     use :: Galacticus_Nodes            , only : treeNode
@@ -262,11 +294,15 @@ contains
     return
   end function Dark_Matter_Profile_Rotation_Curve_Gradient_Task
 
-  !# <potentialTask>
-  !#  <unitName>Dark_Matter_Profile_Potential_Task</unitName>
-  !# </potentialTask>
+  !![
+  <potentialTask>
+   <unitName>Dark_Matter_Profile_Potential_Task</unitName>
+  </potentialTask>
+  !!]
   double precision function Dark_Matter_Profile_Potential_Task(node,radius,componentType,massType,status)
-    !% Return the potential due to dark matter.
+    !!{
+    Return the potential due to dark matter.
+    !!}
     use :: Dark_Matter_Profiles      , only : darkMatterProfile        , darkMatterProfileClass
     use :: Galactic_Structure_Options, only : componentTypeAll         , componentTypeDarkHalo , massTypeAll, massTypeDark, &
           &                                   structureErrorCodeSuccess

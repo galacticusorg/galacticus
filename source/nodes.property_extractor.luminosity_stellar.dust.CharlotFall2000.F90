@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a stellar luminosity output analysis property extractor class which applies the dust model of \cite{charlot_simple_2000}.
+!!{
+Contains a module which implements a stellar luminosity output analysis property extractor class which applies the dust model of \cite{charlot_simple_2000}.
+!!}
 
   use :: ISO_Varying_String, only : varying_string
   use :: Output_Times      , only : outputTimesClass
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorLmnstyStllrCF2000">
-  !#  <description>A stellar luminosity output analysis property extractor class which applies the dust model of \cite{charlot_simple_2000}.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorLmnstyStllrCF2000">
+   <description>A stellar luminosity output analysis property extractor class which applies the dust model of \cite{charlot_simple_2000}.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorLmnstyStllrCF2000
-     !% A stellar luminosity output analysis property extractor class which applies the dust model of \cite{charlot_simple_2000}.
+     !!{
+     A stellar luminosity output analysis property extractor class which applies the dust model of \cite{charlot_simple_2000}.
+     !!}
      private
      type            (varying_string  )                            :: filterName                , filterType                   , &
           &                                                           name_                     , description_
@@ -46,7 +52,9 @@
   end type nodePropertyExtractorLmnstyStllrCF2000
 
   interface nodePropertyExtractorLmnstyStllrCF2000
-     !% Constructors for the ``lmnstyStllrChrltFll2000'' output analysis class.
+     !!{
+     Constructors for the ``lmnstyStllrChrltFll2000'' output analysis class.
+     !!}
      module procedure lmnstyStllrChrltFll2000ConstructorParameters
      module procedure lmnstyStllrChrltFll2000ConstructorInternal
   end interface nodePropertyExtractorLmnstyStllrCF2000
@@ -54,7 +62,9 @@
 contains
 
   function lmnstyStllrChrltFll2000ConstructorParameters(parameters) result(self)
-    !% Constructor for the ``lmnstyStllrChrltFll2000'' output analysis property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``lmnstyStllrChrltFll2000'' output analysis property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nodePropertyExtractorLmnstyStllrCF2000)                :: self
@@ -66,54 +76,64 @@ contains
     logical                                                                 :: redshiftBandIsPresent
 
     redshiftBandIsPresent=parameters%isPresent('redshiftBand'    )
-    !# <inputParameter>
-    !#   <name>filterName</name>
-    !#   <source>parameters</source>
-    !#   <description>The filter to select.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>filterType</name>
-    !#   <source>parameters</source>
-    !#   <description>The filter type (rest or observed) to select.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>filterName</name>
+      <source>parameters</source>
+      <description>The filter to select.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>filterType</name>
+      <source>parameters</source>
+      <description>The filter type (rest or observed) to select.</description>
+    </inputParameter>
+    !!]
     if (redshiftBandIsPresent) then
-       !# <inputParameter>
-       !#   <name>redshiftBand</name>
-       !#   <source>parameters</source>
-       !#   <description>The redshift of the band (if not the output redshift).</description>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>redshiftBand</name>
+         <source>parameters</source>
+         <description>The redshift of the band (if not the output redshift).</description>
+       </inputParameter>
+       !!]
     end if
-    !# <inputParameter>
-    !#   <name>depthOpticalISMCoefficient</name>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>Multiplicative coefficient for optical depth in the ISM.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>depthOpticalCloudsCoefficient</name>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>Multiplicative coefficient for optical depth in birth clouds.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>wavelengthExponent</name>
-    !#   <defaultValue>0.7d0</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>Exponent of wavelength in the optical depth.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>depthOpticalISMCoefficient</name>
+      <defaultValue>1.0d0</defaultValue>
+      <source>parameters</source>
+      <description>Multiplicative coefficient for optical depth in the ISM.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>depthOpticalCloudsCoefficient</name>
+      <defaultValue>1.0d0</defaultValue>
+      <source>parameters</source>
+      <description>Multiplicative coefficient for optical depth in birth clouds.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>wavelengthExponent</name>
+      <defaultValue>0.7d0</defaultValue>
+      <source>parameters</source>
+      <description>Exponent of wavelength in the optical depth.</description>
+    </inputParameter>
+    <objectBuilder class="outputTimes" name="outputTimes_" source="parameters"/>
+    !!]
     if (redshiftBandIsPresent) then
        self=nodePropertyExtractorLmnstyStllrCF2000(char(filterName),char(filterType),depthOpticalISMCoefficient,depthOpticalCloudsCoefficient,wavelengthExponent,outputTimes_,redshiftBand=redshiftBand)
     else
        self=nodePropertyExtractorLmnstyStllrCF2000(char(filterName),char(filterType),depthOpticalISMCoefficient,depthOpticalCloudsCoefficient,wavelengthExponent,outputTimes_                          )
     end if
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="outputTimes_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="outputTimes_"/>
+    !!]
     return
   end function lmnstyStllrChrltFll2000ConstructorParameters
 
   function lmnstyStllrChrltFll2000ConstructorInternal(filterName,filterType,depthOpticalISMCoefficient,depthOpticalCloudsCoefficient,wavelengthExponent,outputTimes_,redshiftBand,outputMask) result(self)
-    !% Internal constructor for the ``lmnstyStllrChrltFll2000'' output analysis property extractor class.
+    !!{
+    Internal constructor for the ``lmnstyStllrChrltFll2000'' output analysis property extractor class.
+    !!}
     use, intrinsic :: ISO_C_Binding                 , only : c_size_t
     use            :: Instruments_Filters           , only : Filter_Get_Index       , Filter_Wavelength_Effective
     use            :: Memory_Management             , only : allocateArray
@@ -128,7 +148,9 @@ contains
     logical                                                 , intent(in   ), dimension(:), optional :: outputMask
     integer         (c_size_t                              )                                        :: i
     character       (len=7                                 )                                        :: label
-    !# <constructorAssign variables="filterName, filterType, redshiftBand, depthOpticalISMCoefficient, depthOpticalCloudsCoefficient, wavelengthExponent, *outputTimes_"/>
+    !![
+    <constructorAssign variables="filterName, filterType, redshiftBand, depthOpticalISMCoefficient, depthOpticalCloudsCoefficient, wavelengthExponent, *outputTimes_"/>
+    !!]
 
     self%wavelengthFilterEffective=Filter_Wavelength_Effective(Filter_Get_Index(var_str(filterName)))
     call allocateArray(self%luminosityIndex      ,[self%outputTimes_%count()])
@@ -155,16 +177,22 @@ contains
   end function lmnstyStllrChrltFll2000ConstructorInternal
 
   subroutine lmnstyStllrChrltFll2000Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily lmnstyStllrChrltFll2000} output analysis property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily lmnstyStllrChrltFll2000} output analysis property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
 
-    !# <objectDestructor name="self%outputTimes_"/>
+    !![
+    <objectDestructor name="self%outputTimes_"/>
+    !!]
     return
   end subroutine lmnstyStllrChrltFll2000Destructor
 
   double precision function lmnstyStllrChrltFll2000Extract(self,node,instance)
-    !% Implement a stellar luminosity output analysis property extractor.
+    !!{
+    Implement a stellar luminosity output analysis property extractor.
+    !!}
     use            :: Abundances_Structure            , only : abundances         , metallicityTypeLinearByMass
     use            :: Galacticus_Nodes                , only : nodeComponentBasic , nodeComponentDisk          , nodeComponentSpheroid, treeNode
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
@@ -306,7 +334,9 @@ contains
   end function lmnstyStllrChrltFll2000Extract
 
   integer function lmnstyStllrChrltFll2000Type(self)
-    !% Return the type of the stellar luminosity property.
+    !!{
+    Return the type of the stellar luminosity property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
@@ -317,7 +347,9 @@ contains
   end function lmnstyStllrChrltFll2000Type
 
   integer function lmnstyStllrChrltFll2000Quantity(self)
-    !% Return the class of the stellar luminosity property.
+    !!{
+    Return the class of the stellar luminosity property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
     implicit none
     class(nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
@@ -328,7 +360,9 @@ contains
   end function lmnstyStllrChrltFll2000Quantity
 
   function lmnstyStllrCF2000Name(self)
-    !% Return the name of the lmnstyStllrCF2000 property.
+    !!{
+    Return the name of the lmnstyStllrCF2000 property.
+    !!}
     implicit none
     type (varying_string                        )                :: lmnstyStllrCF2000Name
     class(nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
@@ -338,7 +372,9 @@ contains
   end function lmnstyStllrCF2000Name
 
   function lmnstyStllrCF2000Description(self)
-    !% Return a description of the lmnstyStllrCF2000 property.
+    !!{
+    Return a description of the lmnstyStllrCF2000 property.
+    !!}
     implicit none
     type (varying_string                        )                :: lmnstyStllrCF2000Description
     class(nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self
@@ -348,7 +384,9 @@ contains
   end function lmnstyStllrCF2000Description
 
   double precision function lmnstyStllrCF2000UnitsInSI(self)
-    !% Return the units of the lmnstyStllrCF2000 property in the SI system.
+    !!{
+    Return the units of the lmnstyStllrCF2000 property in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : luminosityZeroPointAB
     implicit none
     class(nodePropertyExtractorLmnstyStllrCF2000), intent(inout) :: self

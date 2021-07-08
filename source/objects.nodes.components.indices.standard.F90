@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020
+!!           2019, 2020, 2021
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -17,52 +17,62 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the standard indices component.
+!!{
+Contains a module which implements the standard indices component.
+!!}
 
 module Node_Component_Indices_Standard
-  !% Implements the standard indices component.
+  !!{
+  Implements the standard indices component.
+  !!}
   implicit none
   private
   public :: Node_Component_Indices_Standard_Merger_Tree_Init
 
-  !# <component>
-  !#  <class>indices</class>
-  !#  <name>standard</name>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>branchTip</name>
-  !#     <type>longInteger</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <output unitsInSI="0.0d0" comment="Index of the node at the tip of the branch in which this galaxy formed."/>
-  !#   </property>
-  !#  </properties>
-  !# </component>
+  !![
+  <component>
+   <class>indices</class>
+   <name>standard</name>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>branchTip</name>
+      <type>longInteger</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <output unitsInSI="0.0d0" comment="Index of the node at the tip of the branch in which this galaxy formed."/>
+    </property>
+   </properties>
+  </component>
+  !!]
 
 contains
 
-  !# <mergerTreeInitializeTask>
-  !#  <unitName>Node_Component_Indices_Standard_Merger_Tree_Init</unitName>
-  !# </mergerTreeInitializeTask>
-  subroutine Node_Component_Indices_Standard_Merger_Tree_Init(thisNode)
-    !% Initialize the indices component by creating components in nodes and storing indices.
+  !![
+  <mergerTreeInitializeTask>
+   <unitName>Node_Component_Indices_Standard_Merger_Tree_Init</unitName>
+  </mergerTreeInitializeTask>
+  !!]
+  subroutine Node_Component_Indices_Standard_Merger_Tree_Init(node)
+    !!{
+    Initialize the indices component by creating components in nodes and storing indices.
+    !!}
     use :: Galacticus_Nodes, only : defaultIndicesComponent, nodeComponentIndices, nodeComponentIndicesStandard, treeNode
     implicit none
-    type (treeNode            ), intent(inout), pointer :: thisNode
-    class(nodeComponentIndices)               , pointer :: thisIndices
+    type (treeNode            ), intent(inout), pointer :: node
+    class(nodeComponentIndices)               , pointer :: indices
 
     ! Return immediately if this class is not active.
     if (.not.defaultIndicesComponent%standardIsActive()) return
 
     ! Return immediately if this node is not a branch tip.
-    if (associated(thisNode%firstChild)                ) return
+    if (associated(node%firstChild)                    ) return
 
     ! Create an indices component and initialize it.
-    thisIndices => thisNode%indices(autoCreate=.true.)
-    select type (thisIndices)
+    indices => node%indices(autoCreate=.true.)
+    select type (indices)
     class is (nodeComponentIndicesStandard)
-       call thisIndices%branchTipSet(thisNode%index())
+       call indices%branchTipSet(node%index())
     end select
     return
   end subroutine Node_Component_Indices_Standard_Merger_Tree_Init
