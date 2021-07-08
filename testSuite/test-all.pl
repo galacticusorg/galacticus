@@ -349,6 +349,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.warm_dark_matter.exe",                                         # Tests of critical overdensity for collapse in warm dark matter model.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.linear_growth.cosmological_constant.exe",                      # Tests of linear growth factor.
 	valgrind => 0,
 	mpi      => 0

@@ -425,6 +425,7 @@ contains
     end if
     ! Include gradient from CDM critical overdensity.
     barkana2001WDMGradientMass=+barkana2001WDMGradientMass                                                     &
+         &                     *self%criticalOverdensityCDM%value       (time,expansionFactor,collapsing,mass) &
          &                     +self                       %value       (time,expansionFactor,collapsing,mass) &
          &                     /self%criticalOverdensityCDM%value       (time,expansionFactor,collapsing,mass) &
          &                     *self%criticalOverdensityCDM%gradientMass(time,expansionFactor,collapsing,mass)
