@@ -323,6 +323,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.spherical_collapse.dark_energy.constantEoSminusHalf.exe",      # .
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.spherical_collapse.dark_energy.constantEoSminusTwoThirds.exe", # .
 	valgrind => 0,
 	mpi      => 0
@@ -520,10 +525,20 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.dark_matter_profiles.tidal_tracks.exe",                        # Tests of dark matter profile tidal tracks.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.dark_matter_profiles.generic.exe",                             # Tests of generic, numerical implementations of dark matter profile functions.
 	valgrind => 0,
 	mpi      => 0,
 	isSlow   => 1
+    },
+    {
+	name     => "tests.spectra.postprocess.Inoue2014.exe",                            # Tests of Inoue (2014) IGM attenutation model.
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.MPI.exe",                                                      # Tests of MPI functionality.
