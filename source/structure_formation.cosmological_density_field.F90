@@ -315,7 +315,7 @@ contains
     double precision                          , intent(in   ), optional             :: mass
     type            (treeNode                ), intent(inout), optional    , target :: node
     double precision                          , parameter                           :: toleranceRelative=1.0d-12, toleranceAbsolute       =0.0d0
-    integer                                   , parameter                           :: countPerUnit     =1000
+    integer                                   , parameter                           :: countPerUnit     =10000
     double precision                          , allocatable  , dimension(:)         :: threshold
     double precision                                                                :: timeBigCrunch            , collapseThresholdMinimum      , &
          &                                                                             collapseThresholdMaximum
