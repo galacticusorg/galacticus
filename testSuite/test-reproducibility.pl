@@ -28,7 +28,7 @@ my @tests =
      		  name              => "hot halo mass"            ,
      		  output            => 1                          ,
      		  property          => "hotHaloMass"              ,
-     		  values            => pdl ( 8.00146698124138e10 ),
+     		  values            => pdl ( 8.00150993013388e10 ),
      		  toleranceRelative => 4.0e-6
      	      }
      	     ]

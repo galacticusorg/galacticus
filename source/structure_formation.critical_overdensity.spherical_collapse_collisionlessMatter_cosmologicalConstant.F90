@@ -121,12 +121,12 @@ contains
     use :: Galacticus_Error     , only : Galacticus_Error_Report
     implicit none
     type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)                          :: self
-    class           (cosmologyFunctionsClass                                      ), target  , intent(in   ) :: cosmologyFunctions_
-    class           (linearGrowthClass                                            ), target  , intent(in   ) :: linearGrowth_
-    class           (cosmologicalMassVarianceClass                                ), target  , intent(in   ) :: cosmologicalMassVariance_
-    class           (darkMatterParticleClass                                      ), target  , intent(in   ) :: darkMatterParticle_
-    logical                                                                                  , intent(in   ) :: tableStore
-    double precision                                                               , optional, intent(in   ) :: normalization
+    class           (cosmologyFunctionsClass                                     ), target  , intent(in   ) :: cosmologyFunctions_
+    class           (linearGrowthClass                                           ), target  , intent(in   ) :: linearGrowth_
+    class           (cosmologicalMassVarianceClass                               ), target  , intent(in   ) :: cosmologicalMassVariance_
+    class           (darkMatterParticleClass                                     ), target  , intent(in   ) :: darkMatterParticle_
+    logical                                                                                 , intent(in   ) :: tableStore
+    double precision                                                              , optional, intent(in   ) :: normalization
     !![
     <optionalArgument name="normalization" defaultsTo="1.0d0" />
     <constructorAssign variables="*linearGrowth_, *cosmologyFunctions_, *cosmologicalMassVariance_, *darkMatterParticle_, tableStore"/>
@@ -178,8 +178,8 @@ contains
     !!}
     implicit none
     class           (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout) :: self
-    double precision                                                               , intent(in   ) :: time
-    logical                                                                                        :: remakeTable
+    double precision                                                              , intent(in   ) :: time
+    logical                                                                                       :: remakeTable
 
     ! Check if we need to recompute our table.
     if (self%tableInitialized) then
@@ -203,11 +203,11 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
-    double precision                                                               , intent(in   ), optional :: time      , expansionFactor, &
-         &                                                                                                      mass
-    logical                                                                        , intent(in   ), optional :: collapsing
-    type            (treeNode                                                     ), intent(inout), optional :: node
-    double precision                                                                                         :: time_
+    double precision                                                              , intent(in   ), optional :: time      , expansionFactor, &
+         &                                                                                                     mass
+    logical                                                                       , intent(in   ), optional :: collapsing
+    type            (treeNode                                                    ), intent(inout), optional :: node
+    double precision                                                                                        :: time_
     !$GLC attributes unused :: mass, node
 
     ! Determine cosmological time.
@@ -227,11 +227,11 @@ contains
     !!}
     implicit none
     class           (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
-    double precision                                                               , intent(in   ), optional :: time      , expansionFactor, &
-         &                                                                                                      mass
-    logical                                                                        , intent(in   ), optional :: collapsing
-    type            (treeNode                                                     ), intent(inout), optional :: node
-    double precision                                                                                         :: time_
+    double precision                                                              , intent(in   ), optional :: time      , expansionFactor, &
+         &                                                                                                     mass
+    logical                                                                       , intent(in   ), optional :: collapsing
+    type            (treeNode                                                    ), intent(inout), optional :: node
+    double precision                                                                                        :: time_
     !$GLC attributes unused :: mass, node
 
     ! Determine cosmological time.
@@ -250,10 +250,10 @@ contains
     !!}
     implicit none
     class           (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
-    double precision                                                               , intent(in   ), optional :: time      , expansionFactor
-    logical                                                                        , intent(in   ), optional :: collapsing
-    double precision                                                               , intent(in   ), optional :: mass
-    type            (treeNode                                                     ), intent(inout), optional :: node
+    double precision                                                              , intent(in   ), optional :: time      , expansionFactor
+    logical                                                                       , intent(in   ), optional :: collapsing
+    double precision                                                              , intent(in   ), optional :: mass
+    type            (treeNode                                                    ), intent(inout), optional :: node
     !$GLC attributes unused :: self, time, expansionFactor, collapsing, mass, node
 
     sphericalCollapseClsnlssMttrCsmlgclCnstntGradientMass=0.0d0

@@ -39,7 +39,7 @@ Implements the geometry of the ULTRAVISTA survey used by \cite{muzzin_evolution_
     command.
     
     To determine the depth as a function of stellar mass, we simply fit the
-    \href{http://www.strw.leidenuniv.nl/galaxyevolution/ULTRAVISTA/Mstar_redshift_completeness_emp_uvista_v4.1_100.dat}{tabulated
+    \href{https://github.com/galacticusorg/datasets/blob/master/static/surveyGeometry/ULTRAVISTA/Mstar_redshift_completeness_emp_uvista_v4.1_100.dat}{tabulated
     relations} provided by the ULTRAVISTA survey:
     \begin{equation}
     z_\mathrm{max}(M_\star) = {-8364.45 + m (4331.82 + m (-896.596 + m (92.6999 + m (-4.78750 + m (0.0988215))))) \over 1 -
