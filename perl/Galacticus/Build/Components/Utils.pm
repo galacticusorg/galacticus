@@ -92,6 +92,16 @@ sub Label_Lengths {
 	     &List::ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' )
 	    );
     }
+    # Add variables for use at run-time.
+        push
+	(
+	 @{$build->{'variables'}},
+	 # Arrays used to store meta-property indices.
+	 {
+	     intrinsic  => "integer"                                                      ,
+	     variables  => [ "implementationNameLengthMax=".$implementationNameLengthMax ]
+	 }
+	);
     # Report.
     if ( $verbosityLevel >= 1 ) {
 	print "         --> Maximum label lengths:\n";
