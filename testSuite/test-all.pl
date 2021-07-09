@@ -733,6 +733,18 @@ foreach $mpi ( "noMPI", "MPI" ) {
     }
 }
 
+# Run scripts that can launch themselves using PBS.
+my $thread = threads->create(\&launchLocalTests, \@launchLocal);
+
+# Launch all PBS job tests.
+&Galacticus::Launch::PBS::SubmitJobs(\%options,@jobStack);
+unlink(@launchFiles);
+
+# Wait for local jobs to complete.
+$thread->join();
+print lHndl slurp("testSuite/allTests.tmp");
+unlink("testSuite/allTests.tmp");
+
 # Close the log file.
 close(lHndl);
 
@@ -824,14 +836,14 @@ sub runTestScript {
 		# We need to launch this script.
 		(my $label = $fileName) =~ s/\.pl$//;
 		push(
-		    @launchPBS,
+		    @jobStack,
 		    {
-			launchFile   => "testSuite/".$label.".pbs",
-			label        => "testSuite-".$label       ,
-			logFile      => "testSuite/".$label.".log",
-			command      => "cd testSuite; ".$fileName,
-			ppn          => 16                        ,
-			tracejob     => "yes"                     ,
+			launchFile   => "testSuite/".$label.".pbs"  ,
+			label        => "testSuite-".$label         ,
+			logFile      => "testSuite/".$label.".log"  ,
+			command      => "cd testSuite; ".$fileName  ,
+			ppn          => $options{'processesPerNode'},
+			tracejob     => "yes"                       ,
 			onCompletion => 
 			{
 			    function  => \&testFailure,
