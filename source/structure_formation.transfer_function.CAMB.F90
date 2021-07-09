@@ -137,6 +137,9 @@ contains
     end select
     ! Set initialization state.
     self%initialized=.false.
+    ! No reference transfer function is used.
+    self%transferFunctionReferenceAvailable =  .false.
+    self%transferFunctionReference          => null()
     ! Set the epoch time for this transfer function.
     self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
     ! Set maximum wavenumber.
