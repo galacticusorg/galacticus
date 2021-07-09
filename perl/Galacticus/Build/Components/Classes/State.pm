@@ -51,6 +51,33 @@ sub Class_State {
 	 }
 	)
 	if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
+    push
+	(
+	 @{$build->{'variables'}},
+	 # Arrays used to store meta-property indices.
+	 {
+	     intrinsic  => "type"                                                   ,
+	     type       => "varying_string"                                         ,
+	     attributes => [ "allocatable", "dimension(:)" ]                        ,
+	     variables  => [ $code::class->{'name'}."MetaPropertyLabels" ]
+	 },
+	 {
+	     intrinsic  => "type"                                                   ,
+	     type       => "varying_string"                                         ,
+	     attributes => [ "allocatable", "dimension(:)" ]                        ,
+	     variables  => [ $code::class->{'name'}."MetaPropertyNames" ]
+	 },
+	 {
+	     intrinsic  => "logical"                                                ,
+	     attributes => [ "allocatable", "dimension(:)" ]                        ,
+	     variables  => [ $code::class->{'name'}."MetaPropertyEvolvable" ]
+	 },
+	 {
+	     intrinsic  => "integer"                                                ,
+	     variables  => [ $code::class->{'name'}."MetaPropertyCount=0", $code::class->{'name'}."MetaPropertyEvolvableCount=0" ]
+	 }
+	)
+	if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );
 }
 
 sub Class_Size_Of {

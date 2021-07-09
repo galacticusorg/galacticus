@@ -128,13 +128,13 @@ contains
     type            (treeNode                                        ), intent(inout), target :: node
     double precision                                                                          :: radiusVirial
 
-    radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
-    concentrationLimiterRadius=min(                                                                               &
-         &                                  radiusVirial                              /self%concentrationMinimum, &
-         &                         max(                                                                           &
-         &                                  radiusVirial                              /self%concentrationMaximum, &
-         &                             self%darkMatterProfileScaleRadius_%radius(node)                            &
-         &                            )                                                                           &
+    radiusVirial              =        self%darkMatterHaloScale_         %virialRadius(node)
+    concentrationLimiterRadius=min(                                                                                     &
+         &                                                                radiusVirial      /self%concentrationMinimum, &
+         &                         max(                                                                                 &
+         &                                                                radiusVirial      /self%concentrationMaximum, &
+         &                             self%darkMatterProfileScaleRadius_%radius      (node)                            &
+         &                            )                                                                                 &
          &                        )
     return
   end function concentrationLimiterRadius

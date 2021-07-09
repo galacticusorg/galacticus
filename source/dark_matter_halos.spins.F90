@@ -119,7 +119,7 @@ contains
     if (Dark_Matter_Halo_Angular_Momentum_Growth_Rate == 0.0d0) return
     rateFractional=0.0d0
     if     (spin                  %spin            (    ) >  0.0d0) then
-       rateFractional=+rateFractional&
+       rateFractional=+rateFractional                                &
             &         +spin                 %spinGrowthRate   (    ) &
             &         /spin                 %spin             (    )
     else if (spin                 %spinGrowthRate  (    ) /= 0.0d0) then
