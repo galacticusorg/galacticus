@@ -744,16 +744,16 @@ foreach $mpi ( "noMPI", "MPI" ) {
 }
 
 # Run scripts that can launch themselves using PBS.
-## AJB HACK my $thread = threads->create(\&launchLocalTests, \@launchLocal);
+my $thread = threads->create(\&launchLocalTests, \@launchLocal);
 
 # Launch all PBS job tests.
 &Galacticus::Launch::PBS::SubmitJobs(\%options,@jobStack);
 unlink(@launchFiles);
 
 # Wait for local jobs to complete.
-## AJB HACK $thread->join();
-#print lHndl slurp("testSuite/allTests.tmp");
-#unlink("testSuite/allTests.tmp");
+$thread->join();
+print lHndl slurp("testSuite/allTests.tmp");
+unlink("testSuite/allTests.tmp");
 
 # Close the log file.
 close(lHndl);
@@ -845,23 +845,22 @@ sub runTestScript {
 	    } else {
 		# We need to launch this script.
 		(my $label = $fileName) =~ s/\.pl$//;
-		## AJB HACK 
-		# push(
-		#     @jobStack,
-		#     {
-		# 	launchFile   => "testSuite/".$label.".pbs"  ,
-		# 	label        => "testSuite-".$label         ,
-		# 	logFile      => "testSuite/".$label.".log"  ,
-		# 	command      => "cd testSuite; ".$fileName  ,
-		# 	ppn          => $options{'processesPerNode'},
-		# 	tracejob     => "yes"                       ,
-		# 	onCompletion => 
-		# 	{
-		# 	    function  => \&testFailure,
-		# 	    arguments => [ "testSuite/".$label.".log", "Test script '".$label."'", "success" ]
-		# 	}
-		#     }
-		#     );
+		push(
+		    @jobStack,
+		    {
+			launchFile   => "testSuite/".$label.".pbs"  ,
+			label        => "testSuite-".$label         ,
+			logFile      => "testSuite/".$label.".log"  ,
+			command      => "cd testSuite; ".$fileName  ,
+			ppn          => $options{'processesPerNode'},
+			tracejob     => "yes"                       ,
+			onCompletion => 
+			{
+			    function  => \&testFailure,
+			    arguments => [ "testSuite/".$label.".log", "Test script '".$label."'", "success" ]
+			}
+		    }
+		    );
 	    }
 	}
     }
