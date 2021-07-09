@@ -10,7 +10,7 @@ use PDL::Constants qw(PI);
 # Andrew Benson (04-December-2019)
 
 # Run the calculation.
-system("cd ..; mpirun -np 16 Galacticus.exe testSuite/parameters/test-radiativeTransfer-StromgrenSphere.xml");
+system("cd ..; mpirun -np 16 Galacticus.exe_MPI testSuite/parameters/test-radiativeTransfer-StromgrenSphere.xml");
 die("FAILED: failed to run calculation")
     unless ( $? == 0 );
 # Read model output and parameters.
