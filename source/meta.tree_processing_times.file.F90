@@ -32,13 +32,13 @@ Contains a module which implements a merger tree processing time estimator using
     where $M$ is the root mass of the tree and the coefficients $C_i$ are read from a file, the name of which is specified via
     the {\normalfont \ttfamily [fileName]} parameter. This file should be an XML document with the structure:
     \begin{verbatim}
-    <timing>
-     <fit>
-       <coefficient>-0.73</coefficient>
-       <coefficient>-0.20</coefficient>
-       <coefficient>0.03</coefficient>
-     </fit>
-    </timing>
+    &lt;timing>
+     &lt;fit>
+       &lt;coefficient>-0.73&lt;/coefficient>
+       &lt;coefficient>-0.20&lt;/coefficient>
+       &lt;coefficient>0.03&lt;/coefficient>
+     &lt;/fit>
+    &lt;/timing>
     \end{verbatim}
     where the array of coefficients give the values $C_0$, $C_1$ and $C_2$.
    </description>

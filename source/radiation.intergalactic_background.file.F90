@@ -31,34 +31,33 @@
     A radiation field class for intergalactic background light with properties read from file. The flux is determined by
     linearly interpolating to the required time and wavelength. The XML file to read is specified by {\normalfont \ttfamily
     [fileName]}. An example of the required file structure is:
-     \begin{verbatim}
-    <spectrum>
-      <URL>http://adsabs.harvard.edu/abs/1996ApJ...461...20H</URL>
-      <description>Cosmic background radiation spectrum from quasars alone.</description>
-      <reference>Haardt, F. &amp; Madau, P. 1996, ApJ, 461, 20</reference>
-      <source>Francesco Haardt on Aug 6 2005, via Cloudy 08.00</source>
-      <wavelengths>
-        <datum>0.0002481</datum>
-        <datum>0.001489</datum>
+    \begin{verbatim}
+    &lt;spectrum>
+      &lt;URL>http://adsabs.harvard.edu/abs/1996ApJ...461...20H&lt;/URL>
+      &lt;description>Cosmic background radiation spectrum from quasars alone.&lt;/description>
+      &lt;reference>Haardt, F. &amp; Madau, P. 1996, ApJ, 461, 20&lt;/reference>
+      &lt;source>Francesco Haardt on Aug 6 2005, via Cloudy 08.00&lt;/source>
+      &lt;wavelengths>
+        &lt;datum>0.0002481&lt;/datum>
+        &lt;datum>0.001489&lt;/datum>
         .
         .
         .
-        <units>Angstroms</units>
-      </wavelengths>
-      <spectra>
-        <datum>7.039E-49</datum>
-        <datum>8.379E-48</datum>
-        <datum>1.875E-39</datum>
-        <datum>7.583E-38</datum>
+        &lt;units>Angstroms&lt;/units>
+      &lt;/wavelengths>
+      &lt;spectra>
+        &lt;datum>7.039E-49&lt;/datum>
+        &lt;datum>8.379E-48&lt;/datum>
+        &lt;datum>1.875E-39&lt;/datum>
+        &lt;datum>7.583E-38&lt;/datum>
         .
         .
         .
-        <redshift>0</redshift>
-        <units>erg cm^-2 s^-1 Hz^-1 sr^-1</units>
-      </spectra>
-    </spectrum>
-     \end{verbatim}
-    \end{description}
+        &lt;redshift>0&lt;/redshift>
+        &lt;units>erg cm^-2 s^-1 Hz^-1 sr^-1&lt;/units>
+      &lt;/spectra>
+    &lt;/spectrum>
+    \end{verbatim}
     The optional {\normalfont \ttfamily URL}, {\normalfont \ttfamily description}, {\normalfont \ttfamily reference} and
     {\normalfont \ttfamily source} elements can be used to give the provenance of the data. The {\normalfont \ttfamily
     wavelengths} element should contain a set of {\normalfont \ttfamily datum} elements each containing a wavelength (in

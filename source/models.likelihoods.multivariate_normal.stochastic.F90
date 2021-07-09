@@ -30,8 +30,8 @@
     is evaluated stochastically. In addition to the parameter of the {\normalfont \ttfamily multivariateNormal} class, two additional
     parameters are required and are specified within the {\normalfont \ttfamily likelihood} element using:
     \begin{verbatim}
-      <realizationCount>4000</realizationCount>
-      <realizationCountMinimum>10</realizationCountMinimum>
+      &lt;realizationCount>4000&lt;/realizationCount>
+      &lt;realizationCountMinimum>10&lt;/realizationCountMinimum>
     \end{verbatim}
     When evaluating the likelihood, the state vector is set equal to 
     \begin{equation}
