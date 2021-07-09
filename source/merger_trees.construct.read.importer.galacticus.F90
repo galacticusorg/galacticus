@@ -37,42 +37,44 @@
 
   !![
   <mergerTreeImporter name="mergerTreeImporterGalacticus">
-   <description>
-   A merger tree importer class which imports trees from an HDF5 file. HDF5 file should follow the general purpose format described
-   \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here}. An example of how to construct such a file
-   can be found in the {\normalfont \ttfamily tests/nBodyMergerTrees} folder. In that folder, the {\normalfont \ttfamily
-     getMillenniumTrees.pl} script will retrieve a sample of merger trees from the
-   \href{http://gavo.mpa-garching.mpg.de/Millennium/}{Millennium Simulation database} and use the {\normalfont \ttfamily
-     Merger\_Tree\_File\_Maker.exe} code supplied with \glc\ to convert these into an HDF5 file suitable for reading into \glc. The
-   {\normalfont \ttfamily getMillenniumTrees.pl} script requires you to have a username and password to access the Millennium
-   Simulation database\footnote{If you do not have a username and password for the Millennium Simulation database you can request one
-     from \href{mailto:contact@g-vo.org}{\normalfont \ttfamily contact@g-vo.org}.}. These can be entered manually or stored in a
-   section of the {\normalfont \ttfamily galacticusConfig.xml} file (see \S\ref{sec:ConfigFile}) as follows:
-   \begin{verbatim}
-     <millenniumDB>
-       <host>
-         <name>^myHost$</name>
-         <user>myUserName</user>
-         <passwordFrom>input</passwordFrom>
-         <treePath>/path/to/trees</treePath>
-       </host>
-       <host>
-         <name>default</name>
-         <user>myUserName</user>
-         <password>myPassword</password>
-       </host>
-     </millenniumDB>
-   \end{verbatim}
-   Here, each {\normalfont \ttfamily host} section describes rules for a given computer (with ``default'' being used if no specific
-   match to the regular expression give in {\normalfont \ttfamily name} is found). The {\normalfont \ttfamily user} element gives the
-   user name to use, while the {\normalfont \ttfamily passwordFrom} element specifies how the password should be obtained. Currently
-   the only allowed mechanism is ``input'', in which case the password is read from standard input. Alternatively, you can include a
-   {\normalfont \ttfamily password} element which contains the password itself. Of course, this is insecure\ldots
-   
-   The optional {\normalfont \ttfamily treePath} element gives the location where merger trees from the Millennium Simulation can be
-   stored. Some scripts will make use of this location so that Millennium Simulation merger trees can be shared between multiple
-   scripts.
-   </description>
+    <description>
+    A merger tree importer class which imports trees from an HDF5 file. HDF5 file should follow the general purpose format
+    described \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format}{here}. An example of how to
+    construct such a file can be found in the {\normalfont \ttfamily tests/nBodyMergerTrees} folder. In that folder, the
+    {\normalfont \ttfamily getMillenniumTrees.pl} script will retrieve a sample of merger trees from the
+    \href{http://gavo.mpa-garching.mpg.de/Millennium/}{Millennium Simulation database} and use the {\normalfont \ttfamily
+    Merger\_Tree\_File\_Maker.exe} code supplied with \glc\ to convert these into an HDF5 file suitable for reading into \glc. The
+    {\normalfont \ttfamily getMillenniumTrees.pl} script requires you to have a username and password to access the Millennium
+    Simulation database\footnote{If you do not have a username and password for the Millennium Simulation database you can request
+    one from \href{mailto:contact@g-vo.org}{\normalfont \ttfamily contact@g-vo.org}.}. These can be entered manually or stored in
+    a section of the
+    \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Usage.pdf\#sec.ConfigFile}{\normalfont
+    \ttfamily galacticusConfig.xml} file as follows:   
+    \begin{verbatim}
+      &lt;millenniumDB>
+        &lt;host>
+          &lt;name>^myHost$&lt;/name>
+          &lt;user>myUserName&lt;/user>
+          &lt;passwordFrom>input&lt;/passwordFrom>
+          &lt;treePath>/path/to/trees&lt;/treePath>
+        &lt;/host>
+        &lt;host>
+          &lt;name>default&lt;/name>
+          &lt;user>myUserName&lt;/user>
+          &lt;password>myPassword&lt;/password>
+        &lt;/host>
+      &lt;/millenniumDB>
+    \end{verbatim}
+    Here, each {\normalfont \ttfamily host} section describes rules for a given computer (with ``default'' being used if no specific
+    match to the regular expression give in {\normalfont \ttfamily name} is found). The {\normalfont \ttfamily user} element gives the
+    user name to use, while the {\normalfont \ttfamily passwordFrom} element specifies how the password should be obtained. Currently
+    the only allowed mechanism is ``input'', in which case the password is read from standard input. Alternatively, you can include a
+    {\normalfont \ttfamily password} element which contains the password itself. Of course, this is insecure\ldots
+    
+    The optional {\normalfont \ttfamily treePath} element gives the location where merger trees from the Millennium Simulation can be
+    stored. Some scripts will make use of this location so that Millennium Simulation merger trees can be shared between multiple
+    scripts.
+    </description>
   </mergerTreeImporter>
   !!]
   type, extends(mergerTreeImporterClass) :: mergerTreeImporterGalacticus

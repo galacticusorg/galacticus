@@ -25,21 +25,21 @@
   <mergerTreeBuildMasses name="mergerTreeBuildMassesReadXML">
    <description>
     A merger tree build masses class which reads masses from an XML file. The XML file should have the following form:
-  \begin{verbatim}
-     <mergerTrees>
-      <treeRootMass>13522377303.5998</treeRootMass>
-      <treeRootMass>19579530191.8709</treeRootMass>
-      <treeRootMass>21061025282.9613</treeRootMass>
+    \begin{verbatim}
+     &lt;mergerTrees>
+      &lt;treeRootMass>13522377303.5998&lt;/treeRootMass>
+      &lt;treeRootMass>19579530191.8709&lt;/treeRootMass>
+      &lt;treeRootMass>21061025282.9613&lt;/treeRootMass>
       .
       .
       .
-      <treeWeight>13522377303.5998</treeWeight>
-      <treeWeight>19579530191.8709</treeWeight>
-      <treeWeight>21061025282.9613</treeWeight>
+      &lt;treeWeight>13522377303.5998&lt;/treeWeight>
+      &lt;treeWeight>19579530191.8709&lt;/treeWeight>
+      &lt;treeWeight>21061025282.9613&lt;/treeWeight>
       .
       .
       .
-     </mergerTrees>
+     &lt;/mergerTrees>
     \end{verbatim}
     where each {\normalfont \ttfamily treeRootMass} element gives the mass (in Solar masses) of the root halo of a tree to
     generate, and the (optional) {\normalfont \ttfamily treeWeight} elements give the corresponding weight (in units of
