@@ -29,11 +29,11 @@
     The likelihood is a simple multivariate Gaussian, intended primarily for testing purposes. The distribution parameters are
     specified within the {\normalfont \ttfamily likelihood} element using:
     \begin{verbatim}
-      <mean>0.45 0.50</mean>
-      <covariance>
-        <row>1.0e-4 -0.9e-4</row>
-        <row>-0.9e-4 1.0e-4</row>
-      </covariance>
+      &lt;mean>0.45 0.50&lt;/mean>
+      &lt;covariance>
+        &lt;row>1.0e-4 -0.9e-4&lt;/row>
+        &lt;row>-0.9e-4 1.0e-4&lt;/row>
+      &lt;/covariance>
     \end{verbatim}
     where the {\normalfont \ttfamily mean} element gives the mean vector of $N$ elements, and the {\normalfont \ttfamily covariance}
     element contains $N$ {\normalfont \ttfamily row} elements each containing a vector of $N$ elements giving a single row of the

@@ -9,7 +9,7 @@ use PDL::NiceSlice;
 # Andrew Benson (15-Jun-2018)
 
 # Run full store model.
-system("export OMP_NUM_THREADS=1; rm -f outputs/state.state* outputs/state.gsl.state*; cd ..; mpirun -np 8 Galacticus.exe testSuite/parameters/state/store.xml"  );
+system("export OMP_NUM_THREADS=1; rm -f outputs/state.state* outputs/state.gsl.state*; cd ..; mpirun -np 8 Galacticus.exe_MPI testSuite/parameters/state/store.xml"  );
 die("FAILED: failed to run store model")
     unless ( $? == 0 );
 # Find which threads ran the final tree.
@@ -41,7 +41,7 @@ if ( defined($finalTreeProcessMPI) ) {
 }
 
 # Run the restore model.
-system("export OMP_NUM_THREADS=1; cd ..; mpirun -np 1 Galacticus.exe testSuite/parameters/state/retrieve.xml");
+system("export OMP_NUM_THREADS=1; cd ..; mpirun -np 1 Galacticus.exe_MPI testSuite/parameters/state/retrieve.xml");
 die("FAILED: failed to run retrieve model")
     unless ( $? == 0 );
 
