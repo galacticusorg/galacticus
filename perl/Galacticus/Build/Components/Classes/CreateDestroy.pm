@@ -250,10 +250,20 @@ sub Class_Add_Meta_Property {
 		 variables  => [ "name" ]
 	     },
 	     {
+		 intrinsic  => "logical",
+		 attributes => [ "intent(in   )", "optional" ],
+		 variables  => [ "isEvolvable" ]
+	     },
+	     {
 		 intrinsic  => "type",
 		 type       => "varying_string",
 		 attributes => [ "allocatable", "dimension(:)" ],
 		 variables  => [ "labelsTmp", "namesTmp" ]
+	     },
+	     {
+		 intrinsic  => "logical",
+		 attributes => [ "allocatable", "dimension(:)" ],
+		 variables  => [ "evolvableTmp" ]
 	     },
 	     {
 		 intrinsic  => "logical",
@@ -274,23 +284,35 @@ if (allocated({$class->{'name'}}MetaPropertyLabels)) then
   end if
  end do
  if (.not.found) then
-  call move_alloc({$class->{'name'}}MetaPropertyLabels,labelsTmp)
-  call move_alloc({$class->{'name'}}MetaPropertyNames , namesTmp)
-  allocate({$class->{'name'}}MetaPropertyLabels(size(labelsTmp)+1))
-  allocate({$class->{'name'}}MetaPropertyNames (size( namesTmp)+1))
-  {$class->{'name'}}MetaPropertyLabels(1:size(labelsTmp))=labelsTmp
-  {$class->{'name'}}MetaPropertyNames (1:size( namesTmp))= namesTmp
-  deallocate(labelsTmp)
-  deallocate( namesTmp)
+  call move_alloc({$class->{'name'}}MetaPropertyLabels   ,   labelsTmp)
+  call move_alloc({$class->{'name'}}MetaPropertyNames    ,    namesTmp)
+  call move_alloc({$class->{'name'}}MetaPropertyEvolvable,evolvableTmp)
+  allocate({$class->{'name'}}MetaPropertyLabels   (size(   labelsTmp)+1))
+  allocate({$class->{'name'}}MetaPropertyNames    (size(    namesTmp)+1))
+  allocate({$class->{'name'}}MetaPropertyEvolvable(size(evolvableTmp)+1))
+  {$class->{'name'}}MetaPropertyLabels   (1:size(   labelsTmp))=   labelsTmp
+  {$class->{'name'}}MetaPropertyNames    (1:size(    namesTmp))=    namesTmp
+  {$class->{'name'}}MetaPropertyEvolvable(1:size(evolvableTmp))=evolvableTmp
+  deallocate(   labelsTmp)
+  deallocate(    namesTmp)
+  deallocate(evolvableTmp)
  end if
 else
- allocate({$class->{'name'}}MetaPropertyLabels(                1))
- allocate({$class->{'name'}}MetaPropertyNames (                1))
+ allocate({$class->{'name'}}MetaPropertyLabels   (                1))
+ allocate({$class->{'name'}}MetaPropertyNames    (                1))
+ allocate({$class->{'name'}}MetaPropertyEvolvable(                1))
 end if
 if (.not.found) then
  nodeComponent{ucfirst($class->{'name'})}AddMetaProperty=size({$class->{'name'}}MetaPropertyLabels)
- {$class->{'name'}}MetaPropertyLabels(nodeComponent{ucfirst($class->{'name'})}AddMetaProperty)=label
- {$class->{'name'}}MetaPropertyNames (nodeComponent{ucfirst($class->{'name'})}AddMetaProperty)=name
+ {$class->{'name'}}MetaPropertyLabels   (nodeComponent{ucfirst($class->{'name'})}AddMetaProperty)=label
+ {$class->{'name'}}MetaPropertyNames    (nodeComponent{ucfirst($class->{'name'})}AddMetaProperty)=name
+ if (present(isEvolvable)) then
+  {$class->{'name'}}MetaPropertyEvolvable(nodeComponent{ucfirst($class->{'name'})}AddMetaProperty)=isEvolvable
+ else
+  {$class->{'name'}}MetaPropertyEvolvable(nodeComponent{ucfirst($class->{'name'})}AddMetaProperty)=.false.
+ end if
+ {$class->{'name'}}MetaPropertyCount={$class->{'name'}}MetaPropertyCount+1
+ if ({$class->{'name'}}MetaPropertyEvolvable(nodeComponent{ucfirst($class->{'name'})}AddMetaProperty)) {$class->{'name'}}MetaPropertyEvolvableCount={$class->{'name'}}MetaPropertyEvolvableCount+1
  implementationNameLengthMax=max(len(name),implementationNameLengthMax) 
 end if
 !$omp end critical ({class->{'name'}}MetaPropertyUpdate)

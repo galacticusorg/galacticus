@@ -1015,15 +1015,16 @@ module Galacticus_Nodes
     return
   end subroutine Node_Component_Generic_Destroy
 
-  integer function Node_Component_Generic_Add_Meta_Property(self,label,name)
+  integer function Node_Component_Generic_Add_Meta_Property(self,label,name,isEvolvable)
     !!{
     Add a meta-property to a node component.
     !!}
     implicit none
-    class    (nodeComponent ), intent(inout) :: self
-    type     (varying_string), intent(in   ) :: label
-    character(len=*         ), intent(in   ) :: name
-    !$GLC attributes unused :: self, label, name
+    class    (nodeComponent ), intent(inout)           :: self
+    type     (varying_string), intent(in   )           :: label
+    character(len=*         ), intent(in   )           :: name
+    logical                  , intent(in   ), optional :: isEvolvable
+    !$GLC attributes unused :: self, label, name, isEvolvable
 
     Node_Component_Generic_Add_Meta_Property=-1
     call Galacticus_Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})

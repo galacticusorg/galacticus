@@ -155,7 +155,7 @@ CODE
     }
     # Allocate and initialize meta-properties.
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (allocated({$class->{'name'}}MetaPropertyNames)) then
+if (allocated({$class->{'name'}}MetaPropertyNames).and..not.allocated(self%metaProperties)) then
  allocate(self%metaProperties(size({$class->{'name'}}MetaPropertyNames)))
  self%metaProperties=0.0d0
 end if

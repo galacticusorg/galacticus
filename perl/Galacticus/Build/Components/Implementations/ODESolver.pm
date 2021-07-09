@@ -117,12 +117,16 @@ CODE
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated({$class->{'name'}}MetaPropertyNames)) then
  do i=1,size({$class->{'name'}}MetaPropertyNames)
-   if (                                                                                &
-    &    propertyType == propertyTypeAll                                               &
-    &  .or.                                                                            &
-    &   (propertyType == propertyTypeActive   .and. .not.nodeInactives({$offsetName})) &
-    &  .or.                                                                            &
-    &   (propertyType == propertyTypeInactive .and.      nodeInactives({$offsetName})) &
+   if (                                                                                 &
+    &  {$class->{'name'}}MetaPropertyEvolvable(i)                                       &
+    & .and.                                                                             &
+    &  (                                                                                &
+    &     propertyType == propertyTypeAll                                               &
+    &   .or.                                                                            &
+    &    (propertyType == propertyTypeActive   .and. .not.nodeInactives({$offsetName})) &
+    &   .or.                                                                            &
+    &    (propertyType == propertyTypeInactive .and.      nodeInactives({$offsetName})) &
+    &  )                                                                                &
     & ) count=count-1
   if (count <= 0) then
    name={$class->{'name'}}MetaPropertyNames(i)
@@ -249,11 +253,7 @@ CODE
 CODE
 	} else {
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (allocated({$class->{'name'}}MetaPropertyNames)) then
- {$implementationTypeName}SerializeCount=size({$class->{'name'}}MetaPropertyNames)
-else
- {$implementationTypeName}SerializeCount=0
-end if
+{$implementationTypeName}SerializeCount={$class->{'name'}}MetaPropertyEvolvableCount
 CODE
     }
     # Iterate over non-virtual, evolvable properties.
@@ -395,7 +395,7 @@ CODE
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
 if (allocated({$class->{'name'}}MetaPropertyNames)) then
  do i=1,size({$class->{'name'}}MetaPropertyNames)
-  if (propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. .not.nodeInactives({$offsetName}(i))) .or. (propertyType == propertyTypeInactive .and. nodeInactives({$offsetName}(i)))) then
+  if ({$class->{'name'}}MetaPropertyEvolvable(i).and.(propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. .not.nodeInactives({$offsetName}(i))) .or. (propertyType == propertyTypeInactive .and. nodeInactives({$offsetName}(i))))) then
    array(offset)=self%metaProperties(i)
    offset=offset+1
   end if
@@ -539,7 +539,7 @@ CODE
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
 if (allocated({$class->{'name'}}MetaPropertyNames)) then
  do i=1,size({$class->{'name'}}MetaPropertyNames)
-  if (propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. .not.nodeInactives({$offsetName}(i))) .or. (propertyType == propertyTypeInactive .and. nodeInactives({$offsetName}(i)))) then
+  if ({$class->{'name'}}MetaPropertyEvolvable(i).and.(propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. .not.nodeInactives({$offsetName}(i))) .or. (propertyType == propertyTypeInactive .and. nodeInactives({$offsetName}(i))))) then
    self%metaProperties(i)=array(offset)
    offset=offset+1
   end if
@@ -676,16 +676,17 @@ CODE
 	$code::offsetName = &offsetName($status,$code::class->{'name'},'metaProperties');
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
  if (.not.allocated({$offsetName})) then
-  allocate({$offsetName}(size({$class->{'name'}}MetaPropertyNames)))
- else if (size({$offsetName}) /= size({$class->{'name'}}MetaPropertyNames)) then
+  allocate({$offsetName}({$class->{'name'}}MetaPropertyEvolvableCount))
+ else if (size({$offsetName}) /= {$class->{'name'}}MetaPropertyEvolvableCount) then
   deallocate({$offsetName})
-  allocate({$offsetName}(size({$class->{'name'}}MetaPropertyNames)))
+  allocate({$offsetName}({$class->{'name'}}MetaPropertyEvolvableCount))
  end if
 CODE
     }
 
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
  do i=1,size({$class->{'name'}}MetaPropertyNames)
+  if (.not.{$class->{'name'}}MetaPropertyEvolvable(i)) cycle
   if      (propertyType == propertyTypeAll     ) then
                                     {$offsetNameAll}     (i)=count      +1
   else if (propertyType == propertyTypeInactive) then
