@@ -727,7 +727,7 @@ foreach my $executable ( @executablesToRun ) {
 	} else {
 	    $job{'command'} =                                                                     $executable->{'name'};
 	}
-	## AJB HACK push(@jobStack,\%job);
+	push(@jobStack,\%job);
     }
 }
 
