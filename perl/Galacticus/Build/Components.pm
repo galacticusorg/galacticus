@@ -146,7 +146,7 @@ sub Components_Generate_Output {
     $build->{'content'}     .= join("\n",map {"  include \"".$_."\"\n"} @includeDependencies)."\n";
     # Create a Makefile to specify dependencies on these include files.
     open(makeFile,">".$ENV{'BUILDPATH'}."/Makefile_Component_Includes.tmp");
-    print makeFile $ENV{'BUILDPATH'}."/objects.nodes.o:".join("",map {" ".$ENV{'BUILDPATH'}."/".$_} @includeDependencies)
+    print makeFile $ENV{'BUILDPATH'}."/objects.nodes.o ".$ENV{'BUILDPATH'}."/objects.nodes.p.F90:".join("",map {" ".$ENV{'BUILDPATH'}."/".$_} @includeDependencies)
 	if ( scalar(@includeDependencies) > 0 );
     close(makeFile);
     &File::Changes::Update($ENV{'BUILDPATH'}."/Makefile_Component_Includes" ,$ENV{'BUILDPATH'}."/Makefile_Component_Includes.tmp" ); 
