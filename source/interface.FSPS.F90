@@ -141,7 +141,8 @@ contains
     double precision                , allocatable  , dimension(:,:,:           ) :: spectrum
     integer                         , parameter                                  :: fileFormatCurrent= 1
     type            (varying_string)                                             :: fspsVersion         , fspsPath         , &
-         &                                                                          outputFileName      , fspsInputFileName
+         &                                                                          outputFileName      , fspsInputFileName, &
+         &                                                                          imfFileName
     integer                                                                      :: iIMF                , outputFile       , &
          &                                                                          iMetallicity        , inputFile        , &
          &                                                                          iAge                , ageCount         , &
@@ -155,7 +156,8 @@ contains
     ! Ensure FSPS is available.
     call Interface_FSPS_Initialize(fspsPath,fspsVersion)
     ! Output the IMF file.
-    open(newUnit=outputFile,file="galacticus.imf",status='unknown',form='formatted')
+    imfFileName=File_Name_Temporary("galacticus.imf")
+    open(newUnit=outputFile,file=char(imfFileName),status='unknown',form='formatted')
     do iIMF=1,imf%size()
        write (outputFile,'(2(1x,e12.6))') imf%x(iIMF),imf%y(iIMF)
     end do
@@ -170,6 +172,7 @@ contains
           fspsInputFileName=File_Name_Temporary("fsps.inp")
           open(newUnit=outputFile,file=char(fspsInputFileName),status='unknown',form='formatted')
           write (outputFile,'(i1)') 6                    ! IMF.
+          write (outputFile,'(a)' ) char(   imfFileName) ! Specify IMF filename.
           write (outputFile,'(i1)') 0                    ! Generate SSP.
           write (outputFile,'(i2)') iMetallicity         ! Specify metallicity.
           write (outputFile,'(a)' ) "no"                 ! Do not include dust.
@@ -200,8 +203,8 @@ contains
        close(inputFile)
     end do
     ! Clean up.
-    call File_Remove("galacticus.imf")
-    ! Convert ages from loagrithmic form.
+!! AJB HACK     call File_Remove(imfFileName)
+    ! Convert ages from logarithmic form.
     age=10.0d0**(age-9.0d0)
     ! Write output file.
     call Directory_Make(char(File_Path(char(spectraFileName))))
