@@ -34,7 +34,8 @@ my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     })
 my %options =
     (
      'from-scratch'        => "yes",
-     'skip-slow'           => "no",
+     'skip-slow'           => "no" ,
+     'timing'              => "no" ,
      'build-documentation' => "yes",
      'pbsJobMaximum'       => exists($queueConfig->{'jobMaximum'}) ? $queueConfig->{'jobMaximum'} : 100,
      'processesPerNode'    => exists($queueConfig->{'ppn'       }) ? $queueConfig->{'ppn'       } :   1,
@@ -77,6 +78,13 @@ if ( $emailConfig->{'method'} eq "smtp" && exists($emailConfig->{'passwordFrom'}
 	    $walletObject->writePassword($walletID,$folderName,"smtpPassword",$smtpPassword,$appName); 
 	}
     }
+}
+
+# Read any existing timing data.
+my $timing;
+if ( -e "testSuite/timing.xml" ) {
+    my $xml = new XML::Simple;
+    $timing = $xml->XMLin("testSuite/timing.xml");
 }
 
 # Open a log file.
@@ -744,7 +752,7 @@ foreach $mpi ( "noMPI", "MPI" ) {
 }
 
 # Run scripts that can launch themselves using PBS.
-my $thread = threads->create(\&launchLocalTests, \@launchLocal);
+my $thread = threads->create(\&launchLocalTests, \@launchLocal, $options{'pbsJobMaximum'}, $options{'submitSleepDuration'}, $options{'waitSleepDuration'});
 
 # Launch all PBS job tests.
 &Galacticus::Launch::PBS::SubmitJobs(\%options,@jobStack);
@@ -752,7 +760,30 @@ unlink(@launchFiles);
 
 # Wait for local jobs to complete.
 $thread->join();
-print lHndl slurp("testSuite/allTests.tmp");
+# Scan for any job meta-data from local jobs.
+open(my $localJobLog,"testSuite/allTests.tmp");
+while ( my $localLine = <$localJobLog> ) {
+    # Append local log to the main log.
+    print lHndl $localLine;
+    # Detect meta-data.
+    if ( $localLine =~ m/\-> Job metadata:.*=/ ) {
+	chomp($localLine);
+	$localLine     =~ s/^.*=\s*//;
+	my @data       =  split(/\s+:\s+/,$localLine);
+	(my $jobPath   =  $data[0]) =~ s/[\/:]/_/g;
+	my $exitStatus =  $data[1];
+	my $startAt    =  $data[2];
+	my $endAt      =  $data[3];
+	$timing->{$jobPath} =
+	{
+	    startTime => $startAt,
+	    endTime   => $endAt
+	}
+	if ( $exitStatus == 0 );
+    }
+}
+close($localJobLog);
+# Remove the local job output.
 unlink("testSuite/allTests.tmp");
 
 # Close the log file.
@@ -787,6 +818,14 @@ if ( scalar(@failLines) == 0 ) {
     $exitStatus = 1;
 }
 close(lHndl);
+
+# Output timing data.
+if ( defined($timing) && $options{'timing'} eq "yes" ) {
+    my $xml = new XML::Simple;
+    open(my $timingFile,">testSuite/timing.xml");
+    print $timingFile $xml->XMLout($timing,RootName => "timing");
+    close($timingFile);
+}
 
 # If we have an e-mail address to send the log to, then do so.
 if ( defined($config->{'contact'}->{'email'}) ) {
@@ -890,6 +929,10 @@ sub testFailure {
     my $expect     = shift();
     my $jobID      = shift();
     my $exitStatus = shift();
+    shift();
+    my $job        = shift();
+    my $startTime  = shift();
+    my $endTime    = shift();
     my $result;
     # Branch on expected behavior.
     if ( $expect eq "crash" ) {
@@ -935,6 +978,14 @@ sub testFailure {
 	    $result = "FAILED: ".$jobMessage." (crashed unexpectedly)\n";
 	}
     }
+    # Add metadata to the timing data file.
+    if ( $result =~ m/SUCCESS/ ) {
+	$timing->{$job->{'label'}} =
+	{
+	    startTime => $startTime,
+	    endTime   => $endTime
+	};
+    }
     # Report success or failure.
     print lHndl $result;
     if ( $result =~ m/^FAILED:/ ) {
@@ -950,6 +1001,10 @@ sub testCompileFailure {
     my $jobMessage  = shift();
     my $jobID       = shift();
     my $errorStatus = shift();
+    shift();
+    my $job        = shift();
+    my $startTime  = shift();
+    my $endTime    = shift();
     # Check for failure message in log file.
     if ( $errorStatus == 0 ) {
 	system("grep -q FAIL ".$logFile);
@@ -974,7 +1029,7 @@ sub testCompileFailure {
     }
     # Check for make error message in log file.
     if ( $errorStatus == 0 ) {
-	system("grep -q make: ".$logFile);
+	system("grep -v 'is up to date' ".$logFile." | grep -q make: ");
 	if ( $? == 0 ) {
 	    $errorStatus = 1;
 	    $jobMessage = "Make errors issued\n".$jobMessage;
@@ -984,7 +1039,13 @@ sub testCompileFailure {
     if ( $errorStatus == 0 ) {
 	# Job succeeded.
 	print lHndl "SUCCESS: ".$jobMessage."\n";
-	unlink($logFile);
+	unlink($logFile); 
+	# Add metadata to the timing data file.
+	$timing->{$job->{'label'}} =
+	{
+	    startTime => $startTime,
+	    endTime   => $endTime
+	};
     } else {
 	# Job failed.
 	print lHndl "FAILED: ".$jobMessage."\n";
@@ -998,6 +1059,10 @@ sub testDocBuild {
     my $logFile     = shift();
     my $jobID       = shift();
     my $errorStatus = shift();
+    shift();
+    my $job        = shift();
+    my $startTime  = shift();
+    my $endTime    = shift();
     # Check for failure message in log file.
     if ( $errorStatus == 0 ) {
 	system("grep -q FAIL ".$logFile);
@@ -1028,6 +1093,14 @@ sub testDocBuild {
 	    $jobMessage = $jobMessage."FAILED [undefined labels]\n";
 	}
     }
+    # Add metadata to the timing data file.
+    if ( $errorStatus == 0 ) {
+	$timing->{$job->{'label'}} =
+	{
+	    startTime => $startTime,
+	    endTime   => $endTime
+	};
+    }
     # Report success or failure.
     print lHndl $jobMessage;
     if ( $errorStatus == 0 ) {
@@ -1042,7 +1115,10 @@ sub testDocBuild {
 
 sub launchLocalTests {
     # Run scripts that can launch themselves using PBS.
-    my @launchLocal = @{shift()};
+    my @launchLocal         = @{shift()};
+    my $pbsJobMaximum       =   shift() ;
+    my $submitSleepDuration =   shift() ;
+    my $waitSleepDuration   =   shift() ;
     print           ":-> Running test scripts:\n";
     print lHndl "\n\n:-> Running test scripts:\n";
     print       join("\n",map {"\t".$_} @launchLocal)."\n";
@@ -1050,7 +1126,7 @@ sub launchLocalTests {
     open(my $script,">testSuite/outputs/launchLocal.sh");
     print $script "cd testSuite\n";
     foreach my $localScript ( @launchLocal ) {
-	print $script $localScript." &\n";
+	print $script $localScript." --pbsJobMaximum ".$pbsJobMaximum." --submitSleepDuration ".$submitSleepDuration." --waitSleepDuration ".$waitSleepDuration." &\n";
     }
     print $script "wait\n";
     print $script "exit\n";
