@@ -1,6 +1,6 @@
 --- a/src/sps_vars.f90
 +++ b/src/sps_vars.f90
-@@ -21,11 +21,11 @@ MODULE SPS_VARS
+@@ -20,11 +20,11 @@ MODULE SPS_VARS
  
  !------set the isochrone library------!
  #ifndef MIST
@@ -14,3 +14,11 @@
  #endif
  
  #ifndef PARSEC
+@@ -173,6 +173,7 @@ MODULE SPS_VARS
+   !4 = Dave 2008 (parameter specified in imf_mdave)
+   !5 = user-defined piece-wise power-law, specified in imf.dat
+   INTEGER :: imf_type=2
++  CHARACTER(LEN=512) :: imfFileName
+ 
+   !flag specifying zero-point of magnitudes
+   !0 = AB system
