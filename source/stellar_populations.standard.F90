@@ -370,6 +370,7 @@ contains
     type            (populationTable                  ), intent(inout)         :: property
     double precision                                   , dimension(2)          :: metallicityFactors, rate            , &
          &                                                                        propertyCumulative, age
+    type            (inputParameters                  ), save                  :: descriptor
     integer         (c_size_t                         )                        :: metallicityIndex
     type            (integratorCompositeGaussKronrod1D)                        :: integrator_
     integer                                                                    :: fileFormat        , iAge            , &
@@ -381,7 +382,6 @@ contains
     character       (len=20                           )                        :: progressMessage
     type            (varying_string                   )                        :: fileName          , descriptorString
     logical                                                                    :: makeFile
-    type            (inputParameters                  )                        :: descriptor
     type            (lockDescriptor                   )                        :: lock
 
     ! Compute the property if not already done.
@@ -427,6 +427,7 @@ contains
           descriptor=inputParameters()
           call self%descriptor(descriptor,includeClass=.true.)
           descriptorString=descriptor%serializeToString()
+          call descriptor%destroy()
           call hdf5Access%set()
           call file%openFile(char(fileName))
           call file%writeAttribute(standardFileFormatCurrent,'fileFormat')
