@@ -161,16 +161,17 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale, treeNode
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: node
-    class(nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
+    type            (treeNode                      ), intent(inout), pointer :: node
+    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
+    double precision                                , parameter              :: radiusScaleMinimum=1.0d-6
 
     ! Get the dark matter profile component.
     darkMatterProfile => node%darkMatterProfile()
     ! Ensure it is of the scale class.
     select type (darkMatterProfile)
-       class is (nodeComponentDarkMatterProfileScale)
+    class is (nodeComponentDarkMatterProfileScale)
        ! Set scale for the scale radius.
-       call darkMatterProfile%scaleScale(darkMatterProfile%scale())
+       call darkMatterProfile%scaleScale(max(darkMatterProfile%scale(),radiusScaleMinimum))
     end select
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Scale_Set
