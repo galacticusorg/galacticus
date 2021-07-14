@@ -26,7 +26,8 @@
   use :: Merger_Tree_Branching             , only : mergerTreeBranchingProbabilityClass
   use :: Merger_Trees_Build_Mass_Resolution, only : mergerTreeMassResolutionClass
   use :: Statistics_Distributions          , only : distributionFunction1DNegativeExponential
-
+  use :: Merger_Tree_Build_Controllers     , only : mergerTreeBuildControllerClass
+  
   !![
   <mergerTreeBuilder name="mergerTreeBuilderCole2000">
    <description>
@@ -87,6 +88,7 @@
      class           (criticalOverdensityClass                 ), pointer :: criticalOverdensity_                     => null()
      class           (mergerTreeBranchingProbabilityClass      ), pointer :: mergerTreeBranchingProbability_          => null()
      class           (cosmologicalMassVarianceClass            ), pointer :: cosmologicalMassVariance_                => null()
+     class           (mergerTreeBuildControllerClass           ), pointer :: mergerTreeBuildController_               => null()
      logical                                                              :: timeParameterIsMassDependent
      ! Variables controlling merger tree accuracy.
      double precision                                                     :: accretionLimit                                    , timeEarliest             , &
@@ -101,16 +103,12 @@
    contains
      !![
      <methods>
-       <method description="Return true if construction of the merger tree should be aborted." method="shouldAbort"              />
-       <method description="Return true if the branch should be followed."                     method="shouldFollowBranch"       />
-       <method description="Set the critical overdensity object."                              method="criticalOverdensitySet"   />
-       <method description="Set the critical overdensity object."                              method="criticalOverdensityUpdate"/>
+       <method description="Set the critical overdensity object." method="criticalOverdensitySet"   />
+       <method description="Set the critical overdensity object." method="criticalOverdensityUpdate"/>
      </methods>
      !!]
      final     ::                              cole2000Destructor
      procedure :: build                     => cole2000Build
-     procedure :: shouldAbort               => cole2000ShouldAbort
-     procedure :: shouldFollowBranch        => cole2000ShouldFollowBranch
      procedure :: timeEarliestSet           => cole2000TimeEarliestSet
      procedure :: criticalOverdensitySet    => cole2000CriticalOverdensitySet
      procedure :: criticalOverdensityUpdate => cole2000CriticalOverdensityUpdate
@@ -138,6 +136,7 @@ contains
     class           (criticalOverdensityClass           ), pointer       :: criticalOverdensity_
     class           (mergerTreeBranchingProbabilityClass), pointer       :: mergerTreeBranchingProbability_
     class           (cosmologicalMassVarianceClass      ), pointer       :: cosmologicalMassVariance_
+    class           (mergerTreeBuildControllerClass     ), pointer       :: mergerTreeBuildController_
     double precision                                                     :: mergeProbability               , accretionLimit         , &
          &                                                                  redshiftMaximum                , toleranceResolutionSelf, &
          &                                                                  toleranceResolutionParent
@@ -186,6 +185,7 @@ contains
     <objectBuilder class="cosmologyFunctions"             name="cosmologyFunctions_"             source="parameters"/>
     <objectBuilder class="criticalOverdensity"            name="criticalOverdensity_"            source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance"       name="cosmologicalMassVariance_"       source="parameters"/>
+    <objectBuilder class="mergerTreeBuildController"      name="mergerTreeBuildController_"      source="parameters"/>
     !!]
     self   =mergerTreeBuilderCole2000(                                                                                                                  &
          &                                                                                                           mergeProbability                 , &
@@ -198,7 +198,8 @@ contains
          &                                                                                                           mergerTreeMassResolution_        , &
          &                                                                                                           cosmologyFunctions_              , &
          &                                                                                                           criticalOverdensity_             , &
-         &                                                                                                           cosmologicalMassVariance_          &
+         &                                                                                                           cosmologicalMassVariance_        , &
+         &                                                                                                           mergerTreeBuildController_         &
          &                           )
     !![
     <inputParametersValidate source="parameters"/>
@@ -207,11 +208,12 @@ contains
     <objectDestructor name="cosmologyFunctions_"            />
     <objectDestructor name="criticalOverdensity_"           />
     <objectDestructor name="cosmologicalMassVariance_"      />
+    <objectDestructor name="mergerTreeBuildController_"     />
     !!]
     return
   end function cole2000ConstructorParameters
 
-  function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,branchIntervalStep,toleranceResolutionSelf,toleranceResolutionParent,mergerTreeBranchingProbability_,mergerTreeMassResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
+  function cole2000ConstructorInternal(mergeProbability,accretionLimit,timeEarliest,branchIntervalStep,toleranceResolutionSelf,toleranceResolutionParent,mergerTreeBranchingProbability_,mergerTreeMassResolution_,cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,mergerTreeBuildController_) result(self)
     !!{
     Internal constructor for the \cite{cole_hierarchical_2000} merger tree building class.
     !!}
@@ -227,8 +229,9 @@ contains
     class           (cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
     class           (criticalOverdensityClass           ), intent(in   ), target :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass      ), intent(in   ), target :: cosmologicalMassVariance_
+    class           (mergerTreeBuildControllerClass     ), intent(in   ), target :: mergerTreeBuildController_
     !![
-    <constructorAssign variables="mergeProbability, accretionLimit, timeEarliest, branchIntervalStep, toleranceResolutionSelf, toleranceResolutionParent, *mergerTreeBranchingProbability_, *mergerTreeMassResolution_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_"/>
+    <constructorAssign variables="mergeProbability, accretionLimit, timeEarliest, branchIntervalStep, toleranceResolutionSelf, toleranceResolutionParent, *mergerTreeBranchingProbability_, *mergerTreeMassResolution_, *cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, *mergerTreeBuildController_"/>
     !!]
 
     ! Initialize state.
@@ -255,6 +258,7 @@ contains
     <objectDestructor name="self%cosmologyFunctions_"            />
     <objectDestructor name="self%criticalOverdensity_"           />
     <objectDestructor name="self%cosmologicalMassVariance_"      />
+    <objectDestructor name="self%mergerTreeBuildController_"     />
     !!]
     return
   end subroutine cole2000Destructor
@@ -324,7 +328,9 @@ contains
     call basic%timeSet(deltaCritical)
     ! Begin tree build loop.
     treeWalkerConstruction=mergerTreeWalkerTreeConstruction(tree)
-    do while (treeWalkerConstruction%next(node).and..not.self%shouldAbort(tree))
+    do while (treeWalkerConstruction%next(node))
+       ! Apply control.
+       if (.not.self%mergerTreeBuildController_%control(node,treeWalkerConstruction)) exit
        ! Get the basic component of the node.
        basic                       => node %basic()
        ! Initialize the state for this branch.
@@ -342,8 +348,6 @@ contains
                &   branchMassCurrent <= massResolution                                  &
                &  .or.                                                                  &
                &   time              <  self%timeEarliest*(1.0d0+toleranceTimeEarliest) &
-               &  .or.                                                                  &
-               &   .not.self%shouldFollowBranch(tree,node)                              &
                & ) then
              ! Branch should be terminated. If we have any accumulated accretion, terminate the branch with a final node.
              if (accretionFractionCumulative > 0.0d0) then
@@ -662,36 +666,6 @@ contains
     end do
     return
   end subroutine cole2000Build
-
-  logical function cole2000ShouldAbort(self,tree)
-    !!{
-    Return {\normalfont \ttfamily true} if tree construction should be aborted. In the {\normalfont \ttfamily cole2000} tree
-    builder we never abort.
-    !!}
-    implicit none
-    class(mergerTreeBuilderCole2000), intent(inout) :: self
-    type (mergerTree               ), intent(in   ) :: tree
-    !$GLC attributes unused :: self, tree
-
-    cole2000ShouldAbort=.false.
-    return
-  end function cole2000ShouldAbort
-
-  logical function cole2000ShouldFollowBranch(self,tree,node)
-    !!{
-    Return {\normalfont \ttfamily true} if tree construction should continue to follow the current branch. In the {\normalfont
-    \ttfamily cole2000} tree builder we always continue.
-    !!}
-    use :: Galacticus_Nodes, only : mergerTree, treeNode
-    implicit none
-    class(mergerTreeBuilderCole2000), intent(inout) :: self
-    type (mergerTree               ), intent(in   ) :: tree
-    type (treeNode                 ), intent(inout) :: node
-    !$GLC attributes unused :: self, tree, node
-
-    cole2000ShouldFollowBranch=.true.
-    return
-  end function cole2000ShouldFollowBranch
 
   subroutine cole2000TimeEarliestSet(self,timeEarliest)
     !!{
