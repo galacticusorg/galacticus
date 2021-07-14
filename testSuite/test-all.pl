@@ -890,7 +890,7 @@ sub runTestScript {
 			launchFile   => "testSuite/".$label.".pbs"  ,
 			label        => "testSuite-".$label         ,
 			logFile      => "testSuite/".$label.".log"  ,
-			command      => "cd testSuite; ".$fileName  ,
+			command      => "cd testSuite; ".$fileName." ".join(" ",map {"--".$_." ".$options{$_}} keys(%options)),
 			ppn          => $options{'processesPerNode'},
 			tracejob     => "yes"                       ,
 			onCompletion => 

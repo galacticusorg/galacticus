@@ -1,12 +1,39 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
+use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use PDL;
 use PDL::IO::HDF5;
 use PDL::NiceSlice;
+use Galacticus::Options;
+use Data::Dumper;
 
 # Run a set of Galacticus models to test the state store/retrieve functionality under MPI.
 # Andrew Benson (15-Jun-2018)
+
+# Read in any configuration options.
+my $config;
+if ( -e $ENV{'GALACTICUS_EXEC_PATH'}."/galacticusConfig.xml" ) {
+    my $xml = new XML::Simple;
+    $config = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/galacticusConfig.xml");
+}
+
+# Parse config options.
+my $queueManager = &Galacticus::Options::Config(                'queueManager' );
+my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     });
+
+# Get any command line options.
+my %options =
+    (
+     'processesPerNode' => exists($queueConfig->{'ppn'}) ? $queueConfig->{'ppn'} : 1,
+    );
+&Galacticus::Options::Parse_Options(\@ARGV,\%options);
+
+# We need at least 8 processes to run this test.
+if ( $options{'processesPerNode'} < 8 ) {
+    print "SKIPPED: at least 8 processes per node are required for this test\n";
+    exit;
+}
 
 # Run full store model.
 system("export OMP_NUM_THREADS=1; rm -f outputs/state.state* outputs/state.gsl.state*; cd ..; mpirun -np 8 Galacticus.exe_MPI testSuite/parameters/state/store.xml"  );
