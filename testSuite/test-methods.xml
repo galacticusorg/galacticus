@@ -1829,7 +1829,7 @@
     </excursionSetBarrier>
     <excursionSetFirstCrossing value="farahi">
       <timeStepFractional value="0.01"/>
-      <fileName value="%DATADYNAMICPATH%/largeScaleStructure/excursionSets/excursionSetsWdmMx2.0Gx1.5.hdf5"/>
+      <fileName value="auto"/>
     </excursionSetFirstCrossing>
     <darkMatterProfileConcentration value="schneider2015">
       <reference value="">
