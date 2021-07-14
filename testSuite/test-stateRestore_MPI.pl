@@ -6,7 +6,6 @@ use PDL;
 use PDL::IO::HDF5;
 use PDL::NiceSlice;
 use Galacticus::Options;
-use Data::Dumper;
 
 # Run a set of Galacticus models to test the state store/retrieve functionality under MPI.
 # Andrew Benson (15-Jun-2018)
