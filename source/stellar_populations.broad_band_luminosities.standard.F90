@@ -333,6 +333,8 @@ contains
     class           (stellarPopulationSpectraClass                 ), pointer                         :: stellarPopulationSpectra_
     class           (stellarPopulationSpectraPostprocessorClass    ), pointer                         :: stellarPopulationSpectraPostprocessorPrevious_
     type            (integrator                                    ), allocatable                     :: integrator_                                   , integratorAB_
+    type            (inputParameters                               ), save                            :: descriptor
+    !$omp threadprivate(descriptor)
     integer         (c_size_t                                      )                                  :: iAge                                          , iLuminosity                          , &
          &                                                                                               iMetallicity                                  , jLuminosity                          , &
          &                                                                                               populationID
@@ -347,7 +349,6 @@ contains
     character       (len=16                                        )                                  :: datasetName                                   , redshiftLabel                        , &
          &                                                                                               label
     type            (hdf5Object                                    )                                  :: luminositiesFile
-    type            (inputParameters                               )                                  :: descriptor
 
     ! Obtain a read lock on the luminosity tables.
     call self%luminosityTableLock%setRead()
