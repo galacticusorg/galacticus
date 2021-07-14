@@ -371,6 +371,7 @@ contains
     double precision                                   , dimension(2)          :: metallicityFactors, rate            , &
          &                                                                        propertyCumulative, age
     type            (inputParameters                  ), save                  :: descriptor
+    !$omp threadprivate(descriptor)
     integer         (c_size_t                         )                        :: metallicityIndex
     type            (integratorCompositeGaussKronrod1D)                        :: integrator_
     integer                                                                    :: fileFormat        , iAge            , &
