@@ -115,7 +115,6 @@ contains
     type            (treeNode                          )               , pointer :: nodeNext       , nodeChild
     class           (nodeComponentBasic                )               , pointer :: basic
     double precision                                                             :: rateSubsampling
-    !$GLC attributes unused :: self
 
     controlSubsample=.true.
     ! Root node is not eligible for pruning.
