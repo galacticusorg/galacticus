@@ -223,7 +223,7 @@ contains
           &                                          displayUnindent                  , verbosityLevelStandard
     use    :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
     use    :: Galacticus_Nodes              , only : nodeComponentBasic               , treeNode
-    use    :: IO_HDF5                       , only : hdf5Access
+    use    :: HDF5_Access                   , only : hdf5Access
     use    :: ISO_Varying_String            , only : var_str
 #ifdef USEMPI
     use    :: MPI_Utilities                 , only : mpiSelf

@@ -76,7 +76,8 @@ contains
     use :: File_Utilities    , only : File_Exists              , File_Lock                    , File_Unlock                  , lockDescriptor, &
           &                           Directory_Make
     use :: Galacticus_Paths  , only : galacticusPath           , pathTypeDataDynamic
-    use :: IO_HDF5           , only : hdf5Access               , hdf5Object
+    use :: HDF5_Access       , only : hdf5Access
+    use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : varying_string
     use :: Root_Finder       , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     use :: Table_Labels      , only : extrapolationTypeFix

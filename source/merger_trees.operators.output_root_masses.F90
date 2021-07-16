@@ -112,7 +112,7 @@ contains
     Internal constructor for the conditional mass function merger tree operator class.
     !!}
     use :: File_Utilities, only : File_Exists, File_Remove
-    use :: IO_HDF5       , only : hdf5Access
+    use :: HDF5_Access   , only : hdf5Access
     implicit none
     type            (mergerTreeOperatorOutputRootMasses)                :: self
     double precision                                    , intent(in   ) :: time
@@ -228,7 +228,8 @@ contains
     !!{
     Outputs conditional mass function.
     !!}
-    use :: IO_HDF5, only : hdf5Access, hdf5Object
+    use :: HDF5_Access, only : hdf5Access
+    use :: IO_HDF5, only : hdf5Object
     implicit none
     class(mergerTreeOperatorOutputRootMasses), intent(inout) :: self
     type (hdf5Object                        ), target        :: outputFile

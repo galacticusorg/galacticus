@@ -88,7 +88,8 @@ contains
           &                                         File_Unlock                 , File_Name_Temporary, File_Remove
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Galacticus_Paths                , only : galacticusPath              , pathTypeDataDynamic
-    use :: IO_HDF5                         , only : hdf5Access                  , hdf5Object
+    use :: HDF5_Access                     , only : hdf5Access
+    use :: IO_HDF5                         , only : hdf5Object
     use :: Interfaces_RecFast              , only : Interface_RecFast_Initialize
     use :: Numerical_Constants_Astronomical, only : heliumByMassPrimordial
     use :: System_Command                  , only : System_Command_Do

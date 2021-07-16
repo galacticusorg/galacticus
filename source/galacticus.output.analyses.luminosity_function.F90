@@ -183,7 +183,8 @@ contains
     !!{
     Constructor for the ``luminosityFunction'' output analysis class which reads bin information from a standard format file.
     !!}
-    use :: IO_HDF5, only : hdf5Access, hdf5Object
+    use :: HDF5_Access, only : hdf5Access
+    use :: IO_HDF5, only : hdf5Object
     implicit none
     type            (outputAnalysisLuminosityFunction       )                              :: self
     type            (varying_string                         ), intent(in   )               :: label                              , comment

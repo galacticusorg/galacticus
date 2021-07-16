@@ -112,7 +112,8 @@ contains
     use :: Galactic_Filters                      , only : galacticFilterSpheroidStellarMass
     use :: Galacticus_Error                      , only : Galacticus_Error_Report
     use :: Galacticus_Paths                      , only : galacticusPath                                     , pathTypeDataStatic
-    use :: IO_HDF5                               , only : hdf5Access                                         , hdf5Object
+    use :: HDF5_Access                           , only : hdf5Access
+    use :: IO_HDF5                               , only : hdf5Object
     use :: Memory_Management                     , only : allocateArray
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassBlackHole                 , nodePropertyExtractorMassStellarSpheroid
     use :: Numerical_Comparison                  , only : Values_Agree

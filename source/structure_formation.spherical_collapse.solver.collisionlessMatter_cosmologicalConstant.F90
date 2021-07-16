@@ -805,7 +805,8 @@ contains
     !!}
     use :: File_Utilities    , only : File_Exists    , File_Lock               , File_Unlock, lockDescriptor
     use :: Galacticus_Error  , only : errorStatusFail, errorStatusSuccess
-    use :: IO_HDF5           , only : hdf5Access     , hdf5Object
+    use :: HDF5_Access       , only : hdf5Access
+    use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char           , varying_string
     use :: Tables            , only : table1D        , table1DLogarithmicLinear
     implicit none
@@ -860,7 +861,8 @@ contains
     !!}
     use :: File_Utilities    , only : Directory_Make, File_Lock     ,  File_Path, File_Unlock, &
          &                            lockDescriptor
-    use :: IO_HDF5           , only : hdf5Access    , hdf5Object
+    use :: HDF5_Access       , only : hdf5Access
+    use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char          , varying_string
     use :: Tables            , only : table1D
     implicit none

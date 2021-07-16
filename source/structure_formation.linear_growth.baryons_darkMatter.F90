@@ -593,7 +593,8 @@ contains
     !!}
     use :: Display       , only : displayMessage        , verbosityLevelWorking
     use :: File_Utilities, only : File_Exists
-    use :: IO_HDF5       , only : hdf5Access            , hdf5Object
+    use :: HDF5_Access   , only : hdf5Access
+    use :: IO_HDF5       , only : hdf5Object
     use :: Table_Labels  , only : extrapolationTypeAbort, extrapolationTypeFix
     implicit none
     class           (linearGrowthBaryonsDarkMatter), intent(inout)               :: self
@@ -635,7 +636,8 @@ contains
     !!}
     use :: Display, only : displayMessage, verbosityLevelWorking
     use :: HDF5   , only : hsize_t
-    use :: IO_HDF5, only : hdf5Access    , hdf5Object
+    use :: HDF5_Access, only : hdf5Access
+    use :: IO_HDF5, only : hdf5Object
     implicit none
     class(linearGrowthBaryonsDarkMatter), intent(inout) :: self
     type (hdf5Object                   )                :: dataFile

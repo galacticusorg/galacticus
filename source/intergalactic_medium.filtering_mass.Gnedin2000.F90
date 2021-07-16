@@ -599,7 +599,8 @@ contains
     Read tabulated data on linear growth factor from file.
     !!}
     use :: File_Utilities, only : File_Exists
-    use :: IO_HDF5       , only : hdf5Access , hdf5Object
+    use :: HDF5_Access   , only : hdf5Access
+    use :: IO_HDF5       , only : hdf5Object
     implicit none
     class           (intergalacticMediumFilteringMassGnedin2000), intent(inout)             :: self
     double precision                                            , dimension(:), allocatable :: massFiltering
@@ -627,7 +628,8 @@ contains
     Write tabulated data on linear growth factor to file.
     !!}
     use :: HDF5   , only : hsize_t
-    use :: IO_HDF5, only : hdf5Access, hdf5Object
+    use :: HDF5_Access, only : hdf5Access
+    use :: IO_HDF5, only : hdf5Object
     implicit none
     class(intergalacticMediumFilteringMassGnedin2000), intent(inout) :: self
     type (hdf5Object                                )                :: dataFile

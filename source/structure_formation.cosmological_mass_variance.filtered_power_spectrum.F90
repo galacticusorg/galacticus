@@ -1007,7 +1007,8 @@ contains
     !!}
     use :: Display       , only : displayMessage           , verbosityLevelWorking
     use :: File_Utilities, only : File_Exists
-    use :: IO_HDF5       , only : hdf5Access               , hdf5Object
+    use :: HDF5_Access   , only : hdf5Access
+    use :: IO_HDF5       , only : hdf5Object
     use :: Tables        , only : table1DLogarithmicCSpline, table1DLogarithmicMonotoneCSpline
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
@@ -1074,7 +1075,8 @@ contains
     !!}
     use :: Display, only : displayMessage, verbosityLevelWorking
     use :: HDF5   , only : hsize_t
-    use :: IO_HDF5, only : hdf5Access    , hdf5Object
+    use :: HDF5_Access, only : hdf5Access
+    use :: IO_HDF5, only : hdf5Object
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
     double precision                                       , dimension(:  ), allocatable :: massTmp

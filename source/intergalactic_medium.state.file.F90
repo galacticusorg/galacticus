@@ -240,7 +240,8 @@ contains
     !!}
     use :: File_Utilities  , only : File_Exists
     use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_HDF5         , only : hdf5Access             , hdf5Object
+    use :: HDF5_Access     , only : hdf5Access
+    use :: IO_HDF5         , only : hdf5Object
     use :: Table_Labels    , only : extrapolationTypeAbort , extrapolationTypeExtrapolate
     implicit none
     class  (intergalacticMediumStateFile), intent(inout) :: self

@@ -142,7 +142,8 @@ contains
     use            :: Display         , only : displayIndent       , displayUnindent
     use            :: Galacticus_Error, only : errorStatusSuccess
     use            :: Galacticus_HDF5 , only : galacticusOutputFile
-    use            :: IO_HDF5         , only : hdf5Access          , hdf5Object
+    use            :: HDF5_Access     , only : hdf5Access
+    use            :: IO_HDF5         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: String_Handling , only : operator(//)
     implicit none

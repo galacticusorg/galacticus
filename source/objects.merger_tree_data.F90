@@ -1545,7 +1545,8 @@ contains
     use :: File_Utilities    , only : File_Exists
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: HDF5              , only : HSIZE_T                , hsize_t
-    use :: IO_HDF5           , only : hdf5Access             , hdf5Object
+    use :: HDF5_Access       , only : hdf5Access
+    use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : assignment(=)          , char
     use :: Memory_Management , only : deallocateArray
     use :: String_Handling   , only : operator(//)
@@ -1826,7 +1827,8 @@ contains
     use :: File_Utilities    , only : File_Exists
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: HDF5              , only : hsize_t
-    use :: IO_HDF5           , only : hdf5Access             , hdf5Object
+    use :: HDF5_Access       , only : hdf5Access
+    use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : assignment(=)          , char
     use :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none

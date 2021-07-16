@@ -461,7 +461,8 @@ contains
     use :: File_Utilities          , only : Directory_Make       , File_Exists         , File_Lock     , File_Path      , &
           &                                 File_Unlock          , lockDescriptor
     use :: Galacticus_Paths        , only : galacticusPath       , pathTypeDataDynamic
-    use :: IO_HDF5                 , only : hdf5Access           , hdf5Object
+    use :: HDF5_Access             , only : hdf5Access
+    use :: IO_HDF5                 , only : hdf5Object
     use :: ISO_Varying_String      , only : char                 , operator(//)        , varying_string
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator

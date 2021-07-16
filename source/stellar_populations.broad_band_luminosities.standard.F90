@@ -310,7 +310,8 @@ contains
           &                                                    verbosityLevelWorking  , displayMagenta                       , displayGreen   , displayReset
     use            :: File_Utilities                  , only : File_Exists            , File_Lock                            , File_Unlock    , lockDescriptor
     use            :: Galacticus_Error                , only : Galacticus_Error_Report, Galacticus_Warn                      , errorStatusFail, errorStatusSuccess
-    use            :: IO_HDF5                         , only : hdf5Access             , hdf5Object
+    use            :: HDF5_Access                     , only : hdf5Access
+    use            :: IO_HDF5                         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: ISO_Varying_String              , only : assignment(=)          , char                                 , operator(//)   , var_str
     use            :: Input_Parameters                , only : inputParameters

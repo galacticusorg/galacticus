@@ -347,7 +347,8 @@ contains
     use :: File_Utilities       , only : Directory_Make              , File_Exists
     use :: Galacticus_Error     , only : Galacticus_Error_Report
     use :: Galacticus_Paths     , only : galacticusPath              , pathTypeDataDynamic
-    use :: IO_HDF5              , only : hdf5Access                  , hdf5Object
+    use :: HDF5_Access          , only : hdf5Access
+    use :: IO_HDF5              , only : hdf5Object
     use :: Numerical_Comparison , only : Values_Differ
     use :: Numerical_Integration, only : integrator
     use :: Numerical_Ranges     , only : Make_Range                  , rangeTypeLogarithmic

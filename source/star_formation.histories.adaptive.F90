@@ -594,7 +594,8 @@ contains
     !!}
     use :: Galacticus_HDF5           , only : galacticusOutputFile
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
-    use :: IO_HDF5                   , only : hdf5Access                    , hdf5Object
+    use :: HDF5_Access               , only : hdf5Access
+    use :: IO_HDF5                   , only : hdf5Object
     use :: String_Handling           , only : operator(//)
     implicit none
     class  (starFormationHistoryAdaptive), intent(inout) :: self

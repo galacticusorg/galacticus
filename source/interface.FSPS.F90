@@ -126,7 +126,8 @@ contains
     use :: File_Utilities                  , only : Directory_Make         , File_Exists    , File_Name_Temporary, File_Path, &
           &                                         File_Remove            , File_Lock      , File_Unlock
     use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: IO_HDF5                         , only : hdf5Access             , hdf5Object
+    use :: HDF5_Access                     , only : hdf5Access
+    use :: IO_HDF5                         , only : hdf5Object
     use :: ISO_Varying_String              , only : char                   , operator(//)   , trim               , var_str  , &
           &                                         varying_string
     use :: Numerical_Constants_Astronomical, only : gigaYear               , luminositySolar, massSolar

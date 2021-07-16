@@ -346,7 +346,8 @@ contains
     use    :: Galacticus_Error                  , only : Galacticus_Error_Report
     use    :: Galacticus_Nodes                  , only : mergerTree                       , nodeComponentBasic                      , nodeComponentPosition , nodeComponentSatellite, &
           &                                              treeNode
-    use    :: IO_HDF5                           , only : hdf5Access                       , hdf5Object
+    use    :: HDF5_Access                       , only : hdf5Access
+    use    :: IO_HDF5                           , only : hdf5Object
     use    :: ISO_Varying_String                , only : varying_string                   , var_str
     use    :: Memory_Management                 , only : allocateArray                    , deallocateArray
     use    :: Merger_Tree_Walkers               , only : mergerTreeWalkerAllNodes

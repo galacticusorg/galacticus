@@ -269,7 +269,8 @@ contains
     use :: File_Utilities  , only : File_Exists
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Paths, only : galacticusPath         , pathTypeExec
-    use :: IO_HDF5         , only : hdf5Access             , hdf5Object
+    use :: HDF5_Access     , only : hdf5Access
+    use :: IO_HDF5         , only : hdf5Object
     use :: String_Handling , only : operator(//)
     use :: System_Command  , only : System_Command_Do
     implicit none

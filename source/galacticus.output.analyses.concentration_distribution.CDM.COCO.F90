@@ -99,7 +99,8 @@ contains
     use :: Galactic_Filters                        , only : filterList                                      , galacticFilterAll                           , galacticFilterFormationTime                   , galacticFilterHaloIsolated
     use :: Galacticus_Error                        , only : Galacticus_Error_Report
     use :: Galacticus_Paths                        , only : galacticusPath                                  , pathTypeDataStatic
-    use :: IO_HDF5                                 , only : hdf5Access                                      , hdf5Object
+    use :: HDF5_Access                             , only : hdf5Access
+    use :: IO_HDF5                                 , only : hdf5Object
     use :: ISO_Varying_String                      , only : var_str
     use :: Memory_Management                       , only : allocateArray
     use :: Node_Property_Extractors                , only : nodePropertyExtractorConcentration              , nodePropertyExtractorMassHalo
