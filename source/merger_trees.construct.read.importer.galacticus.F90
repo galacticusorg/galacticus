@@ -239,7 +239,7 @@ contains
     !!{
     Destructor for the \glc\ format merger tree importer class.
     !!}
-    use :: IO_HDF5, only : hdf5Access
+    use :: HDF5_Access, only : hdf5Access
     implicit none
     type(mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -263,7 +263,7 @@ contains
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     use :: Display             , only : displayMessage         , verbosityLevelWarn, displayMagenta, displayReset
     use :: Galacticus_Error    , only : Galacticus_Error_Report, Galacticus_Warn
-    use :: IO_HDF5             , only : hdf5Access
+    use :: HDF5_Access         , only : hdf5Access
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
     class           (mergerTreeImporterGalacticus ), intent(inout) :: self
@@ -479,7 +479,7 @@ contains
     !!{
     Validate a \glc\ format merger tree file.
     !!}
-    use :: IO_HDF5, only : hdf5Access
+    use :: HDF5_Access, only : hdf5Access
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -507,7 +507,7 @@ contains
     !!{
     Return a Boolean integer specifying whether or not the trees have subhalos.
     !!}
-    use :: IO_HDF5                    , only : hdf5Access
+    use :: HDF5_Access                , only : hdf5Access
     use :: Numerical_Constants_Boolean, only : booleanUnknown
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
@@ -531,7 +531,7 @@ contains
     Return a Boolean specifying whether or not the halo masses include the contribution from subhalos.
     !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_HDF5         , only : hdf5Access
+    use :: HDF5_Access     , only : hdf5Access
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
     integer                                              :: haloMassesIncludeSubhalosInteger
@@ -556,7 +556,7 @@ contains
     Return a Boolean specifying whether or not the halo momenta include the contribution from subhalos.
     !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_HDF5         , only : hdf5Access
+    use :: HDF5_Access     , only : hdf5Access
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
     integer                                              :: haloAngularMomentaIncludeSubhalosInteger
@@ -584,7 +584,7 @@ contains
     !!{
     Return a Boolean integer specifying whether or not the trees are self-contained.
     !!}
-    use :: IO_HDF5                    , only : hdf5Access
+    use :: HDF5_Access                , only : hdf5Access
     use :: Numerical_Constants_Boolean, only : booleanUnknown
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
@@ -607,7 +607,7 @@ contains
     !!{
     Return a Boolean integer specifying whether or not velocities include the Hubble flow.
     !!}
-    use :: IO_HDF5                    , only : hdf5Access
+    use :: HDF5_Access                , only : hdf5Access
     use :: Numerical_Constants_Boolean, only : booleanUnknown
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
@@ -630,7 +630,7 @@ contains
     !!{
     Return a Boolean integer specifying whether or not positions are periodic.
     !!}
-    use :: IO_HDF5                    , only : hdf5Access
+    use :: HDF5_Access                , only : hdf5Access
     use :: Numerical_Constants_Boolean, only : booleanUnknown
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
@@ -654,7 +654,7 @@ contains
     Return the length of the simulation cube.
     !!}
     use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: IO_HDF5                         , only : hdf5Access
+    use :: HDF5_Access                     , only : hdf5Access
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Boolean     , only : booleanFalse           , booleanTrue, booleanUnknown
     implicit none
@@ -741,7 +741,7 @@ contains
     !!}
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: HDF5                            , only : HSIZE_T
-    use :: IO_HDF5                         , only : hdf5Access
+    use :: HDF5_Access                     , only : hdf5Access
     use :: Numerical_Constants_Astronomical, only : gigaYear
     use :: Sorting                         , only : sortIndex
     implicit none
@@ -889,7 +889,7 @@ contains
     !!{
     Return true if positions and/or velocities are available.
     !!}
-    use :: IO_HDF5, only : hdf5Access
+    use :: HDF5_Access, only : hdf5Access
     implicit none
     class  (mergerTreeImporterGalacticus), intent(inout) :: self
     logical                              , intent(in   ) :: positions, velocities
@@ -906,7 +906,7 @@ contains
     !!{
     Return true if scale radii are available.
     !!}
-    use :: IO_HDF5, only : hdf5Access
+    use :: HDF5_Access, only : hdf5Access
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -923,7 +923,7 @@ contains
     !!{
     Return true if particle counts are available.
     !!}
-    use :: IO_HDF5, only : hdf5Access
+    use :: HDF5_Access, only : hdf5Access
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -937,7 +937,7 @@ contains
     !!{
     Return true if halo rotation curve velocity maxima are available.
     !!}
-    use :: IO_HDF5, only : hdf5Access
+    use :: HDF5_Access, only : hdf5Access
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -951,7 +951,7 @@ contains
     !!{
     Return true if halo velocity dispersions are available.
     !!}
-    use :: IO_HDF5, only : hdf5Access
+    use :: HDF5_Access, only : hdf5Access
     implicit none
     class(mergerTreeImporterGalacticus), intent(inout) :: self
 
@@ -1010,7 +1010,7 @@ contains
     Returns a trace of subhalo position/velocity.
     !!}
     use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: IO_HDF5                         , only : hdf5Access
+    use :: HDF5_Access                     , only : hdf5Access
     use :: Numerical_Constants_Astronomical, only : gigaYear               , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
@@ -1077,7 +1077,7 @@ contains
     !!}
     use :: Galacticus_Error                , only : Galacticus_Error_Report, Galacticus_Warn
     use :: HDF5                            , only : hsize_t
-    use :: IO_HDF5                         , only : hdf5Access
+    use :: HDF5_Access                     , only : hdf5Access
     use :: Memory_Management               , only : Memory_Usage_Record    , deallocateArray
     use :: Numerical_Constants_Astronomical, only : gigaYear               , massSolar      , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo

@@ -629,7 +629,7 @@ contains
     !!}
     use :: File_Utilities    , only : File_Remove
     use :: FoX_dom           , only : destroy
-    use :: IO_HDF5           , only : hdf5Access
+    use :: HDF5_Access       , only : hdf5Access
     use :: ISO_Varying_String, only : char
     implicit none
     type(inputParameters), intent(inout) :: self
@@ -1039,7 +1039,7 @@ contains
     Open an output group for parameters in the given HDF5 object.
     !!}
     use :: File_Utilities    , only : File_Remove
-    use :: IO_HDF5           , only : hdf5Access
+    use :: HDF5_Access       , only : hdf5Access
     use :: ISO_Varying_String, only : char
     implicit none
     class(inputParameters), intent(inout) :: self
@@ -1069,7 +1069,7 @@ contains
     !!{
     Copy an output group for parameters in the given HDF5 object.
     !!}
-    use :: IO_HDF5, only : hdf5Access
+    use :: HDF5_Access, only : hdf5Access
     implicit none
     class(inputParameters), intent(inout) :: self
     class(inputParameters), intent(in   ) :: inputParameters_
@@ -1297,7 +1297,7 @@ contains
     !!}
     use :: FoX_dom           , only : node
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: IO_HDF5           , only : hdf5Access
+    use :: HDF5_Access       , only : hdf5Access
     use :: ISO_Varying_String, only : assignment(=)          , char, operator(//)
     use :: String_Handling   , only : operator(//)
     implicit none
@@ -1345,7 +1345,7 @@ contains
     !!}
     use :: FoX_dom         , only : hasAttribute           , node
     use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_HDF5         , only : hdf5Access
+    use :: HDF5_Access     , only : hdf5Access
     implicit none
     class           (inputParameters), intent(inout)           :: self
     character       (len=*          ), intent(in   )           :: parameterName
@@ -1385,7 +1385,7 @@ contains
     use :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName , hasAttribute, &
           &                           inException                      , node
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: IO_HDF5           , only : hdf5Access
+    use :: HDF5_Access       , only : hdf5Access
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
     use :: ISO_Varying_String, only : assignment(=)                    , char              , operator(//), operator(==), &
           &                           trim
@@ -1394,7 +1394,7 @@ contains
     use :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName , hasAttribute, &
           &                           inException                      , node
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: IO_HDF5           , only : hdf5Access
+    use :: HDF5_Access       , only : hdf5Access
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
     use :: ISO_Varying_String, only : assignment(=)                    , char              , operator(//), operator(==), &
           &                           trim

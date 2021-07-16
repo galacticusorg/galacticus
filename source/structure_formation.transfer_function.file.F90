@@ -315,7 +315,8 @@ contains
     use :: Display                , only : displayMessage
     use :: File_Utilities         , only : File_Name_Expand
     use :: Galacticus_Error       , only : Galacticus_Error_Report
-    use :: IO_HDF5                , only : hdf5Access                        , hdf5Object
+    use :: HDF5_Access            , only : hdf5Access
+    use :: IO_HDF5                , only : hdf5Object
     use :: Numerical_Comparison   , only : Values_Differ
     use :: Numerical_Interpolation, only : GSL_Interp_cSpline
     use :: Table_Labels           , only : enumerationExtrapolationTypeEncode

@@ -355,7 +355,8 @@ contains
           &                                                    File_Unlock                      , lockDescriptor
     use            :: Galacticus_Error                , only : Galacticus_Error_Report
     use            :: Galacticus_Paths                , only : galacticusPath                   , pathTypeDataDynamic
-    use            :: IO_HDF5                         , only : hdf5Access                       , hdf5Object
+    use            :: HDF5_Access                     , only : hdf5Access
+    use            :: IO_HDF5                         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Input_Parameters                , only : inputParameters
     use            :: Memory_Management               , only : allocateArray

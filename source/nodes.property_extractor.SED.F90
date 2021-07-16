@@ -529,7 +529,8 @@ contains
     use :: Galacticus_Nodes    , only : nodeComponentBasic
     use :: Histories           , only : history
     use :: ISO_Varying_String  , only : var_str
-    use :: IO_HDF5             , only : hdf5Access        , hdf5Object
+    use :: HDF5_Access         , only : hdf5Access
+    use :: IO_HDF5             , only : hdf5Object
     use :: Numerical_Comparison, only : Values_Agree
     use :: File_Utilities      , only : File_Exists       , File_Lock            , File_Unlock, lockDescriptor
     use :: String_Handling     , only : operator(//)

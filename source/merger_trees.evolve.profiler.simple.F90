@@ -128,7 +128,8 @@ contains
     Output collected meta-data on tree evolution.
     !!}
     use :: Galacticus_HDF5                 , only : galacticusOutputFile
-    use :: IO_HDF5                         , only : hdf5Object          , hdf5Access
+    use :: HDF5_Access                     , only : hdf5Access
+    use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : gigaYear
     implicit none
     type            (mergerTreeEvolveProfilerSimple), intent(inout)               :: self

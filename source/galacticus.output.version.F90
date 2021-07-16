@@ -76,7 +76,8 @@ contains
     use :: FoX_utils         , only : generate_UUID
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_HDF5   , only : galacticusOutputFile
-    use :: IO_HDF5           , only : hdf5Access                       , hdf5Object
+    use :: HDF5_Access       , only : hdf5Access
+    use :: IO_HDF5           , only : hdf5Object
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists, XML_Parse, extractDataContent => extractDataContentTS
     use :: ISO_Varying_String, only : varying_string
     implicit none

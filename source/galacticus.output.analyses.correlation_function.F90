@@ -350,7 +350,8 @@ contains
     !!}
     use :: Cosmology_Functions , only : cosmologyFunctionsClass  , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters, only : cosmologyParametersSimple
-    use :: IO_HDF5             , only : hdf5Access               , hdf5Object
+    use :: HDF5_Access         , only : hdf5Access
+    use :: IO_HDF5             , only : hdf5Object
     implicit none
     type            (outputAnalysisCorrelationFunction      )                                :: self
     type            (varying_string                         ), intent(in   )                 :: label                                     , comment
@@ -873,7 +874,8 @@ contains
     Implement a {\normalfont \ttfamily correlationFunction} output analysis finalization.
     !!}
     use :: Galacticus_HDF5                 , only : galacticusOutputFile
-    use :: IO_HDF5                         , only : hdf5Access          , hdf5Object
+    use :: HDF5_Access                     , only : hdf5Access
+    use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : megaParsec
     implicit none
     class(outputAnalysisCorrelationFunction), intent(inout) :: self

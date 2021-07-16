@@ -317,7 +317,8 @@ contains
     Constructor for the ``progenitorMassFunction'' output analysis class which reads all required properties from file.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
-    use :: IO_HDF5                          , only : hdf5Object                , hdf5Access
+    use :: HDF5_Access                      , only : hdf5Access
+    use :: IO_HDF5                          , only : hdf5Object
     use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
     use :: File_Utilities                   , only : File_Name_Expand
     use :: Virial_Density_Contrast          , only : virialDensityContrastClass
@@ -734,7 +735,8 @@ contains
     Implement analysis finalization for progenitor mass functions. We simply normalize the accumulated weight of parent nodes.
     !!}
     use :: Galacticus_HDF5, only : galacticusOutputFile
-    use :: IO_HDF5        , only : hdf5Access          , hdf5Object
+    use :: HDF5_Access    , only : hdf5Access
+    use :: IO_HDF5        , only : hdf5Object
     implicit none
     class(outputAnalysisProgenitorMassFunction), intent(inout) :: self
     type (hdf5Object                          )                :: analysesGroup, analysisGroup

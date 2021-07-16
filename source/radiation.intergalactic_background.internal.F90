@@ -449,7 +449,8 @@ contains
     use            :: Galacticus_Nodes            , only : defaultDiskComponent         , defaultSpheroidComponent, mergerTreeList , nodeComponentBasic, &
           &                                                nodeComponentDisk            , nodeComponentSpheroid   , treeNode       , universe          , &
           &                                                universeEvent
-    use            :: IO_HDF5                     , only : hdf5Access                   , hdf5Object
+    use            :: HDF5_Access                 , only : hdf5Access
+    use            :: IO_HDF5                     , only : hdf5Object
     use, intrinsic :: ISO_C_Binding               , only : c_size_t
     use            :: ISO_Varying_String          , only : varying_string
     use            :: Merger_Tree_Walkers         , only : mergerTreeWalkerAllNodes

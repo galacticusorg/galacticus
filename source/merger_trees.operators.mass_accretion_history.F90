@@ -165,7 +165,7 @@ contains
     use            :: Galacticus_Error                , only : Galacticus_Error_Report
     use            :: Galacticus_HDF5                 , only : galacticusOutputFile
     use            :: Galacticus_Nodes                , only : mergerTree             , nodeComponentBasic, nodeComponentSpin, treeNode
-    use            :: IO_HDF5                         , only : hdf5Access
+    use            :: HDF5_Access                     , only : hdf5Access
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: ISO_Varying_String              , only : varying_string
     use            :: Memory_Management               , only : allocateArray          , deallocateArray
@@ -262,7 +262,7 @@ contains
     !!{
     Close the mass accretion history group before closing the HDF5 file.
     !!}
-    use :: IO_HDF5, only : hdf5Access
+    use :: HDF5_Access, only : hdf5Access
     implicit none
     class(mergerTreeOperatorMassAccretionHistory), intent(inout) :: self
 

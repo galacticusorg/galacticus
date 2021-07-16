@@ -212,7 +212,8 @@ contains
     !!}
     use            :: Galacticus_Error   , only : Galacticus_Error_Report
     use            :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
-    use            :: IO_HDF5            , only : hdf5Access              , hdf5Object
+    use            :: HDF5_Access        , only : hdf5Access
+    use            :: IO_HDF5            , only : hdf5Object
     use, intrinsic :: ISO_C_Binding      , only : c_size_t
     use            :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     use omp_lib
@@ -566,7 +567,7 @@ contains
     !!{
     Finalize merger tree output by closing any open groups.
     !!}
-    use :: IO_HDF5, only : hdf5Access
+    use :: HDF5_Access, only : hdf5Access
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self
     integer(c_size_t                   )                :: iGroup
@@ -616,7 +617,8 @@ contains
     !!{
     Dump the contents of the integer properties buffer to the \glc\ output file.
     !!}
-    use :: IO_HDF5, only : hdf5Access, hdf5Object
+    use :: HDF5_Access, only : hdf5Access
+    use :: IO_HDF5, only : hdf5Object
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self
     integer(c_size_t                   ), intent(in   ) :: indexOutput
@@ -651,7 +653,8 @@ contains
     !!{
     Dump the contents of the double precision properties buffer to the \glc\ output file.
     !!}
-    use            :: IO_HDF5      , only : hdf5Access, hdf5Object
+    use            :: HDF5_Access  , only : hdf5Access
+    use            :: IO_HDF5      , only : hdf5Object
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self
@@ -942,7 +945,7 @@ contains
     Create a group in which to store this output.
     !!}
     use            :: Galacticus_HDF5                 , only : galacticusOutputFile
-    use            :: IO_HDF5                         , only : hdf5Access
+    use            :: HDF5_Access                     , only : hdf5Access
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Memory_Management               , only : Memory_Usage_Record
     use            :: Numerical_Constants_Astronomical, only : gigaYear

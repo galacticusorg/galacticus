@@ -119,7 +119,8 @@ contains
     use :: Galacticus_Paths                        , only : galacticusPath                                   , pathTypeDataStatic
     use :: Halo_Mass_Functions                     , only : haloMassFunctionClass
     use :: Halo_Spin_Distributions                 , only : haloSpinDistributionDeltaFunction                , haloSpinDistributionNbodyErrors
-    use :: IO_HDF5                                 , only : hdf5Access                                       , hdf5Object
+    use :: HDF5_Access                             , only : hdf5Access
+    use :: IO_HDF5                                 , only : hdf5Object
     use :: ISO_Varying_String                      , only : var_str
     use :: Memory_Management                       , only : allocateArray
     use :: Node_Property_Extractors                , only : nodePropertyExtractorSpin
