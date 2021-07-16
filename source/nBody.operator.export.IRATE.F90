@@ -208,6 +208,8 @@ contains
        call irateFile    %close()
        !$ call hdf5Access%unset()
     end if    
+    ! Write box size to the file.
+    if (simulations(1)%attributesReal%exists('boxSize')) call irate_%writeSimulation(simulations(1)%attributesReal%value('boxSize'))
     ! Write any additional properties to the file.
     if     (                                                   &
          &                                                     &
