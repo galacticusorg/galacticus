@@ -17,34 +17,47 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a sequence output analysis weight operator class.
+!!{
+Contains a module which implements a sequence output analysis weight operator class.
+!!}
 
   type, public :: weightOperatorList
      class(outputAnalysisWeightOperatorClass), pointer :: operator_ => null()
      type (weightOperatorList               ), pointer :: next      => null()
   end type weightOperatorList
 
-  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorSequence">
-  !#  <description>A sequence output analysis weight operator class.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="weightOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisWeightOperatorClass"/>
-  !#  </deepCopy>
-  !# </outputAnalysisWeightOperator>
+  !![
+  <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorSequence">
+   <description>A sequence output analysis weight operator class.</description>
+   <deepCopy>
+    <linkedList type="weightOperatorList" variable="operators" next="next" object="operator_" objectType="outputAnalysisWeightOperatorClass"/>
+   </deepCopy>
+   <stateStore>
+    <linkedList type="weightOperatorList" variable="operators" next="next" object="operator_"/>
+   </stateStore>
+  </outputAnalysisWeightOperator>
+  !!]
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorSequence
-     !% A sequence output weight operator class.
+     !!{
+     A sequence output weight operator class.
+     !!}
      private
      type(weightOperatorList), pointer :: operators => null()
    contains
-     !# <methods>
-     !#   <method description="Prepend an operator to a sequence of weight operators." method="prepend" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Prepend an operator to a sequence of weight operators." method="prepend" />
+     </methods>
+     !!]
      final     ::            sequenceDestructor
      procedure :: operate => sequenceOperate
      procedure :: prepend => sequencePrepend
   end type outputAnalysisWeightOperatorSequence
 
   interface outputAnalysisWeightOperatorSequence
-     !% Constructors for the ``sequence'' output analysis class.
+     !!{
+     Constructors for the ``sequence'' output analysis class.
+     !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal
   end interface outputAnalysisWeightOperatorSequence
@@ -52,7 +65,9 @@
 contains
 
   function sequenceConstructorParameters(parameters) result (self)
-    !% Constructor for the ``sequence'' output analysis weight operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``sequence'' output analysis weight operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (outputAnalysisWeightOperatorSequence)                :: self
@@ -70,13 +85,17 @@ contains
           allocate(self%operators)
           operator_ => self%operators
        end if
-       !# <objectBuilder class="outputAnalysisWeightOperator" name="operator_%operator_" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="outputAnalysisWeightOperator" name="operator_%operator_" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function sequenceConstructorParameters
 
   function sequenceConstructorInternal(operators) result (self)
-    !% Internal constructor for the sequence output analysis weight operator class.
+    !!{
+    Internal constructor for the sequence output analysis weight operator class.
+    !!}
     implicit none
     type(outputAnalysisWeightOperatorSequence)                        :: self
     type(weightOperatorList                  ), target, intent(in   ) :: operators
@@ -85,14 +104,18 @@ contains
     self     %operators => operators
     operator_           => operators
     do while (associated(operator_))
-       !# <referenceCountIncrement owner="operator_" object="operator_"/>
+       !![
+       <referenceCountIncrement owner="operator_" object="operator_"/>
+       !!]
        operator_ => operator_%next
     end do
     return
   end function sequenceConstructorInternal
 
   subroutine sequenceDestructor(self)
-    !% Destructor for the sequence weight operator class.
+    !!{
+    Destructor for the sequence weight operator class.
+    !!}
     implicit none
     type(outputAnalysisWeightOperatorSequence), intent(inout) :: self
     type(weightOperatorList                  ), pointer       :: operator_, operatorNext
@@ -101,7 +124,9 @@ contains
        operator_ => self%operators
        do while (associated(operator_))
           operatorNext => operator_%next
-          !# <objectDestructor name="operator_%operator_"/>
+          !![
+          <objectDestructor name="operator_%operator_"/>
+          !!]
           deallocate(operator_)
           operator_ => operatorNext
        end do
@@ -110,7 +135,9 @@ contains
   end subroutine sequenceDestructor
 
   double precision function sequenceOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
-    !% Implement an sequence output analysis weight operator.
+    !!{
+    Implement an sequence output analysis weight operator.
+    !!}
     implicit none
     class           (outputAnalysisWeightOperatorSequence), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
@@ -130,7 +157,9 @@ contains
   end function sequenceOperate
 
   subroutine sequencePrepend(self,operator_)
-    !% Prepend an operator to the sequence.
+    !!{
+    Prepend an operator to the sequence.
+    !!}
     implicit none
     class(outputAnalysisWeightOperatorSequence), intent(inout)          :: self
     class(outputAnalysisWeightOperatorClass   ), intent(in   ), target  :: operator_

@@ -17,26 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a class for calculations of Population III supernovae.
+!!{
+Contains a module which implements a class for calculations of Population III supernovae.
+!!}
 
 module Supernovae_Population_III
-  !% Implements a class for calculations of Population III supernovae.
+  !!{
+  Implements a class for calculations of Population III supernovae.
+  !!}
   implicit none
   private
 
-  !# <functionClass>
-  !#  <name>supernovaePopulationIII</name>
-  !#  <descriptiveName>Population III Supernovae</descriptiveName>
-  !#  <description>
-  !#   Class providing models of supernovae from Population III stars.
-  !#  </description>
-  !#  <default>hegerWoosley2002</default>
-  !#  <method name="energyCumulative" >
-  !#   <description> Return the cumulative energy input from Population III supernovae from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>supernovaePopulationIII</name>
+   <descriptiveName>Population III Supernovae</descriptiveName>
+   <description>
+    Class providing models of supernovae from Population III stars.
+   </description>
+   <default>hegerWoosley2002</default>
+   <method name="energyCumulative" >
+    <description> Return the cumulative energy input from Population III supernovae from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Supernovae_Population_III

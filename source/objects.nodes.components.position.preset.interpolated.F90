@@ -17,70 +17,80 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a preset position component in which positions are interpolated using the approach of
-!% \cite{merson_lightcone_2013}.
+!!{
+Contains a module which implements a preset position component in which positions are interpolated using the approach of
+\cite{merson_lightcone_2013}.
+!!}
 
 module Node_Component_Position_Preset_Interpolated
-  !% Implements a preset position component in which positions are interpolated using the approach of
-  !% \cite{merson_lightcone_2013}.
+  !!{
+  Implements a preset position component in which positions are interpolated using the approach of
+  \cite{merson_lightcone_2013}.
+  !!}
   implicit none
   private
   public :: threadInitialize    , threadUninitialize , &
        &    computeInterpolation, rateCompute        , &
        &    initialize
   
-  !# <component>
-  !#  <class>position</class>
-  !#  <name>presetInterpolated</name>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>position</name>
-  !#     <type>double</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <getFunction bindsTo="component">PositionPresetInterpolatedPosition</getFunction>
-  !#     <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Position of the node (in physical coordinates)."/>
-  !#     <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
-  !#   </property>
-  !#   <property>
-  !#     <name>velocity</name>
-  !#     <type>double</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <getFunction bindsTo="component">PositionPresetInterpolatedVelocity</getFunction>
-  !#     <output labels="[X,Y,Z]" unitsInSI="kilo" comment="Velocity of the node (in physical coordinates)."/>
-  !#     <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
-  !#   </property>
-  !#   <property>
-  !#     <name>positionHistory</name>
-  !#     <type>history</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#   <property>
-  !#     <name>interpolationCoefficients</name>
-  !#     <type>double</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#   <property>
-  !#     <name>interpolationTimeMaximum</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#  </properties>
-  !#  <functions>objects.nodes.components.position.preset.interpolated.bound_functions.inc</functions>
-  !# </component>
+  !![
+  <component>
+   <class>position</class>
+   <name>presetInterpolated</name>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>position</name>
+      <type>double</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <getFunction bindsTo="component">PositionPresetInterpolatedPosition</getFunction>
+      <output labels="[X,Y,Z]" unitsInSI="megaParsec" comment="Position of the node (in physical coordinates)."/>
+      <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
+    </property>
+    <property>
+      <name>velocity</name>
+      <type>double</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <getFunction bindsTo="component">PositionPresetInterpolatedVelocity</getFunction>
+      <output labels="[X,Y,Z]" unitsInSI="kilo" comment="Velocity of the node (in physical coordinates)."/>
+      <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
+    </property>
+    <property>
+      <name>positionHistory</name>
+      <type>history</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+    <property>
+      <name>interpolationCoefficients</name>
+      <type>double</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+    <property>
+      <name>interpolationTimeMaximum</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+   </properties>
+   <functions>objects.nodes.components.position.preset.interpolated.bound_functions.inc</functions>
+  </component>
+  !!]
 
 contains
 
-  !# <nodeComponentInitializationTask>
-  !#  <unitName>initialize</unitName>
-  !# </nodeComponentInitializationTask>
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
   subroutine initialize(parameters_)
-    !% Initializes the ``preset-interpolated'' position component module.
+    !!{
+    Initializes the ``preset-interpolated'' position component module.
+    !!}
     use :: Galacticus_Nodes                                , only : defaultPositionComponent
     use :: Input_Parameters                                , only : inputParameter          , inputParameters
     use :: Node_Component_Position_Preset_Interpolated_Data, only : positionPresetBoxLength , isPeriodic
@@ -89,23 +99,29 @@ contains
     
     !$omp critical (nodeComponentPositionPresetInterpolatedInitialize)
     if (defaultPositionComponent%presetInterpolatedIsActive()) then
-       !# <inputParameter>
-       !#   <name>positionPresetBoxLength</name>
-       !#   <defaultValue>0.0d0</defaultValue>
-       !#   <description>The periodic length of the positions. For non-periodic positions, a value of zero should be given.</description>
-       !#   <source>parameters_</source>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>positionPresetBoxLength</name>
+         <defaultValue>0.0d0</defaultValue>
+         <description>The periodic length of the positions. For non-periodic positions, a value of zero should be given.</description>
+         <source>parameters_</source>
+       </inputParameter>
+       !!]
        isPeriodic=positionPresetBoxLength > 0.0d0
     end if
     !$omp end critical (nodeComponentPositionPresetInterpolatedInitialize)
     return
   end subroutine initialize
   
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>threadInitialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>threadInitialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine threadInitialize(parameters_)
-    !% Initializes the tree node scale dark matter profile module.
+    !!{
+    Initializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks                                    , only : nodePromotionEvent      , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes                                , only : defaultPositionComponent
     use :: Input_Parameters                                , only : inputParameters
@@ -114,32 +130,42 @@ contains
     type(inputParameters), intent(inout) :: parameters_
 
     if (defaultPositionComponent%presetInterpolatedIsActive()) then
-       !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters_"/>
+       !![
+       <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters_"/>
+       !!]
        call nodePromotionEvent%attach(defaultPositionComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentPositionPresetInterpolated')
     end if
     return
   end subroutine threadInitialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>threadUninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>threadUninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine threadUninitialize()
-    !% Uninitializes the tree node scale dark matter profile module.
+    !!{
+    Uninitializes the tree node scale dark matter profile module.
+    !!}
     use :: Events_Hooks                                    , only : nodePromotionEvent
     use :: Galacticus_Nodes                                , only : defaultPositionComponent
     use :: Node_Component_Position_Preset_Interpolated_Data, only : cosmologyFunctions_
     implicit none
 
     if (defaultPositionComponent%presetInterpolatedIsActive()) then
-       !# <objectDestructor name="cosmologyFunctions_"/>
+       !![
+       <objectDestructor name="cosmologyFunctions_"/>
+       !!]
        call nodePromotionEvent%detach(defaultPositionComponent,nodePromotion)
     end if
     return
   end subroutine threadUninitialize
 
   subroutine nodePromotion(self,node)
-    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, update the position of {\normalfont \ttfamily
-    !% node} to that of the parent.
+    !!{
+    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, update the position of {\normalfont \ttfamily
+    node} to that of the parent.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentPosition, nodeComponentPositionPresetInterpolated, treeNode
     implicit none
     class(*                    ), intent(inout)          :: self
@@ -160,21 +186,25 @@ contains
     return
   end subroutine nodePromotion
 
-  !# <nodeMergerTask>
-  !#  <unitName>computeInterpolation</unitName>
-  !# </nodeMergerTask>
-  !# <satelliteHostChangeTask>
-  !#  <unitName>computeInterpolation</unitName>
-  !# </satelliteHostChangeTask>
-  !# <mergerTreeInitializeTask>
-  !#  <unitName>computeInterpolation</unitName>
-  !# </mergerTreeInitializeTask>
+  !![
+  <nodeMergerTask>
+   <unitName>computeInterpolation</unitName>
+  </nodeMergerTask>
+  <satelliteHostChangeTask>
+   <unitName>computeInterpolation</unitName>
+  </satelliteHostChangeTask>
+  <mergerTreeInitializeTask>
+   <unitName>computeInterpolation</unitName>
+  </mergerTreeInitializeTask>
+  !!]
   subroutine computeInterpolation(node)
-    !% Compute interpolation coefficients for positions. The approach here follows that of \cite{merson_lightcone_2013}. For halos
-    !% which are not orbiting within a host halo during the current interval, interpolation is via a cubic polynomial in each
-    !% Cartesian coordinate of \emph{comoving} position matched to the position and velocity at the initial and final times. For
-    !% halos which are orbiting within a halo halo during the current interval, interpolation is via a logarithmic spiral in the
-    !% relative physical position of the halo and the center of the host halo.
+    !!{
+    Compute interpolation coefficients for positions. The approach here follows that of \cite{merson_lightcone_2013}. For halos
+    which are not orbiting within a host halo during the current interval, interpolation is via a cubic polynomial in each
+    Cartesian coordinate of \emph{comoving} position matched to the position and velocity at the initial and final times. For
+    halos which are orbiting within a halo halo during the current interval, interpolation is via a logarithmic spiral in the
+    relative physical position of the halo and the center of the host halo.
+    !!}
     use, intrinsic :: ISO_C_Binding                                   , only : c_size_t
     use            :: Galacticus_Error                                , only : Galacticus_Error_Report    
     use            :: Galacticus_Nodes                                , only : nodeComponentBasic       , nodeComponentPosition  , treeNode                          , nodeEvent                   , &
@@ -594,11 +624,15 @@ contains
     return
   end subroutine computeInterpolation
 
-  !# <rateComputeTask>
-  !#  <unitName>rateCompute</unitName>
-  !# </rateComputeTask>
+  !![
+  <rateComputeTask>
+   <unitName>rateCompute</unitName>
+  </rateComputeTask>
+  !!]
   subroutine rateCompute(node,interrupt,interruptProcedure,propertyType)
-    !% Interrupt evolution to update position interpolation.
+    !!{
+    Interrupt evolution to update position interpolation.
+    !!}
     use :: Galacticus_Nodes, only : defaultPositionComponent, interruptTask, nodeComponentBasic, nodeComponentPosition, &
          &                          treeNode
     implicit none

@@ -17,34 +17,40 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements general tasks to be performed by \glc.
+!!{
+Contains a module which provides a class that implements general tasks to be performed by \glc.
+!!}
 
 module Tasks
-  !% Provides a class that implements general tasks to be performed by \glc.
+  !!{
+  Provides a class that implements general tasks to be performed by \glc.
+  !!}
   private
 
-  !# <functionClass>
-  !#  <name>task</name>
-  !#  <descriptiveName>Tasks</descriptiveName>
-  !#  <description>Class providing generak tasks to be performed by \glc.</description>
-  !#  <default>evolveForests</default>
-  !#  <functionClassDestroy>no</functionClassDestroy>
-  !#  <method name="perform" >
-  !#   <description>Perform the task.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <selfTarget>yes</selfTarget>
-  !#   <argument>integer, intent(  out), optional :: status</argument>
-  !#  </method>
-  !#  <method name="requiresOutputFile" >
-  !#   <description>Should return true if the task requires the main output file to be open.</description>
-  !#   <type>logical</type>
-  !#   <pass>yes</pass>
-  !#   <code>
-  !#    !$GLC attributes unused :: self
-  !#    taskRequiresOutputFile=.true.
-  !#   </code>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>task</name>
+   <descriptiveName>Tasks</descriptiveName>
+   <description>Class providing generak tasks to be performed by \glc.</description>
+   <default>evolveForests</default>
+   <functionClassDestroy>no</functionClassDestroy>
+   <method name="perform" >
+    <description>Perform the task.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>integer, intent(  out), optional :: status</argument>
+   </method>
+   <method name="requiresOutputFile" >
+    <description>Should return true if the task requires the main output file to be open.</description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <code>
+     !$GLC attributes unused :: self
+     taskRequiresOutputFile=.true.
+    </code>
+   </method>
+  </functionClass>
+  !!]
 
 end module Tasks

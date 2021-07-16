@@ -5,23 +5,27 @@
 
 # Set defaults.
 PPN=1
+FORCE=yes
 
 # Get options.
-while getopts p: option
-do
+while getopts ":p:f:" option; do
 case "${option}"
 in
+f) FORCE=${OPTARG};;
 p) PPN=${OPTARG};;
+\?) echo "Invalid option: $OPTARG";;
+:) echo "Invalid option: $OPTARG requires an argument";;
 esac
 done
 
 # Clear out old build files.
-rm -f                                                                                                                                     \
-   doc/physics/*.tex doc/inputParameters/*.tex doc/enumerations/definitions/*.tex doc/enumerations/specifiers/*.tex doc/contributions.tex \
-   doc/source_documentation.tex doc/dataEnumerationSpecifiers.tex doc/dataEnumerations.tex doc/dataMethods.tex
-
+if [ "$FORCE" = "yes" ]; then
+    rm -f                                                                                                                                     \
+       doc/physics/*.tex doc/inputParameters/*.tex doc/enumerations/definitions/*.tex doc/enumerations/specifiers/*.tex doc/contributions.tex \
+       doc/source_documentation.tex doc/dataEnumerationSpecifiers.tex doc/dataEnumerations.tex doc/dataMethods.tex
+    rm -rf work/build
+fi
 # Ensure that nodeComponent and treeNode objects are built, along with any functions.
-rm -rf work/build
 make -j$PPN GALACTICUS_BUILD_DOCS=yes all
 if [ $? -ne 0 ]; then
  echo Failed to build all executables

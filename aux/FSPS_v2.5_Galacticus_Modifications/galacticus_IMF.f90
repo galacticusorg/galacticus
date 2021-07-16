@@ -21,7 +21,7 @@ contains
        ! Read the file here.
        iunit=448
        nTable=0
-       open(unit=iunit,file="galacticus.imf",status="old",form="formatted",iostat=ierr)
+       open(unit=iunit,file=trim(imfFileName),status="old",form="formatted",iostat=ierr)
        do while (ierr.eq.0)
           read (iunit,*,iostat=ierr)
           if (ierr.eq.0) nTable=nTable+1
@@ -30,7 +30,7 @@ contains
        allocate(massTable(nTable))
        allocate(imfTable(nTable))
        allocate(y2(nTable))
-       open(unit=iunit,file="galacticus.imf",status="old",form="formatted",iostat=ierr)
+       open(unit=iunit,file=trim(imfFileName),status="old",form="formatted",iostat=ierr)
        do i=1,nTable
           read (iunit,*,iostat=ierr) massTable(i),imfTable(i)
        end do

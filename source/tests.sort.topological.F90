@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test sorting functions.
+!!{
+Contains a program to test sorting functions.
+!!}
 
 program Test_Sort_Topological
-  !% Tests of topological sorting functions.
+  !!{
+  Tests of topological sorting functions.
+  !!}
   use :: Display            , only : displayVerbositySet, verbosityLevelStandard
   use :: Galacticus_Error   , only : errorStatusFail    , errorStatusSuccess
   use :: Sorting_Topological, only : Sort_Topological

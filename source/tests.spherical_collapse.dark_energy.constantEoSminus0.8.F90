@@ -17,13 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program which tests spherical collapse calculations for a dark energy Universe, specifically using a flat,
-!% $\omega=-0.8$ cosmology.
+!!{
+Contains a program which tests spherical collapse calculations for a dark energy Universe, specifically using a flat,
+$\omega=-0.8$ cosmology.
+!!}
 
 program Tests_Spherical_Collapse_Dark_Energy_Omega_Zero_Point_Eight
-  !% Tests spherical collapse calculations for a dark energy Universe, specifically using a flat, $\omega=-0.8$
-  !% cosmology. Compares results to points read from Figure~6 of \cite{horellou_dark_2005} using
-  !% \href{http://datathief.org/}{\normalfont \scshape DataThief}.
+  !!{
+  Tests spherical collapse calculations for a dark energy Universe, specifically using a flat, $\omega=-0.8$
+  cosmology. Compares results to points read from Figure~6 of \cite{horellou_dark_2005} using
+  \href{http://datathief.org/}{\normalfont \scshape DataThief}.
+  !!}
   use :: Cosmology_Functions       , only : cosmologyFunctionsMatterDarkEnergy
   use :: Cosmology_Parameters      , only : cosmologyParametersSimple
   use :: Display                   , only : displayVerbositySet                                      , verbosityLevelStandard
@@ -51,35 +55,37 @@ program Tests_Spherical_Collapse_Dark_Energy_Omega_Zero_Point_Eight
   ! Begin unit tests.
   call Unit_Tests_Begin_Group("Spherical collapse: dark energy solver (ω=-0.8 cosmology)")
   ! Test spherical collapse in a flat universe.
-  !# <referenceConstruct object="cosmologyParameters_"  >
-  !#  <constructor>
-  !#   cosmologyParametersSimple                                (                                                                     &amp;
-  !#    &amp;                                                    OmegaMatter                = 0.3d0                                 , &amp;
-  !#    &amp;                                                    OmegaBaryon                = 0.0d0                                 , &amp;
-  !#    &amp;                                                    OmegaDarkEnergy            = 0.7d0                                 , &amp;
-  !#    &amp;                                                    temperatureCMB             = 2.7d0                                 , &amp;
-  !#    &amp;                                                    HubbleConstant             =70.0d0                                   &amp;
-  !#    &amp;                                                   )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="cosmologyFunctions_"   >
-  !#  <constructor>
-  !#   cosmologyFunctionsMatterDarkEnergy                       (                                                                     &amp;
-  !#    &amp;                                                    cosmologyParameters_       =cosmologyParameters_                  ,  &amp;
-  !#    &amp;                                                    darkEnergyEquationOfStateW0=-0.8d0                                ,  &amp;
-  !#    &amp;                                                    darkEnergyEquationOfStateW1=+0.0d0                                   &amp;
-  !#    &amp;                                                   )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="virialDensityContrast_">
-  !#  <constructor>
-  !#   virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy(                                                                     &amp;
-  !#    &amp;                                                    cosmologyFunctions_        =cosmologyFunctions_                    , &amp;
-  !#    &amp;                                                    energyFixedAt              =cllsnlssMttrDarkEnergyFixedAtTurnaround, &amp;
-  !#    &amp;                                                    tableStore                 =.true.                                   &amp;
-  !#    &amp;                                                   )
-  !#  </constructor>
-  !# </referenceConstruct>
+  !![
+  <referenceConstruct object="cosmologyParameters_"  >
+   <constructor>
+    cosmologyParametersSimple                                (                                                                     &amp;
+     &amp;                                                    OmegaMatter                = 0.3d0                                 , &amp;
+     &amp;                                                    OmegaBaryon                = 0.0d0                                 , &amp;
+     &amp;                                                    OmegaDarkEnergy            = 0.7d0                                 , &amp;
+     &amp;                                                    temperatureCMB             = 2.7d0                                 , &amp;
+     &amp;                                                    HubbleConstant             =70.0d0                                   &amp;
+     &amp;                                                   )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="cosmologyFunctions_"   >
+   <constructor>
+    cosmologyFunctionsMatterDarkEnergy                       (                                                                     &amp;
+     &amp;                                                    cosmologyParameters_       =cosmologyParameters_                  ,  &amp;
+     &amp;                                                    darkEnergyEquationOfStateW0=-0.8d0                                ,  &amp;
+     &amp;                                                    darkEnergyEquationOfStateW1=+0.0d0                                   &amp;
+     &amp;                                                   )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="virialDensityContrast_">
+   <constructor>
+    virialDensityContrastSphericalCollapseClsnlssMttrDrkEnrgy(                                                                     &amp;
+     &amp;                                                    cosmologyFunctions_        =cosmologyFunctions_                    , &amp;
+     &amp;                                                    energyFixedAt              =cllsnlssMttrDarkEnergyFixedAtTurnaround, &amp;
+     &amp;                                                    tableStore                 =.true.                                   &amp;
+     &amp;                                                   )
+   </constructor>
+  </referenceConstruct>
+  !!]
   do iExpansion=1,size(redshift)
      expansionFactor            =cosmologyFunctions_%expansionFactorFromRedshift(redshift       (iExpansion)    )
      age                        =cosmologyFunctions_%cosmicTime                 (expansionFactor                )

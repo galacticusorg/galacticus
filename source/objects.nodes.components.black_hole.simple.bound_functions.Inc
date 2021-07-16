@@ -17,12 +17,16 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains custom functions for the simple black hole component.
+!!{
+Contains custom functions for the simple black hole component.
+!!}
 
 double precision function Node_Component_Black_Hole_Simple_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex)
-  !% Computes the mass within a given radius for a central black hole. Black hole is treated as a point mass.
+  !!{
+  Computes the mass within a given radius for a central black hole. Black hole is treated as a point mass.
+  !!}
   use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeBlackHole, massTypeAll, massTypeBlackHole, &
-          &                                 weightByMass
+          &                                 weightByMass    , massTypeGalactic
   implicit none
   class           (nodeComponentBlackHoleSimple), intent(inout) :: self
   integer                                       , intent(in   ) :: componentType, massType, weightBy, weightIndex
@@ -32,20 +36,22 @@ double precision function Node_Component_Black_Hole_Simple_Enclosed_Mass(self,ra
   ! Set zero enclosed mass by default.
   Node_Component_Black_Hole_Simple_Enclosed_Mass=0.0d0
   ! Return the black hole mass only if massType and componentType are of black hole type.
-  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeBlackHole)) return
-  if (.not.(massType      == massTypeAll      .or. massType      == massTypeBlackHole     )) return
-  if (.not.(weightBy      == weightByMass                                                 )) return
-  if (      radius        <  0.0d0                                                         ) return
+  if (.not.(componentType == componentTypeAll                                   .or. componentType == componentTypeBlackHole)) return
+  if (.not.(massType      == massTypeAll      .or. massType == massTypeGalactic .or. massType      == massTypeBlackHole     )) return
+  if (.not.(weightBy      == weightByMass                                                                                   )) return
+  if (      radius        <  0.0d0                                                                                           ) return
   ! Return the mass of the black hole.
   Node_Component_Black_Hole_Simple_Enclosed_Mass=self%mass()
   return
 end function Node_Component_Black_Hole_Simple_Enclosed_Mass
 
  function Node_Component_Black_Hole_Simple_Acceleration(self,positionCartesian,componentType,massType)
-  !% Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
-  use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeBlackHole, massTypeAll, massTypeBlackHole
-  use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
-  use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
+  !!{
+  Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
+  !!}
+   use :: Galactic_Structure_Options     , only : componentTypeAll               , componentTypeBlackHole, massTypeAll, massTypeBlackHole, &
+        &                                         massTypeGalactic
+  use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus, gigaYear              , megaParsec
   use :: Numerical_Constants_Prefixes    , only : kilo
   implicit none
   double precision                                             , dimension(3) :: Node_Component_Black_Hole_Simple_Acceleration
@@ -57,10 +63,10 @@ end function Node_Component_Black_Hole_Simple_Enclosed_Mass
   ! Set zero enclosed acceleration by default.
   Node_Component_Black_Hole_Simple_Acceleration=0.0d0
   ! Return the black hole mass only if massType and componentType are of black hole type.
-  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeBlackHole)) return
-  if (.not.(massType      == massTypeAll      .or. massType      == massTypeBlackHole     )) return
+  if (.not.(componentType == componentTypeAll                                   .or. componentType == componentTypeBlackHole)) return
+  if (.not.(massType      == massTypeAll      .or. massType == massTypeGalactic .or. massType      == massTypeBlackHole     )) return
   radius=sqrt(sum(positionCartesian**2))
-  if (      radius        <  0.0d0                                                         ) return
+  if (      radius        <  0.0d0                                                                                           ) return
   ! Compute the acceleration.
   Node_Component_Black_Hole_Simple_Acceleration=-kilo                            &
          &                                      *gigaYear                        &
@@ -73,13 +79,16 @@ end function Node_Component_Black_Hole_Simple_Enclosed_Mass
 end function Node_Component_Black_Hole_Simple_Acceleration
 
 function Node_Component_Black_Hole_Simple_Tidal_Tensor(self,positionCartesian,componentType,massType)
-  !% Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
-  use :: Galactic_Structure_Options  , only : componentTypeAll               , componentTypeBlackHole, massTypeAll          , massTypeBlackHole
-  use :: Numerical_Constants_Math    , only : Pi
+  !!{
+  Computes the acceleration due to a central black hole. Black hole is treated as a point mass.
+  !!}
+  use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeBlackHole, massTypeAll          , massTypeBlackHole, &
+       &                                          massTypeGalactic
+  use :: Numerical_Constants_Math        , only : Pi
   use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
-  use :: Tensors                     , only : tensorRank2Dimension3Symmetric , tensorNullR2D3Sym     , tensorIdentityR2D3Sym, assignment(=)    , &
-       &                                     operator(*)  
-  use :: Vectors                     , only : Vector_Outer_Product
+  use :: Tensors                         , only : tensorRank2Dimension3Symmetric , tensorNullR2D3Sym     , tensorIdentityR2D3Sym, assignment(=)    , &
+       &                                         operator(*)  
+  use :: Vectors                         , only : Vector_Outer_Product
   implicit none
   type            (tensorRank2Dimension3Symmetric)                              :: Node_Component_Black_Hole_Simple_Tidal_Tensor
   class           (nodeComponentBlackHoleSimple  ), intent(inout)               :: self
@@ -91,10 +100,10 @@ function Node_Component_Black_Hole_Simple_Tidal_Tensor(self,positionCartesian,co
   ! Set zero enclosed acceleration by default.
   Node_Component_Black_Hole_Simple_Tidal_Tensor=tensorNullR2D3Sym
   ! Return the black hole mass only if massType and componentType are of black hole type.
-  if (.not.(componentType == componentTypeAll .or. componentType == componentTypeBlackHole)) return
-  if (.not.(massType      == massTypeAll      .or. massType      == massTypeBlackHole     )) return
+  if (.not.(componentType == componentTypeAll                                   .or. componentType == componentTypeBlackHole)) return
+  if (.not.(massType      == massTypeAll      .or. massType == massTypeGalactic .or. massType      == massTypeBlackHole     )) return
   radius=sqrt(sum(positionCartesian**2))
-  if (      radius        <  0.0d0                                                         ) return
+  if (      radius        <  0.0d0                                                                                           ) return
   ! Compute the tidal tensor.
   if (self%radialPosition() <= 0.0d0) then
      positionTensor                               = Vector_Outer_Product(positionCartesian,symmetrize=.true.)

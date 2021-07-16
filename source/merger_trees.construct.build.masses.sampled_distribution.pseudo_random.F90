@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a merger tree masses class which samples masses from a distribution using pseudo-random sampling.
+  !!{
+  Implementation of a merger tree masses class which samples masses from a distribution using pseudo-random sampling.
+  !!}
 
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
-  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistributionPseudoRandom">
-  !#  <description>A merger tree masses class which samples masses from a distribution using pseudo-random sampling.</description>
-  !# </mergerTreeBuildMasses>
+  !![
+  <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistributionPseudoRandom">
+   <description>A merger tree masses class which samples masses from a distribution using pseudo-random sampling.</description>
+  </mergerTreeBuildMasses>
+  !!]
   type, extends(mergerTreeBuildMassesSampledDistribution) :: mergerTreeBuildMassesSampledDistributionPseudoRandom
-     !% Implementation of a merger tree masses class which samples masses from a distribution with pseudi-random sampling.
+     !!{
+     Implementation of a merger tree masses class which samples masses from a distribution with pseudi-random sampling.
+     !!}
      private
      class(randomNumberGeneratorClass), pointer :: randomNumberGenerator_
    contains
@@ -41,43 +47,57 @@
 contains
 
   function sampledDistributionPseudoRandomConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily sampledDistributionPseudoRandom} merger tree masses class which takes a parameter set
-    !% as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily sampledDistributionPseudoRandom} merger tree masses class which takes a parameter set
+    as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeBuildMassesSampledDistributionPseudoRandom)                :: self
     type(inputParameters                                     ), intent(inout) :: parameters
 
     self%mergerTreeBuildMassesSampledDistribution=mergerTreeBuildMassesSampledDistribution(parameters)
-    !# <objectBuilder class="randomNumberGenerator" name="self%randomNumberGenerator_" source="parameters"/>
+    !![
+    <objectBuilder class="randomNumberGenerator" name="self%randomNumberGenerator_" source="parameters"/>
+    !!]
     return
   end function sampledDistributionPseudoRandomConstructorParameters
 
   function sampledDistributionPseudoRandomConstructorInternal(massTreeMinimum,massTreeMaximum,treesPerDecade,mergerTreeBuildMassDistribution_,randomNumberGenerator_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily sampledDistributionPseudoRandom} merger tree masses class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily sampledDistributionPseudoRandom} merger tree masses class.
+    !!}
     implicit none
     type            (mergerTreeBuildMassesSampledDistributionPseudoRandom)                        :: self
     class           (mergerTreeBuildMassDistributionClass                ), intent(in   ), target :: mergerTreeBuildMassDistribution_
     class           (randomNumberGeneratorClass                          ), intent(in   ), target :: randomNumberGenerator_
     double precision                                                      , intent(in   )         :: massTreeMinimum                 , massTreeMaximum, &
          &                                                                                           treesPerDecade
-    !# <constructorAssign variables="massTreeMinimum, massTreeMaximum, treesPerDecade, *mergerTreeBuildMassDistribution_, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="massTreeMinimum, massTreeMaximum, treesPerDecade, *mergerTreeBuildMassDistribution_, *randomNumberGenerator_"/>
+    !!]
 
     return
   end function sampledDistributionPseudoRandomConstructorInternal
 
   subroutine sampledDistributionPseudoRandomDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily sampledDistributionPseudoRandom} merger tree masses class.
+    !!{
+    Destructor for the {\normalfont \ttfamily sampledDistributionPseudoRandom} merger tree masses class.
+    !!}
     implicit none
     type(mergerTreeBuildMassesSampledDistributionPseudoRandom), intent(inout) :: self
 
-    !# <objectDestructor name="self%mergerTreeBuildMassDistribution_"/>
-    !# <objectDestructor name="self%randomNumberGenerator_"          />
+    !![
+    <objectDestructor name="self%mergerTreeBuildMassDistribution_"/>
+    <objectDestructor name="self%randomNumberGenerator_"          />
+    !!]
     return
   end subroutine sampledDistributionPseudoRandomDestructor
 
   subroutine sampledDistributionPseudoRandomSampleCMF(self,x)
-    !% Generate a pseudo-random sample of points from the merger tree mass distribution.
+    !!{
+    Generate a pseudo-random sample of points from the merger tree mass distribution.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (mergerTreeBuildMassesSampledDistributionPseudoRandom), intent(inout)               :: self

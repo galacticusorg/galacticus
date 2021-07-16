@@ -17,32 +17,38 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class implementing models of accretion flows onto dark matter halos.
+!!{
+Contains a module which provides a class implementing models of accretion flows onto dark matter halos.
+!!}
 
 module Spherical_Collapse_Accretion_Flows
-  !% Provides a class implementing models of accretion flows onto dark matter halos.
+  !!{
+  Provides a class implementing models of accretion flows onto dark matter halos.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
-  !# <functionClass>
-  !#  <name>accretionFlows</name>
-  !#  <descriptiveName>Accretion Flows onto Dark Matter Halos</descriptiveName>
-  !#  <description>Class providing models of accretion flows onto dark matter halos.</description>
-  !#  <default>shi2016</default>
-  !#  <method name="density" >
-  !#   <description>Compute the density of the accretion flow at the given radius.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
-  !#   <argument>double precision          , intent(in   ) :: radius</argument>
-  !#  </method>
-  !#  <method name="velocity" >
-  !#   <description>Compute the velocity of the accretion flow at the given radius.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
-  !#   <argument>double precision          , intent(in   ) :: radius</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>accretionFlows</name>
+   <descriptiveName>Accretion Flows onto Dark Matter Halos</descriptiveName>
+   <description>Class providing models of accretion flows onto dark matter halos.</description>
+   <default>shi2016</default>
+   <method name="density" >
+    <description>Compute the density of the accretion flow at the given radius.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type            (treeNode), intent(inout) :: node</argument>
+    <argument>double precision          , intent(in   ) :: radius</argument>
+   </method>
+   <method name="velocity" >
+    <description>Compute the velocity of the accretion flow at the given radius.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type            (treeNode), intent(inout) :: node</argument>
+    <argument>double precision          , intent(in   ) :: radius</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Spherical_Collapse_Accretion_Flows

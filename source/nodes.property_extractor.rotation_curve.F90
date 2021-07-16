@@ -17,21 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a property extractor class for the rotation curve at a set of radii.
+  !!{
+  Contains a module which implements a property extractor class for the rotation curve at a set of radii.
+  !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale, darkMatterHaloScaleClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorRotationCurve">
-  !#  <description>
-  !#   A property extractor class for the rotation curve at a set of radii. The radii and types of rotation curve to output
-  !#   are specified by the {\normalfont \ttfamily radiusSpecifiers} parameter. This parameter's value can contain multiple
-  !#   entries, each of which should be a valid
-  !#   \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
-  !#   specifier}.
-  !#  </description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorRotationCurve">
+   <description>
+    A property extractor class for the rotation curve at a set of radii. The radii and types of rotation curve to output
+    are specified by the {\normalfont \ttfamily radiusSpecifiers} parameter. This parameter's value can contain multiple
+    entries, each of which should be a valid
+    \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
+    specifier}.
+   </description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorRotationCurve
-     !% A property extractor class for the rotation curve at a set of radii.
+     !!{
+     A property extractor class for the rotation curve at a set of radii.
+     !!}
      private
      class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_
      integer                                                      :: radiiCount                   , elementCount_
@@ -53,7 +59,9 @@
   end type nodePropertyExtractorRotationCurve
 
   interface nodePropertyExtractorRotationCurve
-     !% Constructors for the ``rotationCurve'' output analysis class.
+     !!{
+     Constructors for the ``rotationCurve'' output analysis class.
+     !!}
      module procedure rotationCurveConstructorParameters
      module procedure rotationCurveConstructorInternal
   end interface nodePropertyExtractorRotationCurve
@@ -61,7 +69,9 @@
 contains
 
   function rotationCurveConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily rotationCurve} property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily rotationCurve} property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nodePropertyExtractorRotationCurve)                              :: self
@@ -71,33 +81,41 @@ contains
     logical                                                                  :: includeRadii
 
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
-    !# <inputParameter>
-    !#   <name>radiusSpecifiers</name>
-    !#   <description>A list of radius specifiers at which to output the rotation curve.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>includeRadii</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Specifies whether or not the radii at which rotation curve data are output should also be included in the output file.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>radiusSpecifiers</name>
+      <description>A list of radius specifiers at which to output the rotation curve.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>includeRadii</name>
+      <defaultValue>.false.</defaultValue>
+      <description>Specifies whether or not the radii at which rotation curve data are output should also be included in the output file.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !!]
     self=nodePropertyExtractorRotationCurve(radiusSpecifiers,includeRadii,darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_" />
+    !!]
     return
   end function rotationCurveConstructorParameters
 
   function rotationCurveConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily rotationCurve} property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily rotationCurve} property extractor class.
+    !!}
     use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
     type   (nodePropertyExtractorRotationCurve)                              :: self
     type   (varying_string                    ), intent(in   ), dimension(:) :: radiusSpecifiers
     class  (darkMatterHaloScaleClass          ), intent(in   ), target       :: darkMatterHaloScale_
     logical                                    , intent(in   )               :: includeRadii
-    !# <constructorAssign variables="radiusSpecifiers, includeRadii, *darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="radiusSpecifiers, includeRadii, *darkMatterHaloScale_"/>
+    !!]
 
     if (includeRadii) then
        self%elementCount_=2
@@ -117,16 +135,22 @@ contains
   end function rotationCurveConstructorInternal
 
   subroutine rotationCurveDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily rotationCurve} property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily rotationCurve} property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorRotationCurve), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    !!]
     return
   end subroutine rotationCurveDestructor
 
   integer function rotationCurveElementCount(self,time)
-    !% Return the number of elements in the {\normalfont \ttfamily rotationCurve} property extractors.
+    !!{
+    Return the number of elements in the {\normalfont \ttfamily rotationCurve} property extractors.
+    !!}
     implicit none
     class           (nodePropertyExtractorRotationCurve), intent(inout) :: self
     double precision                                    , intent(in   ) :: time
@@ -137,7 +161,9 @@ contains
   end function rotationCurveElementCount
 
   function rotationCurveSize(self,time)
-    !% Return the number of array alements in the {\normalfont \ttfamily rotationCurve} property extractors.
+    !!{
+    Return the number of array alements in the {\normalfont \ttfamily rotationCurve} property extractors.
+    !!}
     implicit none
     integer         (c_size_t                          )                :: rotationCurveSize
     class           (nodePropertyExtractorRotationCurve), intent(inout) :: self
@@ -149,7 +175,9 @@ contains
   end function rotationCurveSize
 
   function rotationCurveExtract(self,node,time,instance)
-    !% Implement a {\normalfont \ttfamily rotationCurve} property extractor.
+    !!{
+    Implement a {\normalfont \ttfamily rotationCurve} property extractor.
+    !!}
     use :: Galactic_Structure_Enclosed_Masses  , only : Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options          , only : componentTypeAll                        , massTypeGalactic
     use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius         , radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius            , radiusTypeGalacticLightFraction, &
@@ -219,7 +247,9 @@ contains
   end function rotationCurveExtract
 
   function rotationCurveNames(self,time)
-    !% Return the names of the {\normalfont \ttfamily rotationCurve} properties.
+    !!{
+    Return the names of the {\normalfont \ttfamily rotationCurve} properties.
+    !!}
     implicit none
     type            (varying_string                    ), dimension(:) , allocatable :: rotationCurveNames
     class           (nodePropertyExtractorRotationCurve), intent(inout)              :: self
@@ -234,7 +264,9 @@ contains
   end function rotationCurveNames
 
   function rotationCurveDescriptions(self,time)
-    !% Return descriptions of the {\normalfont \ttfamily rotationCurve} property.
+    !!{
+    Return descriptions of the {\normalfont \ttfamily rotationCurve} property.
+    !!}
     implicit none
     type            (varying_string                    ), dimension(:) , allocatable :: rotationCurveDescriptions
     class           (nodePropertyExtractorRotationCurve), intent(inout)              :: self
@@ -249,7 +281,9 @@ contains
   end function rotationCurveDescriptions
 
   function rotationCurveColumnDescriptions(self,time)
-    !% Return column descriptions of the {\normalfont \ttfamily rotationCurve} property.
+    !!{
+    Return column descriptions of the {\normalfont \ttfamily rotationCurve} property.
+    !!}
     implicit none
     type            (varying_string                    ), dimension(:) , allocatable :: rotationCurveColumnDescriptions
     class           (nodePropertyExtractorRotationCurve), intent(inout)              :: self
@@ -262,7 +296,9 @@ contains
   end function rotationCurveColumnDescriptions
 
   function rotationCurveUnitsInSI(self,time)
-    !% Return the units of the {\normalfont \ttfamily rotationCurve} properties in the SI system.
+    !!{
+    Return the units of the {\normalfont \ttfamily rotationCurve} properties in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
@@ -279,7 +315,9 @@ contains
   end function rotationCurveUnitsInSI
 
   integer function rotationCurveType(self)
-    !% Return the type of the {\normalfont \ttfamily rotationCurve} properties.
+    !!{
+    Return the type of the {\normalfont \ttfamily rotationCurve} properties.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRotationCurve), intent(inout) :: self

@@ -81,13 +81,24 @@ sub Implementation_ODE_Name_From_Index {
 	    &Galacticus::Build::Components::Implementations::Utils::hasRealNonTrivialEvolvers($code::member)
 	);
     # Determine if "count" will be used. It is used iff the implementation extends another implementation, or if any
-    # property is evolveable.
+    # property is evolveable, or if this is a non-extended type.
     push(@code::unused,"count","propertyType")
 	unless (
 	    exists($code::member->{'extends'})
 	    ||
 	    &Galacticus::Build::Components::Implementations::Utils::hasRealEvolvers          ($code::member)
+	    ||
+	    ! exists($code::member->{'extends'})
 	);
+    # Add an iterator variable for non-extended types.
+    push(
+	@{$function->{'variables'}},
+	{
+	    intrinsic  => "integer",
+	    variables  => [ "i" ]
+	}
+	)
+	if ( ! exists($code::member->{'extends'}) );
     # Build the function.
     $function->{'content'}  = "";
     if ( scalar(@code::unused) > 0 ) {
@@ -100,6 +111,29 @@ CODE
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 name=self%nodeComponent{ucfirst($member->{'extends'}->{'class'}).ucfirst($member->{'extends'}->{'name'})}%nameFromIndex(count,propertyType)
 if (count <= 0) return
+CODE
+    } else {
+	# Include meta-properties here.
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated({$class->{'name'}}MetaPropertyNames)) then
+ do i=1,size({$class->{'name'}}MetaPropertyNames)
+   if (                                                                                 &
+    &  {$class->{'name'}}MetaPropertyEvolvable(i)                                       &
+    & .and.                                                                             &
+    &  (                                                                                &
+    &     propertyType == propertyTypeAll                                               &
+    &   .or.                                                                            &
+    &    (propertyType == propertyTypeActive   .and. .not.nodeInactives({$offsetName})) &
+    &   .or.                                                                            &
+    &    (propertyType == propertyTypeInactive .and.      nodeInactives({$offsetName})) &
+    &  )                                                                                &
+    & ) count=count-1
+  if (count <= 0) then
+   name={$class->{'name'}}MetaPropertyNames(i)
+   return
+  end if
+ end do
+end if
 CODE
     }
     # Iterate over non-virtual, evolvable properties.
@@ -213,9 +247,15 @@ sub Implementation_ODE_Serialize_Count {
 CODE
     }
     # If this component is an extension, first call on the extended type.
+    if ( exists($code::member->{'extends'}) ) {
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-{$implementationTypeName}SerializeCount={exists($member->{'extends'}) ? "self%nodeComponent".ucfirst($member->{'extends'}->{'class'}).ucfirst($member->{'extends'}->{'name'})."%serializeCount(propertyType)" : "0"}
+{$implementationTypeName}SerializeCount=self%nodeComponent{ucfirst($member->{'extends'}->{'class'}).ucfirst($member->{'extends'}->{'name'})}%serializeCount(propertyType)
 CODE
+	} else {
+    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+{$implementationTypeName}SerializeCount={$class->{'name'}}MetaPropertyEvolvableCount
+CODE
+    }
     # Iterate over non-virtual, evolvable properties.
     foreach $code::property ( &Galacticus::Build::Components::Implementations::Utils::listRealEvolvers($code::member) ) {
 	# Find the size of the object. Rank-0 double properties always have a count of 1. For other rank-0 types, call
@@ -298,8 +338,8 @@ sub Implementation_ODE_Serialize_Values {
 	     }
 	    ]
     };
-    # Conditionally add "offset" and "count" variables if they will be needed.
-    my @requiredVariables;
+    # Conditionally add "offset", "count" and indexing variables if they will be needed.
+    my @requiredVariables = ( "offset" );
     push(@requiredVariables,"count")
 	if
 	(
@@ -307,13 +347,8 @@ sub Implementation_ODE_Serialize_Values {
 	 ||
 	 &Galacticus::Build::Components::Implementations::Utils::hasRealNonTrivialEvolvers($code::member)
 	);
-    push(@requiredVariables,"offset")
-	if
-	(
-	 exists($code::member->{'extends'})
-	 ||
-	 &Galacticus::Build::Components::Implementations::Utils::hasRealEvolvers          ($code::member)
-	);	   
+    push(@requiredVariables,"i")
+	if ( ! exists($code::member->{'extends'}) );
     push(@{$function->{'variables'}},
 	 {
 	     intrinsic  => "integer",
@@ -331,7 +366,7 @@ sub Implementation_ODE_Serialize_Values {
 	?
 	()
 	:
-	("self","array","propertyType");
+	("array","propertyType");
     # Build the function.
     $function->{'content'} = "";
     if ( scalar(@code::unused) > 0 ) {
@@ -352,6 +387,19 @@ count=self%nodeComponent{ucfirst($code::member->{'extends'}->{'class'}).ucfirst(
 if (count > 0) then
  call self%nodeComponent{ucfirst($code::member->{'extends'}->{'class'}).ucfirst($code::member->{'extends'}->{'name'})}%serializeValues(array,propertyType)
  offset=offset+count
+end if
+CODE
+    } else {
+	# For non-extended types serialize meta-properties.
+	$code::offsetName = &offsetName('all',$code::class->{'name'},'metaProperties');
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
+if (allocated({$class->{'name'}}MetaPropertyNames)) then
+ do i=1,size({$class->{'name'}}MetaPropertyNames)
+  if ({$class->{'name'}}MetaPropertyEvolvable(i).and.(propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. .not.nodeInactives({$offsetName}(i))) .or. (propertyType == propertyTypeInactive .and. nodeInactives({$offsetName}(i))))) then
+   array(offset)=self%metaProperties(i)
+   offset=offset+1
+  end if
+ end do
 end if
 CODE
     }
@@ -429,8 +477,8 @@ sub Implementation_ODE_Deserialize_Values {
 	     }
 	    ]
     };
-    # Conditionally add "offset" and "count" variables if they will be needed.
-    my @requiredVariables;
+    # Conditionally add "offset", "count" and indexing variables if they will be needed.
+    my @requiredVariables = ( "offset" );
     push(@requiredVariables,"count")
 	if
 	(
@@ -438,13 +486,6 @@ sub Implementation_ODE_Deserialize_Values {
 	 ||
 	 &Galacticus::Build::Components::Implementations::Utils::hasRealNonTrivialEvolvers($code::member)
 	);
-    push(@requiredVariables,"offset")
-	if
-	(
-	 exists($code::member->{'extends'})
-	 ||
-	 &Galacticus::Build::Components::Implementations::Utils::hasRealEvolvers          ($code::member)
-	);	   
     push(@{$function->{'variables'}},
 	 {
 	     intrinsic  => "integer",
@@ -452,6 +493,13 @@ sub Implementation_ODE_Deserialize_Values {
 	 }
 	)
 	if ( scalar(@requiredVariables) > 0 );
+    push(@{$function->{'variables'}},
+	 {
+	     intrinsic  => "integer",
+	     variables  => [ "i" ]
+	 }
+	)
+	if ( ! exists($code::member->{'extends'}) );
     # Determine if the function arguments are unused.
     @code::unused = 
 	(
@@ -462,7 +510,7 @@ sub Implementation_ODE_Deserialize_Values {
 	?
 	()
 	:
-	("self","array","propertyType");
+	("array","propertyType");
     # Build the function.
     $function->{'content'} = "";
     if ( scalar(@code::unused) > 0 ) {
@@ -483,6 +531,19 @@ count=self%nodeComponent{ucfirst($code::member->{'extends'}->{'class'}).ucfirst(
 if (count > 0) then
  call self%nodeComponent{ucfirst($code::member->{'extends'}->{'class'}).ucfirst($code::member->{'extends'}->{'name'})}%deserializeValues(array,propertyType)
  offset=offset+count
+end if
+CODE
+    } else {
+	# For non-extended types serialize meta-properties.
+	$code::offsetName = &offsetName('all',$code::class->{'name'},'metaProperties');
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
+if (allocated({$class->{'name'}}MetaPropertyNames)) then
+ do i=1,size({$class->{'name'}}MetaPropertyNames)
+  if ({$class->{'name'}}MetaPropertyEvolvable(i).and.(propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. .not.nodeInactives({$offsetName}(i))) .or. (propertyType == propertyTypeInactive .and. nodeInactives({$offsetName}(i))))) then
+   self%metaProperties(i)=array(offset)
+   offset=offset+1
+  end if
+ end do
 end if
 CODE
     }
@@ -560,6 +621,14 @@ sub Implementation_ODE_Offsets {
 	     }
 	    ]
     };
+    # Add an indexing variable for non-extended types needed for meta-property serialization.
+    push(@{$function->{'variables'}},
+	 {
+	     intrinsic  => "integer",
+	     variables  => [ "i" ]
+	 }
+	)
+	if ( ! exists($code::member->{'extends'}) );
     # Determine if the function arguments are unused.
     @code::unused = ();
     push(@code::unused,"self")
@@ -592,6 +661,45 @@ CODE
     if ( exists($code::member->{'extends'}) ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 call self%nodeComponent{ucfirst($code::member->{'extends'}->{'class'}).ucfirst($code::member->{'extends'}->{'name'})}%serializationOffsets(count,countSubset,propertyType)
+CODE
+    } else {
+	# For non-extended types compute offsets for meta-properties.
+	# Set the offset for this property to the current count plus 1 (since we haven't yet updated the count. 
+	$code::offsetNameAll      = &offsetName('all'     ,$code::class->{'name'},'metaProperties');
+	$code::offsetNameActive   = &offsetName('active'  ,$code::class->{'name'},'metaProperties');
+	$code::offsetNameInactive = &offsetName('inactive',$code::class->{'name'},'metaProperties');
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
+if (allocated({$class->{'name'}}MetaPropertyNames)) then
+CODE
+
+    foreach my $status ( "all", "active", "inactive" ) {
+	$code::offsetName = &offsetName($status,$code::class->{'name'},'metaProperties');
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
+ if (.not.allocated({$offsetName})) then
+  allocate({$offsetName}({$class->{'name'}}MetaPropertyEvolvableCount))
+ else if (size({$offsetName}) /= {$class->{'name'}}MetaPropertyEvolvableCount) then
+  deallocate({$offsetName})
+  allocate({$offsetName}({$class->{'name'}}MetaPropertyEvolvableCount))
+ end if
+CODE
+    }
+
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
+ do i=1,size({$class->{'name'}}MetaPropertyNames)
+  if (.not.{$class->{'name'}}MetaPropertyEvolvable(i)) cycle
+  if      (propertyType == propertyTypeAll     ) then
+                                    {$offsetNameAll}     (i)=count      +1
+  else if (propertyType == propertyTypeInactive) then
+   if (     nodeInactives(count+1)) {$offsetNameInactive}(i)=countSubset+1
+  else if (propertyType == propertyTypeActive  ) then
+   if (.not.nodeInactives(count+1)) {$offsetNameActive}  (i)=countSubset+1
+  end if
+  if (propertyType /= propertyTypeAll) then
+   if ((nodeInactives(count+1) .and. propertyType == propertyTypeInactive) .or. (.not.nodeInactives(count+1) .and. propertyType == propertyTypeActive)) countSubset=countSubset+1
+  end if
+  count=count+1
+ end do
+end if
 CODE
     }
     # Iterate over non-virtual, evolvable properties.
@@ -652,6 +760,21 @@ sub Implementation_ODE_Offset_Variables {
     my $build  = shift();
     my $class  = shift();
     my $member = shift();
+    # Include meta-properties for just the null class (since we need only one copy of these per-class).
+    if ( $member->{'name'} eq "null" ) {
+	foreach my $status ( "all", "active", "inactive" ) {
+	    my $offsetName = &offsetName($status,$class->{'name'},'metaProperties');
+	    push(
+		@{$build->{'variables'}},
+		{
+		    intrinsic  => "integer",
+		    ompPrivate => 1,
+		    attributes => [ "allocatable", "dimension(:)" ],
+		    variables  => [ $offsetName ]
+		}
+		);
+	}
+    }
     # Iterate over non-virtual, evolving properties.
     foreach my $property ( &Galacticus::Build::Components::Implementations::Utils::listRealEvolvers($member) ) {
 	foreach my $status ( "all", "active", "inactive" ) {

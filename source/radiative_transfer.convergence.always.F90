@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <radiativeTransferConvergence name="radiativeTransferConvergenceAlways">
-  !#  <description>A convergence criterion for radiative transfer which always passes.</description>
-  !# </radiativeTransferConvergence>
+  !![
+  <radiativeTransferConvergence name="radiativeTransferConvergenceAlways">
+   <description>A convergence criterion for radiative transfer which always passes.</description>
+  </radiativeTransferConvergence>
+  !!]
   type, extends(radiativeTransferConvergenceClass) :: radiativeTransferConvergenceAlways
-     !% A convergence criterion for radiative transfer which always passes.
+     !!{
+     A convergence criterion for radiative transfer which always passes.
+     !!}
      private
    contains
      procedure :: testConvergence     => alwaysTestConvergence
@@ -29,14 +33,18 @@
   end type radiativeTransferConvergenceAlways
   
   interface radiativeTransferConvergenceAlways
-     !% Constructors for the {\normalfont \ttfamily always} radiative transfer matter class.
+     !!{
+     Constructors for the {\normalfont \ttfamily always} radiative transfer matter class.
+     !!}
      module procedure alwaysConstructorParameters
   end interface radiativeTransferConvergenceAlways
   
 contains  
 
   function alwaysConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily always} radiative transfer matter class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily always} radiative transfer matter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(radiativeTransferConvergenceAlways)                :: self
@@ -48,7 +56,9 @@ contains
   end function alwaysConstructorParameters
 
   subroutine alwaysTestConvergence(self,radiativeTransferMatter_,properties,statusCell,converged)
-    !% Test convergence in the computational domain cell.
+    !!{
+    Test convergence in the computational domain cell.
+    !!}
     implicit none
     class    (radiativeTransferConvergenceAlways     ), intent(inout) :: self
     class    (radiativeTransferMatterClass           ), intent(inout) :: radiativeTransferMatter_
@@ -62,7 +72,9 @@ contains
   end subroutine alwaysTestConvergence
 
   subroutine alwaysPhotonPacketEscapes(self,photonPacket)
-    !% Process an escaping photon packet.
+    !!{
+    Process an escaping photon packet.
+    !!}
     implicit none
     class(radiativeTransferConvergenceAlways), intent(inout) :: self
     class(radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket

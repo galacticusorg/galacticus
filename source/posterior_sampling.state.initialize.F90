@@ -17,29 +17,35 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a class for posterior sampling state initialization.
+!!{
+Contains a module which implements a class for posterior sampling state initialization.
+!!}
 
 module Posterior_Sampling_State_Initialize
-  !% Implements a class for posterior sampling state initialization.
+  !!{
+  Implements a class for posterior sampling state initialization.
+  !!}
   use :: Model_Parameters        , only : modelParameterList
   use :: Models_Likelihoods      , only : posteriorSampleLikelihoodClass
   use :: Posterior_Sampling_State, only : posteriorSampleStateClass
   private
 
-  !# <functionClass>
-  !#  <name>posteriorSampleStateInitialize</name>
-  !#  <descriptiveName>Posterior Sampling State Initialization</descriptiveName>
-  !#  <description>Class providing state initialization for posterior sampling simulations.</description>
-  !#  <default>priorRandom</default>
-  !#  <method name="initialize" >
-  !#   <description>Initialize the state of the posterior sampler.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <argument>class           (posteriorSampleStateClass     ), intent(inout)               :: simulationState</argument>
-  !#   <argument>type            (modelParameterList            ), intent(in   ), dimension(:) :: modelParameters_</argument>
-  !#   <argument>class           (posteriorSampleLikelihoodClass), intent(inout)               :: modelLikelihood</argument>
-  !#   <argument>double precision                                , intent(  out)               :: timeEvaluatePrevious, logLikelihood, logPosterior</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>posteriorSampleStateInitialize</name>
+   <descriptiveName>Posterior Sampling State Initialization</descriptiveName>
+   <description>Class providing state initialization for posterior sampling simulations.</description>
+   <default>priorRandom</default>
+   <method name="initialize" >
+    <description>Initialize the state of the posterior sampler.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>class           (posteriorSampleStateClass     ), intent(inout)               :: simulationState</argument>
+    <argument>type            (modelParameterList            ), intent(in   ), dimension(:) :: modelParameters_</argument>
+    <argument>class           (posteriorSampleLikelihoodClass), intent(inout)               :: modelLikelihood</argument>
+    <argument>double precision                                , intent(  out)               :: timeEvaluatePrevious, logLikelihood, logPosterior</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Posterior_Sampling_State_Initialize

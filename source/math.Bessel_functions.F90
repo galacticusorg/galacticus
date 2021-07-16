@@ -17,13 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of Bessel functions.
+!!{
+Contains a module which implements calculations of Bessel functions.
+!!}
 
 ! Add dependency on GSL library.
 !; gsl
 
 module Bessel_Functions
-  !% Implements calculations of Bessel functions.
+  !!{
+  Implements calculations of Bessel functions.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_double, c_int
   implicit none
   private
@@ -33,21 +37,27 @@ module Bessel_Functions
 
   interface
      function gsl_sf_bessel_J0(x) bind(c,name='gsl_sf_bessel_J0')
-       !% Template for the GSL J₀ Bessel function.
+       !!{
+       Template for the GSL J₀ Bessel function.
+       !!}
        import
        real(c_double)        :: gsl_sf_bessel_J0
        real(c_double), value :: x
      end function gsl_sf_bessel_J0
 
      function gsl_sf_bessel_J1(x) bind(c,name='gsl_sf_bessel_J1')
-       !% Template for the GSL J₁ Bessel function.
+       !!{
+       Template for the GSL J₁ Bessel function.
+       !!}
        import
        real(c_double)        :: gsl_sf_bessel_J1
        real(c_double), value :: x
      end function gsl_sf_bessel_J1
      
      function gsl_sf_bessel_Jn(n,x) bind(c,name='gsl_sf_bessel_Jn')
-       !% Template for the GSL Jₙ Bessel function.
+       !!{
+       Template for the GSL Jₙ Bessel function.
+       !!}
        import
        real   (c_double)        :: gsl_sf_bessel_Jn
        integer(c_int   ), value :: n
@@ -55,21 +65,27 @@ module Bessel_Functions
      end function gsl_sf_bessel_Jn
      
      function gsl_sf_bessel_zero_J0(s) bind(c,name='gsl_sf_bessel_zero_J0')
-       !% Template for the GSL zeros-of-the-J₀ Bessel function.
+       !!{
+       Template for the GSL zeros-of-the-J₀ Bessel function.
+       !!}
        import
        real   (c_double)        :: gsl_sf_bessel_zero_J0
        integer(c_int   ), value :: s
      end function gsl_sf_bessel_zero_J0
 
      function gsl_sf_bessel_zero_J1(s) bind(c,name='gsl_sf_bessel_zero_J1')
-       !% Template for the GSL zeros-of-the-J₁ Bessel function.
+       !!{
+       Template for the GSL zeros-of-the-J₁ Bessel function.
+       !!}
        import
        real   (c_double)        :: gsl_sf_bessel_zero_J1
        integer(c_int   ), value :: s
      end function gsl_sf_bessel_zero_J1
 
      function gsl_sf_bessel_zero_Jnu(nu,s) bind(c,name='gsl_sf_bessel_zero_Jnu')
-       !% Template for the GSL zeros-of-the-Jₙ Bessel function.
+       !!{
+       Template for the GSL zeros-of-the-Jₙ Bessel function.
+       !!}
        import
        real   (c_double)        :: gsl_sf_bessel_zero_Jnu
        real   (c_double), value :: nu
@@ -77,28 +93,36 @@ module Bessel_Functions
      end function gsl_sf_bessel_zero_Jnu
 
      function gsl_sf_bessel_I0(x) bind(c,name='gsl_sf_bessel_I0')
-       !% Template for the GSL I₀ Bessel function.
+       !!{
+       Template for the GSL I₀ Bessel function.
+       !!}
        import
        real(c_double)        :: gsl_sf_bessel_I0
        real(c_double), value :: x
      end function gsl_sf_bessel_I0
 
      function gsl_sf_bessel_I1(x) bind(c,name='gsl_sf_bessel_I1')
-       !% Template for the GSL I₁ Bessel function.
+       !!{
+       Template for the GSL I₁ Bessel function.
+       !!}
        import
        real(c_double)        :: gsl_sf_bessel_I1
        real(c_double), value :: x
      end function gsl_sf_bessel_I1
 
      function gsl_sf_bessel_K0(x) bind(c,name='gsl_sf_bessel_K0')
-       !% Template for the GSL K₀ Bessel function.
+       !!{
+       Template for the GSL K₀ Bessel function.
+       !!}
        import
        real(c_double)        :: gsl_sf_bessel_K0
        real(c_double), value :: x
      end function gsl_sf_bessel_K0
 
      function gsl_sf_bessel_K1(x) bind(c,name='gsl_sf_bessel_K1')
-       !% Template for the GSL K₁ Bessel function.
+       !!{
+       Template for the GSL K₁ Bessel function.
+       !!}
        import
        real(c_double)        :: gsl_sf_bessel_K1
        real(c_double), value :: x
@@ -108,7 +132,9 @@ module Bessel_Functions
 contains
 
   double precision function Bessel_Function_J0(argument)
-    !% Computes the $J_0$ Bessel function.
+    !!{
+    Computes the $J_0$ Bessel function.
+    !!}
     implicit none
     double precision, intent(in   ) :: argument
 
@@ -117,7 +143,9 @@ contains
   end function Bessel_Function_J0
 
   double precision function Bessel_Function_J1(argument)
-    !% Computes the $J_1$ Bessel function.
+    !!{
+    Computes the $J_1$ Bessel function.
+    !!}
     implicit none
     double precision, intent(in   ) :: argument
 
@@ -126,7 +154,9 @@ contains
   end function Bessel_Function_J1
 
   double precision function Bessel_Function_Jn(n,argument)
-    !% Computes the $J_n$ Bessel function.
+    !!{
+    Computes the $J_n$ Bessel function.
+    !!}
     implicit none
     integer         , intent(in   ) :: n
     double precision, intent(in   ) :: argument
@@ -136,7 +166,9 @@ contains
   end function Bessel_Function_Jn
 
   double precision function Bessel_Function_J0_Zero(s)
-    !% Computes the $s^\mathrm{th}$ zero of the $J_0$ Bessel function.
+    !!{
+    Computes the $s^\mathrm{th}$ zero of the $J_0$ Bessel function.
+    !!}
     implicit none
     integer, intent(in   ) :: s
 
@@ -145,7 +177,9 @@ contains
   end function Bessel_Function_J0_Zero
 
   double precision function Bessel_Function_J1_Zero(s)
-    !% Computes the $s^\mathrm{th}$ zero of the $J_1$ Bessel function.
+    !!{
+    Computes the $s^\mathrm{th}$ zero of the $J_1$ Bessel function.
+    !!}
     implicit none
     integer, intent(in   ) :: s
 
@@ -154,7 +188,9 @@ contains
   end function Bessel_Function_J1_Zero
 
   double precision function Bessel_Function_Jn_Zero(n,s)
-    !% Computes the $s^\mathrm{th}$ zero of the $J_1$ Bessel function.
+    !!{
+    Computes the $s^\mathrm{th}$ zero of the $J_1$ Bessel function.
+    !!}
     implicit none
     double precision, intent(in   ) :: n
     integer         , intent(in   ) :: s
@@ -164,7 +200,9 @@ contains
   end function Bessel_Function_Jn_Zero
 
   double precision function Bessel_Function_K0(argument)
-    !% Computes the $K_0$ Bessel function.
+    !!{
+    Computes the $K_0$ Bessel function.
+    !!}
     implicit none
     double precision, intent(in   ) :: argument
 
@@ -173,7 +211,9 @@ contains
   end function Bessel_Function_K0
 
   double precision function Bessel_Function_K1(argument)
-    !% Computes the $K_1$ Bessel function.
+    !!{
+    Computes the $K_1$ Bessel function.
+    !!}
     implicit none
     double precision, intent(in   ) :: argument
 
@@ -182,7 +222,9 @@ contains
   end function Bessel_Function_K1
 
   double precision function Bessel_Function_I0(argument)
-    !% Computes the $I_0$ Bessel function.
+    !!{
+    Computes the $I_0$ Bessel function.
+    !!}
     implicit none
     double precision, intent(in   ) :: argument
 
@@ -191,7 +233,9 @@ contains
   end function Bessel_Function_I0
 
   double precision function Bessel_Function_I1(argument)
-    !% Computes the $I_1$ Bessel function.
+    !!{
+    Computes the $I_1$ Bessel function.
+    !!}
     implicit none
     double precision, intent(in   ) :: argument
 

@@ -17,35 +17,45 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling differential evolution random jump class in which the jump is drawn from an adaptive
-  !% distribution which scales with the range spanned by the sample states.
+  !!{
+  Implementation of a posterior sampling differential evolution random jump class in which the jump is drawn from an adaptive
+  distribution which scales with the range spanned by the sample states.
+  !!}
 
-  !# <posteriorSampleDffrntlEvltnRandomJump name="posteriorSampleDffrntlEvltnRandomJumpAdaptive">
-  !#  <description>
-  !#   The random jumps are drawn from the distributions specified in the {\normalfont \ttfamily random} element of each
-  !#   \refClass{modelParameterClass} object and then multiplied by the currently occupied range of each parameter (i.e. the maximum
-  !#   value of the parameter over all current chain states minus the minimum value of each parameter over all current chain
-  !#   states).
-  !#  </description>
-  !# </posteriorSampleDffrntlEvltnRandomJump>
+  !![
+  <posteriorSampleDffrntlEvltnRandomJump name="posteriorSampleDffrntlEvltnRandomJumpAdaptive">
+   <description>
+    The random jumps are drawn from the distributions specified in the {\normalfont \ttfamily random} element of each
+    \refClass{modelParameterClass} object and then multiplied by the currently occupied range of each parameter (i.e. the maximum
+    value of the parameter over all current chain states minus the minimum value of each parameter over all current chain
+    states).
+   </description>
+  </posteriorSampleDffrntlEvltnRandomJump>
+  !!]
   type, extends(posteriorSampleDffrntlEvltnRandomJumpClass) :: posteriorSampleDffrntlEvltnRandomJumpAdaptive
-     !% Implementation of a posterior sampling differential evolution random jump class in which the jump is drawn from an
-     !% adaptive distribution which scales with the range spanned by the sample states.
+     !!{
+     Implementation of a posterior sampling differential evolution random jump class in which the jump is drawn from an
+     adaptive distribution which scales with the range spanned by the sample states.
+     !!}
      private
    contains
      procedure :: sample => adaptiveSample
   end type posteriorSampleDffrntlEvltnRandomJumpAdaptive
 
   interface posteriorSampleDffrntlEvltnRandomJumpAdaptive
-     !% Constructors for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class.
+     !!{
+     Constructors for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class.
+     !!}
      module procedure adaptiveConstructorParameters
   end interface posteriorSampleDffrntlEvltnRandomJumpAdaptive
 
 contains
 
   function adaptiveConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class which builds
-    !% the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class which builds
+    the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(posteriorSampleDffrntlEvltnRandomJumpAdaptive)                 :: self
@@ -57,7 +67,9 @@ contains
   end function adaptiveConstructorParameters
 
   function adaptiveSample(self,modelParameters_,simulationState)
-    !% Sample from the random jump distribution.
+    !!{
+    Sample from the random jump distribution.
+    !!}
     use :: MPI_Utilities, only : mpiSelf
     implicit none
     class           (posteriorSampleDffrntlEvltnRandomJumpAdaptive)                                   , intent(inout) :: self

@@ -17,14 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a cooling rate class which modifies another cooling rate by cutting off cooling in satellites.
+  !!{
+  Implementation of a cooling rate class which modifies another cooling rate by cutting off cooling in satellites.
+  !!}
 
 
-  !# <coolingRate name="coolingRateMultiplier">
-  !#  <description>A cooling rate class which modifies another cooling rate by multiplying the rate by a fixed value.</description>
-  !# </coolingRate>
+  !![
+  <coolingRate name="coolingRateMultiplier">
+   <description>A cooling rate class which modifies another cooling rate by multiplying the rate by a fixed value.</description>
+  </coolingRate>
+  !!]
   type, extends(coolingRateClass) :: coolingRateMultiplier
-     !% Implementation of cooling rate class which modifies another cooling rate by multiplying the rate by a fixed value.
+     !!{
+     Implementation of cooling rate class which modifies another cooling rate by multiplying the rate by a fixed value.
+     !!}
      private
      class           (coolingRateClass), pointer :: coolingRate_ => null()
      double precision                            :: multiplier
@@ -34,7 +40,9 @@
   end type coolingRateMultiplier
 
   interface coolingRateMultiplier
-     !% Constructors for the cut off cooling rate class.
+     !!{
+     Constructors for the cut off cooling rate class.
+     !!}
      module procedure multiplierConstructorParameters
      module procedure multiplierConstructorInternal
   end interface coolingRateMultiplier
@@ -42,7 +50,9 @@
 contains
 
   function multiplierConstructorParameters(parameters) result(self)
-    !% Constructor for the cut off cooling rate class which builds the object from a parameter set.
+    !!{
+    Constructor for the cut off cooling rate class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (coolingRateMultiplier)                :: self
@@ -50,41 +60,55 @@ contains
     class           (coolingRateClass     ), pointer       :: coolingRate_
     double precision                                       :: multiplier
 
-    !# <inputParameter>
-    !#  <name>multiplier</name>
-    !#  <source>parameters</source>
-    !#  <defaultValue>0.0d0</defaultValue>
-    !#  <description>The value by which cooling rates should be multiplied.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="coolingRate" name="coolingRate_" source="parameters"/>
+    !![
+    <inputParameter>
+     <name>multiplier</name>
+     <source>parameters</source>
+     <defaultValue>0.0d0</defaultValue>
+     <description>The value by which cooling rates should be multiplied.</description>
+    </inputParameter>
+    <objectBuilder class="coolingRate" name="coolingRate_" source="parameters"/>
+    !!]
     self=coolingRateMultiplier(multiplier,coolingRate_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="coolingRate_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="coolingRate_"/>
+    !!]
     return
   end function multiplierConstructorParameters
 
   function multiplierConstructorInternal(multiplier,coolingRate_) result(self)
-    !% Internal constructor for the cut off cooling rate class.
+    !!{
+    Internal constructor for the cut off cooling rate class.
+    !!}
     type            (coolingRateMultiplier)                        :: self
     class           (coolingRateClass     ), intent(in   ), target :: coolingRate_
     double precision                       , intent(in   )         :: multiplier
 
-    !# <constructorAssign variables="multiplier, *coolingRate_"/>
+    !![
+    <constructorAssign variables="multiplier, *coolingRate_"/>
+    !!]
     return
   end function multiplierConstructorInternal
 
   subroutine multiplierDestructor(self)
-    !% Destructor for the cut off cooling rate class.
+    !!{
+    Destructor for the cut off cooling rate class.
+    !!}
     implicit none
     type(coolingRateMultiplier), intent(inout) :: self
 
-    !# <objectDestructor name="self%coolingRate_"/>
+    !![
+    <objectDestructor name="self%coolingRate_"/>
+    !!]
     return
   end subroutine multiplierDestructor
 
   double precision function multiplierRate(self,node)
-    !% Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is multiplied by
-    !% some fixed value.
+    !!{
+    Returns the cooling rate (in $M_\odot$ Gyr$^{-1}$) in the hot atmosphere for a model in which this rate is multiplied by
+    some fixed value.
+    !!}
     implicit none
     class(coolingRateMultiplier), intent(inout) :: self
     type (treeNode             ), intent(inout) :: node

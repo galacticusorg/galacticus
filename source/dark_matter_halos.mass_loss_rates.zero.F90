@@ -17,29 +17,39 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of zero mass loss rate from dark matter halos.
+  !!{
+  Implementation of zero mass loss rate from dark matter halos.
+  !!}
 
-  !# <darkMatterHaloMassLossRate name="darkMatterHaloMassLossRateZero">
-  !#  <description>
-  !#   A dark matter halo mass loss rate class which assumes a zero rate of mass loss from dark matter halos.
-  !#  </description>
-  !# </darkMatterHaloMassLossRate>
+  !![
+  <darkMatterHaloMassLossRate name="darkMatterHaloMassLossRateZero">
+   <description>
+    A dark matter halo mass loss rate class which assumes a zero rate of mass loss from dark matter halos.
+   </description>
+  </darkMatterHaloMassLossRate>
+  !!]
   type, extends(darkMatterHaloMassLossRateClass) :: darkMatterHaloMassLossRateZero
-     !% Implementation of a dark matter halo mass loss rate class which assumes a zero rate of mass loss.
+     !!{
+     Implementation of a dark matter halo mass loss rate class which assumes a zero rate of mass loss.
+     !!}
      private
    contains
      procedure :: rate => zeroRate
   end type darkMatterHaloMassLossRateZero
 
   interface darkMatterHaloMassLossRateZero
-     !% Constructors for the zero dark matter halo mass loss rate class.
+     !!{
+     Constructors for the zero dark matter halo mass loss rate class.
+     !!}
      module procedure zeroConstructorParameters
   end interface darkMatterHaloMassLossRateZero
 
 contains
 
   function zeroConstructorParameters(parameters) result(self)
-    !% Constructor for the zero dark matter halo mass loss rate class which builds the object from a parameter set.
+    !!{
+    Constructor for the zero dark matter halo mass loss rate class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(darkMatterHaloMassLossRateZero)                :: self
@@ -51,7 +61,9 @@ contains
   end function zeroConstructorParameters
 
   double precision function zeroRate(self,node)
-    !% Returns the mass loss rate from the dark matter halo of the given \gls{node} in units of $M_\odot$/Gyr.
+    !!{
+    Returns the mass loss rate from the dark matter halo of the given \gls{node} in units of $M_\odot$/Gyr.
+    !!}
     implicit none
     class(darkMatterHaloMassLossRateZero), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node

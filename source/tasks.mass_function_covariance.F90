@@ -24,63 +24,67 @@
   use :: Halo_Mass_Functions       , only : haloMassFunction       , haloMassFunctionClass
   use :: Power_Spectra_Nonlinear   , only : powerSpectrumNonlinear , powerSpectrumNonlinearClass
 
-  !# <task name="taskMassFunctionCovariance">
-  !#  <description>
-  !#   A task class which computes and stores covariance matrices for mass functions. In general, for constraints corresponding to
-  !#   mass functions (whether stellar mass or HI mass), the covariance matrix of the observational data is determined using the
-  !#   analytic model of \cite{smith_how_2012}. This requires knowledge of both the survey geometry (angular mask and radial extent
-  !#   as a function of mass) and of the \gls{hod} of the observed galaxies.
-  !#
-  !#   Details of the survey geometry and depth are given for each individual constraints. Computing the large-scale structure
-  !#   contribution to the covariance function requires integration of the non-linear matter power spectrum over the Fourier
-  !#   transform of the survey window function. We use the method of \cite{peacock_non-linear_1996} to determine the non-linear
-  !#   matter power spectrum, because of its simplicity and speed. We have checked that using a more accurate non-linear matter
-  !#   power spectrum (e.g. \citealt{lawrence_coyote_2010}) makes negligible difference to our results. If the angular power
-  !#   spectrum of the survey mask is available\footnote{Typically if the survey geometry is defined by \protect\gls{mangle}
-  !#   polygons, allowing the angular power spectrum to be found using the \protect\gls{mangle} {\normalfont \ttfamily harmonize}
-  !#   utility.}, this is used to compute the relation
-  !#   \begin{equation}
-  !#    \sigma^2(M_\mu,M_\nu) = {2 \over \pi V_\mu V_\nu}\int_0^\infty \mathrm{d} k\, k^{-4} P(k) \sum_i \sum_j \sum_{\ell=0}^\infty (2\ell+1) C^{ij}_\ell R^i_{\ell}(kr_{\mu 0},kr_{\mu 1}) R^j_{\ell}(kr_{\nu 0},kr_{\nu 1}),
-  !#   \end{equation}
-  !#   where $(2\ell+1) C^{ij}_\ell = \sum_{m=-\ell}^{+\ell} \Psi^i_{\ell m} \Psi^{j*}_{\ell m}$, $\Psi^i_{\ell m}$ are the
-  !#   spherical harmonic coefficients of the $i^\mathrm{th}$ field of the survey, $V$ is the maximum distance to which a galaxy of
-  !#   mass $M$ can be seen, $P(k)$ is the nonlinear power spectrum and
-  !#   \begin{equation}
-  !#    R_{\ell}(x_0,x_1) \equiv \int_{x_0}^{x_1} x^2 j_\ell(x) \mathrm{d}x = \sqrt{\pi} 2^{-2-\ell} \Gamma\left({1\over 2}[3+\ell]\right) \left[ x^{3+\ell} \tensor*[_1]{\stackrel{\sim}{F}}{_2} \left({1\over 2}[3+\ell]; \ell+{3\over 2},{1\over 2}(5+\ell);-{x^2\over 4}\right)\right]_{x_0}^{x_1},
-  !#  \end{equation}
-  !#  where $\tensor*[_1]{\stackrel{\sim}{F}}{_2}$ is the regularized generalized hypergeometric function. In other cases, where
-  !#  the angular power spectrum is not available, the survey geometry is realized on a grid which is when Fourier transformed to
-  !#  obtain the appropriate window function.
-  !#
-  !#  To find a suitable \gls{hod} to describe the observed galaxies we adopt the model of \cite{behroozi_comprehensive_2010}. This
-  !#  is an 11 parameter model which describes separately the numbers of satellite and central galaxies occupying a halo of given
-  !#  mass---the reader is referred to \cite{behroozi_comprehensive_2010} for a complete description of the functional form of this
-  !#  parametric \gls{hod}. An \gls{mcmc} approach is used to to constrain the \gls{hod} parameters to fit the observational
-  !#  data. We use a likelihood
-  !#  \begin{equation}
-  !#   \ln \mathcal{L} = -{1\over 2} \Delta\cdot \mathcal{C}^{-1}\cdot \Delta^\mathrm{T} - {N \over 2} \ln(2\pi) - {\ln |\mathcal{C}| \over 2},
-  !#  \end{equation}
-  !#  where $N$ is the number of bins in the mass function, $\mathcal{C}$ is the covariance matrix of the observed mass function,
-  !#  and $\Delta_i = \phi_i^\mathrm{(HOD)} - \phi_i^\mathrm{(observed)}$. Of course, it is precisely this covariance matrix,
-  !#  $\mathcal{C}$, that we are trying to compute. We therefore adopt an iterative approach as follows:
-  !#  \begin{enumerate}
-  !#   \item make an initial estimate of the covariance matrix, assuming that only Poisson errors contribute (the covariance
-  !#   matrix is therefore diagonal, and the terms are easily computed from the measured mass function and the survey volume as a
-  !#   function of stellar mass);
-  !#   \item find the maximum likelihood parameters of the \gls{hod} given the observed mass function and the current estimate of
-  !#   the covariance matrix;
-  !#   \item using this \gls{hod} and the framework of \cite{smith_how_2012}, compute a new estimate of the covariance matrix,
-  !#   including all three contributions;
-  !#   \item repeat steps 2 and 3 until convergence in the covariance matrix is achieved.       
-  !#  \end{enumerate}
-  !#
-  !#  In practice we find that this procedure often leads to an \gls{hod} and covariance matrix which oscillate between two states
-  !#  in successive iterations. The differences in the covariance matrix are relatively small however, so we choose to
-  !#  conservatively adopt the covariance matrix with the larger values.
-  !#  </description>
-  !# </task>
+  !![
+  <task name="taskMassFunctionCovariance">
+   <description>
+    A task class which computes and stores covariance matrices for mass functions. In general, for constraints corresponding to
+    mass functions (whether stellar mass or HI mass), the covariance matrix of the observational data is determined using the
+    analytic model of \cite{smith_how_2012}. This requires knowledge of both the survey geometry (angular mask and radial extent
+    as a function of mass) and of the \gls{hod} of the observed galaxies.
+  
+    Details of the survey geometry and depth are given for each individual constraints. Computing the large-scale structure
+    contribution to the covariance function requires integration of the non-linear matter power spectrum over the Fourier
+    transform of the survey window function. We use the method of \cite{peacock_non-linear_1996} to determine the non-linear
+    matter power spectrum, because of its simplicity and speed. We have checked that using a more accurate non-linear matter
+    power spectrum (e.g. \citealt{lawrence_coyote_2010}) makes negligible difference to our results. If the angular power
+    spectrum of the survey mask is available\footnote{Typically if the survey geometry is defined by \protect\gls{mangle}
+    polygons, allowing the angular power spectrum to be found using the \protect\gls{mangle} {\normalfont \ttfamily harmonize}
+    utility.}, this is used to compute the relation
+    \begin{equation}
+     \sigma^2(M_\mu,M_\nu) = {2 \over \pi V_\mu V_\nu}\int_0^\infty \mathrm{d} k\, k^{-4} P(k) \sum_i \sum_j \sum_{\ell=0}^\infty (2\ell+1) C^{ij}_\ell R^i_{\ell}(kr_{\mu 0},kr_{\mu 1}) R^j_{\ell}(kr_{\nu 0},kr_{\nu 1}),
+    \end{equation}
+    where $(2\ell+1) C^{ij}_\ell = \sum_{m=-\ell}^{+\ell} \Psi^i_{\ell m} \Psi^{j*}_{\ell m}$, $\Psi^i_{\ell m}$ are the
+    spherical harmonic coefficients of the $i^\mathrm{th}$ field of the survey, $V$ is the maximum distance to which a galaxy of
+    mass $M$ can be seen, $P(k)$ is the nonlinear power spectrum and
+    \begin{equation}
+     R_{\ell}(x_0,x_1) \equiv \int_{x_0}^{x_1} x^2 j_\ell(x) \mathrm{d}x = \sqrt{\pi} 2^{-2-\ell} \Gamma\left({1\over 2}[3+\ell]\right) \left[ x^{3+\ell} \tensor*[_1]{\stackrel{\sim}{F}}{_2} \left({1\over 2}[3+\ell]; \ell+{3\over 2},{1\over 2}(5+\ell);-{x^2\over 4}\right)\right]_{x_0}^{x_1},
+   \end{equation}
+   where $\tensor*[_1]{\stackrel{\sim}{F}}{_2}$ is the regularized generalized hypergeometric function. In other cases, where
+   the angular power spectrum is not available, the survey geometry is realized on a grid which is when Fourier transformed to
+   obtain the appropriate window function.
+  
+   To find a suitable \gls{hod} to describe the observed galaxies we adopt the model of \cite{behroozi_comprehensive_2010}. This
+   is an 11 parameter model which describes separately the numbers of satellite and central galaxies occupying a halo of given
+   mass---the reader is referred to \cite{behroozi_comprehensive_2010} for a complete description of the functional form of this
+   parametric \gls{hod}. An \gls{mcmc} approach is used to to constrain the \gls{hod} parameters to fit the observational
+   data. We use a likelihood
+   \begin{equation}
+    \ln \mathcal{L} = -{1\over 2} \Delta\cdot \mathcal{C}^{-1}\cdot \Delta^\mathrm{T} - {N \over 2} \ln(2\pi) - {\ln |\mathcal{C}| \over 2},
+   \end{equation}
+   where $N$ is the number of bins in the mass function, $\mathcal{C}$ is the covariance matrix of the observed mass function,
+   and $\Delta_i = \phi_i^\mathrm{(HOD)} - \phi_i^\mathrm{(observed)}$. Of course, it is precisely this covariance matrix,
+   $\mathcal{C}$, that we are trying to compute. We therefore adopt an iterative approach as follows:
+   \begin{enumerate}
+    \item make an initial estimate of the covariance matrix, assuming that only Poisson errors contribute (the covariance
+    matrix is therefore diagonal, and the terms are easily computed from the measured mass function and the survey volume as a
+    function of stellar mass);
+    \item find the maximum likelihood parameters of the \gls{hod} given the observed mass function and the current estimate of
+    the covariance matrix;
+    \item using this \gls{hod} and the framework of \cite{smith_how_2012}, compute a new estimate of the covariance matrix,
+    including all three contributions;
+    \item repeat steps 2 and 3 until convergence in the covariance matrix is achieved.       
+   \end{enumerate}
+  
+   In practice we find that this procedure often leads to an \gls{hod} and covariance matrix which oscillate between two states
+   in successive iterations. The differences in the covariance matrix are relatively small however, so we choose to
+   conservatively adopt the covariance matrix with the larger values.
+   </description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskMassFunctionCovariance
-     !% Implementation of a task which computes and stores covariance matrices for mass functions.
+     !!{
+     Implementation of a task which computes and stores covariance matrices for mass functions.
+     !!}
      private
      class           (cosmologyFunctionsClass     ), pointer                     :: cosmologyFunctions_
      class           (surveyGeometryClass         ), pointer                     :: surveyGeometry_
@@ -121,7 +125,9 @@
   end type taskMassFunctionCovariance
 
   interface taskMassFunctionCovariance
-     !% Constructors for the {\normalfont \ttfamily powerSpectrum} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily powerSpectrum} task.
+     !!}
      module procedure massFunctionCovarianceConstructorParameters
      module procedure massFunctionCovarianceConstructorInternal
   end interface taskMassFunctionCovariance
@@ -133,7 +139,9 @@
 contains
 
   function massFunctionCovarianceConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily powerSpectrum} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily powerSpectrum} task class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (taskMassFunctionCovariance  )                :: self
@@ -152,96 +160,102 @@ contains
          &                                                           includeLSS
     type            (varying_string              )                :: massFunctionFileName
 
-    !# <inputParameter>
-    !#   <name>massFunctionFileName</name>
-    !#   <description>The name of the file to which the covariance matrix should be written.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>surveyRedshiftMinimum</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The minimum redshift at which calculations of the mass function covariance should be carried out.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>surveyRedshiftMaximum</name>
-    !#   <defaultValue>0.1d0</defaultValue>
-    !#   <description>The maximum redshift at which calculations of the mass function covariance should be carried out.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>countMassBins</name>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of bins in the mass function for covariance calculations.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMinimum</name>
-    !#   <defaultValue>1.0d08</defaultValue>
-    !#   <description>The minimum mass in the mass function for covariance calculations.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMaximum</name>
-    !#   <defaultValue>1.0d13</defaultValue>
-    !#   <description>The maximum mass in the mass function for covariance calculations.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>includePoisson</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether or not to include the Poisson contribution to mass function covariance matrices.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>includeHalo</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether or not to include the halo contribution to mass function covariance matrices.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>includeLSS</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Specifies whether or not to include the large-scale structure contribution to mass function covariance matrices.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massHaloMinimum</name>
-    !#   <defaultValue>1.0d10</defaultValue>
-    !#   <description>The minimum halo mass to use when computing mass function covariance matrices.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massHaloMaximum</name>
-    !#   <defaultValue>1.0d15</defaultValue>
-    !#   <description>The minimum halo mass to use when computing mass function covariance matrices.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>sizeGridFFT</name>
-    !#   <defaultValue>64</defaultValue>
-    !#   <description>The size of the FFT grid to use in computing window functions for mass function covariance matrices.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"      name="cosmologyFunctions_"      source="parameters"/>
-    !# <objectBuilder class="surveyGeometry"          name="surveyGeometry_"          source="parameters"/>
-    !# <objectBuilder class="powerSpectrumNonlinear"  name="powerSpectrumNonlinear_"  source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloBias"      name="darkMatterHaloBias_"      source="parameters"/>
-    !# <objectBuilder class="conditionalMassFunction" name="conditionalMassFunction_" source="parameters"/>
-    !# <objectBuilder class="haloMassFunction"        name="haloMassFunction_"        source="parameters"/>
+    !![
+    <inputParameter>
+      <name>massFunctionFileName</name>
+      <description>The name of the file to which the covariance matrix should be written.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>surveyRedshiftMinimum</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The minimum redshift at which calculations of the mass function covariance should be carried out.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>surveyRedshiftMaximum</name>
+      <defaultValue>0.1d0</defaultValue>
+      <description>The maximum redshift at which calculations of the mass function covariance should be carried out.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>countMassBins</name>
+      <defaultValue>10</defaultValue>
+      <description>The number of bins in the mass function for covariance calculations.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massMinimum</name>
+      <defaultValue>1.0d08</defaultValue>
+      <description>The minimum mass in the mass function for covariance calculations.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massMaximum</name>
+      <defaultValue>1.0d13</defaultValue>
+      <description>The maximum mass in the mass function for covariance calculations.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>includePoisson</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Specifies whether or not to include the Poisson contribution to mass function covariance matrices.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>includeHalo</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Specifies whether or not to include the halo contribution to mass function covariance matrices.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>includeLSS</name>
+      <defaultValue>.true.</defaultValue>
+      <description>Specifies whether or not to include the large-scale structure contribution to mass function covariance matrices.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massHaloMinimum</name>
+      <defaultValue>1.0d10</defaultValue>
+      <description>The minimum halo mass to use when computing mass function covariance matrices.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massHaloMaximum</name>
+      <defaultValue>1.0d15</defaultValue>
+      <description>The minimum halo mass to use when computing mass function covariance matrices.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>sizeGridFFT</name>
+      <defaultValue>64</defaultValue>
+      <description>The size of the FFT grid to use in computing window functions for mass function covariance matrices.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions"      name="cosmologyFunctions_"      source="parameters"/>
+    <objectBuilder class="surveyGeometry"          name="surveyGeometry_"          source="parameters"/>
+    <objectBuilder class="powerSpectrumNonlinear"  name="powerSpectrumNonlinear_"  source="parameters"/>
+    <objectBuilder class="darkMatterHaloBias"      name="darkMatterHaloBias_"      source="parameters"/>
+    <objectBuilder class="conditionalMassFunction" name="conditionalMassFunction_" source="parameters"/>
+    <objectBuilder class="haloMassFunction"        name="haloMassFunction_"        source="parameters"/>
+    !!]
     self=taskMassFunctionCovariance(massFunctionFileName,surveyredshiftMinimum, surveyRedshiftMaximum, massMinimum, massMaximum, massHaloMinimum, massHaloMaximum,countMassBins,sizeGridFFT,includePoisson, includeHalo, includeLSS, cosmologyFunctions_,surveyGeometry_,powerSpectrumNonlinear_,darkMatterHaloBias_,conditionalMassFunction_,haloMassFunction_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"     />
-    !# <objectDestructor name="surveyGeometry_"         />
-    !# <objectDestructor name="powerSpectrumNonlinear_" />
-    !# <objectDestructor name="darkMatterHaloBias_"     />
-    !# <objectDestructor name="conditionalMassFunction_"/>
-    !# <objectDestructor name="haloMassFunction_"       />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"     />
+    <objectDestructor name="surveyGeometry_"         />
+    <objectDestructor name="powerSpectrumNonlinear_" />
+    <objectDestructor name="darkMatterHaloBias_"     />
+    <objectDestructor name="conditionalMassFunction_"/>
+    <objectDestructor name="haloMassFunction_"       />
+    !!]
     return
   end function massFunctionCovarianceConstructorParameters
 
   function massFunctionCovarianceConstructorInternal(massFunctionFileName,surveyRedshiftMinimum,surveyRedshiftMaximum,massMinimum,massMaximum,massHaloMinimum,massHaloMaximum,countMassBins,sizeGridFFT,includePoisson,includeHalo,includeLSS,cosmologyFunctions_,surveyGeometry_,powerSpectrumNonlinear_,darkMatterHaloBias_,conditionalMassFunction_,haloMassFunction_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily massFunctionCovariance} task class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily massFunctionCovariance} task class.
+    !!}
     implicit none
     type            (taskMassFunctionCovariance  )                        :: self
     class           (cosmologyFunctionsClass     ), intent(in   ), target :: cosmologyFunctions_
@@ -257,27 +271,35 @@ contains
     integer                                       , intent(in   )         :: countMassBins           , sizeGridFFT
     logical                                       , intent(in   )         :: includePoisson          , includeHalo          , &
          &                                                                   includeLSS
-    !# <constructorAssign variables="massFunctionFileName, surveyRedshiftMinimum, surveyRedshiftMaximum, massMinimum, massMaximum, massHaloMinimum, massHaloMaximum,countMassBins,sizeGridFFT,includePoisson, includeHalo, includeLSS, *cosmologyFunctions_,*surveyGeometry_,*powerSpectrumNonlinear_,*darkMatterHaloBias_,*conditionalMassFunction_,*haloMassFunction_"/>
+    !![
+    <constructorAssign variables="massFunctionFileName, surveyRedshiftMinimum, surveyRedshiftMaximum, massMinimum, massMaximum, massHaloMinimum, massHaloMaximum,countMassBins,sizeGridFFT,includePoisson, includeHalo, includeLSS, *cosmologyFunctions_,*surveyGeometry_,*powerSpectrumNonlinear_,*darkMatterHaloBias_,*conditionalMassFunction_,*haloMassFunction_"/>
+    !!]
 
     return
   end function massFunctionCovarianceConstructorInternal
 
   subroutine massFunctionCovarianceDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily massFunctionCovariance} task class.
+    !!{
+    Destructor for the {\normalfont \ttfamily massFunctionCovariance} task class.
+    !!}
     implicit none
     type(taskMassFunctionCovariance), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"     />
-    !# <objectDestructor name="self%surveyGeometry_"         />
-    !# <objectDestructor name="self%powerSpectrumNonlinear_" />
-    !# <objectDestructor name="self%darkMatterHaloBias_"     />
-    !# <objectDestructor name="self%conditionalMassFunction_"/>
-    !# <objectDestructor name="self%haloMassFunction_"       />
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"     />
+    <objectDestructor name="self%surveyGeometry_"         />
+    <objectDestructor name="self%powerSpectrumNonlinear_" />
+    <objectDestructor name="self%darkMatterHaloBias_"     />
+    <objectDestructor name="self%conditionalMassFunction_"/>
+    <objectDestructor name="self%haloMassFunction_"       />
+    !!]
     return
   end subroutine massFunctionCovarianceDestructor
 
   subroutine massFunctionCovariancePerform(self,status)
-    !% Compute and output the halo mass function.
+    !!{
+    Compute and output the halo mass function.
+    !!}
     use :: Display                         , only : displayIndent          , displayUnindent
     use :: Galacticus_Error                , only : Galacticus_Error_Report, errorStatusSuccess
     use :: IO_HDF5                         , only : hdf5Object
@@ -603,8 +625,10 @@ contains
   end subroutine massFunctionCovariancePerform
 
   double precision function massFunctionCovarianceGalaxyRootPowerSpectrum(iBin,timeMinimum,timeMaximum)
-    !% Computes the quantity $\int_{t_\mathrm{min}}^{t_\mathrm{max}} \mathrm{d} t b(t) \sqrt{P(k,t)} \mathrm{d} V / \mathrm{d}t$, where $b(t)$ is
-    !% galaxy bias, and $P(k,t)$ is the non-linear galaxy power spectrum.
+    !!{
+    Computes the quantity $\int_{t_\mathrm{min}}^{t_\mathrm{max}} \mathrm{d} t b(t) \sqrt{P(k,t)} \mathrm{d} V / \mathrm{d}t$, where $b(t)$ is
+    galaxy bias, and $P(k,t)$ is the non-linear galaxy power spectrum.
+    !!}
     use :: Numerical_Integration, only : integrator
     implicit none
     integer                     , intent(in   ) :: iBin
@@ -618,7 +642,9 @@ contains
   end function massFunctionCovarianceGalaxyRootPowerSpectrum
 
   double precision function massFunctionCovarianceAngularPowerIntegrand(wavenumber)
-    !% Integrand for large scale structure variance computed using survey mask angular power spectrum.
+    !!{
+    Integrand for large scale structure variance computed using survey mask angular power spectrum.
+    !!}
     implicit none
     double precision, intent(in   ) :: wavenumber
     integer                         :: iField               , jField               , &
@@ -707,7 +733,9 @@ contains
   end function massFunctionCovarianceAngularPowerIntegrand
 
   double precision function massFunctionCovarianceAngularPowerRadialTerm(x0,x1,l)
-    !% Computes the radial term in the expression for large scale structure variance.
+    !!{
+    Computes the radial term in the expression for large scale structure variance.
+    !!}
     use :: Gamma_Functions         , only : Gamma_Function_Logarithmic
     use :: Hypergeometric_Functions, only : Hypergeometric_pFq
     use :: Numerical_Constants_Math, only : Pi                        , ln2
@@ -788,7 +816,9 @@ contains
   end function massFunctionCovarianceAngularPowerRadialTerm
 
   double precision function massFunctionCovarianceVolumeIntegrand(time)
-    !% Integral for comoving volume.
+    !!{
+    Integral for comoving volume.
+    !!}
     implicit none
     double precision, intent(in   ) :: time
 
@@ -797,7 +827,9 @@ contains
   end function massFunctionCovarianceVolumeIntegrand
 
   double precision function massFunctionCovarianceMassFunctionTimeIntegrandI(timePrime)
-    !% Integral for comoving volume.
+    !!{
+    Integral for comoving volume.
+    !!}
     use :: Numerical_Integration, only : integrator
     implicit none
     double precision            , intent(in   ) :: timePrime
@@ -813,7 +845,9 @@ contains
   end function massFunctionCovarianceMassFunctionTimeIntegrandI
 
   double precision function massFunctionCovarianceMassFunctionIntegrandI(logMass)
-    !% Integral for mass function.
+    !!{
+    Integral for mass function.
+    !!}
     implicit none
     double precision, intent(in   ) :: logMass
     double precision                :: mass
@@ -831,7 +865,9 @@ contains
   end function massFunctionCovarianceMassFunctionIntegrandI
 
   double precision function massFunctionCovarianceLargeScaleStructureIntegrand(timePrime)
-    !% Integral for LSS contribution to the covariance matrix.
+    !!{
+    Integral for LSS contribution to the covariance matrix.
+    !!}
     use :: Numerical_Interpolation, only : interpolator
     implicit none
     double precision              , intent(in   ) :: timePrime
@@ -853,7 +889,9 @@ contains
   end function massFunctionCovarianceLargeScaleStructureIntegrand
 
   double precision function massFunctionCovarianceBiasIntegrandI(logMass)
-    !% Integral for bias.
+    !!{
+    Integral for bias.
+    !!}
     implicit none
     double precision, intent(in   ) :: logMass
     double precision                :: mass
@@ -865,7 +903,9 @@ contains
   end function massFunctionCovarianceBiasIntegrandI
 
   double precision function massFunctionCovarianceHaloOccupancyTimeInterand(timePrime)
-    !% Integral for comoving volume.
+    !!{
+    Integral for comoving volume.
+    !!}
     use :: Numerical_Integration, only : integrator
     implicit none
     double precision            , intent(in   ) :: timePrime
@@ -887,7 +927,9 @@ contains
   end function massFunctionCovarianceHaloOccupancyTimeInterand
 
   double precision function massFunctionCovarianceHaloOccupancyIntegrand(logMass)
-    !% Integral for mass function.
+    !!{
+    Integral for mass function.
+    !!}
     implicit none
     double precision, intent(in   ) :: logMass
     double precision                :: mass
@@ -910,7 +952,9 @@ contains
   end function massFunctionCovarianceHaloOccupancyIntegrand
 
   subroutine massFunctionCovarianceComputeVolumeNormalizations(logMass,redshiftMinimum,redshiftMaximum,timeMinimum,timeMaximum,volumeNormalization)
-    !% Compute volume normalization factors for LSS covariance calculations.
+    !!{
+    Compute volume normalization factors for LSS covariance calculations.
+    !!}
     use :: Numerical_Integration, only : integrator
     implicit none
     double precision            , intent(in   )               :: logMass            , redshiftMinimum, &
@@ -944,8 +988,10 @@ contains
   end subroutine massFunctionCovarianceComputeVolumeNormalizations
 
   subroutine massFunctionCovarianceLSSWindowFunction(self,massBinCount,redshiftMinimum,redshiftMaximum,varianceLSS)
-    !% Compute variance due to large scale structure by directly summing over the Fourier transform
-    !% of the survey selection function.
+    !!{
+    Compute variance due to large scale structure by directly summing over the Fourier transform
+    of the survey selection function.
+    !!}
     use            :: Display                 , only : displayCounter  , displayCounterClear
     use            :: FFTW3                   , only : FFTW_Wavenumber
     use, intrinsic :: ISO_C_Binding           , only : c_double_complex
@@ -1024,9 +1070,11 @@ contains
           !$omp parallel private (u,v,w,waveNumberU,waveNumberV,waveNumberW,multiplier,normalizationI,normalizationJ,powerSpectrumI,powerSpectrumJ,powerSpectrum,iField)
           allocate(massFunctionCovarianceSelfCopy,mold=self)
           !$omp critical(massFunctionCovarianceDeepCopy)
-          !# <deepCopyReset variables="self"/>
-          !# <deepCopy source="self" destination="massFunctionCovarianceSelfCopy"/>
-          !# <deepCopyFinalize variables="massFunctionCovarianceSelfCopy"/>
+          !![
+          <deepCopyReset variables="self"/>
+          <deepCopy source="self" destination="massFunctionCovarianceSelfCopy"/>
+          <deepCopyFinalize variables="massFunctionCovarianceSelfCopy"/>
+          !!]
           !$omp end critical(massFunctionCovarianceDeepCopy)
           call allocateArray(massFunctionCovarianceSelfCopy%volumeNormalizationI,[countFields])
           call allocateArray(massFunctionCovarianceSelfCopy%volumeNormalizationJ,[countFields])
@@ -1112,7 +1160,9 @@ contains
              end do
           end do
           !$omp end do
-          !# <objectDestructor name="massFunctionCovarianceSelfCopy"/>
+          !![
+          <objectDestructor name="massFunctionCovarianceSelfCopy"/>
+          !!]
           !$omp end parallel
           massFunctionCovarianceSelfCopy => self
           ! Normalize the variance. We multiply by (2π/L)³ to account for the volume of each FFT
@@ -1127,7 +1177,9 @@ contains
   end subroutine massFunctionCovarianceLSSWindowFunction
 
   subroutine massFunctionCovarianceLSSAngularSpectrum(self,massBinCount,redshiftMinimum,redshiftMaximum,varianceLSS)
-    !% Compute variance due to large scale structure by integration over the angular power spectrum.
+    !!{
+    Compute variance due to large scale structure by integration over the angular power spectrum.
+    !!}
     use :: Display                 , only : displayCounter, displayCounterClear
     use :: Memory_Management       , only : allocateArray , deallocateArray
     use :: Numerical_Constants_Math, only : Pi
@@ -1154,9 +1206,11 @@ contains
     !$omp parallel private (i,j,wavenumberMinimum,wavenumberMaximum,integrator_)
     allocate(massFunctionCovarianceSelfCopy,mold=self)
     !$omp critical(massFunctionCovarianceDeepCopy)
-    !# <deepCopyReset variables="self"/>
-    !# <deepCopy source="self" destination="massFunctionCovarianceSelfCopy"/>
-    !# <deepCopyFinalize variables="massFunctionCovarianceSelfCopy"/>
+    !![
+    <deepCopyReset variables="self"/>
+    <deepCopy source="self" destination="massFunctionCovarianceSelfCopy"/>
+    <deepCopyFinalize variables="massFunctionCovarianceSelfCopy"/>
+    !!]
     !$omp end critical(massFunctionCovarianceDeepCopy)
     call allocateArray(massFunctionCovarianceSelfCopy%volumeNormalizationI,[countFields])
     call allocateArray(massFunctionCovarianceSelfCopy%volumeNormalizationJ,[countFields])
@@ -1221,14 +1275,18 @@ contains
        end do
     end do
     !$omp end do
-    !# <objectDestructor name="massFunctionCovarianceSelfCopy"/>
+    !![
+    <objectDestructor name="massFunctionCovarianceSelfCopy"/>
+    !!]
     !$omp end parallel
     massFunctionCovarianceSelfCopy => self
     return
   end subroutine massFunctionCovarianceLSSAngularSpectrum
 
   logical function massFunctionCovarianceRequiresOutputFile(self)
-    !% Specifies that this task does not requires the main output file.
+    !!{
+    Specifies that this task does not requires the main output file.
+    !!}
     implicit none
     class(taskMassFunctionCovariance), intent(inout) :: self
     !$GLC attributes unused :: self

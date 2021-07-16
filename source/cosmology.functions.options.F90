@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides options for cosmological functions.
+!!{
+Contains a module which provides options for cosmological functions.
+!!}
 
 module Cosmology_Functions_Options
-  !% Provides options for cosmological functions.
+  !!{
+  Provides options for cosmological functions.
+  !!}
   public
 
   ! Different types of distance measure.

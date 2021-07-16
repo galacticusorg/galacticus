@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a simple ram pressure stripping for spherically-symmetric systems.
+  !!{
+  Implementation of a simple ram pressure stripping for spherically-symmetric systems.
+  !!}
 
   use :: Hot_Halo_Ram_Pressure_Forces, only : hotHaloRamPressureForceClass
 
-  !# <ramPressureStripping name="ramPressureStrippingSimpleSpherical">
-  !#  <description>A simple model of ram pressure stripping in spherically-symmetric systems.</description>
-  !# </ramPressureStripping>
+  !![
+  <ramPressureStripping name="ramPressureStrippingSimpleSpherical">
+   <description>A simple model of ram pressure stripping in spherically-symmetric systems.</description>
+  </ramPressureStripping>
+  !!]
   type, extends(ramPressureStrippingClass) :: ramPressureStrippingSimpleSpherical
-     !% Implementation of a simple model of ram pressure stripping in spherically-symmetric systems.
+     !!{
+     Implementation of a simple model of ram pressure stripping in spherically-symmetric systems.
+     !!}
      private
      class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_ => null()
      double precision                                        :: rateFractionalMaximum             , beta
@@ -35,7 +41,9 @@
   end type ramPressureStrippingSimpleSpherical
 
   interface ramPressureStrippingSimpleSpherical
-     !% Constructors for the {\normalfont \ttfamily simpleSpherical} model of ram pressure stripping of spheroids class.
+     !!{
+     Constructors for the {\normalfont \ttfamily simpleSpherical} model of ram pressure stripping of spheroids class.
+     !!}
      module procedure simpleSphericalConstructorParameters
      module procedure simpleSphericalConstructorInternal
   end interface ramPressureStrippingSimpleSpherical
@@ -43,8 +51,10 @@
 contains
 
   function simpleSphericalConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily simpleSpherical} timescale for star formation feedback in spheroids class which
-    !% takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily simpleSpherical} timescale for star formation feedback in spheroids class which
+    takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (ramPressureStrippingSimpleSpherical)                :: self
@@ -52,60 +62,74 @@ contains
     class           (hotHaloRamPressureForceClass       ), pointer       :: hotHaloRamPressureForce_
     double precision                                                     :: rateFractionalMaximum   , beta
 
-    !# <inputParameter>
-    !#   <name>rateFractionalMaximum</name>
-    !#   <defaultValue>10.0d0</defaultValue>
-    !#   <description>The maximum fractional mass loss rate per dynamical time in the simple model of mass loss from spherically-symmetric due to ram pressure stripping.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>beta</name>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The scaling factor which multiplies the ram pressure mass loss rate.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>rateFractionalMaximum</name>
+      <defaultValue>10.0d0</defaultValue>
+      <description>The maximum fractional mass loss rate per dynamical time in the simple model of mass loss from spherically-symmetric due to ram pressure stripping.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>beta</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The scaling factor which multiplies the ram pressure mass loss rate.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
+    !!]
     self=ramPressureStrippingSimpleSpherical(rateFractionalMaximum,beta,hotHaloRamPressureForce_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="hotHaloRamPressureForce_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="hotHaloRamPressureForce_"/>
+    !!]
     return
   end function simpleSphericalConstructorParameters
 
   function simpleSphericalConstructorInternal(rateFractionalMaximum,beta,hotHaloRamPressureForce_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily simpleSpherical} model of ram pressure stripping of spheroids class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily simpleSpherical} model of ram pressure stripping of spheroids class.
+    !!}
     implicit none
     type            (ramPressureStrippingSimpleSpherical)                        :: self
     double precision                                     , intent(in   )         :: rateFractionalMaximum   , beta
     class           (hotHaloRamPressureForceClass       ), intent(in   ), target :: hotHaloRamPressureForce_
-    !# <constructorAssign variables="rateFractionalMaximum, beta, *hotHaloRamPressureForce_"/>
+    !![
+    <constructorAssign variables="rateFractionalMaximum, beta, *hotHaloRamPressureForce_"/>
+    !!]
 
     return
   end function simpleSphericalConstructorInternal
 
   subroutine simpleSphericalDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily simpleSpherical} model of ram pressure stripping of spheroids class.
+    !!{
+    Destructor for the {\normalfont \ttfamily simpleSpherical} model of ram pressure stripping of spheroids class.
+    !!}
     implicit none
     type(ramPressureStrippingSimpleSpherical), intent(inout) :: self
 
-    !# <objectDestructor name="self%hotHaloRamPressureForce_"/>
+    !![
+    <objectDestructor name="self%hotHaloRamPressureForce_"/>
+    !!]
     return
   end subroutine simpleSphericalDestructor
 
   double precision function simpleSphericalRateMassLoss(self,component)
-    !% Computes the mass loss rate from spherically-symmetric systems due to ram pressure stripping assuming a simple model. Specifically, the mass loss
-    !% rate is
-    !% \begin{equation}
-    !% \dot{M}_\mathrm{gas} = -\alpha M_\mathrm{gas}/\tau,
-    !% \end{equation}
-    !% where
-    !% \begin{equation}
-    !% \alpha = \beta F_\mathrm{ram}/F_\mathrm{gravity},
-    !% \end{equation}
-    !% $F_\mathrm{ram}$ is the ram pressure force from the hot halo (see \refPhysics{hotHaloRamPressureForce}), and
-    !% \begin{equation}
-    !% F_\mathrm{gravity} = {4\over 3} \rho_\mathrm{gas}(r_{1/2}) {\mathrm{G} M_\mathrm{total}(r_{1/2})\over r_{1/2}}
-    !% \end{equation}
-    !% is the gravitational restoring force at the half-mass radius, $r_\mathrm{1/2}$ \citep{takeda_ram_1984}.
+    !!{
+    Computes the mass loss rate from spherically-symmetric systems due to ram pressure stripping assuming a simple model. Specifically, the mass loss
+    rate is
+    \begin{equation}
+    \dot{M}_\mathrm{gas} = -\alpha M_\mathrm{gas}/\tau,
+    \end{equation}
+    where
+    \begin{equation}
+    \alpha = \beta F_\mathrm{ram}/F_\mathrm{gravity},
+    \end{equation}
+    $F_\mathrm{ram}$ is the ram pressure force from the hot halo (see \refPhysics{hotHaloRamPressureForce}), and
+    \begin{equation}
+    F_\mathrm{gravity} = {4\over 3} \rho_\mathrm{gas}(r_{1/2}) {\mathrm{G} M_\mathrm{total}(r_{1/2})\over r_{1/2}}
+    \end{equation}
+    is the gravitational restoring force at the half-mass radius, $r_\mathrm{1/2}$ \citep{takeda_ram_1984}.
+    !!}
     use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : componentTypeSpheroid           , coordinateSystemSpherical, massTypeAll, massTypeGaseous

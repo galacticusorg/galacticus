@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test OpenMP lock functions.
+!!{
+Contains a program to test OpenMP lock functions.
+!!}
 
 program Test_Locks
-  !% Tests of OpenMP locking functions.
+  !!{
+  Tests of OpenMP locking functions.
+  !!}
   use            :: Array_Utilities   , only : Array_Is_Monotonic, directionIncreasing
   use            :: Display           , only : displayMessage    , displayVerbositySet   , verbosityLevelStandard
   use, intrinsic :: ISO_C_Binding     , only : c_size_t

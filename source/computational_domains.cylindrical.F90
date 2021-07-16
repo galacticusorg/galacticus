@@ -23,16 +23,22 @@
   use            :: Radiative_Transfer_Matters     , only : radiativeTransferMatterClass     , radiativeTransferPropertiesMatter
 
   type :: cylindricalBoundaries
-     !% Type used to store boundaries of computational domain cells for cylindrical domains.
+     !!{
+     Type used to store boundaries of computational domain cells for cylindrical domains.
+     !!}
      private
      double precision, allocatable, dimension(:) :: boundary
   end type cylindricalBoundaries
   
-  !# <computationalDomain name="computationalDomainCylindrical">
-  !#  <description>A computational domain using a cylindrical grid.</description>
-  !# </computationalDomain>
+  !![
+  <computationalDomain name="computationalDomainCylindrical">
+   <description>A computational domain using a cylindrical grid.</description>
+  </computationalDomain>
+  !!]
   type, extends(computationalDomainClass) :: computationalDomainCylindrical
-     !% Implementation of a computational domain using a cylindrical grid.
+     !!{
+     Implementation of a computational domain using a cylindrical grid.
+     !!}
      private
      double precision                                                , dimension(2,2) :: boundaries
      integer         (c_size_t                         )             , dimension(2  ) :: countCells
@@ -60,26 +66,34 @@
   end type computationalDomainCylindrical
 
   interface computationalDomainCylindrical
-     !% Constructors for the {\normalfont \ttfamily cylindrical} computational domain.
+     !!{
+     Constructors for the {\normalfont \ttfamily cylindrical} computational domain.
+     !!}
      module procedure cylindricalConstructorParameters
      module procedure cylindricalConstructorInternal
   end interface computationalDomainCylindrical
 
   type, extends(domainIterator) :: domainIteratorCylindrical
-     !% An interactor for cylindrical computational domains.
+     !!{
+     An interactor for cylindrical computational domains.
+     !!}
      private
      type(multiCounter) :: counter_
    contains
-     !# <methods>
-     !#   <method description="Move to the next cell in the domain." method="next" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Move to the next cell in the domain." method="next" />
+     </methods>
+     !!]
      procedure :: next => domainIteratorCylindricalNext
   end type domainIteratorCylindrical
   
 contains
 
   function cylindricalConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily cylindrical} computational domain class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily cylindrical} computational domain class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (computationalDomainCylindrical   )                 :: self
@@ -92,55 +106,61 @@ contains
     double precision                                                    :: convergencePercentile        , convergenceThreshold, &
          &                                                                 convergenceRatioThreshold
     
-    !# <inputParameter>
-    !#   <name>rBoundaries</name>
-    !#   <defaultValue>[+0.0d0,+1.0d0]</defaultValue>
-    !#   <description>The $r$-interval spanned by the computational domain.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>zBoundaries</name>
-    !#   <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
-    !#   <description>The $z$-interval spanned by the computational domain.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>countCells</name>
-    !#   <defaultValue>[3_c_size_t,3_c_size_t]</defaultValue>
-    !#   <description>The number of cells in the domain in each dimension.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>convergencePercentile</name>
-    !#   <defaultValue>0.99d0</defaultValue>
-    !#   <description>The percentile used in the convergence criterion.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>convergenceThreshold</name>
-    !#   <defaultValue>2.0d0</defaultValue>
-    !#   <description>The threshold for the convergence measure.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>convergenceRatioThreshold</name>
-    !#   <defaultValue>1.1d0</defaultValue>
-    !#   <description>The threshold for the change in convergence criterion.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="radiativeTransferMatter"      name="radiativeTransferMatter_"      source="parameters"/>
-    !# <objectBuilder class="radiativeTransferConvergence" name="radiativeTransferConvergence_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>rBoundaries</name>
+      <defaultValue>[+0.0d0,+1.0d0]</defaultValue>
+      <description>The $r$-interval spanned by the computational domain.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>zBoundaries</name>
+      <defaultValue>[-1.0d0,+1.0d0]</defaultValue>
+      <description>The $z$-interval spanned by the computational domain.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>countCells</name>
+      <defaultValue>[3_c_size_t,3_c_size_t]</defaultValue>
+      <description>The number of cells in the domain in each dimension.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>convergencePercentile</name>
+      <defaultValue>0.99d0</defaultValue>
+      <description>The percentile used in the convergence criterion.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>convergenceThreshold</name>
+      <defaultValue>2.0d0</defaultValue>
+      <description>The threshold for the convergence measure.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>convergenceRatioThreshold</name>
+      <defaultValue>1.1d0</defaultValue>
+      <description>The threshold for the change in convergence criterion.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="radiativeTransferMatter"      name="radiativeTransferMatter_"      source="parameters"/>
+    <objectBuilder class="radiativeTransferConvergence" name="radiativeTransferConvergence_" source="parameters"/>
+    !!]
     boundaries(1,:)=rBoundaries
     boundaries(2,:)=zBoundaries
     self=computationalDomainCylindrical(boundaries,countCells,convergencePercentile,convergenceThreshold,convergenceRatioThreshold,radiativeTransferMatter_,radiativeTransferConvergence_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="radiativeTransferMatter_"     />
-    !# <objectDestructor name="radiativeTransferConvergence_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="radiativeTransferMatter_"     />
+    <objectDestructor name="radiativeTransferConvergence_"/>
+    !!]
     return
   end function cylindricalConstructorParameters
 
   function cylindricalConstructorInternal(boundaries,countCells,convergencePercentile,convergenceThreshold,convergenceRatioThreshold,radiativeTransferMatter_,radiativeTransferConvergence_) result(self)
-    !% Constructor for the {\normalfont \ttfamily cylindrical} computational domain class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily cylindrical} computational domain class which takes a parameter set as input.
+    !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
     implicit none
     type            (computationalDomainCylindrical   )                                :: self
@@ -151,7 +171,9 @@ contains
     class           (radiativeTransferMatterClass     ), target        , intent(in   ) :: radiativeTransferMatter_
     class           (radiativeTransferConvergenceClass), target        , intent(in   ) :: radiativeTransferConvergence_
     integer         (c_size_t                         )                                :: i
-    !# <constructorAssign variables="boundaries, countCells, convergencePercentile, convergenceThreshold, convergenceRatioThreshold, *radiativeTransferMatter_, *radiativeTransferConvergence_"/>
+    !![
+    <constructorAssign variables="boundaries, countCells, convergencePercentile, convergenceThreshold, convergenceRatioThreshold, *radiativeTransferMatter_, *radiativeTransferConvergence_"/>
+    !!]
     
     ! Construct cell boundaries.
     do i=1,2
@@ -165,17 +187,23 @@ contains
   end function cylindricalConstructorInternal
 
   subroutine cylindricalDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily cylindrical} computational domain class.
+    !!{
+    Destructor for the {\normalfont \ttfamily cylindrical} computational domain class.
+    !!}
     implicit none
     type(computationalDomainCylindrical), intent(inout) :: self
 
-    !# <objectDestructor name="self%radiativeTransferMatter_"     />
-    !# <objectDestructor name="self%radiativeTransferConvergence_"/>
+    !![
+    <objectDestructor name="self%radiativeTransferMatter_"     />
+    <objectDestructor name="self%radiativeTransferConvergence_"/>
+    !!]
     return
   end subroutine cylindricalDestructor
 
   subroutine cylindricalInitialize(self)
-    !% Initialize the computational domain.
+    !!{
+    Initialize the computational domain.
+    !!}
     use :: Computational_Domain_Volume_Integrators, only : computationalDomainVolumeIntegratorCylindrical
     use :: Display                                , only : displayCounter                                , displayCounterClear  , displayIndent, displayUnindent, &
           &                                                verbosityLevelStandard                        , verbosityLevelWorking
@@ -259,7 +287,9 @@ contains
   end subroutine cylindricalInitialize
 
   subroutine cylindricalIterator(self,iterator)
-    !% Construct an iterator for this domain,
+    !!{
+    Construct an iterator for this domain,
+    !!}
     implicit none
     class(computationalDomainCylindrical), intent(inout)              :: self
     class(domainIterator                ), intent(inout), allocatable :: iterator
@@ -282,7 +312,9 @@ contains
   end function domainIteratorCylindricalNext
   
   subroutine cylindricalReset(self)
-    !% Reset the computational domain prior to a new iteration.
+    !!{
+    Reset the computational domain prior to a new iteration.
+    !!}
     implicit none
     class  (computationalDomainCylindrical), intent(inout) :: self
     integer(c_size_t                      )                :: i   , j
@@ -296,7 +328,9 @@ contains
   end subroutine cylindricalReset
 
   subroutine cylindricalIndicesFromPosition(self,position,indices)
-    !% Determine the indices of the cell containing the given point.
+    !!{
+    Determine the indices of the cell containing the given point.
+    !!}
     use :: Arrays_Search, only : searchArray
     implicit none
     class           (computationalDomainCylindrical), intent(inout)                            :: self
@@ -329,7 +363,9 @@ contains
   end subroutine cylindricalIndicesFromPosition
 
   double precision function cylindricalAbsorptionCoefficient(self,photonPacket,indices)
-    !% Return the absorption coefficient for the given photon packet in the given domain cell.
+    !!{
+    Return the absorption coefficient for the given photon packet in the given domain cell.
+    !!}
     implicit none
     class  (computationalDomainCylindrical    )              , intent(inout) :: self
     class  (radiativeTransferPhotonPacketClass)              , intent(inout) :: photonPacket
@@ -346,7 +382,9 @@ contains
   end function cylindricalAbsorptionCoefficient
   
   double precision function cylindricalLengthToCellBoundary(self,photonPacket,indices,indicesNeighbor,positionBoundary)
-    !% Return the length to the first domain cell boundary intersected by the given photon packet.
+    !!{
+    Return the length to the first domain cell boundary intersected by the given photon packet.
+    !!}
     implicit none
     class           (computationalDomainCylindrical    )                           , intent(inout) :: self
     class           (radiativeTransferPhotonPacketClass)                           , intent(inout) :: photonPacket
@@ -468,7 +506,9 @@ contains
   end function cylindricalLengthToCellBoundary
 
   subroutine cylindricalAccumulatePhotonPacket(self,photonPacket,indices,absorptionCoefficient,lengthTraversed)
-    !% Accumulate ``absorptions'' from the photon packet as it traverses a cell of the computational domain.
+    !!{
+    Accumulate ``absorptions'' from the photon packet as it traverses a cell of the computational domain.
+    !!}
     implicit none
     class           (computationalDomainCylindrical    )              , intent(inout) :: self
     class           (radiativeTransferPhotonPacketClass)              , intent(inout) :: photonPacket
@@ -488,7 +528,9 @@ contains
   end subroutine cylindricalAccumulatePhotonPacket
 
   logical function cylindricalInteractWithPhotonPacket(self,photonPacket,indices)
-    !% Allow matter in a domain cell to interact with the photon packet.
+    !!{
+    Allow matter in a domain cell to interact with the photon packet.
+    !!}
     implicit none
     class  (computationalDomainCylindrical    )              , intent(inout) :: self
     class  (radiativeTransferPhotonPacketClass)              , intent(inout) :: photonPacket
@@ -505,7 +547,9 @@ contains
   end function cylindricalInteractWithPhotonPacket
   
   subroutine cylindricalStateSolve(self)
-    !% Solve for the state of matter in the computational domain.
+    !!{
+    Solve for the state of matter in the computational domain.
+    !!}
     use :: Display         , only : displayCounter    , displayCounterClear   , displayIndent        , displayMessage, &
           &                         displayUnindent   , verbosityLevelStandard, verbosityLevelWorking
     use :: Galacticus_Error, only : errorStatusSuccess
@@ -585,7 +629,9 @@ contains
   end subroutine cylindricalStateSolve
 
   logical function cylindricalConverged(self)
-    !% Return the convergence state of the computational domain.
+    !!{
+    Return the convergence state of the computational domain.
+    !!}
     use :: Arrays_Search                  , only : searchArray
     use :: Disparity_Ratios               , only : Disparity_Ratio
     use :: Display                        , only : displayIndent     , displayMessage        , displayUnindent, displayVerbosity, &
@@ -670,7 +716,9 @@ contains
   end function cylindricalConverged
 
   subroutine cylindricalOutput(self,outputGroup)
-    !% Output the computational domain.
+    !!{
+    Output the computational domain.
+    !!}
     !$ use :: IO_HDF5                         , only : hdf5Access
     use    :: ISO_Varying_String              , only : char
     use    :: Numerical_Constants_Astronomical, only : megaparsec

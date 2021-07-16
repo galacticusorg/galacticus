@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of dark matter halo mass accretion histories computed using the fitting function of \cite{diemer_splashback_2020}.
+  !!{
+  An implementation of dark matter halo mass accretion histories computed using the fitting function of \cite{diemer_splashback_2020}.
+  !!}
 
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
 
-  !# <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryDiemer2020">
-  !#  <description>Dark matter halo mass accretion histories computed using the fitting function of \cite{diemer_splashback_2020}.</description>
-  !# </darkMatterHaloMassAccretionHistory>
+  !![
+  <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryDiemer2020">
+   <description>Dark matter halo mass accretion histories computed using the fitting function of \cite{diemer_splashback_2020}.</description>
+  </darkMatterHaloMassAccretionHistory>
+  !!]
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryDiemer2020
-     !% A dark matter halo mass accretion history class computed using the fitting function of \cite{diemer_splashback_2020}.
+     !!{
+     A dark matter halo mass accretion history class computed using the fitting function of \cite{diemer_splashback_2020}.
+     !!}
      private
      class(cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
@@ -38,7 +44,9 @@
   end type darkMatterHaloMassAccretionHistoryDiemer2020
 
   interface darkMatterHaloMassAccretionHistoryDiemer2020
-     !% Constructors for the {\normalfont \ttfamily diemer2020} dark matter halo mass accretion history class.
+     !!{
+     Constructors for the {\normalfont \ttfamily diemer2020} dark matter halo mass accretion history class.
+     !!}
      module procedure diemer2020ConstructorParameters
      module procedure diemer2020ConstructorInternal
   end interface darkMatterHaloMassAccretionHistoryDiemer2020
@@ -46,8 +54,10 @@
 contains
 
   function diemer2020ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily diemer2020} dark matter halo mass accretion history class which takes a
-    !% parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily diemer2020} dark matter halo mass accretion history class which takes a
+    parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (darkMatterHaloMassAccretionHistoryDiemer2020)                :: self
@@ -56,42 +66,56 @@ contains
     class(cosmologicalMassVarianceClass               ), pointer       :: cosmologicalMassVariance_
     class(criticalOverdensityClass                    ), pointer       :: criticalOverdensity_
 
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !!]
     self=darkMatterHaloMassAccretionHistoryDiemer2020(cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"      />
-    !# <objectDestructor name="criticalOverdensity_"     />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="criticalOverdensity_"     />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    !!]
     return
   end function diemer2020ConstructorParameters
 
   function diemer2020ConstructorInternal(cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_) result(self)
-    !% Generic constructor for the {\normalfont \ttfamily diemer2020} dark matter halo mass accretion history class.
+    !!{
+    Generic constructor for the {\normalfont \ttfamily diemer2020} dark matter halo mass accretion history class.
+    !!}
     implicit none
     type (darkMatterHaloMassAccretionHistoryDiemer2020)                        :: self
     class(cosmologyFunctionsClass                     ), intent(in   ), target :: cosmologyFunctions_
     class(cosmologicalMassVarianceClass               ), intent(in   ), target :: cosmologicalMassVariance_
     class(criticalOverdensityClass                    ), intent(in   ), target :: criticalOverdensity_
-    !# <constructorAssign variables="*cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_"/>
+    !!]
 
     return
   end function diemer2020ConstructorInternal
 
   subroutine diemer2020Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily diemer2020} dark matter halo mass accretion history class.
+    !!{
+    Destructor for the {\normalfont \ttfamily diemer2020} dark matter halo mass accretion history class.
+    !!}
     implicit none
     type(darkMatterHaloMassAccretionHistoryDiemer2020), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"      />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
-    !# <objectDestructor name="self%criticalOverdensity_"     />
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"      />
+    <objectDestructor name="self%cosmologicalMassVariance_"/>
+    <objectDestructor name="self%criticalOverdensity_"     />
+    !!]
     return
   end subroutine diemer2020Destructor
 
   double precision function diemer2020Time(self,node,mass)
-    !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history.
+    !!{
+    Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (darkMatterHaloMassAccretionHistoryDiemer2020), intent(inout), target :: self
@@ -105,7 +129,9 @@ contains
   end function diemer2020Time
 
   double precision function diemer2020Mass(self,node,time)
-    !% Compute the mass corresponding to {\normalfont \ttfamily time} in the mass accretion history.
+    !!{
+    Compute the mass corresponding to {\normalfont \ttfamily time} in the mass accretion history.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (darkMatterHaloMassAccretionHistoryDiemer2020), intent(inout), target :: self
@@ -119,8 +145,10 @@ contains
   end function diemer2020Mass
 
   double precision function diemer2020MassAccretionRate(self,node,time)
-    !% Compute the mass accretion rate at the given {\normalfont \ttfamily time} in the mass accretion history of
-    !% {\normalfont \ttfamily node}.
+    !!{
+    Compute the mass accretion rate at the given {\normalfont \ttfamily time} in the mass accretion history of
+    {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class           (darkMatterHaloMassAccretionHistoryDiemer2020), intent(inout) :: self

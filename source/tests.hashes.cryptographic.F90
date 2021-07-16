@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test features of cryptographic hashes.
+!!{
+Contains a program to test features of cryptographic hashes.
+!!}
 
 program Test_Hashes_Cryptographic
-  !% Contains a program to test features of cryptographic hashes.
+  !!{
+  Contains a program to test features of cryptographic hashes.
+  !!}
   use :: Display             , only : displayVerbositySet, verbosityLevelStandard
   use :: Hashes_Cryptographic, only : Hash_MD5
   use :: ISO_Varying_String  , only : assignment(=)      , char                  , varying_string

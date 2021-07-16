@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test mathematical distributions.
+!!{
+Contains a program to test mathematical distributions.
+!!}
 
 program Test_Math_Distributions
-  !% Tests of mathematical distributions.
+  !!{
+  Tests of mathematical distributions.
+  !!}
   use            :: Display                            , only : displayVerbositySet          , verbosityLevelStandard
   use, intrinsic :: ISO_C_Binding                      , only : c_long
   use            :: Input_Parameters                   , only : inputParameters

@@ -17,31 +17,41 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a satellite merging timescale class which uses preset values for the timescale.
+  !!{
+  Implements a satellite merging timescale class which uses preset values for the timescale.
+  !!}
 
-  !# <satelliteMergingTimescales name="satelliteMergingTimescalesPreset">
-  !#  <description>
-  !#   A satellite merging timescale class assumes that merging times have been preset for every node (or, at least, every node
-  !#   which becomes a satellite). It therefore simply returns the preset merging time.
-  !#  </description>
-  !# </satelliteMergingTimescales>
+  !![
+  <satelliteMergingTimescales name="satelliteMergingTimescalesPreset">
+   <description>
+    A satellite merging timescale class assumes that merging times have been preset for every node (or, at least, every node
+    which becomes a satellite). It therefore simply returns the preset merging time.
+   </description>
+  </satelliteMergingTimescales>
+  !!]
   type, extends(satelliteMergingTimescalesClass) :: satelliteMergingTimescalesPreset
-     !% A class implementing preset satellite merging timescales.
+     !!{
+     A class implementing preset satellite merging timescales.
+     !!}
      private
    contains
      procedure :: timeUntilMerging => presetTimeUntilMerging
   end type satelliteMergingTimescalesPreset
 
   interface satelliteMergingTimescalesPreset
-     !% Constructors for the {\normalfont \ttfamily preset} satellite merging timescale class.
+     !!{
+     Constructors for the {\normalfont \ttfamily preset} satellite merging timescale class.
+     !!}
      module procedure presetConstructorParameters
   end interface satelliteMergingTimescalesPreset
 
 contains
 
   function presetConstructorParameters(parameters) result(self)
-    !% A constructor for the {\normalfont \ttfamily preset} satellite merging timescale class which builds the object from a
-    !% parameter set.
+    !!{
+    A constructor for the {\normalfont \ttfamily preset} satellite merging timescale class which builds the object from a
+    parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(satelliteMergingTimescalesPreset)                :: self
@@ -53,7 +63,9 @@ contains
   end function presetConstructorParameters
 
   double precision function presetTimeUntilMerging(self,node,orbit)
-    !% Return the timescale for merging satellites using the preset value.
+    !!{
+    Return the timescale for merging satellites using the preset value.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, treeNode
     use :: Kepler_Orbits   , only : keplerOrbit
     implicit none

@@ -17,23 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a 1D Cauchy distibution function.
+  !!{
+  Implementation of a 1D Cauchy distibution function.
+  !!}
 
-  !# <distributionFunction1D name="distributionFunction1DCauchy">
-  !#  <description>
-  !#   A Cauchy distribution:
-  !#   \begin{equation}
-  !#    P(x) \propto \left[1+{x-x_0\over\gamma}\right]^{-1}.
-  !#   \end{equation}
-  !#   Specified using:
-  !#   \begin{description}
-  !#   \item[{\normalfont \ttfamily [median]}] The median, $x_0$;
-  !#   \item[{\normalfont \ttfamily [scale]}] The scale, $\gamma$;
-  !#   \end{description}
-  !#  </description>
-  !# </distributionFunction1D>
+  !![
+  <distributionFunction1D name="distributionFunction1DCauchy">
+   <description>
+    A Cauchy distribution:
+    \begin{equation}
+     P(x) \propto \left[1+{x-x_0\over\gamma}\right]^{-1}.
+    \end{equation}
+    Specified using:
+    \begin{description}
+    \item[{\normalfont \ttfamily [median]}] The median, $x_0$;
+    \item[{\normalfont \ttfamily [scale]}] The scale, $\gamma$;
+    \end{description}
+   </description>
+  </distributionFunction1D>
+  !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DCauchy
-     !% Implementation of a 1D Cauchy distibution function.
+     !!{
+     Implementation of a 1D Cauchy distibution function.
+     !!}
      private
      double precision :: median, scale
    contains
@@ -43,7 +49,9 @@
   end type distributionFunction1DCauchy
 
   interface distributionFunction1DCauchy
-     !% Constructors for the {\normalfont \ttfamily cauchy} 1D distribution function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily cauchy} 1D distribution function class.
+     !!}
      module procedure cauchyConstructorParameters
      module procedure cauchyConstructorInternal
      module procedure cauchyConstructorProbability
@@ -52,8 +60,10 @@
 contains
 
   function cauchyConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily cauchy} 1D distribution function class which builds
-    !% the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily cauchy} 1D distribution function class which builds
+    the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunction1DCauchy)                :: self
@@ -61,35 +71,45 @@ contains
     class           (randomNumberGeneratorClass  ), pointer       :: randomNumberGenerator_
     double precision                                              :: median                , scale
 
-    !# <inputParameter>
-    !#   <name>median</name>
-    !#   <description>The median of the Cauchy distribution function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>scale</name>
-    !#   <description>The scale parameter of the Cauchy distribution function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>median</name>
+      <description>The median of the Cauchy distribution function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>scale</name>
+      <description>The scale parameter of the Cauchy distribution function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=distributionFunction1DCauchy(median,scale,randomNumberGenerator_)
-    !# <objectDestructor name="randomNumberGenerator_"/>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <objectDestructor name="randomNumberGenerator_"/>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function cauchyConstructorParameters
 
   function cauchyConstructorInternal(median,scale,randomNumberGenerator_) result(self)
-    !% Constructor for ``cauchy'' 1D distribution function class.
+    !!{
+    Constructor for ``cauchy'' 1D distribution function class.
+    !!}
     type            (distributionFunction1DCauchy)                                  :: self
     double precision                              , intent(in   )                   :: median                , scale
     class           (randomNumberGeneratorClass  ), intent(in   ), target, optional :: randomNumberGenerator_
-   !# <constructorAssign variables="median, scale, *randomNumberGenerator_"/>
+   !![
+   <constructorAssign variables="median, scale, *randomNumberGenerator_"/>
+   !!]
 
     return
   end function cauchyConstructorInternal
 
   function cauchyConstructorProbability(median,limit,probability,randomNumberGenerator_) result(self)
-    !% Constructor for ``cauchy'' 1D distribution function class.
+    !!{
+    Constructor for ``cauchy'' 1D distribution function class.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     type            (distributionFunction1DCauchy)                :: self
     double precision                              , intent(in   ) :: median                , limit, &
@@ -101,7 +121,9 @@ contains
   end function cauchyConstructorProbability
 
   double precision function cauchyDensity(self,x)
-    !% Return the density of a Cauchy distribution.
+    !!{
+    Return the density of a Cauchy distribution.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (distributionFunction1DCauchy), intent(inout) :: self
@@ -112,7 +134,9 @@ contains
   end function cauchyDensity
 
   double precision function cauchyCumulative(self,x)
-    !% Return the cumulative probability of a Cauchy distribution.
+    !!{
+    Return the cumulative probability of a Cauchy distribution.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (distributionFunction1DCauchy), intent(inout) :: self
@@ -123,7 +147,9 @@ contains
   end function cauchyCumulative
 
   double precision function cauchyInverse(self,p)
-    !% Return the inverse of a Cauchy distribution.
+    !!{
+    Return the inverse of a Cauchy distribution.
+    !!}
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Numerical_Constants_Math, only : Pi
     implicit none

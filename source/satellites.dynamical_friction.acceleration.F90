@@ -19,26 +19,32 @@
 
 !+    Contributions to this file made by:  Anthony Pullen, Andrew Benson.
 
-!% Contains a module that implements calculations of the acceleration due to dynamical friction for satellites.
+!!{
+Contains a module that implements calculations of the acceleration due to dynamical friction for satellites.
+!!}
 
 module Satellite_Dynamical_Friction
-  !% Implements calculations of dynamical friction for satellites.
+  !!{
+  Implements calculations of dynamical friction for satellites.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
-  !# <functionClass>
-  !#  <name>satelliteDynamicalFriction</name>
-  !#  <descriptiveName>Dynamical friction models.</descriptiveName>
-  !#  <description>
-  !#   Class providing models of the satellite vector acceleration due to dynamical friction.
-  !#  </description>
-  !#  <default>chandrasekhar1943</default>
-  !#  <method name="acceleration" >
-  !#   <description>Returns the satellite acceleration due to dynamical friction for {\normalfont \ttfamily node} (in units of km/s/Gyr).</description>
-  !#   <type>double precision, dimension(3)</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>satelliteDynamicalFriction</name>
+   <descriptiveName>Dynamical friction models.</descriptiveName>
+   <description>
+    Class providing models of the satellite vector acceleration due to dynamical friction.
+   </description>
+   <default>chandrasekhar1943</default>
+   <method name="acceleration" >
+    <description>Returns the satellite acceleration due to dynamical friction for {\normalfont \ttfamily node} (in units of km/s/Gyr).</description>
+    <type>double precision, dimension(3)</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Satellite_Dynamical_Friction

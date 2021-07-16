@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of a spectrum postprocessor that keeps only recent populations.
+  !!{
+  An implementation of a spectrum postprocessor that keeps only recent populations.
+  !!}
 
-  !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorRecent">
-  !#  <description>
-  !#   A stellar population postprocessor class which suppresses all emission from populations older than {\normalfont \ttfamily
-  !#   [timeLimit]} (in Gyr).
-  !#  </description>
-  !# </stellarPopulationSpectraPostprocessor>
+  !![
+  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorRecent">
+   <description>
+    A stellar population postprocessor class which suppresses all emission from populations older than {\normalfont \ttfamily
+    [timeLimit]} (in Gyr).
+   </description>
+  </stellarPopulationSpectraPostprocessor>
+  !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorRecent
-     !% An recent spectrum postprocessor.
+     !!{
+     An recent spectrum postprocessor.
+     !!}
      private
      double precision :: timeLimit
    contains
@@ -34,7 +40,9 @@
   end type stellarPopulationSpectraPostprocessorRecent
 
   interface stellarPopulationSpectraPostprocessorRecent
-     !% Constructors for the recent spectrum postprocessor class.
+     !!{
+     Constructors for the recent spectrum postprocessor class.
+     !!}
      module procedure recentConstructorParameters
      module procedure recentConstructorInternal
   end interface stellarPopulationSpectraPostprocessorRecent
@@ -42,35 +50,45 @@
 contains
 
   function recentConstructorParameters(parameters) result(self)
-    !% Default constructor for the recent spectrum postprocessor class.
+    !!{
+    Default constructor for the recent spectrum postprocessor class.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (stellarPopulationSpectraPostprocessorRecent)                :: self
     type            (inputParameters                            ), intent(inout) :: parameters
     double precision                                                             :: timeLimit
 
-    !# <inputParameter>
-    !#   <name>timeLimit</name>
-    !#   <defaultValue>1.0d-2</defaultValue>
-    !#   <description>The maximum age of stellar populations to retain in the ``recent'' spectra postprocessing method.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>timeLimit</name>
+      <defaultValue>1.0d-2</defaultValue>
+      <description>The maximum age of stellar populations to retain in the ``recent'' spectra postprocessing method.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=stellarPopulationSpectraPostprocessorRecent(timeLimit)
     return
   end function recentConstructorParameters
 
   function recentConstructorInternal(timeLimit) result(self)
-    !% Generic constructor for the recent spectrum postprocessor class.
+    !!{
+    Generic constructor for the recent spectrum postprocessor class.
+    !!}
     implicit none
     type            (stellarPopulationSpectraPostprocessorRecent)                :: self
     double precision                                             , intent(in   ) :: timeLimit
-    !# <constructorAssign variables="timeLimit"/>
+    !![
+    <constructorAssign variables="timeLimit"/>
+    !!]
 
     return
   end function recentConstructorInternal
 
   double precision function recentMultiplier(self,wavelength,age,redshift)
-    !% Perform a recent postprocessing on a spectrum.
+    !!{
+    Perform a recent postprocessing on a spectrum.
+    !!}
     implicit none
     class           (stellarPopulationSpectraPostprocessorRecent), intent(inout) :: self
     double precision                                             , intent(in   ) :: age       , redshift, &

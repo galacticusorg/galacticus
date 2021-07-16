@@ -19,7 +19,9 @@
 
 !+    Contributions to this file made by:  Alex Merson.
 
-!% Contains a module that provides functions for emission line calculations.
+!!{
+Contains a module that provides functions for emission line calculations.
+!!}
 
 module HII_Region_Emission_Lines
   use :: ISO_Varying_String, only : varying_string
@@ -34,7 +36,9 @@ module HII_Region_Emission_Lines
 contains
 
   double precision function emissionLineWavelength(lineName)
-    !% Return the wavelength of a named emission line.
+    !!{
+    Return the wavelength of a named emission line.
+    !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : operator(==)
     implicit none
@@ -56,7 +60,9 @@ contains
   end function emissionLineWavelength
 
   subroutine emissionLineDatabaseInitialize()
-    !% Initialize a database of emission line properties.
+    !!{
+    Initialize a database of emission line properties.
+    !!}
     use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataStatic
     use :: IO_HDF5           , only : hdf5Object    , hdf5Access
     use :: ISO_Varying_String, only : char          , operator(==)

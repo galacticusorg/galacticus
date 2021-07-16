@@ -17,13 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements an abstract survey geometry using \gls{mangle} polygons.
+!!{
+Implements an abstract survey geometry using \gls{mangle} polygons.
+!!}
 
   use :: Geometry_Mangle, only : window
 
-  !# <surveyGeometry name="surveyGeometryMangle" abstract="yes">
-  !#  <description>Implements an abstract survey geometry using \gls{mangle} polygons.</description>
-  !# </surveyGeometry>
+  !![
+  <surveyGeometry name="surveyGeometryMangle" abstract="yes">
+   <description>Implements an abstract survey geometry using \gls{mangle} polygons.</description>
+  </surveyGeometry>
+  !!]
   type, abstract, extends(surveyGeometryClass) :: surveyGeometryMangle
      private
      logical                                               :: solidAnglesInitialized, angularPowerInitialized, windowInitialized
@@ -31,11 +35,13 @@
      double precision        , allocatable, dimension(:,:) :: angularPowerSpectra
      type            (window)                              :: mangleWindow
    contains
-     !# <methods>
-     !#   <method description="Return the directory containing \gls{mangle} files for this survey geometry." method="mangleDirectory" />
-     !#   <method description="Return array of \gls{mangle} filenames for this survey geometry." method="mangleFiles" />
-     !#   <method description="Initialize an instance of the \gls{mangle} survey geometry class." method="initialize" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return the directory containing \gls{mangle} files for this survey geometry." method="mangleDirectory" />
+       <method description="Return array of \gls{mangle} filenames for this survey geometry." method="mangleFiles" />
+       <method description="Initialize an instance of the \gls{mangle} survey geometry class." method="initialize" />
+     </methods>
+     !!]
      procedure                                  :: windowFunctionAvailable => mangleWindowFunctionAvailable
      procedure                                  :: angularPowerAvailable   => mangleAngularPowerAvailable
      procedure                                  :: solidAngle              => mangleSolidAngle
@@ -73,7 +79,9 @@
 contains
 
   subroutine mangleInitialize(self)
-    !% Internal constructor for the {\normalfont \scshape mangle} conditional mass function class.
+    !!{
+    Internal constructor for the {\normalfont \scshape mangle} conditional mass function class.
+    !!}
     implicit none
     class(surveyGeometryMangle), intent(inout) :: self
 
@@ -84,7 +92,9 @@ contains
   end subroutine mangleInitialize
 
   logical function mangleWindowFunctionAvailable(self)
-    !% Return false to indicate that survey window function is not available.
+    !!{
+    Return false to indicate that survey window function is not available.
+    !!}
     implicit none
     class(surveyGeometryMangle), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -94,7 +104,9 @@ contains
   end function mangleWindowFunctionAvailable
 
   logical function mangleAngularPowerAvailable(self)
-    !% Return true to indicate that survey angular power is available.
+    !!{
+    Return true to indicate that survey angular power is available.
+    !!}
     implicit none
     class(surveyGeometryMangle), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -104,7 +116,9 @@ contains
   end function mangleAngularPowerAvailable
 
   double precision function mangleSolidAngle(self,field)
-    !% Return the survey solid angle computed from \gls{mangle} polygons.
+    !!{
+    Return the survey solid angle computed from \gls{mangle} polygons.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Geometry_Mangle , only : geometryMangleSolidAngle
     use :: String_Handling , only : operator(//)
@@ -142,7 +156,9 @@ contains
   end function mangleSolidAngle
 
   subroutine mangleWindowFunctions(self,mass1,mass2,gridCount,boxLength,windowFunction1,windowFunction2)
-    !% Provides window functions for \gls{mangle}-based survey geometries.
+    !!{
+    Provides window functions for \gls{mangle}-based survey geometries.
+    !!}
     use            :: Galacticus_Error, only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding   , only : c_double_complex
     implicit none
@@ -158,7 +174,9 @@ contains
   end subroutine mangleWindowFunctions
 
   double precision function mangleAngularPower(self,i,j,l)
-    !% Return the survey angular power $C^{ij}_\ell$ from \gls{mangle} polygons.
+    !!{
+    Return the survey angular power $C^{ij}_\ell$ from \gls{mangle} polygons.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Geometry_Mangle , only : geometryMangleAngularPower
     use :: String_Handling , only : operator(//)
@@ -199,7 +217,9 @@ contains
   end function mangleAngularPower
 
   integer function mangleFieldPairIndex(self,i,j)
-    !% Compute the index of a pair of fields in \gls{mangle}-based survey geometries.
+    !!{
+    Compute the index of a pair of fields in \gls{mangle}-based survey geometries.
+    !!}
     implicit none
     class  (surveyGeometryMangle), intent(inout) :: self
     integer                      , intent(in   ) ::  i,  j
@@ -212,7 +232,9 @@ contains
   end function mangleFieldPairIndex
 
   logical function manglePointIncluded(self,point,mass)
-    !% Return true if a point is included in the survey geometry.
+    !!{
+    Return true if a point is included in the survey geometry.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Vectors         , only : Vector_Magnitude
     implicit none

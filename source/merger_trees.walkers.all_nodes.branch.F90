@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a depth-first merger tree walker over all all nodes in a given branch.
+!!{
+Contains a module which implements a depth-first merger tree walker over all all nodes in a given branch.
+!!}
 
-  !# <mergerTreeWalker name="mergerTreeWalkerAllNodesBranch">
-  !#  <description>Provides a merger tree walker which iterates depth-first over all all nodes in a given branch.</description>
-  !# </mergerTreeWalker>
+  !![
+  <mergerTreeWalker name="mergerTreeWalkerAllNodesBranch">
+   <description>Provides a merger tree walker which iterates depth-first over all all nodes in a given branch.</description>
+  </mergerTreeWalker>
+  !!]
   type, extends(mergerTreeWalkerClass) :: mergerTreeWalkerAllNodesBranch
-     !% A merger tree walker which iterates depth-first over all all nodes in a given branch.
+     !!{
+     A merger tree walker which iterates depth-first over all all nodes in a given branch.
+     !!}
      private
      type   (treeNode), pointer :: branchHead  , node
      logical                    :: nodesRemain_
    contains
-     !# <methods>
-     !#   <method description="Descend through the hierarchy to the deepest node along the current branch." method="descend" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Descend through the hierarchy to the deepest node along the current branch." method="descend" />
+     </methods>
+     !!]
      procedure :: next        => allNodesBranchNext
      procedure :: nodesRemain => allNodesBranchNodesRemain
      procedure :: descend     => allNodesBranchDescend
  end type mergerTreeWalkerAllNodesBranch
 
   interface mergerTreeWalkerAllNodesBranch
-     !% Constructors for the {\normalfont \ttfamily allNodesBranch} merger tree walker class.
+     !!{
+     Constructors for the {\normalfont \ttfamily allNodesBranch} merger tree walker class.
+     !!}
      module procedure allNodesBranchParameters
      module procedure allNodesBranchInternal
   end interface mergerTreeWalkerAllNodesBranch
@@ -45,7 +55,9 @@
 contains
 
   function allNodesBranchParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily allNodesBranch} merger tree walker class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily allNodesBranch} merger tree walker class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -58,7 +70,9 @@ contains
   end function allNodesBranchParameters
 
   function allNodesBranchInternal(branchHead) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily allNodesBranch} merger tree walker class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily allNodesBranch} merger tree walker class.
+    !!}
     implicit none
     type(mergerTreeWalkerAllNodesBranch)                          :: self
     type(treeNode                      ), intent(in   ), target   :: branchHead
@@ -70,10 +84,12 @@ contains
   end function allNodesBranchInternal
 
   logical function allNodesBranchNext(self,node)
-    !% This function will update the given {\normalfont \ttfamily node} to the next node which should be visited in a tree branch
-    !% to perform a depth-first walk. Once the entire branch has been walked, a {\normalfont \ttfamily null()} pointer will be
-    !% set, and a value of {\normalfont \ttfamily false} returned indicating that there are no more nodes to walk. Each node will
-    !% be visited once and once only if the branch is walked in this way.
+    !!{
+    This function will update the given {\normalfont \ttfamily node} to the next node which should be visited in a tree branch
+    to perform a depth-first walk. Once the entire branch has been walked, a {\normalfont \ttfamily null()} pointer will be
+    set, and a value of {\normalfont \ttfamily false} returned indicating that there are no more nodes to walk. Each node will
+    be visited once and once only if the branch is walked in this way.
+    !!}
     implicit none
     class(mergerTreeWalkerAllNodesBranch), intent(inout)          :: self
     type (treeNode                      ), intent(inout), pointer :: node
@@ -121,7 +137,9 @@ contains
   end function allNodesBranchNext
 
   logical function allNodesBranchNodesRemain(self)
-    !% Returns true if nodes remain to be visited in the branch.
+    !!{
+    Returns true if nodes remain to be visited in the branch.
+    !!}
     implicit none
     class(mergerTreeWalkerAllNodesBranch), intent(inout) :: self
 
@@ -130,7 +148,9 @@ contains
   end function allNodesBranchNodesRemain
 
   subroutine allNodesBranchDescend(self)
-    !% Descend to the deepest progenitor (satellites and children) of the current branch.
+    !!{
+    Descend to the deepest progenitor (satellites and children) of the current branch.
+    !!}
     implicit none
     class(mergerTreeWalkerAllNodesBranch), intent(inout) :: self
 

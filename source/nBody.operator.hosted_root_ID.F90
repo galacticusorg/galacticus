@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements an N-body data operator which determines an ID of the root halo found by following hosts.
+  !!{
+  Contains a module which implements an N-body data operator which determines an ID of the root halo found by following hosts.
+  !!}
 
-  !# <nbodyOperator name="nbodyOperatorHostedRootID">
-  !#  <description>An N-body data operator which determines an ID of the root halo found by following hosts.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorHostedRootID">
+   <description>An N-body data operator which determines an ID of the root halo found by following hosts.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorHostedRootID
-     !% An N-body data operator which determines an ID of the root halo found by following hosts.
+     !!{
+     An N-body data operator which determines an ID of the root halo found by following hosts.
+     !!}
      private
      logical :: missingHalosAreFatal
    contains
@@ -31,7 +37,9 @@
   end type nbodyOperatorHostedRootID
 
   interface nbodyOperatorHostedRootID
-     !% Constructors for the {\normalfont \ttfamily hostedRootID} N-body operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily hostedRootID} N-body operator class.
+     !!}
      module procedure hostedRootIDConstructorParameters
      module procedure hostedRootIDConstructorInternal
   end interface nbodyOperatorHostedRootID
@@ -39,37 +47,49 @@
 contains
 
   function hostedRootIDConstructorParameters(parameters) result (self)
-    !% Constructor for the {\normalfont \ttfamily hostedRootID} N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily hostedRootID} N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type   (nbodyOperatorHostedRootID)                :: self
     type   (inputParameters          ), intent(inout) :: parameters
     logical                                           :: missingHalosAreFatal
 
-    !# <inputParameter>
-    !#   <name>missingHalosAreFatal</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true, if a halo is not found during the search through hosts and descendents then a fatal error occurs. Otherwise, such missing halos are ignored, and a {\normalfont \ttfamily hostedRootID} value of $-1$ is assigned to the particle.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>missingHalosAreFatal</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, if a halo is not found during the search through hosts and descendents then a fatal error occurs. Otherwise, such missing halos are ignored, and a {\normalfont \ttfamily hostedRootID} value of $-1$ is assigned to the particle.</description>
+    </inputParameter>
+    !!]
     self=nbodyOperatorHostedRootID(missingHalosAreFatal)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function hostedRootIDConstructorParameters
 
   function hostedRootIDConstructorInternal(missingHalosAreFatal) result (self)
-    !% Internal constructor for the {\normalfont \ttfamily hostedRootID} N-body operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily hostedRootID} N-body operator class.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type   (nbodyOperatorHostedRootID)                :: self
     logical                           , intent(in   ) :: missingHalosAreFatal
-    !# <constructorAssign variables="missingHalosAreFatal"/>
+    !![
+    <constructorAssign variables="missingHalosAreFatal"/>
+    !!]
     
     return
   end function hostedRootIDConstructorInternal
 
   subroutine hostedRootIDOperate(self,simulations)
-    !% Determine an ID of the root halo found by following hosts.
+    !!{
+    Determine an ID of the root halo found by following hosts.
+    !!}
     use    :: Arrays_Search     , only : searchIndexed
     use    :: Display           , only : displayCounter         , displayCounterClear, displayIndent, displayUnindent, &
           &                              verbosityLevelStandard

@@ -18,26 +18,30 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 module Merger_Tree_Walkers
-  !% Provides a class of walker objects for merger trees.
+  !!{
+  Provides a class of walker objects for merger trees.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
-  !# <functionClass>
-  !#  <name>mergerTreeWalker</name>
-  !#  <descriptiveName>Merger Tree Walkers</descriptiveName>
-  !#  <description>Class providing walkers for merger trees. Walkers iterate over nodes in a tree.</description>
-  !#  <default>isolatedNodes</default>
-  !#  <method name="next" >
-  !#   <description>Update the pointer to the next node to visit. Returns true if such a node exists, returns false if no such node exists (i.e. if all nodes have been visited already).</description>
-  !#   <type>logical</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout), pointer :: node</argument>
-  !#  </method>
-  !#  <method name="nodesRemain" >
-  !#   <description>Returns true if more nodes remain to be walked to in the tree.</description>
-  !#   <type>logical</type>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>mergerTreeWalker</name>
+   <descriptiveName>Merger Tree Walkers</descriptiveName>
+   <description>Class providing walkers for merger trees. Walkers iterate over nodes in a tree.</description>
+   <default>isolatedNodes</default>
+   <method name="next" >
+    <description>Update the pointer to the next node to visit. Returns true if such a node exists, returns false if no such node exists (i.e. if all nodes have been visited already).</description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout), pointer :: node</argument>
+   </method>
+   <method name="nodesRemain" >
+    <description>Returns true if more nodes remain to be walked to in the tree.</description>
+    <type>logical</type>
+    <pass>yes</pass>
+   </method>
+  </functionClass>
+  !!]
 
 end module Merger_Tree_Walkers

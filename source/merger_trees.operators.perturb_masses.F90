@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a merger tree operator which perturbs halo masses by some error model.
+  !!{
+  Contains a module which implements a merger tree operator which perturbs halo masses by some error model.
+  !!}
 
   use :: Statistics_Distributions         , only : distributionFunction1DNormal
   use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
 
-  !# <mergerTreeOperator name="mergerTreeOperatorPerturbMasses">
-  !#  <description>
-  !#   A merger tree operator which perturbs halo masses by some error model.
-  !# </description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorPerturbMasses">
+   <description>
+    A merger tree operator which perturbs halo masses by some error model.
+  </description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPerturbMasses
-     !% A merger tree operator class perturbs halo masses by some error model.
+     !!{
+     A merger tree operator class perturbs halo masses by some error model.
+     !!}
      private
      class(nbodyHaloMassErrorClass     ), pointer :: nbodyHaloMassError_ => null()
      type (distributionFunction1DNormal)          :: standardNormal
@@ -38,7 +44,9 @@
   end type mergerTreeOperatorPerturbMasses
 
   interface mergerTreeOperatorPerturbMasses
-     !% Constructors for the mass perturbing merger tree operator class.
+     !!{
+     Constructors for the mass perturbing merger tree operator class.
+     !!}
      module procedure perturbMassesConstructorParameters
      module procedure perturbMassesConstructorInternal
   end interface mergerTreeOperatorPerturbMasses
@@ -46,46 +54,62 @@
 contains
 
   function perturbMassesConstructorParameters(parameters) result(self)
-    !% Constructor for the mass perturbing merger tree operator class which takes a
-    !% parameter set as input.
+    !!{
+    Constructor for the mass perturbing merger tree operator class which takes a
+    parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (mergerTreeOperatorPerturbMasses)                :: self
     type (inputParameters                ), intent(inout) :: parameters
     class(nbodyHaloMassErrorClass        ), pointer       :: nbodyHaloMassError_
 
-    !# <objectBuilder class="nbodyHaloMassError" name="nbodyHaloMassError_" source="parameters"/>
+    !![
+    <objectBuilder class="nbodyHaloMassError" name="nbodyHaloMassError_" source="parameters"/>
+    !!]
     self=mergerTreeOperatorPerturbMasses(nbodyHaloMassError_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="nbodyHaloMassError_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="nbodyHaloMassError_"/>
+    !!]
     return
   end function perturbMassesConstructorParameters
 
   function perturbMassesConstructorInternal(nbodyHaloMassError_) result(self)
-    !% Constructor for the mass perturbing merger tree operator class which takes a
-    !% parameter set as input.
+    !!{
+    Constructor for the mass perturbing merger tree operator class which takes a
+    parameter set as input.
+    !!}
     implicit none
     type (mergerTreeOperatorPerturbMasses)                         :: self
     class(nbodyHaloMassErrorClass        ), intent(in   ), target  :: nbodyHaloMassError_
-    !# <constructorAssign variables="*nbodyHaloMassError_"/>
+    !![
+    <constructorAssign variables="*nbodyHaloMassError_"/>
+    !!]
     
     self%standardNormal=distributionFunction1DNormal(0.0d0,1.0d0)
     return
   end function perturbMassesConstructorInternal
 
   subroutine perturbMassesDestructor(self)
-    !% Destructor for the mass perturbing merger tree operator function class.
+    !!{
+    Destructor for the mass perturbing merger tree operator function class.
+    !!}
     implicit none
     type(mergerTreeOperatorPerturbMasses), intent(inout) :: self
 
-    !# <objectDestructor name="self%nbodyHaloMassError_"/>
+    !![
+    <objectDestructor name="self%nbodyHaloMassError_"/>
+    !!]
     return
   end subroutine perturbMassesDestructor
 
   subroutine perturbMassesOperatePreEvolution(self,tree)
-    !% Perform a mass perturbing operation on a merger tree. Perturbations are applied to each branch of the tree, and are
-    !% independent of perturbations in all other branches. Within each branch, the perturbation to each node mass is drawn from a
-    !% log-normal distribution with variance and correlation specified by the selected N-body statistics class.
+    !!{
+    Perform a mass perturbing operation on a merger tree. Perturbations are applied to each branch of the tree, and are
+    independent of perturbations in all other branches. Within each branch, the perturbation to each node mass is drawn from a
+    log-normal distribution with variance and correlation specified by the selected N-body statistics class.
+    !!}
     use            :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, treeNode
     use, intrinsic :: ISO_C_Binding      , only : c_size_t
     use            :: Linear_Algebra     , only : assignment(=)                , matrix            , operator(*), vector

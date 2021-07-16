@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which adds attributes to the data.
+!!{
+Contains a module which implements an N-body data operator which adds attributes to the data.
+!!}
 
-  !# <nbodyOperator name="nbodyOperatorAddAttributes">
-  !#  <description>An N-body data operator which adds attributes to the data.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorAddAttributes">
+   <description>An N-body data operator which adds attributes to the data.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorAddAttributes
-     !% An N-body data operator which adds attributes.
+     !!{
+     An N-body data operator which adds attributes.
+     !!}
      private
      type            (varying_string), allocatable, dimension(:) :: names, values
    contains
@@ -31,7 +37,9 @@
   end type nbodyOperatorAddAttributes
 
   interface nbodyOperatorAddAttributes
-     !% Constructors for the ``addAttributes'' N-body operator class.
+     !!{
+     Constructors for the ``addAttributes'' N-body operator class.
+     !!}
      module procedure addAttributesConstructorParameters
      module procedure addAttributesConstructorInternal
   end interface nbodyOperatorAddAttributes
@@ -39,7 +47,9 @@
 contains
 
   function addAttributesConstructorParameters(parameters) result (self)
-    !% Constructor for the ``addAttributes'' N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``addAttributes'' N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyOperatorAddAttributes)                              :: self
@@ -48,33 +58,43 @@ contains
 
     allocate(names (parameters%count('names' )))
     allocate(values(parameters%count('values')))
-    !# <inputParameter>
-    !#   <name>names</name>
-    !#   <source>parameters</source>
-    !#   <description>A list of attribute names.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>values</name>
-    !#   <source>parameters</source>
-    !#   <description>A list of attribute values.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>names</name>
+      <source>parameters</source>
+      <description>A list of attribute names.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>values</name>
+      <source>parameters</source>
+      <description>A list of attribute values.</description>
+    </inputParameter>
+    !!]
     self=nbodyOperatorAddAttributes(names,values)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function addAttributesConstructorParameters
 
   function addAttributesConstructorInternal(names,values) result (self)
-    !% Internal constructor for the ``addAttributes'' N-body operator class.
+    !!{
+    Internal constructor for the ``addAttributes'' N-body operator class.
+    !!}
     implicit none
     type            (nbodyOperatorAddAttributes)                              :: self
     type            (varying_string            ), intent(in   ), dimension(:) :: names, values
-    !# <constructorAssign variables="names, values"/>
+    !![
+    <constructorAssign variables="names, values"/>
+    !!]
 
     return
   end function addAttributesConstructorInternal
 
   subroutine addAttributesOperate(self,simulations)
-    !% Add attributes to the simulations.
+    !!{
+    Add attributes to the simulations.
+    !!}
     use :: Display        , only : displayIndent    , displayUnindent           , verbosityLevelStandard
     use :: String_Handling, only : String_Value_Type, String_Value_Extract_Float, String_Value_Extract_Integer_Size_T, valueTypeFloating, &
          &                         valueTypeInteger , valueTypeOther

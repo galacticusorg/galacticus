@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which executes system commands.
+!!{
+Contains a module which executes system commands.
+!!}
 
 module System_Command
-  !% Executes system commands.
+  !!{
+  Executes system commands.
+  !!}
   implicit none
   private
   public :: System_Command_Do
@@ -33,7 +37,9 @@ module System_Command
 contains
 
   subroutine System_Command_VarStr(command,iStatus)
-    !% Executes the system command {\normalfont \ttfamily command}, optionally returning the resulting status in {\normalfont \ttfamily iStatus}.
+    !!{
+    Executes the system command {\normalfont \ttfamily command}, optionally returning the resulting status in {\normalfont \ttfamily iStatus}.
+    !!}
     use :: ISO_Varying_String, only : varying_string, char
     implicit none
     type   (varying_string), intent(in   )           :: command
@@ -44,7 +50,9 @@ contains
   end subroutine System_Command_VarStr
 
   subroutine System_Command_Char(command,iStatus)
-    !% Executes the system command {\normalfont \ttfamily command}, optionally returning the resulting status in {\normalfont \ttfamily iStatus}.
+    !!{
+    Executes the system command {\normalfont \ttfamily command}, optionally returning the resulting status in {\normalfont \ttfamily iStatus}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     character(len=*), intent(in   )           :: command

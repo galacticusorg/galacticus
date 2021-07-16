@@ -17,26 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements ram pressure stripping.
+!!{
+Contains a module which provides a class that implements ram pressure stripping.
+!!}
 
 module Ram_Pressure_Stripping_Mass_Loss_Rate
-  !% Provides a class that implements calculations of ram pressure stripping.
+  !!{
+  Provides a class that implements calculations of ram pressure stripping.
+  !!}
   use :: Galacticus_Nodes, only : nodeComponent
   private
 
-  !# <functionClass>
-  !#  <name>ramPressureStripping</name>
-  !#  <descriptiveName>Ram pressure stripping</descriptiveName>
-  !#  <description>
-  !#   Class providing models of ram pressure stripping-induced rates of mass loss.
-  !#  </description>
-  !#  <default>simpleCylindrical</default>
-  !#  <method name="rateMassLoss" >
-  !#   <description>Returns the rate of mass loss (in $M_\odot$~Gyr$^{-1}$) due to ram pressure stripping of the given {\normalfont \ttfamily component}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>class(nodeComponent), intent(inout) :: component</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>ramPressureStripping</name>
+   <descriptiveName>Ram pressure stripping</descriptiveName>
+   <description>
+    Class providing models of ram pressure stripping-induced rates of mass loss.
+   </description>
+   <default>simpleCylindrical</default>
+   <method name="rateMassLoss" >
+    <description>Returns the rate of mass loss (in $M_\odot$~Gyr$^{-1}$) due to ram pressure stripping of the given {\normalfont \ttfamily component}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>class(nodeComponent), intent(inout) :: component</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Ram_Pressure_Stripping_Mass_Loss_Rate

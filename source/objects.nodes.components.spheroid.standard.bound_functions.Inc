@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains custom functions for the standard spheroid component.
+!!{
+Contains custom functions for the standard spheroid component.
+!!}
 
 double precision function Node_Component_Spheroid_Standard_Half_Mass_Radius(self)
-  !% Return the half-mass radius of the standard spheroid.
+  !!{
+  Return the half-mass radius of the standard spheroid.
+  !!}
   use :: Galacticus_Error                     , only : Galacticus_Error_Report
   use :: Mass_Distributions                   , only : massDistributionSpherical
   use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
@@ -38,7 +42,9 @@ double precision function Node_Component_Spheroid_Standard_Half_Mass_Radius(self
 end function Node_Component_Spheroid_Standard_Half_Mass_Radius
 
 double precision function Node_Component_Spheroid_Standard_Enclosed_Mass(self,radius,componentType,massType,weightBy,weightIndex)
-  !% Computes the mass within a given radius for an standard spheroid.
+  !!{
+  Computes the mass within a given radius for an standard spheroid.
+  !!}
   use :: Galactic_Structure_Options           , only : componentTypeAll        , componentTypeSpheroid, massTypeAll    , massTypeBaryonic, &
           &                                            massTypeGalactic        , massTypeGaseous      , massTypeStellar, radiusLarge     , &
           &                                            weightByLuminosity      , weightByMass
@@ -86,7 +92,9 @@ double precision function Node_Component_Spheroid_Standard_Enclosed_Mass(self,ra
 end function Node_Component_Spheroid_Standard_Enclosed_Mass
 
 function Node_Component_Spheroid_Standard_Acceleration(self,positionCartesian,componentType,massType)
-  !% Computes the gravitational acceleration at a given position for a standard spheroid.
+  !!{
+  Computes the gravitational acceleration at a given position for a standard spheroid.
+  !!}
   use :: Galactic_Structure_Options      , only : componentTypeAll               , componentTypeSpheroid, weightByMass, weightIndexNull
   use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
   use :: Numerical_Constants_Astronomical    , only : gravitationalConstantGalacticus
@@ -115,7 +123,9 @@ function Node_Component_Spheroid_Standard_Acceleration(self,positionCartesian,co
 end function Node_Component_Spheroid_Standard_Acceleration
 
 function Node_Component_Spheroid_Standard_Tidal_Tensor(self,positionCartesian,componentType,massType)
-  !% Computes the gravitational tidal tensor at a given position for a standard spheroid.
+  !!{
+  Computes the gravitational tidal tensor at a given position for a standard spheroid.
+  !!}
   use :: Coordinates                          , only : assignment(=)                  , coordinateCartesian
   use :: Galactic_Structure_Options           , only : componentTypeAll               , componentTypeSpheroid, weightByMass, weightIndexNull, &
        &                                               radiusLarge
@@ -146,7 +156,9 @@ function Node_Component_Spheroid_Standard_Tidal_Tensor(self,positionCartesian,co
 end function Node_Component_Spheroid_Standard_Tidal_Tensor
 
 function Node_Component_Spheroid_Standard_Chandrasekhar_Integral(self,positionCartesian,velocityCartesian,componentType,massType)
-  !% Computes the gravitational acceleration at a given position for a standard spheroid.
+  !!{
+  Computes the gravitational acceleration at a given position for a standard spheroid.
+  !!}
   use :: Galactic_Structure_Options, only : componentTypeAll, componentTypeSpheroid, weightByMass, weightIndexNull
   use :: Numerical_Constants_Math  , only : Pi
   implicit none
@@ -191,7 +203,9 @@ function Node_Component_Spheroid_Standard_Chandrasekhar_Integral(self,positionCa
 end function Node_Component_Spheroid_Standard_Chandrasekhar_Integral
 
 double precision function Node_Component_Spheroid_Standard_Rotation_Curve(self,radius,componentType,massType)
-  !% Computes the rotation curve at a given radius for a standard spheroid.
+  !!{
+  Computes the rotation curve at a given radius for a standard spheroid.
+  !!}
   use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
   use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
   implicit none
@@ -214,7 +228,9 @@ double precision function Node_Component_Spheroid_Standard_Rotation_Curve(self,r
 end function Node_Component_Spheroid_Standard_Rotation_Curve
 
 double precision function Node_Component_Spheroid_Standard_Rotation_Curve_Gradient(self,radius,componentType,massType)
-  !% Computes the rotation curve gradient for the standard spheroid.
+  !!{
+  Computes the rotation curve gradient for the standard spheroid.
+  !!}
   use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
   use :: Numerical_Constants_Math    , only : Pi
   use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
@@ -245,7 +261,9 @@ double precision function Node_Component_Spheroid_Standard_Rotation_Curve_Gradie
 end function Node_Component_Spheroid_Standard_Rotation_Curve_Gradient
 
 double precision function Node_Component_Spheroid_Standard_Density(self,positionSpherical,componentType,massType,weightBy,weightIndex)
-  !% Computes the density at a given position for an standard spheroid.
+  !!{
+  Computes the density at a given position for an standard spheroid.
+  !!}
   use :: Coordinates                          , only : assignment(=)           , coordinateSpherical
   use :: Galactic_Structure_Options           , only : componentTypeAll        , componentTypeSpheroid, massTypeAll    , massTypeBaryonic  , &
           &                                            massTypeGalactic        , massTypeGaseous      , massTypeStellar, weightByLuminosity, &
@@ -307,7 +325,9 @@ double precision function Node_Component_Spheroid_Standard_Potential(self,radius
   use :: Galactic_Structure_Options           , only : radiusLarge                    , weightByMass       , weightIndexNull
   use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
   use :: Numerical_Constants_Astronomical         , only : gravitationalConstantGalacticus
-  !% Return the potential due to the standard spheroid.
+  !!{
+  Return the potential due to the standard spheroid.
+  !!}
   class           (nodeComponentSpheroidStandard), intent(inout)           :: self
   integer                                        , intent(in   )           :: componentType, massType
   double precision                               , intent(in   )           :: radius

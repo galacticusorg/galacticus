@@ -160,6 +160,7 @@
     
     <mergerTreeConstructor value="read">
       <fileNames value="testSuite/test-MergerTrees.hdf5"/>
+      <nodeOperatorTreeInitializor value="darkMatterProfileScaleInterpolate"/>
       <hotHaloRamPressureStripping value="virialRadius" parameterLevel="top"/>
       <hotHaloTrackStrippedGas value="false" parameterLevel="top"/>
       <satelliteOrbitStoreOrbitalParameters value="false" parameterLevel="top"/>
@@ -188,6 +189,58 @@
       <presetPositions value="true"/>
       <presetSpins value="false"/>
       <presetScaleRadii value="false"/>
+    </mergerTreeConstructor>
+
+
+
+    <!-- Tree filtering -->
+    <mergerTreeConstructor value="filter">
+      <mergerTreeConstructor value="build">
+	<redshiftBase value="0.0"/>
+      </mergerTreeConstructor>
+      <!-- Filter trees - keep only those which pass all of the subsequent filters -->
+      <mergerTreeFilter value="all" iterable="no">
+	<!-- Build a filter to select trees with LMCs -->
+	<mergerTreeFilter value="anyNode" iterable="no">
+          <!-- Apply all LMC conditions -->
+          <galacticFilter value="all">
+            <!-- Consider the main branch (i.e. Milky Way halo) of the tree only -->
+            <galacticFilter value="mainBranch" iterable="no"/>
+            <!-- Consider only halos existing in the last 2 Gyr -->
+            <galacticFilter value="highPass" iterable="no">
+              <nodePropertyExtractor value="time"/>
+              <threshold             value="11.8"/>
+            </galacticFilter>
+            <!-- Consider only halos with a rank-2 child with a maximum circular velocity above 55 km/s -->
+            <galacticFilter value="childNode" iterable="no">
+              <childRank value="2"/>
+              <galacticFilter value="highPass">
+		<nodePropertyExtractor value="velocityMaximum"/>
+		<threshold             value="55.0"           />
+              </galacticFilter>
+            </galacticFilter>
+          </galacticFilter>
+	</mergerTreeFilter>
+	<!-- Build a filter to select trees with Gaia-Enceladous mergers -->
+	<mergerTreeFilter value="anyNode" iterable="no">
+          <!-- Apply all Gaia-Enceladus conditions -->
+          <galacticFilter value="all" iterable="no">
+            <!-- Consider the main branch (i.e. Milky Way halo) of the tree only -->
+            <galacticFilter value="mainBranch" iterable="no"/>
+            <!-- Consider only halos existing in the redshift range 1-2 -->
+            <galacticFilter value="intervalPass" iterable="no">
+              <nodePropertyExtractor value="redshift"/>
+              <thresholdLow          value="1.0"/>
+              <thresholdHigh         value="2.0"/>
+            </galacticFilter>
+            <!--Consider only halos which undergo a merger in the mass ratio range 0.15-0.25  -->
+            <galacticFilter value="mergerRatio" iterable="no">
+              <ratioLow              value="0.15"/>
+              <ratioHigh             value="0.25"/>
+            </galacticFilter>
+          </galacticFilter>
+	</mergerTreeFilter>
+      </mergerTreeFilter>
     </mergerTreeConstructor>
     
     <cosmologyParameters value="simple">
@@ -717,6 +770,8 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodeOperator value="multi">
+      <!-- Halo concentrations -->
+      <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <!-- Halo spins -->
       <nodeOperator value="haloSpinRandom" iterable="no">
 	<factorReset value="2.0"/>
@@ -751,6 +806,8 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodeOperator value="multi">
+      <!-- Halo concentrations -->
+      <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <!-- Halo spins -->
       <nodeOperator value="haloSpinRandom" iterable="no">
 	<factorReset value="2.0"/>
@@ -787,6 +844,8 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodeOperator value="multi">
+      <!-- Halo concentrations -->
+      <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <!-- Halo spins -->
       <nodeOperator value="haloSpinRandom" iterable="no">
 	<factorReset value="2.0"/>
@@ -822,6 +881,8 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodeOperator value="multi">
+      <!-- Halo concentrations -->
+      <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <!-- Halo spins -->
       <nodeOperator value="haloSpinRandom" iterable="no">
 	<factorReset value="2.0"/>
@@ -983,6 +1044,7 @@
     </spheroidMassDistribution>
     <componentSpin value="scalar"/>
     <nodeOperator value="multi" >
+      <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <nodeOperator value="haloSpinRandom" iterable="no">
 	<factorReset value="2.0"/>
       </nodeOperator>
@@ -1052,7 +1114,11 @@
       <darkMatterProfileDMO value="NFW"/>
     </darkMatterProfileDMO>
     <darkMatterProfileConcentration value="gao2008"/>
-    <darkMatterProfileMinimumConcentration value="4"/>
+    <darkMatterProfileScaleRadius value="concentrationLimiter">
+      <concentrationMinimum value="  4.0"/>
+      <concentrationMaximum value="100.0"/>
+      <darkMatterProfileScaleRadius value="concentration"/>
+    </darkMatterProfileScaleRadius>
     <haloSpinDistribution value="bett2007">
       <alpha value="2.509"/>
       <lambda0 value="0.04326"/>
@@ -1098,6 +1164,10 @@
   <version>0.9.4</version>
     <accretionHalo value="zero"/>
     <darkMatterProfileDMO value="isothermal"/>
+    <darkMatterProfileConcentration value="fixed">
+      <concentration value="10.0"/>
+    </darkMatterProfileConcentration>
+    <darkMatterProfileScaleRadius value="zero"/>
     <hotHaloMassDistribution value="null"/>
     <mergerRemnantSize value="null"/>
     <mergerTreeBuildMasses value="sampledDistributionUniform">
@@ -1162,7 +1232,7 @@
     <nodeOperator value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
-    <componentDarkMatterProfile value="scale"/>
+    <componentDarkMatterProfile value="null"/>
     <componentDisk value="null"/>
     <componentHotHalo value="null"/>
     <componentPosition value="null"/>
@@ -1174,17 +1244,21 @@
 
   <!-- Merger tree regridding -->
   <parameters>
-  <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
     <accretionHalo value="zero"/>
     <darkMatterProfileDMO value="isothermal"/>
+    <darkMatterProfileConcentration value="fixed">
+      <concentration value="10.0"/>
+    </darkMatterProfileConcentration>
+    <darkMatterProfileScaleRadius value="zero"/>
     <hotHaloMassDistribution value="null"/>
     <mergerRemnantSize value="null"/>
     <mergerTreeBuildMasses value="sampledDistributionUniform">
-    <massTreeMaximum value="6.0e12"/>
-    <massTreeMinimum value="2.0e12"/>
-    <treesPerDecade value="10"/>
-  </mergerTreeBuildMasses>
+      <massTreeMaximum value="6.0e12"/>
+      <massTreeMinimum value="2.0e12"/>
+      <treesPerDecade value="10"/>
+    </mergerTreeBuildMasses>
     <mergerTreeBuilder value="cole2000">
       <accretionLimit value="0.1"/>
       <branchIntervalStep value="false"/>
@@ -1537,6 +1611,9 @@
     <accretionHalo value="zero"/>
     <darkMatterProfileDMO value="isothermal"/>
     <darkMatterProfileScaleRadius value="zero"/>
+    <darkMatterProfileConcentration value="fixed">
+      <concentration value="10.0"/>
+    </darkMatterProfileConcentration>
     <hotHaloMassDistribution value="null"/>
     <mergerRemnantSize value="null"/>
     <mergerTreeConstructor value="read">
@@ -1571,7 +1648,7 @@
     <nodeOperator value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
-    <componentDarkMatterProfile value="scale"/>
+    <componentDarkMatterProfile value="null"/>
     <componentDisk value="null"/>
     <componentHotHalo value="null"/>
     <componentPosition value="null"/>
@@ -1588,6 +1665,9 @@
     <accretionHalo value="zero"/>
     <darkMatterProfileDMO value="isothermal"/>
     <darkMatterProfileScaleRadius value="zero"/>
+    <darkMatterProfileConcentration value="fixed">
+      <concentration value="10.0"/>
+    </darkMatterProfileConcentration>
     <hotHaloMassDistribution value="null"/>
     <mergerRemnantSize value="null"/>
     <mergerTreeConstructor value="read">
@@ -1618,7 +1698,7 @@
     <nodeOperator value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
-    <componentDarkMatterProfile value="scale"/>
+    <componentDarkMatterProfile value="null"/>
     <componentDisk value="null"/>
     <componentHotHalo value="null"/>
     <componentPosition value="null"/>
@@ -1635,6 +1715,9 @@
     <accretionHalo value="zero"/>
     <darkMatterProfileDMO value="isothermal"/>
     <darkMatterProfileScaleRadius value="zero"/>
+    <darkMatterProfileConcentration value="fixed">
+      <concentration value="10.0"/>
+    </darkMatterProfileConcentration>
     <hotHaloMassDistribution value="null"/>
     <mergerRemnantSize value="null"/>
     <cosmologicalMassVariance value="filteredPower">
@@ -1648,15 +1731,15 @@
       <temperatureCMB value="2.72548"/>
     </cosmologyParameters>
     <mergerTreeConstructor value="read">
-  <fileNames value="testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000019000000.hdf5"/>
-    <presetMergerTimes value="false"/>
-    <presetMergerNodes value="false"/>
-    <presetSubhaloMasses value="false"/>
-    <presetSubhaloIndices value="false"/>
-    <presetPositions value="false"/>
-    <presetScaleRadii value="false"/>
-    <presetSpins value="false"/>
-    <presetOrbits value="false"/>
+      <fileNames value="testSuite/data/mergerTrees/splitForests-milliMillennium-tree1000019000000.hdf5"/>
+      <presetMergerTimes value="false"/>
+      <presetMergerNodes value="false"/>
+      <presetSubhaloMasses value="false"/>
+      <presetSubhaloIndices value="false"/>
+      <presetPositions value="false"/>
+      <presetScaleRadii value="false"/>
+      <presetSpins value="false"/>
+      <presetOrbits value="false"/>
     </mergerTreeConstructor>
     <mergerTreeEvolver value="standard">
       <allTreesExistAtFinalTime value="false"/>
@@ -1668,7 +1751,7 @@
     <nodeOperator value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
-    <componentDarkMatterProfile value="scale"/>
+    <componentDarkMatterProfile value="null"/>
     <componentDisk value="null"/>
     <componentHotHalo value="null"/>
     <componentPosition value="null"/>
@@ -1682,7 +1765,7 @@
   <parameters>
   <formatVersion>2</formatVersion>
   <version>0.9.4</version>
-    <nodeOperator value="null"/>
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <componentBasic value="standard"/>
     <componentHotHalo value="null"/>
     <componentBlackHole value="null"/>
@@ -1746,7 +1829,7 @@
     </excursionSetBarrier>
     <excursionSetFirstCrossing value="farahi">
       <timeStepFractional value="0.01"/>
-      <fileName value="%DATADYNAMICPATH%/largeScaleStructure/excursionSets/excursionSetsWdmMx2.0Gx1.5.hdf5"/>
+      <fileName value="auto"/>
     </excursionSetFirstCrossing>
     <darkMatterProfileConcentration value="schneider2015">
       <reference value="">
@@ -1819,17 +1902,17 @@
   </mergerTreeEvolver>
 
   <mergerTreeEvolveTimestep value="multi">
-      <mergerTreeEvolveTimestep value="simple">
-	<timeStepAbsolute value="10.00"/>
-	<timeStepRelative value="10.00"/>
-      </mergerTreeEvolveTimestep>
-      <mergerTreeEvolveTimestep value="satellite"/>
+    <mergerTreeEvolveTimestep value="simple"    iterable="no" >
+      <timeStepAbsolute value="10.00"/>
+      <timeStepRelative value="10.00"/>
     </mergerTreeEvolveTimestep>
-    <outputTimestepHistory value="false"/>
-    <outputTimes value="list">
+    <mergerTreeEvolveTimestep value="satellite" iterable="no"/>
+  </mergerTreeEvolveTimestep>
+  <outputTimestepHistory value="false"/>
+  <outputTimes value="list">
     <redshifts value="0.0"/>
   </outputTimes>
-
+  
   <verbosityLevel value="standard"/>
   </parameters>
 

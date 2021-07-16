@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements halo mass functions.
+!!{
+Contains a module which provides a class that implements halo mass functions.
+!!}
 
 module Halo_Mass_Functions
   use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
@@ -25,86 +27,90 @@ module Halo_Mass_Functions
   implicit none
   private
 
-  !# <functionClass>
-  !#  <name>haloMassFunction</name>
-  !#  <descriptiveName>Halo Mass Function</descriptiveName>
-  !#  <description>Class providing halo mass functions.</description>
-  !#  <default>tinker2008</default>
-  !#  <data>double precision                                    :: time_                         </data>
-  !#  <data>class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()</data>
-  !#  <data>type            (treeNode                ), pointer :: node                 => null()</data>
-  !#  <data>
-  !#   <scope>module</scope>
-  !#   <threadprivate>yes</threadprivate>
-  !#   <content>class(haloMassFunctionClass), pointer :: globalSelf</content>
-  !#  </data>
-  !#  <method name="differential" >
-  !#   <description>Return the differential halo mass function for {\normalfont \ttfamily mass} [$M_\odot$] at {\normalfont \ttfamily time} [Gyr].</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision          , intent(in   )           :: time, mass</argument>
-  !#   <argument>type            (treeNode), intent(inout), optional :: node      </argument>
-  !#  </method>
-  !#  <method name="integrated" >
-  !#   <description>Return the halo mass function at {\normalfont \ttfamily time} [Gyr] integrated between {\normalfont \ttfamily massLow} and {\normalfont \ttfamily massHigh} [$M_\odot$].</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <selfTarget>yes</selfTarget>
-  !#   <argument>double precision          , intent(in   )                   :: time, massLow, massHigh</argument>
-  !#   <argument>type            (treeNode), intent(inout), target, optional :: node                   </argument>
-  !#   <modules>Numerical_Integration</modules>
-  !#   <code>
-  !#    double precision             :: logMassHigh, logMassLow
-  !#    type            (integrator) :: integrator_
-  !#    globalSelf => self
-  !#    if (present(node)) then
-  !#       self%node => node
-  !#    else
-  !#       self%node => null()
-  !#    end if
-  !#    self%time_ =  time
-  !#    logMassLow =log(massLow )
-  !#    logMassHigh=log(massHigh)
-  !#    integrator_=integrator(integratedIntegrand,toleranceRelative=1.0d-3,integrationRule=GSL_Integ_Gauss15)
-  !#    haloMassFunctionIntegrated=integrator_%integrate(logMassLow,logMassHigh)
-  !#    return
-  !#   </code>
-  !#  </method>
-  !#  <method name="massFraction" >
-  !#   <description>Return the halo mass fraction at {\normalfont \ttfamily time} [Gyr] integrated between {\normalfont \ttfamily massLow} and {\normalfont \ttfamily massHigh} [$M_\odot$].</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <selfTarget>yes</selfTarget>
-  !#   <argument>double precision          , intent(in   )                   :: time, massLow, massHigh</argument>
-  !#   <argument>type            (treeNode), intent(inout), target, optional :: node                   </argument>
-  !#   <modules>Numerical_Integration</modules>
-  !#   <code>
-  !#    double precision             :: logMassHigh, logMassLow
-  !#    type            (integrator) :: integrator_
-  !#    globalSelf => self
-  !#    if (present(node)) then
-  !#       self%node => node
-  !#    else
-  !#       self%node => null()
-  !#    end if
-  !#    self%time_ =  time
-  !#    logMassLow =log(massLow )
-  !#    logMassHigh=log(massHigh)
-  !#    integrator_=integrator(massFractionIntegrand,toleranceRelative=1.0d-3,integrationRule=GSL_Integ_Gauss15)
-  !#    haloMassFunctionMassFraction=integrator_%integrate(logMassLow,logMassHigh)
-  !#    ! Convert to a mass fraction.
-  !#    haloMassFunctionMassFraction=+haloMassFunctionMassFraction                &amp;
-  !#        &amp;                    /self%cosmologyParameters_%densityCritical() &amp;
-  !#        &amp;                    /self%cosmologyParameters_%OmegaMatter    ()
-  !#    return
-  !#   </code>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>haloMassFunction</name>
+   <descriptiveName>Halo Mass Function</descriptiveName>
+   <description>Class providing halo mass functions.</description>
+   <default>tinker2008</default>
+   <data>double precision                                    :: time_                         </data>
+   <data>class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()</data>
+   <data>type            (treeNode                ), pointer :: node                 => null()</data>
+   <data>
+    <scope>module</scope>
+    <threadprivate>yes</threadprivate>
+    <content>class(haloMassFunctionClass), pointer :: globalSelf</content>
+   </data>
+   <method name="differential" >
+    <description>Return the differential halo mass function for {\normalfont \ttfamily mass} [$M_\odot$] at {\normalfont \ttfamily time} [Gyr].</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision          , intent(in   )           :: time, mass</argument>
+    <argument>type            (treeNode), intent(inout), optional :: node      </argument>
+   </method>
+   <method name="integrated" >
+    <description>Return the halo mass function at {\normalfont \ttfamily time} [Gyr] integrated between {\normalfont \ttfamily massLow} and {\normalfont \ttfamily massHigh} [$M_\odot$].</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>double precision          , intent(in   )                   :: time, massLow, massHigh</argument>
+    <argument>type            (treeNode), intent(inout), target, optional :: node                   </argument>
+    <modules>Numerical_Integration</modules>
+    <code>
+     double precision             :: logMassHigh, logMassLow
+     type            (integrator) :: integrator_
+     globalSelf => self
+     if (present(node)) then
+        self%node => node
+     else
+        self%node => null()
+     end if
+     self%time_ =  time
+     logMassLow =log(massLow )
+     logMassHigh=log(massHigh)
+     integrator_=integrator(integratedIntegrand,toleranceRelative=1.0d-3,integrationRule=GSL_Integ_Gauss15)
+     haloMassFunctionIntegrated=integrator_%integrate(logMassLow,logMassHigh)
+     return
+    </code>
+   </method>
+   <method name="massFraction" >
+    <description>Return the halo mass fraction at {\normalfont \ttfamily time} [Gyr] integrated between {\normalfont \ttfamily massLow} and {\normalfont \ttfamily massHigh} [$M_\odot$].</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>double precision          , intent(in   )                   :: time, massLow, massHigh</argument>
+    <argument>type            (treeNode), intent(inout), target, optional :: node                   </argument>
+    <modules>Numerical_Integration</modules>
+    <code>
+     double precision             :: logMassHigh, logMassLow
+     type            (integrator) :: integrator_
+     globalSelf => self
+     if (present(node)) then
+        self%node => node
+     else
+        self%node => null()
+     end if
+     self%time_ =  time
+     logMassLow =log(massLow )
+     logMassHigh=log(massHigh)
+     integrator_=integrator(massFractionIntegrand,toleranceRelative=1.0d-3,integrationRule=GSL_Integ_Gauss15)
+     haloMassFunctionMassFraction=integrator_%integrate(logMassLow,logMassHigh)
+     ! Convert to a mass fraction.
+     haloMassFunctionMassFraction=+haloMassFunctionMassFraction                &amp;
+         &amp;                    /self%cosmologyParameters_%densityCritical() &amp;
+         &amp;                    /self%cosmologyParameters_%OmegaMatter    ()
+     return
+    </code>
+   </method>
+  </functionClass>
+  !!]
 
 contains
 
   double precision function integratedIntegrand(logMass)
-    !% Integrand function used to integrate the dark matter halo mass function.
+    !!{
+    Integrand function used to integrate the dark matter halo mass function.
+    !!}
     implicit none
     double precision, intent(in   ) :: logMass
     double precision                :: mass
@@ -123,7 +129,9 @@ contains
   end function integratedIntegrand
 
   double precision function massFractionIntegrand(logMass)
-    !% Integrand function used in computing the halo mass fraction.
+    !!{
+    Integrand function used in computing the halo mass fraction.
+    !!}
     implicit none
     double precision, intent(in   ) :: logMass
     double precision                :: mass

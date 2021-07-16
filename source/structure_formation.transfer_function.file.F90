@@ -17,120 +17,136 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a file-based transfer function class.
+  !!{
+  Implements a file-based transfer function class.
+  !!}
 
   use :: Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
   use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
   use :: Tables              , only : table1DGeneric
 
-  !# <transferFunction name="transferFunctionFile">
-  !#  <description>
-  !# Provides a transfer function from a tabulation given in an HDF5 file with the following structure:
-  !# \begin{verbatim}
-  !# HDF5 "transferFunction.hdf5" {
-  !# GROUP "/" {
-  !#    ATTRIBUTE "description" {
-  !#       DATATYPE  H5T_STRING {
-  !#          STRSIZE 71;
-  !#          STRPAD H5T_STR_NULLTERM;
-  !#          CSET H5T_CSET_ASCII;
-  !#          CTYPE H5T_C_S1;
-  !#       }
-  !#       DATASPACE  SCALAR
-  !#    }
-  !#    ATTRIBUTE "fileFormat" {
-  !#       DATATYPE  H5T_STD_I32LE
-  !#       DATASPACE  SCALAR
-  !#    }
-  !#    ATTRIBUTE "redshift" {
-  !#       DATATYPE  H5T_STD_I32LE
-  !#       DATASPACE  SCALAR
-  !#    }
-  !#    GROUP "extrapolation" {
-  !#       GROUP "wavenumber" {
-  !#          ATTRIBUTE "high" {
-  !#             DATATYPE  H5T_STRING {
-  !#                STRSIZE 11;
-  !#                STRPAD H5T_STR_NULLTERM;
-  !#                CSET H5T_CSET_ASCII;
-  !#                CTYPE H5T_C_S1;
-  !#             }
-  !#             DATASPACE  SCALAR
-  !#          }
-  !#          ATTRIBUTE "low" {
-  !#             DATATYPE  H5T_STRING {
-  !#                STRSIZE 3;
-  !#                STRPAD H5T_STR_NULLTERM;
-  !#                CSET H5T_CSET_ASCII;
-  !#                CTYPE H5T_C_S1;
-  !#             }
-  !#             DATASPACE  SCALAR
-  !#          }
-  !#       }
-  !#    }
-  !#    GROUP "parameters" {
-  !#       ATTRIBUTE "HubbleConstant" {
-  !#          DATATYPE  H5T_STRING {
-  !#             STRSIZE 4;
-  !#             STRPAD H5T_STR_NULLTERM;
-  !#             CSET H5T_CSET_ASCII;
-  !#             CTYPE H5T_C_S1;
-  !#          }
-  !#          DATASPACE  SCALAR
-  !#       }
-  !#       ATTRIBUTE "OmegaBaryon" {
-  !#          DATATYPE  H5T_STRING {
-  !#             STRSIZE 6;
-  !#             STRPAD H5T_STR_NULLTERM;
-  !#             CSET H5T_CSET_ASCII;
-  !#             CTYPE H5T_C_S1;
-  !#          }
-  !#          DATASPACE  SCALAR
-  !#       }
-  !#       ATTRIBUTE "OmegaDarkEnergy" {
-  !#          DATATYPE  H5T_STRING {
-  !#             STRSIZE 5;
-  !#             STRPAD H5T_STR_NULLTERM;
-  !#             CSET H5T_CSET_ASCII;
-  !#             CTYPE H5T_C_S1;
-  !#          }
-  !#          DATASPACE  SCALAR
-  !#       }
-  !#       ATTRIBUTE "OmegaMatter" {
-  !#          DATATYPE  H5T_STRING {
-  !#             STRSIZE 5;
-  !#             STRPAD H5T_STR_NULLTERM;
-  !#             CSET H5T_CSET_ASCII;
-  !#             CTYPE H5T_C_S1;
-  !#          }
-  !#          DATASPACE  SCALAR
-  !#       }
-  !#    }
-  !#    DATASET "transferFunction" {
-  !#       DATATYPE  H5T_IEEE_F64LE
-  !#       DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
-  !#    }
-  !#    DATASET "wavenumber" {
-  !#       DATATYPE  H5T_IEEE_F64LE
-  !#       DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
-  !#    }
-  !# }
-  !# }
-  !# \end{verbatim}
-  !# </description>
-  !# </transferFunction>
+  !![
+  <transferFunction name="transferFunctionFile">
+   <description>
+  Provides a transfer function from a tabulation given in an HDF5 file with the following structure:
+  \begin{verbatim}
+  HDF5 "transferFunction.hdf5" {
+  GROUP "/" {
+     ATTRIBUTE "description" {
+        DATATYPE  H5T_STRING {
+           STRSIZE 71;
+           STRPAD H5T_STR_NULLTERM;
+           CSET H5T_CSET_ASCII;
+           CTYPE H5T_C_S1;
+        }
+        DATASPACE  SCALAR
+     }
+     ATTRIBUTE "fileFormat" {
+        DATATYPE  H5T_STD_I32LE
+        DATASPACE  SCALAR
+     }
+     ATTRIBUTE "redshift" {
+        DATATYPE  H5T_STD_I32LE
+        DATASPACE  SCALAR
+     }
+     GROUP "extrapolation" {
+        GROUP "wavenumber" {
+           ATTRIBUTE "high" {
+              DATATYPE  H5T_STRING {
+                 STRSIZE 11;
+                 STRPAD H5T_STR_NULLTERM;
+                 CSET H5T_CSET_ASCII;
+                 CTYPE H5T_C_S1;
+              }
+              DATASPACE  SCALAR
+           }
+           ATTRIBUTE "low" {
+              DATATYPE  H5T_STRING {
+                 STRSIZE 3;
+                 STRPAD H5T_STR_NULLTERM;
+                 CSET H5T_CSET_ASCII;
+                 CTYPE H5T_C_S1;
+              }
+              DATASPACE  SCALAR
+           }
+        }
+     }
+     GROUP "parameters" {
+        ATTRIBUTE "HubbleConstant" {
+           DATATYPE  H5T_STRING {
+              STRSIZE 4;
+              STRPAD H5T_STR_NULLTERM;
+              CSET H5T_CSET_ASCII;
+              CTYPE H5T_C_S1;
+           }
+           DATASPACE  SCALAR
+        }
+        ATTRIBUTE "OmegaBaryon" {
+           DATATYPE  H5T_STRING {
+              STRSIZE 6;
+              STRPAD H5T_STR_NULLTERM;
+              CSET H5T_CSET_ASCII;
+              CTYPE H5T_C_S1;
+           }
+           DATASPACE  SCALAR
+        }
+        ATTRIBUTE "OmegaDarkEnergy" {
+           DATATYPE  H5T_STRING {
+              STRSIZE 5;
+              STRPAD H5T_STR_NULLTERM;
+              CSET H5T_CSET_ASCII;
+              CTYPE H5T_C_S1;
+           }
+           DATASPACE  SCALAR
+        }
+        ATTRIBUTE "OmegaMatter" {
+           DATATYPE  H5T_STRING {
+              STRSIZE 5;
+              STRPAD H5T_STR_NULLTERM;
+              CSET H5T_CSET_ASCII;
+              CTYPE H5T_C_S1;
+           }
+           DATASPACE  SCALAR
+        }
+     }
+     DATASET "transferFunction" {
+        DATATYPE  H5T_IEEE_F64LE
+        DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
+     }
+     DATASET "wavenumber" {
+        DATATYPE  H5T_IEEE_F64LE
+        DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
+     }
+  }
+  }
+  \end{verbatim}
+
+  If an optional \refClass{transferFunctionClass} object named {\normalfont \ttfamily transferFunctionReference} is supplied then
+  that transfer function is multiplied by the tabulated transfer function. In this case half and quarter-mode masses relative to
+  {\normalfont \ttfamily transferFunctionReference} are also computed.
+  </description>
+  </transferFunction>
+  !!]
   type, extends(transferFunctionClass) :: transferFunctionFile
-     !% A transfer function class which interpolates a transfer function given in a file.
+     !!{
+     A transfer function class which interpolates a transfer function given in a file.
+     !!}
      private
-     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
-     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_  => null()
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_               => null()
+     class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_                => null()
+     class           (transferFunctionClass   ), pointer :: transferFunctionReference          => null()
      type            (varying_string          )          :: fileName
      type            (table1DGeneric          )          :: transfer
-     double precision                                    :: time                          , redshift
+     logical                                             :: massHalfModeAvailable                       , massQuarterModeAvailable, &
+          &                                                 transferFunctionReferenceAvailable
+     double precision                                    :: time                                        , redshift                , &
+          &                                                 massHalfMode                                , massQuarterMode
    contains
-     !# <methods>
-     !#   <method description="Read the named transfer function file." method="readFile" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Read the named transfer function file." method="readFile" />
+     </methods>
+     !!]
      final     ::                          fileDestructor
      procedure :: readFile              => fileReadFile
      procedure :: value                 => fileValue
@@ -141,7 +157,9 @@
   end type transferFunctionFile
 
   interface transferFunctionFile
-     !% Constructors for the file transfer function class.
+     !!{
+     Constructors for the file transfer function class.
+     !!}
      module procedure fileConstructorParameters
      module procedure fileConstructorInternal
   end interface transferFunctionFile
@@ -153,53 +171,146 @@
 contains
 
   function fileConstructorParameters(parameters) result(self)
-    !% Constructor for the file transfer function class which takes a parameter set as input.
+    !!{
+    Constructor for the file transfer function class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (transferFunctionFile    )                :: self
     type            (inputParameters         ), intent(inout) :: parameters
     class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
+    class           (transferFunctionClass   ), pointer       :: transferFunctionReference
     type            (varying_string          )                :: fileName
     double precision                                          :: redshift
 
-    !# <inputParameter>
-    !#   <name>fileName</name>
-    !#   <source>parameters</source>
-    !#   <description>The name of the file from which to read a tabulated transfer function.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>redshift</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The redshift of the transfer function to read.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    self=transferFunctionFile(char(fileName),redshift,cosmologyParameters_,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
+    !![
+    <inputParameter>
+      <name>fileName</name>
+      <source>parameters</source>
+      <description>The name of the file from which to read a tabulated transfer function.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>redshift</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The redshift of the transfer function to read.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !!]
+    if (parameters%isPresent('transferFunctionReference')) then
+       !![
+       <objectBuilder class="transferFunction" name="transferFunctionReference" source="parameters" parameterName="transferFunctionReference"/>
+       !!]
+    else
+       transferFunctionReference => null()
+    end if
+    !![
+    <conditionalCall>
+      <call>self=transferFunctionFile(char(fileName),redshift,cosmologyParameters_,cosmologyFunctions_{conditions})</call>
+      <argument name="transferFunctionReference" value="transferFunctionReference" parameterPresent="parameters"/>
+    </conditionalCall>
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    !!]
+    if (parameters%isPresent('transferFunctionReference')) then
+       !![
+       <objectDestructor name="transferFunctionReference"/>
+       !!]
+    end if
     return
   end function fileConstructorParameters
 
-  function fileConstructorInternal(fileName,redshift,cosmologyParameters_,cosmologyFunctions_) result(self)
-    !% Internal constructor for the file transfer function class.
+  function fileConstructorInternal(fileName,redshift,cosmologyParameters_,cosmologyFunctions_,transferFunctionReference) result(self)
+    !!{
+    Internal constructor for the file transfer function class.
+    !!}
+    use :: Numerical_Constants_Math, only : Pi
     implicit none
-    type            (transferFunctionFile    )                        :: self
-    character       (len=*                   ), intent(in   )         :: fileName
-    double precision                          , intent(in   )         :: redshift
-    class           (cosmologyParametersClass), intent(in   ), target :: cosmologyParameters_
-    class           (cosmologyFunctionsClass ), intent(in   ), target :: cosmologyFunctions_
-    !# <constructorAssign variables="fileName, redshift, *cosmologyParameters_, *cosmologyFunctions_"/>
+    type            (transferFunctionFile    )                                  :: self
+    character       (len=*                   ), intent(in   )                   :: fileName
+    double precision                          , intent(in   )                   :: redshift
+    class           (cosmologyParametersClass), intent(in   ), target           :: cosmologyParameters_
+    class           (cosmologyFunctionsClass ), intent(in   ), target           :: cosmologyFunctions_
+    class           (transferFunctionClass   ), intent(in   ), target, optional :: transferFunctionReference
+    double precision                                                            :: matterDensity            , ratio     , &
+         &                                                                         ratioTarget              , wavenumber, &
+         &                                                                         ratioPrevious
+    integer                                                                     :: i                        , j
+    !![
+    <constructorAssign variables="fileName, redshift, *cosmologyParameters_, *cosmologyFunctions_, *transferFunctionReference"/>
+    !!]
 
     self%time=self%cosmologyFunctions_%cosmicTime(self%cosmologyFunctions_%expansionFactorFromRedshift(redshift))
     call self%readFile(fileName)
+    ! Compute half and quarter-mode masses.
+    self%transferFunctionReferenceAvailable=present(transferFunctionReference)
+    self%massHalfModeAvailable             =.false.
+    self%massQuarterModeAvailable          =.false.
+    if (self%transferFunctionReferenceAvailable) then
+       matterDensity          =+self%cosmologyParameters_%OmegaMatter    () &
+            &                  *self%cosmologyParameters_%densityCritical()
+       do i=1,2
+          ! Set the ratio to seek.
+          select case (i)
+          case (1)
+             ratioTarget=0.50d0
+          case (2)
+             ratioTarget=0.25d0
+          end select
+          ! Step from large to small scales until the target ratio is reached.
+          ratio        =0.0d0
+          ratioPrevious=0.0d0
+          do j=1,self%transfer%size()
+             ratioPrevious=+ratio
+             ratio        =+exp(self%transfer%y(j))
+             if (ratio < ratioTarget) then
+                if (j > 1) then            
+                   ! Interpolate to find the exact wavenumber.
+                   wavenumber=+exp(                                                                  &
+                        &          +(+              ratioTarget   -              ratioPrevious     ) &
+                        &          /(+              ratio         -              ratioPrevious     ) &
+                        &          *(+self%transfer%x          (j)-self%transfer%x            (j-1)) &
+                        &          +                               self%transfer%x            (j-1)  &
+                        &         )
+                   ! Compute the mode mass and mark it as available.                   
+                   select case (i)
+                   case (1)
+                      self%massHalfModeAvailable   =.true.
+                      self%massHalfMode            =+4.0d0         &
+                           &                        *Pi            &
+                           &                        /3.0d0         &
+                           &                        *matterDensity &
+                           &                        *(             &
+                           &                          +Pi          &
+                           &                          /wavenumber  &
+                           &                        )**3
+                   case (2)
+                      self%massQuarterModeAvailable=.true.
+                      self%massQuarterMode         =+4.0d0         &
+                           &                        *Pi            &
+                           &                        /3.0d0         &
+                           &                        *matterDensity &
+                           &                        *(             &
+                           &                          +Pi          &
+                           &                          /wavenumber  &
+                           &                        )**3
+                   end select
+                end if
+                exit
+             end if
+          end do
+       end do
+    end if
     return
   end function fileConstructorInternal
 
   subroutine fileReadFile(self,fileName)
-    !% Internal constructor for the file transfer function class.
+    !!{
+    Internal constructor for the file transfer function class.
+    !!}
     use :: Cosmology_Parameters   , only : cosmologyParametersSimple
     use :: Display                , only : displayMessage
     use :: File_Utilities         , only : File_Name_Expand
@@ -294,76 +405,107 @@ contains
   end subroutine fileReadFile
 
   subroutine fileDestructor(self)
-    !% Destructor for the file transfer function class.
+    !!{
+    Destructor for the file transfer function class.
+    !!}
     implicit none
     type(transferFunctionFile), intent(inout) :: self
 
     call self%transfer%destroy()
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_" />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    <objectDestructor name="self%cosmologyFunctions_" />
+    !!]
     return
   end subroutine fileDestructor
 
   double precision function fileValue(self,wavenumber)
-    !% Return the transfer function at the given wavenumber.
+    !!{
+    Return the transfer function at the given wavenumber.
+    !!}
     implicit none
     class           (transferFunctionFile), intent(inout) :: self
     double precision                      , intent(in   ) :: wavenumber
 
     fileValue=exp(self%transfer%interpolate(log(wavenumber)))
+    if (self%transferFunctionReferenceAvailable) &
+         & fileValue=+                               fileValue             &
+         &           *self%transferFunctionReference%    value(wavenumber)
     return
   end function fileValue
 
   double precision function fileLogarithmicDerivative(self,wavenumber)
-    !% Return the logarithmic derivative of the transfer function at the given wavenumber.
+    !!{
+    Return the logarithmic derivative of the transfer function at the given wavenumber.
+    !!}
     implicit none
     class           (transferFunctionFile), intent(inout) :: self
     double precision                      , intent(in   ) :: wavenumber
-
+    
     fileLogarithmicDerivative=+self%transfer%interpolateGradient(log(wavenumber))
+    if (self%transferFunctionReferenceAvailable) &
+         & fileLogarithmicDerivative=+                               fileLogarithmicDerivative             &
+         &                           +self%transferFunctionReference%    logarithmicDerivative(wavenumber)
+
     return
   end function fileLogarithmicDerivative
 
   double precision function fileHalfModeMass(self,status)
-    !% Compute the mass corresponding to the wavenumber at which the transfer function is
-    !% suppressed by a factor of two relative to a \gls{cdm} transfer function. Not supported in
-    !% this implementation.
-    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is
+    suppressed by a factor of two relative to a \gls{cdm} transfer function. Not supported in
+    this implementation.
+    !!}
+    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail, errorStatusSuccess
     implicit none
     class  (transferFunctionFile), intent(inout)           :: self
     integer                      , intent(  out), optional :: status
     !$GLC attributes unused :: self
 
-    fileHalfModeMass=0.0d0
-    if (present(status)) then
-       status=errorStatusFail
+    if (self%massHalfModeAvailable) then
+       fileHalfModeMass=self%massHalfMode
+       if (present(status)) status=errorStatusSuccess
     else
-       call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+       fileHalfModeMass=0.0d0
+       if (present(status)) then
+          status=errorStatusFail
+       else
+          call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+       end if
     end if
     return
   end function fileHalfModeMass
 
   double precision function fileQuarterModeMass(self,status)
-    !% Compute the mass corresponding to the wavenumber at which the transfer function is
-    !% suppressed by a factor of two relative to a \gls{cdm} transfer function. Not supported in
-    !% this implementation.
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is
+    suppressed by a factor of two relative to a \gls{cdm} transfer function. Not supported in
+    this implementation.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
     implicit none
     class  (transferFunctionFile), intent(inout)           :: self
     integer                      , intent(  out), optional :: status
     !$GLC attributes unused :: self
-
-    fileQuarterModeMass=0.0d0
-    if (present(status)) then
-       status=errorStatusFail
+    
+    if (self%massQuarterModeAvailable) then
+       fileQuarterModeMass=self%massQuarterMode
+       if (present(status)) status=errorStatusSuccess
     else
-       call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+       fileQuarterModeMass=0.0d0
+       if (present(status)) then
+          status=errorStatusFail
+       else
+          call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+       end if
     end if
     return
   end function fileQuarterModeMass
 
   double precision function fileEpochTime(self)
-    !% Return the cosmic time at the epoch at which this transfer function is defined.
+    !!{
+    Return the cosmic time at the epoch at which this transfer function is defined.
+    !!}
     implicit none
     class(transferFunctionFile), intent(inout) :: self
 

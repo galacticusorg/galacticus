@@ -95,7 +95,7 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 		 @{$parametersPerFile->{$fileIdentifier}->{'parameter'}},
 		 map
 		 {$_->{'name'}}
-		 &Galacticus::Build::Directives::Extract_Directives($fileToProcess,"inputParameter",comment => qr/^\s*(!\#|\/\/\@)/) 
+		 &Galacticus::Build::Directives::Extract_Directives($fileToProcess,"inputParameter") 
 		);
 	    # Find all "objectBuilder" directives with non-standard parameter names, extract names from them, and push to the list of parameters.
 	    push
@@ -115,7 +115,7 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 			 :
 			 ()
 		 }
-		 &Galacticus::Build::Directives::Extract_Directives($fileToProcess,"objectBuilder",comment => qr/^\s*(!\#|\/\/\@)/) 
+		 &Galacticus::Build::Directives::Extract_Directives($fileToProcess,"objectBuilder")
 		);
 	}
     }

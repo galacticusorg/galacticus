@@ -17,19 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a simple freefall radius class.
+  !!{
+  Implementation of a simple freefall radius class.
+  !!}
 
   use :: Cooling_Freefall_Times_Available, only : freefallTimeAvailable, freefallTimeAvailableClass
   use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMO , darkMatterProfileDMOClass
 
-  !# <freefallRadius name="freefallRadiusDarkMatterHalo">
-  !#  <description>
-  !#   A freefall radius class that assumes that the freefall radius corresponds to the radius at which the freefall time in the
-  !#   dark matter halo equals the time available for freefall (see \refPhysics{freefallTimeAvailable}).
-  !#  </description>
-  !# </freefallRadius>
+  !![
+  <freefallRadius name="freefallRadiusDarkMatterHalo">
+   <description>
+    A freefall radius class that assumes that the freefall radius corresponds to the radius at which the freefall time in the
+    dark matter halo equals the time available for freefall (see \refPhysics{freefallTimeAvailable}).
+   </description>
+  </freefallRadius>
+  !!]
   type, extends(freefallRadiusClass) :: freefallRadiusDarkMatterHalo
-     !% Implementation of freefall radius class in which the freefall radius is based on the freefall time in the dark matter halo.
+     !!{
+     Implementation of freefall radius class in which the freefall radius is based on the freefall time in the dark matter halo.
+     !!}
      private
      class(darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_  => null()
      class(freefallTimeAvailableClass), pointer :: freefallTimeAvailable_ => null()
@@ -40,7 +46,9 @@
   end type freefallRadiusDarkMatterHalo
 
   interface freefallRadiusDarkMatterHalo
-     !% Constructors for the darkMatterHalo freefall radius class.
+     !!{
+     Constructors for the darkMatterHalo freefall radius class.
+     !!}
      module procedure darkMatterHaloConstructorParameters
      module procedure darkMatterHaloConstructorInternal
   end interface freefallRadiusDarkMatterHalo
@@ -48,7 +56,9 @@
 contains
 
   function darkMatterHaloConstructorParameters(parameters) result(self)
-    !% Constructor for the darkMatterHalo freefall radius class which builds the object from a parameter set.
+    !!{
+    Constructor for the darkMatterHalo freefall radius class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (freefallRadiusDarkMatterHalo)                :: self
@@ -56,38 +66,52 @@ contains
     class(darkMatterProfileDMOClass   ), pointer       :: darkMatterProfileDMO_
     class(freefallTimeAvailableClass  ), pointer       :: freefallTimeAvailable_
 
-    !# <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
-    !# <objectBuilder class="freefallTimeAvailable" name="freefallTimeAvailable_" source="parameters"/>
+    !![
+    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
+    <objectBuilder class="freefallTimeAvailable" name="freefallTimeAvailable_" source="parameters"/>
+    !!]
     self=freefallRadiusDarkMatterHalo(darkMatterProfileDMO_,freefallTimeAvailable_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterProfileDMO_" />
-    !# <objectDestructor name="freefallTimeAvailable_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterProfileDMO_" />
+    <objectDestructor name="freefallTimeAvailable_"/>
+    !!]
     return
   end function darkMatterHaloConstructorParameters
 
   function darkMatterHaloConstructorInternal(darkMatterProfileDMO_,freefallTimeAvailable_) result(self)
-    !% Internal constructor for the darkMatterHalo freefall radius class.
+    !!{
+    Internal constructor for the darkMatterHalo freefall radius class.
+    !!}
     implicit none
     type (freefallRadiusDarkMatterHalo)                        :: self
     class(darkMatterProfileDMOClass   ), intent(in   ), target :: darkMatterProfileDMO_
     class(freefallTimeAvailableClass  ), intent(in   ), target :: freefallTimeAvailable_
-    !# <constructorAssign variables="*darkMatterProfileDMO_, *freefallTimeAvailable_"/>
+    !![
+    <constructorAssign variables="*darkMatterProfileDMO_, *freefallTimeAvailable_"/>
+    !!]
 
     return
   end function darkMatterHaloConstructorInternal
 
   subroutine darkMatterHaloDestructor(self)
-    !% Destructor for the darkMatterHalo freefall radius class.
+    !!{
+    Destructor for the darkMatterHalo freefall radius class.
+    !!}
     implicit none
     type(freefallRadiusDarkMatterHalo), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterProfileDMO_" />
-    !# <objectDestructor name="self%freefallTimeAvailable_"/>
+    !![
+    <objectDestructor name="self%darkMatterProfileDMO_" />
+    <objectDestructor name="self%freefallTimeAvailable_"/>
+    !!]
     return
   end subroutine darkMatterHaloDestructor
 
   double precision function darkMatterHaloRadiusGrowthRate(self,node)
-    !% Returns the freefall radius growth rate (in Mpc/Gyr) in the hot atmosphere.
+    !!{
+    Returns the freefall radius growth rate (in Mpc/Gyr) in the hot atmosphere.
+    !!}
     implicit none
     class           (freefallRadiusDarkMatterHalo ), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
@@ -104,7 +128,9 @@ contains
   end function darkMatterHaloRadiusGrowthRate
 
   double precision function darkMatterHaloRadius(self,node)
-    !% Return the freefall radius in the darkMatterHalo model.
+    !!{
+    Return the freefall radius in the darkMatterHalo model.
+    !!}
     implicit none
     class           (freefallRadiusDarkMatterHalo ), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node

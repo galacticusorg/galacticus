@@ -22,11 +22,15 @@
   use :: Intergalactic_Medium_State           , only : intergalacticMediumState        , intergalacticMediumStateClass
   use :: Output_Times                         , only : outputTimes                     , outputTimesClass
 
-  !# <task name="taskIntergalacticMediumState">
-  !#  <description>A task which outputs the state of the intergalactic medium.</description>
-  !# </task>
+  !![
+  <task name="taskIntergalacticMediumState">
+   <description>A task which outputs the state of the intergalactic medium.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskIntergalacticMediumState
-     !% Implementation of a task which computes and outputs the halo mass function and related quantities.
+     !!{
+     Implementation of a task which computes and outputs the halo mass function and related quantities.
+     !!}
      private
      class(cosmologyFunctionsClass              ), pointer :: cosmologyFunctions_               => null()
      class(outputTimesClass                     ), pointer :: outputTimes_                      => null()
@@ -39,7 +43,9 @@
   end type taskIntergalacticMediumState
 
   interface taskIntergalacticMediumState
-     !% Constructors for the {\normalfont \ttfamily intergalacticMediumState} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily intergalacticMediumState} task.
+     !!}
      module procedure intergalacticMediumStateConstructorParameters
      module procedure intergalacticMediumStateConstructorInternal
   end interface taskIntergalacticMediumState
@@ -47,7 +53,9 @@
 contains
 
   function intergalacticMediumStateConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily intergalacticMediumState} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily intergalacticMediumState} task class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (taskIntergalacticMediumState         )                :: self
@@ -58,16 +66,18 @@ contains
     class(intergalacticMediumFilteringMassClass), pointer       :: intergalacticMediumFilteringMass_
     type (varying_string                       )                :: outputGroup
 
-    !# <inputParameter>
-    !#   <name>outputGroup</name>
-    !#   <defaultValue>var_str('.')</defaultValue>
-    !#   <description>The HDF5 output group within which to write intergalactic medium state data.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"               name="cosmologyFunctions_"               source="parameters"/>
-    !# <objectBuilder class="outputTimes"                      name="outputTimes_"                      source="parameters"/>
-    !# <objectBuilder class="intergalacticMediumState"         name="intergalacticMediumState_"         source="parameters"/>
-    !# <objectBuilder class="intergalacticMediumFilteringMass" name="intergalacticMediumFilteringMass_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>outputGroup</name>
+      <defaultValue>var_str('.')</defaultValue>
+      <description>The HDF5 output group within which to write intergalactic medium state data.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions"               name="cosmologyFunctions_"               source="parameters"/>
+    <objectBuilder class="outputTimes"                      name="outputTimes_"                      source="parameters"/>
+    <objectBuilder class="intergalacticMediumState"         name="intergalacticMediumState_"         source="parameters"/>
+    <objectBuilder class="intergalacticMediumFilteringMass" name="intergalacticMediumFilteringMass_" source="parameters"/>
+    !!]
     self=taskIntergalacticMediumState(                                   &
          &                            outputGroup                      , &
          &                            cosmologyFunctions_              , &
@@ -75,11 +85,13 @@ contains
          &                            intergalacticMediumState_        , &
          &                            intergalacticMediumFilteringMass_  &
          &                           )
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"              />
-    !# <objectDestructor name="outputTimes_"                     />
-    !# <objectDestructor name="intergalacticMediumState_"        />
-    !# <objectDestructor name="intergalacticMediumFilteringMass_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"              />
+    <objectDestructor name="outputTimes_"                     />
+    <objectDestructor name="intergalacticMediumState_"        />
+    <objectDestructor name="intergalacticMediumFilteringMass_"/>
+    !!]
     return
   end function intergalacticMediumStateConstructorParameters
 
@@ -90,7 +102,9 @@ contains
        &                                               intergalacticMediumState_        , &
        &                                               intergalacticMediumFilteringMass_  &
        &                                              ) result(self)
-    !% Constructor for the {\normalfont \ttfamily intergalacticMediumState} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily intergalacticMediumState} task class which takes a parameter set as input.
+    !!}
     implicit none
     type (taskIntergalacticMediumState         )                        :: self
     class(cosmologyFunctionsClass              ), intent(in   ), target :: cosmologyFunctions_
@@ -98,25 +112,33 @@ contains
     class(intergalacticMediumStateClass        ), intent(in   ), target :: intergalacticMediumState_
     class(intergalacticMediumFilteringMassClass), intent(in   ), target :: intergalacticMediumFilteringMass_
     type (varying_string                       ), intent(in   )         :: outputGroup
-    !# <constructorAssign variables="outputGroup, *cosmologyFunctions_, *outputTimes_, *intergalacticMediumState_, *intergalacticMediumFilteringMass_"/>
+    !![
+    <constructorAssign variables="outputGroup, *cosmologyFunctions_, *outputTimes_, *intergalacticMediumState_, *intergalacticMediumFilteringMass_"/>
+    !!]
 
     return
   end function intergalacticMediumStateConstructorInternal
 
   subroutine intergalacticMediumStateDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily intergalacticMediumState} task class.
+    !!{
+    Destructor for the {\normalfont \ttfamily intergalacticMediumState} task class.
+    !!}
     implicit none
     type(taskIntergalacticMediumState), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"              />
-    !# <objectDestructor name="self%outputTimes_"                     />
-    !# <objectDestructor name="self%intergalacticMediumState_"        />
-    !# <objectDestructor name="self%intergalacticMediumFilteringMass_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"              />
+    <objectDestructor name="self%outputTimes_"                     />
+    <objectDestructor name="self%intergalacticMediumState_"        />
+    <objectDestructor name="self%intergalacticMediumFilteringMass_"/>
+    !!]
     return
   end subroutine intergalacticMediumStateDestructor
 
   subroutine intergalacticMediumStatePerform(self,status)
-    !% Output \gls{igm} state to the \glc\ output file.
+    !!{
+    Output \gls{igm} state to the \glc\ output file.
+    !!}
     use            :: Display         , only : displayIndent       , displayUnindent
     use            :: Galacticus_Error, only : errorStatusSuccess
     use            :: Galacticus_HDF5 , only : galacticusOutputFile

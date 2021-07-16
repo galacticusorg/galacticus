@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test mathematical special functions.
+!!{
+Contains a program to test mathematical special functions.
+!!}
 
 program Test_Math_Fast
-  !% Tests of mathematical fast functions.
+  !!{
+  Tests of mathematical fast functions.
+  !!}
   use :: Display            , only : displayVerbositySet, verbosityLevelStandard
   use :: Kind_Numbers       , only : kind_int8
   use :: Math_Exponentiation, only : cubeRoot           , fastExponentiator

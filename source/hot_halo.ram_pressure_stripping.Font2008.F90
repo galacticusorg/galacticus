@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a class for ram pressure stripping of hot halos based on the methods of \cite{font_colours_2008}.
+  !!{
+  Implements a class for ram pressure stripping of hot halos based on the methods of \cite{font_colours_2008}.
+  !!}
 
   use :: Dark_Matter_Halo_Scales     , only : darkMatterHaloScaleClass
   use :: Hot_Halo_Mass_Distributions , only : hotHaloMassDistributionClass
@@ -25,22 +27,26 @@
   use :: Kind_Numbers                , only : kind_int8
   use :: Root_Finder                 , only : rootFinder
 
-  !# <hotHaloRamPressureStripping name="hotHaloRamPressureStrippingFont2008">
-  !#  <description>
-  !#   A hot halo ram pressure stripping class based on the methods of \cite{font_colours_2008}. Specifically, the radius,
-  !#   $r_\mathrm{rp}$, is computed as the solution of
-  !#   \begin{equation}
-  !#   \alpha_\mathrm{rp} {\mathrm{G} M_\mathrm{satellite}(r_\mathrm{rp}) \rho_\mathrm{hot, satellite}(r_\mathrm{rp}) \over
-  !#   r_\mathrm{rp} } = \mathcal{F}_\mathrm{ram, hot, host},
-  !#   \end{equation}
-  !#   where $M_\mathrm{satellite}(r)$ is the total mass of the satellite within radius $r$, $\mathcal{F}_\mathrm{ram, hot, host}$
-  !#   is the ram pressure force due to the hot halo (computed using the selected hot halo ram pressure force method; see
-  !#   \refPhysics{hotHaloRamPressureForce}). The parameter $\alpha_\mathrm{rp}=${\normalfont \ttfamily
-  !#   [formFactor]} is a geometric factor of order unity.
-  !#  </description>
-  !# </hotHaloRamPressureStripping>
+  !![
+  <hotHaloRamPressureStripping name="hotHaloRamPressureStrippingFont2008">
+   <description>
+    A hot halo ram pressure stripping class based on the methods of \cite{font_colours_2008}. Specifically, the radius,
+    $r_\mathrm{rp}$, is computed as the solution of
+    \begin{equation}
+    \alpha_\mathrm{rp} {\mathrm{G} M_\mathrm{satellite}(r_\mathrm{rp}) \rho_\mathrm{hot, satellite}(r_\mathrm{rp}) \over
+    r_\mathrm{rp} } = \mathcal{F}_\mathrm{ram, hot, host},
+    \end{equation}
+    where $M_\mathrm{satellite}(r)$ is the total mass of the satellite within radius $r$, $\mathcal{F}_\mathrm{ram, hot, host}$
+    is the ram pressure force due to the hot halo (computed using the selected hot halo ram pressure force method; see
+    \refPhysics{hotHaloRamPressureForce}). The parameter $\alpha_\mathrm{rp}=${\normalfont \ttfamily
+    [formFactor]} is a geometric factor of order unity.
+   </description>
+  </hotHaloRamPressureStripping>
+  !!]
   type, extends(hotHaloRamPressureStrippingClass) :: hotHaloRamPressureStrippingFont2008
-     !% Implementation of a hot halo ram pressure stripping class based on the methods of \cite{font_colours_2008}.
+     !!{
+     Implementation of a hot halo ram pressure stripping class based on the methods of \cite{font_colours_2008}.
+     !!}
      private
      class           (darkMatterHaloScaleClass    ), pointer :: darkMatterHaloScale_     => null()
      class           (hotHaloRamPressureForceClass), pointer :: hotHaloRamPressureForce_ => null()
@@ -55,7 +61,9 @@
   end type hotHaloRamPressureStrippingFont2008
 
   interface hotHaloRamPressureStrippingFont2008
-     !% Constructors for the {\normalfont \ttfamily font2008} hot halo ram pressure timescale class.
+     !!{
+     Constructors for the {\normalfont \ttfamily font2008} hot halo ram pressure timescale class.
+     !!}
      module procedure font2008ConstructorParameters
      module procedure font2008ConstructorInternal
   end interface hotHaloRamPressureStrippingFont2008
@@ -69,7 +77,9 @@
 contains
 
   function font2008ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily font2008} hot halo ram pressure stripping class which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily font2008} hot halo ram pressure stripping class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (hotHaloRamPressureStrippingFont2008)                :: self
@@ -79,26 +89,32 @@ contains
     class           (hotHaloMassDistributionClass       ), pointer       :: hotHaloMassDistribution_
     double precision                                                     :: formFactor
 
-    !# <inputParameter>
-    !#   <name>formFactor</name>
-    !#   <defaultValue>2.0d0</defaultValue>
-    !#   <description>The form factor appearing in the gravitational binding force (per unit area) in the ram pressure stripping model
-    !#      of \citeauthor{font_colours_2008}~(\citeyear{font_colours_2008}; their eqn.~4).</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterHaloScale"     name="darkMatterHaloScale_"     source="parameters"/>
-    !# <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
-    !# <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>formFactor</name>
+      <defaultValue>2.0d0</defaultValue>
+      <description>The form factor appearing in the gravitational binding force (per unit area) in the ram pressure stripping model
+         of \citeauthor{font_colours_2008}~(\citeyear{font_colours_2008}; their eqn.~4).</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="darkMatterHaloScale"     name="darkMatterHaloScale_"     source="parameters"/>
+    <objectBuilder class="hotHaloRamPressureForce" name="hotHaloRamPressureForce_" source="parameters"/>
+    <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
+    !!]
     self=hotHaloRamPressureStrippingFont2008(formFactor,darkMatterHaloScale_,hotHaloRamPressureForce_,hotHaloMassDistribution_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_"    />
-    !# <objectDestructor name="hotHaloRamPressureForce_"/>
-    !# <objectDestructor name="hotHaloMassDistribution_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_"    />
+    <objectDestructor name="hotHaloRamPressureForce_"/>
+    <objectDestructor name="hotHaloMassDistribution_"/>
+    !!]
     return
   end function font2008ConstructorParameters
 
   function font2008ConstructorInternal(formFactor,darkMatterHaloScale_,hotHaloRamPressureForce_,hotHaloMassDistribution_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily font2008} hot halo ram pressure stripping class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily font2008} hot halo ram pressure stripping class.
+    !!}
     implicit none
     type            (hotHaloRamPressureStrippingFont2008)                        :: self
     class           (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
@@ -106,7 +122,9 @@ contains
     class           (hotHaloMassDistributionClass       ), intent(in   ), target :: hotHaloMassDistribution_
     double precision                                     , intent(in   )         :: formFactor
     double precision                                     , parameter             :: toleranceAbsolute       =0.0d+0, toleranceRelative=1.0d-3
-    !# <constructorAssign variables="formFactor, *darkMatterHaloScale_, *hotHaloRamPressureForce_, *hotHaloMassDistribution_"/>
+    !![
+    <constructorAssign variables="formFactor, *darkMatterHaloScale_, *hotHaloRamPressureForce_, *hotHaloMassDistribution_"/>
+    !!]
 
     ! Solver for the ram pressure stripping radius.
     self%finder=rootFinder(                                        &
@@ -118,18 +136,24 @@ contains
   end function font2008ConstructorInternal
 
   subroutine font2008Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily font2008} hot halo ram pressure stripping class.
+    !!{
+    Destructor for the {\normalfont \ttfamily font2008} hot halo ram pressure stripping class.
+    !!}
     implicit none
     type(hotHaloRamPressureStrippingFont2008), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_"    />
-    !# <objectDestructor name="self%hotHaloRamPressureForce_"/>
-    !# <objectDestructor name="self%hotHaloMassDistribution_"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"    />
+    <objectDestructor name="self%hotHaloRamPressureForce_"/>
+    <objectDestructor name="self%hotHaloMassDistribution_"/>
+    !!]
     return
   end subroutine font2008Destructor
 
   double precision function font2008RadiusStripped(self,node)
-    !% Return the ram pressure stripping radius due to the hot halo using the model of \cite{font_colours_2008}.
+    !!{
+    Return the ram pressure stripping radius due to the hot halo using the model of \cite{font_colours_2008}.
+    !!}
     use :: Display         , only : displayMessage           , verbosityLevelSilent
     use :: Galacticus_Error, only : Galacticus_Error_Report  , errorStatusSuccess
     use :: Root_Finder     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
@@ -219,7 +243,9 @@ contains
   end function font2008RadiusStripped
 
   double precision function font2008RadiusSolver(radius)
-    !% Root function used in finding the ram pressure stripping radius.
+    !!{
+    Root function used in finding the ram pressure stripping radius.
+    !!}
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : componentTypeAll                , massTypeAll
     use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus

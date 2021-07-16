@@ -22,14 +22,21 @@
      type (multiTaskList), pointer :: next  => null()
   end type multiTaskList
 
-  !# <task name="taskMulti">
-  !#  <description>A task which performs multiple other tasks.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="multiTaskList" variable="tasks" next="next" object="task_" objectType="taskClass"/>
-  !#  </deepCopy>
-  !# </task>
+  !![
+  <task name="taskMulti">
+   <description>A task which performs multiple other tasks.</description>
+   <deepCopy>
+    <linkedList type="multiTaskList" variable="tasks" next="next" object="task_" objectType="taskClass"/>
+   </deepCopy>
+   <stateStore>
+    <linkedList type="multiTaskList" variable="tasks" next="next" object="task_"/>
+   </stateStore>
+  </task>
+  !!]
   type, extends(taskClass) :: taskMulti
-     !% Implementation of a task which performs multiple other tasks.
+     !!{
+     Implementation of a task which performs multiple other tasks.
+     !!}
      private
      type(multiTaskList), pointer :: tasks => null()
    contains
@@ -39,7 +46,9 @@
   end type taskMulti
 
   interface taskMulti
-     !% Constructors for the {\normalfont \ttfamily multi} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily multi} task.
+     !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
   end interface taskMulti
@@ -47,7 +56,9 @@
 contains
 
   function multiConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily multi} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily multi} task class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (taskMulti      )                :: self
@@ -65,13 +76,17 @@ contains
           allocate(self%tasks)
           task_ => self%tasks
        end if
-       !# <objectBuilder class="task" name="task_%task_" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="task" name="task_%task_" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function multiConstructorParameters
 
   function multiConstructorInternal(tasks) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily multi} task class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily multi} task class.
+    !!}
     implicit none
     type(taskMulti    )                        :: self
     type(multiTaskList), target, intent(in   ) :: tasks
@@ -80,14 +95,18 @@ contains
     self %tasks => tasks
     task_       => tasks
     do while (associated(task_))
-       !# <referenceCountIncrement owner="task_" object="task_"/>
+       !![
+       <referenceCountIncrement owner="task_" object="task_"/>
+       !!]
        task_ => task_%next
     end do
     return
   end function multiConstructorInternal
 
   subroutine multiDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily multi} task class.
+    !!{
+    Destructor for the {\normalfont \ttfamily multi} task class.
+    !!}
     implicit none
     type(taskMulti    ), intent(inout) :: self
     type(multiTaskList), pointer       :: task_, taskNext
@@ -96,7 +115,9 @@ contains
        task_ => self%tasks
        do while (associated(task_))
           taskNext => task_%next
-          !# <objectDestructor name="task_%task_"/>
+          !![
+          <objectDestructor name="task_%task_"/>
+          !!]
           deallocate(task_)
           task_ => taskNext
        end do
@@ -105,7 +126,9 @@ contains
   end subroutine multiDestructor
 
   subroutine multiPerform(self,status)
-    !% Perform all tasks.
+    !!{
+    Perform all tasks.
+    !!}
     use :: Display         , only : displayIndent     , displayUnindent
     use :: Galacticus_Error, only : errorStatusSuccess
     implicit none
@@ -126,7 +149,9 @@ contains
   end subroutine multiPerform
 
   logical function multiRequiresOutputFile(self)
-    !% Returns true if any sub-task requires that the output file be open.
+    !!{
+    Returns true if any sub-task requires that the output file be open.
+    !!}
     implicit none
     class(taskMulti    ), intent(inout) :: self
     type (multiTaskList), pointer       :: task_

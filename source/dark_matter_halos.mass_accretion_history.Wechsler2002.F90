@@ -17,25 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of dark matter halo mass accretion histories using the \cite{wechsler_concentrations_2002} algorithm.
+  !!{
+  An implementation of dark matter halo mass accretion histories using the \cite{wechsler_concentrations_2002} algorithm.
+  !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
 
-  !# <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryWechsler2002">
-  !#  <description>
-  !#   A dark matter halo mass accretion history class in which the mass accretion history is given by
-  !#   \citep{wechsler_concentrations_2002}:
-  !#   \begin{equation}
-  !#   M(t) = M(t_0) \exp \left( - 2 a_\mathrm{c} \left[ {a(t_0)\over a(t)}-1 \right] \right),
-  !#   \end{equation}
-  !#   where $t_0$ is some reference time and $a_\mathrm{c}$ is a characteristic expansion factor defined by
-  !#   \cite{wechsler_concentrations_2002} to correspond to the formation time of the halo (using the formation time definition of
-  !#   \citealt{bullock_profiles_2001}).
-  !#  </description>
-  !# </darkMatterHaloMassAccretionHistory>
+  !![
+  <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryWechsler2002">
+   <description>
+    A dark matter halo mass accretion history class in which the mass accretion history is given by
+    \citep{wechsler_concentrations_2002}:
+    \begin{equation}
+    M(t) = M(t_0) \exp \left( - 2 a_\mathrm{c} \left[ {a(t_0)\over a(t)}-1 \right] \right),
+    \end{equation}
+    where $t_0$ is some reference time and $a_\mathrm{c}$ is a characteristic expansion factor defined by
+    \cite{wechsler_concentrations_2002} to correspond to the formation time of the halo (using the formation time definition of
+    \citealt{bullock_profiles_2001}).
+   </description>
+  </darkMatterHaloMassAccretionHistory>
+  !!]
   type, extends(darkMatterHaloMassAccretionHistoryClass) :: darkMatterHaloMassAccretionHistoryWechsler2002
-     !% A dark matter halo mass accretion historiy class using the \cite{wechsler_concentrations_2002} algorithm.
+     !!{
+     A dark matter halo mass accretion historiy class using the \cite{wechsler_concentrations_2002} algorithm.
+     !!}
      private
      class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
      class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
@@ -43,9 +49,11 @@
      logical                                                  :: formationRedshiftCompute
      double precision                                         :: formationRedshift
    contains
-     !# <methods>
-     !#   <method description="Compute the formation expansion factor." method="expansionFactorAtFormation" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Compute the formation expansion factor." method="expansionFactorAtFormation" />
+     </methods>
+     !!]
      final     ::                               wechsler2002Destructor
      procedure :: time                       => wechsler2002Time
      procedure :: massAccretionRate          => wechsler2002MassAccretionRate
@@ -53,7 +61,9 @@
   end type darkMatterHaloMassAccretionHistoryWechsler2002
 
   interface darkMatterHaloMassAccretionHistoryWechsler2002
-     !% Constructors for the {\normalfont \ttfamily wechsler2002} dark matter halo mass accretion history class.
+     !!{
+     Constructors for the {\normalfont \ttfamily wechsler2002} dark matter halo mass accretion history class.
+     !!}
      module procedure wechsler2002ConstructorParameters
      module procedure wechsler2002ConstructorInternal
   end interface darkMatterHaloMassAccretionHistoryWechsler2002
@@ -61,7 +71,9 @@
 contains
 
   function wechsler2002ConstructorParameters(parameters) result(self)
-    !% Default constructor for the {\normalfont \ttfamily wechsler2002} dark matter halo mass accretion history class.
+    !!{
+    Default constructor for the {\normalfont \ttfamily wechsler2002} dark matter halo mass accretion history class.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (darkMatterHaloMassAccretionHistoryWechsler2002)                :: self
@@ -72,36 +84,44 @@ contains
     logical                                                                         :: formationRedshiftCompute
     double precision                                                                :: formationRedshift
 
-    !# <inputParameter>
-    !#   <name>formationRedshiftCompute</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true, compute formation redshift automatically for \cite{wechsler_concentrations_2002} halo mass accretion histories.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>formationRedshiftCompute</name>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, compute formation redshift automatically for \cite{wechsler_concentrations_2002} halo mass accretion histories.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     if (.not.formationRedshiftCompute) then
        ! In this case, read the formation redshift.
-       !# <inputParameter>
-       !#   <name>formationRedshift</name>
-       !#   <description>The formation redshift to use in \cite{wechsler_concentrations_2002} halo mass accretion histories.</description>
-       !#   <source>parameters</source>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>formationRedshift</name>
+         <description>The formation redshift to use in \cite{wechsler_concentrations_2002} halo mass accretion histories.</description>
+         <source>parameters</source>
+       </inputParameter>
+       !!]
     end if
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
-    !# <conditionalCall>
-    !#  <call>self=darkMatterHaloMassAccretionHistoryWechsler2002(cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,formationRedshiftCompute{conditions})</call>
-    !#  <argument name="formationRedshift" value="formationRedshift" parameterPresent="parameters"/>
-    !# </conditionalCall>
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"      />
-    !# <objectDestructor name="criticalOverdensity_"     />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !![
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    <conditionalCall>
+     <call>self=darkMatterHaloMassAccretionHistoryWechsler2002(cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,formationRedshiftCompute{conditions})</call>
+     <argument name="formationRedshift" value="formationRedshift" parameterPresent="parameters"/>
+    </conditionalCall>
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="criticalOverdensity_"     />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    !!]
     return
   end function wechsler2002ConstructorParameters
 
   function wechsler2002ConstructorInternal(cosmologyFunctions_,criticalOverdensity_,cosmologicalMassVariance_,formationRedshiftCompute,formationRedshift) result(self)
-    !% Generic constructor for the {\normalfont \ttfamily wechsler2002} dark matter halo mass accretion history class.
+    !!{
+    Generic constructor for the {\normalfont \ttfamily wechsler2002} dark matter halo mass accretion history class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterHaloMassAccretionHistoryWechsler2002)                          :: self
@@ -110,26 +130,34 @@ contains
     class           (cosmologicalMassVarianceClass                 ), intent(in   ), target   :: cosmologicalMassVariance_
     logical                                                         , intent(in   )           :: formationRedshiftCompute
     double precision                                                , intent(in   ), optional :: formationRedshift
-    !# <constructorAssign variables="*cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, formationRedshiftCompute, formationRedshift"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_, *criticalOverdensity_, *cosmologicalMassVariance_, formationRedshiftCompute, formationRedshift"/>
+    !!]
 
     if (.not.formationRedshiftCompute.and..not.present(formationRedshift)) call Galacticus_Error_Report('formation redshift must be provided'//{introspection:location})
     return
   end function wechsler2002ConstructorInternal
 
   subroutine wechsler2002Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily wechsler2002} dark matter halo mass accretion history class.
+    !!{
+    Destructor for the {\normalfont \ttfamily wechsler2002} dark matter halo mass accretion history class.
+    !!}
     implicit none
     type(darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"      />
-    !# <objectDestructor name="self%criticalOverdensity_"     />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"      />
+    <objectDestructor name="self%criticalOverdensity_"     />
+    <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !!]
     return
   end subroutine wechsler2002Destructor
 
   double precision function wechsler2002Time(self,node,mass)
-    !% Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily node} using the algorithm of
-    !% \cite{wechsler_concentrations_2002}.
+    !!{
+    Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily node} using the algorithm of
+    \cite{wechsler_concentrations_2002}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout), target :: self
@@ -158,8 +186,10 @@ contains
   end function wechsler2002Time
 
   double precision function wechsler2002MassAccretionRate(self,node,time)
-    !% Compute the mass accretion rate at the given {\normalfont \ttfamily time} in the mass accretion history of {\normalfont
-    !% \ttfamily node} using the algorithm of \cite{wechsler_concentrations_2002}.
+    !!{
+    Compute the mass accretion rate at the given {\normalfont \ttfamily time} in the mass accretion history of {\normalfont
+    \ttfamily node} using the algorithm of \cite{wechsler_concentrations_2002}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout) :: self
@@ -202,7 +232,9 @@ contains
   end function wechsler2002MassAccretionRate
 
   double precision function wechsler2002ExpansionFactorAtFormation(self,haloMass)
-    !% Computes the expansion factor at formation using the simple model of \cite{bullock_profiles_2001}.
+    !!{
+    Computes the expansion factor at formation using the simple model of \cite{bullock_profiles_2001}.
+    !!}
     implicit none
     class           (darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout) :: self
     double precision                                                , intent(in   ) :: haloMass

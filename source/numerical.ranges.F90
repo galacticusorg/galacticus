@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements construction of numerical ranges.
+!!{
+Contains a module which implements construction of numerical ranges.
+!!}
 
 module Numerical_Ranges
-  !% Implements construction of numerical ranges.
+  !!{
+  Implements construction of numerical ranges.
+  !!}
   implicit none
   private
   public :: Make_Range
@@ -31,10 +35,12 @@ module Numerical_Ranges
 contains
 
   recursive function Make_Range(rangeMinimum,rangeMaximum,rangeNumber,rangeType,rangeBinned) result (rangeValues)
-    !% Builds a numerical range between {\normalfont \ttfamily rangeMinimum} and {\normalfont
-    !% \ttfamily rangeMaximum} using {\normalfont \ttfamily rangeNumber} points and spacing as
-    !% specified by {\normalfont \ttfamily rangeType} (defaulting to linear spacing if no
-    !% {\normalfont \ttfamily rangeType} is given).
+    !!{
+    Builds a numerical range between {\normalfont \ttfamily rangeMinimum} and {\normalfont
+    \ttfamily rangeMaximum} using {\normalfont \ttfamily rangeNumber} points and spacing as
+    specified by {\normalfont \ttfamily rangeType} (defaulting to linear spacing if no
+    {\normalfont \ttfamily rangeType} is given).
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision, intent(in   )           :: rangeMaximum                  , rangeMinimum

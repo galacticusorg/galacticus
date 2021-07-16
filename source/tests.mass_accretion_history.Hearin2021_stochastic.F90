@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program which tests the Hearin (2021) stochastic halo mass formation history.
+!!{
+Contains a program which tests the Hearin (2021) stochastic halo mass formation history.
+!!}
 
 program Test_Hearin2021_Stochastic_MAH
-  !% Tests the Hearin (2021) halo mass formation history algorithm.
+  !!{
+  Tests the Hearin (2021) halo mass formation history algorithm.
+  !!}
   use, intrinsic :: ISO_C_Binding                            , only : c_long
   use            :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistoryHearin2021Stochastic
   use            :: Display                                  , only : displayVerbositySet                                   , verbosityLevelStandard
@@ -116,28 +120,30 @@ program Test_Hearin2021_Stochastic_MAH
   call treeLate %randomNumberGenerator_%seedSet   (seed=treeLate %index,offset=.true.)
   call treeLate %properties            %initialize(                                  )
   ! Build mass accretion history objects.
-  !# <referenceConstruct object="darkMatterHaloMassAccretionHistoryLateForming_" >
-  !#  <constructor>
-  !#   darkMatterHaloMassAccretionHistoryHearin2021Stochastic(                           &amp;
-  !#    &amp;                                                 rateRollOver    =3.5d0   , &amp;
-  !#    &amp;                                                 fractionLateLow =1.0d0   , &amp;
-  !#    &amp;                                                 fractionLateHigh=1.0d0   , &amp;
-  !#    &amp;                                                 means           =means   , &amp;
-  !#    &amp;                                                 cholesky        =cholesky  &amp;
-  !#    &amp;                                                )
-  !#  </constructor>
-  !# </referenceConstruct> 
-  !# <referenceConstruct object="darkMatterHaloMassAccretionHistoryEarlyForming_">
-  !#  <constructor>
-  !#   darkMatterHaloMassAccretionHistoryHearin2021Stochastic(                           &amp;
-  !#    &amp;                                                 rateRollOver    =3.5d0   , &amp;
-  !#    &amp;                                                 fractionLateLow =0.0d0   , &amp;
-  !#    &amp;                                                 fractionLateHigh=0.0d0   , &amp;
-  !#    &amp;                                                 means           =means   , &amp;
-  !#    &amp;                                                 cholesky        =cholesky  &amp;
-  !#    &amp;                                                )
-  !#  </constructor>
-  !# </referenceConstruct> 
+  !![
+  <referenceConstruct object="darkMatterHaloMassAccretionHistoryLateForming_" >
+   <constructor>
+    darkMatterHaloMassAccretionHistoryHearin2021Stochastic(                           &amp;
+     &amp;                                                 rateRollOver    =3.5d0   , &amp;
+     &amp;                                                 fractionLateLow =1.0d0   , &amp;
+     &amp;                                                 fractionLateHigh=1.0d0   , &amp;
+     &amp;                                                 means           =means   , &amp;
+     &amp;                                                 cholesky        =cholesky  &amp;
+     &amp;                                                )
+   </constructor>
+  </referenceConstruct> 
+  <referenceConstruct object="darkMatterHaloMassAccretionHistoryEarlyForming_">
+   <constructor>
+    darkMatterHaloMassAccretionHistoryHearin2021Stochastic(                           &amp;
+     &amp;                                                 rateRollOver    =3.5d0   , &amp;
+     &amp;                                                 fractionLateLow =0.0d0   , &amp;
+     &amp;                                                 fractionLateHigh=0.0d0   , &amp;
+     &amp;                                                 means           =means   , &amp;
+     &amp;                                                 cholesky        =cholesky  &amp;
+     &amp;                                                )
+   </constructor>
+  </referenceConstruct> 
+  !!]
   ! Set node properties.
   call basicEarly%massSet(10.0d0**12.5d0)
   call basicLate %massSet(10.0d0**12.5d0)

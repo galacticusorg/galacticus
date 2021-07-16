@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which computes the rotation curve at a set of given radii.
+!!{
+Contains a module which implements an N-body data operator which computes the rotation curve at a set of given radii.
+!!}
 
   use, intrinsic :: ISO_C_Binding           , only : c_size_t
   use            :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
-  !# <nbodyOperator name="nbodyOperatorRotationCurve">
-  !#  <description>An N-body data operator which computes the rotation curve at a set of given radii.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorRotationCurve">
+   <description>An N-body data operator which computes the rotation curve at a set of given radii.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorRotationCurve
-     !% An N-body data operator which computes the rotation curve at a set of given radii.
+     !!{
+     An N-body data operator which computes the rotation curve at a set of given radii.
+     !!}
      private
      logical                                                                 :: selfBoundParticlesOnly
      integer         (c_size_t                  )                            :: bootstrapSampleCount
@@ -38,7 +44,9 @@
   end type nbodyOperatorRotationCurve
 
   interface nbodyOperatorRotationCurve
-     !% Constructors for the ``rotationCurve'' N-body operator class.
+     !!{
+     Constructors for the ``rotationCurve'' N-body operator class.
+     !!}
      module procedure rotationCurveConstructorParameters
      module procedure rotationCurveConstructorInternal
   end interface nbodyOperatorRotationCurve
@@ -46,7 +54,9 @@
 contains
 
   function rotationCurveConstructorParameters(parameters) result (self)
-    !% Constructor for the ``rotationCurve'' N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``rotationCurve'' N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyOperatorRotationCurve)                              :: self
@@ -57,53 +67,67 @@ contains
     integer         (c_size_t                  )                              :: bootstrapSampleCount
 
     allocate(radius(parameters%count('radius')))
-    !# <inputParameter>
-    !#   <name>selfBoundParticlesOnly</name>
-    !#   <source>parameters</source>
-    !#   <description>If true, the mean position and velocity are computed only for self-bound particles.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>radius</name>
-    !#   <source>parameters</source>
-    !#   <description>Radii at which the rotation curve should be computed.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>bootstrapSampleCount</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>30_c_size_t</defaultValue>
-    !#   <description>The number of bootstrap resamples of the particles that should be used.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>selfBoundParticlesOnly</name>
+      <source>parameters</source>
+      <description>If true, the mean position and velocity are computed only for self-bound particles.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>radius</name>
+      <source>parameters</source>
+      <description>Radii at which the rotation curve should be computed.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>bootstrapSampleCount</name>
+      <source>parameters</source>
+      <defaultValue>30_c_size_t</defaultValue>
+      <description>The number of bootstrap resamples of the particles that should be used.</description>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=nbodyOperatorRotationCurve(selfBoundParticlesOnly,bootstrapSampleCount,radius,randomNumberGenerator_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="randomNumberGenerator_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="randomNumberGenerator_"/>
+    !!]
     return
   end function rotationCurveConstructorParameters
 
   function rotationCurveConstructorInternal(selfBoundParticlesOnly,bootstrapSampleCount,radius,randomNumberGenerator_) result (self)
-    !% Internal constructor for the ``rotationCurve'' N-body operator class.
+    !!{
+    Internal constructor for the ``rotationCurve'' N-body operator class.
+    !!}
     implicit none
     type            (nbodyOperatorRotationCurve)                              :: self
     logical                                     , intent(in   )               :: selfBoundParticlesOnly
     integer         (c_size_t                  ), intent(in   )               :: bootstrapSampleCount
     double precision                            , intent(in   ), dimension(:) :: radius
     class           (randomNumberGeneratorClass), intent(in   ), target       :: randomNumberGenerator_
-    !# <constructorAssign variables="selfBoundParticlesOnly, bootstrapSampleCount, radius, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="selfBoundParticlesOnly, bootstrapSampleCount, radius, *randomNumberGenerator_"/>
+    !!]
 
     return
   end function rotationCurveConstructorInternal
 
   subroutine rotationCurveDestructor(self)
-    !% Destructor for the ``meanPosition'' N-body operator class.
+    !!{
+    Destructor for the ``meanPosition'' N-body operator class.
+    !!}
     implicit none
     type(nbodyOperatorRotationCurve), intent(inout) :: self
 
-    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
     return
   end subroutine rotationCurveDestructor
 
   subroutine rotationCurveOperate(self,simulations)
-    !% Determine the mean position and velocity of N-body particles.
+    !!{
+    Determine the mean position and velocity of N-body particles.
+    !!}
     use :: Galacticus_Error            , only : Galacticus_Error_Report
     use :: IO_HDF5                     , only : hdf5Object
     use :: Memory_Management           , only : allocateArray                  , deallocateArray

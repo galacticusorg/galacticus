@@ -27,7 +27,9 @@ module Hashes_Cryptographic
 
   interface
      subroutine md5(textLength,text,hash) bind(c,name='md5')
-       !% Template for a C function that returns the MD5 of the input.
+       !!{
+       Template for a C function that returns the MD5 of the input.
+       !!}
        import
        integer  (kind=c_int ), value :: textLength
        character(kind=c_char)        :: hash      (35        )

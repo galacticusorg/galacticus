@@ -336,36 +336,57 @@ sub Get_Fortran_Line {
 	my $inDoubleQuotes  =  0;
 	my $inSingleQuotes  =  0;
 	my $inBraces        =  0;
-	my $commentPosition = -1;
-	for(my $iChar=0;$iChar<length($tmpLine);++$iChar) {
-	    my $char = substr($tmpLine,$iChar,1);
-	    if ( $char eq "'" ) {
-		if ( $inDoubleQuotes == 0 ) {
-		    $inDoubleQuotes = 1;
-		} else {
-		    $inDoubleQuotes = 0;
-		}
+	my $commentPosition;
+	# Search for start of comment in the line, if any. Regex is fast here.
+	if ( $tmpLine !~ m/!/ ) {
+	    ## This regex tests for the possible existance of any comment. If no "!" is present there can be no comment, and most lines don't contain comments, so we can quickly ignored them.
+	    $commentPosition = -1;
+	} elsif ( $tmpLine =~ m/^([^'"\{]+)![^\$]/ ) {
+	    ## This regex checks for a "!" prior to any of "'{, and not followed by a "$" (which indicates an OpenMP directive). If found, this must be the start of a comment.
+	    $commentPosition = length($1);
+	} else {
+	    # General case. Comments begin with a "!" symbol, but not if it is found inside a string literal, or inside braces, "{}".
+	    my $removedCount = 0;
+	    while ( $tmpLine =~ m/([!'"\{])/ ) {
+	    	if ( $1 eq "!" ) {
+	    	    # Comment character is prior to any other, so we're done.
+		    if ( $tmpLine =~ s/^([^!]*!\$)// ) {
+			$removedCount += length($1);
+		    } else {
+			last;
+		    }
+	    	} elsif ( $1 eq "{" ) {
+	    	    # Braces can be nested so must be counted.
+	    	    my $iChar = index($tmpLine,"{");
+	    	    my $depth = 0;
+	    	    while ( $iChar < length($tmpLine) ) {
+	    		++$depth
+	    		    if ( substr($tmpLine,$iChar,1) eq "{" );
+	    		--$depth
+	    		    if ( substr($tmpLine,$iChar,1) eq "}" );
+	    		last
+	    		    if ( $depth == 0 );
+	    		++$iChar;
+	    	    }
+	    	    $removedCount += $iChar;
+	    	    $tmpLine = substr($tmpLine,$iChar);
+	    	} else {
+	    	    # Quotes are not nested, so can be removed by regex.
+	    	    my $quote = $1;
+	    	    $tmpLine =~ s/^(.*?$quote[^$quote]*$quote)//;
+	    	    $removedCount += length($1);
+	    	}
 	    }
-	    if ( $char eq '"' ) {
-		if ( $inSingleQuotes == 0 ) {
-		    $inSingleQuotes = 1;
-		} else {
-		    $inSingleQuotes = 0;
-		}
-	    }
-	    ++$inBraces
-		if ( $char eq "{" );
-	    --$inBraces
-		if ( $char eq "}" );
-	    # Detect comments. Exclude comment characters within quotes, or which begin an OpenMP directive.
-	    if ( $commentPosition == -1 && $char eq "!" && ($iChar == length($tmpLine)-1 || substr($tmpLine,$iChar+1,1) ne "\$") && $inDoubleQuotes == 0 && $inSingleQuotes == 0 && $inBraces == 0 ) {$commentPosition = $iChar};
+	    $commentPosition = index($tmpLine,"!");
+	    $commentPosition += $removedCount
+	    	unless ( $commentPosition == -1 );
 	}
 	$rawLine .= $line;
 	chomp($processedLine);
 	if ( $commentPosition == -1 ) {
 	    $tmpLine = $line;
 	} else {
-	    $tmpLine = substr($line,0,$commentPosition)."\n";	       
+	    $tmpLine = substr($line,0,$commentPosition)."\n";
 	    $bufferedComments .= substr($line,$commentPosition+1,length($line)-$commentPosition)."\n";
 	    chomp($bufferedComments);
 	}
@@ -422,20 +443,17 @@ sub Format_Variable_Definitions {
 	    foreach ( sort(@{$datum->{'attributes'}}) ) {
 		(my $attributeName = $_) =~ s/^([^\(]+).*/$1/;
 		++$columnCount;
-		if ( $attributes{$attributeName}->{'count'} > 1 ) {
-		    if ( $columnCount > $attributes{$attributeName}->{'column'} ) {
-			foreach my $otherAttribute ( sort(keys(%attributes)) ) {
-			    ++$attributes{$otherAttribute}->{'column'}
-			    if (
-				$attributes{$otherAttribute}->{'column'} >= $columnCount &&
-				$attributes{$otherAttribute}->{'count' } > 1             &&
-				$otherAttribute ne $attributeName
-				);
-			}
-			$attributes{$attributeName}->{'column'} = $columnCount;
+		if ( $columnCount > $attributes{$attributeName}->{'column'} ) {
+		    foreach my $otherAttribute ( sort(keys(%attributes)) ) {
+			++$attributes{$otherAttribute}->{'column'}
+			if (
+			    $attributes{$otherAttribute}->{'column'} >= $columnCount &&
+			    $otherAttribute ne $attributeName
+			    );
 		    }
-		    $columnCount = $attributes{$attributeName}->{'column'};
+		    $attributes{$attributeName}->{'column'} = $columnCount;
 		}
+		$columnCount = $attributes{$attributeName}->{'column'};
 	    }
 	    $columnCountMaximum = $columnCount+1
 		if ( $columnCount+1 > $columnCountMaximum );

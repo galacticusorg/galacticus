@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a galactic filter for halo mass under a given definition.
+!!{
+Contains a module which implements a galactic filter for halo mass under a given definition.
+!!}
 
   use :: Virial_Density_Contrast, only : virialDensityContrast, virialDensityContrastClass
 
-  !# <galacticFilter name="galacticFilterHaloMassRange">
-  !#  <description>
-  !#   Halos with a halo mass {\normalfont \ttfamily massLow} $\le M &lt;$ {\normalfont \ttfamily [massHigh]} are passed.
-  !#  </description>
-  !# </galacticFilter>
+  !![
+  <galacticFilter name="galacticFilterHaloMassRange">
+   <description>
+    Halos with a halo mass {\normalfont \ttfamily massLow} $\le M &lt;$ {\normalfont \ttfamily [massHigh]} are passed.
+   </description>
+  </galacticFilter>
+  !!]
   type, extends(galacticFilterClass) :: galacticFilterHaloMassRange
-     !% A galactic filter class on halo mass.
+     !!{
+     A galactic filter class on halo mass.
+     !!}
      private
      double precision                                      :: massLow                         , massHigh
      class           (virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
@@ -37,7 +43,9 @@
   end type galacticFilterHaloMassRange
 
   interface galacticFilterHaloMassRange
-     !% Constructors for the ``haloMassRange'' galactic filter class.
+     !!{
+     Constructors for the ``haloMassRange'' galactic filter class.
+     !!}
      module procedure haloMassRangeConstructorParameters
      module procedure haloMassRangeConstructorInternal
   end interface galacticFilterHaloMassRange
@@ -45,7 +53,9 @@
 contains
 
   function haloMassRangeConstructorParameters(parameters) result(self)
-    !% Constructor for the ``haloMassRange'' galactic filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``haloMassRange'' galactic filter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (galacticFilterHaloMassRange)                :: self
@@ -54,45 +64,59 @@ contains
     double precision                                             :: massLow               , massHigh
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>massLow</name>
-    !#   <source>parameters</source>
-    !#   <description>The lowest halo mass to pass.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massHigh</name>
-    !#   <source>parameters</source>
-    !#   <description>The highest halo mass to pass.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>massLow</name>
+      <source>parameters</source>
+      <description>The lowest halo mass to pass.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massHigh</name>
+      <source>parameters</source>
+      <description>The highest halo mass to pass.</description>
+    </inputParameter>
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    !!]
     self=galacticFilterHaloMassRange(massLow,massHigh,virialDensityContrast_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="virialDensityContrast_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="virialDensityContrast_"/>
+    !!]
     return
   end function haloMassRangeConstructorParameters
 
   function haloMassRangeConstructorInternal(massLow,massHigh,virialDensityContrast_) result(self)
-    !% Internal constructor for the ``haloMassRange'' galactic filter class.
+    !!{
+    Internal constructor for the ``haloMassRange'' galactic filter class.
+    !!}
     implicit none
     type            (galacticFilterHaloMassRange)                        :: self
     double precision                             , intent(in   )         :: massLow               , massHigh
     class           (virialDensityContrastClass ), intent(in   ), target :: virialDensityContrast_
-    !# <constructorAssign variables="massLow, massHigh, *virialDensityContrast_"/>
+    !![
+    <constructorAssign variables="massLow, massHigh, *virialDensityContrast_"/>
+    !!]
 
     return
   end function haloMassRangeConstructorInternal
 
   subroutine haloMassRangeDestructor(self)
-    !% Destructor for the ``haloMassRange'' galactic filter class.
+    !!{
+    Destructor for the ``haloMassRange'' galactic filter class.
+    !!}
     implicit none
     type(galacticFilterHaloMassRange), intent(inout) :: self
 
-    !# <objectDestructor name="self%virialDensityContrast_"/>
+    !![
+    <objectDestructor name="self%virialDensityContrast_"/>
+    !!]
     return
   end subroutine haloMassRangeDestructor
 
   logical function haloMassRangePasses(self,node)
-    !% Implement a halo mass high-pass galactic filter.
+    !!{
+    Implement a halo mass high-pass galactic filter.
+    !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none

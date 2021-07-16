@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test stellar populations.
+!!{
+Contains a program to test stellar populations.
+!!}
 
 program Test_Stellar_Populations
-  !% Tests of stellar populations.
+  !!{
+  Tests of stellar populations.
+  !!}
   use :: Abundances_Structure                      , only : abundances
   use :: Display                                   , only : displayVerbositySet                    , verbosityLevelWorking
   use :: Functions_Global_Utilities                , only : Functions_Global_Set

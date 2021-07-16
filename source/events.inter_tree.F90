@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which handles inter-tree nodes events.
+!!{
+Contains a module which handles inter-tree nodes events.
+!!}
 
 module Node_Events_Inter_Tree
-  !% Handles inter-tree node events.
+  !!{
+  Handles inter-tree node events.
+  !!}
   use            :: Galacticus_Nodes, only : treeNode
   use, intrinsic :: ISO_C_Binding   , only : c_size_t
   use            :: Kind_Numbers    , only : kind_int8
@@ -29,7 +33,9 @@ module Node_Events_Inter_Tree
   public :: Node_Push_From_Tree, Node_Pull_From_Tree, Inter_Tree_Event_Post_Evolve
 
   type :: interTreeTransfer
-     !% Type used for transfering nodes between trees.
+     !!{
+     Type used for transfering nodes between trees.
+     !!}
      integer(c_size_t         )          :: splitForestUniqueID
      integer(kind_int8        )          :: pairedNodeID
      type   (treeNode         ), pointer :: node                => null()
@@ -46,7 +52,9 @@ module Node_Events_Inter_Tree
 contains
 
   logical function Node_Push_From_Tree(event,node,deadlockStatus)
-    !% Push a node from the tree.
+    !!{
+    Push a node from the tree.
+    !!}
     use :: Display                            , only : displayMessage               , verbosityLevelInfo
     use :: Galacticus_Error                   , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                   , only : nodeComponentBasic           , nodeEvent         , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, &
@@ -169,7 +177,9 @@ contains
   end function Node_Push_From_Tree
 
   logical function Node_Pull_From_Tree(event,node,deadlockStatus)
-    !% Pull a node from the tree.
+    !!{
+    Pull a node from the tree.
+    !!}
     use :: Display                            , only : displayMessage            , verbosityLevelInfo           , verbosityLevelWarn
     use :: Galacticus_Error                   , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                   , only : nodeComponentBasic        , nodeEvent                    , nodeEventBranchJumpInterTree, nodeEventSubhaloPromotionInterTree, &
@@ -177,15 +187,23 @@ contains
     use :: ISO_Varying_String                 , only : assignment(=)             , operator(//)                 , varying_string
     use :: Merger_Trees_Evolve_Deadlock_Status, only : deadlockStatusIsDeadlocked, deadlockStatusIsNotDeadlocked, deadlockStatusIsSuspendable
     use :: String_Handling                    , only : operator(//)
-    !# <include directive="interTreeSatelliteAttach" type="moduleUse">
+    !![
+    <include directive="interTreeSatelliteAttach" type="moduleUse">
+    !!]
     include 'events.inter_tree.satellite_attach.modules.inc'
-    !# </include>
-    !# <include directive="interTreeSatelliteInsert" type="moduleUse">
+    !![
+    </include>
+    <include directive="interTreeSatelliteInsert" type="moduleUse">
+    !!]
     include 'events.inter_tree.satellite_insert.modules.inc'
-    !# </include>
-    !# <include directive="interTreePostProcess" type="moduleUse">
+    !![
+    </include>
+    <include directive="interTreePostProcess" type="moduleUse">
+    !!]
     include 'events.inter_tree.post_process.modules.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     implicit none
     class           (nodeEvent         ), intent(in   )          :: event
     type            (treeNode          ), intent(inout), pointer :: node
@@ -369,10 +387,14 @@ contains
                       pullNode%sibling               => node%parent%firstSatellite
                       pullNode%parent%firstSatellite => pullNode
                       ! Allow any necessary manipulation of the nodes.
-                      !# <include directive="interTreeSatelliteInsert" type="functionCall" functionType="void">
-                      !#  <functionArgs>pullNode,node</functionArgs>
+                      !![
+                      <include directive="interTreeSatelliteInsert" type="functionCall" functionType="void">
+                       <functionArgs>pullNode,node</functionArgs>
+                      !!]
                       include 'events.inter_tree.satellite_insert.inc'
-                      !# </include>
+                      !![
+                      </include>
+                      !!]
                    else
                       ! Attach pulled node as the primary progenitor of the target node as it is the primary (and only progenitor).
                       pullNode%parent     => node
@@ -381,10 +403,14 @@ contains
                       ! Reset the ID of the descendent to that of the progenitor to mimic what would
                       ! have occurred if trees were processed unsplit. We also reset the basic mass and time last isolated for the same
                       ! reason.
-                      !# <include directive="interTreeSatelliteAttach" type="functionCall" functionType="void">
-                      !#  <functionArgs>pullNode</functionArgs>
+                      !![
+                      <include directive="interTreeSatelliteAttach" type="functionCall" functionType="void">
+                       <functionArgs>pullNode</functionArgs>
+                      !!]
                       include 'events.inter_tree.satellite_attach.inc'
-                      !# </include>
+                      !![
+                      </include>
+                      !!]
                       pullBasic   => pullNode%basic()
                       attachBasic => node%basic()
                       call node   %           indexSet(pullNode %           index())
@@ -473,10 +499,14 @@ contains
                 pullNode%firstSatellite => null()
              end if
              ! Allow any postprocessing of the inter-tree transfer event that may be necessary.
-             !# <include directive="interTreePostProcess" type="functionCall" functionType="void">
-             !#  <functionArgs>pullNode</functionArgs>
+             !![
+             <include directive="interTreePostProcess" type="functionCall" functionType="void">
+              <functionArgs>pullNode</functionArgs>
+             !!]
              include 'events.inter_tree.postprocess.inc'
-             !# </include>
+             !![
+             </include>
+             !!]
              ! Record that the event was performed, and set the deadlock status to not deadlocked since we changed the tree.
              deadlockStatus     =deadlockStatusIsNotDeadlocked
              Node_Pull_From_Tree=.true.
@@ -490,11 +520,15 @@ contains
     return
   end function Node_Pull_From_Tree
 
-  !# <universePostEvolveTask>
-  !#  <unitName>Inter_Tree_Event_Post_Evolve</unitName>
-  !# </universePostEvolveTask>
+  !![
+  <universePostEvolveTask>
+   <unitName>Inter_Tree_Event_Post_Evolve</unitName>
+  </universePostEvolveTask>
+  !!]
   subroutine Inter_Tree_Event_Post_Evolve()
-    !% Check that the inter-tree transfer list is empty after universe evolution.
+    !!{
+    Check that the inter-tree transfer list is empty after universe evolution.
+    !!}
     use :: Display           , only : displayIndent          , displayMessage, displayUnindent
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : assignment(=)          , varying_string

@@ -17,31 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a merger tree processing time estimator using a polynomial relation read from file.
+!!{
+Contains a module which implements a merger tree processing time estimator using a polynomial relation read from file.
+!!}
 
-  !# <metaTreeProcessingTime name="metaTreeProcessingTimeFile">
-  !#  <description>
-  !#   A merger tree processing time class which estimates processing times using a polynomial relation read from
-  !#   file. Specifically, the time taken to process a tree is estimate to be
-  !#   \begin{equation}
-  !#    \log_{10} [ \tau_\mathrm{tree}(M)] = \sum_{i=0}^2 C_i (\log_{10} M)^i,
-  !#   \end{equation}
-  !#   where $M$ is the root mass of the tree and the coefficients $C_i$ are read from a file, the name of which is specified via
-  !#   the {\normalfont \ttfamily [fileName]} parameter. This file should be an XML document with the structure:
-  !#   \begin{verbatim}
-  !#   <timing>
-  !#    <fit>
-  !#      <coefficient>-0.73</coefficient>
-  !#      <coefficient>-0.20</coefficient>
-  !#      <coefficient>0.03</coefficient>
-  !#    </fit>
-  !#   </timing>
-  !#   \end{verbatim}
-  !#   where the array of coefficients give the values $C_0$, $C_1$ and $C_2$.
-  !#  </description>
-  !# </metaTreeProcessingTime>
+  !![
+  <metaTreeProcessingTime name="metaTreeProcessingTimeFile">
+   <description>
+    A merger tree processing time class which estimates processing times using a polynomial relation read from
+    file. Specifically, the time taken to process a tree is estimate to be
+    \begin{equation}
+     \log_{10} [ \tau_\mathrm{tree}(M)] = \sum_{i=0}^2 C_i (\log_{10} M)^i,
+    \end{equation}
+    where $M$ is the root mass of the tree and the coefficients $C_i$ are read from a file, the name of which is specified via
+    the {\normalfont \ttfamily [fileName]} parameter. This file should be an XML document with the structure:
+    \begin{verbatim}
+    &lt;timing>
+     &lt;fit>
+       &lt;coefficient>-0.73&lt;/coefficient>
+       &lt;coefficient>-0.20&lt;/coefficient>
+       &lt;coefficient>0.03&lt;/coefficient>
+     &lt;/fit>
+    &lt;/timing>
+    \end{verbatim}
+    where the array of coefficients give the values $C_0$, $C_1$ and $C_2$.
+   </description>
+  </metaTreeProcessingTime>
+  !!]
   type, extends(metaTreeProcessingTimeClass) :: metaTreeProcessingTimeFile
-     !% A merger tree processing time estimator using a polynomial relation read from file.
+     !!{
+     A merger tree processing time estimator using a polynomial relation read from file.
+     !!}
      private
      double precision, dimension(0:2) :: fitCoefficient
    contains
@@ -49,7 +55,9 @@
   end type metaTreeProcessingTimeFile
 
   interface metaTreeProcessingTimeFile
-     !% Constructors for the ``file'' merger tree processing time estimator.
+     !!{
+     Constructors for the ``file'' merger tree processing time estimator.
+     !!}
      module procedure fileConstructorParameters
      module procedure fileConstructorInternal
   end interface metaTreeProcessingTimeFile
@@ -57,24 +65,30 @@
 contains
 
   function fileConstructorParameters(parameters) result(self)
-    !% Constructor for the ``file'' merger tree processing time estimator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``file'' merger tree processing time estimator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(metaTreeProcessingTimeFile)                :: self
     type(inputParameters           ), intent(inout) :: parameters
     type(varying_string            )                :: fileName
 
-    !# <inputParameter>
-    !#   <name>fileName</name>
-    !#   <description>The name of the file which contains fit coefficients for the time per tree fitting function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>fileName</name>
+      <description>The name of the file which contains fit coefficients for the time per tree fitting function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=metaTreeProcessingTimeFile(fileName)
     return
   end function fileConstructorParameters
 
   function fileConstructorInternal(fileName) result(self)
-    !% Internal constructor for the ``file'' merger tree processing time estimator class.
+    !!{
+    Internal constructor for the ``file'' merger tree processing time estimator class.
+    !!}
     use :: FoX_DOM         , only : node                   , parseFile
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: IO_XML          , only : XML_Array_Read_Static  , XML_Get_First_Element_By_Tag_Name
@@ -95,7 +109,9 @@ contains
   end function fileConstructorInternal
 
   double precision function fileTime(self,massTree)
-    !% Return the units of the file property in the SI system.
+    !!{
+    Return the units of the file property in the SI system.
+    !!}
     implicit none
     class           (metaTreeProcessingTimeFile), intent(inout) :: self
     double precision                            , intent(in   ) :: massTree

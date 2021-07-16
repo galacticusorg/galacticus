@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program which tests nonlinear collapse solution in an Einstein-de Sitter cosmology.
+!!{
+Contains a program which tests nonlinear collapse solution in an Einstein-de Sitter cosmology.
+!!}
 
 program Tests_Spherical_Collapse_NonLinear
-  !% Tests nonlinear collapse solution in an Einstein-de Sitter cosmology.
+  !!{
+  Tests nonlinear collapse solution in an Einstein-de Sitter cosmology.
+  !!}
   use :: Cosmology_Functions       , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters      , only : cosmologyParametersSimple
   use :: Display                   , only : displayVerbositySet                             , verbosityLevelStandard

@@ -59,7 +59,7 @@ my @jobs = &Construct_Models($launchScript);
 
 # Launch models.
 &{$Galacticus::Launch::Hooks::moduleHooks{$launchScript->{'launchMethod'}}->{'launch'}}
-		      (\@jobs,$launchScript);
+		      (\@jobs,$launchScript,\%arguments);
 
 exit;
 

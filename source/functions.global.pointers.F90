@@ -17,12 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module providing pointers to global functions.
+!!{
+Contains a module providing pointers to global functions.
+!!}
 
 module Functions_Global
-  !% Provides pointers to global functions.
+  !!{
+  Provides pointers to global functions.
+  !!}
   public
-  !# <include directive="functionGlobal" type="functionGlobalPointers" >
+  !![
+  <include directive="functionGlobal" type="functionGlobalPointers" >
+  !!]
   include 'functionGlobal.pointers.inc'
-  !# </include>
+  !![
+  </include>
+  !!]
 end module Functions_Global

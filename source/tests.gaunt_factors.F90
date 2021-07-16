@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program which tests Gaunt factor functions.
+!!{
+Contains a program which tests Gaunt factor functions.
+!!}
 
 program Test_Gaunt_Factors
-  !% Tests Gaunt factor functions.
+  !!{
+  Tests Gaunt factor functions.
+  !!}
   use :: Atomic_Ionization_Potentials  , only : atomicIonizationPotentialVerner
   use :: Atomic_Radiation_Gaunt_Factors, only : gauntFactorVanHoof2014
   use :: Display                       , only : displayVerbositySet            , verbosityLevelStandard

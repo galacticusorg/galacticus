@@ -17,30 +17,40 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements a merger tree branching probability rate modifier which always returns the identity modifier.
+!!{
+Implements a merger tree branching probability rate modifier which always returns the identity modifier.
+!!}
 
-  !# <mergerTreeBranchingProbabilityModifier name="mergerTreeBranchingProbabilityModifierIdentity">
-  !#  <description>
-  !#   A merger tree branching probability modifier class which always applies the identity modifier.
-  !#  </description>
-  !# </mergerTreeBranchingProbabilityModifier>
+  !![
+  <mergerTreeBranchingProbabilityModifier name="mergerTreeBranchingProbabilityModifierIdentity">
+   <description>
+    A merger tree branching probability modifier class which always applies the identity modifier.
+   </description>
+  </mergerTreeBranchingProbabilityModifier>
+  !!]
   type, extends(mergerTreeBranchingProbabilityModifierClass) :: mergerTreeBranchingProbabilityModifierIdentity
-     !% A merger tree branching probability rate modifier which always returns the identity modifier.
+     !!{
+     A merger tree branching probability rate modifier which always returns the identity modifier.
+     !!}
      private
    contains
      procedure :: rateModifier => identityRateModifier
   end type mergerTreeBranchingProbabilityModifierIdentity
 
   interface mergerTreeBranchingProbabilityModifierIdentity
-     !% Constructors for the {\normalfont \ttfamily identity} merger tree branching probabiliy rate modifier class.
+     !!{
+     Constructors for the {\normalfont \ttfamily identity} merger tree branching probabiliy rate modifier class.
+     !!}
      module procedure identityConstructorParameters
   end interface mergerTreeBranchingProbabilityModifierIdentity
 
 contains
 
   function identityConstructorParameters(parameters) result(self)
-    !% A constructor for the {\normalfont \ttfamily identity} merger tree branching probability rate class which builds the
-    !% object from a parameter set.
+    !!{
+    A constructor for the {\normalfont \ttfamily identity} merger tree branching probability rate class which builds the
+    object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeBranchingProbabilityModifierIdentity)                :: self
@@ -52,8 +62,10 @@ contains
   end function identityConstructorParameters
 
   double precision function identityRateModifier(self,nodeParent,massParent,sigmaParent,sigmaChild,timeParent)
-    !% Returns a modifier for merger tree branching rates using the \cite{parkinson_generating_2008} algorithm.
-    !% Return the core radius of the hot halo mass distribution.
+    !!{
+    Returns a modifier for merger tree branching rates using the \cite{parkinson_generating_2008} algorithm.
+    Return the core radius of the hot halo mass distribution.
+    !!}
     implicit none
     class           (mergerTreeBranchingProbabilityModifierIdentity), intent(inout) :: self
     type            (treeNode                                      ), intent(inout) :: nodeParent

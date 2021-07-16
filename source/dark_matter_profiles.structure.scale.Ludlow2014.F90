@@ -17,26 +17,36 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of dark matter halo profile concentrations using the \cite{ludlow_mass-concentration-redshift_2014}
-  !% algorithm.
+  !!{
+  An implementation of dark matter halo profile concentrations using the \cite{ludlow_mass-concentration-redshift_2014}
+  algorithm.
+  !!}
 
-  !# <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusLudlow2014">
-  !#  <description>Dark matter halo scale radii are computed using the algorithm of \cite{ludlow_mass-concentration-redshift_2014}.</description>
-  !# </darkMatterProfileScaleRadius>
+  !![
+  <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusLudlow2014">
+   <description>Dark matter halo scale radii are computed using the algorithm of \cite{ludlow_mass-concentration-redshift_2014}.</description>
+  </darkMatterProfileScaleRadius>
+  !!]
   type, extends(darkMatterProfileScaleRadiusLudlow2016) :: darkMatterProfileScaleRadiusLudlow2014
-     !% A dark matter halo profile scale radii class implementing the algorithm of \cite{ludlow_mass-concentration-redshift_2014}.
+     !!{
+     A dark matter halo profile scale radii class implementing the algorithm of \cite{ludlow_mass-concentration-redshift_2014}.
+     !!}
      private
    contains
-     !# <methods>
-     !#   <method description="Evalute a function which goes to zero at the formation time of the tree."           method="formationTimeRoot"           />
-     !#   <method description="Initialize a root finder object for use in finding the formation time of the tree." method="formationTimeRootFunctionSet"/>
-     !# </methods>
+     !![
+     <methods>
+       <method description="Evalute a function which goes to zero at the formation time of the tree."           method="formationTimeRoot"           />
+       <method description="Initialize a root finder object for use in finding the formation time of the tree." method="formationTimeRootFunctionSet"/>
+     </methods>
+     !!]
      procedure, nopass :: formationTimeRoot            => ludlow2014FormationTimeRoot
      procedure         :: formationTimeRootFunctionSet => ludlow2014FormationTimeRootFunctionSet
   end type darkMatterProfileScaleRadiusLudlow2014
 
   interface darkMatterProfileScaleRadiusLudlow2014
-     !% Constructors for the {\normalfont \ttfamily ludlow2014} dark matter halo profile concentration class.
+     !!{
+     Constructors for the {\normalfont \ttfamily ludlow2014} dark matter halo profile concentration class.
+     !!}
      module procedure ludlow2014ConstructorParameters
      module procedure ludlow2014ConstructorInternal
   end interface darkMatterProfileScaleRadiusLudlow2014
@@ -44,7 +54,9 @@
 contains
 
   function ludlow2014ConstructorParameters(parameters) result(self)
-    !% Default constructor for the {\normalfont \ttfamily ludlow2014} dark matter halo profile concentration class.
+    !!{
+    Default constructor for the {\normalfont \ttfamily ludlow2014} dark matter halo profile concentration class.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(darkMatterProfileScaleRadiusLudlow2014)                :: self
@@ -55,7 +67,9 @@ contains
   end function ludlow2014ConstructorParameters
 
   function ludlow2014ConstructorInternal(C,f,timeFormationSeekDelta,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileScaleRadius_,darkMatterProfileDMO_) result(self)
-    !% Constructor for the {\normalfont \ttfamily ludlow2014} dark matter halo profile concentration class.
+    !!{
+    Constructor for the {\normalfont \ttfamily ludlow2014} dark matter halo profile concentration class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterProfileScaleRadiusLudlow2014)                        :: self
@@ -71,7 +85,9 @@ contains
   end function ludlow2014ConstructorInternal
 
   subroutine ludlow2014FormationTimeRootFunctionSet(self,finder)
-    !% Initialize the finder object to compute the relevant formation history.
+    !!{
+    Initialize the finder object to compute the relevant formation history.
+    !!}
     use :: Root_Finder, only : rootFinder
     implicit none
     class           (darkMatterProfileScaleRadiusLudlow2014), intent(inout) :: self
@@ -88,7 +104,9 @@ contains
   end subroutine ludlow2014FormationTimeRootFunctionSet
 
   double precision function ludlow2014FormationTimeRoot(timeFormation)
-    !% Function used to find the formation time of a halo in the {\normalfont \ttfamily ludlow2014} concentration algorithm.
+    !!{
+    Function used to find the formation time of a halo in the {\normalfont \ttfamily ludlow2014} concentration algorithm.
+    !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none

@@ -19,23 +19,29 @@
 
 !+ Contributions to this file made by: Andrew Benson, Daniel McAndrew.
 
-!% Contains a module that implements an atomic ionization potential class.
+!!{
+Contains a module that implements an atomic ionization potential class.
+!!}
 
 module Atomic_Ionization_Potentials
-  !% Implements an atomic ionization potential class.
+  !!{
+  Implements an atomic ionization potential class.
+  !!}
   private
 
-  !# <functionClass>
-  !#  <name>atomicIonizationPotential</name>
-  !#  <descriptiveName>Atomic ionization potentials.</descriptiveName>
-  !#  <description>Class providing atomic ionization potentials.</description>
-  !#  <default>verner</default>
-  !#  <method name="potential" >
-  !#   <description>Returns the ionization potential (in units of eV) for a given atom in a given ionization state.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>integer, intent(in   ) :: atomicNumber, electronNumber</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>atomicIonizationPotential</name>
+   <descriptiveName>Atomic ionization potentials.</descriptiveName>
+   <description>Class providing atomic ionization potentials.</description>
+   <default>verner</default>
+   <method name="potential" >
+    <description>Returns the ionization potential (in units of eV) for a given atom in a given ionization state.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>integer, intent(in   ) :: atomicNumber, electronNumber</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Atomic_Ionization_Potentials

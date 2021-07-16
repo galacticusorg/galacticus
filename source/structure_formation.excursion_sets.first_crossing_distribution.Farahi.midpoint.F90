@@ -19,13 +19,19 @@
 
 !+    Contributions to this file made by: Andrew Benson, Christoph Behrens, Xiaolong Du.
 
-!% Contains a module which implements a excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.
+!!{
+Contains a module which implements a excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.
+!!}
 
-  !# <excursionSetFirstCrossing name="excursionSetFirstCrossingFarahiMidpoint">
-  !#  <description>An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.</description>
-  !# </excursionSetFirstCrossing>
+  !![
+  <excursionSetFirstCrossing name="excursionSetFirstCrossingFarahiMidpoint">
+   <description>An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.</description>
+  </excursionSetFirstCrossing>
+  !!]
   type, extends(excursionSetFirstCrossingFarahi) :: excursionSetFirstCrossingFarahiMidpoint
-     !% An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.
+     !!{
+     An excursion set first crossing statistics class using the algorithm of \cite{benson_dark_2012}, but using a midpoint method to perform the integrations \citep{du_substructure_2017}.
+     !!}
      private
    contains
      procedure :: probability  => farahiMidpointProbability
@@ -33,7 +39,9 @@
   end type excursionSetFirstCrossingFarahiMidpoint
 
   interface excursionSetFirstCrossingFarahiMidpoint
-     !% Constructors for the Farahi-midpoint excursion set barrier class.
+     !!{
+     Constructors for the Farahi-midpoint excursion set barrier class.
+     !!}
      module procedure farahiMidpointConstructorParameters
      module procedure farahiMidpointConstructorInternal
   end interface excursionSetFirstCrossingFarahiMidpoint
@@ -41,7 +49,9 @@
 contains
 
   function farahiMidpointConstructorParameters(parameters) result(self)
-    !% Constructor for the Farahi-midpoint excursion set class first crossing class which takes a parameter set as input.
+    !!{
+    Constructor for the Farahi-midpoint excursion set class first crossing class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(excursionSetFirstCrossingFarahiMidpoint)                :: self
@@ -52,7 +62,9 @@ contains
   end function farahiMidpointConstructorParameters
 
   function farahiMidpointConstructorInternal(timeStepFractional,fileName,varianceNumberPerUnitProbability,varianceNumberPerUnit,varianceNumberPerDecade,timeNumberPerDecade,cosmologyFunctions_,excursionSetBarrier_,cosmologicalMassVariance_) result(self)
-    !% Internal constructor for the Farahi-midpoint excursion set class first crossing class.
+    !!{
+    Internal constructor for the Farahi-midpoint excursion set class first crossing class.
+    !!}
     implicit none
     type            (excursionSetFirstCrossingFarahiMidpoint)                        :: self
     double precision                                         , intent(in   )         :: timeStepFractional
@@ -68,7 +80,9 @@ contains
   end function farahiMidpointConstructorInternal
 
   double precision function farahiMidpointProbability(self,variance,time,node)
-    !% Return the excursion set barrier at the given variance and time.
+    !!{
+    Return the excursion set barrier at the given variance and time.
+    !!}
     use :: Display          , only : displayCounter , displayCounterClear  , displayIndent       , displayMessage, &
           &                          displayUnindent, verbosityLevelWorking
     use :: Error_Functions  , only : erfApproximate
@@ -125,211 +139,215 @@ contains
        if (makeTable) then
           ! Construct the table of variance on which we will solve for the first crossing distribution.
           if (allocated(self%varianceTable                )) call deallocateArray(self%varianceTable                )
-       if (allocated(self%timeTable                    )) call deallocateArray(self%timeTable                    )
-       if (allocated(self%firstCrossingProbabilityTable)) call deallocateArray(self%firstCrossingProbabilityTable)
-       self%varianceMaximum   =max(self%varianceMaximum,variance)
-       self%varianceTableCount=int(self%varianceMaximum*dble(self%varianceNumberPerUnitProbability))
-       if (self%tableInitialized) then
-          self%timeMinimum=min(self%timeMinimum,time/10.0d0**(2.0d0/dble(self%timeNumberPerDecade)))
-          self%timeMaximum=max(self%timeMaximum,time*10.0d0**(2.0d0/dble(self%timeNumberPerDecade)))
-       else
-          self%timeMinimum=                     time/10.0d0**(2.0d0/dble(self%timeNumberPerDecade))
-          self%timeMaximum=                     time*10.0d0**(2.0d0/dble(self%timeNumberPerDecade))
-       end if
-       self%timeTableCount=max(2,int(log10(self%timeMaximum/self%timeMinimum)*dble(self%timeNumberPerDecade))+1)
-       call allocateArray(self%varianceTable                ,[1+self%varianceTableCount                    ],lowerBounds=[0  ])
-       call allocateArray(self%timeTable                    ,[                          self%timeTableCount]                  )
-       call allocateArray(self%firstCrossingProbabilityTable,[1+self%varianceTableCount,self%timeTableCount],lowerBounds=[0,1])
-       call allocateArray(     varianceMidTable             ,[1+self%varianceTableCount                    ],lowerBounds=[0  ])
-       self%timeTable        =Make_Range(self%timeMinimum,self%timeMaximum    ,self%timeTableCount      ,rangeType=rangeTypeLogarithmic)
-       self%varianceTable    =Make_Range(0.0d0           ,self%varianceMaximum,self%varianceTableCount+1,rangeType=rangeTypeLinear     )
-       self%varianceTableStep=self%varianceTable(1)-self%varianceTable(0)
-       ! Compute the variance at the mid-points.
-       varianceMidTable(0)=0.0d0
-       forall(i=1:self%varianceTableCount)
-          varianceMidTable(i)=(self%varianceTable(i-1)+self%varianceTable(i))/2.0d0
-       end forall
-       ! Loop through the table and solve for the first crossing distribution.
-#ifdef USEMPI
-       if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
-#endif
-          call displayIndent("solving for excursion set barrier crossing probabilities",verbosityLevelWorking)
-          message="    time: "
-          write (label,'(f6.3)') self%timeMinimum
-          message=message//label//" to "
-          write (label,'(f6.3)') self%timeMaximum
-          message=message//label
-          call displayMessage(message,verbosityLevelWorking)
-          message="variance: "
-          write (label,'(f9.3)') self%varianceMaximum
-          message=message//label
-          call displayMessage(message,verbosityLevelWorking)
-#ifdef USEMPI
-       end if
-#endif
-#ifdef USEMPI
-       if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
-          loopCountTotal=(int(self%timeTableCount,kind=c_size_t)/int(mpiSelf%count(),kind=c_size_t)+1_c_size_t)*(int(self%varianceTableCount-1,kind=c_size_t)*int(self%varianceTableCount,kind=c_size_t))/2_c_size_t
-       else
-#endif
-          loopCountTotal= int(self%timeTableCount,kind=c_size_t)                                               *(int(self%varianceTableCount-1,kind=c_size_t)*int(self%varianceTableCount,kind=c_size_t))/2_c_size_t
-#ifdef USEMPI
-       end if
-#endif
-       loopCount=0
-#ifdef USEMPI
-       if (self%coordinatedMPI_) self%firstCrossingProbabilityTable=0.0d0
-#endif
-       ! Make a call to the barrier function at maximum variance for the minimum and maximum times so that the barrier function
-       ! is initialized and covers the whole range we are intereseted in.
-       barrierTest=self%excursionSetBarrier_%barrier(self%varianceMaximum,self%timeMinimum,node,rateCompute=.false.)
-       barrierTest=self%excursionSetBarrier_%barrier(self%varianceMaximum,self%timeMaximum,node,rateCompute=.false.)
-       !$omp parallel private(iTime,i,j,sigma1f,integralKernel,excursionSetBarrier_,barrierTable,barrierMidTable) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
-       allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
-       !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
-       !# <deepCopyReset variables="self%excursionSetBarrier_"/>
-       !# <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
-       !# <deepCopyFinalize variables="excursionSetBarrier_"/>
-       !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
-       call allocateArray(barrierTable   ,[1+self%varianceTableCount],lowerBounds=[0])
-       call allocateArray(barrierMidTable,[1+self%varianceTableCount],lowerBounds=[0])
-       !$omp do schedule(dynamic)
-       do iTime=1,self%timeTableCount
-#ifdef USEMPI
-          if (self%coordinatedMPI_ .and. mod(iTime-1,mpiSelf%count()) /= mpiSelf%rank()) cycle
-#endif
-          ! Construct the barrier table.
-          do i=0,self%varianceTableCount
-             barrierTable   (i)=excursionSetBarrier_%barrier(self%varianceTable   (i),self%timeTable(iTime),node,rateCompute=.false.)
-             barrierMidTable(i)=excursionSetBarrier_%barrier(     varianceMidTable(i),self%timeTable(iTime),node,rateCompute=.false.)
-          end do
-          self%firstCrossingProbabilityTable(0,iTime)=0.0d0
-          integralKernel                             =+1.0_kind_quad                                                                   &
-               &                                      -erfApproximate(                                                                 &
-               &                                                      +(                                                               &
-               &                                                        +barrierTable   (1)                                            &
-               &                                                        -barrierMidTable(1)                                            &
-               &                                                       )                                                               &
-               &                                                      /sqrt(2.0_kind_quad*(self%varianceTable(1)-varianceMidTable(1))) &
-               &                                                     )
-          self%firstCrossingProbabilityTable(1,iTime)=real(                                                              &
-               &                                           +(                                                            &
-               &                                             +1.0_kind_quad                                              &
-               &                                             -erfApproximate(                                            &
-               &                                                             +barrierTable(1)                            &
-               &                                                             /sqrt(2.0_kind_quad*self%varianceTable(1))  &
-               &                                                            )                                            &
-               &                                            )                                                            &
-               &                                           /self%varianceTableStep                                       &
-               &                                           /integralKernel                                             , &
-               &                                           kind=kind_dble                                                &
-               &                                          )
-          do i=2,self%varianceTableCount
-#ifdef USEMPI
-             if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
-#endif
-                call displayCounter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityLevelWorking)
-#ifdef USEMPI
-             end if
-#endif
-             !$omp atomic
-             loopCount=loopCount+(i-1)
-             sigma1f  =0.0d0
-             do j=1,i-1
-                sigma1f=+sigma1f                                                                                  &
-                     &  +self%firstCrossingProbabilityTable(j,iTime)                                              &
-                     &  *real(                                                                                    &
-                     &         1.0_kind_quad                                                                      &
-                     &        -erfApproximate(                                                                    &
-                     &                          (                                                                 &
-                     &                           +barrierTable   (i)                                              &
-                     &                           -barrierMidTable(j)                                              &
-                     &                          )                                                                 &
-                     &                          /sqrt(2.0_kind_quad*(self%varianceTable(i)-varianceMidTable(j)))  &
-                     &                         )                                                                , &
-                     &        kind=kind_dble                                                                      &
-                     &       )
-             end do
-             integralKernel=+1.0_kind_quad                                                                   &
-                  &         -erfApproximate(                                                                 &
-                  &                         +(                                                               &
-                  &                           +barrierTable   (i)                                            &
-                  &                           -barrierMidTable(i)                                            &
-                  &                          )                                                               &
-                  &                         /sqrt(2.0_kind_quad*(self%varianceTable(i)-varianceMidTable(i))) &
-                  &                        )
-             if (integralKernel==0.0_kind_quad) then
-               self%firstCrossingProbabilityTable(i,iTime)=0.0d0
-             else
-               self%firstCrossingProbabilityTable(i,iTime)=real(                                                                    &
-                    &                                           max(                                                                &
-                    &                                               +0.0_kind_quad,                                                 &
-                    &                                               +(                                                              &
-                    &                                                 +(                                                            &
-                    &                                                   +1.0_kind_quad                                              &
-                    &                                                   -erfApproximate(                                            &
-                    &                                                                   +barrierTable(i)                            &
-                    &                                                                   /sqrt(2.0_kind_quad*self%varianceTable(i))  &
-                    &                                                                  )                                            &
-                    &                                                  )                                                            &
-                    &                                                 /self%varianceTableStep                                       &
-                    &                                                 -1.0_kind_quad                                                &
-                    &                                                 *sigma1f                                                      &
-                    &                                                )                                                              &
-                    &                                               /integralKernel                                                 &
-                    &                                              )                                                              , &
-                    &                                           kind=kind_dble                                                      &
-                    &                                          )
-             end if
-          end do
-          ! Force the probability at maximum variance to zero.
-          self%firstCrossingProbabilityTable(self%varianceTableCount,iTime)=0.0d0
-       end do
-       !$omp end do
-       !# <objectDestructor name="excursionSetBarrier_"/>
-       call deallocateArray(barrierTable   )
-       call deallocateArray(barrierMidTable)
-       !$omp end parallel
-       ! Update the variance table to reflect the variances at the midpoints. Note that the first crossing probability is computed
-       ! at the mid-points. The last element of the variance table is unchanged to ensure that its value equals
-       ! varianceMaximum. This will not affect the result becasue the probability at maximum variance is set to zero anyway.
-       self%varianceTable(1:self%varianceTableCount-1)=varianceMidTable(1:self%varianceTableCount-1)
-       call deallocateArray(varianceMidTable)
-#ifdef USEMPI
-       if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
-#endif
-          call displayCounterClear(verbosityLevelWorking)
-          call displayUnindent("done",verbosityLevelWorking)
-#ifdef USEMPI
-       end if
-       if (self%coordinatedMPI_) then
-          call mpiBarrier()
-          self%firstCrossingProbabilityTable=mpiSelf%sum(self%firstCrossingProbabilityTable)
-       end if
-#endif
-       ! Build the interpolators.
-       if (allocated(self%interpolatorVariance)) deallocate(self%interpolatorVariance)
-       if (allocated(self%interpolatorTime    )) deallocate(self%interpolatorTime    )
-       allocate(self%interpolatorVariance)
-       allocate(self%interpolatorTime    )
-       self%interpolatorVariance=interpolator(self%varianceTable)
-       self%interpolatorTime    =interpolator(self%timeTable    )
-       ! Record that the table is now built.
-       self%tableInitialized=.true.
-       ! Write the table to file if possible.
-#ifdef USEMPI
-       if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
-#endif
-          if (self%useFile) then
-             call File_Lock(char(self%fileName),fileLock,lockIsShared=.false.)
-             call self%fileWrite()
-             call File_Unlock(fileLock)
+          if (allocated(self%timeTable                    )) call deallocateArray(self%timeTable                    )
+          if (allocated(self%firstCrossingProbabilityTable)) call deallocateArray(self%firstCrossingProbabilityTable)
+          self%varianceMaximum   =max(self%varianceMaximum,variance)
+          self%varianceTableCount=int(self%varianceMaximum*dble(self%varianceNumberPerUnitProbability))
+          if (self%tableInitialized) then
+             self%timeMinimum=min(self%timeMinimum,time/10.0d0**(2.0d0/dble(self%timeNumberPerDecade)))
+             self%timeMaximum=max(self%timeMaximum,time*10.0d0**(2.0d0/dble(self%timeNumberPerDecade)))
+          else
+             self%timeMinimum=                     time/10.0d0**(2.0d0/dble(self%timeNumberPerDecade))
+             self%timeMaximum=                     time*10.0d0**(2.0d0/dble(self%timeNumberPerDecade))
           end if
+          self%timeTableCount=max(2,int(log10(self%timeMaximum/self%timeMinimum)*dble(self%timeNumberPerDecade))+1)
+          call allocateArray(self%varianceTable                ,[1+self%varianceTableCount                    ],lowerBounds=[0  ])
+          call allocateArray(self%timeTable                    ,[                          self%timeTableCount]                  )
+          call allocateArray(self%firstCrossingProbabilityTable,[1+self%varianceTableCount,self%timeTableCount],lowerBounds=[0,1])
+          call allocateArray(     varianceMidTable             ,[1+self%varianceTableCount                    ],lowerBounds=[0  ])
+          self%timeTable        =Make_Range(self%timeMinimum,self%timeMaximum    ,self%timeTableCount      ,rangeType=rangeTypeLogarithmic)
+          self%varianceTable    =Make_Range(0.0d0           ,self%varianceMaximum,self%varianceTableCount+1,rangeType=rangeTypeLinear     )
+          self%varianceTableStep=self%varianceTable(1)-self%varianceTable(0)
+          ! Compute the variance at the mid-points.
+          varianceMidTable(0)=0.0d0
+          forall(i=1:self%varianceTableCount)
+             varianceMidTable(i)=(self%varianceTable(i-1)+self%varianceTable(i))/2.0d0
+          end forall
+          ! Loop through the table and solve for the first crossing distribution.
 #ifdef USEMPI
-       end if
+          if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
 #endif
-    end if
-    !$omp end critical(farahiMidpointProbabilityTabulate)
+             call displayIndent("solving for excursion set barrier crossing probabilities",verbosityLevelWorking)
+             message="    time: "
+             write (label,'(f6.3)') self%timeMinimum
+             message=message//label//" to "
+             write (label,'(f6.3)') self%timeMaximum
+             message=message//label
+             call displayMessage(message,verbosityLevelWorking)
+             message="variance: "
+             write (label,'(f9.3)') self%varianceMaximum
+             message=message//label
+             call displayMessage(message,verbosityLevelWorking)
+#ifdef USEMPI
+          end if
+#endif
+#ifdef USEMPI
+          if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+             loopCountTotal=(int(self%timeTableCount,kind=c_size_t)/int(mpiSelf%count(),kind=c_size_t)+1_c_size_t)*(int(self%varianceTableCount-1,kind=c_size_t)*int(self%varianceTableCount,kind=c_size_t))/2_c_size_t
+          else
+#endif
+             loopCountTotal= int(self%timeTableCount,kind=c_size_t)                                               *(int(self%varianceTableCount-1,kind=c_size_t)*int(self%varianceTableCount,kind=c_size_t))/2_c_size_t
+#ifdef USEMPI
+          end if
+#endif
+          loopCount=0
+#ifdef USEMPI
+          if (self%coordinatedMPI_) self%firstCrossingProbabilityTable=0.0d0
+#endif
+          ! Make a call to the barrier function at maximum variance for the minimum and maximum times so that the barrier function
+          ! is initialized and covers the whole range we are intereseted in.
+          barrierTest=self%excursionSetBarrier_%barrier(self%varianceMaximum,self%timeMinimum,node,rateCompute=.false.)
+          barrierTest=self%excursionSetBarrier_%barrier(self%varianceMaximum,self%timeMaximum,node,rateCompute=.false.)
+          !$omp parallel private(iTime,i,j,sigma1f,integralKernel,excursionSetBarrier_,barrierTable,barrierMidTable) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
+          allocate(excursionSetBarrier_,mold=self%excursionSetBarrier_)
+          !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
+          !![
+          <deepCopyReset variables="self%excursionSetBarrier_"/>
+	  <deepCopy source="self%excursionSetBarrier_" destination="excursionSetBarrier_"/>
+	  <deepCopyFinalize variables="excursionSetBarrier_"/>
+	  !!]
+          !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
+          call allocateArray(barrierTable   ,[1+self%varianceTableCount],lowerBounds=[0])
+          call allocateArray(barrierMidTable,[1+self%varianceTableCount],lowerBounds=[0])
+          !$omp do schedule(dynamic)
+          do iTime=1,self%timeTableCount
+#ifdef USEMPI
+             if (self%coordinatedMPI_ .and. mod(iTime-1,mpiSelf%count()) /= mpiSelf%rank()) cycle
+#endif
+             ! Construct the barrier table.
+             do i=0,self%varianceTableCount
+                barrierTable   (i)=excursionSetBarrier_%barrier(self%varianceTable   (i),self%timeTable(iTime),node,rateCompute=.false.)
+                barrierMidTable(i)=excursionSetBarrier_%barrier(     varianceMidTable(i),self%timeTable(iTime),node,rateCompute=.false.)
+             end do
+             self%firstCrossingProbabilityTable(0,iTime)=0.0d0
+             integralKernel                             =+1.0_kind_quad                                                                   &
+                  &                                      -erfApproximate(                                                                 &
+                  &                                                      +(                                                               &
+                  &                                                        +barrierTable   (1)                                            &
+                  &                                                        -barrierMidTable(1)                                            &
+                  &                                                       )                                                               &
+                  &                                                      /sqrt(2.0_kind_quad*(self%varianceTable(1)-varianceMidTable(1))) &
+                  &                                                     )
+             self%firstCrossingProbabilityTable(1,iTime)=real(                                                              &
+                  &                                           +(                                                            &
+                  &                                             +1.0_kind_quad                                              &
+                  &                                             -erfApproximate(                                            &
+                  &                                                             +barrierTable(1)                            &
+                  &                                                             /sqrt(2.0_kind_quad*self%varianceTable(1))  &
+                  &                                                            )                                            &
+                  &                                            )                                                            &
+                  &                                           /self%varianceTableStep                                       &
+                  &                                           /integralKernel                                             , &
+                  &                                           kind=kind_dble                                                &
+                  &                                          )
+             do i=2,self%varianceTableCount
+#ifdef USEMPI
+                if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+#endif
+                   call displayCounter(int(100.0d0*dble(loopCount)/dble(loopCountTotal)),loopCount==0,verbosityLevelWorking)
+#ifdef USEMPI
+                end if
+#endif
+                !$omp atomic
+                loopCount=loopCount+(i-1)
+                sigma1f  =0.0d0
+                do j=1,i-1
+                   sigma1f=+sigma1f                                                                                  &
+                        &  +self%firstCrossingProbabilityTable(j,iTime)                                              &
+                        &  *real(                                                                                    &
+                        &         1.0_kind_quad                                                                      &
+                        &        -erfApproximate(                                                                    &
+                        &                          (                                                                 &
+                        &                           +barrierTable   (i)                                              &
+                        &                           -barrierMidTable(j)                                              &
+                        &                          )                                                                 &
+                        &                          /sqrt(2.0_kind_quad*(self%varianceTable(i)-varianceMidTable(j)))  &
+                        &                         )                                                                , &
+                        &        kind=kind_dble                                                                      &
+                        &       )
+                end do
+                integralKernel=+1.0_kind_quad                                                                   &
+                     &         -erfApproximate(                                                                 &
+                     &                         +(                                                               &
+                     &                           +barrierTable   (i)                                            &
+                     &                           -barrierMidTable(i)                                            &
+                     &                          )                                                               &
+                     &                         /sqrt(2.0_kind_quad*(self%varianceTable(i)-varianceMidTable(i))) &
+                     &                        )
+                if (integralKernel==0.0_kind_quad) then
+                   self%firstCrossingProbabilityTable(i,iTime)=0.0d0
+                else
+                   self%firstCrossingProbabilityTable(i,iTime)=real(                                                                    &
+                        &                                           max(                                                                &
+                        &                                               +0.0_kind_quad,                                                 &
+                        &                                               +(                                                              &
+                        &                                                 +(                                                            &
+                        &                                                   +1.0_kind_quad                                              &
+                        &                                                   -erfApproximate(                                            &
+                        &                                                                   +barrierTable(i)                            &
+                        &                                                                   /sqrt(2.0_kind_quad*self%varianceTable(i))  &
+                        &                                                                  )                                            &
+                        &                                                  )                                                            &
+                        &                                                 /self%varianceTableStep                                       &
+                        &                                                 -1.0_kind_quad                                                &
+                        &                                                 *sigma1f                                                      &
+                        &                                                )                                                              &
+                        &                                               /integralKernel                                                 &
+                        &                                              )                                                              , &
+                        &                                           kind=kind_dble                                                      &
+                        &                                          )
+                end if
+             end do
+             ! Force the probability at maximum variance to zero.
+             self%firstCrossingProbabilityTable(self%varianceTableCount,iTime)=0.0d0
+          end do
+          !$omp end do
+          !![
+          <objectDestructor name="excursionSetBarrier_"/>
+	  !!]
+          call deallocateArray(barrierTable   )
+          call deallocateArray(barrierMidTable)
+          !$omp end parallel
+          ! Update the variance table to reflect the variances at the midpoints. Note that the first crossing probability is computed
+          ! at the mid-points. The last element of the variance table is unchanged to ensure that its value equals
+          ! varianceMaximum. This will not affect the result becasue the probability at maximum variance is set to zero anyway.
+          self%varianceTable(1:self%varianceTableCount-1)=varianceMidTable(1:self%varianceTableCount-1)
+          call deallocateArray(varianceMidTable)
+#ifdef USEMPI
+          if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+#endif
+             call displayCounterClear(verbosityLevelWorking)
+             call displayUnindent("done",verbosityLevelWorking)
+#ifdef USEMPI
+          end if
+          if (self%coordinatedMPI_) then
+             call mpiBarrier()
+             self%firstCrossingProbabilityTable=mpiSelf%sum(self%firstCrossingProbabilityTable)
+          end if
+#endif
+          ! Build the interpolators.
+          if (allocated(self%interpolatorVariance)) deallocate(self%interpolatorVariance)
+          if (allocated(self%interpolatorTime    )) deallocate(self%interpolatorTime    )
+          allocate(self%interpolatorVariance)
+          allocate(self%interpolatorTime    )
+          self%interpolatorVariance=interpolator(self%varianceTable)
+          self%interpolatorTime    =interpolator(self%timeTable    )
+          ! Record that the table is now built.
+          self%tableInitialized=.true.
+          ! Write the table to file if possible.
+#ifdef USEMPI
+          if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
+#endif
+             if (self%useFile) then
+                call File_Lock(char(self%fileName),fileLock,lockIsShared=.false.)
+                call self%fileWrite()
+                call File_Unlock(fileLock)
+             end if
+#ifdef USEMPI
+          end if
+#endif
+       end if
+       !$omp end critical(farahiMidpointProbabilityTabulate)
     end if
     ! Get interpolating factors.
     call self%interpolatorTime%linearFactors    (time    ,iTime    ,hTime    )
@@ -348,7 +366,9 @@ contains
   end function farahiMidpointProbability
 
   subroutine farahiMidpointRateTabulate(self,varianceProgenitor,time,node)
-    !% Tabulate the excursion set crossing rate.
+    !!{
+    Tabulate the excursion set crossing rate.
+    !!}
     use :: Display          , only : displayCounter , displayCounterClear  , displayIndent       , displayMessage, &
           &                          displayUnindent, verbosityLevelWorking
     use :: Error_Functions  , only : erfApproximate
@@ -454,10 +474,12 @@ contains
           allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
           allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
           !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
-          !# <deepCopyReset variables="self%excursionSetBarrier_ self%cosmologicalMassVariance_"/>
-          !# <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
-          !# <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
-          !# <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
+          !![
+          <deepCopyReset variables="self%excursionSetBarrier_ self%cosmologicalMassVariance_"/>
+          <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
+          <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
+          <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
+          !!]
           !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
           growthFactorEffective          =+cosmologicalMassVariance_%rootVariance(massLarge,self%timeMaximumRate                                ) &
                &                          /cosmologicalMassVariance_%rootVariance(massLarge,self%timeMaximumRate*(1.0d0-self%timeStepFractional))
@@ -470,8 +492,10 @@ contains
                &                                -excursionSetBarrier_%barrier(+0.0d0,self%timeMaximumRate                                ,node,rateCompute=.true.)  &
                &                               )**2                                                                                                                 &
                &                             )
-          !# <objectDestructor name="excursionSetBarrier_"     />
-          !# <objectDestructor name="cosmologicalMassVariance_"/>
+          !![
+          <objectDestructor name="excursionSetBarrier_"     />
+          <objectDestructor name="cosmologicalMassVariance_"/>
+          !!]
           self%varianceMaximumRate       =max(self%varianceMaximumRate,varianceProgenitor)
           self%varianceTableCountRate    =int(log10(self%varianceMaximumRate/varianceMinimumRate)*dble(self%varianceNumberPerDecade))+1
           self%varianceTableCountRateBase=int(self%varianceMaximumRate*dble(self%varianceNumberPerUnit))
@@ -559,10 +583,12 @@ contains
           allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
           allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
           !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
-          !# <deepCopyReset variables="self%excursionSetBarrier_ self%cosmologicalMassVariance_"/>
-          !# <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
-          !# <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
-          !# <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
+          !![
+          <deepCopyReset variables="self%excursionSetBarrier_ self%cosmologicalMassVariance_"/>
+          <deepCopy source="self%excursionSetBarrier_"      destination="excursionSetBarrier_"     />
+          <deepCopy source="self%cosmologicalMassVariance_" destination="cosmologicalMassVariance_"/>
+          <deepCopyFinalize variables="excursionSetBarrier_ cosmologicalMassVariance_"/>
+          !!]
           !$omp end critical(excursionSetsSolverFarahiMidpointDeepCopy)
           call allocateArray(barrierTableRateQuad   ,[self%varianceTableCountRate])
           call allocateArray(barrierMidTableRateQuad,[self%varianceTableCountRate])
@@ -721,8 +747,10 @@ contains
                   &                                 /self%timeStepFractional
              !$omp end single
           end do
-          !# <objectDestructor name="excursionSetBarrier_"     />
-          !# <objectDestructor name="cosmologicalMassVariance_"/>
+          !![
+          <objectDestructor name="excursionSetBarrier_"     />
+          <objectDestructor name="cosmologicalMassVariance_"/>
+          !!]
           call deallocateArray(barrierTableRateQuad   )
           call deallocateArray(barrierMidTableRateQuad)
           !$omp end parallel

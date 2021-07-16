@@ -19,18 +19,24 @@
 
   !+    Contributions to this file made by: Alex Merson.
 
-  !% Implements a file-based stellar population spectra class.
+  !!{
+  Implements a file-based stellar population spectra class.
+  !!}
 
   use :: Numerical_Interpolation, only : interpolator
 
-  !# <deepCopyActions class="spectralTable">
-  !#  <spectralTable>
-  !#   <methodCall method="interpolatorsDeepCopy"/>
-  !#  </spectralTable>
-  !# </deepCopyActions>
+  !![
+  <deepCopyActions class="spectralTable">
+   <spectralTable>
+    <methodCall method="interpolatorsDeepCopy"/>
+   </spectralTable>
+  </deepCopyActions>
+  !!]
 
   type spectralTable
-     !% Structure to hold tabulated stellar population data.
+     !!{
+     Structure to hold tabulated stellar population data.
+     !!}
      ! The spectra tables.
      integer                                                       :: agesCount             , metallicityCount       , &
           &                                                           wavelengthsCount
@@ -40,42 +46,50 @@
      type            (interpolator)                                :: interpolatorAge       , interpolatorMetallicity, &
           &                                                           interpolatorWavelength
    contains
-     !# <methods>
-     !#   <method description="Perform deep copy actions on interpolators." method="interpolatorsDeepCopy" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Perform deep copy actions on interpolators." method="interpolatorsDeepCopy" />
+     </methods>
+     !!]
      procedure :: interpolatorsDeepCopy => spectralTableInterpolatorsDeepCopy
   end type spectralTable
 
-  !# <stellarPopulationSpectra name="stellarPopulationSpectraFile">
-  !#  <description>
-  !#   A stellar population spectra class which computes spectra via interpolation in a tabulation read from file. This should be
-  !#   an HDF5 file with the following structure:
-  !#   \begin{verbatim}
-  !#    ages                     Dataset {ageCount}
-  !#    metallicities            Dataset {metallicityCount}
-  !#    spectra                  Dataset {metallicityCount, ageCount, metallicityCount}
-  !#    wavelengths              Dataset {wavelengthCount}
-  !#   \end{verbatim}
-  !#   where the datasets contain the tabulated ages (in Gyr), metallicities (logarithmic, relative to Solar), wavelengths (in
-  !#   \AA) and spectra (in $L_\odot$ Hz$^{-1}$).
-  !#
-  !#   Scripts to convert the data provided by \cite{maraston_evolutionary_2005} and \cite{bruzual_stellar_2003} into \glc's
-  !#   format are provided in the {\normalfont \ttfamily scripts/ssps} folder.
-  !#  </description>
-  !#  <stateStorable>
-  !#   <exclude variables="spectra, forceZeroMetallicity, fileName, fileRead"/>
-  !#  </stateStorable>
-  !# </stellarPopulationSpectra>
+  !![
+  <stellarPopulationSpectra name="stellarPopulationSpectraFile">
+   <description>
+    A stellar population spectra class which computes spectra via interpolation in a tabulation read from file. This should be
+    an HDF5 file with the following structure:
+    \begin{verbatim}
+     ages                     Dataset {ageCount}
+     metallicities            Dataset {metallicityCount}
+     spectra                  Dataset {metallicityCount, ageCount, metallicityCount}
+     wavelengths              Dataset {wavelengthCount}
+    \end{verbatim}
+    where the datasets contain the tabulated ages (in Gyr), metallicities (logarithmic, relative to Solar), wavelengths (in
+    \AA) and spectra (in $L_\odot$ Hz$^{-1}$).
+  
+    Scripts to convert the data provided by \cite{maraston_evolutionary_2005} and \cite{bruzual_stellar_2003} into \glc's
+    format are provided in the {\normalfont \ttfamily scripts/ssps} folder.
+   </description>
+   <stateStorable>
+    <exclude variables="spectra, forceZeroMetallicity, fileName, fileRead"/>
+   </stateStorable>
+  </stellarPopulationSpectra>
+  !!]
   type, extends(stellarPopulationSpectraClass) :: stellarPopulationSpectraFile
-     !% A stellar population spectra class which interpolates spectra given in a file.
+     !!{
+     A stellar population spectra class which interpolates spectra given in a file.
+     !!}
      private
      type   (spectralTable ) :: spectra
      logical                 :: forceZeroMetallicity, fileRead
      type   (varying_string) :: fileName
    contains
-     !# <methods>
-     !#   <method description="Read the named stellar population spectra file." method="readFile" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Read the named stellar population spectra file." method="readFile" />
+     </methods>
+     !!]
      procedure :: readFile           => fileReadFile
      procedure :: luminosity         => fileLuminosity
      procedure :: tabulation         => fileTabulation
@@ -84,7 +98,9 @@
   end type stellarPopulationSpectraFile
 
   interface stellarPopulationSpectraFile
-     !% Constructors for the file stellar spectra class.
+     !!{
+     Constructors for the file stellar spectra class.
+     !!}
      module procedure fileConstructorParameters
      module procedure fileConstructorInternal
   end interface stellarPopulationSpectraFile
@@ -95,46 +111,58 @@
 contains
 
   function fileConstructorParameters(parameters) result(self)
-    !% Constructor for the file stellar spectra class which takes a parameter set as input.
+    !!{
+    Constructor for the file stellar spectra class which takes a parameter set as input.
+    !!}
     implicit none
     type   (stellarPopulationSpectraFile)                :: self
     type   (inputParameters             ), intent(inout) :: parameters
     type   (varying_string              )                :: fileName
     logical                                              :: forceZeroMetallicity
 
-    !# <inputParameter>
-    !#   <name>forceZeroMetallicity</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>Force the use of zero metallicity (or lowest metallicity available) for all stellar populations.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>fileName</name>
-    !#   <source>parameters</source>
-    !#   <description>The name of the file from which to read spectra.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>forceZeroMetallicity</name>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+      <description>Force the use of zero metallicity (or lowest metallicity available) for all stellar populations.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>fileName</name>
+      <source>parameters</source>
+      <description>The name of the file from which to read spectra.</description>
+    </inputParameter>
+    !!]
     self=stellarPopulationSpectraFile(forceZeroMetallicity,char(fileName))
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function fileConstructorParameters
 
   function fileConstructorInternal(forceZeroMetallicity,fileName) result(self)
-    !% Internal constructor for the file stellar spectra class.
+    !!{
+    Internal constructor for the file stellar spectra class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type     (stellarPopulationSpectraFile)                :: self
     logical                                , intent(in   ) :: forceZeroMetallicity
     character(len=*                       ), intent(in   ) :: fileName
-    !# <constructorAssign variables="forceZeroMetallicity, fileName"/>
+    !![
+    <constructorAssign variables="forceZeroMetallicity, fileName"/>
+    !!]
 
     self%fileRead=.false.
     return
   end function fileConstructorInternal
 
   double precision function fileLuminosity(self,abundancesStellar,age,wavelength,status)
-    !% Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition {\normalfont \ttfamily abundances}, of the
-    !% given {\normalfont \ttfamily age} (in Gyr) and the specified {\normalfont \ttfamily wavelength} (in Angstroms). This is found by interpolating in tabulated
-    !% spectra.
+    !!{
+    Return the luminosity (in units of $L_\odot$ Hz$^{-1}$) for a stellar population with composition {\normalfont \ttfamily abundances}, of the
+    given {\normalfont \ttfamily age} (in Gyr) and the specified {\normalfont \ttfamily wavelength} (in Angstroms). This is found by interpolating in tabulated
+    spectra.
+    !!}
     use            :: Abundances_Structure, only : Abundances_Get_Metallicity           , abundances            , logMetallicityZero, max, &
           &                                        metallicityTypeLogarithmicByMassSolar
     use            :: Galacticus_Error    , only : Galacticus_Error_Report              , errorStatusInputDomain, errorStatusSuccess
@@ -236,7 +264,9 @@ contains
   end function fileLuminosity
 
   subroutine fileReadFile(self)
-    !% Read a file of simple stellar population spectra.
+    !!{
+    Read a file of simple stellar population spectra.
+    !!}
     use :: File_Utilities  , only : File_Name_Expand
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: IO_HDF5         , only : hdf5Access             , hdf5Object
@@ -277,7 +307,9 @@ contains
   end subroutine fileReadFile
 
   subroutine fileTabulation(self,agesCount,metallicitiesCount,ages,metallicity)
-    !% Return a tabulation of ages and metallicities at which stellar spectra should be tabulated.
+    !!{
+    Return a tabulation of ages and metallicities at which stellar spectra should be tabulated.
+    !!}
     use :: Memory_Management               , only : allocateArray
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     implicit none
@@ -298,7 +330,9 @@ contains
   end subroutine fileTabulation
 
   subroutine fileWavelengths(self,wavelengthsCount,wavelengths)
-    !% Return a tabulation of wavelengths at which stellar spectra should be tabulated.
+    !!{
+    Return a tabulation of wavelengths at which stellar spectra should be tabulated.
+    !!}
     use :: Memory_Management, only : allocateArray
     implicit none
     class           (stellarPopulationSpectraFile)                           , intent(inout) :: self
@@ -315,7 +349,9 @@ contains
   end subroutine fileWavelengths
 
   double precision function fileWavelengthInterval(self,wavelength)
-    !% Return a tabulation of wavelengths at which stellar spectra should be tabulated.
+    !!{
+    Return a tabulation of wavelengths at which stellar spectra should be tabulated.
+    !!}
     use :: Memory_Management, only : allocateArray, deallocateArray
     implicit none
     class           (stellarPopulationSpectraFile)                           , intent(inout) :: self
@@ -350,7 +386,9 @@ contains
   end function fileWavelengthInterval
 
   subroutine spectralTableInterpolatorsDeepCopy(self)
-    !% Perform deep copy actions on interpolators.
+    !!{
+    Perform deep copy actions on interpolators.
+    !!}
     implicit none
     class(spectralTable), intent(inout) :: self
 

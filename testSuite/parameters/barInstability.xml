@@ -75,8 +75,6 @@
     </starFormationTimescale>
   </starFormationRateDisks>
 
-  <!-- Feedback -->
-
   <!-- Metal production -->
   <stellarPopulation value="standard">
     <metalYield value="0.025"/>

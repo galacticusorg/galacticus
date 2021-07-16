@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides various interfaces to the \gls{recfast} code.
+!!{
+Contains a module which provides various interfaces to the \gls{recfast} code.
+!!}
 
 module Interfaces_RecFast
-  !% Provides various interfaces to the \gls{recfast} code.
+  !!{
+  Provides various interfaces to the \gls{recfast} code.
+  !!}
   private
   public :: Interface_RecFast_Initialize
 
 contains
 
   subroutine Interface_RecFast_Initialize(recfastPath,recfastVersion,static)
-    !% Initialize the interface with RecFast, including downloading and compiling RecFast if necessary.
+    !!{
+    Initialize the interface with RecFast, including downloading and compiling RecFast if necessary.
+    !!}
     use :: Display           , only : displayMessage         , verbosityLevelWorking
     use :: File_Utilities    , only : Directory_Make         , File_Exists          , File_Lock   , File_Unlock   , &
           &                           lockDescriptor
@@ -42,7 +48,9 @@ contains
     character(len=32        )                          :: line       , versionLabel
     type     (varying_string)                          :: command
     type     (lockDescriptor)                          :: fileLock
-    !# <optionalArgument name="static" defaultsTo=".false." />
+    !![
+    <optionalArgument name="static" defaultsTo=".false." />
+    !!]
 
     ! Set path.
     recfastPath=galacticusPath(pathTypeDataDynamic)//"RecFast/"

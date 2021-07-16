@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <radiativeTransferOutputter name="radiativeTransferOutputterLymanContinuumRate">
-  !#  <description>A radiative transfer outputter class which outputs the Lyman continuum photon emission rate.</description>
-  !# </radiativeTransferOutputter>
+  !![
+  <radiativeTransferOutputter name="radiativeTransferOutputterLymanContinuumRate">
+   <description>A radiative transfer outputter class which outputs the Lyman continuum photon emission rate.</description>
+  </radiativeTransferOutputter>
+  !!]
   type, extends(radiativeTransferOutputterClass) :: radiativeTransferOutputterLymanContinuumRate
-     !% Implementation of a radiative transfer outputter class which outputs the Lyman continuum photon emission rate.
+     !!{
+     Implementation of a radiative transfer outputter class which outputs the Lyman continuum photon emission rate.
+     !!}
      private
      double precision                                            :: lymanContinuumRateEscaping
      double precision                , allocatable, dimension(:) :: lymanContinuumRateEscapingTagged
@@ -35,7 +39,9 @@
   end type radiativeTransferOutputterLymanContinuumRate
 
   interface radiativeTransferOutputterLymanContinuumRate
-     !% Constructors for the {\normalfont \ttfamily lymanContinuumRate} radiative transfer outputter packet class.
+     !!{
+     Constructors for the {\normalfont \ttfamily lymanContinuumRate} radiative transfer outputter packet class.
+     !!}
      module procedure lymanContinuumRateConstructorParameters
      module procedure lymanContinuumRateConstructorInternal
   end interface radiativeTransferOutputterLymanContinuumRate
@@ -43,8 +49,10 @@
 contains
 
   function lymanContinuumRateConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily lymanContinuumRate} radiative transfer outputter class which takes a parameter set as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily lymanContinuumRate} radiative transfer outputter class which takes a parameter set as
+    input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(radiativeTransferOutputterLymanContinuumRate)                :: self
@@ -56,7 +64,9 @@ contains
   end function lymanContinuumRateConstructorParameters
   
   function lymanContinuumRateConstructorInternal() result(self)
-    !% Internal constructor for the {\normalfont \ttfamily lymanContinuumRate} radiative transfer outputter class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily lymanContinuumRate} radiative transfer outputter class.
+    !!}
     implicit none
     type(radiativeTransferOutputterLymanContinuumRate) :: self
 
@@ -65,7 +75,9 @@ contains
   end function lymanContinuumRateConstructorInternal
   
   subroutine lymanContinuumRateReset(self)
-    !% Reset the accumulated Lyman continuum photon escape rate.
+    !!{
+    Reset the accumulated Lyman continuum photon escape rate.
+    !!}
     implicit none
     class(radiativeTransferOutputterLymanContinuumRate), intent(inout) :: self
 
@@ -75,7 +87,9 @@ contains
   end subroutine lymanContinuumRateReset
 
   subroutine lymanContinuumRateSourceProperties(self,radiativeTransferSource_,outputGroup)
-    !% Compute and output the Lyman continuum photon emission rate.
+    !!{
+    Compute and output the Lyman continuum photon emission rate.
+    !!}
     use :: IO_HDF5                   , only : hdf5Access
     use :: ISO_Varying_String        , only : var_str                           , operator(//)
     use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen
@@ -121,7 +135,9 @@ contains
   contains
 
     double precision function integrand(wavelength)
-      !% Integrand over the source spectrum.
+      !!{
+      Integrand over the source spectrum.
+      !!}
       use :: Numerical_Constants_Physical    , only : plancksConstant  , speedLight
       use :: Numerical_Constants_Units       , only : angstromsPerMeter
       use :: Numerical_Constants_Astronomical, only : luminositySolar
@@ -142,7 +158,9 @@ contains
   end subroutine lymanContinuumRateSourceProperties
 
   subroutine lymanContinuumRatePhotonPacketEscapes(self,photonPacket)
-    !% Process an escaping photon packet.
+    !!{
+    Process an escaping photon packet.
+    !!}
     use :: Numerical_Constants_Atomic      , only : lymanSeriesLimitWavelengthHydrogen
     use :: Numerical_Constants_Physical    , only : plancksConstant                   , speedLight
     use :: Numerical_Constants_Units       , only : angstromsPerMeter
@@ -171,7 +189,9 @@ contains
   end subroutine lymanContinuumRatePhotonPacketEscapes
 
   subroutine lymanContinuumRateFinalize(self)
-    !% Finalize the Lyman continuum photon escape rate.
+    !!{
+    Finalize the Lyman continuum photon escape rate.
+    !!}
     use :: MPI_Utilities, only : mpiSelf
     implicit none
     class(radiativeTransferOutputterLymanContinuumRate), intent(inout) :: self
@@ -183,7 +203,9 @@ contains
   end subroutine lymanContinuumRateFinalize
 
   subroutine lymanContinuumRateOutput(self,outputGroup)
-    !% Output the Lyman continuum photon escape rate.
+    !!{
+    Output the Lyman continuum photon escape rate.
+    !!}
     use :: IO_HDF5        , only : hdf5Access
     use :: String_Handling, only : String_Upper_Case_First
     implicit none

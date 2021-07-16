@@ -17,27 +17,33 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a simple solver for galactic structure (self-gravity of baryons is ignored).
+  !!{
+  Implementation of a simple solver for galactic structure (self-gravity of baryons is ignored).
+  !!}
 
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
 
-  !# <galacticStructureSolver name="galacticStructureSolverSimple">
-  !#  <description>
-  !#   A galactic structure solver class that determines the sizes of galactic components by assuming that their self-gravity is
-  !#   negligible (i.e. that the gravitational potential well is dominated by dark matter) and that, therefore, baryons do not
-  !#   modify the dark matter density profile. The radius of a given \gls{component} is then found by solving
-  !#   \begin{equation}
-  !#    j = \sqrt{\G M_\mathrm{DM}(r) r},
-  !#   \end{equation}
-  !#   where $j$ is the specific angular momentum of the \gls{component} (at whatever point in the profile is to be solved for),
-  !#   $r$ is radius and $M(r)$ is the mass of dark matter within radius $r$. The parameter {\normalfont \ttfamily
-  !#   [useFormationHalo]} controls whether the structure of the galaxy will be solved for using the properties of its present
-  !#   \gls{node} or those of its \gls{node} at the time of \gls{node} formation (which requires that ``node formation'' has been
-  !#   suitably defined and implemented by a component).
-  !#  </description>
-  !# </galacticStructureSolver>
+  !![
+  <galacticStructureSolver name="galacticStructureSolverSimple">
+   <description>
+    A galactic structure solver class that determines the sizes of galactic components by assuming that their self-gravity is
+    negligible (i.e. that the gravitational potential well is dominated by dark matter) and that, therefore, baryons do not
+    modify the dark matter density profile. The radius of a given \gls{component} is then found by solving
+    \begin{equation}
+     j = \sqrt{\G M_\mathrm{DM}(r) r},
+    \end{equation}
+    where $j$ is the specific angular momentum of the \gls{component} (at whatever point in the profile is to be solved for),
+    $r$ is radius and $M(r)$ is the mass of dark matter within radius $r$. The parameter {\normalfont \ttfamily
+    [useFormationHalo]} controls whether the structure of the galaxy will be solved for using the properties of its present
+    \gls{node} or those of its \gls{node} at the time of \gls{node} formation (which requires that ``node formation'' has been
+    suitably defined and implemented by a component).
+   </description>
+  </galacticStructureSolver>
+  !!]
   type, extends(galacticStructureSolverClass) :: galacticStructureSolverSimple
-     !% Implementation of a simple solver for galactic structure (self-gravity of baryons is ignored).
+     !!{
+     Implementation of a simple solver for galactic structure (self-gravity of baryons is ignored).
+     !!}
      private
      class  (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
      logical                                     :: useFormationHalo     , solveForInactiveProperties
@@ -49,7 +55,9 @@
   end type galacticStructureSolverSimple
 
   interface galacticStructureSolverSimple
-     !% Constructors for the {\normalfont \ttfamily simple} galactic structure solver class.
+     !!{
+     Constructors for the {\normalfont \ttfamily simple} galactic structure solver class.
+     !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
   end interface galacticStructureSolverSimple
@@ -57,8 +65,10 @@
 contains
 
   function simpleConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily simple} galactic structure solver class which takes a
-    !% parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily simple} galactic structure solver class which takes a
+    parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (galacticStructureSolverSimple)                :: self
@@ -66,38 +76,48 @@ contains
     class  (darkMatterProfileDMOClass    ), pointer       :: darkMatterProfileDMO_
     logical                                               :: useFormationHalo     , solveForInactiveProperties
 
-    !# <inputParameter>
-    !#   <name>useFormationHalo</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Specifies whether or not the ``formation halo'' should be used when solving for the radii of galaxies.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>solveForInactiveProperties</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true, galactic structure is solved for during evaluation of inactive property integrals. Otherwise, structure is not solved for during this phase---this should only be used if the inactive property integrands \emph{do not} depend on galactic structure.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>useFormationHalo</name>
+      <defaultValue>.false.</defaultValue>
+      <description>Specifies whether or not the ``formation halo'' should be used when solving for the radii of galaxies.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>solveForInactiveProperties</name>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, galactic structure is solved for during evaluation of inactive property integrals. Otherwise, structure is not solved for during this phase---this should only be used if the inactive property integrands \emph{do not} depend on galactic structure.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !!]
     self=galacticStructureSolverSimple(useFormationHalo,solveForInactiveProperties,darkMatterProfileDMO_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterProfileDMO_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterProfileDMO_"/>
+    !!]
     return
   end function simpleConstructorParameters
 
   function simpleConstructorInternal(useFormationHalo,solveForInactiveProperties,darkMatterProfileDMO_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily simple} galactic structure solver class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily simple} galactic structure solver class.
+    !!}
     implicit none
     type   (galacticStructureSolverSimple)                        :: self
     logical                               , intent(in   )         :: useFormationHalo     , solveForInactiveProperties
     class  (darkMatterProfileDMOClass    ), intent(in   ), target :: darkMatterProfileDMO_
-    !# <constructorAssign variables="useFormationHalo, solveForInactiveProperties, *darkMatterProfileDMO_"/>
+    !![
+    <constructorAssign variables="useFormationHalo, solveForInactiveProperties, *darkMatterProfileDMO_"/>
+    !!]
 
     return
   end function simpleConstructorInternal
 
   subroutine simpleAutoHook(self)
-    !% Attach to various event hooks.
+    !!{
+    Attach to various event hooks.
+    !!}
     use :: Events_Hooks, only : nodePromotionEvent  , openMPThreadBindingAtLevel, postEvolveEvent, preDerivativeEvent, &
           &                     satelliteMergerEvent, dependencyDirectionAfter  , dependencyRegEx
     implicit none
@@ -113,12 +133,16 @@ contains
   end subroutine simpleAutoHook
 
   subroutine simpleDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily simple} galactic structure solver class.
+    !!{
+    Destructor for the {\normalfont \ttfamily simple} galactic structure solver class.
+    !!}
     use :: Events_Hooks, only : nodePromotionEvent, postEvolveEvent, preDerivativeEvent, satelliteMergerEvent
     implicit none
     type(galacticStructureSolverSimple), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !![
+    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !!]
     call   preDerivativeEvent%detach(self,simpleSolvePreDeriativeHook)
     call      postEvolveEvent%detach(self,simpleSolveHook            )
     call satelliteMergerEvent%detach(self,simpleSolveHook            )
@@ -127,7 +151,9 @@ contains
   end subroutine simpleDestructor
 
   subroutine simpleSolveHook(self,node)
-    !% Hookable wrapper around the solver.
+    !!{
+    Hookable wrapper around the solver.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(*       ), intent(inout)         :: self
@@ -143,7 +169,9 @@ contains
   end subroutine simpleSolveHook
 
   subroutine simpleSolvePreDeriativeHook(self,node,propertyType)
-    !% Hookable wrapper around the solver.
+    !!{
+    Hookable wrapper around the solver.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : propertyTypeInactive
     implicit none
@@ -162,14 +190,22 @@ contains
   end subroutine simpleSolvePreDeriativeHook
 
   subroutine simpleSolve(self,node)
-    !% Solve for the structure of galactic components.
+    !!{
+    Solve for the structure of galactic components.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
-    !# <include directive="radiusSolverTask" type="moduleUse">
+    !![
+    <include directive="radiusSolverTask" type="moduleUse">
+    !!]
     include 'galactic_structure.radius_solver.tasks.modules.inc'
-    !# </include>
-    !# <include directive="radiusSolverPlausibility" type="moduleUse">
+    !![
+    </include>
+    <include directive="radiusSolverPlausibility" type="moduleUse">
+    !!]
     include 'galactic_structure.radius_solver.plausible.modules.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     implicit none
     class           (galacticStructureSolverSimple), intent(inout)         :: self
     type            (treeNode                     ), intent(inout), target :: node
@@ -183,10 +219,14 @@ contains
     ! Check that the galaxy is physical plausible. In this simple solver, we don't act on this.
     node%isPhysicallyPlausible=.true.
     node%isSolvable           =.true.
-    !# <include directive="radiusSolverPlausibility" type="functionCall" functionType="void">
-    !#  <functionArgs>node</functionArgs>
+    !![
+    <include directive="radiusSolverPlausibility" type="functionCall" functionType="void">
+     <functionArgs>node</functionArgs>
+    !!]
     include 'galactic_structure.radius_solver.plausible.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     if (node%isPhysicallyPlausible) then
        ! Determine which node to use for halo properties.
        if (self%useFormationHalo) then
@@ -196,18 +236,24 @@ contains
           haloNode => node
        end if
        ! Solve for each component.
-       !# <include directive="radiusSolverTask" type="functionCall" functionType="void">
-       !#  <functionArgs>node,componentActive,specificAngularMomentumRequired,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet</functionArgs>
-       !#  <onReturn>if (componentActive) call radiusSolve(node,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)</onReturn>
+       !![
+       <include directive="radiusSolverTask" type="functionCall" functionType="void">
+        <functionArgs>node,componentActive,specificAngularMomentumRequired,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet</functionArgs>
+        <onReturn>if (componentActive) call radiusSolve(node,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)</onReturn>
+       !!]
        include 'galactic_structure.radius_solver.tasks.inc'
-       !# </include>
+       !![
+       </include>
+       !!]
     end if
     return
 
   contains
 
     subroutine radiusSolve(node,specificAngularMomentum,radiusGet,radiusSet,velocityGet,velocitySet)
-      !% Solve for the equilibrium radius of the given component.
+      !!{
+      Solve for the equilibrium radius of the given component.
+      !!}
       implicit none
       type            (treeNode ), intent(inout)          :: node
       double precision           , intent(in   )          :: specificAngularMomentum
@@ -231,7 +277,9 @@ contains
   end subroutine simpleSolve
 
   subroutine simpleRevert(self,node)
-    !% Revert radii for the simple galactic structure solve. Not necessary for this algorithm.
+    !!{
+    Revert radii for the simple galactic structure solve. Not necessary for this algorithm.
+    !!}
     implicit none
     class(galacticStructureSolverSimple), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node

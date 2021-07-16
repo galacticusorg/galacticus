@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% A simple transferred primordial power spectrum class.
+  !!{
+  A simple transferred primordial power spectrum class.
+  !!}
 
   use :: Linear_Growth           , only : linearGrowthClass
   use :: Power_Spectra_Primordial, only : powerSpectrumPrimordialClass
   use :: Transfer_Functions      , only : transferFunctionClass
 
-  !# <powerSpectrumPrimordialTransferred name="powerSpectrumPrimordialTransferredSimple">
-  !#  <description>Implements a simple transferred primordial power spectrum.</description>
-  !# </powerSpectrumPrimordialTransferred>
+  !![
+  <powerSpectrumPrimordialTransferred name="powerSpectrumPrimordialTransferredSimple">
+   <description>Implements a simple transferred primordial power spectrum.</description>
+  </powerSpectrumPrimordialTransferred>
+  !!]
   type, extends(powerSpectrumPrimordialTransferredClass) :: powerSpectrumPrimordialTransferredSimple
-     !% A simple transferred primordial power spectrum class.
+     !!{
+     A simple transferred primordial power spectrum class.
+     !!}
      private
      class           (transferFunctionClass       ), pointer :: transferFunction_        => null()
      class           (linearGrowthClass           ), pointer :: linearGrowth_            => null()
@@ -41,7 +47,9 @@
   end type powerSpectrumPrimordialTransferredSimple
 
   interface powerSpectrumPrimordialTransferredSimple
-     !% Constructors for the ``simple'' transferred primordial power spectrum class.
+     !!{
+     Constructors for the ``simple'' transferred primordial power spectrum class.
+     !!}
      module procedure simpleConstructorParameters
      module procedure simpleConstructorInternal
   end interface powerSpectrumPrimordialTransferredSimple
@@ -49,8 +57,10 @@
 contains
 
   function simpleConstructorParameters(parameters) result(self)
-    !% Constructor for the ``simple'' transferred primordial power spectrum class which takes a
-    !% parameter set as input.
+    !!{
+    Constructor for the ``simple'' transferred primordial power spectrum class which takes a
+    parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (powerSpectrumPrimordialTransferredSimple)                :: self
@@ -59,44 +69,58 @@ contains
     class(powerSpectrumPrimordialClass            ), pointer       :: powerSpectrumPrimordial_
     class(linearGrowthClass                       ), pointer       :: linearGrowth_
 
-    !# <objectBuilder class="powerSpectrumPrimordial" name="powerSpectrumPrimordial_" source="parameters"/>
-    !# <objectBuilder class="transferFunction"        name="transferFunction_"        source="parameters"/>
-    !# <objectBuilder class="linearGrowth"            name="linearGrowth_"            source="parameters"/>
+    !![
+    <objectBuilder class="powerSpectrumPrimordial" name="powerSpectrumPrimordial_" source="parameters"/>
+    <objectBuilder class="transferFunction"        name="transferFunction_"        source="parameters"/>
+    <objectBuilder class="linearGrowth"            name="linearGrowth_"            source="parameters"/>
+    !!]
     self=powerSpectrumPrimordialTransferredSimple(powerSpectrumPrimordial_,transferFunction_,linearGrowth_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="powerSpectrumPrimordial_"/>
-    !# <objectDestructor name="transferFunction_"       />
-    !# <objectDestructor name="linearGrowth_"           />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="powerSpectrumPrimordial_"/>
+    <objectDestructor name="transferFunction_"       />
+    <objectDestructor name="linearGrowth_"           />
+    !!]
     return
   end function simpleConstructorParameters
 
   function simpleConstructorInternal(powerSpectrumPrimordial_,transferFunction_,linearGrowth_) result(self)
-    !% Internal constructor for the ``simple'' transferred primordial power spectrum class.
+    !!{
+    Internal constructor for the ``simple'' transferred primordial power spectrum class.
+    !!}
     implicit none
     type (powerSpectrumPrimordialTransferredSimple)                        :: self
     class(powerSpectrumPrimordialClass            ), intent(in   ), target :: powerSpectrumPrimordial_
     class(transferFunctionClass                   ), intent(in   ), target :: transferFunction_
     class(linearGrowthClass                       ), intent(in   ), target :: linearGrowth_
-    !# <constructorAssign variables="*powerSpectrumPrimordial_, *transferFunction_, *linearGrowth_"/>
+    !![
+    <constructorAssign variables="*powerSpectrumPrimordial_, *transferFunction_, *linearGrowth_"/>
+    !!]
 
     self%timeTransferFunction=self%transferFunction_%epochTime()
     return
   end function simpleConstructorInternal
 
   subroutine simpleDestructor(self)
-    !% Destructor for the ``simple'' transferred primordial power spectrum class.
+    !!{
+    Destructor for the ``simple'' transferred primordial power spectrum class.
+    !!}
     implicit none
     type(powerSpectrumPrimordialTransferredSimple), intent(inout) :: self
 
-    !# <objectDestructor name="self%transferFunction_"       />
-    !# <objectDestructor name="self%powerSpectrumPrimordial_"/>
-    !# <objectDestructor name="self%linearGrowth_"           />
+    !![
+    <objectDestructor name="self%transferFunction_"       />
+    <objectDestructor name="self%powerSpectrumPrimordial_"/>
+    <objectDestructor name="self%linearGrowth_"           />
+    !!]
    return
   end subroutine simpleDestructor
 
   double precision function simplePower(self,wavenumber,time)
-    !% Return the transferred primordial power spectrum at the given {\normalfont \ttfamily
-    !% wavenumber}.
+    !!{
+    Return the transferred primordial power spectrum at the given {\normalfont \ttfamily
+    wavenumber}.
+    !!}
     implicit none
     class           (powerSpectrumPrimordialTransferredSimple), intent(inout) :: self
     double precision                                          , intent(in   ) :: wavenumber, time
@@ -111,8 +135,10 @@ contains
   end function simplePower
 
   double precision function simpleLogarithmicDerivative(self,wavenumber,time)
-    !% Return the logarithmic derivative of the transferred primordial power spectrum at the
-    !% given {\normalfont \ttfamily wavenumber}.
+    !!{
+    Return the logarithmic derivative of the transferred primordial power spectrum at the
+    given {\normalfont \ttfamily wavenumber}.
+    !!}
     implicit none
     class           (powerSpectrumPrimordialTransferredSimple), intent(inout) :: self
     double precision                                          , intent(in   ) :: wavenumber, time
@@ -125,7 +151,9 @@ contains
   end function simpleLogarithmicDerivative
 
   logical function simpleGrowthIsWavenumberDependent(self)
-    !% Return true if the growth of the power spectrum is wavenumber-dependent.
+    !!{
+    Return true if the growth of the power spectrum is wavenumber-dependent.
+    !!}
     implicit none
     class(powerSpectrumPrimordialTransferredSimple), intent(inout) :: self
 

@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a mass distribution class for an infinite radial extent gas slab with a Gaussian vertical distribrution.
+  !!{
+  Implementation of a mass distribution class for an infinite radial extent gas slab with a Gaussian vertical distribrution.
+  !!}
 
-  !# <massDistribution name="massDistributionGaussianSlab">
-  !#  <description>An infinite radial extent gas slab with a Gaussian vertical distribution: $\rho(r,z)=\rho_0 \exp(z^2/2 z^2_\mathrm{s})$.</description>
-  !# </massDistribution>
+  !![
+  <massDistribution name="massDistributionGaussianSlab">
+   <description>An infinite radial extent gas slab with a Gaussian vertical distribution: $\rho(r,z)=\rho_0 \exp(z^2/2 z^2_\mathrm{s})$.</description>
+  </massDistribution>
+  !!]
   type, public, extends(massDistributionCylindrical) :: massDistributionGaussianSlab
-     !% An infinite radial extent gas slab with a Gaussian vertical distribution: $\rho(r,z)=\rho_0 \exp(z^2/2 z^2_\mathrm{s})$.
+     !!{
+     An infinite radial extent gas slab with a Gaussian vertical distribution: $\rho(r,z)=\rho_0 \exp(z^2/2 z^2_\mathrm{s})$.
+     !!}
      private
      double precision :: scaleHeight, densityCentral
    contains
@@ -36,7 +42,9 @@
    end type massDistributionGaussianSlab
 
   interface massDistributionGaussianSlab
-     !% Constructors for the {\normalfont \ttfamily gaussianSlab} mass distribution class.
+     !!{
+     Constructors for the {\normalfont \ttfamily gaussianSlab} mass distribution class.
+     !!}
      module procedure gaussianSlabConstructorParameters
      module procedure gaussianSlabConstructorInternal
   end interface massDistributionGaussianSlab
@@ -44,8 +52,10 @@
 contains
 
   function gaussianSlabConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily gaussianSlab} mass distribution class which builds the object from a parameter
-    !% set.
+    !!{
+    Constructor for the {\normalfont \ttfamily gaussianSlab} mass distribution class which builds the object from a parameter
+    set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (massDistributionGaussianSlab)                :: self
@@ -53,32 +63,38 @@ contains
     double precision                                              :: scaleHeight   , densityCentral
     logical                                                       :: dimensionless
 
-    !# <inputParameter>
-    !#   <name>scaleHeight</name>
-    !#   <defaultSource>\citep{kregel_flattening_2002}</defaultSource>
-    !#   <defaultValue>0.137d0</defaultValue>
-    !#   <description>The scale height of the Gaussian slab profile.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>densityCentral</name>
-    !#   <defaultValue>1.0d0</defaultValue>
-    !#   <description>The density in the slab mid-plane.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>dimensionless</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true the Gaussian slab profile is considered to be dimensionless.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>scaleHeight</name>
+      <defaultSource>\citep{kregel_flattening_2002}</defaultSource>
+      <defaultValue>0.137d0</defaultValue>
+      <description>The scale height of the Gaussian slab profile.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>densityCentral</name>
+      <defaultValue>1.0d0</defaultValue>
+      <description>The density in the slab mid-plane.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>dimensionless</name>
+      <defaultValue>.true.</defaultValue>
+      <description>If true the Gaussian slab profile is considered to be dimensionless.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=massDistributionGaussianSlab(scaleHeight,densityCentral,dimensionless)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function gaussianSlabConstructorParameters
 
   function gaussianSlabConstructorInternal(scaleHeight,densityCentral,dimensionless) result(self)
-    !% Internal constructor for ``gaussianSlab'' mass distribution class.
+    !!{
+    Internal constructor for ``gaussianSlab'' mass distribution class.
+    !!}
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Numerical_Comparison    , only : Values_Differ
     use :: Numerical_Constants_Math, only : Pi
@@ -114,7 +130,9 @@ contains
   end function gaussianSlabConstructorInternal
 
   double precision function gaussianSlabDensity(self,coordinates)
-    !% Return the density at the specified {\normalfont \ttfamily coordinates} in a Gaussian slab mass distribution.
+    !!{
+    Return the density at the specified {\normalfont \ttfamily coordinates} in a Gaussian slab mass distribution.
+    !!}
     use :: Coordinates     , only : assignment(=)          , coordinateCylindrical
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
@@ -134,7 +152,9 @@ contains
   end function gaussianSlabDensity
 
   double precision function gaussianSlabRotationCurve(self,radius)
-    !% Rotation curve for a infinite extent Gaussian slab.
+    !!{
+    Rotation curve for a infinite extent Gaussian slab.
+    !!}
     implicit none
     class           (massDistributionGaussianSlab), intent(inout) :: self
     double precision                              , intent(in   ) :: radius
@@ -145,7 +165,9 @@ contains
   end function gaussianSlabRotationCurve
 
   double precision function gaussianSlabRotationCurveGradient(self,radius)
-    !% Rotation curve gradient for a infinite extent Gaussian slab.
+    !!{
+    Rotation curve gradient for a infinite extent Gaussian slab.
+    !!}
     implicit none
     class           (massDistributionGaussianSlab), intent(inout) :: self
     double precision                              , intent(in   ) :: radius
@@ -156,7 +178,9 @@ contains
   end function gaussianSlabRotationCurveGradient
 
   double precision function gaussianSlabSurfaceDensity(self,coordinates)
-    !% Return the surface density at the specified {\normalfont \ttfamily coordinates} in a Gaussian slab mass distribution.
+    !!{
+    Return the surface density at the specified {\normalfont \ttfamily coordinates} in a Gaussian slab mass distribution.
+    !!}
     use :: Coordinates             , only : coordinate
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -171,7 +195,9 @@ contains
   end function gaussianSlabSurfaceDensity
 
   double precision function gaussianSlabSurfaceDensityRadialMoment(self,moment,radiusMinimum,radiusMaximum,isInfinite)
-    !% Compute radial moments of the Gaussian slab mass distribution surface density profile.
+    !!{
+    Compute radial moments of the Gaussian slab mass distribution surface density profile.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (massDistributionGaussianSlab), intent(inout)           :: self
@@ -191,7 +217,9 @@ contains
   end function gaussianSlabSurfaceDensityRadialMoment
 
   double precision function gaussianSlabRadiusHalfMass(self)
-    !% Return the half-mass radius for an infinite extent Gaussian slab mass distribution.
+    !!{
+    Return the half-mass radius for an infinite extent Gaussian slab mass distribution.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(massDistributionGaussianSlab), intent(inout) :: self

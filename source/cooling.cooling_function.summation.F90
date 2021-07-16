@@ -17,14 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a cooling function class which sums over other cooling functions.
+  !!{
+  Implements a cooling function class which sums over other cooling functions.
+  !!}
 
-  !# <coolingFunction name="coolingFunctionSummation">
-  !#  <description>Class providing a cooling function which sums over other cooling functions.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="coolantList" variable="coolants" next="next" object="coolingFunction" objectType="coolingFunctionClass"/>
-  !#  </deepCopy>
-  !# </coolingFunction>
+  !![
+  <coolingFunction name="coolingFunctionSummation">
+   <description>Class providing a cooling function which sums over other cooling functions.</description>
+   <deepCopy>
+    <linkedList type="coolantList" variable="coolants" next="next" object="coolingFunction" objectType="coolingFunctionClass"/>
+   </deepCopy>
+   <stateStore>
+    <linkedList type="coolantList" variable="coolants" next="next" object="coolingFunction"/>
+   </stateStore>
+  </coolingFunction>
+  !!]
 
   type, public :: coolantList
      class(coolingFunctionClass), pointer :: coolingFunction
@@ -32,7 +39,9 @@
   end type coolantList
 
   type, extends(coolingFunctionClass) :: coolingFunctionSummation
-     !% A cooling function class which sums over other cooling functions.
+     !!{
+     A cooling function class which sums over other cooling functions.
+     !!}
      private
      type(coolantList), pointer :: coolants => null()
    contains
@@ -45,7 +54,9 @@
   end type coolingFunctionSummation
 
   interface coolingFunctionSummation
-     !% Constructors for the ``summation'' cooling function class.
+     !!{
+     Constructors for the ``summation'' cooling function class.
+     !!}
      module procedure summationConstructorParameters
      module procedure summationConstructorInternal
   end interface coolingFunctionSummation
@@ -53,7 +64,9 @@
 contains
 
   function summationConstructorParameters(parameters) result(self)
-    !% Constructor for the ``summation'' cooling function class which takes a parameter set as input.
+    !!{
+    Constructor for the ``summation'' cooling function class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (coolingFunctionSummation)                :: self
@@ -70,13 +83,17 @@ contains
           allocate(self%coolants)
           coolant => self%coolants
        end if
-       !# <objectBuilder class="coolingFunction" name="coolant%coolingFunction" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="coolingFunction" name="coolant%coolingFunction" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function summationConstructorParameters
 
   function summationConstructorInternal(coolants) result(self)
-    !% Internal constructor for the ``summation'' cooling function class.
+    !!{
+    Internal constructor for the ``summation'' cooling function class.
+    !!}
     implicit none
     type(coolingFunctionSummation)                        :: self
     type(coolantList             ), target, intent(in   ) :: coolants
@@ -85,14 +102,18 @@ contains
     self    %coolants => coolants
     coolant_          => coolants
     do while (associated(coolant_))
-       !# <referenceCountIncrement owner="coolant_" object="coolingFunction"/>
+       !![
+       <referenceCountIncrement owner="coolant_" object="coolingFunction"/>
+       !!]
        coolant_ => coolant_%next
     end do
     return
   end function summationConstructorInternal
 
   subroutine summationDestructor(self)
-    !% Destructor for the ``summation'' cooling function class.
+    !!{
+    Destructor for the ``summation'' cooling function class.
+    !!}
     implicit none
     type(coolingFunctionSummation), intent(inout) :: self
     type(coolantList             ), pointer       :: coolant_, coolantNext
@@ -101,7 +122,9 @@ contains
        coolant_ => self%coolants
        do while (associated(coolant_))
           coolantNext => coolant_%next
-          !# <objectDestructor name="coolant_%coolingFunction"/>
+          !![
+          <objectDestructor name="coolant_%coolingFunction"/>
+          !!]
           deallocate(coolant_)
           coolant_ => coolantNext
        end do
@@ -110,7 +133,9 @@ contains
   end subroutine summationDestructor
 
   double precision function summationCoolingFunction(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !% Return the cooling function summed over other cooling functions.
+    !!{
+    Return the cooling function summed over other cooling functions.
+    !!}
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     use :: Radiation_Fields             , only : radiationFieldClass
@@ -142,7 +167,9 @@ contains
   end function summationCoolingFunction
 
   double precision function summationCoolingFunctionFractionInBand(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation,energyLow,energyHigh)
-    !% Return the fraction of the cooling function summed over other cooling functions due to emission in the given band.
+    !!{
+    Return the fraction of the cooling function summed over other cooling functions due to emission in the given band.
+    !!}
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     use :: Radiation_Fields             , only : radiationFieldClass
@@ -197,8 +224,10 @@ contains
   end function summationCoolingFunctionFractionInBand
 
   double precision function summationCoolingFunctionDensityLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !% Return the logarithmic gradient with respect to density of the cooling function due to Compton scattering off of \gls{cmb}
-    !% photons.
+    !!{
+    Return the logarithmic gradient with respect to density of the cooling function due to Compton scattering off of \gls{cmb}
+    photons.
+    !!}
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     use :: Galacticus_Error             , only : Galacticus_Error_Report
@@ -253,8 +282,10 @@ contains
   end function summationCoolingFunctionDensityLogSlope
 
   double precision function summationCoolingFunctionTemperatureLogSlope(self,node,numberDensityHydrogen,temperature,gasAbundances,chemicalDensities,radiation)
-    !% Return the logarithmic gradient with respect to temperature of the cooling function due to Compton scattering off of
-    !% \gls{cmb} photons.
+    !!{
+    Return the logarithmic gradient with respect to temperature of the cooling function due to Compton scattering off of
+    \gls{cmb} photons.
+    !!}
     use :: Abundances_Structure         , only : abundances
     use :: Chemical_Abundances_Structure, only : chemicalAbundances
     use :: Galacticus_Error             , only : Galacticus_Error_Report
@@ -309,7 +340,9 @@ contains
   end function summationCoolingFunctionTemperatureLogSlope
 
   subroutine summationDescriptor(self,descriptor,includeClass)
-    !% Add parameters to an input parameter list descriptor which could be used to recreate this object.
+    !!{
+    Add parameters to an input parameter list descriptor which could be used to recreate this object.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     class  (coolingFunctionSummation), intent(inout)           :: self

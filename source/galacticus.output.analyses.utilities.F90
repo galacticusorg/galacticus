@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a collection of utilities useful for on-the-fly analyses.
+!!{
+Contains a module which provides a collection of utilities useful for on-the-fly analyses.
+!!}
 
 module Output_Analysis_Utilities
-  !% Provides a collection of utilities useful for on-the-fly analyses.
+  !!{
+  Provides a collection of utilities useful for on-the-fly analyses.
+  !!}
   implicit none
   private
   public :: Output_Analysis_Output_Weight_Survey_Volume
@@ -28,7 +32,9 @@ module Output_Analysis_Utilities
 contains
 
   function Output_Analysis_Output_Weight_Survey_Volume(surveyGeometry_,cosmologyFunctions_,outputTimes_,massLimit,magnitudeAbsoluteLimit,luminosity,allowSingleEpoch) result (outputWeight)
-    !% Compute output weights corresponding to the cosmological volumes associated with the given survey.
+    !!{
+    Compute output weights corresponding to the cosmological volumes associated with the given survey.
+    !!}
     use            :: Cosmology_Functions, only : cosmologyFunctionsClass
     use            :: Galacticus_Error   , only : Galacticus_Error_Report
     use            :: Geometry_Surveys   , only : surveyGeometryClass
@@ -54,7 +60,9 @@ contains
          &                                                                   timeMaximumFound
     character       (len=12                 )                             :: redshiftLow               , redshiftHigh
     type            (varying_string         )                             :: message
-    !# <optionalArgument name="allowSingleEpoch" defaultsTo=".false." />
+    !![
+    <optionalArgument name="allowSingleEpoch" defaultsTo=".false." />
+    !!]
 
     allocate(outputWeight(outputTimes_%count()))
     outputWeight=0.0d0

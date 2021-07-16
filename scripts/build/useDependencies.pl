@@ -203,8 +203,17 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 	# Initialize preprocessor conditional compilation state and state stack.
 	my @preprocessorConditionalsStack;
 	my $conditionallyCompile = 1;
+	my $inXML                = 0;
+	my $inLaTeX              = 0;
 	open(my $file,$fullPathFileName) or die "Can't open input file: $fullPathFileName";
 	while (my $line = <$file>) {
+	    # Detect leaving LaTeX and XML blocks.
+	    $inXML   = 0
+		if ( $line =~ m/^\s*!!\]/ );
+	    $inLaTeX = 0
+		if ( $line =~ m/^\s*!!\}/ );
+	    next
+		if ( $inXML || $inLaTeX );
 	    if ( $line =~ m/^\s*\!;\s*([a-zA-Z0-9_]+)\s*$/ ) {
 		$usesPerFile->{$fileIdentifier}->{'libraryDependencies'}->{$1} = 1;	
 	    }
@@ -307,6 +316,11 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 		    }
 		}
 	    }
+	    # Detect entering LaTeX and XML blocks.
+	    $inXML   = 1
+		if ( $line =~ m/^\s*!!\[/ );
+	    $inLaTeX = 1
+		if ( $line =~ m/^\s*!!\{/ );
 	}
 	close($file);
     }

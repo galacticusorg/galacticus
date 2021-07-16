@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a filter which passes only nodes that lie within a survey geometry.
+!!{
+Contains a module which implements a filter which passes only nodes that lie within a survey geometry.
+!!}
 
   use :: Geometry_Surveys, only : surveyGeometryClass
 
-  !# <galacticFilter name="galacticFilterSurveyGeometry">
-  !#  <description>A filter which passes only nodes that lie within a survey geometry.</description>
-  !# </galacticFilter>
+  !![
+  <galacticFilter name="galacticFilterSurveyGeometry">
+   <description>A filter which passes only nodes that lie within a survey geometry.</description>
+  </galacticFilter>
+  !!]
   type, extends(galacticFilterClass) :: galacticFilterSurveyGeometry
-     !% A galactic filter class which passes only nodes that lie within a survey geometry.
+     !!{
+     A galactic filter class which passes only nodes that lie within a survey geometry.
+     !!}
      private
      class(surveyGeometryClass), pointer :: surveyGeometry_
    contains
@@ -34,7 +40,9 @@
   end type galacticFilterSurveyGeometry
 
   interface galacticFilterSurveyGeometry
-     !% Constructors for the ``surveyGeometry'' galactic filter class.
+     !!{
+     Constructors for the ``surveyGeometry'' galactic filter class.
+     !!}
      module procedure surveyGeometryConstructorParameters
      module procedure surveyGeometryConstructorInternal
   end interface galacticFilterSurveyGeometry
@@ -42,7 +50,9 @@
 contains
 
   function surveyGeometryConstructorParameters(parameters) result(self)
-    !% Constructor for the ``surveyGeometry'' galactic filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``surveyGeometry'' galactic filter class which takes a parameter set as input.
+    !!}
     use :: Geometry_Surveys, only : surveyGeometry, surveyGeometryClass
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
@@ -50,34 +60,48 @@ contains
     type (inputParameters             ), intent(inout) :: parameters
     class(surveyGeometryClass         ), pointer       :: surveyGeometry_
 
-    !# <objectBuilder class="surveyGeometry" name="surveyGeometry_" source="parameters"/>
+    !![
+    <objectBuilder class="surveyGeometry" name="surveyGeometry_" source="parameters"/>
+    !!]
     self=galacticFilterSurveyGeometry(surveyGeometry_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="surveyGeometry_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="surveyGeometry_"/>
+    !!]
     return
   end function surveyGeometryConstructorParameters
 
   function surveyGeometryConstructorInternal(surveyGeometry_) result(self)
-    !% Internal constructor for the ``surveyGeometry'' galactic filter class.
+    !!{
+    Internal constructor for the ``surveyGeometry'' galactic filter class.
+    !!}
     implicit none
     type(galacticFilterSurveyGeometry)                        :: self
     class(surveyGeometryClass        ), intent(in   ), target :: surveyGeometry_
-    !# <constructorAssign variables="*surveyGeometry_"/>
+    !![
+    <constructorAssign variables="*surveyGeometry_"/>
+    !!]
 
     return
   end function surveyGeometryConstructorInternal
 
   subroutine surveyGeometryDestructor(self)
-    !% Destructor for the ``surveyGeometry'' galactic filter class.
+    !!{
+    Destructor for the ``surveyGeometry'' galactic filter class.
+    !!}
     implicit none
     type(galacticFilterSurveyGeometry), intent(inout) :: self
 
-    !# <objectDestructor name="self%surveyGeometry_"/>
+    !![
+    <objectDestructor name="self%surveyGeometry_"/>
+    !!]
     return
   end subroutine surveyGeometryDestructor
 
   logical function surveyGeometryPasses(self,node)
-    !% Implement a galactic filter which passes only nodes with a survey geometry.
+    !!{
+    Implement a galactic filter which passes only nodes with a survey geometry.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentPosition, nodeComponentSpheroid, treeNode
     implicit none
     class           (galacticFilterSurveyGeometry), intent(inout)         :: self

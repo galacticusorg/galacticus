@@ -18,10 +18,14 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 
-!% Contains a module which provides buffer types for merger tree outputters.
+!!{
+Contains a module which provides buffer types for merger tree outputters.
+!!}
 
 module Merger_Tree_Outputter_Buffer_Types
-  !% Provides buffer types for merger tree outputters.
+  !!{
+  Provides buffer types for merger tree outputters.
+  !!}
   use :: Kind_Numbers      , only : kind_int8
   use :: ISO_Varying_String, only : varying_string
   public
@@ -30,7 +34,9 @@ module Merger_Tree_Outputter_Buffer_Types
   integer, parameter :: propertyNameLengthMax=256, propertyCommentLengthMax=256
   
   type :: outputPropertyInteger
-     !% A type used to store integer data for output.
+     !!{
+     A type used to store integer data for output.
+     !!}
      character       (len=propertyNameLengthMax   )                              :: name
      character       (len=propertyCommentLengthMax)                              :: comment
      double precision                                                            :: unitsInSI
@@ -40,7 +46,9 @@ module Merger_Tree_Outputter_Buffer_Types
   end type outputPropertyInteger
   
   type :: outputPropertyDouble
-     !% A type used to store double precision data for output.
+     !!{
+     A type used to store double precision data for output.
+     !!}
      character       (len=propertyNameLengthMax   )                              :: name
      character       (len=propertyCommentLengthMax)                              :: comment
      double precision                                                            :: unitsInSI

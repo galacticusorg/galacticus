@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of an inactive model parameter class.
+  !!{
+  Implementation of an inactive model parameter class.
+  !!}
 
-  !# <modelParameter name="modelParameterInactive">
-  !#  <description>An inactive model parameter class.</description>
-  !# </modelParameter>
+  !![
+  <modelParameter name="modelParameterInactive">
+   <description>An inactive model parameter class.</description>
+  </modelParameter>
+  !!]
   type, extends(modelParameterClass) :: modelParameterInactive
-     !% Implementation of an inactive model parameter class.
+     !!{
+     Implementation of an inactive model parameter class.
+     !!}
      private
      type(varying_string) :: name_
    contains
@@ -39,7 +45,9 @@
   end type modelParameterInactive
 
   interface modelParameterInactive
-     !% Constructors for the {\normalfont \ttfamily inactive} 1D distribution function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily inactive} 1D distribution function class.
+     !!}
      module procedure inactiveConstructorParameters
      module procedure inactiveConstructorInternal
   end interface modelParameterInactive
@@ -47,36 +55,48 @@
 contains
 
   function inactiveConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily inactive} model parameter class which builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily inactive} model parameter class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(modelParameterInactive)                :: self
     type(inputParameters       ), intent(inout) :: parameters
     type (varying_string       )                :: name
 
-    !# <inputParameter>
-    !#   <name>name</name>
-    !#   <description>The name of the parameter.</description>
-    !#   <defaultValue>var_str('')</defaultValue>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>name</name>
+      <description>The name of the parameter.</description>
+      <defaultValue>var_str('')</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=modelParameterInactive(name)
-     !# <inputParametersValidate source="parameters"/>
+     !![
+     <inputParametersValidate source="parameters"/>
+     !!]
    return
   end function inactiveConstructorParameters
 
   function inactiveConstructorInternal(name_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily inactive} model parameter class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily inactive} model parameter class.
+    !!}
     implicit none
     type (modelParameterInactive)                :: self
     type (varying_string        ), intent(in   ) :: name_
-    !# <constructorAssign variables="name_"/>
+    !![
+    <constructorAssign variables="name_"/>
+    !!]
 
     return
   end function inactiveConstructorInternal
 
   function inactiveName(self)
-    !% Return the name of this parameter.
+    !!{
+    Return the name of this parameter.
+    !!}
     implicit none
     type (varying_string        )                :: inactiveName
     class(modelParameterInactive), intent(inout) :: self
@@ -86,7 +106,9 @@ contains
   end function inactiveName
 
   double precision function inactiveLogPrior(self,x)
-    !% Return the log-prior on this parameter.
+    !!{
+    Return the log-prior on this parameter.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (modelParameterInactive), intent(inout) :: self
@@ -99,7 +121,9 @@ contains
   end function inactiveLogPrior
 
   double precision function inactivePriorSample(self)
-    !% Sample from the of this parameter.
+    !!{
+    Sample from the of this parameter.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(modelParameterInactive), intent(inout) :: self
@@ -111,7 +135,9 @@ contains
   end function inactivePriorSample
 
   double precision function inactivePriorInvert(self,f)
-    !% Invert the prior, returning the parameter value given the cumulative probability.
+    !!{
+    Invert the prior, returning the parameter value given the cumulative probability.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (modelParameterInactive), intent(inout) :: self
@@ -124,7 +150,9 @@ contains
   end function inactivePriorInvert
 
   double precision function inactivePriorMinimum(self)
-    !% Return the minimum value for which the prior is non-zero.
+    !!{
+    Return the minimum value for which the prior is non-zero.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(modelParameterInactive), intent(inout) :: self
@@ -136,7 +164,9 @@ contains
   end function inactivePriorMinimum
 
   double precision function inactivePriorMaximum(self)
-    !% Return the maximum value for which the prior is non-zero.
+    !!{
+    Return the maximum value for which the prior is non-zero.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(modelParameterInactive), intent(inout) :: self
@@ -148,7 +178,9 @@ contains
   end function inactivePriorMaximum
 
   double precision function inactiveRandomPerturbation(self)
-    !% Return a random perturbation to this parameter.
+    !!{
+    Return a random perturbation to this parameter.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(modelParameterInactive), intent(inout) :: self
@@ -160,7 +192,9 @@ contains
   end function inactiveRandomPerturbation
 
   double precision function inactiveMap(self,x)
-    !% Map this parameter.
+    !!{
+    Map this parameter.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (modelParameterInactive), intent(inout) :: self
@@ -173,7 +207,9 @@ contains
   end function inactiveMap
 
   double precision function inactiveUnmap(self,x)
-    !% Unmap this parameter.
+    !!{
+    Unmap this parameter.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (modelParameterInactive), intent(inout) :: self

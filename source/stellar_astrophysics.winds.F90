@@ -17,32 +17,38 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a class for calculations of stellar winds.
+!!{
+Contains a module which implements a class for calculations of stellar winds.
+!!}
 
 module Stellar_Astrophysics_Winds
-  !% Implements a class for calculations of stellar winds.
+  !!{
+  Implements a class for calculations of stellar winds.
+  !!}
   implicit none
   private
 
-  !# <functionClass>
-  !#  <name>stellarWinds</name>
-  !#  <descriptiveName>Stellar Winds</descriptiveName>
-  !#  <description>
-  !#   Class providing models of stellar winds.
-  !#  </description>
-  !#  <default>leitherer1992</default>
-  !#  <method name="rateMassLoss" >
-  !#   <description>Return the mass loss rate (in $M_\odot$/Gyr) from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>
-  !#  </method>
-  !#  <method name="velocityTerminal" >
-  !#   <description>Return the terminal velocity (in km/s) of winds from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>stellarWinds</name>
+   <descriptiveName>Stellar Winds</descriptiveName>
+   <description>
+    Class providing models of stellar winds.
+   </description>
+   <default>leitherer1992</default>
+   <method name="rateMassLoss" >
+    <description>Return the mass loss rate (in $M_\odot$/Gyr) from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>
+   </method>
+   <method name="velocityTerminal" >
+    <description>Return the terminal velocity (in km/s) of winds from stars of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: initialMass, age, metallicity</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Stellar_Astrophysics_Winds

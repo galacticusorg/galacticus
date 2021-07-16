@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements a very simple disk component.
+!!{
+Contains a module that implements a very simple disk component.
+!!}
 
 module Node_Component_Disk_Very_Simple_Size
-  !% Implements a very simple disk component.
+  !!{
+  Implements a very simple disk component.
+  !!}
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   implicit none
   private
@@ -29,43 +33,45 @@ module Node_Component_Disk_Very_Simple_Size
        &    Node_Component_Disk_Very_Simple_Size_State_Store               , Node_Component_Disk_Very_Simple_Size_State_Retrieve   , &
        &    Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize       , Node_Component_Disk_Very_Simple_Size_Calculation_Reset
 
-  !# <component>
-  !#  <class>disk</class>
-  !#  <name>verySimpleSize</name>
-  !#  <extends>
-  !#   <class>disk</class>
-  !#   <name>verySimple</name>
-  !#  </extends>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>radius</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <output unitsInSI="megaparsec" comment="Radial scale length in the disk."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>halfMassRadius</name>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <getFunction>Node_Component_Disk_Very_Simple_Size_Half_Mass_Radius</getFunction>
-  !#   </property>
-  !#   <property>
-  !#     <name>velocity</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <output unitsInSI="kilo" comment="Circular velocity of the disk."/>
-  !#   </property>
-  !#  </properties>
-  !#  <bindings>
-  !#   <binding method="enclosedMass"   function="Node_Component_Disk_Very_Simple_Size_Enclosed_Mass"   bindsTo="component" />
-  !#   <binding method="surfaceDensity" function="Node_Component_Disk_Very_Simple_Size_Surface_Density" bindsTo="component" />
-  !#  </bindings>
-  !#  <functions>objects.nodes.components.disk.very_simple.size.bound_functions.inc</functions>
-  !# </component>
+  !![
+  <component>
+   <class>disk</class>
+   <name>verySimpleSize</name>
+   <extends>
+    <class>disk</class>
+    <name>verySimple</name>
+   </extends>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>radius</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <output unitsInSI="megaparsec" comment="Radial scale length in the disk."/>
+    </property>
+    <property>
+      <name>halfMassRadius</name>
+      <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
+      <type>double</type>
+      <rank>0</rank>
+      <getFunction>Node_Component_Disk_Very_Simple_Size_Half_Mass_Radius</getFunction>
+    </property>
+    <property>
+      <name>velocity</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <output unitsInSI="kilo" comment="Circular velocity of the disk."/>
+    </property>
+   </properties>
+   <bindings>
+    <binding method="enclosedMass"   function="Node_Component_Disk_Very_Simple_Size_Enclosed_Mass"   bindsTo="component" />
+    <binding method="surfaceDensity" function="Node_Component_Disk_Very_Simple_Size_Surface_Density" bindsTo="component" />
+   </bindings>
+   <functions>objects.nodes.components.disk.very_simple.size.bound_functions.inc</functions>
+  </component>
+  !!]
 
   ! Classes used.
   class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
@@ -76,11 +82,15 @@ module Node_Component_Disk_Very_Simple_Size
 
 contains
 
-  !# <nodeComponentInitializationTask>
-  !#  <unitName>Node_Component_Disk_Very_Simple_Size_Initialize</unitName>
-  !# </nodeComponentInitializationTask>
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>Node_Component_Disk_Very_Simple_Size_Initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
   subroutine Node_Component_Disk_Very_Simple_Size_Initialize(parameters_)
-    !% Initializes the tree node exponential disk methods module.
+    !!{
+    Initializes the tree node exponential disk methods module.
+    !!}
     use :: Galacticus_Nodes, only : defaultDiskComponent
     use :: Input_Parameters, only : inputParameter      , inputParameters
     implicit none
@@ -88,21 +98,27 @@ contains
 
     if (defaultDiskComponent%verySimpleSizeIsActive()) then
        ! Read parameters controlling the physical implementation.
-       !# <inputParameter>
-       !#   <name>diskMassToleranceAbsolute</name>
-       !#   <defaultValue>1.0d-6</defaultValue>
-       !#   <description>The mass tolerance used to judge whether the disk is physically plausible.</description>
-       !#   <source>parameters_</source>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>diskMassToleranceAbsolute</name>
+         <defaultValue>1.0d-6</defaultValue>
+         <description>The mass tolerance used to judge whether the disk is physically plausible.</description>
+         <source>parameters_</source>
+       </inputParameter>
+       !!]
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Initialize
   
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Disk_Very_Simple_Size_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Disk_Very_Simple_Size_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Disk_Very_Simple_Size_Thread_Initialize(parameters_)
-    !% Initializes the tree node very simple size disk module.
+    !!{
+    Initializes the tree node very simple size disk module.
+    !!}
     use :: Galacticus_Error                         , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                         , only : defaultDiskComponent
     use :: Input_Parameters                         , only : inputParameter             , inputParameters
@@ -112,40 +128,52 @@ contains
     type(inputParameters), intent(inout) :: parameters_
 
     if (defaultDiskComponent%verySimpleSizeIsActive()) then
-       !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters_"/>
-       !# <objectBuilder class="massDistribution" parameterName="diskMassDistribution" name="diskMassDistribution" source="parameters_" threadPrivate="yes">
-       !#  <default>
-       !#   <diskMassDistribution value="exponentialDisk">
-       !#    <dimensionless value="true"/>
-       !#   </diskMassDistribution>
-       !#  </default>
-       !# </objectBuilder>
+       !![
+       <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters_"/>
+       <objectBuilder class="massDistribution" parameterName="diskMassDistribution" name="diskMassDistribution" source="parameters_" threadPrivate="yes">
+        <default>
+         <diskMassDistribution value="exponentialDisk">
+          <dimensionless value="true"/>
+         </diskMassDistribution>
+        </default>
+       </objectBuilder>
+       !!]
        if (.not.diskMassDistribution%isDimensionless()) call Galacticus_Error_Report('disk mass distribution must be dimensionless'//{introspection:location})
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize()
-    !% Uninitializes the tree node standard merging statistics module.
+    !!{
+    Uninitializes the tree node standard merging statistics module.
+    !!}
     use :: Galacticus_Nodes                         , only : defaultDiskComponent
     use :: Node_Component_Disk_Very_Simple_Size_Data, only : diskMassDistribution
     implicit none
 
     if (defaultDiskComponent%verySimpleSizeIsActive()) then
-       !# <objectDestructor name="darkMatterProfileDMO_"/>
-       !# <objectDestructor name="diskMassDistribution" />
+       !![
+       <objectDestructor name="darkMatterProfileDMO_"/>
+       <objectDestructor name="diskMassDistribution" />
+       !!]
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Thread_Uninitialize
 
-  !# <calculationResetTask>
-  !#   <unitName>Node_Component_Disk_Very_Simple_Size_Calculation_Reset</unitName>
-  !# </calculationResetTask>
+  !![
+  <calculationResetTask>
+    <unitName>Node_Component_Disk_Very_Simple_Size_Calculation_Reset</unitName>
+  </calculationResetTask>
+  !!]
   subroutine Node_Component_Disk_Very_Simple_Size_Calculation_Reset(node)
-    !% Reset very simple size disk structure calculations.
+    !!{
+    Reset very simple size disk structure calculations.
+    !!}
     use :: Galacticus_Nodes                         , only : treeNode
     use :: Node_Component_Disk_Very_Simple_Size_Data, only : Node_Component_Disk_Very_Simple_Size_Reset
     implicit none
@@ -155,11 +183,15 @@ contains
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Calculation_Reset
 
-  !# <radiusSolverPlausibility>
-  !#  <unitName>Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility</unitName>
-  !# </radiusSolverPlausibility>
+  !![
+  <radiusSolverPlausibility>
+   <unitName>Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility</unitName>
+  </radiusSolverPlausibility>
+  !!]
   subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility(node)
-    !% Determines whether the disk is physically plausible for radius solving tasks. Require that it have non-zero mass.
+    !!{
+    Determines whether the disk is physically plausible for radius solving tasks. Require that it have non-zero mass.
+    !!}
     use :: Galacticus_Nodes, only : defaultDiskComponent, nodeComponentDisk, nodeComponentDiskVerySimpleSize, treeNode
     implicit none
     type (treeNode         ), intent(inout) :: node
@@ -177,12 +209,16 @@ contains
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver_Plausibility
 
-  !# <radiusSolverTask>
-  !#  <unitName>Node_Component_Disk_Very_Simple_Size_Radius_Solver</unitName>
-  !# </radiusSolverTask>
+  !![
+  <radiusSolverTask>
+   <unitName>Node_Component_Disk_Very_Simple_Size_Radius_Solver</unitName>
+  </radiusSolverTask>
+  !!]
   subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver(node,componentActive,specificAngularMomentumRequired,specificAngularMomentum,Radius_Get&
        &,Radius_Set,Velocity_Get,Velocity_Set)
-    !% Interface for the size solver algorithm.
+    !!{
+    Interface for the size solver algorithm.
+    !!}
     use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum
     use :: Galacticus_Nodes      , only : nodeComponentBasic               , nodeComponentDisk, nodeComponentDiskVerySimpleSize, treeNode
     implicit none
@@ -215,7 +251,9 @@ contains
   end subroutine Node_Component_Disk_Very_Simple_Size_Radius_Solver
 
   double precision function Node_Component_Disk_Very_Simple_Size_Radius(node)
-    !% Return the radius of the disk used in structure solvers.
+    !!{
+    Return the radius of the disk used in structure solvers.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, treeNode
     implicit none
     type (treeNode         ), intent(inout) :: node
@@ -227,7 +265,9 @@ contains
   end function Node_Component_Disk_Very_Simple_Size_Radius
 
   subroutine Node_Component_Disk_Very_Simple_Size_Radius_Set(node,radius)
-    !% Set the radius of the disk used in structure solvers.
+    !!{
+    Set the radius of the disk used in structure solvers.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, treeNode
     implicit none
     type            (treeNode         ), intent(inout) :: node
@@ -240,7 +280,9 @@ contains
   end subroutine Node_Component_Disk_Very_Simple_Size_Radius_Set
 
   double precision function Node_Component_Disk_Very_Simple_Size_Velocity(node)
-    !% Return the circular velocity of the disk.
+    !!{
+    Return the circular velocity of the disk.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, treeNode
     implicit none
     type (treeNode         ), intent(inout) :: node
@@ -252,7 +294,9 @@ contains
   end function Node_Component_Disk_Very_Simple_Size_Velocity
 
   subroutine Node_Component_Disk_Very_Simple_Size_Velocity_Set(node,velocity)
-    !% Set the circular velocity of the disk.
+    !!{
+    Set the circular velocity of the disk.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, treeNode
     implicit none
     type            (treeNode         ), intent(inout) :: node
@@ -264,11 +308,15 @@ contains
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_Velocity_Set
 
-  !# <galacticusStateStoreTask>
-  !#  <unitName>Node_Component_Disk_Very_Simple_Size_State_Store</unitName>
-  !# </galacticusStateStoreTask>
+  !![
+  <galacticusStateStoreTask>
+   <unitName>Node_Component_Disk_Very_Simple_Size_State_Store</unitName>
+  </galacticusStateStoreTask>
+  !!]
   subroutine Node_Component_Disk_Very_Simple_Size_State_Store(stateFile,gslStateFile,stateOperationID)
-    !% Write the tablulation state to file.
+    !!{
+    Write the tablulation state to file.
+    !!}
     use            :: Display                                  , only : displayMessage      , verbosityLevelInfo
     use, intrinsic :: ISO_C_Binding                            , only : c_ptr               , c_size_t
     use            :: Node_Component_Disk_Very_Simple_Size_Data, only : diskMassDistribution
@@ -278,9 +326,11 @@ contains
     type   (c_ptr   ), intent(in   ) :: gslStateFile
 
     call displayMessage('Storing state for: componentDisk -> standard',verbosity=verbosityLevelInfo)
-    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    !# </workaround>
+    !![
+    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+     <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    </workaround>
+    !!]
 #ifdef THREADSAFEIO
     !$omp critical(gfortranInternalIO)
 #endif
@@ -292,11 +342,15 @@ contains
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_State_Store
 
-  !# <galacticusStateRetrieveTask>
-  !#  <unitName>Node_Component_Disk_Very_Simple_Size_State_Retrieve</unitName>
-  !# </galacticusStateRetrieveTask>
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>Node_Component_Disk_Very_Simple_Size_State_Retrieve</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
   subroutine Node_Component_Disk_Very_Simple_Size_State_Retrieve(stateFile,gslStateFile,stateOperationID)
-    !% Retrieve the tabulation state from the file.
+    !!{
+    Retrieve the tabulation state from the file.
+    !!}
     use            :: Display                                  , only : displayMessage         , verbosityLevelInfo
     use            :: Galacticus_Error                         , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding                            , only : c_ptr                  , c_size_t
@@ -308,9 +362,11 @@ contains
     logical                          :: wasAllocated
 
     call displayMessage('Retrieving state for: componentDisk -> standard',verbosity=verbosityLevelInfo)
-    !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-    !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    !# </workaround>
+    !![
+    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+     <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    </workaround>
+    !!]
 #ifdef THREADSAFEIO
     !$omp critical(gfortranInternalIO)
 #endif

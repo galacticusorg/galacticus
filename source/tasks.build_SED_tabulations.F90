@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a class which implements a task to pre-build tabulations needed for SED calculations.
+  !!{
+  Contains a class which implements a task to pre-build tabulations needed for SED calculations.
+  !!}
 
   use :: Node_Property_Extractors, only : nodePropertyExtractorClass
   use :: Output_Times            , only : outputTimesClass
   use :: Star_Formation_Histories, only : starFormationHistoryClass
 
-  !# <task name="taskBuildSEDTabulations">
-  !#  <description>A task which pre-builds tabulations needed for SED calculations.</description>
-  !# </task>
+  !![
+  <task name="taskBuildSEDTabulations">
+   <description>A task which pre-builds tabulations needed for SED calculations.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskBuildSEDTabulations
-     !% Implementation of a task which pre-builds tabulations needed for SED calculations.
+     !!{
+     Implementation of a task which pre-builds tabulations needed for SED calculations.
+     !!}
      private
      class(nodePropertyExtractorClass), pointer :: nodePropertyExtractor_ => null()
      class(outputTimesClass          ), pointer :: outputTimes_           => null()
@@ -40,7 +46,9 @@
   end type taskBuildSEDTabulations
 
   interface taskBuildSEDTabulations
-     !% Constructors for the {\normalfont \ttfamily buildSEDTabulations} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily buildSEDTabulations} task.
+     !!}
      module procedure buildSEDTabulationsParameters
      module procedure buildSEDTabulationsInternal
   end interface taskBuildSEDTabulations
@@ -48,7 +56,9 @@
 contains
 
   function buildSEDTabulationsParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily buildSEDTabulations} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily buildSEDTabulations} task class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     use :: Galacticus_Nodes, only : nodeClassHierarchyInitialize
     use :: Node_Components , only : Node_Components_Initialize
@@ -73,19 +83,25 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
-    !# <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
-    !# <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
-    !# <objectBuilder class="starFormationHistory"  name="starFormationHistory_"  source="parameters"/>
+    !![
+    <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
+    <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
+    <objectBuilder class="starFormationHistory"  name="starFormationHistory_"  source="parameters"/>
+    !!]
     self=taskBuildSEDTabulations(nodePropertyExtractor_,starFormationHistory_,outputTimes_,parametersRoot)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="nodePropertyExtractor_"/>
-    !# <objectDestructor name="outputTimes_"          />
-    !# <objectDestructor name="starFormationHistory_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="nodePropertyExtractor_"/>
+    <objectDestructor name="outputTimes_"          />
+    <objectDestructor name="starFormationHistory_" />
+    !!]
     return
   end function buildSEDTabulationsParameters
 
   function buildSEDTabulationsInternal(nodePropertyExtractor_,starFormationHistory_,outputTimes_,parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily buildSEDTabulations} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily buildSEDTabulations} task class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(taskBuildSEDTabulations    )                        :: self
@@ -93,27 +109,35 @@ contains
     class(outputTimesClass          ), intent(in   ), target :: outputTimes_
     class(starFormationHistoryClass ), intent(in   ), target :: starFormationHistory_
     type (inputParameters           ), intent(in   ), target :: parameters
-    !# <constructorAssign variables="*nodePropertyExtractor_, *outputTimes_, *starFormationHistory_"/>
+    !![
+    <constructorAssign variables="*nodePropertyExtractor_, *outputTimes_, *starFormationHistory_"/>
+    !!]
 
     self%parameters=inputParameters(parameters)
     return
   end function buildSEDTabulationsInternal
 
   subroutine buildSEDDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily buildSEDTabulations} task class.
+    !!{
+    Destructor for the {\normalfont \ttfamily buildSEDTabulations} task class.
+    !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
     type(taskBuildSEDTabulations), intent(inout) :: self
     
-    !# <objectDestructor name="self%nodePropertyExtractor_"/>
-    !# <objectDestructor name="self%starFormationHistory_" />
-    !# <objectDestructor name="self%outputTimes_"          />
+    !![
+    <objectDestructor name="self%nodePropertyExtractor_"/>
+    <objectDestructor name="self%starFormationHistory_" />
+    <objectDestructor name="self%outputTimes_"          />
+    !!]
     call Node_Components_Uninitialize()
     return
   end subroutine buildSEDDestructor
 
   subroutine buildSEDTabulationsPerform(self,status)
-    !% Builds the tabulation.
+    !!{
+    Builds the tabulation.
+    !!}
     use :: Display                   , only : displayIndent                    , displayUnindent
     use :: Galacticus_Error          , only : errorStatusSuccess               , Galacticus_Error_Report
     use :: Histories                 , only : history
@@ -137,8 +161,9 @@ contains
     class           (nodeComponentBasic     ), pointer                       :: basic
     class           (nodeComponentDisk      ), pointer                       :: disk
     class           (nodeComponentSpheroid  ), pointer                       :: spheroid
-    double precision                         , parameter                     :: mass                    =1.0d12
-    type            (history                )                                :: starFormationHistoryDisk       , starFormationHistorySpheroid
+    double precision                         , parameter                     :: mass                    =1.0d+12
+    double precision                         , parameter                     :: epsilon                 =1.0d-06
+    type            (history                )                                :: starFormationHistoryDisk        , starFormationHistorySpheroid
     integer         (c_size_t               )                                :: i
     double precision                                                         :: time
     type            (multiCounter           )                                :: instance
@@ -156,8 +181,13 @@ contains
     basic    => node    %basic   (autoCreate=.true.)
     ! Initialize a single instance.
     instance=multiCounter([1_c_size_t])
-    ! Choose a beginning time.
-    time=self%outputTimes_%time(1_c_size_t)
+    ! Choose a beginning time. Set this to slightly before the first output time to ensure that the initial set of times assigned
+    ! to each history corresponds to the first (and not the second) output time).
+    time   =+self%outputTimes_%time(1_c_size_t) &
+         &  *(                                  &
+         &    +1.0d0                            &
+         &    -epsilon                          &
+         &   )
     call basic%timeSet            (time)
     call basic%timeLastIsolatedSet(time)
     call basic%massSet            (mass)
@@ -229,7 +259,9 @@ contains
   end subroutine buildSEDTabulationsPerform
 
   logical function buildSEDTabulationsRequiresOutputFile(self)
-    !% Specifies that this task does not requires the main output file.
+    !!{
+    Specifies that this task does not requires the main output file.
+    !!}
     implicit none
     class(taskBuildSEDTabulations ), intent(inout) :: self
     !$GLC attributes unused :: self

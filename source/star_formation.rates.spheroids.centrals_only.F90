@@ -17,14 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a star formation rate in galactic spheroids which sets rates in satellites to zero.
+  !!{
+  Implementation of a star formation rate in galactic spheroids which sets rates in satellites to zero.
+  !!}
 
-  !# <starFormationRateSpheroids name="starFormationRateSpheroidsCentralsOnly">
-  !#  <description>A star formation rate in galactic spheroids which sets rates in satellites to zero.</description>
-  !# </starFormationRateSpheroids>
+  !![
+  <starFormationRateSpheroids name="starFormationRateSpheroidsCentralsOnly">
+   <description>A star formation rate in galactic spheroids which sets rates in satellites to zero.</description>
+  </starFormationRateSpheroids>
+  !!]
   type, extends(starFormationRateSpheroidsClass) :: starFormationRateSpheroidsCentralsOnly
-     !% Implementation of a rate for star formation in galactic spheroids which computes the rate by integrating a star formation rate
-     !% over the spheroid.
+     !!{
+     Implementation of a rate for star formation in galactic spheroids which computes the rate by integrating a star formation rate
+     over the spheroid.
+     !!}
      private
      class(starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_ => null()
    contains
@@ -33,7 +39,9 @@
   end type starFormationRateSpheroidsCentralsOnly
 
   interface starFormationRateSpheroidsCentralsOnly
-     !% Constructors for the {\normalfont \ttfamily centralsOnly} star formation rate in spheroids class.
+     !!{
+     Constructors for the {\normalfont \ttfamily centralsOnly} star formation rate in spheroids class.
+     !!}
      module procedure centralsOnlyConstructorParameters
      module procedure centralsOnlyConstructorInternal
   end interface starFormationRateSpheroidsCentralsOnly
@@ -41,43 +49,59 @@
 contains
 
   function centralsOnlyConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily centralsOnly} star formation rate in spheroids class which takes a
-    !% parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily centralsOnly} star formation rate in spheroids class which takes a
+    parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (starFormationRateSpheroidsCentralsOnly)                :: self
     type (inputParameters                       ), intent(inout) :: parameters
     class(starFormationRateSpheroidsClass       ), pointer       :: starFormationRateSpheroids_
 
-    !# <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
+    !![
+    <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
+    !!]
     self=starFormationRateSpheroidsCentralsOnly(starFormationRateSpheroids_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="starFormationRateSpheroids_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="starFormationRateSpheroids_"/>
+    !!]
     return
   end function centralsOnlyConstructorParameters
 
   function centralsOnlyConstructorInternal(starFormationRateSpheroids_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily centralsOnly} star formation rate in spheroids class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily centralsOnly} star formation rate in spheroids class.
+    !!}
     implicit none
     type (starFormationRateSpheroidsCentralsOnly)                        :: self
     class(starFormationRateSpheroidsClass       ), intent(in   ), target :: starFormationRateSpheroids_
-    !# <constructorAssign variables="*starFormationRateSpheroids_"/>
+    !![
+    <constructorAssign variables="*starFormationRateSpheroids_"/>
+    !!]
 
     return
   end function centralsOnlyConstructorInternal
 
   subroutine centralsOnlyDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily centralsOnly} star formation rate in spheroids class.
+    !!{
+    Destructor for the {\normalfont \ttfamily centralsOnly} star formation rate in spheroids class.
+    !!}
     implicit none
     type(starFormationRateSpheroidsCentralsOnly), intent(inout) :: self
 
-    !# <objectDestructor name="self%starFormationRateSpheroids_" />
+    !![
+    <objectDestructor name="self%starFormationRateSpheroids_" />
+    !!]
     return
   end subroutine centralsOnlyDestructor
 
   double precision function centralsOnlyRate(self,node)
-    !% Returns the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the galactic spheroid of {\normalfont \ttfamily
-    !% node}. Assumes zero rate for satellites, falling through to another class for centrals.
+    !!{
+    Returns the star formation rate (in $\mathrm{M}_\odot$ Gyr$^{-1}$) in the galactic spheroid of {\normalfont \ttfamily
+    node}. Assumes zero rate for satellites, falling through to another class for centrals.
+    !!}
     implicit none
     class(starFormationRateSpheroidsCentralsOnly), intent(inout), target :: self
     type (treeNode                              ), intent(inout), target :: node

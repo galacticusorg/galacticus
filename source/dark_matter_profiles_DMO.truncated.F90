@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of truncated dark matter halo profiles.
+  !!{
+  An implementation of truncated dark matter halo profiles.
+  !!}
 
   use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
 
-  !# <darkMatterProfileDMO name="darkMatterProfileDMOTruncated">
-  !#  <description>truncated dark matter halo profiles.</description>
-  !# </darkMatterProfileDMO>
+  !![
+  <darkMatterProfileDMO name="darkMatterProfileDMOTruncated">
+   <description>truncated dark matter halo profiles.</description>
+  </darkMatterProfileDMO>
+  !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOTruncated
-     !% A dark matter halo profile class implementing truncated dark matter halos.
+     !!{
+     A dark matter halo profile class implementing truncated dark matter halos.
+     !!}
      private
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_              => null()
      double precision                                     :: radiusFractionalTruncateMinimum                           , radiusFractionalTruncateMaximum
@@ -37,10 +43,12 @@
           &                                                  enclosingMassRadiusPrevious                               , radialVelocityDispersionTruncateMinimumPrevious, &
           &                                                  radialVelocityDispersionTruncateMinimumUntruncatedPrevious
    contains
-     !# <methods>
-     !#   <method description="Reset memoized calculations." method="calculationReset" />
-     !#   <method description="Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc)." method="truncationFunction" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Reset memoized calculations." method="calculationReset" />
+       <method description="Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in units of Mpc)." method="truncationFunction" />
+     </methods>
+     !!]
      final     ::                                      truncatedDestructor
      procedure :: autoHook                          => truncatedAutoHook
      procedure :: calculationReset                  => truncatedCalculationReset
@@ -65,7 +73,9 @@
   end type darkMatterProfileDMOTruncated
 
   interface darkMatterProfileDMOTruncated
-     !% Constructors for the {\normalfont \ttfamily truncated} dark matter halo profile class.
+     !!{
+     Constructors for the {\normalfont \ttfamily truncated} dark matter halo profile class.
+     !!}
      module procedure truncatedConstructorParameters
      module procedure truncatedConstructorInternal
   end interface darkMatterProfileDMOTruncated
@@ -73,7 +83,9 @@
 contains
 
   function truncatedConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily truncated} dark matter halo profile class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily truncated} dark matter halo profile class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (darkMatterProfileDMOTruncated)                :: self
@@ -83,35 +95,41 @@ contains
     type            (varying_string               )                :: nonAnalyticSolver
     double precision                                               :: radiusFractionalTruncateMinimum, radiusFractionalTruncateMaximum
 
-    !# <inputParameter>
-    !#   <name>nonAnalyticSolver</name>
-    !#   <defaultValue>var_str('fallThrough')</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>radiusFractionalTruncateMinimum</name>
-    !#   <defaultValue>2.0d0</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>The minimum radius (in units of the virial radius) to begin truncating the density profile.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>radiusFractionalTruncateMaximum</name>
-    !#   <defaultValue>4.0d0</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>The maximum radius (in units of the virial radius) to finish truncating the density profile.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterProfileDMO"   name="darkMatterProfileDMO_"   source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>nonAnalyticSolver</name>
+      <defaultValue>var_str('fallThrough')</defaultValue>
+      <source>parameters</source>
+      <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>radiusFractionalTruncateMinimum</name>
+      <defaultValue>2.0d0</defaultValue>
+      <source>parameters</source>
+      <description>The minimum radius (in units of the virial radius) to begin truncating the density profile.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>radiusFractionalTruncateMaximum</name>
+      <defaultValue>4.0d0</defaultValue>
+      <source>parameters</source>
+      <description>The maximum radius (in units of the virial radius) to finish truncating the density profile.</description>
+    </inputParameter>
+    <objectBuilder class="darkMatterProfileDMO"   name="darkMatterProfileDMO_"   source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !!]
     self=darkMatterProfileDMOTruncated(radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),darkMatterProfileDMO_,darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterProfileDMO_"  />
-    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterProfileDMO_"  />
+    <objectDestructor name="darkMatterHaloScale_"/>
+    !!]
     return
   end function truncatedConstructorParameters
 
   function truncatedConstructorInternal(radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily truncated} dark matter profile class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily truncated} dark matter profile class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterProfileDMOTruncated)                        :: self
@@ -119,7 +137,9 @@ contains
     class           (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
     double precision                               , intent(in   )         :: radiusFractionalTruncateMinimum, radiusFractionalTruncateMaximum
     integer                                        , intent(in   )         :: nonAnalyticSolver
-    !# <constructorAssign variables="radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,nonAnalyticSolver,*darkMatterProfileDMO_,*darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="radiusFractionalTruncateMinimum,radiusFractionalTruncateMaximum,nonAnalyticSolver,*darkMatterProfileDMO_,*darkMatterHaloScale_"/>
+    !!]
 
     ! Validate.
     if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Galacticus_Error_Report('invalid non-analytic solver type'//{introspection:location})
@@ -129,7 +149,9 @@ contains
   end function truncatedConstructorInternal
 
   subroutine truncatedAutoHook(self)
-    !% Attach to the calculation reset event.
+    !!{
+    Attach to the calculation reset event.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(darkMatterProfileDMOTruncated), intent(inout) :: self
@@ -139,19 +161,25 @@ contains
   end subroutine truncatedAutoHook
 
   subroutine truncatedDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily truncated} dark matter halo profile class.
+    !!{
+    Destructor for the {\normalfont \ttfamily truncated} dark matter halo profile class.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(darkMatterProfileDMOTruncated), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
-    !# <objectDestructor name="self%darkMatterHaloScale_" />
+    !![
+    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    <objectDestructor name="self%darkMatterHaloScale_" />
+    !!]
     call calculationResetEvent%detach(self,truncatedCalculationReset)
     return
   end subroutine truncatedDestructor
 
   subroutine truncatedCalculationReset(self,node)
-    !% Reset the dark matter profile calculation.
+    !!{
+    Reset the dark matter profile calculation.
+    !!}
     implicit none
     class(darkMatterProfileDMOTruncated), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
@@ -171,7 +199,9 @@ contains
   end subroutine truncatedCalculationReset
 
   subroutine truncatedTruncationFunction(self,node,radius,x,multiplier,multiplierGradient)
-    !% Return the scaled truncation radial coordinate, and the truncation multiplier.
+    !!{
+    Return the scaled truncation radial coordinate, and the truncation multiplier.
+    !!}
     implicit none
     class           (darkMatterProfileDMOTruncated), intent(inout)           :: self
     type            (treeNode                     ), intent(inout)           :: node
@@ -208,8 +238,10 @@ contains
   end subroutine truncatedTruncationFunction
 
   double precision function truncatedDensity(self,node,radius)
-    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOTruncated), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
@@ -223,8 +255,10 @@ contains
   end function truncatedDensity
 
   double precision function truncatedDensityLogSlope(self,node,radius)
-    !% Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOTruncated), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
@@ -244,8 +278,10 @@ contains
   end function truncatedDensityLogSlope
 
   double precision function truncatedRadiusEnclosingDensity(self,node,density)
-    !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
-    !% {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$).
+    !!{
+    Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
+    {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$).
+    !!}
     implicit none
     class           (darkMatterProfileDMOTruncated), intent(inout), target :: self
     type            (treeNode                     ), intent(inout), target :: node
@@ -260,8 +296,10 @@ contains
   end function truncatedRadiusEnclosingDensity
 
   double precision function truncatedRadiusEnclosingMass(self,node,mass)
-    !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
-    !% {\normalfont \ttfamily mass} (given in units of $M_\odot$).
+    !!{
+    Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
+    {\normalfont \ttfamily mass} (given in units of $M_\odot$).
+    !!}
     implicit none
     class           (darkMatterProfileDMOTruncated), intent(inout), target :: self
     type            (treeNode                     ), intent(inout), target :: node
@@ -283,8 +321,10 @@ contains
   end function truncatedRadiusEnclosingMass
 
   double precision function truncatedRadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
-    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOTruncated), intent(inout)           :: self
     type            (treeNode                     ), intent(inout)           :: node
@@ -300,8 +340,10 @@ contains
   end function truncatedRadialMoment
 
   double precision function truncatedEnclosedMass(self,node,radius)
-    !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
-    !% units of Mpc).
+    !!{
+    Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
+    units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOTruncated), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
@@ -321,8 +363,10 @@ contains
   end function truncatedEnclosedMass
 
   double precision function truncatedPotential(self,node,radius,status)
-    !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
-    !% \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
+    \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOTruncated), intent(inout)           :: self
     type            (treeNode                     ), intent(inout), target   :: node
@@ -338,8 +382,10 @@ contains
   end function truncatedPotential
 
   double precision function truncatedCircularVelocity(self,node,radius)
-    !% Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOTruncated), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
@@ -354,7 +400,9 @@ contains
   end function truncatedCircularVelocity
 
   double precision function truncatedCircularVelocityMaximum(self,node)
-    !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
+    !!{
+    Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class(darkMatterProfileDMOTruncated), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
@@ -368,8 +416,10 @@ contains
   end function truncatedCircularVelocityMaximum
 
   double precision function truncatedRadialVelocityDispersion(self,node,radius)
-    !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOTruncated), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
@@ -404,8 +454,10 @@ contains
   end function truncatedRadialVelocityDispersion
 
   double precision function truncatedRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
-    !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
-    !% in units of km s$^{-1}$ Mpc).
+    !!{
+    Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
+    in units of km s$^{-1}$ Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOTruncated), intent(inout) :: self
     type            (treeNode                     ), intent(inout) :: node
@@ -420,7 +472,9 @@ contains
   end function truncatedRadiusFromSpecificAngularMomentum
 
   double precision function truncatedRotationNormalization(self,node)
-    !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
+    !!{
+    Return the normalization of the rotation velocity vs. specific angular momentum relation.
+    !!}
     implicit none
     class(darkMatterProfileDMOTruncated), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
@@ -434,7 +488,9 @@ contains
   end function truncatedRotationNormalization
 
   double precision function truncatedEnergy(self,node)
-    !% Return the energy of a truncated halo density profile.
+    !!{
+    Return the energy of a truncated halo density profile.
+    !!}
     implicit none
     class(darkMatterProfileDMOTruncated), intent(inout) :: self
     type (treeNode                     ), intent(inout) :: node
@@ -448,7 +504,9 @@ contains
   end function truncatedEnergy
 
   double precision function truncatedEnergyGrowthRate(self,node)
-    !% Return the rate of change of the energy of a truncated halo density profile.
+    !!{
+    Return the rate of change of the energy of a truncated halo density profile.
+    !!}
     implicit none
     class(darkMatterProfileDMOTruncated), intent(inout)         :: self
     type (treeNode                     ), intent(inout), target :: node
@@ -462,8 +520,10 @@ contains
   end function truncatedEnergyGrowthRate
 
   double precision function truncatedKSpace(self,node,waveNumber)
-    !% Returns the Fourier transform of the truncated density profile at the specified {\normalfont \ttfamily waveNumber}
-    !% (given in Mpc$^{-1}$).
+    !!{
+    Returns the Fourier transform of the truncated density profile at the specified {\normalfont \ttfamily waveNumber}
+    (given in Mpc$^{-1}$).
+    !!}
     implicit none
     class           (darkMatterProfileDMOTruncated), intent(inout)         :: self
     type            (treeNode                     ), intent(inout), target :: node
@@ -478,8 +538,10 @@ contains
   end function truncatedKSpace
 
   double precision function truncatedFreefallRadius(self,node,time)
-    !% Returns the freefall radius in the truncated density profile at the specified {\normalfont \ttfamily time} (given in
-    !% Gyr).
+    !!{
+    Returns the freefall radius in the truncated density profile at the specified {\normalfont \ttfamily time} (given in
+    Gyr).
+    !!}
     implicit none
     class           (darkMatterProfileDMOTruncated), intent(inout), target :: self
     type            (treeNode                     ), intent(inout), target :: node
@@ -494,8 +556,10 @@ contains
   end function truncatedFreefallRadius
 
   double precision function truncatedFreefallRadiusIncreaseRate(self,node,time)
-    !% Returns the rate of increase of the freefall radius in the truncated density profile at the specified {\normalfont
-    !% \ttfamily time} (given in Gyr).
+    !!{
+    Returns the rate of increase of the freefall radius in the truncated density profile at the specified {\normalfont
+    \ttfamily time} (given in Gyr).
+    !!}
     implicit none
     class           (darkMatterProfileDMOTruncated), intent(inout), target :: self
     type            (treeNode                     ), intent(inout), target :: node

@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of the surface density at a specific position.
+!!{
+Contains a module which implements calculations of the surface density at a specific position.
+!!}
 
 module Galactic_Structure_Surface_Densities
-  !% Implements calculations of the surface density at a specific position.
+  !!{
+  Implements calculations of the surface density at a specific position.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
@@ -36,8 +40,10 @@ module Galactic_Structure_Surface_Densities
 contains
 
   double precision function Galactic_Structure_Surface_Density(node,position,coordinateSystem,componentType,massType,weightBy,weightIndex)
-    !% Compute the density (of given {\normalfont \ttfamily massType}) at the specified {\normalfont \ttfamily position}. Assumes that galactic structure has already
-    !% been computed.
+    !!{
+    Compute the density (of given {\normalfont \ttfamily massType}) at the specified {\normalfont \ttfamily position}. Assumes that galactic structure has already
+    been computed.
+    !!}
     use :: Coordinate_Systems        , only : Coordinates_Cartesian_To_Cylindrical, Coordinates_Spherical_To_Cylindrical
     use :: Galactic_Structure_Options, only : componentTypeAll                    , coordinateSystemCartesian           , coordinateSystemCylindrical, coordinateSystemSpherical, &
           &                                   massTypeAll                         , weightByMass                        , weightIndexNull
@@ -77,7 +83,9 @@ contains
   end function Galactic_Structure_Surface_Density
 
   double precision function Component_Surface_Density(component)
-    !% Unary function returning the surface density in a component. Suitable for mapping over components.
+    !!{
+    Unary function returning the surface density in a component. Suitable for mapping over components.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponent
     implicit none
     class(nodeComponent), intent(inout) :: component
@@ -87,7 +95,9 @@ contains
   end function Component_Surface_Density
 
   double precision function Galactic_Structure_Radius_Enclosing_Surface_Density(node,surfaceDensity,componentType,massType,weightBy,weightIndex)
-    !% Return the radius enclosing a given mass (or fractional mass) in {\normalfont \ttfamily node}.
+    !!{
+    Return the radius enclosing a given mass (or fractional mass) in {\normalfont \ttfamily node}.
+    !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale      , darkMatterHaloScaleClass
     use :: Kind_Numbers           , only : kind_int8
     use :: Root_Finder            , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
@@ -138,7 +148,9 @@ contains
   end function Galactic_Structure_Radius_Enclosing_Surface_Density
 
   double precision function Surface_Density_Root(radius)
-    !% Root function used in solving for the radius that encloses a given surface density.
+    !!{
+    Root function used in solving for the radius that encloses a given surface density.
+    !!}
     use :: Galactic_Structure_Options, only : coordinateSystemCylindrical
     implicit none
     double precision, intent(in   ) :: radius
@@ -148,7 +160,9 @@ contains
   end function Surface_Density_Root
 
   subroutine Galactic_Structure_Surface_Density_Defaults(componentType,massType,weightBy,weightIndex)
-    !% Set the default values for options in the surface density functions.
+    !!{
+    Set the default values for options in the surface density functions.
+    !!}
     use :: Galactic_Structure_Options, only : componentTypeAll       , massTypeAll, weightByLuminosity, weightByMass
     use :: Galacticus_Error          , only : Galacticus_Error_Report
     implicit none

@@ -17,13 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements sorting sequences.
+!!{
+Contains a module which implements sorting sequences.
+!!}
 
 ! Add dependency on GSL library.
 !; gsl
 
 module Sorting
-  !% Implements sorting.
+  !!{
+  Implements sorting.
+  !!}
   use, intrinsic :: ISO_C_Binding     , only : c_ptr, c_funptr, c_size_t, c_int
   use            :: Kind_Numbers      , only : kind_int8
   use            :: ISO_Varying_String, only : varying_string
@@ -31,32 +35,42 @@ module Sorting
   private
   public :: sortByIndex, sort, sortIndex
 
-  !# <generic identifier="Type">
-  !#  <instance label="integer"  intrinsic="integer"              exemplar="0"          />
-  !#  <instance label="integer8" intrinsic="integer(kind_int8)"   exemplar="0_kind_int8"/>
-  !#  <instance label="double"   intrinsic="double precision"     exemplar="0.0d0"      />
-  !#  <instance label="varstr"   intrinsic="type(varying_string)" exemplar="var_str('')"/>
-  !# </generic>
+  !![
+  <generic identifier="Type">
+   <instance label="integer"  intrinsic="integer"              exemplar="0"          />
+   <instance label="integer8" intrinsic="integer(kind_int8)"   exemplar="0_kind_int8"/>
+   <instance label="double"   intrinsic="double precision"     exemplar="0.0d0"      />
+   <instance label="varstr"   intrinsic="type(varying_string)" exemplar="var_str('')"/>
+  </generic>
+  !!]
 
   interface sort
-     !% Generic interface to in-place sort functions.
+     !!{
+     Generic interface to in-place sort functions.
+     !!}
      module procedure sort{Type¦label}
      module procedure sortBoth{Type¦label}
   end interface sort
     
   interface sortIndex
-     !% Generic interface to sort functions that return the sort index.
+     !!{
+     Generic interface to sort functions that return the sort index.
+     !!}
      module procedure sortIndex{Type¦label}
   end interface sortIndex
     
   interface sortByIndex
-     !% Generic interface to in-place sort functions using a supplied index.
+     !!{
+     Generic interface to in-place sort functions using a supplied index.
+     !!}
      module procedure sortByIndex{Type¦label}
   end interface sortByIndex
 
   interface
      subroutine gsl_heapsort(array,count_,size_,compare) bind(c,name='gsl_heapsort')
-       !% Template for the GSL heapsort function.
+       !!{
+       Template for the GSL heapsort function.
+       !!}
        import
        type   (c_ptr   ), value :: array
        integer(c_size_t), value :: count_ , size_
@@ -64,7 +78,9 @@ module Sorting
      end subroutine gsl_heapsort
 
      function gsl_heapsort_index(order,array,count_,size_,compare) bind(c,name='gsl_heapsort_index')
-       !% Template for the GSL heapsort index function.
+       !!{
+       Template for the GSL heapsort index function.
+       !!}
        import
        integer(c_int   )        :: gsl_heapsort_index
        type   (c_ptr   ), value :: order
@@ -77,7 +93,9 @@ module Sorting
 contains
 
   subroutine sort{Type¦label}(array)
-    !% Given an unsorted {\normalfont \ttfamily array}, sorts it in place.
+    !!{
+    Given an unsorted {\normalfont \ttfamily array}, sorts it in place.
+    !!}
     use                         , intrinsic :: ISO_C_Binding     , only : c_loc  , c_funloc
     {Type¦match¦^(varstr)$¦  use            :: ISO_Varying_String, only : var_str¦}
     implicit none
@@ -88,7 +106,9 @@ contains
   end subroutine sort{Type¦label}
   
   subroutine sortBoth{Type¦label}(array,array2)
-    !% Given an unsorted double precision {\normalfont \ttfamily array}, sorts it in place while also rearranging {\normalfont \ttfamily array2} in the same way.
+    !!{
+    Given an unsorted double precision {\normalfont \ttfamily array}, sorts it in place while also rearranging {\normalfont \ttfamily array2} in the same way.
+    !!}
     implicit none
     {Type¦intrinsic}                , dimension(:                        ), intent(inout) :: array, array2
     integer         (kind=c_size_t ), dimension(size(array,kind=c_size_t))                :: order
@@ -108,7 +128,9 @@ contains
   end subroutine sortBoth{Type¦label}
 
   function sortIndex{Type¦label}(array) result(order)
-    !% Given an unsorted {\normalfont \ttfamily array}, return the sort index.
+    !!{
+    Given an unsorted {\normalfont \ttfamily array}, return the sort index.
+    !!}
     use                         , intrinsic :: ISO_C_Binding     , only : c_loc  , c_funloc
     {Type¦match¦^(varstr)$¦  use            :: ISO_Varying_String, only : var_str¦}
     implicit none
@@ -122,7 +144,9 @@ contains
   end function sortIndex{Type¦label}
 
   subroutine sortByIndex{Type¦label}(array,index)
-    !% Given an {\normalfont \ttfamily array}, sort it in place using the supplied index.
+    !!{
+    Given an {\normalfont \ttfamily array}, sort it in place using the supplied index.
+    !!}
     implicit none
     {Type¦intrinsic}               , dimension(:          ), intent(inout) :: array
     integer         (kind=c_size_t), dimension(:          ), intent(in   ) :: index
@@ -137,7 +161,9 @@ contains
   end subroutine sortByIndex{Type¦label}
 
   function compare{Type¦label}(x,y) bind(c)
-    !% Comparison function for sorting.
+    !!{
+    Comparison function for sorting.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_double, c_f_pointer, c_int, c_ptr
     {Type¦match¦^(varstr)$¦use ISO_Varying_String, only : operator(<), operator(>)¦}    
     integer(kind=c_int   )          :: compare{Type¦label}

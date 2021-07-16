@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements a very simple disk component.
+!!{
+Contains a module that implements a very simple disk component.
+!!}
 
 module Node_Component_Disk_Very_Simple
-  !% Implements a very simple disk component.
+  !!{
+  Implements a very simple disk component.
+  !!}
   use :: Cosmology_Functions             , only : cosmologyFunctionsClass
   use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOClass
@@ -37,65 +41,67 @@ module Node_Component_Disk_Very_Simple
        &    Node_Component_Disk_Very_Simple_Rates       , Node_Component_Disk_Very_Simple_Analytic_Solver    , &
        &    Node_Component_Disk_Very_Simple_Post_Step   , Node_Component_Disk_Very_Simple_Thread_Initialize
 
-  !# <component>
-  !#  <class>disk</class>
-  !#  <name>verySimple</name>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>isInitialized</name>
-  !#     <type>logical</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#   <property>
-  !#     <name>massStellar</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <output unitsInSI="massSolar" comment="Mass of stars in the very simple disk."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>abundancesStellar</name>
-  !#     <type>abundances</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the standard disk."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>massGas</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
-  !#     <output unitsInSI="massSolar" comment="Mass of gas in the very simple disk."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>abundancesGas</name>
-  !#     <type>abundances</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
-  !#     <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the standard disk."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>stellarPropertiesHistory</name>
-  !#     <type>history</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#   </property>
-  !#   <property>
-  !#     <name>luminositiesStellar</name>
-  !#     <type>stellarLuminosities</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <output unitsInSI="luminosityZeroPointAB" comment="Luminosity of disk stars."/>
-  !#   </property>
-  !#  </properties>
-  !#  <bindings>
-  !#   <binding method="attachPipe"     function="Node_Component_Disk_Very_Simple_Attach_Pipe" description="Attach pipes to the very simple disk component." bindsTo="component" returnType="\void" arguments="" />
-  !#   <binding method="enclosedMass"   function="Node_Component_Disk_Very_Simple_Enclosed_Mass"   bindsTo="component" />
-  !#  </bindings>
-  !#  <functions>objects.nodes.components.disk.very_simple.bound_functions.inc</functions>
-  !# </component>
+  !![
+  <component>
+   <class>disk</class>
+   <name>verySimple</name>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>isInitialized</name>
+      <type>logical</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+    <property>
+      <name>massStellar</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <output unitsInSI="massSolar" comment="Mass of stars in the very simple disk."/>
+    </property>
+    <property>
+      <name>abundancesStellar</name>
+      <type>abundances</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <output unitsInSI="massSolar" comment="Mass of metals in the stellar phase of the standard disk."/>
+    </property>
+    <property>
+      <name>massGas</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
+      <output unitsInSI="massSolar" comment="Mass of gas in the very simple disk."/>
+    </property>
+    <property>
+      <name>abundancesGas</name>
+      <type>abundances</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" createIfNeeded="true" makeGeneric="true" />
+      <output unitsInSI="massSolar" comment="Mass of metals in the gas phase of the standard disk."/>
+    </property>
+    <property>
+      <name>stellarPropertiesHistory</name>
+      <type>history</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+    </property>
+    <property>
+      <name>luminositiesStellar</name>
+      <type>stellarLuminosities</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <output unitsInSI="luminosityZeroPointAB" comment="Luminosity of disk stars."/>
+    </property>
+   </properties>
+   <bindings>
+    <binding method="attachPipe"     function="Node_Component_Disk_Very_Simple_Attach_Pipe" description="Attach pipes to the very simple disk component." bindsTo="component" returnType="\void" arguments="" />
+    <binding method="enclosedMass"   function="Node_Component_Disk_Very_Simple_Enclosed_Mass"   bindsTo="component" />
+   </bindings>
+   <functions>objects.nodes.components.disk.very_simple.bound_functions.inc</functions>
+  </component>
+  !!]
 
   ! Objects used by this component.
   class(cosmologyFunctionsClass         ), pointer :: cosmologyFunctions_
@@ -118,11 +124,15 @@ module Node_Component_Disk_Very_Simple
 
 contains
 
-  !# <nodeComponentInitializationTask>
-  !#  <unitName>Node_Component_Disk_Very_Simple_Initialize</unitName>
-  !# </nodeComponentInitializationTask>
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>Node_Component_Disk_Very_Simple_Initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
   subroutine Node_Component_Disk_Very_Simple_Initialize(parameters_)
-    !% Initializes the tree node very simple disk component module.
+    !!{
+    Initializes the tree node very simple disk component module.
+    !!}
     use :: Galacticus_Nodes, only : defaultDiskComponent, nodeComponentDiskVerySimple
     use :: Input_Parameters, only : inputParameter      , inputParameters
     implicit none
@@ -132,53 +142,59 @@ contains
     ! Initialize the module if necessary.
     if (defaultDiskComponent%verySimpleIsActive()) then
        ! Read parameters controlling the physical implementation.
-       !# <inputParameter>
-       !#   <name>diskVerySimpleMassScaleAbsolute</name>
-       !#   <defaultValue>100.0d0</defaultValue>
-       !#   <description>The absolute mass scale below which calculations in the very simple disk component are allowed to become inaccurate.</description>
-       !#   <source>parameters_</source>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>diskVerySimpleTrackAbundances</name>
-       !#   <defaultValue>.false.</defaultValue>
-       !#   <description>Specifies whether or not to track abundances in the very simple disk component.</description>
-       !#   <source>parameters_</source>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>diskVerySimpleTrackLuminosities</name>
-       !#   <defaultValue>.false.</defaultValue>
-       !#   <description>Specifies whether or not to track stellar luminosities in the very simple disk component.</description>
-       !#   <source>parameters_</source>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>diskVerySimpleUseAnalyticSolver</name>
-       !#   <defaultValue>.false.</defaultValue>
-       !#   <description>If true, employ an analytic ODE solver when evolving satellites.</description>
-       !#   <source>parameters_</source>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>diskVerySimpleAnalyticSolverPruneMassGas</name>
-       !#   <defaultValue>0.0d0</defaultValue>
-       !#   <description>Gas mass below which the analytic solver will prune a galaxy.</description>
-       !#   <source>parameters_</source>
-       !# </inputParameter>
-       !# <inputParameter>
-       !#   <name>diskVerySimpleAnalyticSolverPruneMassStars</name>
-       !#   <defaultValue>0.0d0</defaultValue>
-       !#   <description>Stellar mass below which the analytic solver will prune a galaxy.</description>
-       !#   <source>parameters_</source>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>diskVerySimpleMassScaleAbsolute</name>
+         <defaultValue>100.0d0</defaultValue>
+         <description>The absolute mass scale below which calculations in the very simple disk component are allowed to become inaccurate.</description>
+         <source>parameters_</source>
+       </inputParameter>
+       <inputParameter>
+         <name>diskVerySimpleTrackAbundances</name>
+         <defaultValue>.false.</defaultValue>
+         <description>Specifies whether or not to track abundances in the very simple disk component.</description>
+         <source>parameters_</source>
+       </inputParameter>
+       <inputParameter>
+         <name>diskVerySimpleTrackLuminosities</name>
+         <defaultValue>.false.</defaultValue>
+         <description>Specifies whether or not to track stellar luminosities in the very simple disk component.</description>
+         <source>parameters_</source>
+       </inputParameter>
+       <inputParameter>
+         <name>diskVerySimpleUseAnalyticSolver</name>
+         <defaultValue>.false.</defaultValue>
+         <description>If true, employ an analytic ODE solver when evolving satellites.</description>
+         <source>parameters_</source>
+       </inputParameter>
+       <inputParameter>
+         <name>diskVerySimpleAnalyticSolverPruneMassGas</name>
+         <defaultValue>0.0d0</defaultValue>
+         <description>Gas mass below which the analytic solver will prune a galaxy.</description>
+         <source>parameters_</source>
+       </inputParameter>
+       <inputParameter>
+         <name>diskVerySimpleAnalyticSolverPruneMassStars</name>
+         <defaultValue>0.0d0</defaultValue>
+         <description>Stellar mass below which the analytic solver will prune a galaxy.</description>
+         <source>parameters_</source>
+       </inputParameter>
+       !!]
        ! Attach the cooling mass pipe from the hot halo component.
        call diskVerySimpleComponent%attachPipe()
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Initialize
 
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Disk_Very_Simple_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Disk_Very_Simple_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Disk_Very_Simple_Thread_Initialize(parameters_)
-    !% Initializes the tree node very simple disk profile module.
+    !!{
+    Initializes the tree node very simple disk profile module.
+    !!}
     use :: Events_Hooks    , only : dependencyDirectionAfter, dependencyRegEx, openMPThreadBindingAtLevel, postEvolveEvent, &
           &                         satelliteMergerEvent
     use :: Galacticus_Nodes, only : defaultDiskComponent
@@ -191,13 +207,15 @@ contains
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call satelliteMergerEvent%attach(defaultDiskComponent,satelliteMerger,openMPThreadBindingAtLevel,label='nodeComponentDiskVerySimple',dependencies=dependencies)
        call postEvolveEvent     %attach(defaultDiskComponent,postEvolve     ,openMPThreadBindingAtLevel,label='nodeComponentDiskVerySimple'                          )
-       !# <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters_"/>
-       !# <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters_"/>
-       !# <objectBuilder class="darkMatterHaloScale"         name="darkMatterHaloScale_"         source="parameters_"/>
-       !# <objectBuilder class="darkMatterProfileDMO"        name="darkMatterProfileDMO_"        source="parameters_"/>
-       !# <objectBuilder class="stellarFeedbackOutflows"     name="stellarFeedbackOutflows_"     source="parameters_"/>
-       !# <objectBuilder class="starFormationRateDisks"      name="starFormationRateDisks_"      source="parameters_"/>
-       !# <objectBuilder class="mergerMassMovements"         name="mergerMassMovements_"         source="parameters_"/>
+       !![
+       <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters_"/>
+       <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters_"/>
+       <objectBuilder class="darkMatterHaloScale"         name="darkMatterHaloScale_"         source="parameters_"/>
+       <objectBuilder class="darkMatterProfileDMO"        name="darkMatterProfileDMO_"        source="parameters_"/>
+       <objectBuilder class="stellarFeedbackOutflows"     name="stellarFeedbackOutflows_"     source="parameters_"/>
+       <objectBuilder class="starFormationRateDisks"      name="starFormationRateDisks_"      source="parameters_"/>
+       <objectBuilder class="mergerMassMovements"         name="mergerMassMovements_"         source="parameters_"/>
+       !!]
        ! If using the analytic solver, find the time at the present day.
        !$omp critical (Node_Component_Disk_Very_Simple_Thread_Initialize)
        if (diskVerySimpleUseAnalyticSolver.and.timePresentDay < 0.0d0) timePresentDay=cosmologyFunctions_%cosmicTime(1.0d0)
@@ -206,34 +224,44 @@ contains
     return
   end subroutine Node_Component_Disk_Very_Simple_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Disk_Very_Simple_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Disk_Very_Simple_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Disk_Very_Simple_Thread_Uninitialize()
-    !% Uninitializes the tree node very simple disk profile module.
+    !!{
+    Uninitializes the tree node very simple disk profile module.
+    !!}
     use :: Events_Hooks    , only : postEvolveEvent     , satelliteMergerEvent
     use :: Galacticus_Nodes, only : defaultDiskComponent
     implicit none
     
     if (defaultDiskComponent%verySimpleIsActive()) then
-       !# <objectDestructor name="cosmologyFunctions_"         />
-       !# <objectDestructor name="stellarPopulationProperties_"/>
-       !# <objectDestructor name="darkMatterHaloScale_"        />
-       !# <objectDestructor name="darkMatterProfileDMO_"       />
-       !# <objectDestructor name="stellarFeedbackOutflows_"    />
-       !# <objectDestructor name="starFormationRateDisks_"     />
-       !# <objectDestructor name="mergerMassMovements_"        />
+       !![
+       <objectDestructor name="cosmologyFunctions_"         />
+       <objectDestructor name="stellarPopulationProperties_"/>
+       <objectDestructor name="darkMatterHaloScale_"        />
+       <objectDestructor name="darkMatterProfileDMO_"       />
+       <objectDestructor name="stellarFeedbackOutflows_"    />
+       <objectDestructor name="starFormationRateDisks_"     />
+       <objectDestructor name="mergerMassMovements_"        />
+       !!]
        call satelliteMergerEvent%detach(defaultDiskComponent,satelliteMerger)
        call postEvolveEvent     %detach(defaultDiskComponent,postEvolve     )
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Thread_Uninitialize
 
-  !# <preEvolveTask>
-  !# <unitName>Node_Component_Disk_Very_Simple_Pre_Evolve</unitName>
-  !# </preEvolveTask>
+  !![
+  <preEvolveTask>
+  <unitName>Node_Component_Disk_Very_Simple_Pre_Evolve</unitName>
+  </preEvolveTask>
+  !!]
   subroutine Node_Component_Disk_Very_Simple_Pre_Evolve(node)
-    !% Ensure the disk has been initialized.
+    !!{
+    Ensure the disk has been initialized.
+    !!}
     use :: Galacticus_Nodes, only : defaultDiskComponent, nodeComponentDisk, nodeComponentDiskVerySimple, treeNode
     implicit none
     type (treeNode         ), intent(inout), pointer :: node
@@ -253,7 +281,9 @@ contains
   end subroutine Node_Component_Disk_Very_Simple_Pre_Evolve
 
   subroutine postEvolve(self,node)
-    !% Catch rounding errors in the very simple disk gas evolution.
+    !!{
+    Catch rounding errors in the very simple disk gas evolution.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDisk, nodeComponentDiskVerySimple, treeNode
     use :: Histories       , only : history
     implicit none
@@ -278,11 +308,15 @@ contains
     return
   end subroutine postEvolve
 
-  !# <postStepTask>
-  !# <unitName>Node_Component_Disk_Very_Simple_Post_Step</unitName>
-  !# </postStepTask>
+  !![
+  <postStepTask>
+  <unitName>Node_Component_Disk_Very_Simple_Post_Step</unitName>
+  </postStepTask>
+  !!]
   subroutine Node_Component_Disk_Very_Simple_Post_Step(node,status)
-    !% Catch rounding errors in the very simple disk gas evolution.
+    !!{
+    Catch rounding errors in the very simple disk gas evolution.
+    !!}
     use :: Abundances_Structure          , only : abs                 , zeroAbundances
     use :: Display                       , only : displayMessage      , verbosityLevelWarn
     use :: Galacticus_Nodes              , only : defaultDiskComponent, nodeComponentDisk      , nodeComponentDiskVerySimple, treeNode
@@ -357,7 +391,9 @@ contains
   end subroutine Node_Component_Disk_Very_Simple_Post_Step
 
   subroutine Node_Component_Disk_Very_Simple_Create(node)
-    !% Create properties in a very simple disk component.
+    !!{
+    Create properties in a very simple disk component.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDisk, treeNode
     use :: Histories       , only : history
     implicit none
@@ -385,9 +421,11 @@ contains
     return
   end subroutine Node_Component_Disk_Very_Simple_Create
 
-  !# <analyticSolverTask>
-  !#  <unitName>Node_Component_Disk_Very_Simple_Analytic_Solver</unitName>
-  !# </analyticSolverTask>
+  !![
+  <analyticSolverTask>
+   <unitName>Node_Component_Disk_Very_Simple_Analytic_Solver</unitName>
+  </analyticSolverTask>
+  !!]
   subroutine Node_Component_Disk_Very_Simple_Analytic_Solver(node,timeStart,timeEnd,solved)
     use :: Abundances_Structure          , only : abundances             , max                , operator(*)
     use :: Galacticus_Error              , only : Galacticus_Error_Report
@@ -602,7 +640,9 @@ contains
   end subroutine Node_Component_Disk_Very_Simple_Analytic_Solver
 
   subroutine Node_Component_Disk_Very_Simple_Rates(node,fuelMassRate,fuelAbundancesRate,stellarMassRate,stellarAbundancesRate,massOutflowRate,stellarHistoryRate,luminositiesStellarRates)
-    !% Compute rates.
+    !!{
+    Compute rates.
+    !!}
     use :: Abundances_Structure          , only : abundances         , zeroAbundances
     use :: Galacticus_Nodes              , only : nodeComponentDisk  , nodeComponentDiskVerySimple, treeNode
     use :: Histories                     , only : history
@@ -648,11 +688,15 @@ contains
     return
   end subroutine Node_Component_Disk_Very_Simple_Rates
 
-  !# <scaleSetTask>
-  !#  <unitName>Node_Component_Disk_Very_Simple_Scale_Set</unitName>
-  !# </scaleSetTask>
+  !![
+  <scaleSetTask>
+   <unitName>Node_Component_Disk_Very_Simple_Scale_Set</unitName>
+  </scaleSetTask>
+  !!]
   subroutine Node_Component_Disk_Very_Simple_Scale_Set(node)
-    !% Set scales for properties of {\normalfont \ttfamily node}.
+    !!{
+    Set scales for properties of {\normalfont \ttfamily node}.
+    !!}
     use :: Abundances_Structure          , only : abs                 , abundances       , max                        , unitAbundances         , &
           &                                       zeroAbundances
     use :: Galacticus_Nodes              , only : defaultDiskComponent, nodeComponentDisk, nodeComponentDiskVerySimple, treeNode
@@ -700,7 +744,9 @@ contains
   end subroutine Node_Component_Disk_Very_Simple_Scale_Set
 
   subroutine satelliteMerger(self,node)
-    !% Transfer any very simple disk associated with {\normalfont \ttfamily node} to its host halo.
+    !!{
+    Transfer any very simple disk associated with {\normalfont \ttfamily node} to its host halo.
+    !!}
     use :: Abundances_Structure            , only : zeroAbundances
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                , only : nodeComponentDisk      , nodeComponentDiskVerySimple, nodeComponentSpheroid, treeNode

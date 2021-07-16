@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which displays a banner for \glc.
+!!{
+Contains a module which displays a banner for \glc.
+!!}
 
 module Galacticus_Banner
-  !% Displays a banner for \glc.
+  !!{
+  Displays a banner for \glc.
+  !!}
   implicit none
   private
   public :: Galacticus_Banner_Show
@@ -28,7 +32,9 @@ module Galacticus_Banner
 contains
 
   subroutine Galacticus_Banner_Show
-    !% Displays the \glc\ banner.
+    !!{
+    Displays the \glc\ banner.
+    !!}
     use :: Display      , only : displayVerbosity, verbosityLevelSilent
 #ifdef USEMPI
     use :: MPI_Utilities, only : mpiSelf

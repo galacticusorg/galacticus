@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which computes mass functions.
+!!{
+Contains a module which implements an N-body data operator which computes mass functions.
+!!}
 
   use            :: Cosmology_Parameters, only : cosmologyParametersClass
   use, intrinsic :: ISO_C_Binding       , only : c_size_t
 
-  !# <nbodyOperator name="nbodyOperatorMassFunction">
-  !#  <description>An N-body data operator which computes mass functions.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorMassFunction">
+   <description>An N-body data operator which computes mass functions.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorMassFunction
-     !% An N-body data operator which computes mass functions.
+     !!{
+     An N-body data operator which computes mass functions.
+     !!}
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      double precision                                    :: massMinimum                   , massMaximum
@@ -39,7 +45,9 @@
   end type nbodyOperatorMassFunction
 
   interface nbodyOperatorMassFunction
-     !% Constructors for the ``massFunction'' N-body operator class.
+     !!{
+     Constructors for the ``massFunction'' N-body operator class.
+     !!}
      module procedure massFunctionConstructorParameters
      module procedure massFunctionConstructorInternal
   end interface nbodyOperatorMassFunction
@@ -47,7 +55,9 @@
 contains
 
   function massFunctionConstructorParameters(parameters) result (self)
-    !% Constructor for the ``massFunction'' N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``massFunction'' N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyOperatorMassFunction)                :: self
@@ -58,45 +68,51 @@ contains
     type            (varying_string           )                :: simulationReference , simulationURL, &
          &                                                        description
 
-    !# <inputParameter>
-    !#   <name>massMinimum</name>
-    !#   <source>parameters</source>
-    !#   <description>The minimum mass to consider counts.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMaximum</name>
-    !#   <source>parameters</source>
-    !#   <description>The maximum mass to consider.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massCountPerDecade</name>
-    !#   <source>parameters</source>
-    !#   <description>The number of bins per decade of mass.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>description</name>
-    !#   <source>parameters</source>
-    !#   <description>A description of this mass function.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>simulationReference</name>
-    !#   <source>parameters</source>
-    !#   <description>A reference for the simulation.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>simulationURL</name>
-    !#   <source>parameters</source>
-    !#   <description>A URL for the simulation.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>massMinimum</name>
+      <source>parameters</source>
+      <description>The minimum mass to consider counts.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massMaximum</name>
+      <source>parameters</source>
+      <description>The maximum mass to consider.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massCountPerDecade</name>
+      <source>parameters</source>
+      <description>The number of bins per decade of mass.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>description</name>
+      <source>parameters</source>
+      <description>A description of this mass function.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>simulationReference</name>
+      <source>parameters</source>
+      <description>A reference for the simulation.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>simulationURL</name>
+      <source>parameters</source>
+      <description>A URL for the simulation.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !!]
     self=nbodyOperatorMassFunction(massMinimum,massMaximum,massCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    !!]
     return
   end function massFunctionConstructorParameters
 
   function massFunctionConstructorInternal(massMinimum,massMaximum,massCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
-    !% Internal constructor for the ``massFunction'' N-body operator class.
+    !!{
+    Internal constructor for the ``massFunction'' N-body operator class.
+    !!}
     implicit none
     type            (nbodyOperatorMassFunction)                        :: self
     double precision                           , intent(in   )         :: massMinimum         , massMaximum
@@ -104,22 +120,30 @@ contains
     type            (varying_string           ), intent(in   )         :: simulationReference , simulationURL, &
 &                                                                         description
     class           (cosmologyParametersClass ), intent(in   ), target :: cosmologyParameters_
-    !# <constructorAssign variables="massMinimum, massMaximum, massCountPerDecade, description, simulationReference, simulationURL, *cosmologyParameters_"/>
+    !![
+    <constructorAssign variables="massMinimum, massMaximum, massCountPerDecade, description, simulationReference, simulationURL, *cosmologyParameters_"/>
+    !!]
 
     return
   end function massFunctionConstructorInternal
   
   subroutine massFunctionDestructor(self)
-    !% Destructor for the ``massFunction'' N-body operator class.
+    !!{
+    Destructor for the ``massFunction'' N-body operator class.
+    !!}
     implicit none
     type(nbodyOperatorMassFunction), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    !!]
     return
   end subroutine massFunctionDestructor
 
   subroutine massFunctionOperate(self,simulations)
-    !% Compute mass functions of particles.
+    !!{
+    Compute mass functions of particles.
+    !!}
     use    :: Dates_and_Times   , only : Formatted_Date_and_Time
     use    :: Display           , only : displayCounter         , displayCounterClear   , displayIndent, displayMessage, &
           &                              displayUnindent        , verbosityLevelStandard

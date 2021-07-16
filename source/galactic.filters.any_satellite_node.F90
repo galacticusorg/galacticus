@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements a galactic filter which applies another filter to satellite nodes of the given node and returns true if \emph{any}
-!% satellite node passes.
+!!{
+Implements a galactic filter which applies another filter to satellite nodes of the given node and returns true if \emph{any}
+satellite node passes.
+!!}
   
-  !# <galacticFilter name="galacticFilterAnySatelliteNode">
-  !#  <description>
-  !#   Applies a filter to satellite nodes of the given node and returns true if \emph{any} satellite node passes.
-  !#  </description>
-  !# </galacticFilter>
+  !![
+  <galacticFilter name="galacticFilterAnySatelliteNode">
+   <description>
+    Applies a filter to satellite nodes of the given node and returns true if \emph{any} satellite node passes.
+   </description>
+  </galacticFilter>
+  !!]
   type, extends(galacticFilterClass) :: galacticFilterAnySatelliteNode
-     !% A galactic filter which applies another filter to satellite nodes of the given node and returns true if \emph{any}
-     !% satellite node passes.
+     !!{
+     A galactic filter which applies another filter to satellite nodes of the given node and returns true if \emph{any}
+     satellite node passes.
+     !!}
      private
      class(galacticFilterClass), pointer :: galacticFilter_
    contains
@@ -36,7 +42,9 @@
   end type galacticFilterAnySatelliteNode
 
   interface galacticFilterAnySatelliteNode
-     !% Constructors for the ``anySatelliteNode'' galactic filter class.
+     !!{
+     Constructors for the ``anySatelliteNode'' galactic filter class.
+     !!}
      module procedure anySatelliteNodeConstructorParameters
      module procedure anySatelliteNodeConstructorInternal
   end interface galacticFilterAnySatelliteNode
@@ -44,41 +52,57 @@
 contains
 
   function anySatelliteNodeConstructorParameters(parameters) result(self)
-    !% Constructor for the ``anySatelliteNode'' galactic filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``anySatelliteNode'' galactic filter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (galacticFilterAnySatelliteNode)                :: self
     type (inputParameters               ), intent(inout) :: parameters
     class(galacticFilterClass           ), pointer       :: galacticFilter_
          
-    !# <objectBuilder class="galacticFilter" name="galacticFilter_" source="parameters"/>
+    !![
+    <objectBuilder class="galacticFilter" name="galacticFilter_" source="parameters"/>
+    !!]
     self=galacticFilterAnySatelliteNode(galacticFilter_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="galacticFilter_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticFilter_"/>
+    !!]
     return
   end function anySatelliteNodeConstructorParameters
   
   function anySatelliteNodeConstructorInternal(galacticFilter_) result(self)
-    !% Internal constructor for the ``anySatelliteNode'' galactic filter class.
+    !!{
+    Internal constructor for the ``anySatelliteNode'' galactic filter class.
+    !!}
     implicit none
     type (galacticFilterAnySatelliteNode)                        :: self
     class(galacticFilterClass           ), intent(in   ), target :: galacticFilter_
-    !# <constructorAssign variables="*galacticFilter_"/>
+    !![
+    <constructorAssign variables="*galacticFilter_"/>
+    !!]
 
     return
   end function anySatelliteNodeConstructorInternal
   
   subroutine anySatelliteNodeDestructor(self)
-    !% Destructor for  the ``anySatelliteNode'' galactic filter class.
+    !!{
+    Destructor for  the ``anySatelliteNode'' galactic filter class.
+    !!}
     implicit none
     type(galacticFilterAnySatelliteNode), intent(inout) :: self
 
-    !# <objectDestructor name="self%galacticFilter_"/>
+    !![
+    <objectDestructor name="self%galacticFilter_"/>
+    !!]
     return
   end subroutine anySatelliteNodeDestructor
   
   logical function anySatelliteNodePasses(self,node)
-    !% Implement a filter on satellite node properties which passes if any satellite is passed.
+    !!{
+    Implement a filter on satellite node properties which passes if any satellite is passed.
+    !!}
     implicit none
     class(galacticFilterAnySatelliteNode), intent(inout)         :: self
     type (treeNode                      ), intent(inout), target :: node

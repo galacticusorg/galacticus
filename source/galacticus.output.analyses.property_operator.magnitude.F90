@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an output analysis property operator class which converts luminosity to absolute magnitude.
+!!{
+Contains a module which implements an output analysis property operator class which converts luminosity to absolute magnitude.
+!!}
 
-  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorMagnitude">
-  !#  <description>An output analysis property operator class.</description>
-  !# </outputAnalysisPropertyOperator>
+  !![
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorMagnitude">
+   <description>An output analysis property operator class.</description>
+  </outputAnalysisPropertyOperator>
+  !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorMagnitude
-     !% An magnitude output property operator class.
+     !!{
+     An magnitude output property operator class.
+     !!}
      private
    contains
      procedure :: operate => magnitudeOperate
   end type outputAnalysisPropertyOperatorMagnitude
 
   interface outputAnalysisPropertyOperatorMagnitude
-     !% Constructors for the ``magnitude'' output analysis class.
+     !!{
+     Constructors for the ``magnitude'' output analysis class.
+     !!}
      module procedure magnitudeConstructorParameters
   end interface outputAnalysisPropertyOperatorMagnitude
 
 contains
 
   function magnitudeConstructorParameters(parameters)
-    !% Constructor for the ``magnitude'' output analysis property operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``magnitude'' output analysis property operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisPropertyOperatorMagnitude)                :: magnitudeConstructorParameters
@@ -49,7 +59,9 @@ contains
   end function magnitudeConstructorParameters
 
   double precision function magnitudeOperate(self,propertyValue,node,propertyType,outputIndex)
-    !% Implement an magnitude output analysis property operator.
+    !!{
+    Implement an magnitude output analysis property operator.
+    !!}
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
     use            :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear, outputAnalysisPropertyTypeMagnitude, outputAnalysisPropertyTypeUnknown
     implicit none

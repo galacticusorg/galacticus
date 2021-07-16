@@ -17,13 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements dilogarithms.
+!!{
+Contains a module which implements dilogarithms.
+!!}
 
 ! Add dependency on GSL library.
 !; gsl
 
 module Dilogarithms
-  !% Implements dilogarithms.
+  !!{
+  Implements dilogarithms.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_double
   implicit none
   private
@@ -31,7 +35,9 @@ module Dilogarithms
 
   interface
      function gsl_sf_dilog(x) bind(c,name='gsl_sf_dilog')
-       !% Template for the GSL dilogarithm function.
+       !!{
+       Template for the GSL dilogarithm function.
+       !!}
        import c_double
        real(c_double)        :: gsl_sf_dilog
        real(c_double), value :: x
@@ -41,7 +47,9 @@ module Dilogarithms
 contains
 
   double precision function Dilogarithm(x)
-    !% Evaluate the $\hbox{Si}(x)\equiv\int_0^x \d t \sin(t)/t$ sine integral.
+    !!{
+    Evaluate the $\hbox{Si}(x)\equiv\int_0^x \d t \sin(t)/t$ sine integral.
+    !!}
     implicit none
     double precision, intent(in   ) :: x
 

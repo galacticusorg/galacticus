@@ -11,6 +11,7 @@ use Digest::MD5 qw(md5_base64);
 use Fortran::Utils;
 use List::ExtraUtils;
 use List::Uniq ':all';
+use Fcntl ':flock';
 
 # Insert hooks for our functions.
 $Galacticus::Build::SourceTree::Hooks::processHooks{'sourceDigests'} = \&Process_SourceDigests;
@@ -97,6 +98,8 @@ sub Find_Hash {
 	    if ( -e $dependencyFileName ) {
 		print "  => Processing dependencies\n"
 		    if ( $options{'report'} );
+		open(my $md5Lock,">".$hashFileName.".lock");
+		flock($md5Lock,LOCK_EX) or die "Could not lock '".$hashFileName.".lock' - $!";
 		my $useStoredCompositeHash = -e $hashFileName;
 		if ( $useStoredCompositeHash ) {
 		    open(my $dependencyFile,$dependencyFileName);
@@ -140,7 +143,7 @@ sub Find_Hash {
 		    if ( $useStoredCompositeHash ) {
 			$compositeDigests{$fileName} = $compositeDigest;
 			$hasher->add($compositeDigests{$fileName});
-			print "   => Reading stored composite hash: ".$compositeDigests{$fileName}."\n"
+			print "   => Reading stored composite hash:\t".$fileName."\t".$hashFileName."\t".$compositeDigests{$fileName}."\n"
 			    if ( $options{'report'} );
 		    }
 		}
@@ -159,6 +162,8 @@ sub Find_Hash {
 				    (my $md5FileName = $sourceFileName) =~ s/^source//;
 				    $md5FileName = $ENV{'BUILDPATH'}.$md5FileName.".md5";
 				    my $useStoredHash = 0;
+				    open(my $md5Lock,">".$md5FileName.".lock");
+				    flock($md5Lock,LOCK_EX) or die "Could not lock '".$md5FileName.".lock' - $!";
 				    if ( -e $md5FileName && &modificationTime($md5FileName) > &modificationTime($sourceFileName) ) {
 					$useStoredHash = 1;
 					if ( $suffix eq "F90" || $suffix eq "Inc" ) {
@@ -219,6 +224,7 @@ sub Find_Hash {
 					print "   => Stored hash: ".$digests{$sourceFileName}."\n"
 					    if ( $options{'report'} );
 				    }
+				    close($md5Lock);
 				}
 				if ( exists($digests{$sourceFileName}) ) {
 				    $compositeHasher->add($digests{$sourceFileName});
@@ -229,16 +235,17 @@ sub Find_Hash {
 			}
 		    }
 		    close($dependencyFile);
+		    $compositeDigests{$fileName} = $compositeHasher->b64digest();
+		    $hasher->add($compositeDigests{$fileName});
+		    open(my $md5File,">".$hashFileName);
+		    print $md5File $compositeDigests{$fileName};
+		    close($md5File);
+		    &updateModificationTime($fileName);
+		    print "   => Composite hash stored\t".$fileName."\t".$hashFileName."\t".$compositeDigests{$fileName}."\n"
+			if ( $options{'report'} );
 		}
+		close($md5Lock);
 	    }
-	    $compositeDigests{$fileName} = $compositeHasher->b64digest();
-	    $hasher->add($compositeDigests{$fileName});
-	    open(my $md5File,">".$hashFileName);
-	    print $md5File $compositeDigests{$fileName};
-	    close($md5File);
-	    &updateModificationTime($fileName);
-	    print "   => Composite hash stored ".$compositeDigests{$fileName}."\n"
-		if ( $options{'report'} );
 	}
     }
     my $hash = $hasher->b64digest();
@@ -249,8 +256,8 @@ sub Find_Hash {
 
 sub Hash_Data_Files {
     # Run a supplied list of files through a supplied MD5 hash object.
-    my $hasher   = shift;
-    my @files = @_;
+    my $hasher = shift();
+    my @files  = @_     ;
     foreach ( @files ) {
     	# Run each data file through the MD5 hash.
     	my $dataFileName = $ENV{'GALACTICUS_DATA_PATH'}."/".$_;

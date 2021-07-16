@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a galactic filter which removes recently-formed halos.
+!!{
+Contains a module which implements a galactic filter which removes recently-formed halos.
+!!}
 
-  !# <galacticFilter name="galacticFilterFormationTime">
-  !#  <description>
-  !#  A filter which removes recently-formed halos. Halos with a formation time greater than the current time minus $\Delta
-  !#  t=${\normalfont \ttfamily [timeRecent]} are removed.
-  !#  </description>
-  !# </galacticFilter>
+  !![
+  <galacticFilter name="galacticFilterFormationTime">
+   <description>
+   A filter which removes recently-formed halos. Halos with a formation time greater than the current time minus $\Delta
+   t=${\normalfont \ttfamily [timeRecent]} are removed.
+   </description>
+  </galacticFilter>
+  !!]
   type, extends(galacticFilterClass) :: galacticFilterFormationTime
-     !% A galactic filter which implements a galactic filter which removes recently-formed halos.
+     !!{
+     A galactic filter which implements a galactic filter which removes recently-formed halos.
+     !!}
      private
      double precision :: timeRecent
    contains
@@ -34,7 +40,9 @@
   end type galacticFilterFormationTime
 
   interface galacticFilterFormationTime
-     !% Constructors for the ``formationTime'' galactic filter class.
+     !!{
+     Constructors for the ``formationTime'' galactic filter class.
+     !!}
      module procedure formationTimeConstructorParameters
      module procedure formationTimeConstructorInternal
   end interface galacticFilterFormationTime
@@ -42,7 +50,9 @@
 contains
 
   function formationTimeConstructorParameters(parameters) result(self)
-    !% Constructor for the ``formationTime'' galactic filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``formationTime'' galactic filter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (galacticFilterFormationTime)                :: self
@@ -50,29 +60,39 @@ contains
     double precision                                             :: timeRecent
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>timeRecent</name>
-    !#   <source>parameters</source>
-    !#   <variable>timeRecent</variable>
-    !#   <description>The parameter $\Delta t$ (in units of Gyr) appearing in the formation time galactic filter class.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>timeRecent</name>
+      <source>parameters</source>
+      <variable>timeRecent</variable>
+      <description>The parameter $\Delta t$ (in units of Gyr) appearing in the formation time galactic filter class.</description>
+    </inputParameter>
+    !!]
     self=galacticFilterFormationTime(timeRecent)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function formationTimeConstructorParameters
 
   function formationTimeConstructorInternal(timeRecent) result(self)
-    !% Internal constructor for the ``formationTime'' galactic filter class.
+    !!{
+    Internal constructor for the ``formationTime'' galactic filter class.
+    !!}
     implicit none
     type            (galacticFilterFormationTime)                :: self
     double precision                             , intent(in   ) :: timeRecent
-    !# <constructorAssign variables="timeRecent"/>
+    !![
+    <constructorAssign variables="timeRecent"/>
+    !!]
 
     return
   end function formationTimeConstructorInternal
 
   logical function formationTimePasses(self,node)
-    !% Implement a filter which rejects halos that formed too recently.
+    !!{
+    Implement a filter which rejects halos that formed too recently.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentFormationTime, treeNode
     implicit none
     class(galacticFilterFormationTime), intent(inout)         :: self

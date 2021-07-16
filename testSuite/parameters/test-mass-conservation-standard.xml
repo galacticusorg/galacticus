@@ -7,7 +7,7 @@
   <doAnalysis>no</doAnalysis>
   <modelRootDirectory>testSuite/outputs/test-mass-conservation-standard</modelRootDirectory>
   <baseParameters>parameters.xml</baseParameters>
-  <launchMethod>pbs</launch>
+  <launchMethod>pbs</launchMethod>
   <pbs>
     <ompThreads>16</ompThreads>
     <maxJobsInQueue>40</maxJobsInQueue>
@@ -129,7 +129,11 @@
       <phi0 value="6.7095654472093482"/>
       <phi1 value="1.37"/>
     </darkMatterProfileConcentration>
-    <darkMatterProfileMinimumConcentration value="4"/>
+    <darkMatterProfileScaleRadius value="concentrationLimiter">
+      <concentrationMinimum value="  4.0"/>
+      <concentrationMaximum value="100.0"/>
+      <darkMatterProfileScaleRadius value="concentration"/>
+    </darkMatterProfileScaleRadius>    
     <haloSpinDistribution value="bett2007">
       <alpha value="2.5094130785911624"/>
       <lambda0 value="4.3325030697269937E-002"/>
@@ -267,6 +271,8 @@
 
     <!-- Node evolution and physics -->
     <nodeOperator value="multi">
+      <!-- Halo concentrations -->
+      <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <!-- Halo spins -->
       <nodeOperator value="haloSpinRandom" iterable="no">
 	<factorReset value="2.0"/>

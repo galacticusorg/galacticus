@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains custom functions for the very simple satellite component.
+!!{
+Contains custom functions for the very simple satellite component.
+!!}
 
 double precision function Node_Component_Satellite_Very_Simple_Merge_Time(self)
-  !% Return the {\normalfont \ttfamily mergeTime} property of the {\normalfont \ttfamily satelliteVerySimple} component.
+  !!{
+  Return the {\normalfont \ttfamily mergeTime} property of the {\normalfont \ttfamily satelliteVerySimple} component.
+  !!}
   implicit none
   class(nodeComponentSatelliteVerySimple), intent(inout) :: self
   type (treeNode                        ), pointer       :: selfNode
@@ -35,7 +39,9 @@ double precision function Node_Component_Satellite_Very_Simple_Merge_Time(self)
 end function Node_Component_Satellite_Very_Simple_Merge_Time
 
 double precision function Node_Component_Satellite_Very_Simple_Time_Of_Merging(self)
-  !% Return the {\normalfont \ttfamily timeOfMerging} property of the {\normalfont \ttfamily satelliteVerySimple} component.
+  !!{
+  Return the {\normalfont \ttfamily timeOfMerging} property of the {\normalfont \ttfamily satelliteVerySimple} component.
+  !!}
   implicit none
   class(nodeComponentSatelliteVerysimple), intent(inout) :: self
   type (treeNode                        ), pointer       :: selfNode

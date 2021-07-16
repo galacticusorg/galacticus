@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a merger tree masses class which replicates masses from another class a specified number of times.
+  !!{
+  Implementation of a merger tree masses class which replicates masses from another class a specified number of times.
+  !!}
 
-  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesReplicate">
-  !#  <description>A merger tree masses class which replicates masses from another class a specified number of times.</description>
-  !# </mergerTreeBuildMasses>
+  !![
+  <mergerTreeBuildMasses name="mergerTreeBuildMassesReplicate">
+   <description>A merger tree masses class which replicates masses from another class a specified number of times.</description>
+  </mergerTreeBuildMasses>
+  !!]
   type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesReplicate
-     !% Implementation of a merger tree masses class which replicates masses from another class a specified number of times.
+     !!{
+     Implementation of a merger tree masses class which replicates masses from another class a specified number of times.
+     !!}
      private
      class  (mergerTreeBuildMassesClass), pointer :: mergerTreeBuildMasses_ => null()
      integer(c_size_t                  )          :: replicationCount
@@ -40,8 +46,10 @@
 contains
 
   function replicateConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily replicate} merger tree masses class which takes a parameter set
-    !% as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily replicate} merger tree masses class which takes a parameter set
+    as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type   (mergerTreeBuildMassesReplicate)                :: self
@@ -49,40 +57,54 @@ contains
     class  (mergerTreeBuildMassesClass    ), pointer       :: mergerTreeBuildMasses_
     integer(c_size_t                      )                :: replicationCount
 
-    !# <inputParameter>
-    !#   <name>replicationCount</name>
-    !#   <source>parameters</source>
-    !#   <description>The number of times to replicate each halo mass.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="mergerTreeBuildMasses" name="mergerTreeBuildMasses_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>replicationCount</name>
+      <source>parameters</source>
+      <description>The number of times to replicate each halo mass.</description>
+    </inputParameter>
+    <objectBuilder class="mergerTreeBuildMasses" name="mergerTreeBuildMasses_" source="parameters"/>
+    !!]
     self=mergerTreeBuildMassesReplicate(replicationCount,mergerTreeBuildMasses_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="mergerTreeBuildMasses_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="mergerTreeBuildMasses_"/>
+    !!]
     return
   end function replicateConstructorParameters
 
   function replicateConstructorInternal(replicationCount,mergerTreeBuildMasses_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily replicate} merger tree masses class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily replicate} merger tree masses class.
+    !!}
     implicit none
     type   (mergerTreeBuildMassesReplicate)                        :: self
     class  (mergerTreeBuildMassesClass    ), target, intent(in   ) :: mergerTreeBuildMasses_
     integer(c_size_t                      )        , intent(in   ) :: replicationCount
-    !# <constructorAssign variables="replicationCount, *mergerTreeBuildMasses_"/>
+    !![
+    <constructorAssign variables="replicationCount, *mergerTreeBuildMasses_"/>
+    !!]
 
     return
   end function replicateConstructorInternal
 
   subroutine replicateDestructor(self)
-    !% Destructor for the merger tree mergerTreeBuildMasses function class.
+    !!{
+    Destructor for the merger tree mergerTreeBuildMasses function class.
+    !!}
     implicit none
     type(mergerTreeBuildMassesReplicate), intent(inout) :: self
 
-    !# <objectDestructor name="self%mergerTreeBuildMasses_"/>
+    !![
+    <objectDestructor name="self%mergerTreeBuildMasses_"/>
+    !!]
     return
   end subroutine replicateDestructor
 
   subroutine replicateConstruct(self,time,mass,massMinimum,massMaximum,weight)
-    !% Construct a set of merger tree masses by sampling from a distribution.
+    !!{
+    Construct a set of merger tree masses by sampling from a distribution.
+    !!}
     use            :: Galacticus_Error , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : allocateArray          , deallocateArray

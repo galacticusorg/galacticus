@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a property extractor class for the density at a set of radii.
+  !!{
+  Contains a module which implements a property extractor class for the density at a set of radii.
+  !!}
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale, darkMatterHaloScaleClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorDensityProfile">
-  !#  <description>A property extractor class for the density at a set of radii.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorDensityProfile">
+   <description>A property extractor class for the density at a set of radii.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorDensityProfile
-     !% A property extractor class for the density at a set fo radii.
+     !!{
+     A property extractor class for the density at a set fo radii.
+     !!}
      private
      class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_
      integer                                                      :: radiiCount                   , elementCount_
@@ -47,7 +53,9 @@
   end type nodePropertyExtractorDensityProfile
 
   interface nodePropertyExtractorDensityProfile
-     !% Constructors for the ``densityProfile'' output analysis class.
+     !!{
+     Constructors for the ``densityProfile'' output analysis class.
+     !!}
      module procedure densityProfileConstructorParameters
      module procedure densityProfileConstructorInternal
   end interface nodePropertyExtractorDensityProfile
@@ -55,7 +63,9 @@
 contains
 
   function densityProfileConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily densityProfile} property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily densityProfile} property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nodePropertyExtractorDensityProfile)                              :: self
@@ -65,33 +75,41 @@ contains
     logical                                                                   :: includeRadii
 
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
-    !# <inputParameter>
-    !#   <name>radiusSpecifiers</name>
-    !#   <description>A list of radius specifiers at which to output the density profile.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>includeRadii</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Specifies whether or not the radii at which density data are output should also be included in the output file.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>radiusSpecifiers</name>
+      <description>A list of radius specifiers at which to output the density profile.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>includeRadii</name>
+      <defaultValue>.false.</defaultValue>
+      <description>Specifies whether or not the radii at which density data are output should also be included in the output file.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !!]
     self=nodePropertyExtractorDensityProfile(radiusSpecifiers,includeRadii,darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_" />
+    !!]
     return
   end function densityProfileConstructorParameters
 
   function densityProfileConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily densityProfile} property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily densityProfile} property extractor class.
+    !!}
     use :: Galactic_Structure_Radii_Definitions, only : Galactic_Structure_Radii_Definition_Decode
     implicit none
     type   (nodePropertyExtractorDensityProfile)                              :: self
     type   (varying_string                     ), intent(in   ), dimension(:) :: radiusSpecifiers
     class  (darkMatterHaloScaleClass           ), intent(in   ), target       :: darkMatterHaloScale_
     logical                                     , intent(in   )               :: includeRadii
-    !# <constructorAssign variables="radiusSpecifiers, includeRadii, *darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="radiusSpecifiers, includeRadii, *darkMatterHaloScale_"/>
+    !!]
 
     if (includeRadii) then
        self%elementCount_=2
@@ -111,16 +129,22 @@ contains
   end function densityProfileConstructorInternal
 
   subroutine densityProfileDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily densityProfile} property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily densityProfile} property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorDensityProfile), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    !!]
     return
   end subroutine densityProfileDestructor
 
   integer function densityProfileElementCount(self,time)
-    !% Return the number of elements in the {\normalfont \ttfamily densityProfile} property extractors.
+    !!{
+    Return the number of elements in the {\normalfont \ttfamily densityProfile} property extractors.
+    !!}
     implicit none
     class           (nodePropertyExtractorDensityProfile), intent(inout) :: self
     double precision                                     , intent(in   ) :: time
@@ -131,7 +155,9 @@ contains
   end function densityProfileElementCount
 
   function densityProfileSize(self,time)
-    !% Return the number of array alements in the {\normalfont \ttfamily densityProfile} property extractors.
+    !!{
+    Return the number of array alements in the {\normalfont \ttfamily densityProfile} property extractors.
+    !!}
     implicit none
     integer         (c_size_t                           )                :: densityProfileSize
     class           (nodePropertyExtractorDensityProfile), intent(inout) :: self
@@ -143,7 +169,9 @@ contains
   end function densityProfileSize
 
   function densityProfileExtract(self,node,time,instance)
-    !% Implement a {\normalfont \ttfamily densityProfile} property extractor.
+    !!{
+    Implement a {\normalfont \ttfamily densityProfile} property extractor.
+    !!}
     use :: Galactic_Structure_Densities        , only : Galactic_Structure_Density
     use :: Galactic_Structure_Enclosed_Masses  , only : Galactic_Structure_Radius_Enclosing_Mass
     use :: Galactic_Structure_Options          , only : componentTypeAll                        , massTypeGalactic
@@ -217,7 +245,9 @@ contains
   end function densityProfileExtract
 
   function densityProfileNames(self,time)
-    !% Return the names of the {\normalfont \ttfamily densityProfile} properties.
+    !!{
+    Return the names of the {\normalfont \ttfamily densityProfile} properties.
+    !!}
     implicit none
     type            (varying_string                     ), dimension(:) , allocatable :: densityProfileNames
     class           (nodePropertyExtractorDensityProfile), intent(inout)              :: self
@@ -231,7 +261,9 @@ contains
   end function densityProfileNames
 
   function densityProfileDescriptions(self,time)
-    !% Return descriptions of the {\normalfont \ttfamily densityProfile} property.
+    !!{
+    Return descriptions of the {\normalfont \ttfamily densityProfile} property.
+    !!}
     implicit none
     type            (varying_string                     ), dimension(:) , allocatable :: densityProfileDescriptions
     class           (nodePropertyExtractorDensityProfile), intent(inout)              :: self
@@ -246,7 +278,9 @@ contains
   end function densityProfileDescriptions
 
   function densityProfileColumnDescriptions(self,time)
-    !% Return column descriptions of the {\normalfont \ttfamily densityProfile} property.
+    !!{
+    Return column descriptions of the {\normalfont \ttfamily densityProfile} property.
+    !!}
     implicit none
     type            (varying_string                     ), dimension(:) , allocatable :: densityProfileColumnDescriptions
     class           (nodePropertyExtractorDensityProfile), intent(inout)              :: self
@@ -259,7 +293,9 @@ contains
   end function densityProfileColumnDescriptions
 
   function densityProfileUnitsInSI(self,time)
-    !% Return the units of the {\normalfont \ttfamily densityProfile} properties in the SI system.
+    !!{
+    Return the units of the {\normalfont \ttfamily densityProfile} properties in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, megaParsec
     implicit none
     double precision                                     , allocatable  , dimension(:) :: densityProfileUnitsInSI
@@ -275,7 +311,9 @@ contains
   end function densityProfileUnitsInSI
 
   integer function densityProfileType(self)
-    !% Return the type of the {\normalfont \ttfamily densityProfile} properties.
+    !!{
+    Return the type of the {\normalfont \ttfamily densityProfile} properties.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorDensityProfile), intent(inout) :: self

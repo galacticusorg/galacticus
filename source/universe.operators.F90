@@ -17,25 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements operators on universes.
+!!{
+Contains a module which provides a class that implements operators on universes.
+!!}
 
 module Universe_Operators
-  !% Provides a class that implements operators on universes.
+  !!{
+  Provides a class that implements operators on universes.
+  !!}
   use :: Galacticus_Nodes, only : universe
   private
 
-  !# <functionClass>
-  !#  <name>universeOperator</name>
-  !#  <descriptiveName>Universe Operators</descriptiveName>
-  !#  <description>Class providing operators acting on universes.</description>
-  !#  <default>identity</default>
-  !#  <method name="operate" >
-  !#   <description>Operate on the universe.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <selfTarget>yes</selfTarget>
-  !#   <argument>type(universe), intent(inout) :: universe_</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>universeOperator</name>
+   <descriptiveName>Universe Operators</descriptiveName>
+   <description>Class providing operators acting on universes.</description>
+   <default>identity</default>
+   <method name="operate" >
+    <description>Operate on the universe.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>type(universe), intent(inout) :: universe_</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Universe_Operators

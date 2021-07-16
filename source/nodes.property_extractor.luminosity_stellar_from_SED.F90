@@ -17,28 +17,36 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a stellar mass output analysis property extractor class.
+!!{
+Contains a module which implements a stellar mass output analysis property extractor class.
+!!}
 
   use :: ISO_Varying_String     , only : varying_string
   use :: Output_Times           , only : outputTimesClass
   use :: Numerical_Interpolation, only : interpolator
   
   type :: filterResponse
-     !% Type used to hold pointers to filter response functions.
+     !!{
+     Type used to hold pointers to filter response functions.
+     !!}
      type(interpolator), pointer :: interpolator_
   end type filterResponse
   
-  !# <nodePropertyExtractor name="nodePropertyExtractorLuminosityStellarFromSED">
-  !#  <description>A stellar luminosity output analysis property extractor class.</description>
-  !#  <deepCopy>
-  !#   <functionClass variables="nodePropertyExtractor_"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="nodePropertyExtractor_"/>
-  !#  </stateStorable>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorLuminosityStellarFromSED">
+   <description>A stellar luminosity output analysis property extractor class.</description>
+   <deepCopy>
+    <functionClass variables="nodePropertyExtractor_"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="nodePropertyExtractor_"/>
+   </stateStorable>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorLuminosityStellarFromSED
-     !% A stellar luminosity output analysis property extractor class.
+     !!{
+     A stellar luminosity output analysis property extractor class.
+     !!}
      private
      type            (varying_string          ), allocatable, dimension(:  ) :: filterNames
      integer                                   , allocatable, dimension(:  ) :: luminosityIndex
@@ -57,7 +65,9 @@
   end type nodePropertyExtractorLuminosityStellarFromSED
 
   interface nodePropertyExtractorLuminosityStellarFromSED
-     !% Constructors for the ``luminosityStellarFromSED'' output analysis class.
+     !!{
+     Constructors for the ``luminosityStellarFromSED'' output analysis class.
+     !!}
      module procedure luminosityStellarFromSEDConstructorParameters
      module procedure luminosityStellarFromSEDConstructorInternal
   end interface nodePropertyExtractorLuminosityStellarFromSED
@@ -65,7 +75,9 @@
 contains
 
   function luminosityStellarFromSEDConstructorParameters(parameters) result(self)
-    !% Constructor for the ``luminosityStellarFromSED'' output analysis property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``luminosityStellarFromSED'' output analysis property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorLuminosityStellarFromSED)                             :: self
@@ -74,20 +86,24 @@ contains
     type (varying_string                               ), dimension(:) , allocatable :: filterNames
 
     allocate(filterNames(parameters%count('filterNames')))
-    !# <inputParameter>
-    !#   <name>filterNames</name>
-    !#   <source>parameters</source>
-    !#   <description>The filters to select.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>filterNames</name>
+      <source>parameters</source>
+      <description>The filters to select.</description>
+    </inputParameter>
+    <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
+    !!]
     select type (nodePropertyExtractor_)
     class is (nodePropertyExtractorSED)
        self=nodePropertyExtractorLuminosityStellarFromSED(filterNames,nodePropertyExtractor_)
     class default
        call Galacticus_Error_Report('an "SED" nodePropertyExtractor is required'//{introspection:location})
     end select
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="nodePropertyExtractor_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="nodePropertyExtractor_"/>
+    !!]
     return
   end function luminosityStellarFromSEDConstructorParameters
 
@@ -99,7 +115,9 @@ contains
     type   (varying_string                               ), intent(in   ), dimension(:) :: filterNames
     class  (nodePropertyExtractorSED                     ), intent(in   ), target       :: nodePropertyExtractor_
     integer                                                                             :: i                     , indexFilter
-    !# <constructorAssign variables="filterNames, *nodePropertyExtractor_"/>
+    !![
+    <constructorAssign variables="filterNames, *nodePropertyExtractor_"/>
+    !!]
 
     ! Get filter functions for all requested filters.
     allocate(self%filterResponses (size(filterNames)  ))
@@ -113,16 +131,22 @@ contains
   end function luminosityStellarFromSEDConstructorInternal
   
   subroutine luminosityStellarFromSEDDestructor(self)
-    !% Destructor for the ``luminosityStellarFromSED'' output analysis property extractor class.
+    !!{
+    Destructor for the ``luminosityStellarFromSED'' output analysis property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorLuminosityStellarFromSED), intent(inout) :: self
 
-    !# <objectDestructor name="self%nodePropertyExtractor_"/>
+    !![
+    <objectDestructor name="self%nodePropertyExtractor_"/>
+    !!]
     return
   end subroutine luminosityStellarFromSEDDestructor
 
   integer function luminosityStellarFromSEDElementCount(self,time)
-    !% Return the number of elements in the {\normalfont \ttfamily luminosityStellarFromSED} property extractors.
+    !!{
+    Return the number of elements in the {\normalfont \ttfamily luminosityStellarFromSED} property extractors.
+    !!}
     implicit none
     class           (nodePropertyExtractorLuminosityStellarFromSED), intent(inout) :: self
     double precision                                               , intent(in   ) :: time
@@ -133,7 +157,9 @@ contains
   end function luminosityStellarFromSEDElementCount
 
   function luminosityStellarFromSEDExtract(self,node,time,instance) result(luminosities)
-    !% Implement a stellar luminosity output analysis property extractor.
+    !!{
+    Implement a stellar luminosity output analysis property extractor.
+    !!}
     use :: Table_Labels         , only : extrapolationTypeZero
     use :: Numerical_Integration, only : GSL_Integ_Gauss15    , integrator
     implicit none
@@ -169,7 +195,9 @@ contains
   contains
 
     double precision function integrandFilteredLuminosity(wavelength)
-      !% Integrand for the luminosity through a given filter.
+      !!{
+      Integrand for the luminosity through a given filter.
+      !!}
       implicit none
       double precision, intent(in   ) :: wavelength
 
@@ -184,7 +212,9 @@ contains
     end function integrandFilteredLuminosity
 
     double precision function integrandFilteredLuminosityAB(wavelength)
-      !% Integrand for the luminosity of a zeroth magnitude (AB) source through a given filter.
+      !!{
+      Integrand for the luminosity of a zeroth magnitude (AB) source through a given filter.
+      !!}
       use :: Numerical_Constants_Astronomical, only : luminositySolar, luminosityZeroPointAB
       implicit none
       double precision, intent(in   ) :: wavelength
@@ -200,7 +230,9 @@ contains
   end function luminosityStellarFromSEDExtract
 
   integer function luminosityStellarFromSEDType(self)
-    !% Return the type of the stellar luminosity property.
+    !!{
+    Return the type of the stellar luminosity property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorLuminosityStellarFromSED), intent(inout) :: self
@@ -211,7 +243,9 @@ contains
   end function luminosityStellarFromSEDType
 
   integer function luminosityStellarFromSEDQuantity(self)
-    !% Return the class of the stellar luminosity property.
+    !!{
+    Return the class of the stellar luminosity property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityLuminosity
     implicit none
     class(nodePropertyExtractorLuminosityStellarFromSED), intent(inout) :: self
@@ -222,7 +256,9 @@ contains
   end function luminosityStellarFromSEDQuantity
 
   function luminosityStellarFromSEDNames(self,time) result(names)
-    !% Return the name of the luminosityStellarFromSED property.
+    !!{
+    Return the name of the luminosityStellarFromSED property.
+    !!}
     implicit none
     type            (varying_string                               ), dimension(:) , allocatable :: names
     class           (nodePropertyExtractorLuminosityStellarFromSED), intent(inout)              :: self
@@ -239,7 +275,9 @@ contains
   end function luminosityStellarFromSEDNames
 
   function luminosityStellarFromSEDDescriptions(self,time) result(descriptions)
-    !% Return a description of the luminosityStellarFromSED property.
+    !!{
+    Return a description of the luminosityStellarFromSED property.
+    !!}
     implicit none
     type            (varying_string                               ), dimension(:) , allocatable :: descriptions
     class           (nodePropertyExtractorLuminosityStellarFromSED), intent(inout)              :: self
@@ -250,13 +288,15 @@ contains
     allocate(descriptions(size(self%filterNames)))
     description=self%nodePropertyExtractor_%descriptions(time)
     do i=1,size(descriptions)
-       descriptions(i)="Luminosity in "//self%filterNames(i)//" filter derived from: "//description(1)
+       descriptions(i)="Luminosity in "//self%filterNames(i)//" filter in units of the AB-magnitude system zero-point; derived from: "//description(1)
     end do
     return
   end function luminosityStellarFromSEDDescriptions
 
    function luminosityStellarFromSEDUnitsInSI(self,time) result(unitsInSI)
-    !% Return the units of the luminosityStellarFromSED property in the SI system.
+    !!{
+    Return the units of the luminosityStellarFromSED property in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : luminosityZeroPointAB
     implicit none
     double precision                                               , dimension(:) , allocatable :: unitsInSI

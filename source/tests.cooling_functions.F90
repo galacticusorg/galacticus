@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program which tests cooling function functionality.
+!!{
+Contains a program which tests cooling function functionality.
+!!}
 
 program Test_Cooling_Functions
-  !% Tests cooling function functionality.
+  !!{
+  Tests cooling function functionality.
+  !!}
   use :: Abundances_Structure                , only : abundances                             , metallicityTypeLinearByMassSolar
   use :: Chemical_Abundances_Structure       , only : chemicalAbundances                     , zeroChemicalAbundances
   use :: Chemical_States                     , only : chemicalStateAtomicCIECloudy
@@ -74,54 +78,58 @@ program Test_Cooling_Functions
   call basic%timeLastIsolatedSet(13.8d00)
   call basic%massSet            ( 1.0d12)
   ! Construct cooling functions.
-  !# <referenceConstruct object="cosmologyParameters_"           >
-  !#  <constructor>
-  !#   cosmologyParametersSimple     (                                            &amp;
-  !#    &amp;                         OmegaMatter         = 0.28120d0           , &amp;
-  !#    &amp;                         OmegaBaryon         = 0.04611d0           , &amp;
-  !#    &amp;                         OmegaDarkEnergy     = 0.71880d0           , &amp;
-  !#    &amp;                         temperatureCMB      = 2.72548d0           , &amp;
-  !#    &amp;                         HubbleConstant      =69.70000d0             &amp;
-  !#    &amp;                        )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="cosmologyFunctions_"            >
-  !#  <constructor>
-  !#   cosmologyFunctionsMatterLambda(                                            &amp;
-  !#    &amp;                          cosmologyParameters_=cosmologyParameters_  &amp;
-  !#    &amp;                        )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="chemicalState_" >
-  !#  <constructor>
-  !#   chemicalStateAtomicCIECloudy  (                                            &amp;
-  !#    &amp;                        )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="coolingFunctionCMBCompton_"     >
-  !#  <constructor>
-  !#   coolingFunctionCMBCompton     (                                           &amp;
-  !#    &amp;                          chemicalState_      =chemicalState_       &amp;
-  !#    &amp;                        )
-  !#  </constructor>
-  !# </referenceConstruct>
-  !# <referenceConstruct object="coolingFunctionAtomicCIECloudy_">
-  !#  <constructor>
-  !#   coolingFunctionAtomicCIECloudy(                                           &amp;
-  !#    &amp;                        )
-  !#  </constructor>
-  !# </referenceConstruct>
+  !![
+  <referenceConstruct object="cosmologyParameters_"           >
+   <constructor>
+    cosmologyParametersSimple     (                                            &amp;
+     &amp;                         OmegaMatter         = 0.28120d0           , &amp;
+     &amp;                         OmegaBaryon         = 0.04611d0           , &amp;
+     &amp;                         OmegaDarkEnergy     = 0.71880d0           , &amp;
+     &amp;                         temperatureCMB      = 2.72548d0           , &amp;
+     &amp;                         HubbleConstant      =69.70000d0             &amp;
+     &amp;                        )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="cosmologyFunctions_"            >
+   <constructor>
+    cosmologyFunctionsMatterLambda(                                            &amp;
+     &amp;                          cosmologyParameters_=cosmologyParameters_  &amp;
+     &amp;                        )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="chemicalState_" >
+   <constructor>
+    chemicalStateAtomicCIECloudy  (                                            &amp;
+     &amp;                        )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="coolingFunctionCMBCompton_"     >
+   <constructor>
+    coolingFunctionCMBCompton     (                                           &amp;
+     &amp;                          chemicalState_      =chemicalState_       &amp;
+     &amp;                        )
+   </constructor>
+  </referenceConstruct>
+  <referenceConstruct object="coolingFunctionAtomicCIECloudy_">
+   <constructor>
+    coolingFunctionAtomicCIECloudy(                                           &amp;
+     &amp;                        )
+   </constructor>
+  </referenceConstruct>
+  !!]
   allocate(coolants     )
   allocate(coolants%next)
   coolants     %coolingFunction => coolingFunctionCMBCompton_
   coolants%next%coolingFunction => coolingFunctionCMBCompton_
-  !# <referenceConstruct object="coolingFunctionSummation_"      >
-  !#  <constructor>
-  !#   coolingFunctionSummation      (                                           &amp;
-  !#    &amp;                         coolants             =coolants             &amp;
-  !#    &amp;                        )
-  !#  </constructor>
-  !# </referenceConstruct>
+  !![
+  <referenceConstruct object="coolingFunctionSummation_"      >
+   <constructor>
+    coolingFunctionSummation      (                                           &amp;
+     &amp;                         coolants             =coolants             &amp;
+     &amp;                        )
+   </constructor>
+  </referenceConstruct>
+  !!]
   ! Define plasma conditions.
   numberDensityHydrogen=1.0d-4 ! cm⁻³
   temperature          =1.0d+6 ! K

@@ -18,7 +18,9 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 program Tests_IO_HDF5
-  !% Tests the HDF5 I/O module.
+  !!{
+  Tests the HDF5 I/O module.
+  !!}
   use :: Display           , only : displayVerbositySet, verbosityLevelStandard
   use :: HDF5              , only : HSIZE_T
   use :: IO_HDF5           , only : IO_HDF5_Is_HDF5    , hdf5Object

@@ -1,49 +1,59 @@
-!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
-!!    Andrew Benson <abenson@carnegiescience.edu>
-!!
-!! This file is part of Galacticus.
-!!
-!!    Galacticus is free software: you can redistribute it and/or modify
-!!    it under the terms of the GNU General Public License as published by
-!!    the Free Software Foundation, either version 3 of the License, or
-!!    (at your option) any later version.
-!!
-!!    Galacticus is distributed in the hope that it will be useful,
-!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
-!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-!!    GNU General Public License for more details.
-!!
-!!    You should have received a copy of the GNU General Public License
-!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-
-  !% Contains a module which implements a property extractor class for the SED of a component.
+  !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+  !!           2019, 2020, 2021
+  !!    Andrew Benson <abenson@carnegiescience.edu>
+  !!
+  !! This file is part of Galacticus.
+  !!
+  !!    Galacticus is free software: you can redistribute it and/or modify
+  !!    it under the terms of the GNU General Public License as published by
+  !!    the Free Software Foundation, either version 3 of the License, or
+  !!    (at your option) any later version.
+  !!
+  !!    Galacticus is distributed in the hope that it will be useful,
+  !!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+  !!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  !!    GNU General Public License for more details.
+  !!
+  !!    You should have received a copy of the GNU General Public License
+  !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+  
+  !!{
+  Contains a module which implements a property extractor class for the SED of a component.
+  !!}
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
   use :: Output_Times              , only : outputTimesClass
   use :: Stellar_Population_Spectra, only : stellarPopulationSpectraClass
   use :: Star_Formation_Histories  , only : starFormationHistoryClass
 
   type :: sedTemplate
-     !% Type used to store SED templates.
+     !!{
+     Type used to store SED templates.
+     !!}
      private
      integer         (c_size_t)                                :: countWavelengths=-1_c_size_t
      double precision          , allocatable, dimension(:    ) :: wavelength
      double precision          , allocatable, dimension(:,:,:) :: sed
   end type sedTemplate
-  
-  !# <enumeration>
-  !#  <name>frame</name>
-  !#  <description>Frame for SED calculations.</description>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <entry label="rest"    />
-  !#  <entry label="observed"/>
-  !# </enumeration>
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorSED">
-  !#  <description>A property extractor class for the SED of a component.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <enumeration>
+    <name>frame</name>
+    <description>Frame for SED calculations.</description>
+    <encodeFunction>yes</encodeFunction>
+    <entry label="rest"    />
+    <entry label="observed"/>
+  </enumeration>
+  !!]
+     
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorSED">
+    <description>A property extractor class for the SED of a component.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorSED
-     !% A property extractor class for the SED of a component.
+     !!{
+     A property extractor class for the SED of a component.
+     !!}
      private
      class           (stellarPopulationSpectraClass), pointer                   :: stellarPopulationSpectra_    => null()
      class           (starFormationHistoryClass    ), pointer                   :: starFormationHistory_        => null()
@@ -55,17 +65,19 @@
      double precision                                                           :: metallicityPopulationMinimum          , metallicityPopulationMaximum, &
           &                                                                        wavelengthMinimum                     , wavelengthMaximum           , &
           &                                                                        agePopulationMaximum                  , resolution                  , &
-          &                                                                        factorWavelength
+          &                                                                        factorWavelength                      , toleranceRelative
      integer                                                                    :: abundanceIndex                        , frame
      logical                                                                    :: useSEDTemplates
    contains
-     !# <methods>
-     !#  <method description="Return the index of the template SEDs to use."                                                                               method="indexTemplateTime"      />
-     !#  <method description="Return the index of the template SEDs to use."                                                                               method="indexTemplateNode"      />
-     !#  <method description="Compute the mean luminosity of the stellar population in the given bin of the star formation history."                       method="luminosityMean"         />
-     !#  <method description="Return a hashed descriptor of the object which incorporates the time and metallicity binning of the star formation history." method="historyHashedDescriptor"/>
-     !#  <method description="Return an array of the wavelengths at which the SED is computed."                                                            method="wavelengths"            />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return the index of the template SEDs to use."                                                                               method="indexTemplateTime"      />
+       <method description="Return the index of the template SEDs to use."                                                                               method="indexTemplateNode"      />
+       <method description="Compute the mean luminosity of the stellar population in the given bin of the star formation history."                       method="luminosityMean"         />
+       <method description="Return a hashed descriptor of the object which incorporates the time and metallicity binning of the star formation history." method="historyHashedDescriptor"/>
+       <method description="Return an array of the wavelengths at which the SED is computed."                                                            method="wavelengths"            />
+     </methods>
+     !!]
      final     ::                            sedDestructor
      procedure :: historyHashedDescriptor => sedHistoryHashedDescriptor
      procedure :: wavelengths             => sedWavelengths
@@ -81,17 +93,21 @@
      procedure :: indexTemplateTime       => sedIndexTemplateTime
      procedure :: indexTemplateNode       => sedIndexTemplateNode
   end type nodePropertyExtractorSED
-
+  
   interface nodePropertyExtractorSED
-     !% Constructors for the ``sed'' output analysis class.
+     !!{
+     Constructors for the ``sed'' output analysis class.
+     !!}
      module procedure sedConstructorParameters
      module procedure sedConstructorInternal
   end interface nodePropertyExtractorSED
-
+      
 contains
 
   function sedConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily sed} property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily sed} property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters          , only : inputParameter                , inputParameters
     use :: Galactic_Structure_Options, only : enumerationComponentTypeEncode
     implicit none
@@ -103,52 +119,64 @@ contains
     class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
     type            (varying_string               )                :: component                , frame
     double precision                                               :: wavelengthMinimum        , wavelengthMaximum, &
-          &                                                           resolution
-
-    !# <inputParameter>
-    !#   <name>component</name>
-    !#   <source>parameters</source>
-    !#   <description>The component from which to extract star formation rate.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>frame</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>var_str('rest')</defaultValue>
-    !#   <description>The frame ({\normalfont \ttfamily rest} or {\normalfont \ttfamily observed}) for which to compute the SED.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>wavelengthMinimum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The minimum wavelength at which to compute the SED.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>wavelengthMaximum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>huge(0.0d0)</defaultValue>
-    !#   <description>The maximum wavelength at which to compute the SED.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>resolution</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>-1.0d0</defaultValue>
-    !#   <description>The resolution, $\lambda/\Delta\lambda$, at which to compute the SED. If a negative value is given the SED will be computed at the full resolution provided by the stellar population spectra class.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="stellarPopulationSpectra" name="stellarPopulationSpectra_" source="parameters"/>
-    !# <objectBuilder class="starFormationHistory"     name="starFormationHistory_"     source="parameters"/>
-    !# <objectBuilder class="outputTimes"              name="outputTimes_"              source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    self=nodePropertyExtractorSED(enumerationComponentTypeEncode(char(component),includesPrefix=.false.),enumerationFrameEncode(char(frame),includesPrefix=.false.),wavelengthMinimum,wavelengthMaximum,resolution,stellarPopulationSpectra_,starFormationHistory_,outputTimes_,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="stellarPopulationSpectra_"/>
-    !# <objectDestructor name="starFormationHistory_"    />
-    !# <objectDestructor name="outputTimes_"             />
-    !# <objectDestructor name="cosmologyFunctions_"      />
+         &                                                            resolution               , toleranceRelative
+    
+    !![
+    <inputParameter>
+      <name>component</name>
+      <source>parameters</source>
+      <description>The component from which to extract star formation rate.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>frame</name>
+      <source>parameters</source>
+      <defaultValue>var_str('rest')</defaultValue>
+      <description>The frame ({\normalfont \ttfamily rest} or {\normalfont \ttfamily observed}) for which to compute the SED.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>wavelengthMinimum</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The minimum wavelength at which to compute the SED.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>wavelengthMaximum</name>
+      <source>parameters</source>
+      <defaultValue>huge(0.0d0)</defaultValue>
+      <description>The maximum wavelength at which to compute the SED.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>resolution</name>
+      <source>parameters</source>
+      <defaultValue>-1.0d0</defaultValue>
+      <description>The resolution, $\lambda/\Delta\lambda$, at which to compute the SED. If a negative value is given the SED will be computed at the full resolution provided by the stellar population spectra class.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>toleranceRelative</name>
+      <source>parameters</source>
+      <defaultValue>1.0d-3</defaultValue>
+      <description>The relative tolerance used in integration over stellar population spectra.</description>
+    </inputParameter>
+    <objectBuilder class="stellarPopulationSpectra" name="stellarPopulationSpectra_" source="parameters"/>
+    <objectBuilder class="starFormationHistory"     name="starFormationHistory_"     source="parameters"/>
+    <objectBuilder class="outputTimes"              name="outputTimes_"              source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    !!]
+    self=nodePropertyExtractorSED(enumerationComponentTypeEncode(char(component),includesPrefix=.false.),enumerationFrameEncode(char(frame),includesPrefix=.false.),wavelengthMinimum,wavelengthMaximum,resolution,toleranceRelative,stellarPopulationSpectra_,starFormationHistory_,outputTimes_,cosmologyFunctions_)
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="stellarPopulationSpectra_"/>
+    <objectDestructor name="starFormationHistory_"    />
+    <objectDestructor name="outputTimes_"             />
+    <objectDestructor name="cosmologyFunctions_"      />
+    !!]
     return
   end function sedConstructorParameters
 
-  function sedConstructorInternal(component,frame,wavelengthMinimum,wavelengthMaximum,resolution,stellarPopulationSpectra_,starFormationHistory_,outputTimes_,cosmologyFunctions_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily sed} property extractor class.
+  function sedConstructorInternal(component,frame,wavelengthMinimum,wavelengthMaximum,resolution,toleranceRelative,stellarPopulationSpectra_,starFormationHistory_,outputTimes_,cosmologyFunctions_) result(self)
+    !!{
+    Internal constructor for the {\normalfont \ttfamily sed} property extractor class.
+    !!}
     use :: Atomic_Data                     , only : Abundance_Pattern_Lookup
     use :: Galactic_Structure_Options      , only : componentTypeDisk       , componentTypeSpheroid
     use :: Galacticus_Error                , only : Galacticus_Error_Report
@@ -161,11 +189,13 @@ contains
     class           (outputTimesClass             ), intent(in   ), target       :: outputTimes_
     class           (cosmologyFunctionsClass      ), intent(in   ), target       :: cosmologyFunctions_
     double precision                               , intent(in   )               :: wavelengthMinimum        , wavelengthMaximum, &
-          &                                                                         resolution
+         &                                                                          resolution               , toleranceRelative
     double precision                               , allocatable  , dimension(:) :: ages                     , metallicities
     integer                                                                      :: agesCount                , metallicitiesCount
-    !# <constructorAssign variables="component, frame, wavelengthMinimum, wavelengthMaximum, resolution, *stellarPopulationSpectra_, *starFormationHistory_, *outputTimes_, *cosmologyFunctions_"/>
-
+    !![
+    <constructorAssign variables="component, frame, wavelengthMinimum, wavelengthMaximum, resolution, toleranceRelative, *stellarPopulationSpectra_, *starFormationHistory_, *outputTimes_, *cosmologyFunctions_"/>
+    !!]
+    
     if     (                                                                                                               &
          &   component /= componentTypeDisk                                                                                &
          &  .and.                                                                                                          &
@@ -185,19 +215,25 @@ contains
   end function sedConstructorInternal
 
   subroutine sedDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily sed} property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily sed} property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorSED), intent(inout) :: self
-
-    !# <objectDestructor name="self%stellarPopulationSpectra_"/>
-    !# <objectDestructor name="self%starFormationHistory_"    />
-    !# <objectDestructor name="self%outputTimes_"             />
-    !# <objectDestructor name="self%cosmologyFunctions_"      />
+    
+    !![
+    <objectDestructor name="self%stellarPopulationSpectra_"/>
+    <objectDestructor name="self%starFormationHistory_"    />
+    <objectDestructor name="self%outputTimes_"             />
+    <objectDestructor name="self%cosmologyFunctions_"      />
+    !!]
     return
   end subroutine sedDestructor
 
   integer function sedElementCount(self,time)
-    !% Return the number of elements in the {\normalfont \ttfamily sed} property extractors.
+    !!{
+    Return the number of elements in the {\normalfont \ttfamily sed} property extractors.
+    !!}
     implicit none
     class           (nodePropertyExtractorSED), intent(inout) :: self
     double precision                          , intent(in   ) :: time
@@ -208,7 +244,9 @@ contains
   end function sedElementCount
 
   function sedSize(self,time)
-    !% Return the number of array alements in the {\normalfont \ttfamily sed} property extractors.
+    !!{
+    Return the number of array alements in the {\normalfont \ttfamily sed} property extractors.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer         (c_size_t                )                              :: sedSize
@@ -281,7 +319,9 @@ contains
   end function sedSize
 
   function sedExtract(self,node,time,instance)
-    !% Implement a {\normalfont \ttfamily sed} property extractor.
+    !!{
+    Implement a {\normalfont \ttfamily sed} property extractor.
+    !!}
     use :: Galacticus_Nodes          , only : nodeComponentDisk, nodeComponentSpheroid
     use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid
     use :: Histories                 , only : history
@@ -328,7 +368,9 @@ contains
   end function sedExtract
 
   function sedNames(self,time)
-    !% Return the names of the {\normalfont \ttfamily sed} properties.
+    !!{
+    Return the names of the {\normalfont \ttfamily sed} properties.
+    !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
     type            (varying_string          ), dimension(:) , allocatable :: sedNames
@@ -342,7 +384,9 @@ contains
   end function sedNames
 
   function sedDescriptions(self,time)
-    !% Return descriptions of the {\normalfont \ttfamily sed} property.
+    !!{
+    Return descriptions of the {\normalfont \ttfamily sed} property.
+    !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
     type            (varying_string          ), dimension(:) , allocatable :: sedDescriptions
@@ -356,7 +400,9 @@ contains
   end function sedDescriptions
 
   function sedWavelengths(self,time)
-    !% Return column descriptions of the {\normalfont \ttfamily sed} property.
+    !!{
+    Return column descriptions of the {\normalfont \ttfamily sed} property.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                          , dimension(:) , allocatable :: sedWavelengths
@@ -405,7 +451,9 @@ contains
   end function sedWavelengths
 
   function sedColumnDescriptions(self,time)
-    !% Return column descriptions of the {\normalfont \ttfamily sed} property.
+    !!{
+    Return column descriptions of the {\normalfont \ttfamily sed} property.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (varying_string          ), dimension(:) , allocatable :: sedColumnDescriptions
@@ -426,7 +474,9 @@ contains
   end function sedColumnDescriptions
 
   function sedUnitsInSI(self,time)
-    !% Return the units of the {\normalfont \ttfamily sed} properties in the SI system.
+    !!{
+    Return the units of the {\normalfont \ttfamily sed} properties in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : luminositySolar
     implicit none
     double precision                          , allocatable  , dimension(:) :: sedUnitsInSI
@@ -440,7 +490,9 @@ contains
   end function sedUnitsInSI
 
   integer function sedType(self)
-    !% Return the type of the {\normalfont \ttfamily sed} properties.
+    !!{
+    Return the type of the {\normalfont \ttfamily sed} properties.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorSED), intent(inout) :: self
@@ -451,7 +503,9 @@ contains
   end function sedType
 
   integer function sedIndexTemplateTime(self,time)
-    !% Find the index of the template SEDs to use.
+    !!{
+    Find the index of the template SEDs to use.
+    !!}
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
     class           (nodePropertyExtractorSED), intent(inout) :: self
@@ -466,9 +520,11 @@ contains
     sedIndexTemplateTime=int(indexOutput)
     return
   end function sedIndexTemplateTime
-  
+
   integer function sedIndexTemplateNode(self,node,starFormationHistory)
-    !% Find the index of the template SEDs to use, and also compute the template.
+    !!{
+    Find the index of the template SEDs to use, and also compute the template.
+    !!}
     use :: Display             , only : displayMessage    , verbosityLevelWorking
     use :: Galacticus_Nodes    , only : nodeComponentBasic
     use :: Histories           , only : history
@@ -537,9 +593,11 @@ contains
     end if
     return
   end function sedIndexTemplateNode
-  
+
   double precision function sedLuminosityMean(self,time,starFormationHistory,parallelize)
-    !% Compute the mean luminosity of the stellar population in each bin of the star formation history.
+    !!{
+    Compute the mean luminosity of the stellar population in each bin of the star formation history.
+    !!}
     use    :: Abundances_Structure , only : abundances             , metallicityTypeLinearByMassSolar, adjustElementsReset
     use    :: Display              , only : displayIndent          , displayUnindent                 , displayCounter     , displayCounterClear, &
          &                                  verbosityLevelWorking
@@ -574,8 +632,10 @@ contains
     type            (multiCounter                 )                                :: state
     type            (ompLock                      )                                :: stateLock
     !$omp threadprivate(stellarPopulationSpectra_,integratorTime,integratorWavelength,integratorMetallicity,abundancesStellar,wavelength,wavelengthMinimum,wavelengthMaximum,timeMinimum,timeMaximum,age)
-    !# <optionalArgument name="parallelize" defaultsTo=".false." />
-
+    !![
+    <optionalArgument name="parallelize" defaultsTo=".false." />
+    !!]
+    
     allocate(sedLuminosityMean(self%size(time),size(starFormationHistory%data,dim=1),size(starFormationHistory%data,dim=2)))
     select case (self%frame)
     case (frameRest    )
@@ -610,21 +670,27 @@ contains
        end do
     end if
     counter       =-1
-    counterMaximum=product     ([size(sedLuminosityMean,dim=1),size(starFormationHistory%data,dim=1),size(starFormationHistory%data,dim=2)])
+    counterMaximum=product     ([size(sedLuminosityMean,dim=1              ),size(starFormationHistory%data,dim=1              ),size(starFormationHistory%data,dim=2              )])
     state         =multiCounter([size(sedLuminosityMean,dim=1,kind=c_size_t),size(starFormationHistory%data,dim=1,kind=c_size_t),size(starFormationHistory%data,dim=2,kind=c_size_t)])
-    stateLock     =ompLock     (                                                                                                           )
+    stateLock     =ompLock     (                                                                                                                                                     )
     !$omp parallel private (iWavelength,iTime,iMetallicity,metallicityMinimum,metallicityMaximum)
     allocate(integratorTime       )
     allocate(integratorMetallicity)
-    integratorTime       =integrator(sedIntegrandTime       ,toleranceRelative=1.0d-3)
-    integratorMetallicity=integrator(sedIntegrandMetallicity,toleranceRelative=1.0d-3)
-    integratorWavelength =integrator(sedIntegrandWavelength ,toleranceRelative=1.0d-3)
+    integratorTime       =integrator(sedIntegrandTime       ,toleranceRelative=self%toleranceRelative)
+    integratorMetallicity=integrator(sedIntegrandMetallicity,toleranceRelative=self%toleranceRelative)
+    integratorWavelength =integrator(sedIntegrandWavelength ,toleranceRelative=self%toleranceRelative)
     if (parallelize_) then
        allocate(stellarPopulationSpectra_,mold=self%stellarPopulationSpectra_)
        !$omp critical(nodePropertyExtractSEDDeepCopy)
-       !# <deepCopyReset variables="self%stellarPopulationSpectra_"/>
-       !# <deepCopy source="self%stellarPopulationSpectra_" destination="stellarPopulationSpectra_"/>
-       !# <deepCopyFinalize variables="stellarPopulationSpectra_"/>
+       !![
+       <deepCopyReset variables="self%stellarPopulationSpectra_"/>
+       !!]
+       !![
+       <deepCopy source="self%stellarPopulationSpectra_" destination="stellarPopulationSpectra_"/>
+       !!]
+       !![
+       <deepCopyFinalize variables="stellarPopulationSpectra_"/>
+       !!]
        !$omp end critical(nodePropertyExtractSEDDeepCopy)
     end if
     !$omp master
@@ -699,19 +765,23 @@ contains
        call displayUnindent    ("done",verbosityLevelWorking)
     end if
     !$omp end master
-    !# <objectDestructor name="stellarPopulationSpectra_"/>
+    !![
+    <objectDestructor name="stellarPopulationSpectra_"/>
+    !!]
     deallocate(integratorTime       )
     deallocate(integratorMetallicity)
     !$omp end parallel
     return
 
   contains
-    
+
     double precision function sedIntegrandMetallicity(metallicity)
-      !% Integrand over metallicity of the stellar population.
+      !!{
+      Integrand over metallicity of the stellar population.
+      !!}
       implicit none
       double precision, intent(in   ) :: metallicity
-      
+
       call abundancesStellar%metallicitySet(                                                       &
            &                                metallicity    =     metallicity                     , &
            &                                metallicityType=     metallicityTypeLinearByMassSolar, &
@@ -723,7 +793,9 @@ contains
     end function sedIntegrandMetallicity
 
     double precision function sedIntegrandTime(timeBirth)
-      !% Integrand over birth time of the stellar population.
+      !!{
+      Integrand over birth time of the stellar population.
+      !!}
       implicit none
       double precision, intent(in   ) :: timeBirth
 
@@ -747,20 +819,22 @@ contains
     end function sedIntegrandTime
 
     double precision function sedIntegrandWavelength(wavelength)
-      !% Integrand over wavelength of the stellar population. The assumption made here is that we have a photon-counting detector
-      !% (such as a CCD). So, we integrate the photon rate over the wavelength range, and then multiply by the energy at the
-      !% central wavelength $\bar{\lambda} = \mathrm{c}/\bar{\nu}$, to find the luminosity in the wavelength range. We then divide
-      !% by the width of the range in frequency to get our SED. Specifically,
-      !% \begin{equation}
-      !%  \langle L_\nu \rangle = \frac{\mathrm{h} \bar{\nu}}{\Delta \nu} \int_{\lambda_\mathrm{min}}^{\lambda_\mathrm{max}} \mathrm{d}\nu \frac{L_\nu}{\mathrm{h}\nu}.
-      !% \end{equation}
-      !% Using the factor that $\Delta\nu = \nu_1-\nu_2 = (\mathrm{c}/\bar{\lambda})(f-f^{-1})$ this can be written as
-      !% \begin{equation}
-      !%  \langle L_\nu \rangle = (f-f^{-1})^{-1} \int_{\lambda_\mathrm{min}}^{\lambda_\mathrm{max}} \frac{\mathrm{d}\lambda}{\lambda} L_\nu.
-      !% \end{equation}
+      !!{
+      Integrand over wavelength of the stellar population. The assumption made here is that we have a photon-counting detector
+      (such as a CCD). So, we integrate the photon rate over the wavelength range, and then multiply by the energy at the
+      central wavelength $\bar{\lambda} = \mathrm{c}/\bar{\nu}$, to find the luminosity in the wavelength range. We then divide
+      by the width of the range in frequency to get our SED. Specifically,
+      \begin{equation}
+        \langle L_\nu \rangle = \frac{\mathrm{h} \bar{\nu}}{\Delta \nu} \int_{\lambda_\mathrm{min}}^{\lambda_\mathrm{max}} \mathrm{d}\nu \frac{L_\nu}{\mathrm{h}\nu}.
+      \end{equation}
+      Using the factor that $\Delta\nu = \nu_1-\nu_2 = (\mathrm{c}/\bar{\lambda})(f-f^{-1})$ this can be written as
+      \begin{equation}
+        \langle L_\nu \rangle = (f-f^{-1})^{-1} \int_{\lambda_\mathrm{min}}^{\lambda_\mathrm{max}} \frac{\mathrm{d}\lambda}{\lambda} L_\nu.
+      \end{equation}
+      !!}
       implicit none
       double precision, intent(in   ) :: wavelength
-      
+
       if (parallelize) then
          sedIntegrandWavelength=     stellarPopulationSpectra_%luminosity(abundancesStellar,age,wavelength)
       else
@@ -776,9 +850,11 @@ contains
     end function sedIntegrandWavelength
 
   end function sedLuminosityMean
-  
+
   function sedHistoryHashedDescriptor(self,starFormationHistory)  
-    !% Return an input parameter list descriptor which could be used to recreate this object.
+    !!{
+    Return an input parameter list descriptor which could be used to recreate this object.
+    !!}
     use :: Input_Parameters    , only : inputParameters
     use :: String_Handling     , only : String_C_To_Fortran
     use :: Hashes_Cryptographic, only : Hash_MD5

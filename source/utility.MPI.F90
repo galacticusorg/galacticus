@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements useful MPI utilities.
+!!{
+Contains a module that implements useful MPI utilities.
+!!}
 
 module MPI_Utilities
-  !% Implements useful MPI utilities.
+  !!{
+  Implements useful MPI utilities.
+  !!}
 #ifdef USEMPI
   use               :: MPI_F08           , only : MPI_Win                , MPI_Datatype
 #endif
@@ -38,29 +42,31 @@ module MPI_Utilities
      type   (varying_string)                            :: hostName
      integer                , allocatable, dimension(:) :: allRanks      , nodeAffinities
    contains
-     !# <methods>
-     !#   <method description="Return true if this is the master process (i.e. rank-0 process)." method="isMaster" />
-     !#   <method description="Return true if MPI is active." method="isActive" />
-     !#   <method description="Return the rank of this process." method="rank" />
-     !#   <method description="Return the total number of processes." method="count" />
-     !#   <method description="Return a label containing the rank of the process." method="rankLabel" />
-     !#   <method description="Return the number of nodes on which this MPI job is running." method="nodeCount" />
-     !#   <method description="Return the index of the node on which the MPI process of the given rank (or this process if no rank is given) is running." method="nodeAffinity" />
-     !#   <method description="Return the name of the host on which this MPI process is running." method="hostAffinity" />
-     !#   <method description="Request the content of {\normalfont \ttfamily array} from each processes listed in {\normalfont \ttfamily requestFrom}." method="requestData" />
-     !#   <method description="Broadcast the content of {\normalfont \ttfamily array} from the {\normalfont \ttfamily sendFrom} processes to all other processes." method="broadcastData" />
-     !#   <method description="Return true if a message is waiting, optionally from the specified process and with the specified tag." method="messageWaiting" />
-     !#   <method description="Return the average of {\normalfont \ttfamily array} over all processes." method="average" />
-     !#   <method description="Return the median of {\normalfont \ttfamily array} over all processes." method="median" />
-     !#   <method description="Return the sum of {\normalfont \ttfamily array} over all processes." method="sum" />
-     !#   <method description="Return the maximum value of {\normalfont \ttfamily array} over all processes." method="maxval" />
-     !#   <method description="Return the rank of the process with the maximum value of {\normalfont \ttfamily array} over all processes." method="maxloc" />
-     !#   <method description="Return the minimum value of {\normalfont \ttfamily array} over all processes." method="minval" />
-     !#   <method description="Return true if any of {\normalfont \ttfamily scalar} is true over all processes." method="any" />
-     !#   <method description="Return true if every {\normalfont \ttfamily scalar} is true over all processes." method="all" />
-     !#   <method description="Return the rank of the process with the minimum value of {\normalfont \ttfamily array} over all processes." method="minloc" />
-     !#   <method description="Gather arrays from all processes into an array of rank one higher." method="gather" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return true if this is the master process (i.e. rank-0 process)." method="isMaster" />
+       <method description="Return true if MPI is active." method="isActive" />
+       <method description="Return the rank of this process." method="rank" />
+       <method description="Return the total number of processes." method="count" />
+       <method description="Return a label containing the rank of the process." method="rankLabel" />
+       <method description="Return the number of nodes on which this MPI job is running." method="nodeCount" />
+       <method description="Return the index of the node on which the MPI process of the given rank (or this process if no rank is given) is running." method="nodeAffinity" />
+       <method description="Return the name of the host on which this MPI process is running." method="hostAffinity" />
+       <method description="Request the content of {\normalfont \ttfamily array} from each processes listed in {\normalfont \ttfamily requestFrom}." method="requestData" />
+       <method description="Broadcast the content of {\normalfont \ttfamily array} from the {\normalfont \ttfamily sendFrom} processes to all other processes." method="broadcastData" />
+       <method description="Return true if a message is waiting, optionally from the specified process and with the specified tag." method="messageWaiting" />
+       <method description="Return the average of {\normalfont \ttfamily array} over all processes." method="average" />
+       <method description="Return the median of {\normalfont \ttfamily array} over all processes." method="median" />
+       <method description="Return the sum of {\normalfont \ttfamily array} over all processes." method="sum" />
+       <method description="Return the maximum value of {\normalfont \ttfamily array} over all processes." method="maxval" />
+       <method description="Return the rank of the process with the maximum value of {\normalfont \ttfamily array} over all processes." method="maxloc" />
+       <method description="Return the minimum value of {\normalfont \ttfamily array} over all processes." method="minval" />
+       <method description="Return true if any of {\normalfont \ttfamily scalar} is true over all processes." method="any" />
+       <method description="Return true if every {\normalfont \ttfamily scalar} is true over all processes." method="all" />
+       <method description="Return the rank of the process with the minimum value of {\normalfont \ttfamily array} over all processes." method="minloc" />
+       <method description="Gather arrays from all processes into an array of rank one higher." method="gather" />
+     </methods>
+     !!]
      procedure :: isMaster       => mpiIsMaster
      procedure :: isActive       => mpiIsActive
      procedure :: rank           => mpiGetRank
@@ -119,7 +125,9 @@ module MPI_Utilities
 
   ! Define an MPI counter type.
   type :: mpiCounter
-     !% An MPI-global counter class. The counter can be incremented and will return a globally unique integer, beginning at 0.
+     !!{
+     An MPI-global counter class. The counter can be incremented and will return a globally unique integer, beginning at 0.
+     !!}
 #ifdef USEMPI
      type   (MPI_Win     ) :: window
      type   (MPI_Datatype) :: typeClass
@@ -129,11 +137,13 @@ module MPI_Utilities
 #endif
      !$ type(ompLock )     :: ompLock_
    contains
-     !# <methods>
-     !#   <method description="Increment the counter and return the new value." method="increment"/>
-     !#   <method description="Decrement the counter and return the new value." method="decrement"/>
-     !#   <method description="Get the current value of the counter."           method="get"      />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Increment the counter and return the new value." method="increment"/>
+       <method description="Decrement the counter and return the new value." method="decrement"/>
+       <method description="Get the current value of the counter."           method="get"      />
+     </methods>
+     !!]
      final     ::              counterDestructor
      procedure :: increment => counterIncrement
      procedure :: decrement => counterDecrement
@@ -154,7 +164,9 @@ module MPI_Utilities
 contains
 
   subroutine mpiInitialize(mpiThreadingRequired)
-    !% Initialize MPI.
+    !!{
+    Initialize MPI.
+    !!}
 #ifdef USEMPI
     use :: MPI               , only : MPI_Max_Processor_Name , MPI_Thread_Funneled, MPI_Thread_Single, MPI_Comm_World, &
          &                            MPI_Character
@@ -174,7 +186,9 @@ contains
     character(len=MPI_Max_Processor_Name), dimension(:), allocatable   :: processorNames
     type     (integerHash               )                              :: processCount
     type     (varying_string            )                              :: message
-    !# <optionalArgument name="mpiThreadingRequired" defaultsTo="MPI_Thread_Funneled" />
+    !![
+    <optionalArgument name="mpiThreadingRequired" defaultsTo="MPI_Thread_Funneled" />
+    !!]
 
     if (mpiThreadingRequired_ == MPI_Thread_Single) then
        call MPI_Init              (                                           iError)
@@ -234,7 +248,9 @@ contains
   end subroutine mpiInitialize
 
   subroutine mpiFinalize()
-    !% Finalize MPI.
+    !!{
+    Finalize MPI.
+    !!}
 #ifdef USEMPI
     use Galacticus_Error, only : Galacticus_Error_Report
     implicit none
@@ -249,7 +265,9 @@ contains
   end subroutine mpiFinalize
 
   subroutine mpiBarrier()
-    !% Block until all MPI processes are synchronized.
+    !!{
+    Block until all MPI processes are synchronized.
+    !!}
 #ifdef USEMPI
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: MPI             , only : MPI_Barrier            , MPI_Comm_World
@@ -263,7 +281,9 @@ contains
   end subroutine mpiBarrier
 
   logical function mpiIsActive(self)
-    !% Return true if MPI is active.
+    !!{
+    Return true if MPI is active.
+    !!}
     implicit none
     class(mpiObject), intent(in   ) :: self
     !$GLC attributes unused :: self
@@ -273,7 +293,9 @@ contains
   end function mpiIsActive
 
   logical function mpiIsMaster(self)
-    !% Return true if this is the master process.
+    !!{
+    Return true if this is the master process.
+    !!}
     implicit none
     class(mpiObject), intent(in   ) :: self
 
@@ -287,7 +309,9 @@ contains
   end function mpiIsMaster
 
   integer function mpiGetRank(self)
-    !% Return MPI rank.
+    !!{
+    Return MPI rank.
+    !!}
 #ifndef USEMPI
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #endif
@@ -305,7 +329,9 @@ contains
   end function mpiGetRank
 
   function mpiGetRankLabel(self)
-    !% Return MPI rank label.
+    !!{
+    Return MPI rank label.
+    !!}
     use :: ISO_Varying_String, only : assignment(=)
 #ifndef USEMPI
     use :: Galacticus_Error  , only : Galacticus_Error_Report
@@ -333,7 +359,9 @@ contains
   end function mpiGetRankLabel
 
   integer function mpiGetCount(self)
-    !% Return MPI count.
+    !!{
+    Return MPI count.
+    !!}
 #ifndef USEMPI
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #endif
@@ -351,7 +379,9 @@ contains
   end function mpiGetCount
 
   integer function mpiGetNodeCount(self)
-    !% Return count of nodes used by MPI.
+    !!{
+    Return count of nodes used by MPI.
+    !!}
 #ifndef USEMPI
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #endif
@@ -369,7 +399,9 @@ contains
   end function mpiGetNodeCount
 
   integer function mpiGetNodeAffinity(self,rank)
-    !% Return node affinity of given MPI process.
+    !!{
+    Return node affinity of given MPI process.
+    !!}
 #ifndef USEMPI
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #endif
@@ -393,7 +425,9 @@ contains
   end function mpiGetNodeAffinity
 
   function mpiGetHostAffinity(self)
-    !% Return host affinity of this MPI process.
+    !!{
+    Return host affinity of this MPI process.
+    !!}
     use :: ISO_Varying_String, only : assignment(=)
 #ifndef USEMPI
     use :: Galacticus_Error  , only : Galacticus_Error_Report
@@ -413,7 +447,9 @@ contains
   end function mpiGetHostAffinity
 
   logical function mpiMessageWaiting(self,from,tag)
-    !% Return true if an MPI message (matching the optional {\normalfont \ttfamily from} and {\normalfont \ttfamily tag} if given) is waiting for receipt.
+    !!{
+    Return true if an MPI message (matching the optional {\normalfont \ttfamily from} and {\normalfont \ttfamily tag} if given) is waiting for receipt.
+    !!}
 #ifdef USEMPI
     use :: MPI_F08         , only : MPI_Status             , MPI_Any_Source, MPI_Any_Tag, MPI_IProbe, &
          &                          MPI_Comm_World
@@ -443,7 +479,9 @@ contains
   end function mpiMessageWaiting
 
   function mpiRequestData1D(self,requestFrom,array)
-    !% Request and receive data from other MPI processes.
+    !!{
+    Request and receive data from other MPI processes.
+    !!}
 #ifndef USEMPI
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #else
@@ -530,7 +568,9 @@ contains
   end function mpiRequestData1D
 
   function mpiRequestData2D(self,requestFrom,array)
-    !% Request and receive data from other MPI processes.
+    !!{
+    Request and receive data from other MPI processes.
+    !!}
 #ifndef USEMPI
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #else
@@ -617,7 +657,9 @@ contains
   end function mpiRequestData2D
 
   function mpiRequestDataInt1D(self,requestFrom,array)
-    !% Request and receive data from other MPI processes.
+    !!{
+    Request and receive data from other MPI processes.
+    !!}
 #ifndef USEMPI
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #else
@@ -703,7 +745,9 @@ contains
   end function mpiRequestDataInt1D
 
   function mpiRequestDataLogical1D(self,requestFrom,array)
-    !% Request and receive data from other MPI processes.
+    !!{
+    Request and receive data from other MPI processes.
+    !!}
 #ifndef USEMPI
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #else
@@ -789,7 +833,9 @@ contains
   end function mpiRequestDataLogical1D
 
   subroutine mpiBroadcastDataScalar(self,sendFrom,scalar)
-    !% Broadcast data to all other MPI processes.
+    !!{
+    Broadcast data to all other MPI processes.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #ifdef USEMPI
     use :: MPI_F08         , only : MPI_Comm_World, MPI_Double_Precision, MPI_Bcast
@@ -812,7 +858,9 @@ contains
   end subroutine mpiBroadcastDataScalar
 
   subroutine mpiBroadcastDataSizeTScalar(self,sendFrom,scalar)
-    !% Broadcast data to all other MPI processes.
+    !!{
+    Broadcast data to all other MPI processes.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #ifdef USEMPI
     use :: MPI_F08         , only : MPI_Comm_World, MPI_Integer8, MPI_Bcast
@@ -835,7 +883,9 @@ contains
   end subroutine mpiBroadcastDataSizeTScalar
   
   subroutine mpiBroadcastData1D(self,sendFrom,array)
-    !% Broadcast data to all other MPI processes.
+    !!{
+    Broadcast data to all other MPI processes.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #ifdef USEMPI
     use :: MPI_F08         , only : MPI_Comm_World, MPI_Double_Precision, MPI_Bcast
@@ -858,7 +908,9 @@ contains
   end subroutine mpiBroadcastData1D
   
   subroutine mpiBroadcastData2D(self,sendFrom,array)
-    !% Broadcast data to all other MPI processes.
+    !!{
+    Broadcast data to all other MPI processes.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #ifdef USEMPI
     use :: MPI_F08         , only : MPI_Comm_World, MPI_Double_Precision, MPI_Bcast
@@ -881,7 +933,9 @@ contains
   end subroutine mpiBroadcastData2D
   
   subroutine mpiBroadcastData3D(self,sendFrom,array)
-    !% Broadcast data to all other MPI processes.
+    !!{
+    Broadcast data to all other MPI processes.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #ifdef USEMPI
     use :: MPI_F08         , only : MPI_Comm_World, MPI_Double_Precision, MPI_Bcast
@@ -904,7 +958,9 @@ contains
   end subroutine mpiBroadcastData3D
   
   function mpiSumArrayInt(self,array,mask)
-    !% Sum an integer array over all processes, returning it to all processes.
+    !!{
+    Sum an integer array over all processes, returning it to all processes.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #ifdef USEMPI
     use :: MPI             , only : MPI_AllReduce          , MPI_Integer, MPI_Sum, MPI_Comm_World
@@ -938,7 +994,9 @@ contains
   end function mpiSumArrayInt
 
   function mpiSumArraySizeT(self,array,mask)
-    !% Sum an integer array over all processes, returning it to all processes.
+    !!{
+    Sum an integer array over all processes, returning it to all processes.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #ifdef USEMPI
     use :: MPI             , only : MPI_AllReduce          , MPI_Integer8, MPI_Sum, MPI_Comm_World
@@ -972,7 +1030,9 @@ contains
   end function mpiSumArraySizeT
 
   function mpiSumArrayTwoSizeT(self,array,mask)
-    !% Sum a rank-2 integer array over all processes, returning it to all processes.
+    !!{
+    Sum a rank-2 integer array over all processes, returning it to all processes.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #ifdef USEMPI
     use :: MPI             , only : MPI_AllReduce          , MPI_Integer8, MPI_Sum, MPI_Comm_World
@@ -1006,7 +1066,9 @@ contains
   end function mpiSumArrayTwoSizeT
 
   function mpiSumArrayThreeSizeT(self,array,mask)
-    !% Sum a rank-3 integer array over all processes, returning it to all processes.
+    !!{
+    Sum a rank-3 integer array over all processes, returning it to all processes.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #ifdef USEMPI
     use :: MPI             , only : MPI_AllReduce          , MPI_Integer8, MPI_Sum, MPI_Comm_World
@@ -1040,7 +1102,9 @@ contains
   end function mpiSumArrayThreeSizeT
   
   integer function mpiSumScalarInt(self,scalar,mask)
-    !% Sum an integer scalar over all processes, returning it to all processes.
+    !!{
+    Sum an integer scalar over all processes, returning it to all processes.
+    !!}
 #ifndef USEMPI
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #endif
@@ -1064,7 +1128,9 @@ contains
   end function mpiSumScalarInt
 
   function mpiSumScalarSizeT(self,scalar,mask)
-    !% Sum a {\normalfont \ttfamily size\_t} scalar over all processes, returning it to all processes.
+    !!{
+    Sum a {\normalfont \ttfamily size\_t} scalar over all processes, returning it to all processes.
+    !!}
 #ifndef USEMPI
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #endif
@@ -1089,7 +1155,9 @@ contains
   end function mpiSumScalarSizeT
 
   function mpiSumArrayDouble(self,array,mask)
-    !% Sum an integer array over all processes, returning it to all processes.
+    !!{
+    Sum an integer array over all processes, returning it to all processes.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #ifdef USEMPI
     use :: MPI             , only : MPI_AllReduce          , MPI_Double_Precision, MPI_Sum, MPI_Comm_World
@@ -1123,7 +1191,9 @@ contains
   end function mpiSumArrayDouble
 
   function mpiSumArrayTwoDouble(self,array,mask)
-    !% Sum an rank-2 double array over all processes, returning it to all processes.
+    !!{
+    Sum an rank-2 double array over all processes, returning it to all processes.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #ifdef USEMPI
     use :: MPI             , only : MPI_AllReduce          , MPI_Double_Precision, MPI_Sum, MPI_Comm_World
@@ -1157,7 +1227,9 @@ contains
   end function mpiSumArrayTwoDouble
 
   function mpiSumArrayThreeDouble(self,array,mask)
-    !% Sum an rank-3 double array over all processes, returning it to all processes.
+    !!{
+    Sum an rank-3 double array over all processes, returning it to all processes.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #ifdef USEMPI
     use :: MPI             , only : MPI_AllReduce          , MPI_Double_Precision, MPI_Sum, MPI_Comm_World
@@ -1191,7 +1263,9 @@ contains
   end function mpiSumArrayThreeDouble
 
   double precision function mpiSumScalarDouble(self,scalar,mask)
-    !% Sum an integer scalar over all processes, returning it to all processes.
+    !!{
+    Sum an integer scalar over all processes, returning it to all processes.
+    !!}
 #ifndef USEMPI
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #endif
@@ -1215,7 +1289,9 @@ contains
   end function mpiSumScalarDouble
 
   function mpiAverageArray(self,array,mask)
-    !% Average an array over all processes, returning it to all processes.
+    !!{
+    Average an array over all processes, returning it to all processes.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #ifdef USEMPI
     use :: MPI             , only : MPI_AllReduce          , MPI_Double_Precision, MPI_Sum, MPI_Comm_World
@@ -1251,7 +1327,9 @@ contains
   end function mpiAverageArray
 
   function mpiMedianArray(self,array,mask)
-    !% Find the median of an array over all processes, returning it to all processes.
+    !!{
+    Find the median of an array over all processes, returning it to all processes.
+    !!}
 #ifdef USEMPI
     use :: Sorting         , only : sort
 #else
@@ -1305,7 +1383,9 @@ contains
   end function mpiMedianArray
 
   double precision function mpiAverageScalar(self,scalar,mask)
-    !% Find the maximum values of a scalar over all processes, returning it to all processes.
+    !!{
+    Find the maximum values of a scalar over all processes, returning it to all processes.
+    !!}
 #ifndef USEMPI
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #endif
@@ -1329,7 +1409,9 @@ contains
   end function mpiAverageScalar
 
   function mpiMaxvalArray(self,array,mask)
-    !% Find the maximum values of an array over all processes, returning it to all processes.
+    !!{
+    Find the maximum values of an array over all processes, returning it to all processes.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #ifdef USEMPI
     use :: MPI             , only : MPI_AllReduce          , MPI_Double_Precision, MPI_Max, MPI_Comm_World
@@ -1361,7 +1443,9 @@ contains
   end function mpiMaxvalArray
 
   double precision function mpiMaxvalScalar(self,scalar,mask)
-    !% Find the maximum values of a scalar over all processes, returning it to all processes.
+    !!{
+    Find the maximum values of a scalar over all processes, returning it to all processes.
+    !!}
 #ifndef USEMPI
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #endif
@@ -1385,7 +1469,9 @@ contains
   end function mpiMaxvalScalar
 
   function mpiMaxloc(self,array,mask)
-    !% Find the rank of the process having maximum values of an array over all processes, returning it to all processes.
+    !!{
+    Find the rank of the process having maximum values of an array over all processes, returning it to all processes.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #ifdef USEMPI
     use :: MPI             , only : MPI_AllReduce          , MPI_2Double_Precision, MPI_MaxLoc, MPI_Comm_World
@@ -1419,7 +1505,9 @@ contains
   end function mpiMaxloc
 
   function mpiMinvalArray(self,array,mask)
-    !% Find the minimum values of an array over all processes, returning it to all processes.
+    !!{
+    Find the minimum values of an array over all processes, returning it to all processes.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #ifdef USEMPI
     use :: MPI             , only : MPI_AllReduce          , MPI_Double_Precision, MPI_Min, MPI_Comm_World
@@ -1451,7 +1539,9 @@ contains
   end function mpiMinvalArray
 
   function mpiMinvalIntArray(self,array,mask)
-    !% Find the minimum values of an array over all processes, returning it to all processes.
+    !!{
+    Find the minimum values of an array over all processes, returning it to all processes.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #ifdef USEMPI
     use :: MPI, only : MPI_AllReduce, MPI_Integer, MPI_Min, MPI_Comm_World
@@ -1483,7 +1573,9 @@ contains
   end function mpiMinvalIntArray
 
   double precision function mpiMinvalScalar(self,scalar,mask)
-    !% Find the minimum values of a scalar over all processes, returning it to all processes.
+    !!{
+    Find the minimum values of a scalar over all processes, returning it to all processes.
+    !!}
 #ifndef USEMPI
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #endif
@@ -1507,7 +1599,9 @@ contains
   end function mpiMinvalScalar
 
   integer function mpiMinvalIntScalar(self,scalar,mask)
-    !% Find the minimum values of a scalar over all processes, returning it to all processes.
+    !!{
+    Find the minimum values of a scalar over all processes, returning it to all processes.
+    !!}
 #ifndef USEMPI
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #endif
@@ -1531,7 +1625,9 @@ contains
   end function mpiMinvalIntScalar
 
   function mpiMinloc(self,array,mask)
-    !% Find the rank of the process having minimum values of an array over all processes, returning it to all processes.
+    !!{
+    Find the rank of the process having minimum values of an array over all processes, returning it to all processes.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #ifdef USEMPI
     use :: MPI             , only : MPI_AllReduce          , MPI_2Double_Precision, MPI_MinLoc, MPI_Comm_World
@@ -1565,7 +1661,9 @@ contains
   end function mpiMinloc
 
   logical function mpiAnyLogicalScalar(self,boolean,mask)
-    !% Return true if any of the given booleans is true over all processes.
+    !!{
+    Return true if any of the given booleans is true over all processes.
+    !!}
 #ifndef USEMPI
     use Galacticus_Error, only : Galacticus_Error_Report
 #else
@@ -1595,7 +1693,9 @@ contains
   end function mpiAnyLogicalScalar
 
   logical function mpiAllLogicalScalar(self,boolean,mask)
-    !% Return true if all of the given booleans are true over all processes.
+    !!{
+    Return true if all of the given booleans are true over all processes.
+    !!}
 #ifndef USEMPI
     use :: Galacticus_Error, only : Galacticus_Error_Report
 #else
@@ -1625,7 +1725,9 @@ contains
   end function mpiAllLogicalScalar
 
   function mpiGatherScalar(self,scalar)
-    !% Gather a scalar from all processes, returning it as a 1-D array.
+    !!{
+    Gather a scalar from all processes, returning it as a 1-D array.
+    !!}
 #ifndef USEMPI
     use Galacticus_Error, only : Galacticus_Error_Report
 #endif
@@ -1649,7 +1751,9 @@ contains
   end function mpiGatherScalar
 
   function mpiGather1D(self,array)
-    !% Gather a 1-D array from all processes, returning it as a 2-D array.
+    !!{
+    Gather a 1-D array from all processes, returning it as a 2-D array.
+    !!}
 #ifndef USEMPI
     use Galacticus_Error, only : Galacticus_Error_Report
 #endif
@@ -1669,7 +1773,9 @@ contains
   end function mpiGather1D
 
   function mpiGather2D(self,array)
-    !% Gather a 1-D array from all processes, returning it as a 2-D array.
+    !!{
+    Gather a 1-D array from all processes, returning it as a 2-D array.
+    !!}
 #ifndef USEMPI
     use Galacticus_Error, only : Galacticus_Error_Report
 #endif
@@ -1689,7 +1795,9 @@ contains
   end function mpiGather2D
 
   function mpiGatherLogicalScalar(self,scalar)
-    !% Gather a logical scalar from all processes, returning it as a 1-D array.
+    !!{
+    Gather a logical scalar from all processes, returning it as a 1-D array.
+    !!}
 #ifndef USEMPI
     use Galacticus_Error, only : Galacticus_Error_Report
 #endif
@@ -1713,7 +1821,9 @@ contains
   end function mpiGatherLogicalScalar
 
   function mpiGatherIntScalar(self,scalar)
-    !% Gather an integre scalar from all processes, returning it as a 1-D array.
+    !!{
+    Gather an integre scalar from all processes, returning it as a 1-D array.
+    !!}
 #ifndef USEMPI
     use Galacticus_Error, only : Galacticus_Error_Report
 #endif
@@ -1737,7 +1847,9 @@ contains
   end function mpiGatherIntScalar
 
   function mpiGatherInt1D(self,array)
-    !% Gather an integer 1-D array from all processes, returning it as a 2-D array.
+    !!{
+    Gather an integer 1-D array from all processes, returning it as a 2-D array.
+    !!}
 #ifndef USEMPI
     use Galacticus_Error, only : Galacticus_Error_Report
 #endif
@@ -1757,7 +1869,9 @@ contains
   end function mpiGatherInt1D
 
   function counterConstructor() result(self)
-    !% Constructor for MPI counter class.
+    !!{
+    Constructor for MPI counter class.
+    !!}
     use, intrinsic :: ISO_C_Binding   , only : C_Null_Ptr, C_F_Pointer
 #ifdef USEMPI
     use            :: Galacticus_Error, only : Galacticus_Error_Report
@@ -1808,7 +1922,9 @@ call mpiBarrier()
   end function counterConstructor
 
   subroutine counterDestructor(self)
-    !% Destructor for the MPI counter class.
+    !!{
+    Destructor for the MPI counter class.
+    !!}
 #ifdef USEMPI
     use :: MPI_F08, only : MPI_Win_Free, MPI_Free_Mem
 #endif
@@ -1826,7 +1942,9 @@ call mpiBarrier()
   end subroutine counterDestructor
 
   function counterIncrement(self)
-    !% Increment an MPI counter.
+    !!{
+    Increment an MPI counter.
+    !!}
 #ifdef USEMPI
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: MPI_F08         , only : MPI_Win_Lock           , MPI_Get_Accumulate, MPI_Win_Unlock, MPI_Lock_Exclusive, &
@@ -1859,7 +1977,9 @@ call mpiBarrier()
   end function counterIncrement
 
   function counterDecrement(self)
-    !% Decrement an MPI counter.
+    !!{
+    Decrement an MPI counter.
+    !!}
 #ifdef USEMPI
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: MPI_F08         , only : MPI_Win_Lock           , MPI_Get_Accumulate, MPI_Win_Unlock, MPI_Lock_Exclusive, &
@@ -1892,7 +2012,9 @@ call mpiBarrier()
   end function counterDecrement
 
   function counterGet(self)
-    !% Return the current value of an MPI counter.
+    !!{
+    Return the current value of an MPI counter.
+    !!}
 #ifdef USEMPI
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: MPI_F08         , only : MPI_Win_Lock           , MPI_Get, MPI_Win_Unlock, MPI_Lock_Exclusive, &

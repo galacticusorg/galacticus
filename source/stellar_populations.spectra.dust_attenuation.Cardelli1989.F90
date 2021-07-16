@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements calculations of attenuation of stellar spectra using the model of \cite{cardelli_relationship_1989}.
+  !!{
+  Implements calculations of attenuation of stellar spectra using the model of \cite{cardelli_relationship_1989}.
+  !!}
 
-  !# <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationCardelli1989">
-  !#  <description>Returns the dust attenuation of stellar spectra according to the model of \cite{cardelli_relationship_1989}.</description>
-  !# </stellarSpectraDustAttenuation>
+  !![
+  <stellarSpectraDustAttenuation name="stellarSpectraDustAttenuationCardelli1989">
+   <description>Returns the dust attenuation of stellar spectra according to the model of \cite{cardelli_relationship_1989}.</description>
+  </stellarSpectraDustAttenuation>
+  !!]
   type, extends(stellarSpectraDustAttenuationClass) :: stellarSpectraDustAttenuationCardelli1989
-     !% A class implementing calculations of attenuation of stellar spectra using the model of \cite{cardelli_relationship_1989}.
+     !!{
+     A class implementing calculations of attenuation of stellar spectra using the model of \cite{cardelli_relationship_1989}.
+     !!}
      private
      double precision :: Rv
    contains
-     !# <methods>
-     !#   <method description="Return fitting function $a(x)$ for the dust attenuation model of \cite{cardelli_relationship_1989}." method="a" />
-     !#   <method description="Return fitting function $b(x)$ for the dust attenuation model of \cite{cardelli_relationship_1989}." method="b" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return fitting function $a(x)$ for the dust attenuation model of \cite{cardelli_relationship_1989}." method="a" />
+       <method description="Return fitting function $b(x)$ for the dust attenuation model of \cite{cardelli_relationship_1989}." method="b" />
+     </methods>
+     !!]
      procedure :: attenuation => cardelli1989Attenuation
      procedure :: a           => cardelli1989A
      procedure :: b           => cardelli1989B
   end type stellarSpectraDustAttenuationCardelli1989
 
   interface stellarSpectraDustAttenuationCardelli1989
-     !% Constructors for the ``cardelli1989'' stellar spectra dust attenuation class.
+     !!{
+     Constructors for the ``cardelli1989'' stellar spectra dust attenuation class.
+     !!}
      module procedure cardelli1989ConstructorParameters
      module procedure cardelli1989ConstructorInternal
   end interface stellarSpectraDustAttenuationCardelli1989
@@ -45,37 +55,49 @@
 contains
 
   function cardelli1989ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily cardelli1989} stellar spectra dust attenuation class which takes a parameter set
-    !% as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily cardelli1989} stellar spectra dust attenuation class which takes a parameter set
+    as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (stellarSpectraDustAttenuationCardelli1989)                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
     double precision                                                           :: Rv
 
-    !# <inputParameter>
-    !#   <name>Rv</name>
-    !#   <defaultValue>3.1d0</defaultValue>
-    !#   <description>The relative visibility, $R_\mathrm{V}$.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>Rv</name>
+      <defaultValue>3.1d0</defaultValue>
+      <description>The relative visibility, $R_\mathrm{V}$.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=stellarSpectraDustAttenuationCardelli1989(Rv)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function cardelli1989ConstructorParameters
 
   function cardelli1989ConstructorInternal(Rv) result(self)
-    !% Constructor for the ``cardelli1989'' stellar spectra dust attenuation class.
+    !!{
+    Constructor for the ``cardelli1989'' stellar spectra dust attenuation class.
+    !!}
     implicit none
     type            (stellarSpectraDustAttenuationCardelli1989)                :: self
     double precision                                           , intent(in   ) :: Rv
-    !# <constructorAssign variables="Rv"/>
+    !![
+    <constructorAssign variables="Rv"/>
+    !!]
 
     return
   end function cardelli1989ConstructorInternal
 
   double precision function cardelli1989Attenuation(self,wavelength,age,vBandAttenuation)
-    !% Return attenuation of stellar spectra according to the model of \cite{cardelli_relationship_1989}.
+    !!{
+    Return attenuation of stellar spectra according to the model of \cite{cardelli_relationship_1989}.
+    !!}
     use :: Numerical_Constants_Units, only : angstromsPerMicron
     implicit none
     class           (stellarSpectraDustAttenuationCardelli1989), intent(inout) :: self
@@ -90,7 +112,9 @@ contains
   end function cardelli1989Attenuation
 
   double precision function cardelli1989A(self,x)
-    !% Return fitting function $a(x)$ for the dust attenuation model of \cite{cardelli_relationship_1989}.
+    !!{
+    Return fitting function $a(x)$ for the dust attenuation model of \cite{cardelli_relationship_1989}.
+    !!}
     implicit none
     class           (stellarSpectraDustAttenuationCardelli1989), intent(inout) :: self
     double precision                                           , intent(in   ) :: x
@@ -126,7 +150,9 @@ contains
   end function cardelli1989A
 
   double precision function cardelli1989B(self,x)
-    !% Return fitting function $a(x)$ for the dust attenuation model of \cite{cardelli_relationship_1989}.
+    !!{
+    Return fitting function $a(x)$ for the dust attenuation model of \cite{cardelli_relationship_1989}.
+    !!}
     implicit none
     class           (stellarSpectraDustAttenuationCardelli1989), intent(inout) :: self
     double precision                                           , intent(in   ) :: x

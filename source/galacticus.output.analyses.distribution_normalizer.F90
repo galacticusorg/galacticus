@@ -17,26 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that normalizors on distributions used in on-the-fly output analyses.
+!!{
+Contains a module which provides a class that normalizors on distributions used in on-the-fly output analyses.
+!!}
 
 module Output_Analysis_Distribution_Normalizers
-  !% Provides a class that normalizors on distributions used in on-the-fly output analyses.
+  !!{
+  Provides a class that normalizors on distributions used in on-the-fly output analyses.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
-  !# <functionClass>
-  !#  <name>outputAnalysisDistributionNormalizer</name>
-  !#  <descriptiveName>Output Analysis Distribution Normalizer</descriptiveName>
-  !#  <description>Class providing normalizers on distributions for on-the-fly analysis of outputs.</description>
-  !#  <default>identity</default>
-  !#  <method name="normalize" >
-  !#   <description>Normalize a distribution.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(inout), dimension(:  ) :: distribution</argument>
-  !#   <argument>double precision, intent(inout), dimension(:,:) :: covariance</argument>
-  !#   <argument>double precision, intent(in   ), dimension(:  ) :: propertyValueMinimum, propertyValueMaximum</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>outputAnalysisDistributionNormalizer</name>
+   <descriptiveName>Output Analysis Distribution Normalizer</descriptiveName>
+   <description>Class providing normalizers on distributions for on-the-fly analysis of outputs.</description>
+   <default>identity</default>
+   <method name="normalize" >
+    <description>Normalize a distribution.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(inout), dimension(:  ) :: distribution</argument>
+    <argument>double precision, intent(inout), dimension(:,:) :: covariance</argument>
+    <argument>double precision, intent(in   ), dimension(:  ) :: propertyValueMinimum, propertyValueMaximum</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Output_Analysis_Distribution_Normalizers

@@ -19,7 +19,9 @@
 
   !+    Contributions to this file made by: Andrew Benson.
 
-  !% An implementation of cosmological velocity field computed using a filtered power spectrum.
+  !!{
+  An implementation of cosmological velocity field computed using a filtered power spectrum.
+  !!}
   use :: Cosmology_Parameters           , only : cosmologyParametersClass
   use :: Cosmology_Functions            , only : cosmologyFunctionsClass
   use :: Correlation_Functions_Two_Point, only : correlationFunctionTwoPointClass
@@ -27,16 +29,20 @@
   use :: Power_Spectra                  , only : powerSpectrumClass
   use :: Power_Spectrum_Window_Functions, only : powerSpectrumWindowFunctionClass
 
-  !# <cosmologicalVelocityField name="cosmologicalVelocityFieldFilteredPower">
-  !#  <description>
-  !#   Cosmological velocity field computed by filtering the linear theory power spectrum. The growth factor for velocities is
-  !#   $D_\mathrm{v}(t) = a(t) D(t) H(t) f(t)$, where $D(t)$ is the usual growth factor for density, and $f(t) = \mathrm{d}\log D
-  !#   / \mathrm{d} \log a$. Note that the factor of $D(t)$ does not explicitly appear in expressions for the velocity dispersion
-  !#   since it is included in the linear theory power spectrum appearing in those expressions.
-  !#  </description>
-  !# </cosmologicalVelocityField>
+  !![
+  <cosmologicalVelocityField name="cosmologicalVelocityFieldFilteredPower">
+   <description>
+    Cosmological velocity field computed by filtering the linear theory power spectrum. The growth factor for velocities is
+    $D_\mathrm{v}(t) = a(t) D(t) H(t) f(t)$, where $D(t)$ is the usual growth factor for density, and $f(t) = \mathrm{d}\log D
+    / \mathrm{d} \log a$. Note that the factor of $D(t)$ does not explicitly appear in expressions for the velocity dispersion
+    since it is included in the linear theory power spectrum appearing in those expressions.
+   </description>
+  </cosmologicalVelocityField>
+  !!]
   type, extends(cosmologicalVelocityFieldClass) :: cosmologicalVelocityFieldFilteredPower
-     !% A cosmological mass variance class computing variance from a filtered power spectrum.
+     !!{
+     A cosmological mass variance class computing variance from a filtered power spectrum.
+     !!}
      private
      class           (cosmologyParametersClass        ), pointer :: cosmologyParameters_         => null()
      class           (cosmologyFunctionsClass         ), pointer :: cosmologyFunctions_          => null()
@@ -46,10 +52,12 @@
      class           (correlationFunctionTwoPointClass), pointer :: correlationFunctionTwoPoint_ => null()
      double precision                                            :: wavenumberMaximum
    contains
-     !# <methods>
-     !#  <method description="Compute the function $\sigma_j^2(m) = {1 \over 2 \pi^2} \int_0^\infty \mathrm{d}k k^{2+2j} P(k) W^2[kR(m)]$, e.g. \cite[][unnumbered equation following eqn.~8]{sheth_peculiar_2001}."                    method="sigmaJ"        />
-     !#  <method description="Compute the peak correction term for the velocity dispersion of halos of given {\normalfont \ttfamily mass}, e.g. \cite[][eqn.~8]{sheth_peculiar_2001}, and \cite[][eqn. 4.26]{bardeen_statistics_1986}." method="peakCorrection"/>
-     !# </methods>
+     !![
+     <methods>
+      <method description="Compute the function $\sigma_j^2(m) = {1 \over 2 \pi^2} \int_0^\infty \mathrm{d}k k^{2+2j} P(k) W^2[kR(m)]$, e.g. \cite[][unnumbered equation following eqn.~8]{sheth_peculiar_2001}."                    method="sigmaJ"        />
+      <method description="Compute the peak correction term for the velocity dispersion of halos of given {\normalfont \ttfamily mass}, e.g. \cite[][eqn.~8]{sheth_peculiar_2001}, and \cite[][eqn. 4.26]{bardeen_statistics_1986}." method="peakCorrection"/>
+     </methods>
+     !!]
      final     ::                                     filteredPowerDestructor
      procedure :: velocityRadialMeanPairwise       => filteredPowerVelocityRadialMeanPairwise
      procedure :: velocityDispersion1D             => filteredPowerVelocityDispersion1D
@@ -59,7 +67,9 @@
   end type cosmologicalVelocityFieldFilteredPower
 
   interface cosmologicalVelocityFieldFilteredPower
-     !% Constructors for the {\normalfont \ttfamily filteredPower} cosmological mass variance class.
+     !!{
+     Constructors for the {\normalfont \ttfamily filteredPower} cosmological mass variance class.
+     !!}
      module procedure filteredPowerConstructorParameters
      module procedure filteredPowerConstructorInternal
   end interface cosmologicalVelocityFieldFilteredPower
@@ -67,7 +77,9 @@
 contains
 
   function filteredPowerConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily filteredPower} cosmological mass variance class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily filteredPower} cosmological mass variance class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (cosmologicalVelocityFieldFilteredPower)                :: self
@@ -80,31 +92,37 @@ contains
     class           (correlationFunctionTwoPointClass      ), pointer       :: correlationFunctionTwoPoint_
     double precision                                                        :: wavenumberMaximum
 
-    !# <inputParameter>
-    !#   <name>wavenumberMaximum</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>huge(0.0d0)</defaultValue>
-    !#   <description>The maximum wavenumber to which to integrate the power spectrum. By default this in infinite. It can be useful to set a smaller value for power spectra with small-scale cut offs to avoid convergence issues in the integrals.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters"         name="cosmologyParameters_"         source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters"/>
-    !# <objectBuilder class="powerSpectrum"               name="powerSpectrum_"               source="parameters"/>
-    !# <objectBuilder class="powerSpectrumWindowFunction" name="powerSpectrumWindowFunction_" source="parameters"/>
-    !# <objectBuilder class="linearGrowth"                name="linearGrowth_"                source="parameters"/>
-    !# <objectBuilder class="correlationFunctionTwoPoint" name="correlationFunctionTwoPoint_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>wavenumberMaximum</name>
+      <source>parameters</source>
+      <defaultValue>huge(0.0d0)</defaultValue>
+      <description>The maximum wavenumber to which to integrate the power spectrum. By default this in infinite. It can be useful to set a smaller value for power spectra with small-scale cut offs to avoid convergence issues in the integrals.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters"         name="cosmologyParameters_"         source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"          name="cosmologyFunctions_"          source="parameters"/>
+    <objectBuilder class="powerSpectrum"               name="powerSpectrum_"               source="parameters"/>
+    <objectBuilder class="powerSpectrumWindowFunction" name="powerSpectrumWindowFunction_" source="parameters"/>
+    <objectBuilder class="linearGrowth"                name="linearGrowth_"                source="parameters"/>
+    <objectBuilder class="correlationFunctionTwoPoint" name="correlationFunctionTwoPoint_" source="parameters"/>
+    !!]
     self=filteredPowerConstructorInternal(wavenumberMaximum,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrum_,powerSpectrumWindowFunction_,correlationFunctionTwoPoint_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"        />
-    !# <objectDestructor name="cosmologyFunctions_"         />
-    !# <objectDestructor name="linearGrowth_"               />
-    !# <objectDestructor name="powerSpectrum_"              />
-    !# <objectDestructor name="powerSpectrumWindowFunction_"/>
-    !# <objectDestructor name="correlationFunctionTwoPoint_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"        />
+    <objectDestructor name="cosmologyFunctions_"         />
+    <objectDestructor name="linearGrowth_"               />
+    <objectDestructor name="powerSpectrum_"              />
+    <objectDestructor name="powerSpectrumWindowFunction_"/>
+    <objectDestructor name="correlationFunctionTwoPoint_"/>
+    !!]
     return
   end function filteredPowerConstructorParameters
 
   function filteredPowerConstructorInternal(wavenumberMaximum,cosmologyParameters_,cosmologyFunctions_,linearGrowth_,powerSpectrum_,powerSpectrumWindowFunction_,correlationFunctionTwoPoint_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily filteredPower} linear growth class.
+    !!}
     implicit none
     type            (cosmologicalVelocityFieldFilteredPower)                        :: self
     class           (cosmologyParametersClass              ), intent(in   ), target :: cosmologyParameters_
@@ -114,29 +132,37 @@ contains
     class           (linearGrowthClass                     ), intent(in   ), target :: linearGrowth_
     class           (correlationFunctionTwoPointClass      ), intent(in   ), target :: correlationFunctionTwoPoint_
     double precision                                        , intent(in   )         :: wavenumberMaximum
-    !# <constructorAssign variables="wavenumberMaximum, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *powerSpectrum_, *powerSpectrumWindowFunction_, *correlationFunctionTwoPoint_"/>
+    !![
+    <constructorAssign variables="wavenumberMaximum, *cosmologyParameters_, *cosmologyFunctions_, *linearGrowth_, *powerSpectrum_, *powerSpectrumWindowFunction_, *correlationFunctionTwoPoint_"/>
+    !!]
 
     return
   end function filteredPowerConstructorInternal
 
   subroutine filteredPowerDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily filteredPower} linear growth class.
+    !!{
+    Destructor for the {\normalfont \ttfamily filteredPower} linear growth class.
+    !!}
     implicit none
     type   (cosmologicalVelocityFieldFilteredPower), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"        />
-    !# <objectDestructor name="self%cosmologyFunctions_"         />
-    !# <objectDestructor name="self%linearGrowth_"               />
-    !# <objectDestructor name="self%powerSpectrum_"              />
-    !# <objectDestructor name="self%powerSpectrumWindowFunction_"/>
-    !# <objectDestructor name="self%correlationFunctionTwoPoint_"/>
+    !![
+    <objectDestructor name="self%cosmologyParameters_"        />
+    <objectDestructor name="self%cosmologyFunctions_"         />
+    <objectDestructor name="self%linearGrowth_"               />
+    <objectDestructor name="self%powerSpectrum_"              />
+    <objectDestructor name="self%powerSpectrumWindowFunction_"/>
+    <objectDestructor name="self%correlationFunctionTwoPoint_"/>
+    !!]
     return
   end subroutine filteredPowerDestructor
 
   double precision function filteredPowerVelocityRadialMeanPairwise(self,separation,time,includeHubbleFlow)
-    !% Return the mean radial velocity (averaged over all positions) at a given {\normalfont \ttfamily separation} and
-    !% {\normalfont \ttfamily time}. If {\normalfont \ttfamily includeHubbleFlow} is {\normalfont \ttfamily true} then the Hubble
-    !% flow is included, otherwise only the peculiar component of the mean radial velocity is computed.
+    !!{
+    Return the mean radial velocity (averaged over all positions) at a given {\normalfont \ttfamily separation} and
+    {\normalfont \ttfamily time}. If {\normalfont \ttfamily includeHubbleFlow} is {\normalfont \ttfamily true} then the Hubble
+    flow is included, otherwise only the peculiar component of the mean radial velocity is computed.
+    !!}
     implicit none
     class           (cosmologicalVelocityFieldFilteredPower), intent(inout) :: self
     double precision                                        , intent(in   ) :: separation        , time
@@ -167,8 +193,10 @@ contains
   end function filteredPowerVelocityRadialMeanPairwise
 
   double precision function filteredPowerVelocityDispersion1D(self,mass,time)
-    !% Return the 1-D dispersion of the velocity field smoothed over in a spherical region containing the given {\normalfont
-    !% \ttfamily mass} on average.
+    !!{
+    Return the 1-D dispersion of the velocity field smoothed over in a spherical region containing the given {\normalfont
+    \ttfamily mass} on average.
+    !!}
     implicit none
     class           (cosmologicalVelocityFieldFilteredPower), intent(inout) :: self
     double precision                                        , intent(in   ) :: mass, time
@@ -182,11 +210,13 @@ contains
   end function filteredPowerVelocityDispersion1D
 
   double precision function filteredPowerSigmaJ(self,mass,time,j)
-    !% Compute the quantity:
-    !% \begin{equation}
-    !%  \sigma_j^2(m) = {1 \over 2 \pi^2} \int_0^\infty \mathrm{d}k k^{2+2j} P(k) W^2[kR(m)],
-    !% \end{equation}
-    !% e.g. \cite[][unnumbered equation following eqn.~8]{sheth_peculiar_2001}.
+    !!{
+    Compute the quantity:
+    \begin{equation}
+     \sigma_j^2(m) = {1 \over 2 \pi^2} \int_0^\infty \mathrm{d}k k^{2+2j} P(k) W^2[kR(m)],
+    \end{equation}
+    e.g. \cite[][unnumbered equation following eqn.~8]{sheth_peculiar_2001}.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator, GSL_Integ_Gauss15
     implicit none
@@ -220,8 +250,10 @@ contains
   contains
     
     double precision function powerIntegrand(wavenumber)
-      !% Integrand appearing in the definition of $\sigma_j(m)$, e.g. 
-      !% \cite[][unnumbered equation following eqn.~8]{sheth_peculiar_2001}.
+      !!{
+      Integrand appearing in the definition of $\sigma_j(m)$, e.g. 
+      \cite[][unnumbered equation following eqn.~8]{sheth_peculiar_2001}.
+      !!}
       implicit none
       double precision, intent(in   ) :: wavenumber
 
@@ -236,11 +268,13 @@ contains
   end function filteredPowerSigmaJ
   
   double precision function filteredPowerVelocityDispersion1DHaloPairwise(self,mass1,mass2,separation,time)
-    !% Compute the linear theory velocity dispersion between two patches along line of sight connecting them (this is therefore relevant to the 1D
-    !% dispersion), including the effect of correlated velocities between the patches. The integral evaluated here is the sum of the
-    !% integral for the linear velocity dispersion of each halo \citep[][eqn.~8]{sheth_peculiar_2001} and the correlation integral
-    !% \citep[][eqns.~28 \& 29]{sheth_linear_2001}. We evaluate the integrals together (instead of separately) as at small radii
-    !% they cancel to high order---evaluating them separately leads to inaccurate estimates of the velocity dispersion.
+    !!{
+    Compute the linear theory velocity dispersion between two patches along line of sight connecting them (this is therefore relevant to the 1D
+    dispersion), including the effect of correlated velocities between the patches. The integral evaluated here is the sum of the
+    integral for the linear velocity dispersion of each halo \citep[][eqn.~8]{sheth_peculiar_2001} and the correlation integral
+    \citep[][eqns.~28 \& 29]{sheth_linear_2001}. We evaluate the integrals together (instead of separately) as at small radii
+    they cancel to high order---evaluating them separately leads to inaccurate estimates of the velocity dispersion.
+    !!}
     use :: Galacticus_Error        , only : Galacticus_Warn, errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator     , GSL_Integ_Gauss15
@@ -291,7 +325,9 @@ contains
   contains
     
     double precision function velocityDispersionIntegrand(wavenumber)
-      !% Integrand for the velocity dispersion.
+      !!{
+      Integrand for the velocity dispersion.
+      !!}
       implicit none
       double precision, intent(in   ) :: wavenumber
       
@@ -313,8 +349,10 @@ contains
   end function filteredPowerVelocityDispersion1DHaloPairwise
 
   double precision function K(x)
-    !% Correlation window function appearing in the definition of the correlation in velocity between two patches along line of sight connecting
-    !% them, $\psi(m_1,m_2|r)$, e.g. \cite[][eqn.~28]{sheth_linear_2001}.
+    !!{
+    Correlation window function appearing in the definition of the correlation in velocity between two patches along line of sight connecting
+    them, $\psi(m_1,m_2|r)$, e.g. \cite[][eqn.~28]{sheth_linear_2001}.
+    !!}
     implicit none
     double precision, intent(in   ) :: x
     
@@ -331,8 +369,10 @@ contains
   end function K
 
   double precision function filteredPowerPeakCorrection(self,mass,time)
-    !% Compute the peak correction term for the velocity dispersion of halos of given {\normalfont \ttfamily mass},
-    !% e.g. \cite[][eqn.~8]{sheth_peculiar_2001}, and \cite[][eqn. 4.26]{bardeen_statistics_1986}.
+    !!{
+    Compute the peak correction term for the velocity dispersion of halos of given {\normalfont \ttfamily mass},
+    e.g. \cite[][eqn.~8]{sheth_peculiar_2001}, and \cite[][eqn. 4.26]{bardeen_statistics_1986}.
+    !!}
     implicit none
     class           (cosmologicalVelocityFieldFilteredPower), intent(inout)    :: self
     double precision                                        , intent(in   )    :: mass  , time

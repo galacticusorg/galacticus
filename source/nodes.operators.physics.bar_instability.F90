@@ -17,20 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that implements bar instabilities in disks.
+  !!{
+  Implements a node operator class that implements bar instabilities in disks.
+  !!}
 
   use :: Dark_Matter_Halo_Scales            , only : darkMatterHaloScaleClass
   use :: Galactic_Dynamics_Bar_Instabilities, only : galacticDynamicsBarInstabilityClass
   
-  !# <nodeOperator name="nodeOperatorBarInstability">
-  !#  <description>
-  !#   A node operator class that implements bar instabilities in disks. A fraction of the angular momentum of the material
-  !#   transferred from the disk to the spheroid is retained in the disk as suggested by numerical experiments
-  !#   \citep{klypin_cdm-based_2002}.
-  !#  </description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorBarInstability">
+   <description>
+    A node operator class that implements bar instabilities in disks. A fraction of the angular momentum of the material
+    transferred from the disk to the spheroid is retained in the disk as suggested by numerical experiments
+    \citep{klypin_cdm-based_2002}.
+   </description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorBarInstability
-     !% A node operator class that implements bar instabilities in disks.
+     !!{
+     A node operator class that implements bar instabilities in disks.
+     !!}
      private
      class  (darkMatterHaloScaleClass           ), pointer :: darkMatterHaloScale_            => null()
      class  (galacticDynamicsBarInstabilityClass), pointer :: galacticDynamicsBarInstability_ => null()
@@ -41,7 +47,9 @@
   end type nodeOperatorBarInstability
 
   interface nodeOperatorBarInstability
-     !% Constructors for the {\normalfont \ttfamily barInstability} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily barInstability} node operator class.
+     !!}
      module procedure barInstabilityConstructorParameters
      module procedure barInstabilityConstructorInternal
   end interface nodeOperatorBarInstability
@@ -49,7 +57,9 @@
 contains
 
   function barInstabilityConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily barInstability} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily barInstability} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type   (nodeOperatorBarInstability         )                :: self
@@ -58,45 +68,59 @@ contains
     class  (galacticDynamicsBarInstabilityClass), pointer       :: galacticDynamicsBarInstability_
     logical                                                     :: luminositiesStellarInactive
 
-    !# <inputParameter>
-    !#   <name>luminositiesStellarInactive</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>If true, stellar luminosities will be treated as inactive properties.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"/>
-    !# <objectBuilder class="galacticDynamicsBarInstability" name="galacticDynamicsBarInstability_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>luminositiesStellarInactive</name>
+      <defaultValue>.false.</defaultValue>
+      <source>parameters</source>
+      <description>If true, stellar luminosities will be treated as inactive properties.</description>
+    </inputParameter>
+    <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters"/>
+    <objectBuilder class="galacticDynamicsBarInstability" name="galacticDynamicsBarInstability_" source="parameters"/>
+    !!]
     self=nodeOperatorBarInstability(luminositiesStellarInactive,darkMatterHaloScale_,galacticDynamicsBarInstability_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="galacticDynamicsBarInstability_"/>
-    !# <objectDestructor name="darkMatterHaloScale_"           />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticDynamicsBarInstability_"/>
+    <objectDestructor name="darkMatterHaloScale_"           />
+    !!]
     return
   end function barInstabilityConstructorParameters
 
   function barInstabilityConstructorInternal(luminositiesStellarInactive,darkMatterHaloScale_,galacticDynamicsBarInstability_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily barInstability} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily barInstability} node operator class.
+    !!}
     implicit none
     type   (nodeOperatorBarInstability         )                        :: self
     class  (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
     class  (galacticDynamicsBarInstabilityClass), intent(in   ), target :: galacticDynamicsBarInstability_
     logical                                     , intent(in   )         :: luminositiesStellarInactive
-    !# <constructorAssign variables="luminositiesStellarInactive, *darkMatterHaloScale_, *galacticDynamicsBarInstability_"/>
+    !![
+    <constructorAssign variables="luminositiesStellarInactive, *darkMatterHaloScale_, *galacticDynamicsBarInstability_"/>
+    !!]
 
     return
   end function barInstabilityConstructorInternal
 
   subroutine barInstabilityDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily barInstability} node operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily barInstability} node operator class.
+    !!}
     implicit none
     type(nodeOperatorBarInstability), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_"           />
-    !# <objectDestructor name="self%galacticDynamicsBarInstability_"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"           />
+    <objectDestructor name="self%galacticDynamicsBarInstability_"/>
+    !!]
     return
   end subroutine barInstabilityDestructor
   
   subroutine barInstabilityDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Implement the effects of global bar instability on the galactic disk.
+    !!{
+    Implement the effects of global bar instability on the galactic disk.
+    !!}
     use :: Galacticus_Nodes              , only : propertyTypeInactive, nodeComponentDisk  , nodeComponentSpheroid
     use :: Abundances_Structure          , only : operator(*)         , abundances         , zeroAbundances         , max
     use :: Histories                     , only : operator(*)         , history

@@ -23,10 +23,14 @@
 ! Add dependency on GSL library.
 !; gsl
 
-!% Contains a module which implements hypergeometric functions.
+!!{
+Contains a module which implements hypergeometric functions.
+!!}
 
 module Hypergeometric_Functions
-  !% Implements hypergeometric functions.
+  !!{
+  Implements hypergeometric functions.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_double     , c_int
   use            :: Interface_GSL, only : gsl_sf_result, gsl_success
   implicit none
@@ -40,7 +44,9 @@ module Hypergeometric_Functions
 
   interface
      function gsl_sf_hyperg_2F1_approx_e(a,b,c,x,tol,result) bind(c,name='gsl_sf_hyperg_2F1_approx_e')
-       !% Template for the GSL approximate hypergeometric 2F1 C function.
+       !!{
+       Template for the GSL approximate hypergeometric 2F1 C function.
+       !!}
        import
        integer(c_int        )        :: gsl_sf_hyperg_2F1_approx_e
        real   (c_double     ), value :: a,b,c,x,tol
@@ -48,7 +54,9 @@ module Hypergeometric_Functions
      end function gsl_sf_hyperg_2F1_approx_e
 
      function gsl_sf_hyperg_2F1_e(a,b,c,x,result) bind(c,name='gsl_sf_hyperg_2F1_e')
-       !% Template for the GSL hypergeometric 2F1 C function.
+       !!{
+       Template for the GSL hypergeometric 2F1 C function.
+       !!}
        import
        integer(c_int        )        :: gsl_sf_hyperg_2F1_e
        real   (c_double     ), value :: a                  , b, &
@@ -57,7 +65,9 @@ module Hypergeometric_Functions
      end function gsl_sf_hyperg_2F1_e
 
      function gsl_sf_hyperg_1F1(a,b,x) bind(c,name='gsl_sf_hyperg_1F1')
-       !% Template for the GSL hypergeometric 1F1 C function.
+       !!{
+       Template for the GSL hypergeometric 1F1 C function.
+       !!}
        import
        real(c_double)        :: gsl_sf_hyperg_1F1
        real(c_double), value :: a                , b, &
@@ -72,7 +82,9 @@ module Hypergeometric_Functions
 contains
 
   double precision function Hypergeometric_1F1(a,b,x)
-    !% Evaluate the $_1F_1(a_1;b_1;x)$ hypergeometric function.
+    !!{
+    Evaluate the $_1F_1(a_1;b_1;x)$ hypergeometric function.
+    !!}
     implicit none
     double precision, intent(in   ) :: a(1), b(1), x
 
@@ -81,7 +93,9 @@ contains
   end function Hypergeometric_1F1
 
   double precision function Hypergeometric_2F1(a,b,x,status,error,toleranceRelative)
-    !% Evaluate the $_2F_1(a_1,a_2;b_1;x)$ hypergeometric function.
+    !!{
+    Evaluate the $_2F_1(a_1,a_2;b_1;x)$ hypergeometric function.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report, Galacticus_GSL_Error_Handler_Abort_Off, Galacticus_GSL_Error_Handler_Abort_On
     implicit none
     double precision               , intent(in   )           :: a(2)             , b(1), &
@@ -134,8 +148,10 @@ contains
   end function Hypergeometric_2F1
 
   double complex function Hypergeometric_pFq_Complex(a,b,x)
-    !% Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$, using the algorithm of
-    !% \cite{perger_numerical_1993}.
+    !!{
+    Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$, using the algorithm of
+    \cite{perger_numerical_1993}.
+    !!}
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
     double complex, intent(in   ), dimension(:) :: a      , b
@@ -144,8 +160,8 @@ contains
     integer                                     :: LNPFQ  , IX   , &
          &                                         NSIGFIG
     logical                                     :: a1is1  , a1is2, &
-         &                                         a2is2  , b1is2, &
-         &                                         b1Is3
+         &                                         a2is2  , a2is4, &
+         &                                         b1is2  , b1Is3
 
     LNPFQ  = 0
     IX     = 0
@@ -159,6 +175,7 @@ contains
        a1Is1=Values_Agree(real(a(1)),1.0d0,absTol=1.0d-6) .and. Values_Agree(imag(a(1)),0.0d0,absTol=1.0d-6)
        a1Is2=Values_Agree(real(a(1)),2.0d0,absTol=1.0d-6) .and. Values_Agree(imag(a(1)),0.0d0,absTol=1.0d-6)
        a2Is2=Values_Agree(real(a(2)),2.0d0,absTol=1.0d-6) .and. Values_Agree(imag(a(2)),0.0d0,absTol=1.0d-6)
+       a2Is4=Values_Agree(real(a(2)),4.0d0,absTol=1.0d-6) .and. Values_Agree(imag(a(2)),0.0d0,absTol=1.0d-6)
        b1Is2=Values_Agree(real(b(1)),2.0d0,absTol=1.0d-6) .and. Values_Agree(imag(b(1)),0.0d0,absTol=1.0d-6)
        b1Is3=Values_Agree(real(b(1)),3.0d0,absTol=1.0d-6) .and. Values_Agree(imag(b(1)),0.0d0,absTol=1.0d-6)
        if (a1Is1 .and. a2Is2 .and. b1Is2) then
@@ -171,13 +188,25 @@ contains
           Hypergeometric_pFq_Complex=2.0d0*(-x-log(1.0d0-x)+x*log(1.0d0-x))/x**2/(-1.0d0+x)
           return
        end if
+       if (a1Is1 .and. a2Is4 .and. b1Is2) then
+          ! ₂F₁([1,4],[2],x) = -(3 + x [x-3])/3/(x-1)³
+          Hypergeometric_pFq_Complex=-(3.0d0+(x-3.0d0)*x)/3.0d0/(x-1.0d0)**3
+          return
+       end if
+       if (a1Is2 .and. a2Is4 .and. b1Is3) then
+          ! ₂F₁([2,4],[3],x) = (x-3)/3/(x-1)³
+          Hypergeometric_pFq_Complex=(x-3.0d0)/3.0d0/(x-1.0d0)**3
+          return
+       end if
     end if
     Hypergeometric_pFq_Complex=PFQ(a,b,size(a),size(b),x,LNPFQ,IX,NSIGFIG)    
     return
   end function Hypergeometric_pFq_Complex
 
   double precision function Hypergeometric_pFq_Real(a,b,x)
-    !% Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$ for real arguments.
+    !!{
+    Evaluate the generalized hypergeometric function $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)$ for real arguments.
+    !!}
     implicit none
     double precision, intent(in   ), dimension(:) :: a  , b
     double precision, intent(in   )               :: x
@@ -187,8 +216,10 @@ contains
   end function Hypergeometric_pFq_Real
 
   double precision function Hypergeometric_pFq_Regularized(a,b,x)
-    !% Evaluate the regularized generalized hypergeometric function
-    !% $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)/[\Gamma(b_1)\ldots\Gamma(b_q)]$ for real arguments.
+    !!{
+    Evaluate the regularized generalized hypergeometric function
+    $_pF_q(a_1,\ldots,a_p;b_1,\ldots,b_q;x)/[\Gamma(b_1)\ldots\Gamma(b_q)]$ for real arguments.
+    !!}
     implicit none
     double precision, intent(in   ), dimension(:) :: a, b
     double precision, intent(in   )               :: x

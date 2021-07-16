@@ -17,25 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that provides an object that implements incompleteness calculations for observed mass functions.
+!!{
+Contains a module that provides an object that implements incompleteness calculations for observed mass functions.
+!!}
 
 module Mass_Function_Incompletenesses
-  !% Provides a class that implements incompleteness calculations for observed mass functions.
+  !!{
+  Provides a class that implements incompleteness calculations for observed mass functions.
+  !!}
   private
 
-  !# <functionClass>
-  !#  <name>massFunctionIncompleteness</name>
-  !#  <descriptiveName>Mass Function Incompletenesses</descriptiveName>
-  !#  <description>
-  !#   Class providing incompleteness calculations for observed mass functions.
-  !#  </description>
-  !#  <default>complete</default>
-  !#  <method name="completeness" >
-  !#   <description>Return the completeness of the observational sample at the given mass.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   ) :: mass</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>massFunctionIncompleteness</name>
+   <descriptiveName>Mass Function Incompletenesses</descriptiveName>
+   <description>
+    Class providing incompleteness calculations for observed mass functions.
+   </description>
+   <default>complete</default>
+   <method name="completeness" >
+    <description>Return the completeness of the observational sample at the given mass.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   ) :: mass</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Mass_Function_Incompletenesses

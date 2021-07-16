@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test stellar population luminosities.
+!!{
+Contains a program to test stellar population luminosities.
+!!}
 
 program Test_Stellar_Populations_Luminosities
-  !% Tests of stellar population luminosities.
+  !!{
+  Tests of stellar population luminosities.
+  !!}
   use :: Abundances_Structure                      , only : abs                                           , abundances                               , max
   use :: Cosmology_Functions                       , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters                      , only : cosmologyParametersSimple

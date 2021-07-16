@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module of globally-accessible functions supporting the {\normalfont \ttfamily evolveForests} task class.
+!!{
+Contains a module of globally-accessible functions supporting the {\normalfont \ttfamily evolveForests} task class.
+!!}
 
 module Tasks_Evolve_Forests_Utilities
-  !% Provides globally-accessible functions supporting the {\normalfont \ttfamily evolveForests} task class.
+  !!{
+  Provides globally-accessible functions supporting the {\normalfont \ttfamily evolveForests} task class.
+  !!}
   private
   public :: Tasks_Evolve_Forest_Construct, Tasks_Evolve_Forest_Perform, &
        &    Tasks_Evolve_Forest_Destruct
@@ -32,16 +36,20 @@ module Tasks_Evolve_Forests_Utilities
 
 contains
 
-  !# <functionGlobal>
-  !#  <unitName>Tasks_Evolve_Forest_Construct</unitName>
-  !#  <type>void</type>
-  !#  <module>Input_Parameters, only : inputParameters</module>
-  !#  <arguments>type (inputParameters), intent(inout)          :: parameters</arguments>
-  !#  <arguments>class(*              ), intent(  out), pointer :: task_</arguments>
-  !# </functionGlobal>
+  !![
+  <functionGlobal>
+   <unitName>Tasks_Evolve_Forest_Construct</unitName>
+   <type>void</type>
+   <module>Input_Parameters, only : inputParameters</module>
+   <arguments>type (inputParameters), intent(inout)          :: parameters</arguments>
+   <arguments>class(*              ), intent(  out), pointer :: task_</arguments>
+  </functionGlobal>
+  !!]
   subroutine Tasks_Evolve_Forest_Construct(parameters,task_)
-    !% Build a {\normalfont \ttfamily taskEvolveForests} object from a given parameter set. This is a globally-callable function
-    !% to allow us to subvert the class/module hierarchy.
+    !!{
+    Build a {\normalfont \ttfamily taskEvolveForests} object from a given parameter set. This is a globally-callable function
+    to allow us to subvert the class/module hierarchy.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Input_Parameters, only : inputParameter         , inputParameters
     use :: Tasks           , only : task                   , taskEvolveForests
@@ -52,7 +60,9 @@ contains
     task__ => task(parameters)
     select type (task__)
     class is (taskEvolveForests)
-       !# <referenceCountIncrement object="task__"/>
+       !![
+       <referenceCountIncrement object="task__"/>
+       !!]
        call task__%autoHook()
     class default
        call Galacticus_Error_Report('task must be of the "taskEvolveForests" class'//{introspection:location})
@@ -61,14 +71,18 @@ contains
     return
   end subroutine Tasks_Evolve_Forest_Construct
 
-  !# <functionGlobal>
-  !#  <unitName>Tasks_Evolve_Forest_Perform</unitName>
-  !#  <type>void</type>
-  !#  <arguments>class  (*), intent(inout)           :: task_</arguments>
-  !#  <arguments>integer   , intent(  out), optional :: status</arguments>
-  !# </functionGlobal>
+  !![
+  <functionGlobal>
+   <unitName>Tasks_Evolve_Forest_Perform</unitName>
+   <type>void</type>
+   <arguments>class  (*), intent(inout)           :: task_</arguments>
+   <arguments>integer   , intent(  out), optional :: status</arguments>
+  </functionGlobal>
+  !!]
   subroutine Tasks_Evolve_Forest_Perform(task_,status)
-    !% Perform the task for a {\normalfont \ttfamily taskEvolveForests} object passed to us as an unlimited polymorphic object.
+    !!{
+    Perform the task for a {\normalfont \ttfamily taskEvolveForests} object passed to us as an unlimited polymorphic object.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Tasks           , only : task                   , taskEvolveForests
     implicit none
@@ -84,13 +98,17 @@ contains
     return
   end subroutine Tasks_Evolve_Forest_Perform
 
-  !# <functionGlobal>
-  !#  <unitName>Tasks_Evolve_Forest_Destruct</unitName>
-  !#  <type>void</type>
-  !#  <arguments>class(*), intent(inout), pointer :: task_</arguments>
-  !# </functionGlobal>
+  !![
+  <functionGlobal>
+   <unitName>Tasks_Evolve_Forest_Destruct</unitName>
+   <type>void</type>
+   <arguments>class(*), intent(inout), pointer :: task_</arguments>
+  </functionGlobal>
+  !!]
   subroutine Tasks_Evolve_Forest_Destruct(task_)
-    !% Destruct a {\normalfont \ttfamily taskEvolveForests} object passed to us as an unlimited polymorphic object.
+    !!{
+    Destruct a {\normalfont \ttfamily taskEvolveForests} object passed to us as an unlimited polymorphic object.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Tasks           , only : task                   , taskEvolveForests
     implicit none
@@ -99,7 +117,9 @@ contains
     task__ => task_
     select type (task__)
     class is (taskEvolveForests)
-       !# <objectDestructor name="task__"/>
+       !![
+       <objectDestructor name="task__"/>
+       !!]
     class default
        call Galacticus_Error_Report('task must be of the "taskEvolveForests" class'//{introspection:location})
     end select

@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a radiusCooling property extractor class.
+!!{
+Contains a module which implements a radiusCooling property extractor class.
+!!}
 
   use :: Cooling_Radii, only : coolingRadius, coolingRadiusClass
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorRadiusCooling">
-  !#  <description>
-  !#   A cooling radius property extractor class. Extracts the characteristic cooling radius in the halo in Mpc.
-  !#  </description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorRadiusCooling">
+   <description>
+    A cooling radius property extractor class. Extracts the characteristic cooling radius in the halo in Mpc.
+   </description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusCooling
-     !% A cooling radius property extractor class.
+     !!{
+     A cooling radius property extractor class.
+     !!}
      private
      class(coolingRadiusClass), pointer :: coolingRadius_ => null()
    contains
@@ -40,7 +46,9 @@
   end type nodePropertyExtractorRadiusCooling
 
   interface nodePropertyExtractorRadiusCooling
-     !% Constructors for the ``radiusCooling'' output analysis class.
+     !!{
+     Constructors for the ``radiusCooling'' output analysis class.
+     !!}
      module procedure radiusCoolingConstructorParameters
      module procedure radiusCoolingConstructorInternal
   end interface nodePropertyExtractorRadiusCooling
@@ -48,41 +56,57 @@
 contains
 
   function radiusCoolingConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily radiusCooling} property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily radiusCooling} property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorRadiusCooling)                :: self
     type (inputParameters                   ), intent(inout) :: parameters
     class(coolingRadiusClass                ), pointer       :: coolingRadius_
 
-    !# <objectBuilder class="coolingRadius" name="coolingRadius_" source="parameters"/>
+    !![
+    <objectBuilder class="coolingRadius" name="coolingRadius_" source="parameters"/>
+    !!]
     self=nodePropertyExtractorRadiusCooling(coolingRadius_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="coolingRadius_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="coolingRadius_"/>
+    !!]
     return
   end function radiusCoolingConstructorParameters
 
   function radiusCoolingConstructorInternal(coolingRadius_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily radiusCooling} property extractor class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily radiusCooling} property extractor class.
+    !!}
     implicit none
     type (nodePropertyExtractorRadiusCooling)                        :: self
     class(coolingRadiusClass                ), intent(in   ), target :: coolingRadius_
-    !# <constructorAssign variables="*coolingRadius_"/>
+    !![
+    <constructorAssign variables="*coolingRadius_"/>
+    !!]
 
     return
   end function radiusCoolingConstructorInternal
 
   subroutine radiusCoolingDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily radiusCooling} property extractor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily radiusCooling} property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorRadiusCooling), intent(inout) :: self
 
-    !# <objectDestructor name="self%coolingRadius_"/>
+    !![
+    <objectDestructor name="self%coolingRadius_"/>
+    !!]
     return
   end subroutine radiusCoolingDestructor
 
   double precision function radiusCoolingExtract(self,node,instance)
-    !% Implement a cooling radius property extractor.
+    !!{
+    Implement a cooling radius property extractor.
+    !!}
     implicit none
     class(nodePropertyExtractorRadiusCooling), intent(inout)           :: self
     type (treeNode                          ), intent(inout), target   :: node
@@ -94,7 +118,9 @@ contains
   end function radiusCoolingExtract
 
   function radiusCoolingName(self)
-    !% Return the name of the cooling radius property.
+    !!{
+    Return the name of the cooling radius property.
+    !!}
     implicit none
     type (varying_string                    )                :: radiusCoolingName
     class(nodePropertyExtractorRadiusCooling), intent(inout) :: self
@@ -105,7 +131,9 @@ contains
   end function radiusCoolingName
 
   function radiusCoolingDescription(self)
-    !% Return a description of the cooling radius property.
+    !!{
+    Return a description of the cooling radius property.
+    !!}
     implicit none
     type (varying_string                    )                :: radiusCoolingDescription
     class(nodePropertyExtractorRadiusCooling), intent(inout) :: self
@@ -116,7 +144,9 @@ contains
   end function radiusCoolingDescription
 
   double precision function radiusCoolingUnitsInSI(self)
-    !% Return the units of the cooling radius property in the SI system.
+    !!{
+    Return the units of the cooling radius property in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     implicit none
     class(nodePropertyExtractorRadiusCooling), intent(inout) :: self
@@ -127,7 +157,9 @@ contains
   end function radiusCoolingUnitsInSI
 
   integer function radiusCoolingType(self)
-    !% Return the type of the last isolated redshift property.
+    !!{
+    Return the type of the last isolated redshift property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRadiusCooling), intent(inout) :: self

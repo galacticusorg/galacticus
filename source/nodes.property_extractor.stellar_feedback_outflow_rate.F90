@@ -17,23 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a stellar feedback mass outflow rate property extractor class.
+  !!{
+  Contains a module which implements a stellar feedback mass outflow rate property extractor class.
+  !!}
 
   use :: Stellar_Feedback_Outflows     , only : stellarFeedbackOutflowsClass
   use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
   use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
   use :: Stellar_Population_Properties , only : stellarPopulationPropertiesClass
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorStellarFeedbackOutflowRate">
-  !#  <description>
-  !#   A node property extractor which extracts the stellar feedback-driven mass outflow rate from a galaxy. The type of mass outflow rate is controlled
-  !#   by the {\normalfont \ttfamily [component]} parameter, which can be either ``{\normalfont \ttfamily disk}'', ``{\normalfont
-  !#   \ttfamily spheroid}'', or ``{\normalfont \ttfamily total}''. The corresponding mass outflow rate is extracted as
-  !#   {\normalfont \ttfamily \textless\ component\textgreater\ StellarFeedbackOutflowRate} in units of $M_\odot$/Gyr.
-  !#  </description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorStellarFeedbackOutflowRate">
+   <description>
+    A node property extractor which extracts the stellar feedback-driven mass outflow rate from a galaxy. The type of mass outflow rate is controlled
+    by the {\normalfont \ttfamily [component]} parameter, which can be either ``{\normalfont \ttfamily disk}'', ``{\normalfont
+    \ttfamily spheroid}'', or ``{\normalfont \ttfamily total}''. The corresponding mass outflow rate is extracted as
+    {\normalfont \ttfamily \textless\ component\textgreater\ StellarFeedbackOutflowRate} in units of $M_\odot$/Gyr.
+   </description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorStellarFeedbackOutflowRate
-     !% A stellar feedback-driven mass outflow rate property extractor class.
+     !!{
+     A stellar feedback-driven mass outflow rate property extractor class.
+     !!}
      private
      class  (starFormationRateDisksClass     ), pointer :: starFormationRateDisks_      => null()
      class  (starFormationRateSpheroidsClass ), pointer :: starFormationRateSpheroids_  => null()
@@ -51,26 +57,32 @@
   end type nodePropertyExtractorStellarFeedbackOutflowRate
 
   interface nodePropertyExtractorStellarFeedbackOutflowRate
-     !% Constructors for the ``stellarFeedbackOutflowRate'' output analysis class.
+     !!{
+     Constructors for the ``stellarFeedbackOutflowRate'' output analysis class.
+     !!}
      module procedure stellarFeedbackOutflowRateConstructorParameters
      module procedure stellarFeedbackOutflowRateConstructorInternal
   end interface nodePropertyExtractorStellarFeedbackOutflowRate
 
   ! Enumerations for galactic components.
-  !# <enumeration>
-  !#  <name>galacticComponent</name>
-  !#  <description>Specifies the galactic component for star formation rate calculations.</description>
-  !#  <visibility>private</visibility>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <entry label="disk"    />
-  !#  <entry label="spheroid"/>
-  !#  <entry label="total"   />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>galacticComponent</name>
+   <description>Specifies the galactic component for star formation rate calculations.</description>
+   <visibility>private</visibility>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="disk"    />
+   <entry label="spheroid"/>
+   <entry label="total"   />
+  </enumeration>
+  !!]
 
 contains
 
   function stellarFeedbackOutflowRateConstructorParameters(parameters) result(self)
-    !% Constructor for the ``stellarFeedbackOutflowRate'' property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``stellarFeedbackOutflowRate'' property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (nodePropertyExtractorStellarFeedbackOutflowRate)                :: self
@@ -81,26 +93,32 @@ contains
     class(stellarFeedbackOutflowsClass                   ), pointer       :: stellarFeedbackOutflows_
     type (varying_string                                 )                :: component
 
-    !# <inputParameter>
-    !#   <name>component</name>
-    !#   <source>parameters</source>
-    !#   <description>The component from which to extract star formation rate.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="starFormationRateDisks"      name="starFormationRateDisks_"      source="parameters"/>
-    !# <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_"   source="parameters"/>
-    !# <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters"/>
-    !# <objectBuilder class="stellarFeedbackOutflows"     name="stellarFeedbackOutflows_"     source="parameters"/>
+    !![
+    <inputParameter>
+      <name>component</name>
+      <source>parameters</source>
+      <description>The component from which to extract star formation rate.</description>
+    </inputParameter>
+    <objectBuilder class="starFormationRateDisks"      name="starFormationRateDisks_"      source="parameters"/>
+    <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_"   source="parameters"/>
+    <objectBuilder class="stellarPopulationProperties" name="stellarPopulationProperties_" source="parameters"/>
+    <objectBuilder class="stellarFeedbackOutflows"     name="stellarFeedbackOutflows_"     source="parameters"/>
+    !!]
     self=nodePropertyExtractorStellarFeedbackOutflowRate(enumerationGalacticComponentEncode(char(component),includesPrefix=.false.),starFormationRateDisks_,starFormationRateSpheroids_,stellarPopulationProperties_,stellarFeedbackOutflows_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="starFormationRateDisks_"     />
-    !# <objectDestructor name="starFormationRateSpheroids_" />
-    !# <objectDestructor name="stellarPopulationProperties_"/>
-    !# <objectDestructor name="stellarFeedbackOutflows_"    />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="starFormationRateDisks_"     />
+    <objectDestructor name="starFormationRateSpheroids_" />
+    <objectDestructor name="stellarPopulationProperties_"/>
+    <objectDestructor name="stellarFeedbackOutflows_"    />
+    !!]
     return
   end function stellarFeedbackOutflowRateConstructorParameters
 
   function stellarFeedbackOutflowRateConstructorInternal(component,starFormationRateDisks_,starFormationRateSpheroids_,stellarPopulationProperties_,stellarFeedbackOutflows_) result(self)
-    !% Internal constructor for the ``stellarFeedbackOutflowRate'' property extractor class.
+    !!{
+    Internal constructor for the ``stellarFeedbackOutflowRate'' property extractor class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (nodePropertyExtractorStellarFeedbackOutflowRate)                        :: self
@@ -109,7 +127,9 @@ contains
     class  (starFormationRateSpheroidsClass                ), intent(in   ), target :: starFormationRateSpheroids_
     class  (stellarPopulationPropertiesClass               ), intent(in   ), target :: stellarPopulationProperties_
     class  (stellarFeedbackOutflowsClass                   ), intent(in   ), target :: stellarFeedbackOutflows_
-    !# <constructorAssign variables="component, *starFormationRateDisks_, *starFormationRateSpheroids_, *stellarPopulationProperties_, *stellarFeedbackOutflows_"/>
+    !![
+    <constructorAssign variables="component, *starFormationRateDisks_, *starFormationRateSpheroids_, *stellarPopulationProperties_, *stellarFeedbackOutflows_"/>
+    !!]
 
     select case (component)
     case (galacticComponentTotal)
@@ -128,19 +148,25 @@ contains
   end function stellarFeedbackOutflowRateConstructorInternal
 
   subroutine stellarFeedbackOutflowRateDestructor(self)
-    !% Destructor for the ``stellarFeedbackOutflowRate'' property extractor class.
+    !!{
+    Destructor for the ``stellarFeedbackOutflowRate'' property extractor class.
+    !!}
     implicit none
     type   (nodePropertyExtractorStellarFeedbackOutflowRate), intent(inout) :: self
   
-    !# <objectDestructor name="self%starFormationRateDisks_"     />
-    !# <objectDestructor name="self%starFormationRateSpheroids_"     />
-    !# <objectDestructor name="self%stellarPopulationProperties_"/>
-    !# <objectDestructor name="self%stellarFeedbackOutflows_"    />
+    !![
+    <objectDestructor name="self%starFormationRateDisks_"     />
+    <objectDestructor name="self%starFormationRateSpheroids_"     />
+    <objectDestructor name="self%stellarPopulationProperties_"/>
+    <objectDestructor name="self%stellarFeedbackOutflows_"    />
+    !!]
     return
   end subroutine stellarFeedbackOutflowRateDestructor
 
   double precision function stellarFeedbackOutflowRateExtract(self,node,instance)
-    !% Implement an emission line output analysis property extractor.
+    !!{
+    Implement an emission line output analysis property extractor.
+    !!}
     use :: Galacticus_Error              , only : Galacticus_Error_Report
     use :: Abundances_Structure          , only : abundances
     use :: Galacticus_Nodes              , only : nodeComponentDisk      , nodeComponentSpheroid
@@ -238,7 +264,9 @@ contains
   end function stellarFeedbackOutflowRateExtract
 
   integer function stellarFeedbackOutflowRateType(self)
-    !% Return the type of the emission line luminosity property.
+    !!{
+    Return the type of the emission line luminosity property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorStellarFeedbackOutflowRate), intent(inout) :: self
@@ -249,7 +277,9 @@ contains
   end function stellarFeedbackOutflowRateType
 
   function stellarFeedbackOutflowRateName(self)
-    !% Return the name of the stellarFeedbackOutflowRate property.
+    !!{
+    Return the name of the stellarFeedbackOutflowRate property.
+    !!}
     implicit none
     type (varying_string                                 )                :: stellarFeedbackOutflowRateName
     class(nodePropertyExtractorStellarFeedbackOutflowRate), intent(inout) :: self
@@ -259,7 +289,9 @@ contains
   end function stellarFeedbackOutflowRateName
 
   function stellarFeedbackOutflowRateDescription(self)
-    !% Return a description of the stellarFeedbackOutflowRate property.
+    !!{
+    Return a description of the stellarFeedbackOutflowRate property.
+    !!}
     implicit none
     type (varying_string                                 )                  :: stellarFeedbackOutflowRateDescription
     class(nodePropertyExtractorStellarFeedbackOutflowRate), intent(inout) :: self
@@ -269,7 +301,9 @@ contains
   end function stellarFeedbackOutflowRateDescription
 
   double precision function stellarFeedbackOutflowRateUnitsInSI(self)
-    !% Return the units of the stellarFeedbackOutflowRate property in the SI system.
+    !!{
+    Return the units of the stellarFeedbackOutflowRate property in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : massSolar, gigaYear
     implicit none
     class(nodePropertyExtractorStellarFeedbackOutflowRate), intent(inout) :: self

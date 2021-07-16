@@ -104,23 +104,30 @@
   <!-- Output file -->
   <galacticusOutputFileName value="testSuite/outputs/reproducibility/cooling.hdf5"/>
 
-  <!--Stellar feedback outflows-->
-  <nodeOperator value="stellarFeedbackDisks">
-    <stellarFeedbackOutflows value="rateLimit">
-      <timescaleOutflowFractionalMinimum value="0.001"/>
-      <stellarFeedbackOutflows value="powerLaw">
-        <velocityCharacteristic value="250.0"/>
-        <exponent value="3.5"/>
+  <!-- Node evolution and physics -->
+  <nodeOperator value="multi">
+    <!-- Star formation -->
+    <nodeOperator value="starFormationDisks"/>
+    <nodeOperator value="starFormationSpheroids"/>
+    <!--Stellar feedback outflows-->
+    <nodeOperator value="stellarFeedbackDisks">
+      <stellarFeedbackOutflows value="rateLimit">
+	<timescaleOutflowFractionalMinimum value="0.001"/>
+	<stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+	</stellarFeedbackOutflows>
       </stellarFeedbackOutflows>
-    </stellarFeedbackOutflows>
-  </nodeOperator>
-  <nodeOperator value="stellarFeedbackSpheroids">
-    <stellarFeedbackOutflows value="rateLimit">
-      <timescaleOutflowFractionalMinimum value="0.001"/>
-      <stellarFeedbackOutflows value="powerLaw">
-        <velocityCharacteristic value="250.0"/>
-        <exponent value="3.5"/>
+    </nodeOperator>
+    <nodeOperator value="stellarFeedbackSpheroids">
+      <stellarFeedbackOutflows value="rateLimit">
+	<timescaleOutflowFractionalMinimum value="0.001"/>
+	<stellarFeedbackOutflows value="powerLaw">
+          <velocityCharacteristic value="250.0"/>
+          <exponent value="3.5"/>
+	</stellarFeedbackOutflows>
       </stellarFeedbackOutflows>
-    </stellarFeedbackOutflows>
+    </nodeOperator>
   </nodeOperator>
+
 </parameters>

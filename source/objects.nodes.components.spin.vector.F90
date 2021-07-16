@@ -17,48 +17,58 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the a vector spin component for tree nodes.
+!!{
+Contains a module which implements the a vector spin component for tree nodes.
+!!}
 
 module Node_Component_Spin_Vector
-  !% Implements the vector spin component.
+  !!{
+  Implements the vector spin component.
+  !!}
   implicit none
   private
   public :: Node_Component_Spin_Vector_Thread_Initialize, Node_Component_Spin_Vector_Thread_Uninitialize, &
        &    Node_Component_Spin_Vector_Scale_Set
   
-  !# <component>
-  !#  <class>spin</class>
-  !#  <name>vector</name>
-  !#  <extends>
-  !#   <class>spin</class>
-  !#   <name>scalar</name>
-  !#  </extends>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>spinVector</name>
-  !#     <type>double</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <output labels="[X,Y,Z]" unitsInSI="0.0d0" comment="Spin vector of the node."/>
-  !#     <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
-  !#   </property>
-  !#   <property>
-  !#     <name>spinVectorGrowthRate</name>
-  !#     <type>double</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#  </properties>
-  !# </component>
+  !![
+  <component>
+   <class>spin</class>
+   <name>vector</name>
+   <extends>
+    <class>spin</class>
+    <name>scalar</name>
+   </extends>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>spinVector</name>
+      <type>double</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <output labels="[X,Y,Z]" unitsInSI="0.0d0" comment="Spin vector of the node."/>
+      <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
+    </property>
+    <property>
+      <name>spinVectorGrowthRate</name>
+      <type>double</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+   </properties>
+  </component>
+  !!]
 
 contains
 
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Spin_Vector_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Spin_Vector_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Spin_Vector_Thread_Initialize(parameters_)
-    !% Initializes the tree node vector spin module.
+    !!{
+    Initializes the tree node vector spin module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent  , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultSpinComponent
     use :: Input_Parameters, only : inputParameters
@@ -71,11 +81,15 @@ contains
     return
   end subroutine Node_Component_Spin_Vector_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Spin_Vector_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Spin_Vector_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Spin_Vector_Thread_Uninitialize()
-    !% Uninitializes the tree node preset spin module.
+    !!{
+    Uninitializes the tree node preset spin module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent
     use :: Galacticus_Nodes, only : defaultSpinComponent
     implicit none
@@ -85,11 +99,15 @@ contains
     return
   end subroutine Node_Component_Spin_Vector_Thread_Uninitialize
  
-  !# <scaleSetTask>
-  !#  <unitName>Node_Component_Spin_Vector_Scale_Set</unitName>
-  !# </scaleSetTask>
+  !![
+  <scaleSetTask>
+   <unitName>Node_Component_Spin_Vector_Scale_Set</unitName>
+  </scaleSetTask>
+  !!]
   subroutine Node_Component_Spin_Vector_Scale_Set(node)
-    !% Set scales for properties in the preset implementation of the spin component.
+    !!{
+    Set scales for properties in the preset implementation of the spin component.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSpin, nodeComponentSpinVector, treeNode, defaultSpinComponent
     implicit none
     type (treeNode         ), intent(inout), pointer :: node
@@ -109,8 +127,10 @@ contains
   end subroutine Node_Component_Spin_Vector_Scale_Set
 
   subroutine nodePromotion(self,node)
-    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the spin of {\normalfont \ttfamily node}
-    !% to be that of its parent.
+    !!{
+    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the spin of {\normalfont \ttfamily node}
+    to be that of its parent.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentSpin, treeNode
     implicit none

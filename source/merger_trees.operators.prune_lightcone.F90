@@ -16,26 +16,32 @@
 !!
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-
-!% Contains a module which implements a prune-by-lightcone operator on merger trees.
-
+  
+  !!{
+  Contains a module which implements a prune-by-lightcone operator on merger trees.
+  !!}
+  
   use :: Geometry_Lightcones           , only : geometryLightconeClass
   use :: Satellite_Oprhan_Distributions, only : satelliteOrphanDistributionClass
 
-  !# <mergerTreeOperator name="mergerTreeOperatorPruneLightcone">
-  !#  <description>
-  !#   Provides a pruning-by-lightcone operator on merger trees. Trees which have no nodes which lie within the lightcone are
-  !#   completely pruned away. If the parameter {\normalfont \ttfamily [splitTrees]} is set to {\normalfont \ttfamily true} then
-  !#   any parts of a merger tree which does intersect the light that exist after the latest time at which a constituent node of
-  !#   the tree intersects the lightcone will be pruned away also (possibly causing the tree to be split into multiple trees in a
-  !#   forest). If the parameter {\normalfont \ttfamily [bufferIsolatedHalos]} is set to {\normalfont \ttfamily true} then, when
-  !#   testing whether an isolated halo intersects the lightcone a buffer radius equal in size to the extent of any possible
-  !#   orphan galaxies associated with the halo is added around the lightcone---this ensures that if orphan galaxies of the halo
-  !#   might possibly intersect the lightcone the halo will not be pruned away.
-  !#  </description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorPruneLightcone">
+   <description>
+    Provides a pruning-by-lightcone operator on merger trees. Trees which have no nodes which lie within the lightcone are
+    completely pruned away. If the parameter {\normalfont \ttfamily [splitTrees]} is set to {\normalfont \ttfamily true} then
+    any parts of a merger tree which does intersect the light that exist after the latest time at which a constituent node of
+    the tree intersects the lightcone will be pruned away also (possibly causing the tree to be split into multiple trees in a
+    forest). If the parameter {\normalfont \ttfamily [bufferIsolatedHalos]} is set to {\normalfont \ttfamily true} then, when
+    testing whether an isolated halo intersects the lightcone a buffer radius equal in size to the extent of any possible
+    orphan galaxies associated with the halo is added around the lightcone---this ensures that if orphan galaxies of the halo
+    might possibly intersect the lightcone the halo will not be pruned away.
+   </description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneLightcone
-     !% A pruning-by-lightcone merger tree operator class.
+     !!{
+     A pruning-by-lightcone merger tree operator class.
+     !!}
      private
      class  (geometryLightconeClass          ), pointer :: geometryLightcone_           => null()
      class  (satelliteOrphanDistributionClass), pointer :: satelliteOrphanDistribution_ => null()
@@ -45,9 +51,11 @@
      final     ::                        pruneLightconeDestructor
      procedure :: operatePreEvolution => pruneLightconeOperatePreEvolution
   end type mergerTreeOperatorPruneLightcone
-  
+
   interface mergerTreeOperatorPruneLightcone
-     !% Constructors for the pruning-by-lightcone merger tree operator class.
+     !!{
+     Constructors for the pruning-by-lightcone merger tree operator class.
+     !!}
      module procedure pruneLightconeConstructorParameters
      module procedure pruneLightconeConstructorInternal
   end interface mergerTreeOperatorPruneLightcone
@@ -55,7 +63,9 @@
 contains
 
   function pruneLightconeConstructorParameters(parameters) result(self)
-    !% Constructor for the prune-by-lightcone merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the prune-by-lightcone merger tree operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (mergerTreeOperatorPruneLightcone)                :: self
@@ -65,52 +75,66 @@ contains
     logical                                                  :: bufferIsolatedHalos         , splitTrees
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>bufferIsolatedHalos</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, intersection of a tree with the lightcone will be determined using the positions of non-isolated (a.k.a. ``satellite'') halos, and of isolated halos (a.k.a ``centrals'') with a buffer region (with radius equal to the extent of the orphan satellite distribution---see \refPhysics{satelliteOrphanDistribution}) placed around each such halo, and any intersection of that region with the lightcone is sufficient to prevent pruning of the tree. If this parameter is {\normalfont \ttfamily false} then (unbuffered) positions of all halos are used for determining intersection with the lightcone---this requires complete (i.e. throughout the extent of their existance) knowledge of non-isolated halos prior to application of this operator.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>splitTrees</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, prune away any nodes of the tree that are not needed to determine evolution up to the latest time at which a node is present inside the lightcone. This typically leads to a tree splitting into a forest of trees.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="geometryLightcone"           name="geometryLightcone_"           source="parameters"/>
-    !# <objectBuilder class="satelliteOrphanDistribution" name="satelliteOrphanDistribution_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>bufferIsolatedHalos</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, intersection of a tree with the lightcone will be determined using the positions of non-isolated (a.k.a. ``satellite'') halos, and of isolated halos (a.k.a ``centrals'') with a buffer region (with radius equal to the extent of the orphan satellite distribution---see \refPhysics{satelliteOrphanDistribution}) placed around each such halo, and any intersection of that region with the lightcone is sufficient to prevent pruning of the tree. If this parameter is {\normalfont \ttfamily false} then (unbuffered) positions of all halos are used for determining intersection with the lightcone---this requires complete (i.e. throughout the extent of their existance) knowledge of non-isolated halos prior to application of this operator.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>splitTrees</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, prune away any nodes of the tree that are not needed to determine evolution up to the latest time at which a node is present inside the lightcone. This typically leads to a tree splitting into a forest of trees.</description>
+    </inputParameter>
+    <objectBuilder class="geometryLightcone"           name="geometryLightcone_"           source="parameters"/>
+    <objectBuilder class="satelliteOrphanDistribution" name="satelliteOrphanDistribution_" source="parameters"/>
+    !!]
     self=mergerTreeOperatorPruneLightcone(geometryLightcone_,satelliteOrphanDistribution_,bufferIsolatedHalos,splitTrees)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="geometryLightcone_"          />
-    !# <objectDestructor name="satelliteOrphanDistribution_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="geometryLightcone_"          />
+    <objectDestructor name="satelliteOrphanDistribution_"/>
+    !!]
     return
   end function pruneLightconeConstructorParameters
 
   function pruneLightconeConstructorInternal(geometryLightcone_,satelliteOrphanDistribution_,bufferIsolatedHalos,splitTrees) result(self)
-    !% Internal constructor for the prune-by-lightcone merger tree operator class.
+    !!{
+    Internal constructor for the prune-by-lightcone merger tree operator class.
+    !!}
     implicit none
     type   (mergerTreeOperatorPruneLightcone)                        :: self
     class  (geometryLightconeClass          ), intent(in   ), target :: geometryLightcone_
     class  (satelliteOrphanDistributionClass), intent(in   ), target :: satelliteOrphanDistribution_
     logical                                  , intent(in   )         :: bufferIsolatedHalos         , splitTrees
-    !# <constructorAssign variables="*geometryLightcone_, *satelliteOrphanDistribution_, bufferIsolatedHalos, splitTrees"/>
+    !![
+    <constructorAssign variables="*geometryLightcone_, *satelliteOrphanDistribution_, bufferIsolatedHalos, splitTrees"/>
+    !!]
 
     call pruneLightconeValidate(self)
     return
   end function pruneLightconeConstructorInternal
 
   subroutine pruneLightconeDestructor(self)
-    !% Destructor for the lightcone merger tree operator function class.
+    !!{
+    Destructor for the lightcone merger tree operator function class.
+    !!}
     implicit none
     type(mergerTreeOperatorPruneLightcone), intent(inout) :: self
 
-    !# <objectDestructor name="self%geometryLightcone_"          />
-    !# <objectDestructor name="self%satelliteOrphanDistribution_"/>
+    !![
+    <objectDestructor name="self%geometryLightcone_"          />
+    <objectDestructor name="self%satelliteOrphanDistribution_"/>
+    !!]
     return
   end subroutine pruneLightconeDestructor
 
   subroutine pruneLightconeValidate(self)
-    !% Validate the lightcone pruning operator.
+    !!{
+    Validate the lightcone pruning operator.
+    !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultPositionComponent , defaultSatelliteComponent
@@ -145,9 +169,12 @@ contains
   end subroutine pruneLightconeValidate
 
   subroutine pruneLightconeOperatePreEvolution(self,tree)
-    !% Perform a prune-by-lightcone operation on a merger tree.
-    use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic, nodeComponentPosition, nodeComponentSatellite, &
-          &                                       treeNode                      , treeNodeLinkedList
+    !!{
+    Perform a prune-by-lightcone operation on a merger tree.
+    !!}
+    use :: Display                       , only : displayMessage                , displayIndent           , displayUnindent      , verbosityLevelInfo
+    use :: Galacticus_Nodes              , only : mergerTree                    , nodeComponentBasic      , nodeComponentPosition, nodeComponentSatellite, &
+         &                                        treeNode                      , treeNodeLinkedList
     use :: Histories                     , only : history
     use :: Merger_Tree_Walkers           , only : mergerTreeWalkerIsolatedNodes , mergerTreeWalkerAllNodes
     use :: Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Clean_Branch
@@ -170,7 +197,10 @@ contains
          &                                                                       timeInLightconeLatest
     logical                                                                   :: nodeIntersectsLightcone, treeIntersectsLightcone, &
          &                                                                       nodeIsNewRoot
-    
+    character       (len=16                          )                        :: labelIndex             , labelTime
+
+    write (labelIndex,'(i16)') tree%index
+    call displayIndent('Pruning tree ['//trim(adjustl(labelIndex))//'] for lightcone geometry',verbosityLevelInfo)
     ! Set buffer size to zero by default.
     radiusBuffer            =        0.0d0
     ! Initialize the latest time in lightcone to an unphysical value.
@@ -239,6 +269,7 @@ contains
              treeIntersectsLightcone=.true.
           else
              ! Trees are not being split - this tree is in the lightcone, so can not be pruned - we can simply return.
+             call displayUnindent('done',verbosityLevelInfo)
              return
           end if
        end if
@@ -267,6 +298,8 @@ contains
     else if (self%splitTrees) then
        ! Tree is in lightcone, but we are asked to split it into forests and trim off late-time nodes where possible.
        !! Walk the trees, building a list of new root nodes and any original root nodes that we can remove.
+       write (labelTime,'(f9.3)') timeInLightconeLatest
+       call displayMessage('Splitting tree into forests at time '//trim(adjustl(labelTime))//' Gyr',verbosityLevelInfo)
        treeWalker=mergerTreeWalkerIsolatedNodes(tree,spanForest=.true.)
        do while (treeWalker%next(node))
           nodeIsNewRoot=.false.
@@ -344,7 +377,7 @@ contains
                 do while (.not.associated(nodeChild%sibling,node))
                    nodeChild => nodeChild%sibling
                 end do
-             nodeChild%sibling => node%sibling   
+                nodeChild%sibling => node%sibling   
              end if
              node%parent  => null()
              node%sibling => null()
@@ -355,13 +388,21 @@ contains
        forestRootsOriginalLast => forestRootsOriginalHead
        do while (associated(forestRootsOriginalLast))
           node                    => forestRootsOriginalLast%node
+          basic                   => node                   %basic()
+          write (labelIndex,'(i16)' ) node %index()
+          write (labelTime ,'(f9.3)') basic%time ()
+          call displayMessage('Removing branch from ['//trim(adjustl(labelIndex))//'] at '//trim(adjustl(labelTime))//' Gyr',verbosityLevelInfo)
           call node%destroyBranch()
           deallocate(node)
           forestRootsOriginalLast => forestRootsOriginalLast%next
-       end do       
+       end do
        ! Replace the first tree in the forest.
-       tree%baseNode => forestRootsNewHead%node
-       tree%nextTree => null()
+       tree %baseNode => forestRootsNewHead%node
+       tree %nextTree => null()
+       basic          => forestRootsNewHead%node%basic()
+       write (labelIndex,'(i16)' ) forestRootsNewHead%node%index()
+       write (labelTime ,'(f9.3)') basic                  %time ()
+       call displayMessage('Create new tree from ['//trim(adjustl(labelIndex))//'] at '//trim(adjustl(labelTime))//' Gyr',verbosityLevelInfo)
        ! Destroy all other trees in the current forest.
        treeCurrent => tree%nextTree
        do while (associated(treeCurrent))
@@ -372,7 +413,7 @@ contains
           treeCurrent          => treeNext
        end do
        ! Create new trees in the forest as needed.
-       treeCurrent => tree
+       treeCurrent        => tree
        forestRootsNewLast => forestRootsNewHead%next
        do while (associated(forestRootsNewLast))
           allocate(treeCurrent%nextTree)
@@ -385,11 +426,17 @@ contains
           treeCurrent%nextTree%initializedUntil =  0.0d0
           allocate(treeCurrent%nextTree%randomNumberGenerator_,mold=tree%randomNumberGenerator_)
           !$omp critical(mergerTreeOperatorLightconeDeepCopyReset)
-          !# <deepCopyReset variables="tree%randomNumberGenerator_"/>
-          !# <deepCopy source="tree%randomNumberGenerator_" destination="treeCurrent%nextTree%randomNumberGenerator_"/>
-          !# <deepCopyFinalize variables="treeCurrent%nextTree%randomNumberGenerator_"/>
+          !![
+          <deepCopyReset variables="tree%randomNumberGenerator_"/>
+          <deepCopy source="tree%randomNumberGenerator_" destination="treeCurrent%nextTree%randomNumberGenerator_"/>
+          <deepCopyFinalize variables="treeCurrent%nextTree%randomNumberGenerator_"/>
+          !!]
           !$omp end critical(mergerTreeOperatorLightconeDeepCopyReset)
           call treeCurrent%nextTree%randomNumberGenerator_%seedSet(seed=treeCurrent%nextTree%index,offset=.true.)
+          basic => forestRootsNewLast%node%basic()
+          write (labelIndex,'(i16)' ) treeCurrent%nextTree%baseNode%index()
+          write (labelTime ,'(f9.3)') basic                        %time ()
+          call displayMessage('Create new tree from ['//trim(adjustl(labelIndex))//'] at '//trim(adjustl(labelTime))//' Gyr',verbosityLevelInfo)
           treeCurrent        => treeCurrent       %nextTree          
           forestRootsNewLast => forestRootsNewLast%next
        end do
@@ -398,7 +445,7 @@ contains
        do while (associated(treeCurrent))
           treeWalkerAll=mergerTreeWalkerAllNodes(treeCurrent,spanForest=.false.)
           do while (treeWalkerAll%next(node))
-             node%hostTree => treeCurrent          
+             node%hostTree => treeCurrent
           end do
           treeCurrent => treeCurrent%nextTree
        end do
@@ -419,5 +466,6 @@ contains
        ! This should not happen.
        call Galacticus_Error_Report('unknown state'//{introspection:location})
     end if
+    call displayUnindent('done',verbosityLevelInfo)
     return
   end subroutine pruneLightconeOperatePreEvolution

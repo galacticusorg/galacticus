@@ -19,16 +19,22 @@
 
 !+    Contributions to this file made by: Xiaolong Du, Andrew Benson.
 
-  !% An implementation of multiple dark matter halo profiles which allow different profiles for the host and the satellite.
+  !!{
+  An implementation of multiple dark matter halo profiles which allow different profiles for the host and the satellite.
+  !!}
 
-  !# <darkMatterProfileDMO name="darkMatterProfileDMOMultiple">
-  !#  <description>
-  !#   A dark matter profile DMO class in which the density profiles of the host halo and the satellite halo can be set separately
-  !#   to any other {\normalfont \ttfamily darkMatterProfileDMO} available.
-  !#  </description>
-  !# </darkMatterProfileDMO>
+  !![
+  <darkMatterProfileDMO name="darkMatterProfileDMOMultiple">
+   <description>
+    A dark matter profile DMO class in which the density profiles of the host halo and the satellite halo can be set separately
+    to any other {\normalfont \ttfamily darkMatterProfileDMO} available.
+   </description>
+  </darkMatterProfileDMO>
+  !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOMultiple
-     !% A dark matter halo profile class implementing multiple dark matter halos which allow different profiles for the host and the satellite.
+     !!{
+     A dark matter halo profile class implementing multiple dark matter halos which allow different profiles for the host and the satellite.
+     !!}
      private
      class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMOHost_ => null(), darkMatterProfileDMOSatellite_ => null()
    contains
@@ -54,7 +60,9 @@
   end type darkMatterProfileDMOMultiple
 
   interface darkMatterProfileDMOMultiple
-     !% Constructors for the {\normalfont \ttfamily multiple} dark matter halo profile class.
+     !!{
+     Constructors for the {\normalfont \ttfamily multiple} dark matter halo profile class.
+     !!}
      module procedure multipleConstructorParameters
      module procedure multipleConstructorInternal
   end interface darkMatterProfileDMOMultiple
@@ -62,43 +70,59 @@
 contains
 
   function multipleConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily multiple} dark matter halo profile class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily multiple} dark matter halo profile class which takes a parameter set as input.
+    !!}
     implicit none
     type   (darkMatterProfileDMOMultiple)                :: self
     type   (inputParameters             ), intent(inout) :: parameters
     class  (darkMatterProfileDMOClass   ), pointer       :: darkMatterProfileDMOHost_, darkMatterProfileDMOSatellite_
 
-    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMOHost_"      parameterName="darkMatterProfileDMOHost"      source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMOSatellite_" parameterName="darkMatterProfileDMOSatellite" source="parameters"/>
+    !![
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMOHost_"      parameterName="darkMatterProfileDMOHost"      source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMOSatellite_" parameterName="darkMatterProfileDMOSatellite" source="parameters"/>
+    !!]
     self=darkMatterProfileDMOMultiple(darkMatterProfileDMOHost_,darkMatterProfileDMOSatellite_)
-    !# <objectDestructor name="darkMatterProfileDMOHost_"     />
-    !# <objectDestructor name="darkMatterProfileDMOSatellite_"/>
+    !![
+    <objectDestructor name="darkMatterProfileDMOHost_"     />
+    <objectDestructor name="darkMatterProfileDMOSatellite_"/>
+    !!]
     return
   end function multipleConstructorParameters
 
   function multipleConstructorInternal(darkMatterProfileDMOHost_,darkMatterProfileDMOSatellite_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily multiple} dark matter profile class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily multiple} dark matter profile class.
+    !!}
     implicit none
     type            (darkMatterProfileDMOMultiple)                        :: self
     class           (darkMatterProfileDMOClass   ), intent(in   ), target :: darkMatterProfileDMOHost_, darkMatterProfileDMOSatellite_
-    !# <constructorAssign variables="*darkMatterProfileDMOHost_, *darkMatterProfileDMOSatellite_"/>
+    !![
+    <constructorAssign variables="*darkMatterProfileDMOHost_, *darkMatterProfileDMOSatellite_"/>
+    !!]
 
     return
   end function multipleConstructorInternal
 
   subroutine multipleDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily multiple} dark matter halo profile class.
+    !!{
+    Destructor for the {\normalfont \ttfamily multiple} dark matter halo profile class.
+    !!}
     implicit none
     type(darkMatterProfileDMOMultiple), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterProfileDMOHost_"     />
-    !# <objectDestructor name="self%darkMatterProfileDMOSatellite_"/>
+    !![
+    <objectDestructor name="self%darkMatterProfileDMOHost_"     />
+    <objectDestructor name="self%darkMatterProfileDMOSatellite_"/>
+    !!]
     return
   end subroutine multipleDestructor
 
   double precision function multipleDensity(self,node,radius)
-    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOMultiple), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
@@ -113,8 +137,10 @@ contains
   end function multipleDensity
 
   double precision function multipleDensityLogSlope(self,node,radius)
-    !% Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOMultiple), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
@@ -129,8 +155,10 @@ contains
   end function multipleDensityLogSlope
 
   double precision function multipleRadiusEnclosingDensity(self,node,density)
-    !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
-    !% {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$).
+    !!{
+    Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
+    {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$).
+    !!}
     implicit none
     class           (darkMatterProfileDMOMultiple), intent(inout), target :: self
     type            (treeNode                    ), intent(inout), target :: node
@@ -145,8 +173,10 @@ contains
   end function multipleRadiusEnclosingDensity
 
   double precision function multipleRadiusEnclosingMass(self,node,mass)
-    !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
-    !% {\normalfont \ttfamily mass} (given in units of $M_\odot$).
+    !!{
+    Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
+    {\normalfont \ttfamily mass} (given in units of $M_\odot$).
+    !!}
     implicit none
     class           (darkMatterProfileDMOMultiple), intent(inout), target  :: self
     type            (treeNode                    ), intent(inout), target  :: node
@@ -161,8 +191,10 @@ contains
   end function multipleRadiusEnclosingMass
 
   double precision function multipleRadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
-    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOMultiple), intent(inout)           :: self
     type            (treeNode                    ), intent(inout)           :: node
@@ -178,8 +210,10 @@ contains
   end function multipleRadialMoment
 
   double precision function multipleEnclosedMass(self,node,radius)
-    !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
-    !% units of Mpc).
+    !!{
+    Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
+    units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOMultiple), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
@@ -194,8 +228,10 @@ contains
   end function multipleEnclosedMass
 
   double precision function multiplePotential(self,node,radius,status)
-    !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
-    !% \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
+    \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOMultiple), intent(inout)           :: self
     type            (treeNode                    ), intent(inout), target   :: node
@@ -211,8 +247,10 @@ contains
   end function multiplePotential
 
   double precision function multipleCircularVelocity(self,node,radius)
-    !% Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOMultiple), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
@@ -227,7 +265,9 @@ contains
   end function multipleCircularVelocity
 
   double precision function multipleRadiusCircularVelocityMaximum(self,node)
-    !% Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
+    !!{
+    Returns the radius (in Mpc) at which the maximum circular velocity is achieved in the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class(darkMatterProfileDMOMultiple), intent(inout) :: self
     type (treeNode                    ), intent(inout) :: node
@@ -241,7 +281,9 @@ contains
   end function multipleRadiusCircularVelocityMaximum
 
   double precision function multipleCircularVelocityMaximum(self,node)
-    !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
+    !!{
+    Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class(darkMatterProfileDMOMultiple), intent(inout) :: self
     type (treeNode                    ), intent(inout) :: node
@@ -255,8 +297,10 @@ contains
   end function multipleCircularVelocityMaximum
 
   double precision function multipleRadialVelocityDispersion(self,node,radius)
-    !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOMultiple), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
@@ -271,8 +315,10 @@ contains
   end function multipleRadialVelocityDispersion
 
   double precision function multipleRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
-    !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
-    !% in units of km s$^{-1}$ Mpc).
+    !!{
+    Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
+    in units of km s$^{-1}$ Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOMultiple), intent(inout) :: self
     type            (treeNode                    ), intent(inout) :: node
@@ -287,7 +333,9 @@ contains
   end function multipleRadiusFromSpecificAngularMomentum
 
   double precision function multipleRotationNormalization(self,node)
-    !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
+    !!{
+    Return the normalization of the rotation velocity vs. specific angular momentum relation.
+    !!}
     implicit none
     class(darkMatterProfileDMOMultiple), intent(inout) :: self
     type (treeNode                    ), intent(inout) :: node
@@ -301,7 +349,9 @@ contains
   end function multipleRotationNormalization
 
   double precision function multipleEnergy(self,node)
-    !% Return the energy of a multiple halo density profile.
+    !!{
+    Return the energy of a multiple halo density profile.
+    !!}
     implicit none
     class(darkMatterProfileDMOMultiple), intent(inout) :: self
     type (treeNode                    ), intent(inout) :: node
@@ -315,7 +365,9 @@ contains
   end function multipleEnergy
 
   double precision function multipleEnergyGrowthRate(self,node)
-    !% Return the rate of change of the energy of a multiple halo density profile.
+    !!{
+    Return the rate of change of the energy of a multiple halo density profile.
+    !!}
     implicit none
     class(darkMatterProfileDMOMultiple), intent(inout)         :: self
     type (treeNode                    ), intent(inout), target :: node
@@ -329,8 +381,10 @@ contains
   end function multipleEnergyGrowthRate
 
   double precision function multipleKSpace(self,node,waveNumber)
-    !% Returns the Fourier transform of the multiple density profile at the specified {\normalfont \ttfamily waveNumber}
-    !% (given in Mpc$^{-1}$).
+    !!{
+    Returns the Fourier transform of the multiple density profile at the specified {\normalfont \ttfamily waveNumber}
+    (given in Mpc$^{-1}$).
+    !!}
     implicit none
     class           (darkMatterProfileDMOMultiple), intent(inout)         :: self
     type            (treeNode                    ), intent(inout), target :: node
@@ -345,8 +399,10 @@ contains
   end function multipleKSpace
 
   double precision function multipleFreefallRadius(self,node,time)
-    !% Returns the freefall radius in the multiple density profile at the specified {\normalfont \ttfamily time} (given in
-    !% Gyr).
+    !!{
+    Returns the freefall radius in the multiple density profile at the specified {\normalfont \ttfamily time} (given in
+    Gyr).
+    !!}
     implicit none
     class           (darkMatterProfileDMOMultiple), intent(inout), target :: self
     type            (treeNode                    ), intent(inout), target :: node
@@ -361,8 +417,10 @@ contains
   end function multipleFreefallRadius
 
   double precision function multipleFreefallRadiusIncreaseRate(self,node,time)
-    !% Returns the rate of increase of the freefall radius in the multiple density profile at the specified {\normalfont
-    !% \ttfamily time} (given in Gyr).
+    !!{
+    Returns the rate of increase of the freefall radius in the multiple density profile at the specified {\normalfont
+    \ttfamily time} (given in Gyr).
+    !!}
     implicit none
     class           (darkMatterProfileDMOMultiple), intent(inout), target :: self
     type            (treeNode                    ), intent(inout), target :: node

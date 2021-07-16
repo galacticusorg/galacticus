@@ -96,7 +96,9 @@ sub Process_StateStorable {
 	my %classIdentifiers;
 	my $outputCodeOpener = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine {$className}StateStore(self,stateFile,gslStateFile,storeIdentifier)
- !% Store the state of this object to file.
+ !!\{
+ Store the state of this object to file.
+ !!\}
  use, intrinsic :: ISO_C_Binding     , only : c_size_t, c_ptr
  use            :: Display
  implicit none
@@ -108,7 +110,9 @@ subroutine {$className}StateStore(self,stateFile,gslStateFile,storeIdentifier)
 CODE
 	my $inputCodeOpener  = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine {$className}StateRestore(self,stateFile,gslStateFile)
- !% Store the state of this object to file.
+ !!\{
+ Store the state of this object to file.
+ !!\}
  use, intrinsic :: ISO_C_Binding     , only : c_size_t, c_ptr
  use            :: Display
  implicit none
@@ -348,10 +352,12 @@ CODE
 	}
 	# Insert type-bindings.
 	my $content = fill_in_string(<<'CODE', PACKAGE => 'code');
-    !#  <methods>
-    !#   <method method="stateStore"   description="Store the state of this object to file."    />
-    !#   <method method="stateRestore" description="Restore the state of this object from file."/>
-    !#  </methods>
+    !![
+    <methods>
+     <method method="stateStore"   description="Store the state of this object to file."    />
+     <method method="stateRestore" description="Restore the state of this object from file."/>
+    </methods>
+    !!]
     procedure :: stateStore   => {$className}StateStore
     procedure :: stateRestore => {$className}StateRestore
 CODE
@@ -400,7 +406,9 @@ CODE
 		    $code::dimensions  = $rank > 0 ? ", dimension(".join(",",map {":"} 1..$rank).")" : "";
 		    my $classRestoreCode = fill_in_string(<<'CODE', PACKAGE => 'code');
 subroutine {$parentClassName}ClassRestore{$rankSuffix}(self,stateFile{$storedShape})
- !% Restore the class of this object from file.
+ !!\{
+ Restore the class of this object from file.
+ !!\}
  use Galacticus_Error
  use, intrinsic :: ISO_C_Binding, only : c_size_t
  implicit none

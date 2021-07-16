@@ -17,24 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a stellar feedback class which performs a simple calculation of energy feedback from stellar populations.
+  !!{
+  Implements a stellar feedback class which performs a simple calculation of energy feedback from stellar populations.
+  !!}
 
   use :: Stellar_Astrophysics      , only : stellarAstrophysicsClass
   use :: Stellar_Astrophysics_Winds, only : stellarWindsClass
   use :: Supernovae_Population_III , only : supernovaePopulationIIIClass
   use :: Supernovae_Type_Ia        , only : supernovaeTypeIaClass
 
-  !# <stellarFeedback name="stellarFeedbackStandard">
-  !#  <description>
-  !#   A stellar feedback class which assumes that the cumulative energy input from a stellar population is equal to the total
-  !#   number of (Type II and Type Ia) supernovae multiplied by {\normalfont \ttfamily [supernovaEnergy]} (specified in ergs) plus
-  !#   any Population III-specific supernovae energy plus the integrated energy input from stellar winds. The minimum mass of a
-  !#   star required to form a Type II supernova is specified (in $M_\odot$) via the {\normalfont \ttfamily
-  !#   [initialMassForSupernovaeTypeII]} parameter.
-  !#  </description>
-  !# </stellarFeedback>
+  !![
+  <stellarFeedback name="stellarFeedbackStandard">
+   <description>
+    A stellar feedback class which assumes that the cumulative energy input from a stellar population is equal to the total
+    number of (Type II and Type Ia) supernovae multiplied by {\normalfont \ttfamily [supernovaEnergy]} (specified in ergs) plus
+    any Population III-specific supernovae energy plus the integrated energy input from stellar winds. The minimum mass of a
+    star required to form a Type II supernova is specified (in $M_\odot$) via the {\normalfont \ttfamily
+    [initialMassForSupernovaeTypeII]} parameter.
+   </description>
+  </stellarFeedback>
+  !!]
   type, extends(stellarFeedbackClass) :: stellarFeedbackStandard
-     !% A stellar feedback class which performs a simple calculation of energy feedback from stellar populations.
+     !!{
+     A stellar feedback class which performs a simple calculation of energy feedback from stellar populations.
+     !!}
      private
      class           (supernovaeTypeIaClass       ), pointer :: supernovaeTypeIa_              => null()
      class           (supernovaePopulationIIIClass), pointer :: supernovaePopulationIII_       => null()
@@ -47,7 +53,9 @@
   end type stellarFeedbackStandard
 
   interface stellarFeedbackStandard
-     !% Constructors for the {\normalfont \ttfamily standard} stellar feedback class.
+     !!{
+     Constructors for the {\normalfont \ttfamily standard} stellar feedback class.
+     !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
   end interface stellarFeedbackStandard
@@ -60,7 +68,9 @@
 contains
 
   function standardConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily standard} stellar feedback class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily standard} stellar feedback class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters                , only : inputParameter, inputParameters
     use :: Numerical_Constants_Astronomical, only : massSolar
     use :: Numerical_Constants_Prefixes    , only : kilo
@@ -74,35 +84,43 @@ contains
     class           (stellarAstrophysicsClass    ), pointer       :: stellarAstrophysics_
     double precision                                              :: initialMassForSupernovaeTypeII, supernovaEnergy
 
-    !# <inputParameter>
-    !#   <name>initialMassForSupernovaeTypeII</name>
-    !#   <defaultValue>8.0d0</defaultValue>
-    !#   <description>The minimum mass that a star must have in order that is result in a Type II supernova.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>supernovaEnergy</name>
-    !#   <defaultValue>1.0d51</defaultValue>
-    !#   <description>The energy produced by a supernova (in ergs).</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>initialMassForSupernovaeTypeII</name>
+      <defaultValue>8.0d0</defaultValue>
+      <description>The minimum mass that a star must have in order that is result in a Type II supernova.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>supernovaEnergy</name>
+      <defaultValue>1.0d51</defaultValue>
+      <description>The energy produced by a supernova (in ergs).</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     ! Convert energy to M☉ (km/s)².
     supernovaEnergy=supernovaEnergy*ergs/massSolar/kilo**2
-    !# <objectBuilder class="supernovaeTypeIa"        name="supernovaeTypeIa_"        source="parameters"/>
-    !# <objectBuilder class="supernovaePopulationIII" name="supernovaePopulationIII_" source="parameters"/>
-    !# <objectBuilder class="stellarWinds"            name="stellarWinds_"            source="parameters"/>
-    !# <objectBuilder class="stellarAstrophysics"     name="stellarAstrophysics_"     source="parameters"/>
+    !![
+    <objectBuilder class="supernovaeTypeIa"        name="supernovaeTypeIa_"        source="parameters"/>
+    <objectBuilder class="supernovaePopulationIII" name="supernovaePopulationIII_" source="parameters"/>
+    <objectBuilder class="stellarWinds"            name="stellarWinds_"            source="parameters"/>
+    <objectBuilder class="stellarAstrophysics"     name="stellarAstrophysics_"     source="parameters"/>
+    !!]
     self=stellarFeedbackStandard(initialMassForSupernovaeTypeII,supernovaEnergy,supernovaeTypeIa_,supernovaePopulationIII_,stellarWinds_,stellarAstrophysics_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="supernovaeTypeIa_"       />
-    !# <objectDestructor name="supernovaePopulationIII_"/>
-    !# <objectDestructor name="stellarWinds_"           />
-    !# <objectDestructor name="stellarAstrophysics_"    />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="supernovaeTypeIa_"       />
+    <objectDestructor name="supernovaePopulationIII_"/>
+    <objectDestructor name="stellarWinds_"           />
+    <objectDestructor name="stellarAstrophysics_"    />
+    !!]
     return
   end function standardConstructorParameters
 
   function standardConstructorInternal(initialMassForSupernovaeTypeII,supernovaEnergy,supernovaeTypeIa_,supernovaePopulationIII_,stellarWinds_,stellarAstrophysics_) result(self)
-    !% Constructor for the {\normalfont \ttfamily standard} stellar feedback class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily standard} stellar feedback class which takes a parameter list as input.
+    !!}
     implicit none
     type            (stellarFeedbackStandard     )                        :: self
     class           (supernovaeTypeIaClass       ), intent(in   ), target :: supernovaeTypeIa_
@@ -110,25 +128,33 @@ contains
     class           (stellarWindsClass           ), intent(in   ), target :: stellarWinds_
     class           (stellarAstrophysicsClass    ), intent(in   ), target :: stellarAstrophysics_
     double precision                              , intent(in   )         :: initialMassForSupernovaeTypeII, supernovaEnergy
-    !# <constructorAssign variables="initialMassForSupernovaeTypeII, supernovaEnergy, *supernovaeTypeIa_, *supernovaePopulationIII_, *stellarWinds_, *stellarAstrophysics_"/>
+    !![
+    <constructorAssign variables="initialMassForSupernovaeTypeII, supernovaEnergy, *supernovaeTypeIa_, *supernovaePopulationIII_, *stellarWinds_, *stellarAstrophysics_"/>
+    !!]
 
     return
   end function standardConstructorInternal
 
   subroutine standardDestructor(self)
-   !% Destructor for the {\normalfont \ttfamily standard} stellar feedback class.
+   !!{
+   Destructor for the {\normalfont \ttfamily standard} stellar feedback class.
+   !!}
     implicit none
     type(stellarFeedbackStandard), intent(inout) :: self
 
-    !# <objectDestructor name="self%supernovaeTypeIa_"       />
-    !# <objectDestructor name="self%supernovaePopulationIII_"/>
-    !# <objectDestructor name="self%stellarWinds_"           />
-    !# <objectDestructor name="self%stellarAstrophysics_"    />
+    !![
+    <objectDestructor name="self%supernovaeTypeIa_"       />
+    <objectDestructor name="self%supernovaePopulationIII_"/>
+    <objectDestructor name="self%stellarWinds_"           />
+    <objectDestructor name="self%stellarAstrophysics_"    />
+    !!]
     return
   end subroutine standardDestructor
 
   double precision function standardEnergyInputCumulative(self,initialMass,age,metallicity)
-    !% Compute the cumulative energy input from a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
+    !!{
+    Compute the cumulative energy input from a star of given {\normalfont \ttfamily initialMass}, {\normalfont \ttfamily age} and {\normalfont \ttfamily metallicity}.
+    !!}
     use :: Numerical_Constants_Astronomical, only : metallicitySolar
     use :: Numerical_Integration           , only : integrator
     implicit none
@@ -171,7 +197,9 @@ contains
   end function standardEnergyInputCumulative
 
   double precision function standardWindEnergyIntegrand(age)
-    !% Integrand used in evaluating cumulative energy input from winds.
+    !!{
+    Integrand used in evaluating cumulative energy input from winds.
+    !!}
     implicit none
     double precision, intent(in   ) :: age
 

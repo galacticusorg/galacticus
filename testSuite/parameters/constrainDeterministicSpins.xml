@@ -73,14 +73,31 @@
   <!-- Dark matter halo structure -->
   <darkMatterProfileDMO value="NFW"/>
   <darkMatterProfileMaximumConcentration value="100.0"/>
-  <darkMatterProfileScaleRadius value="binary">
-    <darkMatterProfileScaleRadiusAccept value="ludlow2016">
-      <C value="662.1352038205450000"/>
-      <f value="  0.0592527034455003"/>
-      <timeFormationSeekDelta value="  0.0000000000000000"/>
-      <darkMatterProfileScaleRadius value="concentration">
-        <correctForConcentrationDefinition value="true"/>
-        <darkMatterProfileConcentration value="diemerKravtsov2014">
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  4.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="binary">
+      <darkMatterProfileScaleRadiusAccept value="ludlow2016">
+	<C value="662.1352038205450000"/>
+	<f value="  0.0592527034455003"/>
+	<timeFormationSeekDelta value="  0.0000000000000000"/>
+	<darkMatterProfileScaleRadius value="concentration">
+          <correctForConcentrationDefinition value="true"/>
+          <darkMatterProfileConcentration value="diemerKravtsov2014">
+            <alpha value="1.12"/>
+            <beta value="1.69"/>
+            <eta0 value="6.82"/>
+            <eta1 value="1.42"/>
+            <kappa value="0.69"/>
+            <phi0 value="6.58"/>
+            <phi1 value="1.37"/>
+            <scatter value="0.00"/>
+          </darkMatterProfileConcentration>
+	</darkMatterProfileScaleRadius>
+      </darkMatterProfileScaleRadiusAccept>
+      <darkMatterProfileScaleRadiusReject value="concentration">
+	<correctForConcentrationDefinition value="false"/>
+	<darkMatterProfileConcentration value="diemerKravtsov2014">
           <alpha value="1.12"/>
           <beta value="1.69"/>
           <eta0 value="6.82"/>
@@ -89,28 +106,14 @@
           <phi0 value="6.58"/>
           <phi1 value="1.37"/>
           <scatter value="0.00"/>
-        </darkMatterProfileConcentration>
-      </darkMatterProfileScaleRadius>
-    </darkMatterProfileScaleRadiusAccept>
-    <darkMatterProfileScaleRadiusReject value="concentration">
-      <correctForConcentrationDefinition value="false"/>
-      <darkMatterProfileConcentration value="diemerKravtsov2014">
-        <alpha value="1.12"/>
-        <beta value="1.69"/>
-        <eta0 value="6.82"/>
-        <eta1 value="1.42"/>
-        <kappa value="0.69"/>
-        <phi0 value="6.58"/>
-        <phi1 value="1.37"/>
-        <scatter value="0.00"/>
-      </darkMatterProfileConcentration>
-    </darkMatterProfileScaleRadiusReject>
-    <galacticFilter value="all">
-      <galacticFilter value="rootNode"/>
-      <galacticFilter value="treeHosted"/>
-    </galacticFilter>
+	</darkMatterProfileConcentration>
+      </darkMatterProfileScaleRadiusReject>
+      <galacticFilter value="all">
+	<galacticFilter value="rootNode"/>
+	<galacticFilter value="treeHosted"/>
+      </galacticFilter>
+    </darkMatterProfileScaleRadius>
   </darkMatterProfileScaleRadius>
-  <darkMatterProfileMinimumConcentration value="4.0"/>
 
   <!-- Tree node component selection -->
   <componentBasic value="standard"/>
@@ -222,23 +225,11 @@
   </nbodyHaloMassError>
   <nodeMajorMergerFraction value="0.206728116479416"/>
 
-  <!--Stellar feedback outflows-->
-  <nodeOperator value="stellarFeedbackDisks">
-    <stellarFeedbackOutflows value="rateLimit">
-      <timescaleOutflowFractionalMinimum value="0.001"/>
-      <stellarFeedbackOutflows value="powerLaw">
-        <velocityCharacteristic value="250.0"/>
-        <exponent value="3.5"/>
-      </stellarFeedbackOutflows>
-    </stellarFeedbackOutflows>
-  </nodeOperator>
-  <nodeOperator value="stellarFeedbackSpheroids">
-    <stellarFeedbackOutflows value="rateLimit">
-      <timescaleOutflowFractionalMinimum value="0.001"/>
-      <stellarFeedbackOutflows value="powerLaw">
-        <velocityCharacteristic value="250.0"/>
-        <exponent value="3.5"/>
-      </stellarFeedbackOutflows>
-    </stellarFeedbackOutflows>
+  <nodeOperator value="multi">
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Star formation -->
+    <nodeOperator value="starFormationDisks"/>
+    <nodeOperator value="starFormationSpheroids"/>
   </nodeOperator>
 </parameters>

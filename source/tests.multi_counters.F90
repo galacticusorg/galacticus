@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test multi-counters.
+!!{
+Contains a program to test multi-counters.
+!!}
 
 program Test_Multi_Counters
-  !% Tests of multi-counters.
+  !!{
+  Tests of multi-counters.
+  !!}
   use            :: Display       , only : displayVerbositySet, verbosityLevelStandard
   use, intrinsic :: ISO_C_Binding , only : c_size_t
   use            :: Multi_Counters, only : multiCounter

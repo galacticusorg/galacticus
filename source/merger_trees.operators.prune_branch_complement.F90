@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a merger tree operator which prunes all but a specified branch.
+  !!{
+  Contains a module which implements a merger tree operator which prunes all but a specified branch.
+  !!}
 
   use :: Kind_Numbers, only : kind_int8
 
-  !# <mergerTreeOperator name="mergerTreeOperatorPruneBranchComplement">
-  !#  <description>
-  !#   A merger tree operator class which prunes all but the branch starting from {\normalfont \ttfamily [branchNodeID]}.
-  !#  </description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorPruneBranchComplement">
+   <description>
+    A merger tree operator class which prunes all but the branch starting from {\normalfont \ttfamily [branchNodeID]}.
+   </description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorPruneBranchComplement
-     !% A merger tree operator class which prunes all but a specified branch.
+     !!{
+     A merger tree operator class which prunes all but a specified branch.
+     !!}
      private
      integer(kind=kind_int8) :: branchNodeID
    contains
@@ -35,7 +41,9 @@
   end type mergerTreeOperatorPruneBranchComplement
 
   interface mergerTreeOperatorPruneBranchComplement
-     !% Constructors for the prune-non-essential merger tree operator class.
+     !!{
+     Constructors for the prune-non-essential merger tree operator class.
+     !!}
      module procedure pruneBranchComplementConstructorParameters
      module procedure pruneBranchComplementConstructorInternal
   end interface mergerTreeOperatorPruneBranchComplement
@@ -43,36 +51,48 @@
 contains
 
   function pruneBranchComplementConstructorParameters(parameters) result(self)
-    !% Constructor for the prune-non-essential merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the prune-non-essential merger tree operator class which takes a parameter set as input.
+    !!}
     implicit none
     type   (mergerTreeOperatorPruneBranchComplement)                :: self
     type   (inputParameters                        ), intent(inout) :: parameters
     integer(kind_int8                              )                :: branchNodeID
     
-    !# <inputParameter>
-    !#   <name>branchNodeID</name>
-    !#   <source>parameters</source>
-    !#   <variable>branchNodeID</variable>
-    !#   <description>ID of the node at the bash of the branch to avoid pruning.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>branchNodeID</name>
+      <source>parameters</source>
+      <variable>branchNodeID</variable>
+      <description>ID of the node at the bash of the branch to avoid pruning.</description>
+    </inputParameter>
+    !!]
     self=mergerTreeOperatorPruneBranchComplement(branchNodeID)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function pruneBranchComplementConstructorParameters
 
   function pruneBranchComplementConstructorInternal(branchNodeID) result(self)
-    !% Internal constructor for the prune-non-essential merger tree operator class.
+    !!{
+    Internal constructor for the prune-non-essential merger tree operator class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (mergerTreeOperatorPruneBranchComplement)                :: self
     integer(kind_int8                              ), intent(in   ) :: branchNodeID
-    !# <constructorAssign variables="branchNodeID"/>
+    !![
+    <constructorAssign variables="branchNodeID"/>
+    !!]
     
    return
   end function pruneBranchComplementConstructorInternal
 
   subroutine pruneBranchComplementOperatePreEvolution(self,tree)
-    !% Perform a prune-branch-complement operation on a merger tree.
+    !!{
+    Perform a prune-branch-complement operation on a merger tree.
+    !!}
     use :: Galacticus_Nodes              , only : mergerTree                    , treeNode, nodeCOmponentBasic
     use :: Merger_Trees_Pruning_Utilities, only : Merger_Tree_Prune_Clean_Branch
     implicit none

@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of an inverse unary operator.
+  !!{
+  Implementation of an inverse unary operator.
+  !!}
 
-  !# <operatorUnary name="operatorUnaryInverse">
-  !#  <description>An inverse unary operator.</description>
-  !# </operatorUnary>
+  !![
+  <operatorUnary name="operatorUnaryInverse">
+   <description>An inverse unary operator.</description>
+  </operatorUnary>
+  !!]
   type, extends(operatorUnaryClass) :: operatorUnaryInverse
-     !% Implementation of an inverse unary operator.
+     !!{
+     Implementation of an inverse unary operator.
+     !!}
      private
    contains
      procedure :: operate   => inverseOperate
@@ -31,15 +37,19 @@
   end type operatorUnaryInverse
 
   interface operatorUnaryInverse
-     !% Constructors for the {\normalfont \ttfamily inverse} 1D distribution function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily inverse} 1D distribution function class.
+     !!}
      module procedure inverseConstructorParameters
   end interface operatorUnaryInverse
 
 contains
 
   function inverseConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily inverse} 1D distribution function class which builds the object from a parameter
-    !% set.
+    !!{
+    Constructor for the {\normalfont \ttfamily inverse} 1D distribution function class which builds the object from a parameter
+    set.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(operatorUnaryInverse)                :: self
@@ -51,7 +61,9 @@ contains
   end function inverseConstructorParameters
 
   double precision function inverseOperate(self,x)
-    !% Apply an inverse operation.
+    !!{
+    Apply an inverse operation.
+    !!}
     implicit none
     class           (operatorUnaryInverse), intent(inout) :: self
     double precision                      , intent(in   ) :: x
@@ -62,7 +74,9 @@ contains
   end function inverseOperate
 
   double precision function inverseUnoperate(self,f)
-    !% Unapply an inverse operation.
+    !!{
+    Unapply an inverse operation.
+    !!}
     implicit none
     class           (operatorUnaryInverse), intent(inout) :: self
     double precision                       , intent(in   ) :: f

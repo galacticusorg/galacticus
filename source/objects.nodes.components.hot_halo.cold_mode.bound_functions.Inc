@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains custom functions for the cold mode hot halo component.
+!!{
+Contains custom functions for the cold mode hot halo component.
+!!}
 
 double precision function Node_Component_Hot_Halo_Cold_Mode_Mass_Total(self)
-  !% Return the total active mass in the hot halo.
+  !!{
+  Return the total active mass in the hot halo.
+  !!}
   implicit none
   class(nodeComponentHotHaloColdMode), intent(inout) :: self
 

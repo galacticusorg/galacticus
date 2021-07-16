@@ -17,19 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements a survey geometry which combines multiple other surveys.
+!!{
+Implements a survey geometry which combines multiple other surveys.
+!!}
 
   type, public :: surveyGeometryList
      class(surveyGeometryClass), pointer :: surveyGeometry_ => null()
      type (surveyGeometryList ), pointer :: next            => null()
   end type surveyGeometryList
 
-  !# <surveyGeometry name="surveyGeometryCombined">
-  !#  <description>Implements a survey geometry which combines multiple other surveys.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="surveyGeometryList" variable="surveyGeometries" next="next" object="surveyGeometry_" objectType="surveyGeometryClass"/>
-  !#  </deepCopy>
-  !# </surveyGeometry>
+  !![
+  <surveyGeometry name="surveyGeometryCombined">
+   <description>Implements a survey geometry which combines multiple other surveys.</description>
+   <deepCopy>
+    <linkedList type="surveyGeometryList" variable="surveyGeometries" next="next" object="surveyGeometry_" objectType="surveyGeometryClass"/>
+   </deepCopy>
+   <stateStore>
+    <linkedList type="surveyGeometryList" variable="surveyGeometries" next="next" object="surveyGeometry_"/>
+   </stateStore>
+  </surveyGeometry>
+  !!]
   type, extends(surveyGeometryClass) :: surveyGeometryCombined
      private
      type(surveyGeometryList), pointer :: surveyGeometries => null()
@@ -51,7 +58,9 @@
 contains
 
   function combinedConstructorParameters(parameters) result (self)
-    !% Constructor for the ``combined'' survey geometry class which takes a parameter set as input.
+    !!{
+    Constructor for the ``combined'' survey geometry class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (surveyGeometryCombined)                :: self
@@ -69,13 +78,17 @@ contains
           allocate(self%surveyGeometries)
           surveyGeometry_ => self%surveyGeometries
        end if
-       !# <objectBuilder class="surveyGeometry" name="surveyGeometry_%surveyGeometry_" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="surveyGeometry" name="surveyGeometry_%surveyGeometry_" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function combinedConstructorParameters
 
   function combinedConstructorInternal(surveyGeometries) result (self)
-    !% Internal constructor for the combined output analysis weight operator class.
+    !!{
+    Internal constructor for the combined output analysis weight operator class.
+    !!}
     implicit none
     type(surveyGeometryCombined)                        :: self
     type(surveyGeometryList    ), target, intent(in   ) :: surveyGeometries
@@ -84,14 +97,18 @@ contains
     self           %surveyGeometries => surveyGeometries
     surveyGeometry_                  => surveyGeometries
     do while (associated(surveyGeometry_))
-       !# <referenceCountIncrement owner="surveyGeometry_" object="surveyGeometry_"/>
+       !![
+       <referenceCountIncrement owner="surveyGeometry_" object="surveyGeometry_"/>
+       !!]
        surveyGeometry_ => surveyGeometry_%next
     end do
     return
   end function combinedConstructorInternal
 
   subroutine combinedDestructor(self)
-    !% Destructor for the combined weight operator class.
+    !!{
+    Destructor for the combined weight operator class.
+    !!}
     implicit none
     type(surveyGeometryCombined), intent(inout) :: self
     type(surveyGeometryList    ), pointer       :: surveyGeometry_, surveyGeometryNext
@@ -100,7 +117,9 @@ contains
        surveyGeometry_ => self%surveyGeometries
        do while (associated(surveyGeometry_))
           surveyGeometryNext => surveyGeometry_%next
-          !# <objectDestructor name="surveyGeometry_%surveyGeometry_"/>
+          !![
+          <objectDestructor name="surveyGeometry_%surveyGeometry_"/>
+          !!]
           deallocate(surveyGeometry_)
           surveyGeometry_ => surveyGeometryNext
        end do
@@ -109,7 +128,9 @@ contains
   end subroutine combinedDestructor
 
   logical function combinedWindowFunctionAvailable(self)
-    !% Return false to indicate that survey window function is not available.
+    !!{
+    Return false to indicate that survey window function is not available.
+    !!}
     implicit none
     class(surveyGeometryCombined), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -119,7 +140,9 @@ contains
   end function combinedWindowFunctionAvailable
 
   logical function combinedAngularPowerAvailable(self)
-    !% Return false to indicate that survey angular power is not available.
+    !!{
+    Return false to indicate that survey angular power is not available.
+    !!}
     implicit none
     class(surveyGeometryCombined), intent(inout) :: self
     !$GLC attributes unused :: self
@@ -129,7 +152,9 @@ contains
   end function combinedAngularPowerAvailable
 
   double precision function combinedSolidAngle(self,field)
-    !% Return the survey solid angle.
+    !!{
+    Return the survey solid angle.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (surveyGeometryCombined), intent(inout)               :: self
@@ -142,7 +167,9 @@ contains
   end function combinedSolidAngle
 
   subroutine combinedWindowFunctions(self,mass1,mass2,gridCount,boxLength,windowFunction1,windowFunction2)
-    !% Provides window functions for combined survey geometries.
+    !!{
+    Provides window functions for combined survey geometries.
+    !!}
     use            :: Galacticus_Error, only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding   , only : c_double_complex
     implicit none
@@ -158,7 +185,9 @@ contains
   end subroutine combinedWindowFunctions
 
   double precision function combinedAngularPower(self,i,j,l)
-    !% Return the survey angular power $C^{ij}_\ell$ from \gls{mangle} polygons.
+    !!{
+    Return the survey angular power $C^{ij}_\ell$ from \gls{mangle} polygons.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryCombined), intent(inout):: self
@@ -172,7 +201,9 @@ contains
   end function combinedAngularPower
 
   logical function combinedPointIncluded(self,point,mass)
-    !% Return true if a point is included in the combined survey geometry.
+    !!{
+    Return true if a point is included in the combined survey geometry.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryCombined), intent(inout)               :: self

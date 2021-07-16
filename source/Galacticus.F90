@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% {\normalfont \scshape Galacticus} is a semi-analytic model of galaxy formation written by Andrew Benson
-!% \href{mailto:abenson@carnegiescience.edu}{{\normalfont \ttfamily <abenson@carnegiescience.edu>}}.
+!!{
+{\normalfont \scshape Galacticus} is a semi-analytic model of galaxy formation written by Andrew Benson
+\href{mailto:abenson@carnegiescience.edu}{{\normalfont \ttfamily <abenson@carnegiescience.edu>}}.
+!!}
 
 program Galacticus
-  !% The main {\normalfont \scshape Galacticus} program.
+  !!{
+  The main {\normalfont \scshape Galacticus} program.
+  !!}
   use    :: Display_Verbosity                   , only : displayVerbositySetFromParameters
   use    :: Events_Hooks                        , only : eventsHooksInitialize
   use    :: Functions_Global_Utilities          , only : Functions_Global_Set
@@ -83,12 +87,16 @@ program Galacticus
   ! Show the Galacticus banner.
   call Galacticus_Banner_Show()
   ! Perform task.
-  !# <objectBuilder class="task" name="task_" source="parameters"/>
+  !![
+  <objectBuilder class="task" name="task_" source="parameters"/>
+  !!]
   if (task_%requiresOutputFile()) call Galacticus_Output_Open_File (parameters)
   call task_     %perform()
   call parameters%destroy()
   if (task_%requiresOutputFile()) call Galacticus_Output_Close_File(          )
-  !# <objectDestructor name="task_"/>
+  !![
+  <objectDestructor name="task_"/>
+  !!]
   call taskDoDestroy()
   call Galacticus_Function_Classes_Destroy()
   ! Finalize MPI.

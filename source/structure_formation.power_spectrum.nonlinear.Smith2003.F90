@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
-!% algorithm of \cite{smith_stable_2003}.
+!!{
+Contains a module which implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
+algorithm of \cite{smith_stable_2003}.
+!!}
 
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters, only : cosmologyParametersClass
   use :: Power_Spectra       , only : powerSpectrumClass
 
-  !# <powerSpectrumNonlinear name="powerSpectrumNonlinearSmith2003">
-  !#  <description>Provides a nonlinear power spectrum class in which the power spectrum is computed using the algorithm of \cite{smith_stable_2003}.</description>
-  !# </powerSpectrumNonlinear>
+  !![
+  <powerSpectrumNonlinear name="powerSpectrumNonlinearSmith2003">
+   <description>Provides a nonlinear power spectrum class in which the power spectrum is computed using the algorithm of \cite{smith_stable_2003}.</description>
+  </powerSpectrumNonlinear>
+  !!]
   type, extends(powerSpectrumNonlinearClass) :: powerSpectrumNonlinearSmith2003
-     !% A nonlinear power spectrum class in which the power spectrum is computed using the algorithm of \cite{smith_stable_2003}.
+     !!{
+     A nonlinear power spectrum class in which the power spectrum is computed using the algorithm of \cite{smith_stable_2003}.
+     !!}
      private
      class           (cosmologyFunctionsClass ), pointer :: cosmologyFunctions_      => null()
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_     => null()
@@ -44,16 +50,20 @@
           &                                                 f1                                , f2                     , &
           &                                                 f3
    contains
-     !# <methods>
-     !#   <method description="Compute the fitting function coefficients at the given time." method="coefficients" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Compute the fitting function coefficients at the given time." method="coefficients" />
+     </methods>
+     !!]
      final     ::                 smith2003Destructor
      procedure :: value        => smith2003Value
      procedure :: coefficients => smith2003Coefficients
   end type powerSpectrumNonlinearSmith2003
 
   interface powerSpectrumNonlinearSmith2003
-     !% Constructors for the {\normalfont \ttfamily Smith2003} nonlinear power spectrum class.
+     !!{
+     Constructors for the {\normalfont \ttfamily Smith2003} nonlinear power spectrum class.
+     !!}
      module procedure smith2003ConstructorParameters
      module procedure smith2003ConstructorInternal
   end interface powerSpectrumNonlinearSmith2003
@@ -66,7 +76,9 @@
 contains
 
   function smith2003ConstructorParameters(parameters) result(self)
-    !% Constructor for the smith2003 nonlinear power spectrum class which takes a parameter set as input.
+    !!{
+    Constructor for the smith2003 nonlinear power spectrum class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (powerSpectrumNonlinearSmith2003)                        :: self
@@ -77,39 +89,45 @@ contains
     logical                                                         :: includePeacockCorrection, includeQuasiLinearPower, &
           &                                                            includeHaloPower
 
-    !# <inputParameter>
-    !#   <name>includePeacockCorrection</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <defaultSource>\href{https://www.roe.ac.uk/~jap/haloes/}{{\normalfont \ttfamily https://www.roe.ac.uk/\~jap/haloes/}}</defaultSource>
-    !#   <description>If true, include the correction proposed on John Peacock's \href{https://www.roe.ac.uk/~jap/haloes/}{web page}.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>includeQuasiLinearPower</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true, include quasi-linear contribution to the power spectrum.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>includeHaloPower</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true, include halo contribution to the power spectrum.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="powerSpectrum"       name="powerSpectrum_"       source="parameters"/>
+    !![
+    <inputParameter>
+      <name>includePeacockCorrection</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <defaultSource>\href{https://www.roe.ac.uk/~jap/haloes/}{{\normalfont \ttfamily https://www.roe.ac.uk/\~jap/haloes/}}</defaultSource>
+      <description>If true, include the correction proposed on John Peacock's \href{https://www.roe.ac.uk/~jap/haloes/}{web page}.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>includeQuasiLinearPower</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, include quasi-linear contribution to the power spectrum.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>includeHaloPower</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, include halo contribution to the power spectrum.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="powerSpectrum"       name="powerSpectrum_"       source="parameters"/>
+    !!]
     ! Call the internal constructor.
     self=smith2003ConstructorInternal(includePeacockCorrection,includeQuasiLinearPower,includeHaloPower,cosmologyParameters_,cosmologyFunctions_,powerSpectrum_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
-    !# <objectDestructor name="powerSpectrum_"      />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="powerSpectrum_"      />
+    !!]
     return
   end function smith2003ConstructorParameters
 
   function smith2003ConstructorInternal(includePeacockCorrection,includeQuasiLinearPower,includeHaloPower,cosmologyParameters_,cosmologyFunctions_,powerSpectrum_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily Smith2003} nonlinear power spectrum class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily Smith2003} nonlinear power spectrum class.
+    !!}
     implicit none
     type   (powerSpectrumNonlinearSmith2003)                        :: self
     logical                                 , intent(in   )         :: includePeacockCorrection, includeQuasiLinearPower, &
@@ -117,25 +135,33 @@ contains
     class  (cosmologyParametersClass       ), intent(in   ), target :: cosmologyParameters_
     class  (cosmologyFunctionsClass        ), intent(in   ), target :: cosmologyFunctions_
     class  (powerSpectrumClass             ), intent(in   ), target :: powerSpectrum_
-    !# <constructorAssign variables="includePeacockCorrection, ,includeQuasiLinearPower, includeHaloPower, *cosmologyParameters_, *cosmologyFunctions_, *powerSpectrum_"/>
+    !![
+    <constructorAssign variables="includePeacockCorrection, ,includeQuasiLinearPower, includeHaloPower, *cosmologyParameters_, *cosmologyFunctions_, *powerSpectrum_"/>
+    !!]
 
     self%timePrevious=-1.0d0
     return
   end function smith2003ConstructorInternal
 
   subroutine smith2003Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily Smith2003} nonlinear power spectrum class.
+    !!{
+    Destructor for the {\normalfont \ttfamily Smith2003} nonlinear power spectrum class.
+    !!}
     implicit none
     type(powerSpectrumNonlinearSmith2003), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_" />
-    !# <objectDestructor name="self%powerSpectrum_"      />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    <objectDestructor name="self%cosmologyFunctions_" />
+    <objectDestructor name="self%powerSpectrum_"      />
+    !!]
     return
   end subroutine smith2003Destructor
 
   double precision function smith2003Value(self,wavenumber,time)
-    !% Return a nonlinear power spectrum equal using the algorithm of \cite{smith_stable_2003}.
+    !!{
+    Return a nonlinear power spectrum equal using the algorithm of \cite{smith_stable_2003}.
+    !!}
     use :: Cosmology_Parameters    , only : hubbleUnitsLittleH
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -199,7 +225,9 @@ contains
   end function smith2003Value
   
   subroutine smith2003Coefficients(self,time)
-    !% Evaluate the fitting function coefficients at the given time.
+    !!{
+    Evaluate the fitting function coefficients at the given time.
+    !!}
     use :: Numerical_Comparison , only : Values_Agree
     use :: Numerical_Integration, only : integrator
     use :: Root_Finder          , only : rootFinder  , rangeExpandMultiplicative, rangeExpandSignExpectPositive, rangeExpandSignExpectNegative
@@ -277,7 +305,9 @@ contains
   end subroutine smith2003Coefficients
 
   double precision function wavenumberNonLinearRoot(wavenumberNonLinear)
-    !% Root function used to find the non-linear wavenumber, using the definition of \cite[][eqns.~53 \& 54]{smith_stable_2003}.
+    !!{
+    Root function used to find the non-linear wavenumber, using the definition of \cite[][eqns.~53 \& 54]{smith_stable_2003}.
+    !!}
     use :: Numerical_Integration, only : integrator
     implicit none
     double precision            , intent(in   ) :: wavenumberNonLinear
@@ -293,7 +323,9 @@ contains
   end function wavenumberNonLinearRoot
   
   double precision function integrandSigmaSquared(wavenumber)
-    !% Integrand used to compute $\sigma^2(R)$ \citep[][eqn.~54]{smith_stable_2003}.
+    !!{
+    Integrand used to compute $\sigma^2(R)$ \citep[][eqn.~54]{smith_stable_2003}.
+    !!}
     implicit none
     double precision, intent(in   ) :: wavenumber
 
@@ -313,7 +345,9 @@ contains
   end function integrandSigmaSquared
 
   double precision function integrandEffectiveIndex(wavenumber)
-    !% Integrand used to compute the effective spectral index\citep[][eqn.~59]{smith_stable_2003}.
+    !!{
+    Integrand used to compute the effective spectral index\citep[][eqn.~59]{smith_stable_2003}.
+    !!}
     implicit none
     double precision, intent(in   ) :: wavenumber
 
@@ -337,7 +371,9 @@ contains
   end function integrandEffectiveIndex
 
   double precision function integrandSpectralCurvature(wavenumber)
-    !% Integrand used to compute the spectral curvature \citep[][eqn.~60]{smith_stable_2003}.
+    !!{
+    Integrand used to compute the spectral curvature \citep[][eqn.~60]{smith_stable_2003}.
+    !!}
     implicit none
     double precision, intent(in   ) :: wavenumber
 

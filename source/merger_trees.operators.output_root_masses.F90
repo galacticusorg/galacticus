@@ -17,19 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a merger tree operator which outputs a file of tree root masses (and weights).
+  !!{
+  Contains a module which implements a merger tree operator which outputs a file of tree root masses (and weights).
+  !!}
 
   ! Buffer size for tree data.
-  !# <scoping>
-  !#  <module variables="outputRootMassesBufferSize"/>
-  !# </scoping>
+  !![
+  <scoping>
+   <module variables="outputRootMassesBufferSize"/>
+  </scoping>
+  !!]
   integer, parameter :: outputRootMassesBufferSize=1000
 
-  !# <mergerTreeOperator name="mergerTreeOperatorOutputRootMasses">
-  !#  <description>Output a file of tree root masses (and weights).</description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorOutputRootMasses">
+   <description>Output a file of tree root masses (and weights).</description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorOutputRootMasses
-     !% A merger tree operator class which outputs a file of tree root masses (and weights).
+     !!{
+     A merger tree operator class which outputs a file of tree root masses (and weights).
+     !!}
      private
      integer                                                                 :: treeCount
      double precision                                                        :: time
@@ -42,7 +50,9 @@
   end type mergerTreeOperatorOutputRootMasses
 
   interface mergerTreeOperatorOutputRootMasses
-     !% Constructors for the tree root mass outputting merger tree operator class.
+     !!{
+     Constructors for the tree root mass outputting merger tree operator class.
+     !!}
      module procedure outputRootMassesConstructorParameters
      module procedure outputRootMassesConstructorInternal
   end interface mergerTreeOperatorOutputRootMasses
@@ -50,7 +60,9 @@
 contains
 
   function outputRootMassesConstructorParameters(parameters) result(self)
-    !% Constructor for the conditional mass function merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the conditional mass function merger tree operator class which takes a parameter set as input.
+    !!}
     use :: Cosmology_Functions, only : cosmologyFunctions, cosmologyFunctionsClass
     implicit none
     type            (mergerTreeOperatorOutputRootMasses)                :: self
@@ -60,24 +72,26 @@ contains
     logical                                                             :: alwaysIsolatedHalosOnly
     type            (varying_string                    )                :: fileName
 
-    !# <inputParameter>
-    !#   <name>redshift</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The redshift at which to gather tree root masses.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>alwaysIsolatedHalosOnly</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>Include only always-isolated halos when gathering tree root masses?</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>fileName</name>
-    !#   <source>parameters</source>
-    !#   <description>The name of the file to which tree masses should be written.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>redshift</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The redshift at which to gather tree root masses.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>alwaysIsolatedHalosOnly</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>Include only always-isolated halos when gathering tree root masses?</description>
+    </inputParameter>
+    <inputParameter>
+      <name>fileName</name>
+      <source>parameters</source>
+      <description>The name of the file to which tree masses should be written.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !!]
     ! Get time from redshift.
     time   =cosmologyFunctions_ %cosmicTime                 (          &
          &   cosmologyFunctions_%expansionFactorFromRedshift (         &
@@ -86,13 +100,17 @@ contains
          &                                                  )
     ! Construct the instance.
     self=mergerTreeOperatorOutputRootMasses(time,alwaysIsolatedHalosOnly,fileName)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    !!]
     return
   end function outputRootMassesConstructorParameters
 
   function outputRootMassesConstructorInternal(time,alwaysIsolatedHalosOnly,fileName) result(self)
-    !% Internal constructor for the conditional mass function merger tree operator class.
+    !!{
+    Internal constructor for the conditional mass function merger tree operator class.
+    !!}
     use :: File_Utilities, only : File_Exists, File_Remove
     use :: IO_HDF5       , only : hdf5Access
     implicit none
@@ -100,7 +118,9 @@ contains
     double precision                                    , intent(in   ) :: time
     logical                                             , intent(in   ) :: alwaysIsolatedHalosOnly
     type            (varying_string                    ), intent(in   ) :: fileName
-    !# <constructorAssign variables="time,alwaysIsolatedHalosOnly,fileName"/>
+    !![
+    <constructorAssign variables="time,alwaysIsolatedHalosOnly,fileName"/>
+    !!]
 
     ! Initialize.
     self%treeCount=0
@@ -112,7 +132,9 @@ contains
   end function outputRootMassesConstructorInternal
 
   subroutine outputRootMassesOperatePreEvolution(self,tree)
-    !% Compute conditional mass function on {\normalfont \ttfamily tree}.
+    !!{
+    Compute conditional mass function on {\normalfont \ttfamily tree}.
+    !!}
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes    , only : mergerTree                   , nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     use :: Merger_Tree_Walkers , only : mergerTreeWalkerIsolatedNodes
@@ -203,7 +225,9 @@ contains
   end subroutine outputRootMassesOperatePreEvolution
 
   subroutine outputRootMassesFinalize(self)
-    !% Outputs conditional mass function.
+    !!{
+    Outputs conditional mass function.
+    !!}
     use :: IO_HDF5, only : hdf5Access, hdf5Object
     implicit none
     class(mergerTreeOperatorOutputRootMasses), intent(inout) :: self

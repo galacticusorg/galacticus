@@ -17,26 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is adaptive.
+  !!{
+  Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is adaptive.
+  !!}
 
-  !# <posteriorSampleDffrntlEvltnProposalSize name="posteriorSampleDffrntlEvltnProposalSizeAdaptive">
-  !#  <description>
-  !#   This class adaptively changes $\gamma$ in an attempt to maintain the acceptance rate at an acceptable level. The algorithm is
-  !#   controlled by the following sub-parameters:
-  !#   \begin{description}
-  !#   \item[{\normalfont \ttfamily [gammaInitial]}] The initial value for $\gamma$.
-  !#   \item[{\normalfont \ttfamily [gammaFactor]}] The multiplicative factor by which $\gamma$ should be increased or decreased if the
-  !#     acceptance rate is out of range.
-  !#   \item[{\normalfont \ttfamily [gammaMinimum]}] The smallest value allowed for $\gamma$.
-  !#   \item[{\normalfont \ttfamily [gammaMaximum]}] The largest value allowed for $\gamma$.
-  !#   \item[{\normalfont \ttfamily [acceptanceRateMinimum]}] The minimum acceptance rate to accept before reducing $\gamma$.
-  !#   \item[{\normalfont \ttfamily [acceptanceRateMaximum]}] The maximum acceptance rate to accept before reducing $\gamma$.
-  !#   \item[{\normalfont \ttfamily [updateCount]}] The number of steps between successive checks of the acceptance rate.
-  !#   \end{description}
-  !#  </description>
-  !# </posteriorSampleDffrntlEvltnProposalSize>
+  !![
+  <posteriorSampleDffrntlEvltnProposalSize name="posteriorSampleDffrntlEvltnProposalSizeAdaptive">
+   <description>
+    This class adaptively changes $\gamma$ in an attempt to maintain the acceptance rate at an acceptable level. The algorithm is
+    controlled by the following sub-parameters:
+    \begin{description}
+    \item[{\normalfont \ttfamily [gammaInitial]}] The initial value for $\gamma$.
+    \item[{\normalfont \ttfamily [gammaFactor]}] The multiplicative factor by which $\gamma$ should be increased or decreased if the
+      acceptance rate is out of range.
+    \item[{\normalfont \ttfamily [gammaMinimum]}] The smallest value allowed for $\gamma$.
+    \item[{\normalfont \ttfamily [gammaMaximum]}] The largest value allowed for $\gamma$.
+    \item[{\normalfont \ttfamily [acceptanceRateMinimum]}] The minimum acceptance rate to accept before reducing $\gamma$.
+    \item[{\normalfont \ttfamily [acceptanceRateMaximum]}] The maximum acceptance rate to accept before reducing $\gamma$.
+    \item[{\normalfont \ttfamily [updateCount]}] The number of steps between successive checks of the acceptance rate.
+    \end{description}
+   </description>
+  </posteriorSampleDffrntlEvltnProposalSize>
+  !!]
   type, extends(posteriorSampleDffrntlEvltnProposalSizeClass) :: posteriorSampleDffrntlEvltnProposalSizeAdaptive
-     !% Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is adaptive.
+     !!{
+     Implementation of a posterior sampling differential evolution proposal size class in which the proposal size is adaptive.
+     !!}
      private
      double precision :: gammaCurrent            , gammaAdjustFactor    , &
           &              gammaInitial
@@ -49,7 +55,9 @@
   end type posteriorSampleDffrntlEvltnProposalSizeAdaptive
 
   interface posteriorSampleDffrntlEvltnProposalSizeAdaptive
-     !% Constructors for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class.
+     !!{
+     Constructors for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class.
+     !!}
      module procedure adaptiveConstructorParameters
      module procedure adaptiveConstructorInternal
   end interface posteriorSampleDffrntlEvltnProposalSizeAdaptive
@@ -57,8 +65,10 @@
 contains
 
   function adaptiveConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class which
-    !% builds the object from a parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily adaptive} posterior sampling differential evolution random jump class which
+    builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleDffrntlEvltnProposalSizeAdaptive)                 :: self
@@ -69,54 +79,60 @@ contains
     integer                                                                           :: updateCount
     logical                                                                           :: outliersInAcceptanceRate
 
-    !# <inputParameter>
-    !#   <name>gammaInitial</name>
-    !#   <description>The initial proposal size, $\gamma$.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>gammaMinimum</name>
-    !#   <description>The minimum allowed proposal size, $\gamma$.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>gammaMaximum</name>
-    !#   <description>The maximum allowed proposal size, $\gamma$.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>gammaAdjustFactor</name>
-    !#   <description>The factor by which to adjust the proposal size, $\gamma$.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>acceptanceRateMinimum</name>
-    !#   <description>The minimum acceptable acceptance rate.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>acceptanceRateMaximum</name>
-    !#   <description>The maximum acceptable acceptance rate.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>updateCount</name>
-    !#   <description>The number of steps between potential updates of the proposal size.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>outliersInAcceptanceRate</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>The number of steps between potential updates of the proposal size.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>gammaInitial</name>
+      <description>The initial proposal size, $\gamma$.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>gammaMinimum</name>
+      <description>The minimum allowed proposal size, $\gamma$.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>gammaMaximum</name>
+      <description>The maximum allowed proposal size, $\gamma$.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>gammaAdjustFactor</name>
+      <description>The factor by which to adjust the proposal size, $\gamma$.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>acceptanceRateMinimum</name>
+      <description>The minimum acceptable acceptance rate.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>acceptanceRateMaximum</name>
+      <description>The maximum acceptable acceptance rate.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>updateCount</name>
+      <description>The number of steps between potential updates of the proposal size.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>outliersInAcceptanceRate</name>
+      <defaultValue>.true.</defaultValue>
+      <description>The number of steps between potential updates of the proposal size.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=posteriorSampleDffrntlEvltnProposalSizeAdaptive(gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function adaptiveConstructorParameters
 
   function adaptiveConstructorInternal(gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate) result(self)
-    !% Constructor for the ``adaptive'' differential evolution proposal size class.
+    !!{
+    Constructor for the ``adaptive'' differential evolution proposal size class.
+    !!}
     implicit none
     type            (posteriorSampleDffrntlEvltnProposalSizeAdaptive)                :: self
     double precision                                                 , intent(in   ) :: gammaInitial            , gammaAdjustFactor    , &
@@ -124,7 +140,9 @@ contains
          &                                                                              acceptanceRateMinimum   , acceptanceRateMaximum
     integer                                                          , intent(in   ) :: updateCount
     logical                                                          , intent(in   ) :: outliersInAcceptanceRate
-    !# <constructorAssign variables="gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate"/>
+    !![
+    <constructorAssign variables="gammaInitial,gammaMinimum,gammaMaximum,gammaAdjustFactor,acceptanceRateMinimum,acceptanceRateMaximum,updateCount,outliersInAcceptanceRate"/>
+    !!]
 
     self%gammaCurrent   =gammaInitial
     self%lastUpdateCount=0
@@ -132,7 +150,9 @@ contains
   end function adaptiveConstructorInternal
 
   double precision function adaptiveGamma(self,simulationState,simulationConvergence)
-    !% Return the proposal size.
+    !!{
+    Return the proposal size.
+    !!}
     use :: Display           , only : displayMessage, displayVerbosity, verbosityLevelStandard
     use :: ISO_Varying_String, only : varying_string
     use :: MPI_Utilities     , only : mpiSelf

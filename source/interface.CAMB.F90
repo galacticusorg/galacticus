@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides various interfaces to the \gls{camb} code.
+!!{
+Contains a module which provides various interfaces to the \gls{camb} code.
+!!}
 
 module Interfaces_CAMB
-  !% Provides various interfaces to the \gls{camb} code.
+  !!{
+  Provides various interfaces to the \gls{camb} code.
+  !!}
   use :: File_Utilities, only : lockDescriptor
   private
   public :: Interface_CAMB_Initialize, Interface_CAMB_Transfer_Function
@@ -32,22 +36,28 @@ module Interfaces_CAMB
   ! Default maximum wavenumber to tabulate.
   double precision                , parameter :: cambLogWavenumberMaximumDefault=log(10.0d0)
 
-  !# <enumeration>
-  !#  <name>cambSpecies</name>
-  !#  <description>Particle species in CAMB.</description>
-  !#  <visibility>public</visibility>
-  !#  <indexing>1</indexing>
-  !#  <entry label="darkMatter"/>
-  !#  <entry label="baryons"   />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>cambSpecies</name>
+   <description>Particle species in CAMB.</description>
+   <visibility>public</visibility>
+   <indexing>1</indexing>
+   <entry label="darkMatter"/>
+   <entry label="baryons"   />
+  </enumeration>
+  !!]
 
   ! Generate a source digest.
-  !# <sourceDigest name="cambSourceDigest"/>
+  !![
+  <sourceDigest name="cambSourceDigest"/>
+  !!]
 
 contains
 
   subroutine Interface_CAMB_Initialize(cambPath,cambVersion,static)
-    !% Initialize the interface with CAMB, including downloading and compiling CAMB if necessary.
+    !!{
+    Initialize the interface with CAMB, including downloading and compiling CAMB if necessary.
+    !!}
     use :: Display           , only : displayMessage         , verbosityLevelWorking
     use :: File_Utilities    , only : Directory_Make         , File_Exists          , File_Lock   , File_Unlock, &
           &                           lockDescriptor
@@ -62,7 +72,9 @@ contains
     integer                                          :: status  , flagsLength
     type   (varying_string)                          :: command
     type   (lockDescriptor)                          :: fileLock
-    !# <optionalArgument name="static" defaultsTo=".false." />
+    !![
+    <optionalArgument name="static" defaultsTo=".false." />
+    !!]
 
     ! Set path and version
     cambPath   =galacticusPath(pathTypeDataDynamic)//"CAMB/"
@@ -101,7 +113,9 @@ contains
   contains
 
     function flagsRetrieve(flagsLength)
-      !% Retrieve the compiler flags.
+      !!{
+      Retrieve the compiler flags.
+      !!}
       implicit none
       type     (varying_string )                :: flagsRetrieve
       integer                   , intent(in   ) :: flagsLength
@@ -115,7 +129,9 @@ contains
   end subroutine Interface_CAMB_Initialize
 
   subroutine Interface_CAMB_Transfer_Function(cosmologyParameters_,redshifts,wavenumberRequired,wavenumberMaximum,countPerDecade,fileName,wavenumberMaximumReached,transferFunctionDarkMatter,transferFunctionBaryons)
-    !% Run CAMB as necessary to compute transfer functions.
+    !!{
+    Run CAMB as necessary to compute transfer functions.
+    !!}
     use               :: Cosmology_Parameters            , only : cosmologyParametersClass    , hubbleUnitsLittleH
     use               :: File_Utilities                  , only : Count_Lines_In_File         , Directory_Make     , File_Exists   , File_Lock     , &
           &                                                       File_Path                   , File_Remove        , File_Unlock   , lockDescriptor
@@ -169,7 +185,9 @@ contains
          &                                                                         transferFileName                        , fileName_
     type            (inputParameters         )                                  :: descriptor
     logical                                                                     :: allEpochsFound
-    !# <optionalArgument name="countPerDecade" defaultsTo="0"/>
+    !![
+    <optionalArgument name="countPerDecade" defaultsTo="0"/>
+    !!]
 
     ! Build a sorted array of all redshift labels.
     allocate(redshiftRanks (size(redshifts)))

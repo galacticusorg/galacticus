@@ -17,8 +17,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of the cosmological functions class for cosmologies consisting of collisionless
-  !% matter plus a cosmological constant.
+  !!{
+  An implementation of the cosmological functions class for cosmologies consisting of collisionless
+  matter plus a cosmological constant.
+  !!}
 
   use :: Cosmology_Parameters   , only : cosmologyParameters, cosmologyParametersClass
   use :: Numerical_Interpolation, only : interpolator
@@ -31,14 +33,18 @@
   ! Factor by which one component of Universe must dominate others such that we can ignore the others.
   double precision, parameter :: matterLambdaDominateFactor               =100.0d0
 
-  !# <cosmologyFunctions name="cosmologyFunctionsMatterLambda">
-  !#  <description>
-  !#   Cosmological relations are computed assuming a universe that contains only collisionless matter and a cosmological
-  !#   constant.
-  !#  </description>
-  !# </cosmologyFunctions>
+  !![
+  <cosmologyFunctions name="cosmologyFunctionsMatterLambda">
+   <description>
+    Cosmological relations are computed assuming a universe that contains only collisionless matter and a cosmological
+    constant.
+   </description>
+  </cosmologyFunctions>
+  !!]
   type, extends(cosmologyFunctionsClass) :: cosmologyFunctionsMatterLambda
-     !% A cosmological functions class for cosmologies consisting of matter plus a cosmological constant.
+     !!{
+     A cosmological functions class for cosmologies consisting of matter plus a cosmological constant.
+     !!}
      private
      class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_                            => null()
      logical                                                               :: collapsingUniverse                              =.false.
@@ -63,10 +69,12 @@
           &                                                                   distanceTableLuminosityDistanceKCorrectedNegated
      logical                                                               :: enableRangeChecks
    contains
-     !# <methods>
-     !#   <method description="Tabulate comoving distance as a function of cosmic time." method="distanceTabulate" />
-     !#   <method description="Tabulate expansion factor as a function of cosmic time." method="expansionFactorTabulate" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Tabulate comoving distance as a function of cosmic time." method="distanceTabulate" />
+       <method description="Tabulate expansion factor as a function of cosmic time." method="expansionFactorTabulate" />
+     </methods>
+     !!]
      final     ::                                    matterLambdaDestructor
      procedure :: epochValidate                   => matterLambdaEpochValidate
      procedure :: cosmicTime                      => matterLambdaCosmicTime
@@ -103,7 +111,9 @@
   !$GLC ignore outlive :: matterLambdaSelfGlobal
 
   interface cosmologyFunctionsMatterLambda
-     !% Constructors for the matter plus cosmological constant cosmological functions class.
+     !!{
+     Constructors for the matter plus cosmological constant cosmological functions class.
+     !!}
      module procedure matterLambdaConstructorParameters
      module procedure matterLambdaConstructorInternal
   end interface cosmologyFunctionsMatterLambda
@@ -111,22 +121,30 @@
 contains
 
   function matterLambdaConstructorParameters(parameters) result(self)
-    !% Parameter-based constructor for the matter plus cosmological constant cosmological functions class.
+    !!{
+    Parameter-based constructor for the matter plus cosmological constant cosmological functions class.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (cosmologyFunctionsMatterLambda)                :: self
     type (inputParameters               ), intent(inout) :: parameters
     class(cosmologyParametersClass      ), pointer       :: cosmologyParameters_
 
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !!]
     self=cosmologyFunctionsMatterLambda(cosmologyParameters_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    !!]
     return
   end function matterLambdaConstructorParameters
 
   function matterLambdaConstructorInternal(cosmologyParameters_) result(self)
-    !% Constructor for the matter plus cosmological constant cosmological functions class.
+    !!{
+    Constructor for the matter plus cosmological constant cosmological functions class.
+    !!}
     use :: Cosmology_Parameters , only : hubbleUnitsTime
     use :: Numerical_Comparison , only : Values_Agree
     use :: Numerical_ODE_Solvers, only : odeSolver
@@ -144,7 +162,9 @@ contains
     integer                                                                 :: i
     double complex                                                          :: omegaMatter                   , omegaDarkEnergy                , &
          &                                                                     omegaCurvature                , rootTerm
-    !# <constructorAssign variables="*cosmologyParameters_"/>
+    !![
+    <constructorAssign variables="*cosmologyParameters_"/>
+    !!]
 
     ! Determine if this universe will collapse. We take the Friedmann equation, which gives H²(a) as a function of expansion
     ! factor, a, and solve for where H²(a)=0. If this has a real solution, then we have a collapsing universe.
@@ -293,17 +313,23 @@ contains
   end function matterLambdaConstructorInternal
 
   subroutine matterLambdaDestructor(self)
-    !% Default constructor for the matter plus cosmological constant cosmological functions class.
+    !!{
+    Default constructor for the matter plus cosmological constant cosmological functions class.
+    !!}
     implicit none
     type(cosmologyFunctionsMatterLambda), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    !!]
     return
   end subroutine matterLambdaDestructor
 
   subroutine matterLambdaEpochValidate(self,timeIn,expansionFactorIn,collapsingIn,timeOut,expansionFactorOut,collapsingOut)
-    !% Validate a cosmic epoch, specified either by time or expansion factor, and optionally return time, expansion factor, and
-    !% collapsing status.
+    !!{
+    Validate a cosmic epoch, specified either by time or expansion factor, and optionally return time, expansion factor, and
+    collapsing status.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
@@ -360,7 +386,9 @@ contains
   end subroutine matterLambdaEpochValidate
 
   double precision function matterLambdaCosmicTime(self,expansionFactor,collapsingPhase)
-    !% Return the cosmological matter density in units of the critical density at the present day.
+    !!{
+    Return the cosmological matter density in units of the critical density at the present day.
+    !!}
     use :: Galacticus_Error       , only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
@@ -402,7 +430,9 @@ contains
   end function matterLambdaCosmicTime
 
   double precision function matterLambdaTimeBigCrunch(self)
-    !% Return the time of the Big Crunch (or a negative value if no Big Crunch occurs).
+    !!{
+    Return the time of the Big Crunch (or a negative value if no Big Crunch occurs).
+    !!}
     implicit none
     class(cosmologyFunctionsMatterLambda), intent(inout) :: self
 
@@ -415,7 +445,9 @@ contains
   end function matterLambdaTimeBigCrunch
 
   integer function matterLambdaCollapseODEs(a,t,dtda)
-    !% System of differential equations to solve for age vs. expansion factor.
+    !!{
+    System of differential equations to solve for age vs. expansion factor.
+    !!}
     use :: Interface_GSL, only : GSL_Success
     implicit none
     double precision              , intent(in   ) :: a
@@ -432,7 +464,9 @@ contains
   end function matterLambdaCollapseODEs
 
   double precision function matterLambdaExpansionFactor(self,time)
-    !% Returns the expansion factor at cosmological time {\normalfont \ttfamily time}.
+    !!{
+    Returns the expansion factor at cosmological time {\normalfont \ttfamily time}.
+    !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : varying_string
     implicit none
@@ -502,7 +536,9 @@ contains
   end function matterLambdaExpansionFactor
 
   double precision function matterLambdaExpansionRate(self,expansionFactor)
-    !% Returns the cosmological expansion rate, $\dot{a}/a$ at expansion factor {\normalfont \ttfamily expansionFactor}.
+    !!{
+    Returns the cosmological expansion rate, $\dot{a}/a$ at expansion factor {\normalfont \ttfamily expansionFactor}.
+    !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard, hubbleUnitsTime
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
@@ -526,7 +562,9 @@ contains
   end function matterLambdaExpansionRate
 
   double precision function matterLambdaHubbleParameterEpochal(self,time,expansionFactor,collapsingPhase)
-    !% Returns the Hubble parameter at the request cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
+    !!{
+    Returns the Hubble parameter at the request cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
+    !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     implicit none
@@ -575,7 +613,9 @@ contains
   end function matterLambdaHubbleParameterEpochal
 
   double precision function matterLambdaHubbleParameterRateOfChange(self,time,expansionFactor,collapsingPhase)
-    !% Returns the rate of change of the Hubble parameter at the request cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
+    !!{
+    Returns the rate of change of the Hubble parameter at the request cosmological time, {\normalfont \ttfamily time}, or expansion factor, {\normalfont \ttfamily expansionFactor}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
@@ -607,7 +647,9 @@ contains
   end function matterLambdaHubbleParameterRateOfChange
 
   double precision function matterLambdaOmegaMatterEpochal(self,time,expansionFactor,collapsingPhase)
-    !% Return the matter density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
+    !!{
+    Return the matter density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
+    !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     implicit none
@@ -634,7 +676,9 @@ contains
   end function matterLambdaOmegaMatterEpochal
 
   double precision function matterLambdaMatterDensityEpochal(self,time,expansionFactor,collapsingPhase)
-    !% Return the matter density at expansion factor {\normalfont \ttfamily expansionFactor}.
+    !!{
+    Return the matter density at expansion factor {\normalfont \ttfamily expansionFactor}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
@@ -664,7 +708,9 @@ contains
   end function matterLambdaMatterDensityEpochal
 
   double precision function matterLambdaOmegaMatterRateOfChange(self,time,expansionFactor,collapsingPhase)
-    !% Return the rate of change of the matter density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
+    !!{
+    Return the rate of change of the matter density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
@@ -690,7 +736,9 @@ contains
   end function matterLambdaOmegaMatterRateOfChange
 
   double precision function matterLambdaOmegaDarkEnergyEpochal(self,time,expansionFactor,collapsingPhase)
-    !% Return the dark energy density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
+    !!{
+    Return the dark energy density parameter at expansion factor {\normalfont \ttfamily expansionFactor}.
+    !!}
     use :: Cosmology_Parameters, only : hubbleUnitsStandard
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     implicit none
@@ -716,7 +764,9 @@ contains
   end function matterLambdaOmegaDarkEnergyEpochal
 
   double precision function matterLambdaTemperatureCMBEpochal(self,time,expansionFactor,collapsingPhase)
-    !% Return the temperature of the CMB at expansion factor {\normalfont \ttfamily expansionFactor}.
+    !!{
+    Return the temperature of the CMB at expansion factor {\normalfont \ttfamily expansionFactor}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
@@ -783,7 +833,9 @@ contains
   end function matterLambdaDominationEpochMatter
 
   double precision function matterLambdaEqualityEpochMatterDarkEnergy(self,requestType)
-    !% Return the epoch of matter-dark energy magnitude equality (either expansion factor or cosmic time).
+    !!{
+    Return the epoch of matter-dark energy magnitude equality (either expansion factor or cosmic time).
+    !!}
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor, requestTypeTime
     implicit none
     class  (cosmologyFunctionsMatterLambda), intent(inout)           :: self
@@ -807,7 +859,9 @@ contains
   end function matterLambdaEqualityEpochMatterDarkEnergy
 
   double precision function matterLambdaEqualityEpochMatterCurvature(self,requestType)
-    !% Return the epoch of matter-curvature magnitude equality (either expansion factor or cosmic time).
+    !!{
+    Return the epoch of matter-curvature magnitude equality (either expansion factor or cosmic time).
+    !!}
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor, requestTypeTime
     implicit none
     class  (cosmologyFunctionsMatterLambda), intent(inout)           :: self
@@ -827,7 +881,9 @@ contains
   end function matterLambdaEqualityEpochMatterCurvature
 
   double precision function matterLambdaEqualityEpochMatterRadiation(self,requestType)
-    !% Return the epoch of matter-radiation magnitude equality (either expansion factor or cosmic time).
+    !!{
+    Return the epoch of matter-radiation magnitude equality (either expansion factor or cosmic time).
+    !!}
     use :: Cosmology_Functions_Parameters, only : requestTypeExpansionFactor, requestTypeTime
     implicit none
     class  (cosmologyFunctionsMatterLambda), intent(inout)           :: self
@@ -847,7 +903,9 @@ contains
   end function matterLambdaEqualityEpochMatterRadiation
 
   subroutine matterLambdaMakeExpansionFactorTable(self,time)
-    !% Builds a table of expansion factor vs. time.
+    !!{
+    Builds a table of expansion factor vs. time.
+    !!}
     use :: Cosmology_Parameters , only : hubbleUnitsTime
     use :: Memory_Management    , only : allocateArray  , deallocateArray
     use :: Numerical_Ranges     , only : Make_Range     , rangeTypeLogarithmic
@@ -969,7 +1027,9 @@ contains
   end subroutine matterLambdaMakeExpansionFactorTable
 
   integer function matterLambdaAgeTableODEs(t,a,dadt)
-    !% System of differential equations to solve for expansion factor vs. age.
+    !!{
+    System of differential equations to solve for expansion factor vs. age.
+    !!}
     use :: Interface_GSL, only : GSL_Success
     implicit none
     double precision              , intent(in   ) :: t
@@ -984,7 +1044,9 @@ contains
   end function matterLambdaAgeTableODEs
 
   double precision function matterLambdaTimeAtDistanceComoving(self,comovingDistance)
-    !% Returns the cosmological time corresponding to given {\normalfont \ttfamily comovingDistance}.
+    !!{
+    Returns the cosmological time corresponding to given {\normalfont \ttfamily comovingDistance}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
@@ -1013,7 +1075,9 @@ contains
   end function matterLambdaTimeAtDistanceComoving
 
   double precision function matterLambdaDistanceComoving(self,time)
-    !% Returns the comoving distance to cosmological time {\normalfont \ttfamily time}.
+    !!{
+    Returns the comoving distance to cosmological time {\normalfont \ttfamily time}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
@@ -1045,7 +1109,9 @@ contains
   end function matterLambdaDistanceComoving
 
   double precision function matterLambdaDistanceLuminosity(self,time)
-    !% Returns the luminosity distance to cosmological time {\normalfont \ttfamily time}.
+    !!{
+    Returns the luminosity distance to cosmological time {\normalfont \ttfamily time}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
@@ -1057,7 +1123,9 @@ contains
   end function matterLambdaDistanceLuminosity
 
   double precision function matterLambdaDistanceAngular(self,time)
-    !% Returns the angular diameter distance to cosmological time {\normalfont \ttfamily time}.
+    !!{
+    Returns the angular diameter distance to cosmological time {\normalfont \ttfamily time}.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
@@ -1069,7 +1137,9 @@ contains
   end function matterLambdaDistanceAngular
 
   double precision function matterLambdaDistanceComovingConvert(self,output,distanceLuminosity,distanceModulus,distanceModulusKCorrected,redshift)
-    !% Convert between different measures of distance.
+    !!{
+    Convert between different measures of distance.
+    !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
     use :: Galacticus_Error           , only : Galacticus_Error_Report
     implicit none
@@ -1122,7 +1192,9 @@ contains
   end function matterLambdaDistanceComovingConvert
 
   double precision function matterLambdaDistanceParticleHorizonComoving(self,time)
-    !% Returns the comoving distance to the particle horizon at cosmological time {\normalfont \ttfamily time}.
+    !!{
+    Returns the comoving distance to the particle horizon at cosmological time {\normalfont \ttfamily time}.
+    !!}
     use :: Numerical_Integration, only : integrator
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout) :: self
@@ -1136,7 +1208,9 @@ contains
   contains
 
     double precision function integrandParticleHorizon(time)
-      !% Integrand used to compute the distance to the comoving particle horizon.
+      !!{
+      Integrand used to compute the distance to the comoving particle horizon.
+      !!}
       use :: Numerical_Constants_Physical    , only : speedLight
       use :: Numerical_Constants_Astronomical, only : megaParsec, gigaYear
       implicit none
@@ -1156,7 +1230,9 @@ contains
   end function matterLambdaDistanceParticleHorizonComoving
   
   subroutine matterLambdaMakeDistanceTable(self,time)
-    !% Builds a table of distance vs. time.
+    !!{
+    Builds a table of distance vs. time.
+    !!}
     use :: Memory_Management    , only : allocateArray, deallocateArray
     use :: Numerical_Integration, only : integrator
     use :: Numerical_Ranges     , only : Make_Range   , rangeTypeLogarithmic
@@ -1233,7 +1309,9 @@ contains
   end subroutine matterLambdaMakeDistanceTable
 
   double precision function matterLambdaComovingDistanceIntegrand(expansionFactor)
-    !% Integrand function used in computing the comoving distance.
+    !!{
+    Integrand function used in computing the comoving distance.
+    !!}
     implicit none
     double precision, intent(in   ) :: expansionFactor
 
@@ -1242,7 +1320,9 @@ contains
   end function matterLambdaComovingDistanceIntegrand
 
   double precision function matterLambdaEquationOfStateDarkEnergy(self,time,expansionFactor)
-    !% Return the dark energy equation of state.
+    !!{
+    Return the dark energy equation of state.
+    !!}
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor, time
@@ -1253,7 +1333,9 @@ contains
   end function matterLambdaEquationOfStateDarkEnergy
 
   double precision function matterLambdaExponentDarkEnergy(self,time,expansionFactor)
-    !% Return the dark energy equation of state.
+    !!{
+    Return the dark energy equation of state.
+    !!}
     implicit none
     class           (cosmologyFunctionsMatterLambda), intent(inout)           :: self
     double precision                                , intent(in   ), optional :: expansionFactor, time

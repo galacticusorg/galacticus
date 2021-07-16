@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a peak-background split density 1D distibution function.
+  !!{
+  Implementation of a peak-background split density 1D distibution function.
+  !!}
 
-  !# <distributionFunction1D name="distributionFunction1DVoight">
-  !#  <description>A 1D distribution function class for Voight profiles.</description>
-  !# </distributionFunction1D>
+  !![
+  <distributionFunction1D name="distributionFunction1DVoight">
+   <description>A 1D distribution function class for Voight profiles.</description>
+  </distributionFunction1D>
+  !!]
   type, extends(distributionFunction1DClass) :: distributionFunction1DVoight
-     !% Implementation of a voight 1D distibution function.
+     !!{
+     Implementation of a voight 1D distibution function.
+     !!}
      private
      logical          :: limitLowerExists, limitUpperExists
      double precision :: limitLower      , limitUpper      , &
@@ -36,7 +42,9 @@
   end type distributionFunction1DVoight
 
   interface distributionFunction1DVoight
-     !% Constructors for the {\normalfont \ttfamily voight} 1D distribution function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily voight} 1D distribution function class.
+     !!}
      module procedure voightConstructorParameters
      module procedure voightConstructorInternal
   end interface distributionFunction1DVoight
@@ -44,8 +52,10 @@
 contains
 
   function voightConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily voight} 1D distribution function class which builds the object from a parameter
-    !% set.
+    !!{
+    Constructor for the {\normalfont \ttfamily voight} 1D distribution function class which builds the object from a parameter
+    set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (distributionFunction1DVoight)                :: self
@@ -55,49 +65,57 @@ contains
          &                                                           sigma                 ,limitLower, &
          &                                                           limitUpper
 
-    !# <inputParameter>
-    !#   <name>gamma</name>
-    !#   <description>The parameter $\gamma$ of the Voight function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>mu</name>
-    !#   <description>The parameter $\gamma$ of the Voight function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>sigma</name>
-    !#   <description>The parameter $\sigma$ of the Voight function.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>limitLower</name>
-    !#   <description>The lower limit of the Voight function.</description>
-    !#   <defaultValue>-huge(0.0d0)</defaultValue>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>limitUpper</name>
-    !#   <description>The upper limit of the Voight function.</description>
-    !#   <defaultValue>+huge(0.0d0)</defaultValue>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>gamma</name>
+      <description>The parameter $\gamma$ of the Voight function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>mu</name>
+      <description>The parameter $\gamma$ of the Voight function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>sigma</name>
+      <description>The parameter $\sigma$ of the Voight function.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>limitLower</name>
+      <description>The lower limit of the Voight function.</description>
+      <defaultValue>-huge(0.0d0)</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>limitUpper</name>
+      <description>The upper limit of the Voight function.</description>
+      <defaultValue>+huge(0.0d0)</defaultValue>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=distributionFunction1DVoight(gamma,mu,sigma,limitLower,limitUpper,randomNumberGenerator_)
-    !# <objectDestructor name="randomNumberGenerator_"/>
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <objectDestructor name="randomNumberGenerator_"/>
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function voightConstructorParameters
 
   function voightConstructorInternal(gamma,mu,sigma,limitLower,limitUpper,randomNumberGenerator_) result(self)
-    !% Constructor for ``voight'' 1D distribution function class.
+    !!{
+    Constructor for ``voight'' 1D distribution function class.
+    !!}
     type            (distributionFunction1DVoight)                                  :: self
     double precision                              , intent(in   )                   :: gamma                 , mu        , &
          &                                                                             sigma
     class           (randomNumberGeneratorClass  ), intent(in   ), optional, target :: randomNumberGenerator_
     double precision                              , intent(in   ), optional         :: limitLower            , limitUpper
     double precision                                                                :: cdfLower              , cdfUpper
-    !# <constructorAssign variables="gamma, mu, sigma, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="gamma, mu, sigma, *randomNumberGenerator_"/>
+    !!]
 
     self    %limitLowerExists=.false.
     self    %limitUpperExists=.false.
@@ -121,7 +139,9 @@ contains
   end function voightConstructorInternal
 
   double precision function voightDensity(self,x)
-    !% Return the density of a Voight distribution.
+    !!{
+    Return the density of a Voight distribution.
+    !!}
     use :: Error_Functions         , only : Faddeeva
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -149,7 +169,9 @@ contains
   end function voightDensity
 
   double precision function voightCumulative(self,x)
-    !% Return the cumulative probability of a Voight distribution.
+    !!{
+    Return the cumulative probability of a Voight distribution.
+    !!}
     use :: Error_Functions         , only : Error_Function
     use :: Hypergeometric_Functions, only : Hypergeometric_pFq
     use :: Numerical_Constants_Math, only : Pi

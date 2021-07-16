@@ -17,33 +17,39 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements unit testing.
+!!{
+Contains a module which implements unit testing.
+!!}
 
 module Unit_Tests
-  !% Implements unit testing.
+  !!{
+  Implements unit testing.
+  !!}
   use :: ISO_Varying_String, only : varying_string
   implicit none
 
-  !# <generic identifier="Type">
-  !#  <instance label="integerScalar"       intrinsic="integer"              rank=""                       format="i8"    reduction="regEx¦(.*)¦$1¦"     />
-  !#  <instance label="integerRank1"        intrinsic="integer"              rank=", dimension(:)"         format="i8"    reduction="regEx¦(.*)¦all($1)¦"/>
-  !#  <instance label="integerLongScalar"   intrinsic="integer(kind_int8)"   rank=""                       format="i16"   reduction="regEx¦(.*)¦$1¦"     />
-  !#  <instance label="integerLongRank1"    intrinsic="integer(kind_int8)"   rank=", dimension(:)"         format="i16"   reduction="regEx¦(.*)¦all($1)¦"/>
-  !#  <instance label="logicalScalar"       intrinsic="logical"              rank=""                       format="l1"    reduction="regEx¦(.*)¦$1¦"     />
-  !#  <instance label="logicalRank1"        intrinsic="logical"              rank=", dimension(:)"         format="l1"    reduction="regEx¦(.*)¦all($1)¦"/>
-  !#  <instance label="characterScalar"     intrinsic="character(len=*)"     rank=""                       format=""      reduction="regEx¦(.*)¦$1¦"     />
-  !#  <instance label="characterRank1"      intrinsic="character(len=*)"     rank=", dimension(:)"         format=""      reduction="regEx¦(.*)¦all($1)¦"/>
-  !#  <instance label="varyingStringScalar" intrinsic="type(varying_string)" rank=""                       format=""      reduction="regEx¦(.*)¦$1¦"     />
-  !#  <instance label="varyingStringRank1"  intrinsic="type(varying_string)" rank=", dimension(:)"         format=""      reduction="regEx¦(.*)¦all($1)¦"/>
-  !#  <instance label="doubleScalar"        intrinsic="double precision"     rank=""                       format="e16.8" reduction="regEx¦(.*)¦$1¦"     />
-  !#  <instance label="doubleRank1"         intrinsic="double precision"     rank=", dimension(:)"         format="e16.8" reduction="regEx¦(.*)¦all($1)¦"/>
-  !#  <instance label="doubleRank2"         intrinsic="double precision"     rank=", dimension(:,:)"       format="e16.8" reduction="regEx¦(.*)¦all($1)¦"/>
-  !#  <instance label="doubleRank3"         intrinsic="double precision"     rank=", dimension(:,:,:)"     format="e16.8" reduction="regEx¦(.*)¦all($1)¦"/>
-  !#  <instance label="doubleRank4"         intrinsic="double precision"     rank=", dimension(:,:,:,:)"   format="e16.8" reduction="regEx¦(.*)¦all($1)¦"/>
-  !#  <instance label="doubleRank5"         intrinsic="double precision"     rank=", dimension(:,:,:,:,:)" format="e16.8" reduction="regEx¦(.*)¦all($1)¦"/>
-  !#  <instance label="realRank1"           intrinsic="real"                 rank=", dimension(:)"         format="e16.8" reduction="regEx¦(.*)¦all($1)¦"/>
-  !#  <instance label="doubleComplexRank1"  intrinsic="double complex"       rank=", dimension(:)"         format="e16.8" reduction="regEx¦(.*)¦all($1)¦"/>
-  !# </generic>
+  !![
+  <generic identifier="Type">
+   <instance label="integerScalar"       intrinsic="integer"              rank=""                       format="i8"    reduction="regEx¦(.*)¦$1¦"     />
+   <instance label="integerRank1"        intrinsic="integer"              rank=", dimension(:)"         format="i8"    reduction="regEx¦(.*)¦all($1)¦"/>
+   <instance label="integerLongScalar"   intrinsic="integer(kind_int8)"   rank=""                       format="i16"   reduction="regEx¦(.*)¦$1¦"     />
+   <instance label="integerLongRank1"    intrinsic="integer(kind_int8)"   rank=", dimension(:)"         format="i16"   reduction="regEx¦(.*)¦all($1)¦"/>
+   <instance label="logicalScalar"       intrinsic="logical"              rank=""                       format="l1"    reduction="regEx¦(.*)¦$1¦"     />
+   <instance label="logicalRank1"        intrinsic="logical"              rank=", dimension(:)"         format="l1"    reduction="regEx¦(.*)¦all($1)¦"/>
+   <instance label="characterScalar"     intrinsic="character(len=*)"     rank=""                       format=""      reduction="regEx¦(.*)¦$1¦"     />
+   <instance label="characterRank1"      intrinsic="character(len=*)"     rank=", dimension(:)"         format=""      reduction="regEx¦(.*)¦all($1)¦"/>
+   <instance label="varyingStringScalar" intrinsic="type(varying_string)" rank=""                       format=""      reduction="regEx¦(.*)¦$1¦"     />
+   <instance label="varyingStringRank1"  intrinsic="type(varying_string)" rank=", dimension(:)"         format=""      reduction="regEx¦(.*)¦all($1)¦"/>
+   <instance label="doubleScalar"        intrinsic="double precision"     rank=""                       format="e16.8" reduction="regEx¦(.*)¦$1¦"     />
+   <instance label="doubleRank1"         intrinsic="double precision"     rank=", dimension(:)"         format="e16.8" reduction="regEx¦(.*)¦all($1)¦"/>
+   <instance label="doubleRank2"         intrinsic="double precision"     rank=", dimension(:,:)"       format="e16.8" reduction="regEx¦(.*)¦all($1)¦"/>
+   <instance label="doubleRank3"         intrinsic="double precision"     rank=", dimension(:,:,:)"     format="e16.8" reduction="regEx¦(.*)¦all($1)¦"/>
+   <instance label="doubleRank4"         intrinsic="double precision"     rank=", dimension(:,:,:,:)"   format="e16.8" reduction="regEx¦(.*)¦all($1)¦"/>
+   <instance label="doubleRank5"         intrinsic="double precision"     rank=", dimension(:,:,:,:,:)" format="e16.8" reduction="regEx¦(.*)¦all($1)¦"/>
+   <instance label="realRank1"           intrinsic="real"                 rank=", dimension(:)"         format="e16.8" reduction="regEx¦(.*)¦all($1)¦"/>
+   <instance label="doubleComplexRank1"  intrinsic="double complex"       rank=", dimension(:)"         format="e16.8" reduction="regEx¦(.*)¦all($1)¦"/>
+  </generic>
+  !!]
 
   private
   public :: Assert, Skip, Unit_Tests_Finish, Unit_Tests_Begin_Group, Unit_Tests_End_Group
@@ -56,17 +62,21 @@ module Unit_Tests
   integer, parameter, public :: compareLessThanOrEqual   =4
   integer, parameter, public :: compareGreaterThanOrEqual=5
 
-  !# <enumeration>
-  !#  <name>test</name>
-  !#  <description>Statuses for unit tests.</description>
-  !#  <entry label="passed"/>
-  !#  <entry label="failed" />
-  !#  <entry label="skipped"/>
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>test</name>
+   <description>Statuses for unit tests.</description>
+   <entry label="passed"/>
+   <entry label="failed" />
+   <entry label="skipped"/>
+  </enumeration>
+  !!]
 
   ! Type for assert results.
   type assertResult
-     !% A derived type for storing results of asserts.
+     !!{
+     A derived type for storing results of asserts.
+     !!}
      integer                          :: result
      logical                          :: beginGroup, endGroup
      type   (varying_string)          :: label     , note
@@ -80,14 +90,18 @@ module Unit_Tests
 
   ! Interface for assert routines.
   interface Assert
-     !% Generic interface for assert routines.
+     !!{
+     Generic interface for assert routines.
+     !!}
      module procedure Assert{Type¦label}
   end interface Assert
 
 contains
 
   integer function getStatus(passed)
-    !% Return the status code for a test on the basis of a boolean pass/fail.
+    !!{
+    Return the status code for a test on the basis of a boolean pass/fail.
+    !!}
     implicit none
     logical, intent(in   ) :: passed
 
@@ -100,7 +114,9 @@ contains
   end function getStatus
 
   subroutine Skip(testName,reason)
-    !% Record that a test was skipped.
+    !!{
+    Record that a test was skipped.
+    !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
     character(len=*       ), intent(in   ) :: testName  , reason
@@ -115,7 +131,9 @@ contains
   end subroutine Skip
 
   subroutine Assert{Type¦label}(testName,value1,value2,compare{Type¦match¦^(double|real)¦,absTol,relTol¦})
-    !% Assess and record an assertion.
+    !!{
+    Assess and record an assertion.
+    !!}
     use                            :: Galacticus_Error    , only : Galacticus_Error_Report
     use                            :: ISO_Varying_String  , only : assignment(=)          , operator(//), var_str
     use                            :: Numerical_Comparison, only : Values_Agree
@@ -129,10 +147,14 @@ contains
     logical                                                    , allocatable    {Type¦rank} :: passed
     type                                       (varying_string)                             :: comparison
     character                                  (len=256       )                             :: label
-    !# <optionalArgument name="compare" defaultsTo="compareEquals"/>
+    !![
+    <optionalArgument name="compare" defaultsTo="compareEquals"/>
+    !!]
 
     ! Allocate array for results.
-    !# <allocate variable="passed" shape="value1"/>
+    !![
+    <allocate variable="passed" shape="value1"/>
+    !!]
     ! Perform the comparison.
     select case (compare_)
     case (compareEquals)
@@ -171,24 +193,28 @@ contains
     result%label =trim(testName)
     if (.not.{Type¦reduction¦passed}) then
        result%note=var_str('')
-       !# <forEach variable="passed">
-       !#  if (.not.passed{index}) then
-       !#   write (label,'(%index%,1x,a1)') {{index}},':'; result%note=result%note//trim(adjustl(label))
-       !#   {Type¦match¦^varyingString¦result%note=result%note//value1{index}¦}
-       !#   {Type¦match¦^character¦result%note=result%note//trim(value1{index})¦}
-       !#   {Type¦match¦^(?!(character|varyingString))¦write (label,'({Type¦format})') value1{index}; result%note=result%note//trim(adjustl(label))¦}
-       !#   result%note=result%note//" "//comparison//" "
-       !#   {Type¦match¦^varyingString¦result%note=result%note//value2{index}¦}
-       !#   {Type¦match¦^character¦result%note=result%note//trim(value2{index})¦}
-       !#   {Type¦match¦^(?!(character|varyingString))¦write (label,'({Type¦format})') value2{index}; result%note=result%note//trim(adjustl(label))¦}
-       !#  end if
-       !# </forEach>
+       !![
+       <forEach variable="passed">
+        if (.not.passed{index}) then
+         write (label,'(%index%,1x,a1)') {{index}},':'; result%note=result%note//trim(adjustl(label))
+         {Type¦match¦^varyingString¦result%note=result%note//value1{index}¦}
+         {Type¦match¦^character¦result%note=result%note//trim(value1{index})¦}
+         {Type¦match¦^(?!(character|varyingString))¦write (label,'({Type¦format})') value1{index}; result%note=result%note//trim(adjustl(label))¦}
+         result%note=result%note//" "//comparison//" "
+         {Type¦match¦^varyingString¦result%note=result%note//value2{index}¦}
+         {Type¦match¦^character¦result%note=result%note//trim(value2{index})¦}
+         {Type¦match¦^(?!(character|varyingString))¦write (label,'({Type¦format})') value2{index}; result%note=result%note//trim(adjustl(label))¦}
+        end if
+       </forEach>
+       !!]
      end if
     return
   end subroutine Assert{Type¦label}
 
   subroutine Unit_Tests_Begin_Group(groupName)
-    !% Marks that a unit test group has begun.
+    !!{
+    Marks that a unit test group has begun.
+    !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
     character(len=*       ), intent(in   ) :: groupName
@@ -201,7 +227,9 @@ contains
   end subroutine Unit_Tests_Begin_Group
 
   subroutine Unit_Tests_End_Group
-    !% Marks that a unit test group has ended.
+    !!{
+    Marks that a unit test group has ended.
+    !!}
     implicit none
     type(assertResult), pointer :: result
 
@@ -211,7 +239,9 @@ contains
   end subroutine Unit_Tests_End_Group
 
   subroutine Unit_Tests_Finish
-    !% Write out the results of unit testing.
+    !!{
+    Write out the results of unit testing.
+    !!}
     use :: Display           , only : displayIndent      , displayMessage, displayUnindent
     use :: ISO_Varying_String, only : assignment(=)      , operator(//)  , operator(/=)
     use :: Memory_Management , only : Memory_Usage_Record
@@ -274,7 +304,9 @@ contains
   end subroutine Unit_Tests_Finish
 
   function Get_New_Assert_Result() result(newResult)
-    !% Get a new assert result object.
+    !!{
+    Get a new assert result object.
+    !!}
     use :: ISO_Varying_String, only : assignment(=)
     use :: Memory_Management , only : Memory_Usage_Record
     implicit none

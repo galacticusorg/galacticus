@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test MPI functions.
+!!{
+Contains a program to test MPI functions.
+!!}
 
 program Test_MPI
-  !% Tests of MPI functions.
+  !!{
+  Tests of MPI functions.
+  !!}
   use   , intrinsic :: ISO_C_Binding, only : c_size_t
   use               :: Unit_Tests   , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group  , Unit_Tests_Finish
   use               :: Display      , only : displayMessage     , displayVerbositySet   , verbosityLevelStandard

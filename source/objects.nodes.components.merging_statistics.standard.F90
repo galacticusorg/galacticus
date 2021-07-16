@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the standard merging statistics component.
+!!{
+Contains a module which implements the standard merging statistics component.
+!!}
 
 module Node_Component_Merging_Statistics_Standard
-  !% Implements the standard merging statistics component.
+  !!{
+  Implements the standard merging statistics component.
+  !!}
   use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistoryClass
   use :: Galacticus_Nodes                         , only : nodeComponentMergingStatisticsStandard
   use :: Satellite_Merging_Mass_Movements         , only : mergerMassMovementsClass
@@ -31,67 +35,69 @@ module Node_Component_Merging_Statistics_Standard
        &    Node_Component_Merging_Statistics_Standard_Thread_Initialize    , Node_Component_Merging_Statistics_Standard_Thread_Uninitialize, &
        &    Node_Component_Merging_Statistics_Standard_Host_Change
 
-  !# <component>
-  !#  <class>mergingStatistics</class>
-  !#  <name>standard</name>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>galaxyMajorMergerTime</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <classDefault>-1.0d0</classDefault>
-  !#     <output unitsInSI="gigaYear" comment="Time of the last major merger."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>nodeMajorMergerTime</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <classDefault>-1.0d0</classDefault>
-  !#     <output unitsInSI="gigaYear" comment="Time of the last node major merger."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>nodeFormationTime</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <classDefault>-1.0d0</classDefault>
-  !#     <output unitsInSI="gigaYear" comment="Formation time of the node."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>nodeHierarchyLevel</name>
-  !#     <type>integer</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="get" />
-  !#     <output unitsInSI="0.0d0" comment="The current level of the node in the tree hierarchy (0 for a (non-sub-)halo; 1 for a sub-halo; 2 for a sub-sub-halo; etc.)."/>
-  !#     <classDefault>-1</classDefault>
-  !#   </property>
-  !#   <property>
-  !#     <name>nodeHierarchyLevelMaximum</name>
-  !#     <type>integer</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="get" />
-  !#     <output unitsInSI="0.0d0" comment="Maximum level that the node ever reached in the tree hierarchy (0 for a (non-sub-)halo; 1 for a sub-halo; 2 for a sub-sub-halo; etc.)."/>
-  !#     <classDefault>-1</classDefault>
-  !#   </property>
-  !#   <property>
-  !#     <name>nodeHierarchyLevelDepth</name>
-  !#     <type>integer</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <output unitsInSI="0.0d0" comment="Maximum level of the node in the tree hierarchy that could possibly ever be reached (0 for a (non-sub-)halo; 1 for a sub-halo; 2 for a sub-sub-halo; etc.)."/>
-  !#     <classDefault>-1</classDefault>
-  !#   </property>
-  !#   <property>
-  !#     <name>massWhenFirstIsolated</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#  </properties>
-  !# </component>
+  !![
+  <component>
+   <class>mergingStatistics</class>
+   <name>standard</name>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>galaxyMajorMergerTime</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <classDefault>-1.0d0</classDefault>
+      <output unitsInSI="gigaYear" comment="Time of the last major merger."/>
+    </property>
+    <property>
+      <name>nodeMajorMergerTime</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <classDefault>-1.0d0</classDefault>
+      <output unitsInSI="gigaYear" comment="Time of the last node major merger."/>
+    </property>
+    <property>
+      <name>nodeFormationTime</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <classDefault>-1.0d0</classDefault>
+      <output unitsInSI="gigaYear" comment="Formation time of the node."/>
+    </property>
+    <property>
+      <name>nodeHierarchyLevel</name>
+      <type>integer</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="get" />
+      <output unitsInSI="0.0d0" comment="The current level of the node in the tree hierarchy (0 for a (non-sub-)halo; 1 for a sub-halo; 2 for a sub-sub-halo; etc.)."/>
+      <classDefault>-1</classDefault>
+    </property>
+    <property>
+      <name>nodeHierarchyLevelMaximum</name>
+      <type>integer</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="get" />
+      <output unitsInSI="0.0d0" comment="Maximum level that the node ever reached in the tree hierarchy (0 for a (non-sub-)halo; 1 for a sub-halo; 2 for a sub-sub-halo; etc.)."/>
+      <classDefault>-1</classDefault>
+    </property>
+    <property>
+      <name>nodeHierarchyLevelDepth</name>
+      <type>integer</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <output unitsInSI="0.0d0" comment="Maximum level of the node in the tree hierarchy that could possibly ever be reached (0 for a (non-sub-)halo; 1 for a sub-halo; 2 for a sub-sub-halo; etc.)."/>
+      <classDefault>-1</classDefault>
+    </property>
+    <property>
+      <name>massWhenFirstIsolated</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+   </properties>
+  </component>
+  !!]
 
   ! Classes used.
   class          (darkMatterHaloMassAccretionHistoryClass), pointer :: darkMatterHaloMassAccretionHistory_
@@ -108,50 +114,60 @@ module Node_Component_Merging_Statistics_Standard
 
 contains
 
-  !# <nodeComponentInitializationTask>
-  !#  <unitName>Node_Component_Merging_Statistics_Standard_Initialize</unitName>
-  !# </nodeComponentInitializationTask>
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>Node_Component_Merging_Statistics_Standard_Initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
   subroutine Node_Component_Merging_Statistics_Standard_Initialize(parameters_)
-    !% Initializes the standard merging statistics component.
+    !!{
+    Initializes the standard merging statistics component.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
 
-    !# <inputParameter>
-    !#   <name>nodeMajorMergerFraction</name>
-    !#   <defaultValue>0.25d0</defaultValue>
-    !#   <description>The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.</description>
-    !#   <source>parameters_</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>nodeFormationMassFraction</name>
-    !#   <defaultValue>0.5d0</defaultValue>
-    !#   <description>The mass fraction in the main branch progenitor used to define the formation time of each halo.</description>
-    !#   <source>parameters_</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>hierarchyLevelResetFactor</name>
-    !#   <defaultValue>1.0d100</defaultValue>
-    !#   <description>The factor by which a node's mass must increase before the previous maximum hierarchy level is forgotten.</description>
-    !#   <source>parameters_</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>mergingStatisticsAssumeMonotonicGrowth</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true assume that halo mass growth is monotonic along each branch when computing node formation times.</description>
-    !#   <source>parameters_</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>nodeMajorMergerFraction</name>
+      <defaultValue>0.25d0</defaultValue>
+      <description>The mass ratio ($M_2/M_1$ where $M_2 &lt; M_1$) of merging halos above which the merger should be considered to be ``major''.</description>
+      <source>parameters_</source>
+    </inputParameter>
+    <inputParameter>
+      <name>nodeFormationMassFraction</name>
+      <defaultValue>0.5d0</defaultValue>
+      <description>The mass fraction in the main branch progenitor used to define the formation time of each halo.</description>
+      <source>parameters_</source>
+    </inputParameter>
+    <inputParameter>
+      <name>hierarchyLevelResetFactor</name>
+      <defaultValue>1.0d100</defaultValue>
+      <description>The factor by which a node's mass must increase before the previous maximum hierarchy level is forgotten.</description>
+      <source>parameters_</source>
+    </inputParameter>
+    <inputParameter>
+      <name>mergingStatisticsAssumeMonotonicGrowth</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true assume that halo mass growth is monotonic along each branch when computing node formation times.</description>
+      <source>parameters_</source>
+    </inputParameter>
+    !!]
     ! Bind the hierarchy level get functions.
     call mergingStatistics%nodeHierarchyLevelFunction       (Node_Component_Merging_statistics_Standard_Hierarchy_Level)
     call mergingStatistics%nodeHierarchyLevelMaximumFunction(Node_Component_Merging_statistics_Standard_HLM            )
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Initialize
 
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Merging_Statistics_Standard_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Merging_Statistics_Standard_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Merging_Statistics_Standard_Thread_Initialize(parameters_)
-    !% Initializes the tree node standard merging statistics module.
+    !!{
+    Initializes the tree node standard merging statistics module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent               , subhaloPromotionEvent, openMPThreadBindingAtLevel, dependencyExact, &
          &                          dependencyDirectionBefore        , satelliteMergerEvent , postEvolveEvent           , dependencyRegEx, &
          &                          dependencyDirectionAfter
@@ -163,8 +179,10 @@ contains
     type(dependencyRegEx), dimension(1)  :: dependenciesSatelliteMerger
 
     if (defaultMergingStatisticsComponent%standardIsActive()) then
-       !# <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters_"/>
-       !# <objectBuilder class="mergerMassMovements"                name="mergerMassMovements_"                source="parameters_"/>
+       !![
+       <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters_"/>
+       <objectBuilder class="mergerMassMovements"                name="mergerMassMovements_"                source="parameters_"/>
+       !!]
        dependenciesSubhaloPromotion(1)=dependencyExact(dependencyDirectionBefore,'mergerTreeNodeEvolver')
        dependenciesSatelliteMerger (1)=dependencyRegEx(dependencyDirectionAfter ,'^remnantStructure:'   )
        call nodePromotionEvent   %attach(defaultMergingStatisticsComponent,nodePromotion       ,openMPThreadBindingAtLevel,label='nodeComponentMergingStatisticsStandard'                                          )
@@ -175,18 +193,24 @@ contains
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Merging_Statistics_Standard_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Merging_Statistics_Standard_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Merging_Statistics_Standard_Thread_Uninitialize()
-    !% Uninitializes the tree node standard merging statistics module.
+    !!{
+    Uninitializes the tree node standard merging statistics module.
+    !!}
     use :: Events_Hooks    , only : nodePromotionEvent               , subhaloPromotionEvent, satelliteMergerEvent, postEvolveEvent
     use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent
     implicit none
 
     if (defaultMergingStatisticsComponent%standardIsActive()) then
-       !# <objectDestructor name="darkMatterHaloMassAccretionHistory_"/>
-       !# <objectDestructor name="mergerMassMovements_"               />
+       !![
+       <objectDestructor name="darkMatterHaloMassAccretionHistory_"/>
+       <objectDestructor name="mergerMassMovements_"               />
+       !!]
        call nodePromotionEvent   %detach(defaultMergingStatisticsComponent,nodePromotion       )
        call subhaloPromotionEvent%detach(defaultMergingStatisticsComponent,nodeSubhaloPromotion)
        call satelliteMergerEvent %detach(defaultMergingStatisticsComponent,satelliteMerger     )
@@ -196,7 +220,9 @@ contains
   end subroutine Node_Component_Merging_Statistics_Standard_Thread_Uninitialize
 
   integer function Node_Component_Merging_Statistics_Standard_Hierarchy_Level(self)
-    !% Return the hierarchy level of a node, computing it if necessary.
+    !!{
+    Return the hierarchy level of a node, computing it if necessary.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentMergingStatisticsStandard, treeNode
     implicit none
     class  (nodeComponentMergingStatisticsStandard), intent(inout) :: self
@@ -217,7 +243,9 @@ contains
   end function Node_Component_Merging_Statistics_Standard_Hierarchy_Level
 
   integer function Node_Component_Merging_Statistics_Standard_HLM(self)
-    !% Return the maximum hierarchy level of a node, computing it if necessary.
+    !!{
+    Return the maximum hierarchy level of a node, computing it if necessary.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic       , nodeComponentMergingStatistics, nodeComponentMergingStatisticsStandard, nodeEvent, &
           &                         nodeEventSubhaloPromotion, treeNode
     implicit none
@@ -276,11 +304,15 @@ contains
     return
   end function Node_Component_Merging_Statistics_Standard_HLM
 
-  !# <mergerTreeInitializeTask>
-  !#  <unitName>Node_Component_Merging_Statistics_Standard_Merger_Tree_Init</unitName>
-  !# </mergerTreeInitializeTask>
+  !![
+  <mergerTreeInitializeTask>
+   <unitName>Node_Component_Merging_Statistics_Standard_Merger_Tree_Init</unitName>
+  </mergerTreeInitializeTask>
+  !!]
   subroutine Node_Component_Merging_Statistics_Standard_Merger_Tree_Init(node)
-    !% Initialize the merging statistics component by creating components in nodes and computing formation times.
+    !!{
+    Initialize the merging statistics component by creating components in nodes and computing formation times.
+    !!}
     use :: Dark_Matter_Halo_Formation_Times, only : Dark_Matter_Halo_Formation_Time
     use :: Galacticus_Nodes                , only : defaultMergingStatisticsComponent, nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     use :: Merger_Tree_Walkers             , only : mergerTreeWalkerAllNodes
@@ -374,11 +406,15 @@ contains
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Merger_Tree_Init
 
-  !# <nodeMergerTask>
-  !#  <unitName>Node_Component_Merging_Statistics_Standard_Node_Merger</unitName>
-  !# </nodeMergerTask>
+  !![
+  <nodeMergerTask>
+   <unitName>Node_Component_Merging_Statistics_Standard_Node_Merger</unitName>
+  </nodeMergerTask>
+  !!]
   subroutine Node_Component_Merging_Statistics_Standard_Node_Merger(node)
-    !% Record any major merger of {\normalfont \ttfamily node}.
+    !!{
+    Record any major merger of {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent, nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     implicit none
     type (treeNode                      ), intent(inout) :: node
@@ -401,7 +437,9 @@ contains
   contains
 
     recursive subroutine hierarchyLevelIncrement(node)
-      !% Increment the hierarchy level of the given node, and then call our self on any satellite nodes.
+      !!{
+      Increment the hierarchy level of the given node, and then call our self on any satellite nodes.
+      !!}
       implicit none
       type (treeNode                      ), intent(inout), target  :: node
       type (treeNode                      ),                pointer :: satelliteNode
@@ -427,11 +465,15 @@ contains
     
   end subroutine Node_Component_Merging_Statistics_Standard_Node_Merger
 
-  !# <satelliteHostChangeTask>
-  !#  <unitName>Node_Component_Merging_Statistics_Standard_Host_Change</unitName>
-  !# </satelliteHostChangeTask>
+  !![
+  <satelliteHostChangeTask>
+   <unitName>Node_Component_Merging_Statistics_Standard_Host_Change</unitName>
+  </satelliteHostChangeTask>
+  !!]
   recursive subroutine Node_Component_Merging_Statistics_Standard_Host_Change(node)
-    !% Handle cases where a satellite switches host node.
+    !!{
+    Handle cases where a satellite switches host node.
+    !!}
     use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent, nodeComponentMergingStatistics, treeNode
     implicit none
     type   (treeNode                      ), intent(inout), target  :: node
@@ -460,7 +502,9 @@ contains
   end subroutine Node_Component_Merging_Statistics_Standard_Host_Change
 
   subroutine nodePromotion(self,node)
-    !% Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the node merger time.
+    !!{
+    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the node merger time.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     implicit none
     class(*                             ), intent(inout)          :: self
@@ -481,7 +525,9 @@ contains
   end subroutine nodePromotion
 
   subroutine nodeSubhaloPromotion(self,node,nodePromotion)
-    !% Reset the mass-when-first-isolated property of the merging statistics component in the event of the subhalo promotion.
+    !!{
+    Reset the mass-when-first-isolated property of the merging statistics component in the event of the subhalo promotion.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     implicit none
     class(*                             ), intent(inout)          :: self
@@ -497,7 +543,9 @@ contains
   end subroutine nodeSubhaloPromotion
 
   subroutine postEvolve(self,node)
-    !% Handle post differential evoloution.
+    !!{
+    Handle post differential evoloution.
+    !!}
     use :: Galacticus_Nodes, only : treeNode
     implicit none
     class(*       ), intent(inout) :: self
@@ -509,7 +557,9 @@ contains
   end subroutine postEvolve
 
   subroutine Node_Component_Merging_Statistics_Standard_Reset_Hierarchy(node)
-    !% Reset the maximum node hierarchy level if the node has grown sufficiently in mass.
+    !!{
+    Reset the maximum node hierarchy level if the node has grown sufficiently in mass.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     implicit none
     type (treeNode                      ), intent(inout) :: node
@@ -525,7 +575,9 @@ contains
   end subroutine Node_Component_Merging_Statistics_Standard_Reset_Hierarchy
 
   subroutine satelliteMerger(self,node)
-    !% Record properties of a merging event for {\normalfont \ttfamily node}.
+    !!{
+    Record properties of a merging event for {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     implicit none
     class  (*                             ), intent(inout) :: self

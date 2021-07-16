@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements the geometry of the SDSS survey with a depth for Local Group dwarf detection.
+!!{
+Implements the geometry of the SDSS survey with a depth for Local Group dwarf detection.
+!!}
 
-  !# <surveyGeometry name="surveyGeometryLocalGroupSDSS">
-  !#  <description>Implements the geometry of the SDSS survey with a depth for Local Group dwarf detection.</description>
-  !# </surveyGeometry>
+  !![
+  <surveyGeometry name="surveyGeometryLocalGroupSDSS">
+   <description>Implements the geometry of the SDSS survey with a depth for Local Group dwarf detection.</description>
+  </surveyGeometry>
+  !!]
   type, extends(surveyGeometryBernardi2013SDSS) :: surveyGeometryLocalGroupSDSS
      private
      double precision :: distanceMaximumSurvey
@@ -30,7 +34,9 @@
   end type surveyGeometryLocalGroupSDSS
 
   interface surveyGeometryLocalGroupSDSS
-     !% Constructors for the \cite{bernardi_massive_2013} survey geometry class.
+     !!{
+     Constructors for the \cite{bernardi_massive_2013} survey geometry class.
+     !!}
      module procedure localGroupSDSSConstructorParameters
      module procedure localGroupSDSSConstructorInternal
   end interface surveyGeometryLocalGroupSDSS
@@ -38,37 +44,49 @@
 contains
 
   function localGroupSDSSConstructorParameters(parameters) result (self)
-    !% Constructor for the Local Group SDSS survey geometry class which takes a parameter set as input.
+    !!{
+    Constructor for the Local Group SDSS survey geometry class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (surveyGeometryLocalGroupSDSS)                :: self
     type            (inputParameters             ), intent(inout) :: parameters
     double precision                                              :: distanceMaximumSurvey
 
-    !# <inputParameter>
-    !#   <name>distanceMaximumSurvey</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>300.0d-3</defaultValue>
-    !#   <description>The maximum distance at which galaxies are to be included in the survey.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>distanceMaximumSurvey</name>
+      <source>parameters</source>
+      <defaultValue>300.0d-3</defaultValue>
+      <description>The maximum distance at which galaxies are to be included in the survey.</description>
+    </inputParameter>
+    !!]
     self=surveyGeometryLocalGroupSDSS(distanceMaximumSurvey)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function localGroupSDSSConstructorParameters
 
   function localGroupSDSSConstructorInternal(distanceMaximumSurvey) result (self)
-    !% Internal constructor for the Local Group SDSS survey geometry class
+    !!{
+    Internal constructor for the Local Group SDSS survey geometry class
+    !!}
     implicit none
     type            (surveyGeometryLocalGroupSDSS)                :: self
     double precision                              , intent(in   ) :: distanceMaximumSurvey
-    !# <constructorAssign variables="distanceMaximumSurvey"/>
+    !![
+    <constructorAssign variables="distanceMaximumSurvey"/>
+    !!]
 
     call self%initialize()
     return
   end function localGroupSDSSConstructorInternal
 
   double precision function localGroupSDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
-    !% Compute the maximum distance at which a galaxy is visible.
+    !!{
+    Compute the maximum distance at which a galaxy is visible.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryLocalGroupSDSS), intent(inout)           :: self

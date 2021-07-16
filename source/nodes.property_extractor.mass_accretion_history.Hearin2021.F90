@@ -1,0 +1,166 @@
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019, 2020, 2021
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
+!!{
+Contains a module which implements a node property extractor class for parameters of the \cite{hearin_differentiable_2021} mass accretion history model.
+!!}!
+
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorMassAccretionHistoryHearin2021">
+   <description>A node property extractor class for parameters of the \cite{hearin_differentiable_2021} mass accretion history model.</description>
+  </nodePropertyExtractor>
+  !!]
+  type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorMassAccretionHistoryHearin2021
+     !!{
+     A property extractor class for parameters of the \cite{hearin_differentiable_2021} mass accretion history model.
+     !!}
+     private
+   contains
+     procedure :: elementCount => massAccretionHistoryHearin2021ElementCount
+     procedure :: extract      => massAccretionHistoryHearin2021Extract
+     procedure :: names        => massAccretionHistoryHearin2021Names
+     procedure :: descriptions => massAccretionHistoryHearin2021Descriptions
+     procedure :: unitsInSI    => massAccretionHistoryHearin2021UnitsInSI
+     procedure :: type         => massAccretionHistoryHearin2021Type
+  end type nodePropertyExtractorMassAccretionHistoryHearin2021
+
+  interface nodePropertyExtractorMassAccretionHistoryHearin2021
+     !!{
+     Constructors for the ``massAccretionHistoryHearin2021'' output analysis class.
+     !!}
+     module procedure massAccretionHistoryHearin2021ConstructorParameters
+  end interface nodePropertyExtractorMassAccretionHistoryHearin2021
+
+contains
+
+  function massAccretionHistoryHearin2021ConstructorParameters(parameters) result(self)
+    !!{
+    Constructor for the {\normalfont \ttfamily massAccretionHistoryHearin2021} node property extractor class which takes a parameter set as input.
+    !!}
+    use :: Input_Parameters, only : inputParameter, inputParameters
+    implicit none
+    type(nodePropertyExtractorMassAccretionHistoryHearin2021)                :: self
+    type(inputParameters                                    ), intent(inout) :: parameters
+
+    self=nodePropertyExtractorMassAccretionHistoryHearin2021()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
+    return
+  end function massAccretionHistoryHearin2021ConstructorParameters
+
+  integer function massAccretionHistoryHearin2021ElementCount(self,time)
+    !!{
+    Return the number of elements in the {\normalfont \ttfamily massAccretionHistoryHearin2021} property extractor.
+    !!}
+    implicit none
+    class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout) :: self
+    double precision                                                     , intent(in   ) :: time
+    !$GLC attributes unused :: self, time
+
+    massAccretionHistoryHearin2021ElementCount=3
+    return
+  end function massAccretionHistoryHearin2021ElementCount
+
+  function massAccretionHistoryHearin2021Extract(self,node,time,instance)
+    !!{
+    Implement extraction of halo environment properties.
+    !!}
+    implicit none
+    double precision                                                     , dimension(:) , allocatable :: massAccretionHistoryHearin2021Extract
+    class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout), target      :: self
+    type            (treeNode                                           ), intent(inout), target      :: node
+    double precision                                                     , intent(in   )              :: time
+    type            (multiCounter                                       ), intent(inout), optional    :: instance
+    !$GLC attributes unused :: time, instance
+
+    allocate(massAccretionHistoryHearin2021Extract(3))
+    massAccretionHistoryHearin2021Extract=[                                                                       &
+         &                                 node%hostTree%properties%value('treeMAHHearin2021PowerLawIndexEarly'), &
+         &                                 node%hostTree%properties%value('treeMAHHearin2021PowerLawIndexLate' ), &
+         &                                 node%hostTree%properties%value('treeMAHHearin2021Log10TimeZero'     )  &
+         &                                ]
+    return
+  end function massAccretionHistoryHearin2021Extract
+
+  function massAccretionHistoryHearin2021Names(self,time)
+    !!{
+    Return the name of the {\normalfont \ttfamily massAccretionHistoryHearin2021} property.
+    !!}
+    implicit none
+    type            (varying_string                                     ), dimension(:) , allocatable :: massAccretionHistoryHearin2021Names
+    class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout)              :: self
+    double precision                                                     , intent(in   )              :: time
+    !$GLC attributes unused :: self, time
+
+    allocate(massAccretionHistoryHearin2021Names(3))
+    massAccretionHistoryHearin2021Names=[                                                &
+         &                               var_str('treeMAHHearin2021PowerLawIndexEarly'), &
+         &                               var_str('treeMAHHearin2021PowerLawIndexLate' ), &
+         &                               var_str('treeMAHHearin2021Log10TimeZero'     )  &
+         &                              ]
+    return
+  end function massAccretionHistoryHearin2021Names
+
+  function massAccretionHistoryHearin2021Descriptions(self,time)
+    !!{
+    Return a description of the {\normalfont \ttfamily massAccretionHistoryHearin2021} property.
+    !!}
+    implicit none
+    type            (varying_string                                     ), dimension(:) , allocatable :: massAccretionHistoryHearin2021Descriptions
+    class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout)              :: self
+    double precision                                                     , intent(in   )              :: time
+    !$GLC attributes unused :: self, time
+
+    allocate(massAccretionHistoryHearin2021Descriptions(3))
+    massAccretionHistoryHearin2021Descriptions=[                                                                                                         &
+         &                                      var_str('Early-time power-law index in the Hearin et al. (2021) mass accretion hsitory for this tree.'), &
+         &                                      var_str('Late-time power-law index in the Hearin et al. (2021) mass accretion hsitory for this tree.' ), &
+         &                                      var_str('Parameter log₁₀t₀ in the Hearin et al. (2021) mass accretion hsitory for this tree.'         )  &
+         &                                     ]
+    return
+  end function massAccretionHistoryHearin2021Descriptions
+
+  function massAccretionHistoryHearin2021UnitsInSI(self,time)
+    !!{
+    Return the units of the {\normalfont \ttfamily massAccretionHistoryHearin2021} property in the SI system.
+    !!}
+    implicit none
+    double precision                                                     , allocatable  , dimension(:) :: massAccretionHistoryHearin2021UnitsInSI
+    class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout)               :: self
+    double precision                                                     , intent(in   )               :: time
+    !$GLC attributes unused :: self, time
+
+    allocate(massAccretionHistoryHearin2021UnitsInSI(3))
+    massAccretionHistoryHearin2021UnitsInSI=0.0d0
+    return
+  end function massAccretionHistoryHearin2021UnitsInSI
+
+  integer function massAccretionHistoryHearin2021Type(self)
+    !!{
+    Return the type of the {\normalfont \ttfamily massAccretionHistoryHearin2021} property.
+    !!}
+    use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
+    implicit none
+    class(nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    massAccretionHistoryHearin2021Type=outputAnalysisPropertyTypeLinear
+    return
+  end function massAccretionHistoryHearin2021Type

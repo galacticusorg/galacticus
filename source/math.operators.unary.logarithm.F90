@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a logarithm unary operator.
+  !!{
+  Implementation of a logarithm unary operator.
+  !!}
 
-  !# <operatorUnary name="operatorUnaryLogarithm">
-  !#  <description>A logarithm unary operator.</description>
-  !# </operatorUnary>
+  !![
+  <operatorUnary name="operatorUnaryLogarithm">
+   <description>A logarithm unary operator.</description>
+  </operatorUnary>
+  !!]
   type, extends(operatorUnaryClass) :: operatorUnaryLogarithm
-     !% Implementation of a logarithm unary operator.
+     !!{
+     Implementation of a logarithm unary operator.
+     !!}
      private
    contains
      procedure :: operate   => logarithmOperate
@@ -31,7 +37,9 @@
   end type operatorUnaryLogarithm
 
   interface operatorUnaryLogarithm
-     !% Constructors for the {\normalfont \ttfamily logarithm} 1D distribution function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily logarithm} 1D distribution function class.
+     !!}
      module procedure logarithmConstructorParameters
   end interface operatorUnaryLogarithm
 
@@ -41,8 +49,10 @@
 contains
 
   function logarithmConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily logarithm} 1D distribution function class which builds the object from a
-    !% parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily logarithm} 1D distribution function class which builds the object from a
+    parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(operatorUnaryLogarithm)                :: self
@@ -54,7 +64,9 @@ contains
   end function logarithmConstructorParameters
 
   double precision function logarithmOperate(self,x)
-    !% Apply an logarithm operation.
+    !!{
+    Apply an logarithm operation.
+    !!}
     implicit none
     class           (operatorUnaryLogarithm), intent(inout) :: self
     double precision                        , intent(in   ) :: x
@@ -65,7 +77,9 @@ contains
   end function logarithmOperate
 
   double precision function logarithmUnoperate(self,f)
-    !% Unapply an logarithm operation.
+    !!{
+    Unapply an logarithm operation.
+    !!}
     implicit none
     class           (operatorUnaryLogarithm), intent(inout) :: self
     double precision                        , intent(in   ) :: f

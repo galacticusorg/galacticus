@@ -25,11 +25,15 @@
   use            :: Radiative_Transfer_Photon_Packet, only : radiativeTransferPhotonPacketClass
   use            :: Radiative_Transfer_Sources      , only : radiativeTransferSourceClass
   
-  !# <task name="taskRadiativeTransfer">
-  !#  <description>A task which performs radiative transfer.</description>
-  !# </task>
+  !![
+  <task name="taskRadiativeTransfer">
+   <description>A task which performs radiative transfer.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskRadiativeTransfer
-     !% Implementation of a task which performs radiative transfer.
+     !!{
+     Implementation of a task which performs radiative transfer.
+     !!}
      private
      type            (varying_string                    )                            :: outputGroupName
      class           (computationalDomainClass          ), pointer                   :: computationalDomain_           => null()
@@ -51,7 +55,9 @@
   end type taskRadiativeTransfer
 
   interface taskRadiativeTransfer
-     !% Constructors for the {\normalfont \ttfamily radiativeTransfer} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily radiativeTransfer} task.
+     !!}
      module procedure radiativeTransferConstructorParameters
      module procedure radiativeTransferConstructorInternal
   end interface taskRadiativeTransfer
@@ -59,7 +65,9 @@
 contains
 
   function radiativeTransferConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily radiativeTransfer} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily radiativeTransfer} task class which takes a parameter set as input.
+    !!}
     use :: ISO_Varying_String, only : var_str
     use :: Input_Parameters  , only : inputParameter              , inputParameters
     use :: Galacticus_Nodes  , only : nodeClassHierarchyInitialize
@@ -93,79 +101,85 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
-    !# <inputParameter>
-    !#   <name>wavelengthMinimum</name>
-    !#   <defaultValue>0.3d4</defaultValue>
-    !#   <description>The minimum wavelength at which to sample photon packets.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>wavelengthMaximum</name>
-    !#   <defaultValue>10.0d4</defaultValue>
-    !#   <description>The maximum wavelength at which to sample photon packets.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>wavelengthCountPerDecade</name>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of wavelengths per decade at which to sample photon packets.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>countPhotonsPerWavelength</name>
-    !#   <defaultValue>10_c_size_t</defaultValue>
-    !#   <description>The number of photon packets to generate at each wavelength.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>countPhotonsPerWavelengthFinalIteration</name>
-    !#   <defaultValue>countPhotonsPerWavelength</defaultValue>
-    !#   <description>The number of photon packets to generate at each wavelength on the final iteration.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>countIterationsMinimum</name>
-    !#   <defaultValue>1_c_size_t</defaultValue>
-    !#   <description>The minimum number of iterations.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>countIterationsMaximum</name>
-    !#   <defaultValue>10_c_size_t</defaultValue>
-    !#   <description>The maximum number of iterations.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>outputGroupName</name>
-    !#   <defaultValue>var_str('radiativeTransferModel')</defaultValue>
-    !#   <description>The name of the group to which results should be output.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>outputIterations</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, output data for all iterations, not just the final iteration.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="computationalDomain"           name="computationalDomain_"           source="parameters"/>
-    !# <objectBuilder class="radiativeTransferConvergence"  name="radiativeTransferConvergence_"  source="parameters"/>
-    !# <objectBuilder class="radiativeTransferPhotonPacket" name="radiativeTransferPhotonPacket_" source="parameters"/>
-    !# <objectBuilder class="radiativeTransferSource"       name="radiativeTransferSource_"       source="parameters"/>
-    !# <objectBuilder class="radiativeTransferOutputter"    name="radiativeTransferOutputter_"    source="parameters"/>
-    !# <objectBuilder class="randomNumberGenerator"         name="randomNumberGenerator_"         source="parameters"/>
+    !![
+    <inputParameter>
+      <name>wavelengthMinimum</name>
+      <defaultValue>0.3d4</defaultValue>
+      <description>The minimum wavelength at which to sample photon packets.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>wavelengthMaximum</name>
+      <defaultValue>10.0d4</defaultValue>
+      <description>The maximum wavelength at which to sample photon packets.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>wavelengthCountPerDecade</name>
+      <defaultValue>10</defaultValue>
+      <description>The number of wavelengths per decade at which to sample photon packets.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>countPhotonsPerWavelength</name>
+      <defaultValue>10_c_size_t</defaultValue>
+      <description>The number of photon packets to generate at each wavelength.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>countPhotonsPerWavelengthFinalIteration</name>
+      <defaultValue>countPhotonsPerWavelength</defaultValue>
+      <description>The number of photon packets to generate at each wavelength on the final iteration.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>countIterationsMinimum</name>
+      <defaultValue>1_c_size_t</defaultValue>
+      <description>The minimum number of iterations.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>countIterationsMaximum</name>
+      <defaultValue>10_c_size_t</defaultValue>
+      <description>The maximum number of iterations.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>outputGroupName</name>
+      <defaultValue>var_str('radiativeTransferModel')</defaultValue>
+      <description>The name of the group to which results should be output.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>outputIterations</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, output data for all iterations, not just the final iteration.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="computationalDomain"           name="computationalDomain_"           source="parameters"/>
+    <objectBuilder class="radiativeTransferConvergence"  name="radiativeTransferConvergence_"  source="parameters"/>
+    <objectBuilder class="radiativeTransferPhotonPacket" name="radiativeTransferPhotonPacket_" source="parameters"/>
+    <objectBuilder class="radiativeTransferSource"       name="radiativeTransferSource_"       source="parameters"/>
+    <objectBuilder class="radiativeTransferOutputter"    name="radiativeTransferOutputter_"    source="parameters"/>
+    <objectBuilder class="randomNumberGenerator"         name="randomNumberGenerator_"         source="parameters"/>
+    !!]
     self=taskRadiativeTransfer(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,countPhotonsPerWavelength,countPhotonsPerWavelengthFinalIteration,countIterationsMinimum,countIterationsMaximum,outputGroupName,outputIterations,computationalDomain_,radiativeTransferPhotonPacket_,radiativeTransferSource_,radiativeTransferOutputter_,radiativeTransferConvergence_,randomNumberGenerator_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="computationalDomain_"          />
-    !# <objectDestructor name="radiativeTransferConvergence_" />
-    !# <objectDestructor name="radiativeTransferPhotonPacket_"/>
-    !# <objectDestructor name="radiativeTransferSource_"      />
-    !# <objectDestructor name="radiativeTransferOutputter_"   />
-    !# <objectDestructor name="randomNumberGenerator_"        />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="computationalDomain_"          />
+    <objectDestructor name="radiativeTransferConvergence_" />
+    <objectDestructor name="radiativeTransferPhotonPacket_"/>
+    <objectDestructor name="radiativeTransferSource_"      />
+    <objectDestructor name="radiativeTransferOutputter_"   />
+    <objectDestructor name="randomNumberGenerator_"        />
+    !!]
    return
   end function radiativeTransferConstructorParameters
 
   function radiativeTransferConstructorInternal(wavelengthMinimum,wavelengthMaximum,wavelengthCountPerDecade,countPhotonsPerWavelength,countPhotonsPerWavelengthFinalIteration,countIterationsMinimum,countIterationsMaximum,outputGroupName,outputIterations,computationalDomain_,radiativeTransferPhotonPacket_,radiativeTransferSource_,radiativeTransferOutputter_,radiativeTransferConvergence_,randomNumberGenerator_) result(self)
-    !% Constructor for the {\normalfont \ttfamily radiativeTransfer} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily radiativeTransfer} task class which takes a parameter set as input.
+    !!}
     use :: ISO_Varying_String, only : char
     use :: Numerical_Ranges  , only : Make_Range, rangeTypeLogarithmic
     implicit none
@@ -184,7 +198,9 @@ contains
     class           (randomNumberGeneratorClass        ), intent(in   ), target :: randomNumberGenerator_
     integer                                                                     :: wavelengthCount
     double precision                                                            :: wavelengthFactor
-    !# <constructorAssign variables="wavelengthMinimum, wavelengthMaximum, wavelengthCountPerDecade, countPhotonsPerWavelength, countPhotonsPerWavelengthFinalIteration, countIterationsMinimum, countIterationsMaximum, outputGroupName, outputIterations, *computationalDomain_, *radiativeTransferPhotonPacket_, *radiativeTransferSource_, *radiativeTransferOutputter_, *radiativeTransferConvergence_, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="wavelengthMinimum, wavelengthMaximum, wavelengthCountPerDecade, countPhotonsPerWavelength, countPhotonsPerWavelengthFinalIteration, countIterationsMinimum, countIterationsMaximum, outputGroupName, outputIterations, *computationalDomain_, *radiativeTransferPhotonPacket_, *radiativeTransferSource_, *radiativeTransferOutputter_, *radiativeTransferConvergence_, *randomNumberGenerator_"/>
+    !!]
 
     wavelengthCount =int(log10(wavelengthMaximum/wavelengthMinimum)*dble(wavelengthCountPerDecade)+1)
     wavelengthFactor=exp(log(wavelengthMaximum/wavelengthMinimum)/dble(wavelengthCount))
@@ -198,23 +214,29 @@ contains
   end function radiativeTransferConstructorInternal
 
   subroutine radiativeTransferDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily radiativeTransfer} task class.
+    !!{
+    Destructor for the {\normalfont \ttfamily radiativeTransfer} task class.
+    !!}
     use :: Node_Components, only : Node_Components_Uninitialize
     implicit none
     type(taskRadiativeTransfer), intent(inout) :: self
 
-    !# <objectDestructor name="self%computationalDomain_"          />
-    !# <objectDestructor name="self%radiativeTransferConvergence_" />
-    !# <objectDestructor name="self%radiativeTransferPhotonPacket_"/>
-    !# <objectDestructor name="self%radiativeTransferSource_"      />
-    !# <objectDestructor name="self%radiativeTransferOutputter_"   />
-    !# <objectDestructor name="self%randomNumberGenerator_"        />
+    !![
+    <objectDestructor name="self%computationalDomain_"          />
+    <objectDestructor name="self%radiativeTransferConvergence_" />
+    <objectDestructor name="self%radiativeTransferPhotonPacket_"/>
+    <objectDestructor name="self%radiativeTransferSource_"      />
+    <objectDestructor name="self%radiativeTransferOutputter_"   />
+    <objectDestructor name="self%randomNumberGenerator_"        />
+    !!]
     call Node_Components_Uninitialize()
     return
   end subroutine radiativeTransferDestructor
 
   subroutine radiativeTransferPerform(self,status)
-    !% Perform radiative transfer and output results.
+    !!{
+    Perform radiative transfer and output results.
+    !!}
     use :: Display                 , only : displayIndent                            , displayMessage    , displayUnindent, verbosityLevelStandard
     use :: Galacticus_Error        , only : Galacticus_Error_Report                  , errorStatusSuccess
     use :: Galacticus_HDF5         , only : galacticusOutputFile

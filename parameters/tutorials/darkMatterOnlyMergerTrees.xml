@@ -79,7 +79,11 @@
   <!-- Dark matter halo structure options -->
   <darkMatterProfileDMO value="NFW"/>
   <darkMatterProfileConcentration value="gao2008"/>
-  <darkMatterProfileMinimumConcentration value="4"/>
+  <darkMatterProfileScaleRadius value="concentrationLimiter">
+    <concentrationMinimum value="  4.0"/>
+    <concentrationMaximum value="100.0"/>
+    <darkMatterProfileScaleRadius value="concentration"/>
+  </darkMatterProfileScaleRadius>
 
   <!-- Switch off baryonic physics -->
   <hotHaloMassDistribution value="null"/>
@@ -103,23 +107,10 @@
     <outputReferences value="false"/>
   </mergerTreeOutputter>
 
-  <!--Stellar feedback outflows-->
-  <nodeOperator value="stellarFeedbackDisks">
-    <stellarFeedbackOutflows value="rateLimit">
-      <timescaleOutflowFractionalMinimum value="0.001"/>
-      <stellarFeedbackOutflows value="powerLaw">
-        <velocityCharacteristic value="250.0"/>
-        <exponent value="3.5"/>
-      </stellarFeedbackOutflows>
-    </stellarFeedbackOutflows>
+  <!-- Node physics -->
+  <nodeOperator value="multi">
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
   </nodeOperator>
-  <nodeOperator value="stellarFeedbackSpheroids">
-    <stellarFeedbackOutflows value="rateLimit">
-      <timescaleOutflowFractionalMinimum value="0.001"/>
-      <stellarFeedbackOutflows value="powerLaw">
-        <velocityCharacteristic value="250.0"/>
-        <exponent value="3.5"/>
-      </stellarFeedbackOutflows>
-    </stellarFeedbackOutflows>
-  </nodeOperator>
+
 </parameters>

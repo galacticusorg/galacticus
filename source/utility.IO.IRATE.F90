@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides IO in \gls{irate} format.
+!!{
+Contains a module which provides IO in \gls{irate} format.
+!!}
 
 module IO_IRATE
-  !% Provides IO in \gls{irate} format.
+  !!{
+  Provides IO in \gls{irate} format.
+  !!}
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters, only : cosmologyParametersClass
   use :: ISO_Varying_String  , only : varying_string
@@ -28,21 +32,25 @@ module IO_IRATE
   public :: irate
 
   type :: irate
-     !% A class for interacting with \gls{irate} format files.
+     !!{
+     A class for interacting with \gls{irate} format files.
+     !!}
      type (varying_string          )          :: fileName
      class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
      class(cosmologyParametersClass), pointer :: cosmologyParameters_
    contains
-     !# <methods>
-     !#   <method description="Read a snapshot from the \gls{irate} format file." method="readHalos" />
-     !#   <method description="Read the requested properties of the simulation from an \gls{irate} format file." method="readSimulation" />
-     !#   <method description="Write the requested properties of the simulation from an \gls{irate} format file." method="writeSimulation" />
-     !#   <method description="Copy ``{\normalfont \ttfamily SimulationProperties}'' group from one \gls{irate} file to another." method="copySimulation" />
-     !#   <method description="Copy ``{\normalfont \ttfamily Cosmology}'' group from one \gls{irate} file to another." method="copyCosmology" />
-     !#   <method method="writeHalos">
-     !#     <description></description>
-     !#   </method>
-     !# </methods>
+     !![
+     <methods>
+       <method description="Read a snapshot from the \gls{irate} format file." method="readHalos" />
+       <method description="Read the requested properties of the simulation from an \gls{irate} format file." method="readSimulation" />
+       <method description="Write the requested properties of the simulation from an \gls{irate} format file." method="writeSimulation" />
+       <method description="Copy ``{\normalfont \ttfamily SimulationProperties}'' group from one \gls{irate} file to another." method="copySimulation" />
+       <method description="Copy ``{\normalfont \ttfamily Cosmology}'' group from one \gls{irate} file to another." method="copyCosmology" />
+       <method method="writeHalos">
+         <description></description>
+       </method>
+     </methods>
+     !!]
      procedure :: readHalos       => irateReadHalos
      procedure :: readSimulation  => irateReadSimulation
      procedure :: writeSimulation => irateWriteSimulation
@@ -58,7 +66,9 @@ module IO_IRATE
 contains
 
   function irateConstructor(fileName,cosmologyParameters_,cosmologyFunctions_)
-    !% Constructor for \gls{irate} file interface class.
+    !!{
+    Constructor for \gls{irate} file interface class.
+    !!}
     use :: ISO_Varying_String, only : assignment(=)
     implicit none
     type     (irate                   )                        :: irateConstructor
@@ -73,7 +83,9 @@ contains
   end function irateConstructor
 
   subroutine irateReadHalos(self,snapshot,redshift,center,velocity,mass,IDs)
-    !% Read requested properties of halos from an \gls{irate} file.
+    !!{
+    Read requested properties of halos from an \gls{irate} file.
+    !!}
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Cosmology_Parameters            , only : hubbleUnitsLittleH
     use            :: IO_HDF5                         , only : hdf5Object
@@ -138,7 +150,9 @@ contains
   end subroutine irateReadHalos
 
   subroutine irateReadSimulation(self,boxSize)
-    !% Read requested properties of the simulation from an \gls{irate} file.
+    !!{
+    Read requested properties of the simulation from an \gls{irate} file.
+    !!}
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char
     implicit none
@@ -155,7 +169,9 @@ contains
   end subroutine irateReadSimulation
 
   subroutine irateWriteSimulation(self,boxSize)
-    !% Write requested properties of the simulation from an \gls{irate} file.
+    !!{
+    Write requested properties of the simulation from an \gls{irate} file.
+    !!}
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char
     implicit none
@@ -172,7 +188,9 @@ contains
   end subroutine irateWriteSimulation
 
   subroutine irateCopySimulation(self,targetFile)
-    !% Copy ``{\normalfont \ttfamily SimulationProperties}'' group from one \gls{irate} file to another.
+    !!{
+    Copy ``{\normalfont \ttfamily SimulationProperties}'' group from one \gls{irate} file to another.
+    !!}
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char
     implicit none
@@ -189,7 +207,9 @@ contains
   end subroutine irateCopySimulation
 
   subroutine irateCopyCosmology(self,targetFile)
-    !% Copy ``{\normalfont \ttfamily Cosmology}'' group from one \gls{irate} file to another.
+    !!{
+    Copy ``{\normalfont \ttfamily Cosmology}'' group from one \gls{irate} file to another.
+    !!}
     use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char
     implicit none
@@ -206,7 +226,9 @@ contains
   end subroutine irateCopyCosmology
 
   subroutine irateWriteHalos(self,snapshot,redshift,center,velocity,mass,IDs,overwrite,objectsOverwritable)
-    !% Read requested properties of halos to an \gls{irate} file.
+    !!{
+    Read requested properties of halos to an \gls{irate} file.
+    !!}
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: IO_HDF5                         , only : hdf5Object
     use            :: ISO_Varying_String              , only : char
@@ -223,8 +245,10 @@ contains
     type            (hdf5Object)                                          :: irateFile    , snapshotGroup      , &
          &                                                                   halosGroup   , dataset
     character       (len=13    )                                          :: snapshotLabel
-    !# <optionalArgument name="overwrite"           defaultsTo=".false."/>
-    !# <optionalArgument name="objectsOverwritable" defaultsTo=".false."/>
+    !![
+    <optionalArgument name="overwrite"           defaultsTo=".false."/>
+    <optionalArgument name="objectsOverwritable" defaultsTo=".false."/>
+    !!]
     
     ! Write data to file.
     write (snapshotLabel,'(a,i5.5)') 'Snapshot',snapshot

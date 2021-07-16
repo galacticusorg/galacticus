@@ -17,20 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a concentration distribution output analysis class for COCO CDM data.
+  !!{
+  Contains a module which implements a concentration distribution output analysis class for COCO CDM data.
+  !!}
 
-  !# <outputAnalysis name="outputAnalysisConcentrationDistributionCDMCOCO">
-  !#  <description>A concentration distribution function output analysis class for COCO CDM data.</description>
-  !# </outputAnalysis>
+  !![
+  <outputAnalysis name="outputAnalysisConcentrationDistributionCDMCOCO">
+   <description>A concentration distribution function output analysis class for COCO CDM data.</description>
+  </outputAnalysis>
+  !!]
   type, extends(outputAnalysisVolumeFunction1D) :: outputAnalysisConcentrationDistributionCDMCOCO
-     !% A concentration distribution output analysis class for COCO CDM data.
+     !!{
+     A concentration distribution output analysis class for COCO CDM data.
+     !!}
      private
      integer :: distributionNumber
    contains
   end type outputAnalysisConcentrationDistributionCDMCOCO
 
   interface outputAnalysisConcentrationDistributionCDMCOCO
-     !% Constructors for the ``concentrationDistributionCDMCOCO'' output analysis class.
+     !!{
+     Constructors for the ``concentrationDistributionCDMCOCO'' output analysis class.
+     !!}
      module procedure concentrationDistributionCDMCOCOConstructorParameters
      module procedure concentrationDistributionCDMCOCOConstructorInternal
   end interface outputAnalysisConcentrationDistributionCDMCOCO
@@ -38,7 +46,9 @@
 contains
 
   function concentrationDistributionCDMCOCOConstructorParameters(parameters) result (self)
-    !% Constructor for the ``concentrationDistributionCDMCOCO'' output analysis class which takes a parameter set as input.
+    !!{
+    Constructor for the ``concentrationDistributionCDMCOCO'' output analysis class which takes a parameter set as input.
+    !!}
     use :: Cosmology_Functions              , only : cosmologyFunctions , cosmologyFunctionsClass
     use :: Cosmology_Parameters             , only : cosmologyParameters, cosmologyParametersClass
     use :: Input_Parameters                 , only : inputParameter     , inputParameters
@@ -53,31 +63,37 @@ contains
     integer                                                                         :: distributionNumber
     double precision                                                                :: formationTimeRecent
 
-    !# <inputParameter>
-    !#   <name>distributionNumber</name>
-    !#   <source>parameters</source>
-    !#   <description>The number (1-7) of the distribution to compute.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>formationTimeRecent</name>
-    !#   <source>parameters</source>
-    !#   <description>Halos which ``formed'' more recently than this time in the past will be excluded from the analysis.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
-    !# <objectBuilder class="nbodyHaloMassError"  name="nbodyHaloMassError_"  source="parameters"/>
+    !![
+    <inputParameter>
+      <name>distributionNumber</name>
+      <source>parameters</source>
+      <description>The number (1-7) of the distribution to compute.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>formationTimeRecent</name>
+      <source>parameters</source>
+      <description>Halos which ``formed'' more recently than this time in the past will be excluded from the analysis.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
+    <objectBuilder class="nbodyHaloMassError"  name="nbodyHaloMassError_"  source="parameters"/>
+    !!]
     self=outputAnalysisConcentrationDistributionCDMCOCO(distributionNumber,formationTimeRecent,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_)
-    !# <inputParametersValidate source="parameters" />
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
-    !# <objectDestructor name="outputTimes_"        />
-    !# <objectDestructor name="nbodyHaloMassError_" />
+    !![
+    <inputParametersValidate source="parameters" />
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="outputTimes_"        />
+    <objectDestructor name="nbodyHaloMassError_" />
+    !!]
     return
   end function concentrationDistributionCDMCOCOConstructorParameters
 
   function concentrationDistributionCDMCOCOConstructorInternal(distributionNumber,formationTimeRecent,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_) result(self)
-    !% Internal constructor for the ``concentrationDistributionCDMCOCO'' output analysis class.
+    !!{
+    Internal constructor for the ``concentrationDistributionCDMCOCO'' output analysis class.
+    !!}
     use :: Cosmology_Functions                     , only : cosmologyFunctionsClass
     use :: Cosmology_Parameters                    , only : cosmologyParametersClass
     use :: Galactic_Filters                        , only : filterList                                      , galacticFilterAll                           , galacticFilterFormationTime                   , galacticFilterHaloIsolated
@@ -142,7 +158,9 @@ contains
     double precision                                                                                  :: massMinimum                                         , massMaximum
     character       (len=16                                          )                                :: distributionName
     character       (len= 5                                          )                                :: massMinimumLabel                                    , massMaximumLabel
-    !# <constructorAssign variables="distributionNumber"/>
+    !![
+    <constructorAssign variables="distributionNumber"/>
+    !!]
 
     ! Validate input.
     if (distributionNumber < 1 .or. distributionNumber > 7) call Galacticus_Error_Report('distributionNumber ∈ [1..7] is required'//{introspection:location})
@@ -180,110 +198,136 @@ contains
     allocate(filters_                    %next)
     filters_     %filter_ => galacticFilterHaloIsolated_
     filters_%next%filter_ => galacticFilterFormationTime_
-    !# <referenceConstruct object="galacticFilterHaloIsolated_"  constructor="galacticFilterHaloIsolated  (                   )"/>
-    !# <referenceConstruct object="galacticFilterFormationTime_" constructor="galacticFilterFormationTime (formationTimeRecent)"/>
-    !# <referenceConstruct object="galacticFilter_"              constructor="galacticFilterAll           (filters_           )"/>
+    !![
+    <referenceConstruct object="galacticFilterHaloIsolated_"  constructor="galacticFilterHaloIsolated  (                   )"/>
+    <referenceConstruct object="galacticFilterFormationTime_" constructor="galacticFilterFormationTime (formationTimeRecent)"/>
+    <referenceConstruct object="galacticFilter_"              constructor="galacticFilterAll           (filters_           )"/>
+    !!]
     ! Create a distribution normalizer which normalizes to bin width and unitarity.
     allocate(normalizer_          )
     allocate(normalizer_%next     )
     allocate(normalizer_%next%next)
     allocate(outputAnalysisDistributionNormalizerUnitarity_)
-    !# <referenceConstruct object="outputAnalysisDistributionNormalizerUnitarity_"  constructor="outputAnalysisDistributionNormalizerUnitarity ()"/>
+    !![
+    <referenceConstruct object="outputAnalysisDistributionNormalizerUnitarity_"  constructor="outputAnalysisDistributionNormalizerUnitarity ()"/>
+    !!]
     allocate(outputAnalysisDistributionNormalizerBinWidth_)
-    !# <referenceConstruct object="outputAnalysisDistributionNormalizerBinWidth_"   constructor="outputAnalysisDistributionNormalizerBinWidth  ()"/>
+    !![
+    <referenceConstruct object="outputAnalysisDistributionNormalizerBinWidth_"   constructor="outputAnalysisDistributionNormalizerBinWidth  ()"/>
+    !!]
     allocate(outputAnalysisDistributionNormalizerLog10ToLog_)
-    !# <referenceConstruct object="outputAnalysisDistributionNormalizerLog10ToLog_" constructor="outputAnalysisDistributionNormalizerLog10ToLog()"/>
+    !![
+    <referenceConstruct object="outputAnalysisDistributionNormalizerLog10ToLog_" constructor="outputAnalysisDistributionNormalizerLog10ToLog()"/>
+    !!]
     normalizer_          %normalizer_ => outputAnalysisDistributionNormalizerUnitarity_
     normalizer_%next     %normalizer_ => outputAnalysisDistributionNormalizerBinWidth_
     normalizer_%next%next%normalizer_ => outputAnalysisDistributionNormalizerLog10ToLog_
     allocate(outputAnalysisDistributionNormalizer_ )
-    !# <referenceConstruct object="outputAnalysisDistributionNormalizer_">
-    !#  <constructor>
-    !#   outputAnalysisDistributionNormalizerSequence    (                                        &amp;
-    !#       &amp;                                        normalizer_                             &amp;
-    !#       &amp;                                       )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="outputAnalysisDistributionNormalizer_">
+     <constructor>
+      outputAnalysisDistributionNormalizerSequence    (                                        &amp;
+          &amp;                                        normalizer_                             &amp;
+          &amp;                                       )
+     </constructor>
+    </referenceConstruct>
+    !!]
     ! Build log10() property operator.
     allocate(outputAnalysisPropertyOperator_       )
-    !# <referenceConstruct object="outputAnalysisPropertyOperator_">
-    !#  <constructor>
-    !#   outputAnalysisPropertyOperatorLog10             (                                        &amp;
-    !#     &amp;                                         )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyOperator_">
+     <constructor>
+      outputAnalysisPropertyOperatorLog10             (                                        &amp;
+        &amp;                                         )
+     </constructor>
+    </referenceConstruct>
+    !!]
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_     )
-    !# <referenceConstruct object="outputAnalysisPropertyUnoperator_">
-    !#  <constructor>
-    !#   outputAnalysisPropertyOperatorAntiLog10         (                                        &amp;
-    !#     &amp;                                         )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="outputAnalysisPropertyUnoperator_">
+     <constructor>
+      outputAnalysisPropertyOperatorAntiLog10         (                                        &amp;
+        &amp;                                         )
+     </constructor>
+    </referenceConstruct>
+    !!]
     ! Create a virial density contrast object matched to the definition used by Ludlow et al. (2016).
     allocate(virialDensityContrast_                )
-    !# <referenceConstruct object="virialDensityContrast_">
-    !#  <constructor>
-    !#   virialDensityContrastFixed                      (                                        &amp;
-    !#      &amp;                                         haloDensityContrast                   , &amp;
-    !#      &amp;                                         fixedDensityTypeCritical              , &amp;
-    !#      &amp;                                         2.0d0                                 , &amp;
-    !#      &amp;                                         cosmologyParameters_                  , &amp;
-    !#      &amp;                                         cosmologyFunctions_                     &amp;
-    !#      &amp;                                        )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="virialDensityContrast_">
+     <constructor>
+      virialDensityContrastFixed                      (                                        &amp;
+         &amp;                                         haloDensityContrast                   , &amp;
+         &amp;                                         fixedDensityTypeCritical              , &amp;
+         &amp;                                         2.0d0                                 , &amp;
+         &amp;                                         cosmologyParameters_                  , &amp;
+         &amp;                                         cosmologyFunctions_                     &amp;
+         &amp;                                        )
+     </constructor>
+    </referenceConstruct>
+    !!]
     ! Create a concentration property extractor.
     allocate(nodePropertyExtractor_      )
-    !# <referenceConstruct object="nodePropertyExtractor_">
-    !#  <constructor>
-    !#   nodePropertyExtractorConcentration              (                                        &amp;
-    !#       &amp;                                        virialDensityContrast_                  &amp;
-    !#       &amp;                                       )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="nodePropertyExtractor_">
+     <constructor>
+      nodePropertyExtractorConcentration              (                                        &amp;
+          &amp;                                        virialDensityContrast_                  &amp;
+          &amp;                                       )
+     </constructor>
+    </referenceConstruct>
+    !!]
     ! Create a halo mass property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_)
-    !# <referenceConstruct object="outputAnalysisWeightPropertyExtractor_">
-    !#  <constructor>
-    !#   nodePropertyExtractorMassHalo                   (                                        &amp;
-    !#      &amp;                                         virialDensityContrast_                  &amp;
-    !#      &amp;                                        )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_">
+     <constructor>
+      nodePropertyExtractorMassHalo                   (                                        &amp;
+         &amp;                                         virialDensityContrast_                  &amp;
+         &amp;                                        )
+     </constructor>
+    </referenceConstruct>
+    !!]
     ! Create an identity property operator.
     allocate(outputAnalysisWeightPropertyOperator_ )
-    !# <referenceConstruct object="outputAnalysisWeightPropertyOperator_">
-    !#  <constructor>
-    !#   outputAnalysisPropertyOperatorIdentity          (                                        &amp;
-    !#     &amp;                                         )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="outputAnalysisWeightPropertyOperator_">
+     <constructor>
+      outputAnalysisPropertyOperatorIdentity          (                                        &amp;
+        &amp;                                         )
+     </constructor>
+    </referenceConstruct>
+    !!]
     ! Build error distribution operator.
     allocate(outputAnalysisDistributionOperator_   )
-    !# <referenceConstruct object="outputAnalysisDistributionOperator_">
-    !#  <constructor>
-    !#   outputAnalysisDistributionOperatorRndmErrNbdyCnc(                                        &amp;
-    !#      &amp;                                         concentrationFitA                     , &amp;
-    !#      &amp;                                         concentrationFitB                     , &amp;
-    !#      &amp;                                         massParticle                          , &amp;
-    !#      &amp;                                         outputAnalysisWeightPropertyExtractor_  &amp;
-    !#      &amp;                                        )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="outputAnalysisDistributionOperator_">
+     <constructor>
+      outputAnalysisDistributionOperatorRndmErrNbdyCnc(                                        &amp;
+         &amp;                                         concentrationFitA                     , &amp;
+         &amp;                                         concentrationFitB                     , &amp;
+         &amp;                                         massParticle                          , &amp;
+         &amp;                                         outputAnalysisWeightPropertyExtractor_  &amp;
+         &amp;                                        )
+     </constructor>
+    </referenceConstruct>
+    !!]
     ! Build N-body mass distribution weight operator.
     allocate(outputAnalysisWeightOperator_         )
-    !# <referenceConstruct object="outputAnalysisWeightOperator_">
-    !#  <constructor>
-    !#   outputAnalysisWeightOperatorNbodyMass          (                                        &amp;
-    !#      &amp;                                        massMinimum                           , &amp;
-    !#      &amp;                                        massMaximum                           , &amp;
-    !#      &amp;                                        outputAnalysisWeightPropertyExtractor_, &amp;
-    !#      &amp;                                        outputAnalysisWeightPropertyOperator_ , &amp;
-    !#      &amp;                                        nbodyHaloMassError_                     &amp;
-    !#      &amp;                                       )
-    !#  </constructor>
-    !# </referenceConstruct>
+    !![
+    <referenceConstruct object="outputAnalysisWeightOperator_">
+     <constructor>
+      outputAnalysisWeightOperatorNbodyMass          (                                        &amp;
+         &amp;                                        massMinimum                           , &amp;
+         &amp;                                        massMaximum                           , &amp;
+         &amp;                                        outputAnalysisWeightPropertyExtractor_, &amp;
+         &amp;                                        outputAnalysisWeightPropertyOperator_ , &amp;
+         &amp;                                        nbodyHaloMassError_                     &amp;
+         &amp;                                       )
+     </constructor>
+    </referenceConstruct>
+    !!]
     ! Determine number of buffer bins.
     bufferCount=0
     ! Construct the object.
@@ -324,21 +368,23 @@ contains
          &                                functionTarget                                                                                                                             , &
          &                                functionCovarianceTarget                                                                                                                     &
          &                               )
-    !# <objectDestructor name="galacticFilterHaloIsolated_"                    />
-    !# <objectDestructor name="galacticFilterFormationTime_"                   />
-    !# <objectDestructor name="galacticFilter_"                                />
-    !# <objectDestructor name="outputAnalysisDistributionNormalizer_"          />
-    !# <objectDestructor name="outputAnalysisPropertyOperator_"                />
-    !# <objectDestructor name="outputAnalysisPropertyUnoperator_"              />
-    !# <objectDestructor name="virialDensityContrast_"                         />
-    !# <objectDestructor name="nodePropertyExtractor_"               />
-    !# <objectDestructor name="outputAnalysisWeightPropertyExtractor_"         />
-    !# <objectDestructor name="outputAnalysisWeightPropertyOperator_"          />
-    !# <objectDestructor name="outputAnalysisDistributionOperator_"            />
-    !# <objectDestructor name="outputAnalysisWeightOperator_"                  />
-    !# <objectDestructor name="outputAnalysisDistributionNormalizerUnitarity_" />
-    !# <objectDestructor name="outputAnalysisDistributionNormalizerBinWidth_"  />
-    !# <objectDestructor name="outputAnalysisDistributionNormalizerLog10ToLog_"/>
+    !![
+    <objectDestructor name="galacticFilterHaloIsolated_"                    />
+    <objectDestructor name="galacticFilterFormationTime_"                   />
+    <objectDestructor name="galacticFilter_"                                />
+    <objectDestructor name="outputAnalysisDistributionNormalizer_"          />
+    <objectDestructor name="outputAnalysisPropertyOperator_"                />
+    <objectDestructor name="outputAnalysisPropertyUnoperator_"              />
+    <objectDestructor name="virialDensityContrast_"                         />
+    <objectDestructor name="nodePropertyExtractor_"               />
+    <objectDestructor name="outputAnalysisWeightPropertyExtractor_"         />
+    <objectDestructor name="outputAnalysisWeightPropertyOperator_"          />
+    <objectDestructor name="outputAnalysisDistributionOperator_"            />
+    <objectDestructor name="outputAnalysisWeightOperator_"                  />
+    <objectDestructor name="outputAnalysisDistributionNormalizerUnitarity_" />
+    <objectDestructor name="outputAnalysisDistributionNormalizerBinWidth_"  />
+    <objectDestructor name="outputAnalysisDistributionNormalizerLog10ToLog_"/>
+    !!]
     nullify(normalizer_)
     nullify(filters_   )
   return

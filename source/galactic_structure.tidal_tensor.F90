@@ -19,10 +19,14 @@
 
 !+    Contributions to this file made by: Andrew Benson.
 
-!% Contains a module which implements calculations of gravitational tidal tensors.
+!!{
+Contains a module which implements calculations of gravitational tidal tensors.
+!!}
 
 module Galactic_Structure_Tidal_Tensors
-  !% Implements calculations of the gravitational tidal tensors.
+  !!{
+  Implements calculations of the gravitational tidal tensors.
+  !!}
   use :: Kind_Numbers, only : kind_int8
   implicit none
   private
@@ -36,13 +40,19 @@ module Galactic_Structure_Tidal_Tensors
 contains
 
   function Galactic_Structure_Tidal_Tensor(node,positionCartesian,componentType,massType)
-    !% Compute the gravitational tidal tensor at a given position.
+    !!{
+    Compute the gravitational tidal tensor at a given position.
+    !!}
     use :: Galactic_Structure_Options, only : componentTypeAll               , massTypeAll
     use :: Galacticus_Nodes          , only : optimizeForTidalTensorSummation, reductionSummation, treeNode
     use :: Tensors                   , only : tensorRank2Dimension3Symmetric , assignment(=)
-    !# <include directive="tidalTensorTask" type="moduleUse">
+    !![
+    <include directive="tidalTensorTask" type="moduleUse">
+    !!]
     include 'galactic_structure.tidal_tensor.tasks.modules.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     implicit none
     type            (tensorRank2Dimension3Symmetric)                              :: Galactic_Structure_Tidal_Tensor
     type            (treeNode                      ), intent(inout)               :: node
@@ -81,16 +91,22 @@ contains
     end if
     ! Compute the tidal tensor.
     Galactic_Structure_Tidal_Tensor=node%mapTensorR2D3(componentTidalTensorFunction,reductionSummation,optimizeFor=optimizeForTidalTensorSummation)
-    !# <include directive="tidalTensorTask" type="functionCall" functionType="function" returnParameter="componentTidalTensor">
-    !#  <functionArgs>node,positionCartesianShared,componentTypeShared,massTypeShared</functionArgs>
-    !#  <onReturn>Galactic_Structure_Tidal_Tensor=Galactic_Structure_Tidal_Tensor+componentTidalTensor</onReturn>
+    !![
+    <include directive="tidalTensorTask" type="functionCall" functionType="function" returnParameter="componentTidalTensor">
+     <functionArgs>node,positionCartesianShared,componentTypeShared,massTypeShared</functionArgs>
+     <onReturn>Galactic_Structure_Tidal_Tensor=Galactic_Structure_Tidal_Tensor+componentTidalTensor</onReturn>
+    !!]
     include 'galactic_structure.tidal_tensor.tasks.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     return
   end function Galactic_Structure_Tidal_Tensor
 
   function Component_Tidal_Tensor(component)
-    !% Function returning the tidal tensor in a component. Suitable for mapping over components.
+    !!{
+    Function returning the tidal tensor in a component. Suitable for mapping over components.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponent
     use :: Tensors         , only : tensorRank2Dimension3Symmetric
     implicit none

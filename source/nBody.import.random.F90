@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data importer which generates random points.
+!!{
+Contains a module which implements an N-body data importer which generates random points.
+!!}
 
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
-  !# <nbodyImporter name="nbodyImporterRandom">
-  !#  <description>An importer which generates random points.</description>
-  !# </nbodyImporter>
+  !![
+  <nbodyImporter name="nbodyImporterRandom">
+   <description>An importer which generates random points.</description>
+  </nbodyImporter>
+  !!]
   type, extends(nbodyImporterClass) :: nbodyImporterRandom
-     !% An importer which generates random points.
+     !!{
+     An importer which generates random points.
+     !!}
      private
      class           (randomNumberGeneratorClass), pointer       :: randomNumberGenerator_ => null()
      double precision                            , dimension(2)  :: xRange                          , yRange, &
@@ -37,7 +43,9 @@
   end type nbodyImporterRandom
 
   interface nbodyImporterRandom
-     !% Constructors for the {\normalfont \ttfamily random} N-body importer class.
+     !!{
+     Constructors for the {\normalfont \ttfamily random} N-body importer class.
+     !!}
      module procedure randomConstructorParameters
      module procedure randomConstructorInternal
   end interface nbodyImporterRandom
@@ -45,7 +53,9 @@
 contains
   
   function randomConstructorParameters(parameters) result (self)
-    !% Constructor for the {\normalfont \ttfamily random} N-body importer class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily random} N-body importer class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyImporterRandom       )                :: self
@@ -55,57 +65,71 @@ contains
          &                                                         zRange
     integer         (c_size_t                  )                :: countPoints
 
-    !# <inputParameter>
-    !#   <name>countPoints</name>
-    !#   <source>parameters</source>
-    !#   <description>The number of random points to generate.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>xRange</name>
-    !#   <source>parameters</source>
-    !#   <description>The range within which to generate points in the $x$-direction.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>yRange</name>
-    !#   <source>parameters</source>
-    !#   <description>The range within which to generate points in the $y$-direction.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>zRange</name>
-    !#   <source>parameters</source>
-    !#   <description>The range within which to generate points in the $z$-direction.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>countPoints</name>
+      <source>parameters</source>
+      <description>The number of random points to generate.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>xRange</name>
+      <source>parameters</source>
+      <description>The range within which to generate points in the $x$-direction.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>yRange</name>
+      <source>parameters</source>
+      <description>The range within which to generate points in the $y$-direction.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>zRange</name>
+      <source>parameters</source>
+      <description>The range within which to generate points in the $z$-direction.</description>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=nbodyImporterRandom(countPoints,xRange,yRange,zRange,randomNumberGenerator_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="randomNumberGenerator_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="randomNumberGenerator_"/>
+    !!]
     return
   end function randomConstructorParameters
 
   function randomConstructorInternal(countPoints,xRange,yRange,zRange,randomNumberGenerator_) result (self)
-    !% Internal constructor for the {\normalfont \ttfamily random} N-body importer class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily random} N-body importer class.
+    !!}
     implicit none
     type            (nbodyImporterRandom       )                              :: self
     integer         (c_size_t                  ), intent(in   )               :: countPoints
     double precision                            , intent(in   ), dimension(2) :: xRange                , yRange, &
          &                                                                       zRange
     class           (randomNumberGeneratorClass), intent(in   ), target       :: randomNumberGenerator_
-    !# <constructorAssign variables="countPoints, xRange, yRange, zRange, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="countPoints, xRange, yRange, zRange, *randomNumberGenerator_"/>
+    !!]
 
     return
   end function randomConstructorInternal
 
   subroutine randomDestructor(self)
-    !% Destructor for {\normalfont \ttfamily random} importer class.
+    !!{
+    Destructor for {\normalfont \ttfamily random} importer class.
+    !!}
     implicit none
     type(nbodyImporterRandom), intent(inout) :: self
     
-    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
     return
   end subroutine randomDestructor
 
   subroutine randomImport(self,simulations)
-    !% Import data from a Random file.
+    !!{
+    Import data from a Random file.
+    !!}
     use :: Display, only : displayIndent     , displayUnindent         , verbosityLevelStandard
     use :: Hashes , only : rank1DoublePtrHash, rank1IntegerSizeTPtrHash, rank2DoublePtrHash    , rank2IntegerSizeTPtrHash
     implicit none

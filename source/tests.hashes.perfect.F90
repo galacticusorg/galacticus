@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test perfect hashing algorithms.
+!!{
+Contains a program to test perfect hashing algorithms.
+!!}
 
 program Test_Perfect_Hashes
-  !% Tests perfect hashing algorithms.
+  !!{
+  Tests perfect hashing algorithms.
+  !!}
   use :: Display          , only : displayVerbositySet, verbosityLevelStandard
   use :: Hashes_Perfect   , only : hashPerfect
   use :: Kind_Numbers     , only : kind_int8

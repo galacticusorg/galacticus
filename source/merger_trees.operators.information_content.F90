@@ -17,25 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a merger tree operator which computes the cladistic
-  !% information content \cite{thorley_information_1998} of merger trees.
+  !!{
+  Contains a module which implements a merger tree operator which computes the cladistic
+  information content \cite{thorley_information_1998} of merger trees.
+  !!}
 
   use, intrinsic :: ISO_C_Binding, only : c_size_t
   use            :: Kind_Numbers , only : kind_int8
 
-  !# <mergerTreeOperator name="mergerTreeOperatorInformationContent">
-  !#  <description>
-  !#   A merger tree operator which computes the cladistic information content
-  !#   \cite{thorley_information_1998} of merger trees. This is output to a group in the output
-  !#   file with name specified by the {\normalfont \ttfamily [outputGroupName]} parameter. Two
-  !#   datasets are written to this group: {\normalfont \ttfamily treeIndex} which gives the
-  !#   index of each tree, and {\normalfont \ttfamily informationContent} which gives the
-  !#   cladistic information content in units of bits.
-  !# </description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorInformationContent">
+   <description>
+    A merger tree operator which computes the cladistic information content
+    \cite{thorley_information_1998} of merger trees. This is output to a group in the output
+    file with name specified by the {\normalfont \ttfamily [outputGroupName]} parameter. Two
+    datasets are written to this group: {\normalfont \ttfamily treeIndex} which gives the
+    index of each tree, and {\normalfont \ttfamily informationContent} which gives the
+    cladistic information content in units of bits.
+  </description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorInformationContent
-     !% A merger tree operator class which computes the cladistic information content
-     !% \cite{thorley_information_1998} of merger trees.
+     !!{
+     A merger tree operator class which computes the cladistic information content
+     \cite{thorley_information_1998} of merger trees.
+     !!}
      private
      type            (varying_string)                            :: outputGroupName
      integer         (c_size_t      )                            :: treeCount
@@ -47,7 +53,9 @@
   end type mergerTreeOperatorInformationContent
 
   interface mergerTreeOperatorInformationContent
-     !% Constructors for the prune-hierarchy merger tree operator class.
+     !!{
+     Constructors for the prune-hierarchy merger tree operator class.
+     !!}
      module procedure informationContentConstructorParameters
      module procedure informationContentConstructorInternal
   end interface mergerTreeOperatorInformationContent
@@ -55,25 +63,33 @@
 contains
 
   function informationContentConstructorParameters(parameters)
-    !% Constructor for the information content merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the information content merger tree operator class which takes a parameter set as input.
+    !!}
     implicit none
     type   (mergerTreeOperatorInformationContent)                :: informationContentConstructorParameters
     type   (inputParameters                     ), intent(inout) :: parameters
 
-    !# <inputParameter>
-    !#   <name>outputGroupName</name>
-    !#   <source>parameters</source>
-    !#   <variable>informationContentConstructorParameters%outputGroupName</variable>
-    !#   <defaultValue>var_str('treeInformationContent')</defaultValue>
-    !#   <description>The name of an \gls{hdf5} group to which tree information content should be written.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>outputGroupName</name>
+      <source>parameters</source>
+      <variable>informationContentConstructorParameters%outputGroupName</variable>
+      <defaultValue>var_str('treeInformationContent')</defaultValue>
+      <description>The name of an \gls{hdf5} group to which tree information content should be written.</description>
+    </inputParameter>
+    !!]
     informationContentConstructorParameters%treeCount=0_c_size_t
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function informationContentConstructorParameters
 
   function informationContentConstructorInternal(outputGroupName)
-    !% Internal constructor for the information content merger tree operator class.
+    !!{
+    Internal constructor for the information content merger tree operator class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type(mergerTreeOperatorInformationContent)                :: informationContentConstructorInternal
@@ -85,7 +101,9 @@ contains
   end function informationContentConstructorInternal
 
   subroutine informationContentOperatePreEvolution(self,tree)
-    !% Perform a information content operation on a merger tree.
+    !!{
+    Perform a information content operation on a merger tree.
+    !!}
     use :: Factorials         , only : Logarithmic_Double_Factorial
     use :: Memory_Management  , only : allocateArray                , deallocateArray
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
@@ -155,7 +173,9 @@ contains
   end subroutine informationContentOperatePreEvolution
 
   subroutine informationContentFinalize(self)
-    !% Outputs tree information content function.
+    !!{
+    Outputs tree information content function.
+    !!}
     use :: Galacticus_HDF5, only : galacticusOutputFile
     use :: HDF5           , only : hsize_t
     use :: IO_HDF5        , only : hdf5Access          , hdf5Object

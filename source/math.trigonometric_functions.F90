@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements trigonometric functions.
+!!{
+Contains a module which implements trigonometric functions.
+!!}
 
 module Trigonometric_Functions
-  !% Implements trigonometric functions.
+  !!{
+  Implements trigonometric functions.
+  !!}
   implicit none
   private
   public :: cot, cosec, hypotenuse
@@ -38,7 +42,9 @@ module Trigonometric_Functions
 contains
 
   double precision function hypotenuse(x)
-    !% Compute the $N$-dimensional hypotenuse, $(\sum_{i=1}^N x_i^2)^{1/2}$ avoiding undue floating point overflow.
+    !!{
+    Compute the $N$-dimensional hypotenuse, $(\sum_{i=1}^N x_i^2)^{1/2}$ avoiding undue floating point overflow.
+    !!}
     implicit none
     double precision, intent(in   ), dimension(:) :: x
     double precision                              :: xMaximum
@@ -49,7 +55,9 @@ contains
   end function hypotenuse
   
   double precision function cotDouble(x)
-    !% Implements cotangent for double precision {\normalfont \ttfamily x}.
+    !!{
+    Implements cotangent for double precision {\normalfont \ttfamily x}.
+    !!}
     implicit none
     double precision, intent(in   ) :: x
 
@@ -58,7 +66,9 @@ contains
   end function cotDouble
 
   double complex function cotDoubleComplex(x)
-    !% Implements cotangent for double precision complex {\normalfont \ttfamily x}.
+    !!{
+    Implements cotangent for double precision complex {\normalfont \ttfamily x}.
+    !!}
     implicit none
     double complex, intent(in   ) :: x
 
@@ -67,7 +77,9 @@ contains
   end function cotDoubleComplex
 
   double precision function cosecDouble(x)
-    !% Implements cosecant for double precision {\normalfont \ttfamily x}.
+    !!{
+    Implements cosecant for double precision {\normalfont \ttfamily x}.
+    !!}
     implicit none
     double precision, intent(in   ) :: x
 
@@ -76,7 +88,9 @@ contains
   end function cosecDouble
 
   double complex function cosecDoubleComplex(x)
-    !% Implements cosecant for double precision complex {\normalfont \ttfamily x}.
+    !!{
+    Implements cosecant for double precision complex {\normalfont \ttfamily x}.
+    !!}
     implicit none
     double complex, intent(in   ) :: x
 

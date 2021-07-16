@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a class for stellar populations.
+!!{
+Contains a module which implements a class for stellar populations.
+!!}
 
 module Stellar_Populations
-  !% Implements a class for stellar populations.
+  !!{
+  Implements a class for stellar populations.
+  !!}
   use            :: Abundances_Structure      , only : abundances
   use            :: Hashes                    , only : integerSizeTHash
   use, intrinsic :: ISO_C_Binding             , only : c_size_t
@@ -28,59 +32,61 @@ module Stellar_Populations
   implicit none
   private
 
-  !# <functionClass>
-  !#  <name>stellarPopulation</name>
-  !#  <descriptiveName>Stellar Populations</descriptiveName>
-  !#  <description>Class providing stellar populations.</description>
-  !#  <default>standard</default>
-  !#  <data>integer(c_size_t) :: uniqueID_=-1_c_size_t</data>
-  !#  <method name="rateRecycling" >
-  !#   <description>Return the rate of recycling from this population.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type            (abundances), intent(in   ) :: abundances_            </argument>
-  !#   <argument>double precision            , intent(in   ) :: ageMinimum , ageMaximum</argument>
-  !#  </method>
-  !#  <method name="uniqueID" >
-  !#   <description>Return the uniqueID corresponding to this population.</description>
-  !#   <type>integer(c_size_t)</type>
-  !#   <pass>yes</pass>
-  !#   <code>
-  !#    if (self%uniqueID_ &lt; 0_c_size_t) call stellarPopulationUniqueIDAssign(self)
-  !#    stellarPopulationUniqueID=self%uniqueID_
-  !#   </code>
-  !#  </method>
-  !#  <method name="rateYield" >
-  !#   <description>Return the rate of element yield from this population.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type            (abundances), intent(in   )           :: abundances_             </argument>
-  !#   <argument>double precision            , intent(in   )           :: ageMinimum  , ageMaximum</argument>
-  !#   <argument>integer                     , intent(in   ), optional :: elementIndex            </argument>
-  !#  </method>
-  !#  <method name="rateEnergy" >
-  !#   <description>Return the rate of energy input from this population.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type            (abundances), intent(in   ) :: abundances_            </argument>
-  !#   <argument>double precision            , intent(in   ) :: ageMinimum , ageMaximum</argument>
-  !#  </method>
-  !#  <method name="recycledFractionInstantaneous" >
-  !#   <description>Return the recycled fraction from this population in the instantaneous approximation.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !#  <method name="yieldInstantaneous" >
-  !#   <description>Return the metal yield from this population in the instantaneous approximation.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !#  <method name="spectra" >
-  !#   <description>Return at set of stellar spectra for this population.</description>
-  !#   <type>class(stellarPopulationSpectraClass)</type>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>stellarPopulation</name>
+   <descriptiveName>Stellar Populations</descriptiveName>
+   <description>Class providing stellar populations.</description>
+   <default>standard</default>
+   <data>integer(c_size_t) :: uniqueID_=-1_c_size_t</data>
+   <method name="rateRecycling" >
+    <description>Return the rate of recycling from this population.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type            (abundances), intent(in   ) :: abundances_            </argument>
+    <argument>double precision            , intent(in   ) :: ageMinimum , ageMaximum</argument>
+   </method>
+   <method name="uniqueID" >
+    <description>Return the uniqueID corresponding to this population.</description>
+    <type>integer(c_size_t)</type>
+    <pass>yes</pass>
+    <code>
+     if (self%uniqueID_ &lt; 0_c_size_t) call stellarPopulationUniqueIDAssign(self)
+     stellarPopulationUniqueID=self%uniqueID_
+    </code>
+   </method>
+   <method name="rateYield" >
+    <description>Return the rate of element yield from this population.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type            (abundances), intent(in   )           :: abundances_             </argument>
+    <argument>double precision            , intent(in   )           :: ageMinimum  , ageMaximum</argument>
+    <argument>integer                     , intent(in   ), optional :: elementIndex            </argument>
+   </method>
+   <method name="rateEnergy" >
+    <description>Return the rate of energy input from this population.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type            (abundances), intent(in   ) :: abundances_            </argument>
+    <argument>double precision            , intent(in   ) :: ageMinimum , ageMaximum</argument>
+   </method>
+   <method name="recycledFractionInstantaneous" >
+    <description>Return the recycled fraction from this population in the instantaneous approximation.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+   </method>
+   <method name="yieldInstantaneous" >
+    <description>Return the metal yield from this population in the instantaneous approximation.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+   </method>
+   <method name="spectra" >
+    <description>Return at set of stellar spectra for this population.</description>
+    <type>class(stellarPopulationSpectraClass)</type>
+    <pass>yes</pass>
+   </method>
+  </functionClass>
+  !!]
 
   ! Dictionary of unique IDs by descriptor.
   type   (integerSizeTHash) :: descriptors
@@ -90,7 +96,9 @@ module Stellar_Populations
 contains
 
   subroutine stellarPopulationUniqueIDAssign(self)
-    !% Assign a unique ID to a stellar population. Populations are distinguished based on the hash of their descriptor.
+    !!{
+    Assign a unique ID to a stellar population. Populations are distinguished based on the hash of their descriptor.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(stellarPopulationClass), intent(inout) :: self

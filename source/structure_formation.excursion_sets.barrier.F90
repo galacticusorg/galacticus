@@ -17,48 +17,56 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements barriers for the excursion set problem.
+!!{
+Contains a module which provides a class that implements barriers for the excursion set problem.
+!!}
 
 module Excursion_Sets_Barriers
-  !% Provides a class that implements barriers for the excursion set problem.
+  !!{
+  Provides a class that implements barriers for the excursion set problem.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
-  !# <functionClass>
-  !#  <name>excursionSetBarrier</name>
-  !#  <descriptiveName>Excursion Set Barrier</descriptiveName>
-  !#  <description>
-  !#   Class providing barriers for the excursion set problem.
-  !#  </description>
-  !#  <default>criticalOverdensity</default>
-  !#  <method name="barrier" >
-  !#   <description>Return the barrier height at the given variance and time. The {\normalfont \ttfamily rateCompute} should be set to {\normalfont \ttfamily true} if the barrier is being used in a calculation of barrier crossing rates, and to {\normalfont \ttfamily false} otherwise.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision          , intent(in   ) :: variance   , time</argument>
-  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
-  !#   <argument>logical                   , intent(in   ) :: rateCompute</argument>
-  !#  </method>
-  !#  <method name="barrierGradient" >
-  !#   <description>Return the gradient of the barrier with respect to variance at the given variance and time. The {\normalfont \ttfamily rateCompute} should be set to {\normalfont \ttfamily true} if the barrier is being used in a calculation of barrier crossing rates, and to {\normalfont \ttfamily false} otherwise.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision          , intent(in   ) :: variance   , time</argument>
-  !#   <argument>type            (treeNode), intent(inout) :: node</argument>
-  !#   <argument>logical                   , intent(in   ) :: rateCompute</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>excursionSetBarrier</name>
+   <descriptiveName>Excursion Set Barrier</descriptiveName>
+   <description>
+    Class providing barriers for the excursion set problem.
+   </description>
+   <default>criticalOverdensity</default>
+   <method name="barrier" >
+    <description>Return the barrier height at the given variance and time. The {\normalfont \ttfamily rateCompute} should be set to {\normalfont \ttfamily true} if the barrier is being used in a calculation of barrier crossing rates, and to {\normalfont \ttfamily false} otherwise.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision          , intent(in   ) :: variance   , time</argument>
+    <argument>type            (treeNode), intent(inout) :: node</argument>
+    <argument>logical                   , intent(in   ) :: rateCompute</argument>
+   </method>
+   <method name="barrierGradient" >
+    <description>Return the gradient of the barrier with respect to variance at the given variance and time. The {\normalfont \ttfamily rateCompute} should be set to {\normalfont \ttfamily true} if the barrier is being used in a calculation of barrier crossing rates, and to {\normalfont \ttfamily false} otherwise.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision          , intent(in   ) :: variance   , time</argument>
+    <argument>type            (treeNode), intent(inout) :: node</argument>
+    <argument>logical                   , intent(in   ) :: rateCompute</argument>
+   </method>
+  </functionClass>
+  !!]
 
   ! Enumeration for whether a remapping of the barrier should apply to cases where the excursion set is used for rate calculation, non-rate calculations, or both.
-  !# <enumeration>
-  !#  <name>excursionSetRemap</name>
-  !#  <description>Specifies whether a remapping of the barrier should apply to cases where the excursion set is used for rate calculation, non-rate calculations, or both.</description>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <decodeFunction>yes</decodeFunction>
-  !#  <validator>yes</validator>
-  !#  <entry label="rates"   />
-  !#  <entry label="nonRates"/>
-  !#  <entry label="both"    />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>excursionSetRemap</name>
+   <description>Specifies whether a remapping of the barrier should apply to cases where the excursion set is used for rate calculation, non-rate calculations, or both.</description>
+   <encodeFunction>yes</encodeFunction>
+   <decodeFunction>yes</decodeFunction>
+   <validator>yes</validator>
+   <entry label="rates"   />
+   <entry label="nonRates"/>
+   <entry label="both"    />
+  </enumeration>
+  !!]
 
 end module Excursion_Sets_Barriers

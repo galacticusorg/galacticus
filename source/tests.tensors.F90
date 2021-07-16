@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test tensor functionality.
+!!{
+Contains a program to test tensor functionality.
+!!}
 
 program Test_Tensors
-  !% Tests of coordinate system functions.
+  !!{
+  Tests of coordinate system functions.
+  !!}
   use :: Display   , only : displayVerbositySet           , verbosityLevelStandard
   use :: Tensors   , only : assignment(=)                 , operator(*)           , tensorIdentityR2D3Sym, tensorNullR2D3Sym, &
           &                 tensorRank2Dimension3Symmetric

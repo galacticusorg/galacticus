@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a very simple satellite orbit component.
+!!{
+Contains a module which implements a very simple satellite orbit component.
+!!}
 
 module Node_Component_Satellite_Very_Simple
-  !% Implements a very simple satellite orbit component.
+  !!{
+  Implements a very simple satellite orbit component.
+  !!}
   use :: Satellite_Merging_Timescales, only : satelliteMergingTimescalesClass
   use :: Virial_Orbits               , only : virialOrbitClass
   implicit none
@@ -30,31 +34,33 @@ module Node_Component_Satellite_Very_Simple
        &    Node_Component_Satellite_Very_Simple_Thread_Initialize  , Node_Component_Satellite_Very_Simple_Thread_Uninitialize, &
        &    Node_Component_Satellite_Very_Simple_Initialize
 
-  !# <component>
-  !#  <class>satellite</class>
-  !#  <name>verySimple</name>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>mergeTime</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <classDefault>-1.0d0</classDefault>
-  !#     <getFunction>Node_Component_Satellite_Very_Simple_Merge_Time</getFunction>
-  !#     <output unitsInSI="gigaYear" comment="Time until satellite merges."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>timeOfMerging</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
-  !#     <classDefault>-1.0d0</classDefault>
-  !#     <getFunction>Node_Component_Satellite_Very_Simple_Time_Of_Merging</getFunction>
-  !#   </property>
-  !#  </properties>
-  !#  <functions>objects.nodes.components.satellite.very_simple.bound_functions.inc</functions>
-  !# </component>
+  !![
+  <component>
+   <class>satellite</class>
+   <name>verySimple</name>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>mergeTime</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <classDefault>-1.0d0</classDefault>
+      <getFunction>Node_Component_Satellite_Very_Simple_Merge_Time</getFunction>
+      <output unitsInSI="gigaYear" comment="Time until satellite merges."/>
+    </property>
+    <property>
+      <name>timeOfMerging</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="false" isGettable="true" isEvolvable="false" isVirtual="true" />
+      <classDefault>-1.0d0</classDefault>
+      <getFunction>Node_Component_Satellite_Very_Simple_Time_Of_Merging</getFunction>
+    </property>
+   </properties>
+   <functions>objects.nodes.components.satellite.very_simple.bound_functions.inc</functions>
+  </component>
+  !!]
 
   ! Objects used by this component.
   class(virialOrbitClass               ), pointer :: virialOrbit_
@@ -69,62 +75,84 @@ module Node_Component_Satellite_Very_Simple
 
 contains
 
-  !# <nodeComponentInitializationTask>
-  !#  <unitName>Node_Component_Satellite_Very_Simple_Initialize</unitName>
-  !# </nodeComponentInitializationTask>
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>Node_Component_Satellite_Very_Simple_Initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
   subroutine Node_Component_Satellite_Very_Simple_Initialize(parameters_)
-    !% Initializes the tree node satellite orbit methods module.
+    !!{
+    Initializes the tree node satellite orbit methods module.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
 
     ! Determine if satellite orbits are to be reset on halo formation events.
-    !# <inputParameter>
-    !#   <name>satelliteOrbitResetOnHaloFormation</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Specifies whether satellite virial orbital parameters should be reset on halo formation events.</description>
-    !#   <source>parameters_</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>satelliteOrbitResetOnHaloFormation</name>
+      <defaultValue>.false.</defaultValue>
+      <description>Specifies whether satellite virial orbital parameters should be reset on halo formation events.</description>
+      <source>parameters_</source>
+    </inputParameter>
+    !!]
     return
   end subroutine Node_Component_Satellite_Very_Simple_Initialize
 
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Satellite_Very_Simple_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Satellite_Very_Simple_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Satellite_Very_Simple_Thread_Initialize(parameters_)
-    !% Initializes the tree node very simple satellite module.
+    !!{
+    Initializes the tree node very simple satellite module.
+    !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     use :: Input_Parameters, only : inputParameter           , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
 
     if (defaultSatelliteComponent%verySimpleIsActive()) then
-       !# <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="parameters_"/>
-       !# <objectBuilder class="satelliteMergingTimescales" name="satelliteMergingTimescales_" source="parameters_"/>
+       !![
+       <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="parameters_"/>
+       <objectBuilder class="satelliteMergingTimescales" name="satelliteMergingTimescales_" source="parameters_"/>
+       !!]
     end if
     return
   end subroutine Node_Component_Satellite_Very_Simple_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Satellite_Very_Simple_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Satellite_Very_Simple_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Satellite_Very_Simple_Thread_Uninitialize()
-    !% Uninitializes the tree node very simple satellite module.
+    !!{
+    Uninitializes the tree node very simple satellite module.
+    !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none
 
     if (defaultSatelliteComponent%verySimpleIsActive()) then
-       !# <objectDestructor name="virialOrbit_"               />
-       !# <objectDestructor name="satelliteMergingTimescales_"/>
+       !![
+       <objectDestructor name="virialOrbit_"               />
+       <objectDestructor name="satelliteMergingTimescales_"/>
+       !!]
     end if
     return
   end subroutine Node_Component_Satellite_Very_Simple_Thread_Uninitialize
 
-  !# <haloFormationTask>
-  !#  <unitName>Node_Component_Satellite_Very_Simple_Halo_Formation_Task</unitName>
-  !# </haloFormationTask>
+  !![
+  <haloFormationTask>
+   <unitName>Node_Component_Satellite_Very_Simple_Halo_Formation_Task</unitName>
+  </haloFormationTask>
+  !!]
   subroutine Node_Component_Satellite_Very_Simple_Halo_Formation_Task(node)
-    !% Reset the orbits of satellite galaxies on halo formation events.
+    !!{
+    Reset the orbits of satellite galaxies on halo formation events.
+    !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, treeNode
     implicit none
     type(treeNode), intent(inout) :: node
@@ -146,11 +174,15 @@ contains
     return
   end subroutine Node_Component_Satellite_Very_Simple_Halo_Formation_Task
 
-  !# <rateComputeTask>
-  !#  <unitName>Node_Component_Satellite_Very_Simple_Rate_Compute</unitName>
-  !# </rateComputeTask>
+  !![
+  <rateComputeTask>
+   <unitName>Node_Component_Satellite_Very_Simple_Rate_Compute</unitName>
+  </rateComputeTask>
+  !!]
   subroutine Node_Component_Satellite_Very_Simple_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
-    !% Compute the time until satellite merging rate of change.
+    !!{
+    Compute the time until satellite merging rate of change.
+    !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatellite, nodeComponentSatelliteVerySimple, propertyTypeInactive, &
           &                         treeNode
     implicit none
@@ -175,12 +207,16 @@ contains
     return
   end subroutine Node_Component_Satellite_Very_Simple_Rate_Compute
 
-  !# <mergerTreeInitializeTask>
-  !#  <unitName>Node_Component_Satellite_Very_Simple_Tree_Initialize</unitName>
-  !#  <after>darkMatterProfile</after>
-  !# </mergerTreeInitializeTask>
+  !![
+  <mergerTreeInitializeTask>
+   <unitName>Node_Component_Satellite_Very_Simple_Tree_Initialize</unitName>
+   <after>darkMatterProfile</after>
+  </mergerTreeInitializeTask>
+  !!]
   subroutine Node_Component_Satellite_Very_Simple_Tree_Initialize(node)
-    !% Initialize the very simple satellite component.
+    !!{
+    Initialize the very simple satellite component.
+    !!}
     use :: Galacticus_Nodes, only : treeNode
     implicit none
     type(treeNode), intent(inout), pointer :: node
@@ -189,14 +225,18 @@ contains
     return
   end subroutine Node_Component_Satellite_Very_Simple_Tree_Initialize
 
-  !# <nodeMergerTask>
-  !#  <unitName>Node_Component_Satellite_Very_Simple_Create</unitName>
-  !# </nodeMergerTask>
-  !# <satelliteHostChangeTask>
-  !#  <unitName>Node_Component_Satellite_Very_Simple_Create</unitName>
-  !# </satelliteHostChangeTask>
+  !![
+  <nodeMergerTask>
+   <unitName>Node_Component_Satellite_Very_Simple_Create</unitName>
+  </nodeMergerTask>
+  <satelliteHostChangeTask>
+   <unitName>Node_Component_Satellite_Very_Simple_Create</unitName>
+  </satelliteHostChangeTask>
+  !!]
   subroutine Node_Component_Satellite_Very_Simple_Create(node)
-    !% Create a satellite orbit component and assign a time until merging and a bound mass equal initially to the total halo mass.
+    !!{
+    Create a satellite orbit component and assign a time until merging and a bound mass equal initially to the total halo mass.
+    !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatellite, nodeComponentSatelliteVerySimple, treeNode
     use :: Kepler_Orbits   , only : keplerOrbit
     implicit none

@@ -17,21 +17,29 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a selfInteracting dark matter particle class.
+!!{
+Contains a module which implements a selfInteracting dark matter particle class.
+!!}
 
-  !# <darkMatterParticle name="darkMatterParticleSelfInteractingDarkMatter">
-  !#  <description>Provides a selfInteracting dark matter particle.</description>
-  !# </darkMatterParticle>
+  !![
+  <darkMatterParticle name="darkMatterParticleSelfInteractingDarkMatter">
+   <description>Provides a selfInteracting dark matter particle.</description>
+  </darkMatterParticle>
+  !!]
   type, extends(darkMatterParticleClass) :: darkMatterParticleSelfInteractingDarkMatter
-     !% A selfInteracting dark matter particle class.
+     !!{
+     A selfInteracting dark matter particle class.
+     !!}
      private
      class           (darkMatterParticleClass), pointer :: darkMatterParticle_          => null()
      double precision                                   :: crossSectionSelfInteraction_
    contains
-     !# <methods>
-     !#   <method description="Return the self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$." method="crossSectionSelfInteraction" />
-     !#   <method description="Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\Omega$, of the dark matter particle in units of cm$^2$ g$^{-1}$ ster$^{-1}$." method="crossSectionSelfInteractionDifferential" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return the self-interaction cross section, $\sigma$, of the dark matter particle in units of cm$^2$ g$^{-1}$." method="crossSectionSelfInteraction" />
+       <method description="Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\Omega$, of the dark matter particle in units of cm$^2$ g$^{-1}$ ster$^{-1}$." method="crossSectionSelfInteractionDifferential" />
+     </methods>
+     !!]
      final     ::                                            selfInteractingDMDestructor
      procedure :: mass                                    => selfInteractingDMMass
      procedure :: crossSectionSelfInteraction             => selfInteractingDMCrossSectionSelfInteraction
@@ -39,7 +47,9 @@
   end type darkMatterParticleSelfInteractingDarkMatter
 
   interface darkMatterParticleSelfInteractingDarkMatter
-     !% Constructors for the ``{\normalfont \ttfamily selfInteractingDarkMatter}'' dark matter particle class.
+     !!{
+     Constructors for the ``{\normalfont \ttfamily selfInteractingDarkMatter}'' dark matter particle class.
+     !!}
      module procedure selfInteractingDMConstructorParameters
      module procedure selfInteractingDMConstructorInternal
   end interface darkMatterParticleSelfInteractingDarkMatter
@@ -47,7 +57,9 @@
 contains
 
   function selfInteractingDMConstructorParameters(parameters) result(self)
-    !% Constructor for the ``{\normalfont \ttfamily selfInteractingDarkMatter}'' dark matter particle class which takes a parameter set as input.
+    !!{
+    Constructor for the ``{\normalfont \ttfamily selfInteractingDarkMatter}'' dark matter particle class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (darkMatterParticleSelfInteractingDarkMatter)                :: self
@@ -55,42 +67,56 @@ contains
     class           (darkMatterParticleClass                    ), pointer       :: darkMatterParticle_
     double precision                                                             :: crossSectionSelfInteraction
 
-    !# <inputParameter>
-    !#   <name>crossSectionSelfInteraction</name>
-    !#   <source>parameters</source>
-    !#   <variable>crossSectionSelfInteraction</variable>
-    !#   <description>The self-interaction cross section in units of cm$^2$ g$^{-1}$.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
+    !![
+    <inputParameter>
+      <name>crossSectionSelfInteraction</name>
+      <source>parameters</source>
+      <variable>crossSectionSelfInteraction</variable>
+      <description>The self-interaction cross section in units of cm$^2$ g$^{-1}$.</description>
+    </inputParameter>
+    <objectBuilder class="darkMatterParticle"  name="darkMatterParticle_"  source="parameters"/>
+    !!]
     self=darkMatterParticleSelfInteractingDarkMatter(crossSectionSelfInteraction,darkMatterParticle_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterParticle_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterParticle_" />
+    !!]
     return
   end function selfInteractingDMConstructorParameters
 
   function selfInteractingDMConstructorInternal(crossSectionSelfInteraction,darkMatterParticle_) result(self)
-    !% Internal constructor for the ``{\normalfont \ttfamily selfInteractingDarkMatter}'' dark matter particle class.
+    !!{
+    Internal constructor for the ``{\normalfont \ttfamily selfInteractingDarkMatter}'' dark matter particle class.
+    !!}
     implicit none
     type            (darkMatterParticleSelfInteractingDarkMatter)                        :: self
     class           (darkMatterParticleClass                    ), intent(in   ), target :: darkMatterParticle_
     double precision                                             , intent(in   )         :: crossSectionSelfInteraction
-    !# <constructorAssign variables="*darkMatterParticle_"/>
+    !![
+    <constructorAssign variables="*darkMatterParticle_"/>
+    !!]
 
     self%crossSectionSelfInteraction_=crossSectionSelfInteraction
     return
   end function selfInteractingDMConstructorInternal
 
   subroutine selfInteractingDMDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily selfInteractingDarkMatter} dark matter particle class.
+    !!{
+    Destructor for the {\normalfont \ttfamily selfInteractingDarkMatter} dark matter particle class.
+    !!}
     implicit none
     type(darkMatterParticleSelfInteractingDarkMatter), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterParticle_" />
+    !![
+    <objectDestructor name="self%darkMatterParticle_" />
+    !!]
     return
   end subroutine selfInteractingDMDestructor
 
   double precision function selfInteractingDMMass(self)
-    !% Return the mass, in units of keV, of a self-interacting dark matter particle.
+    !!{
+    Return the mass, in units of keV, of a self-interacting dark matter particle.
+    !!}
     implicit none
     class(darkMatterParticleSelfInteractingDarkMatter), intent(inout) :: self
 
@@ -99,7 +125,9 @@ contains
   end function selfInteractingDMMass
 
   double precision function selfInteractingDMCrossSectionSelfInteraction(self)
-    !% Return the self-interaction cross section, in units of cm$^2$ g$^{-1}$, of a self-interacting dark matter particle.
+    !!{
+    Return the self-interaction cross section, in units of cm$^2$ g$^{-1}$, of a self-interacting dark matter particle.
+    !!}
     implicit none
     class(darkMatterParticleSelfInteractingDarkMatter), intent(inout) :: self
 
@@ -108,8 +136,10 @@ contains
   end function selfInteractingDMCrossSectionSelfInteraction
 
   double precision function selfInteractingDMCrossSectionSelfInteractionDifferential(self,theta)
-    !% Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\theta$, in units of cm$^2$ g$^{-1}$
-    !% ster$^{-1}$, of a self-interacting dark matter particle.
+    !!{
+    Return the differential self-interaction cross section, $\mathrm{d}\sigma/\mathrm{d}\theta$, in units of cm$^2$ g$^{-1}$
+    ster$^{-1}$, of a self-interacting dark matter particle.
+    !!}
     implicit none
     class           (darkMatterParticleSelfInteractingDarkMatter), intent(inout) :: self
     double precision                                             , intent(in   ) :: theta

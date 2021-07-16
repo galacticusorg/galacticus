@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a merger tree masses class which samples masses from a distribution uniformly.
+  !!{
+  Implementation of a merger tree masses class which samples masses from a distribution uniformly.
+  !!}
 
-  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistributionUniform">
-  !#  <description>A merger tree masses class which samples masses from a distribution uniformly.</description>
-  !# </mergerTreeBuildMasses>
+  !![
+  <mergerTreeBuildMasses name="mergerTreeBuildMassesSampledDistributionUniform">
+   <description>A merger tree masses class which samples masses from a distribution uniformly.</description>
+  </mergerTreeBuildMasses>
+  !!]
   type, extends(mergerTreeBuildMassesSampledDistribution) :: mergerTreeBuildMassesSampledDistributionUniform
-     !% Implementation of a merger tree masses class which samples masses from a distribution with uniform sampling.
+     !!{
+     Implementation of a merger tree masses class which samples masses from a distribution with uniform sampling.
+     !!}
      private
    contains
      final     ::              sampledDistributionUniformDestructor
@@ -38,8 +44,10 @@
 contains
 
   function sampledDistributionUniformConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily sampledDistributionUniform} merger tree masses class which takes a parameter set
-    !% as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily sampledDistributionUniform} merger tree masses class which takes a parameter set
+    as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeBuildMassesSampledDistributionUniform)                :: self
@@ -50,28 +58,38 @@ contains
   end function sampledDistributionUniformConstructorParameters
 
   function sampledDistributionUniformConstructorInternal(massTreeMinimum,massTreeMaximum,treesPerDecade,mergerTreeBuildMassDistribution_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily sampledDistributionUniform} merger tree masses class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily sampledDistributionUniform} merger tree masses class.
+    !!}
     implicit none
     type            (mergerTreeBuildMassesSampledDistributionUniform)                        :: self
     class           (mergerTreeBuildMassDistributionClass           ), intent(in   ), target :: mergerTreeBuildMassDistribution_
     double precision                                                 , intent(in   )         :: massTreeMinimum                 , massTreeMaximum, &
          &                                                                                      treesPerDecade
-    !# <constructorAssign variables="massTreeMinimum, massTreeMaximum, treesPerDecade, *mergerTreeBuildMassDistribution_"/>
+    !![
+    <constructorAssign variables="massTreeMinimum, massTreeMaximum, treesPerDecade, *mergerTreeBuildMassDistribution_"/>
+    !!]
 
     return
   end function sampledDistributionUniformConstructorInternal
 
   subroutine sampledDistributionUniformDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily sampledDistributionUniform} merger tree masses class.
+    !!{
+    Destructor for the {\normalfont \ttfamily sampledDistributionUniform} merger tree masses class.
+    !!}
     implicit none
     type(mergerTreeBuildMassesSampledDistributionUniform), intent(inout) :: self
 
-    !# <objectDestructor name="self%mergerTreeBuildMassDistribution_"/>
+    !![
+    <objectDestructor name="self%mergerTreeBuildMassDistribution_"/>
+    !!]
     return
   end subroutine sampledDistributionUniformDestructor
 
   subroutine sampledDistributionUniformSampleCMF(self,x)
-    !% Generate a uniform sample of points from the merger tree mass distribution.
+    !!{
+    Generate a uniform sample of points from the merger tree mass distribution.
+    !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
     implicit none
     class           (mergerTreeBuildMassesSampledDistributionUniform), intent(inout)               :: self

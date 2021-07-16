@@ -17,14 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a sequence of normalizers on on-the-fly outputs.
+  !!{
+  Contains a module which implements a sequence of normalizers on on-the-fly outputs.
+  !!}
 
-  !# <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerSequence">
-  !#  <description>Provides a sequence of normalizers on on-the-fly outputs.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="normalizerList" variable="normalizers" next="next" object="normalizer_" objectType="outputAnalysisDistributionNormalizerClass"/>
-  !#  </deepCopy>
-  !# </outputAnalysisDistributionNormalizer>
+  !![
+  <outputAnalysisDistributionNormalizer name="outputAnalysisDistributionNormalizerSequence">
+   <description>Provides a sequence of normalizers on on-the-fly outputs.</description>
+   <deepCopy>
+    <linkedList type="normalizerList" variable="normalizers" next="next" object="normalizer_" objectType="outputAnalysisDistributionNormalizerClass"/>
+   </deepCopy>
+   <stateStore>
+    <linkedList type="normalizerList" variable="normalizers" next="next" object="normalizer_"/>
+   </stateStore>
+  </outputAnalysisDistributionNormalizer>
+  !!]
 
   type, public :: normalizerList
      class(outputAnalysisDistributionNormalizerClass), pointer :: normalizer_
@@ -32,7 +39,9 @@
   end type normalizerList
 
   type, extends(outputAnalysisDistributionNormalizerClass) :: outputAnalysisDistributionNormalizerSequence
-     !% A sequence on-the-fly-output normalizer class.
+     !!{
+     A sequence on-the-fly-output normalizer class.
+     !!}
      private
      type(normalizerList), pointer :: normalizers => null()
   contains
@@ -41,7 +50,9 @@
   end type outputAnalysisDistributionNormalizerSequence
 
   interface outputAnalysisDistributionNormalizerSequence
-     !% Constructors for the sequence on-the-fly output distribution normalizer class.
+     !!{
+     Constructors for the sequence on-the-fly output distribution normalizer class.
+     !!}
      module procedure sequenceConstructorParameters
      module procedure sequenceConstructorInternal
   end interface outputAnalysisDistributionNormalizerSequence
@@ -49,7 +60,9 @@
 contains
 
   function sequenceConstructorParameters(parameters) result(self)
-    !% Constructor for the sequence on-the-fly output normalizer class which takes a parameter set as input.
+    !!{
+    Constructor for the sequence on-the-fly output normalizer class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (outputAnalysisDistributionNormalizerSequence)                :: self
@@ -67,13 +80,17 @@ contains
           allocate(self%normalizers)
           normalizer_ => self%normalizers
        end if
-       !# <objectBuilder class="outputAnalysisDistributionNormalizer" name="normalizer_%normalizer_" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="outputAnalysisDistributionNormalizer" name="normalizer_%normalizer_" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function sequenceConstructorParameters
 
   function sequenceConstructorInternal(normalizers) result(self)
-    !% Internal constructor for the sequence merger tree normalizer class.
+    !!{
+    Internal constructor for the sequence merger tree normalizer class.
+    !!}
     implicit none
     type(outputAnalysisDistributionNormalizerSequence)                        :: self
     type(normalizerList                              ), target, intent(in   ) :: normalizers
@@ -82,14 +99,18 @@ contains
     self       %normalizers => normalizers
     normalizer_             => normalizers
     do while (associated(normalizer_))
-       !# <referenceCountIncrement owner="normalizer_" object="normalizer_"/>
+       !![
+       <referenceCountIncrement owner="normalizer_" object="normalizer_"/>
+       !!]
        normalizer_ => normalizer_%next
     end do
     return
   end function sequenceConstructorInternal
 
   subroutine sequenceDestructor(self)
-    !% Destructor for the merger tree normalizer function class.
+    !!{
+    Destructor for the merger tree normalizer function class.
+    !!}
     implicit none
     type(outputAnalysisDistributionNormalizerSequence), intent(inout) :: self
     type(normalizerList                              ), pointer       :: normalizer_, normalizerNext
@@ -98,7 +119,9 @@ contains
        normalizer_ => self%normalizers
        do while (associated(normalizer_))
           normalizerNext => normalizer_%next
-          !# <objectDestructor name="normalizer_%normalizer_"/>
+          !![
+          <objectDestructor name="normalizer_%normalizer_"/>
+          !!]
           deallocate(normalizer_)
           normalizer_ => normalizerNext
        end do
@@ -107,7 +130,9 @@ contains
   end subroutine sequenceDestructor
 
   subroutine sequenceNormalize(self,distribution,covariance,propertyValueMinimum,propertyValueMaximum)
-    !% Perform a sequence normalization on an on-the-fly output distribution.
+    !!{
+    Perform a sequence normalization on an on-the-fly output distribution.
+    !!}
     implicit none
     class           (outputAnalysisDistributionNormalizerSequence), intent(inout)                 :: self
     double precision                                              , intent(inout), dimension(:  ) :: distribution

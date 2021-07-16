@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data importer for IRATE files.
+!!{
+Contains a module which implements an N-body data importer for IRATE files.
+!!}
 
   use :: Cosmology_Functions , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters, only : cosmologyParametersClass
   use :: IO_HDF5             , only : hdf5Object
 
-  !# <nbodyImporter name="nbodyImporterIRATE">
-  !#  <description>An importer for IRATE files.</description>
-  !# </nbodyImporter>
+  !![
+  <nbodyImporter name="nbodyImporterIRATE">
+   <description>An importer for IRATE files.</description>
+  </nbodyImporter>
+  !!]
   type, extends(nbodyImporterClass) :: nbodyImporterIRATE
-     !% An importer for IRATE files.
+     !!{
+     An importer for IRATE files.
+     !!}
      private
      class  (cosmologyParametersClass), pointer                   :: cosmologyParameters_ => null()
      class  (cosmologyFunctionsClass ), pointer                   :: cosmologyFunctions_  => null()
@@ -43,7 +49,9 @@
   end type nbodyImporterIRATE
 
   interface nbodyImporterIRATE
-     !% Constructors for the {\normalfont \ttfamily irate} N-body importer class.
+     !!{
+     Constructors for the {\normalfont \ttfamily irate} N-body importer class.
+     !!}
      module procedure irateConstructorParameters
      module procedure irateConstructorInternal
   end interface nbodyImporterIRATE
@@ -51,7 +59,9 @@
 contains
 
   function irateConstructorParameters(parameters) result (self)
-    !% Constructor for the {\normalfont \ttfamily irate} N-body importer class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily irate} N-body importer class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nbodyImporterIRATE      )                            :: self
@@ -62,41 +72,51 @@ contains
     type   (varying_string          )                            :: fileName            , label
     integer                                                      :: snapshot
 
-    !# <inputParameter>
-    !#   <name>fileName</name>
-    !#   <source>parameters</source>
-    !#   <description>The name of the file to read.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>snapshot</name>
-    !#   <source>parameters</source>
-    !#   <description>The snapshot number to read.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>label</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>var_str('primary')</defaultValue>
-    !#   <description>A label for the simulation.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>fileName</name>
+      <source>parameters</source>
+      <description>The name of the file to read.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>snapshot</name>
+      <source>parameters</source>
+      <description>The snapshot number to read.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>label</name>
+      <source>parameters</source>
+      <defaultValue>var_str('primary')</defaultValue>
+      <description>A label for the simulation.</description>
+    </inputParameter>
+    !!]
     allocate(properties(parameters%count('properties',zeroIfNotPresent=.true.)))
     if (size(properties) > 0) then
-       !# <inputParameter>
-       !#   <name>properties</name>
-       !#   <source>parameters</source>
-       !#   <description>Properties to read from the simulation.</description>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>properties</name>
+         <source>parameters</source>
+         <description>Properties to read from the simulation.</description>
+       </inputParameter>
+       !!]
     end if
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    !!]
     self=nbodyImporterIRATE(fileName,label,snapshot,properties,cosmologyParameters_,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    !!]
     return
   end function irateConstructorParameters
 
   function irateConstructorInternal(fileName,label,snapshot,properties,cosmologyParameters_,cosmologyFunctions_) result (self)
-    !% Internal constructor for the {\normalfont \ttfamily irate} N-body importer class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily irate} N-body importer class.
+    !!}
     implicit none
     type   (nbodyImporterIRATE      )                              :: self
     type   (varying_string          ), intent(in   )               :: fileName            , label
@@ -104,25 +124,33 @@ contains
     type   (varying_string          ), intent(in   ), dimension(:) :: properties
     class  (cosmologyParametersClass), intent(in   ), target       :: cosmologyParameters_
     class  (cosmologyFunctionsClass ), intent(in   ), target       :: cosmologyFunctions_
-    !# <constructorAssign variables="fileName, label, snapshot, properties, *cosmologyParameters_, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="fileName, label, snapshot, properties, *cosmologyParameters_, *cosmologyFunctions_"/>
+    !!]
 
     self%haveProperties=size(properties) > 0
     return
   end function irateConstructorInternal
 
   subroutine irateDestructor(self)
-    !% Destructor for {\normalfont \ttfamily irate} importer class.
+    !!{
+    Destructor for {\normalfont \ttfamily irate} importer class.
+    !!}
     implicit none
     type(nbodyImporterIRATE), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%cosmologyFunctions_" />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    <objectDestructor name="self%cosmologyFunctions_" />
+    !!]
     if (self%file%isOpen()) call self%file%close()
     return
   end subroutine irateDestructor
 
   subroutine irateImport(self,simulations)
-    !% Import data from a IRATE file.
+    !!{
+    Import data from a IRATE file.
+    !!}
     use :: Display         , only : displayIndent     , displayUnindent         , verbosityLevelStandard
     use :: Galacticus_Error, only : errorStatusSuccess
     use :: Hashes          , only : doubleHash        , integerSizeTHash        , rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, &
@@ -155,12 +183,14 @@ contains
     irate_=irate(char(self%fileName),self%cosmologyParameters_,self%cosmologyFunctions_)
     call irate_        %readSimulation    (          boxSize)
     call simulations(1)%attributesReal%set('boxSize',boxSize)
-    !# <conditionalCall>
-    !#  <call>call irate_%readHalos(self%snapshot{conditions})</call>
-    !#  <argument name="center"   value="position"    condition=".not.self%haveProperties .or. any(self%properties == 'position'  )"/>
-    !#  <argument name="velocity" value="velocity"    condition=".not.self%haveProperties .or. any(self%properties == 'velocity'  )"/>
-    !#  <argument name="IDs"      value="particleIDs" condition=".not.self%haveProperties .or. any(self%properties == 'particleID')"/>
-    !# </conditionalCall>
+    !![
+    <conditionalCall>
+     <call>call irate_%readHalos(self%snapshot{conditions})</call>
+     <argument name="center"   value="position"    condition=".not.self%haveProperties .or. any(self%properties == 'position'  )"/>
+     <argument name="velocity" value="velocity"    condition=".not.self%haveProperties .or. any(self%properties == 'velocity'  )"/>
+     <argument name="IDs"      value="particleIDs" condition=".not.self%haveProperties .or. any(self%properties == 'particleID')"/>
+    </conditionalCall>
+    !!]
     if (.not.self%haveProperties .or. any(self%properties == 'particleID')) call simulations(1)%propertiesInteger  %set('particleID',particleIDs)
     if (.not.self%haveProperties .or. any(self%properties == 'position'  )) call simulations(1)%propertiesRealRank1%set('position'  ,position   )
     if (.not.self%haveProperties .or. any(self%properties == 'velocity'  )) call simulations(1)%propertiesRealRank1%set('velocity'  ,velocity   )
@@ -203,7 +233,9 @@ contains
   end subroutine irateImport
 
   logical function irateIsHDF5(self)
-    !% Return whether or not the imported data is from an HDF5 file.
+    !!{
+    Return whether or not the imported data is from an HDF5 file.
+    !!}
     implicit none
     class(nbodyImporterIRATE), intent(inout) :: self
 

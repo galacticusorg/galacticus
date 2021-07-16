@@ -17,52 +17,70 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains module which handles hooking of objects into events.
+!!{
+Contains module which handles hooking of objects into events.
+!!}
 
 module Events_Hooks
-  !% Handles hooking of object function class into events.
+  !!{
+  Handles hooking of object function class into events.
+  !!}
   use :: Locks              , only : ompReadWriteLock
   use :: Regular_Expressions, only : regEx
   private
   public :: hook                 , hookUnspecified, dependencyExact, dependencyRegEx
 
   type :: dependency
-     !% Base class for event hook dependencies.
+     !!{
+     Base class for event hook dependencies.
+     !!}
      private
      integer            :: direction
      character(len=128) :: label
   end type dependency
 
   type, extends(dependency) :: dependencyExact
-     !% Type for exactly matching event hook dependencies.
+     !!{
+     Type for exactly matching event hook dependencies.
+     !!}
   end type dependencyExact
 
   type, extends(dependency) :: dependencyRegEx
-     !% Type for matching event hook dependencies via a regular expression.
+     !!{
+     Type for matching event hook dependencies via a regular expression.
+     !!}
      private
      type(regEx) :: regEx_
   end type dependencyRegEx
 
   interface dependencyExact
-     !% Constructor for exactly matching event hook dependencies.
+     !!{
+     Constructor for exactly matching event hook dependencies.
+     !!}
      module procedure dependencyExactConstructor
   end interface dependencyExact
 
   interface dependencyRegEx
-     !% Constructor for matching event hook dependencies via a regular expression.
+     !!{
+     Constructor for matching event hook dependencies via a regular expression.
+     !!}
      module procedure dependencyRegExConstructor
   end interface dependencyRegEx
 
-  !# <enumeration>
-  !#  <name>dependencyDirection</name>
-  !#  <description>Used to specify direction of event hook dependencies.</description>
-  !#  <visibility>public</visibility>
-  !#  <entry label="before"/>
-  !#  <entry label="after" />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>dependencyDirection</name>
+   <description>Used to specify direction of event hook dependencies.</description>
+   <visibility>public</visibility>
+   <entry label="before"/>
+   <entry label="after" />
+  </enumeration>
+  !!]
   
   type :: hook
-     !% Base class for individual hooked function calls. Stores the object to be passed as the first argument to the function.
+     !!{
+     Base class for individual hooked function calls. Stores the object to be passed as the first argument to the function.
+     !!}
      class    (*             ), pointer                   :: object_             => null()
      class    (hook          ), pointer                   :: next                => null()
      integer                                              :: openMPThreadBinding          , openMPLevel
@@ -72,17 +90,23 @@ module Events_Hooks
   end type hook
 
   type, extends(hook) :: hookUnspecified
-     !% Class for hooked function calls with unspecified interfaces.
+     !!{
+     Class for hooked function calls with unspecified interfaces.
+     !!}
      procedure(), pointer, nopass :: function_ => null()
   end type hookUnspecified
 
   type :: hookList
-     !% List of pointers to hooks.
+     !!{
+     List of pointers to hooks.
+     !!}
      class(hook), pointer :: hook_
   end type hookList
   
   type :: eventHook
-     !% Class used to define a set of hooked function calls for a given event.
+     !!{
+     Class used to define a set of hooked function calls for a given event.
+     !!}
      private
      integer                               :: count_       =  0
      !$ type   (ompReadWriteLock)          :: lock_
@@ -92,14 +116,16 @@ module Events_Hooks
      !$ double precision                   :: waitTimeRead = 0.0d0   , waitTimeWrite=0.0d0
 #endif
    contains
-     !# <methods>
-     !#   <method description="Return a count of the number of hooks into this event." method="count" />
-     !#   <method description="Return a pointer to the first hook into this event." method="first" />
-     !#   <method description="Initialize the event." method="initialize" />
-     !#   <method description="Lock the event." method="lock" />
-     !#   <method description="Unlock the event." method="unlock" />
-     !#   <method description="Reorder hooked functions to resolved any dependencies." method="resolveDependencies" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return a count of the number of hooks into this event." method="count" />
+       <method description="Return a pointer to the first hook into this event." method="first" />
+       <method description="Initialize the event." method="initialize" />
+       <method description="Lock the event." method="lock" />
+       <method description="Unlock the event." method="unlock" />
+       <method description="Reorder hooked functions to resolved any dependencies." method="resolveDependencies" />
+     </methods>
+     !!]
      procedure :: count               => eventHookCount
      procedure :: first               => eventHookFirst
      procedure :: initialize          => eventHookInitialize
@@ -109,14 +135,18 @@ module Events_Hooks
   end type eventHook
 
   type, extends(eventHook) :: eventHookUnspecified
-     !% Class used to define a set of hooked function calls for a given event.
+     !!{
+     Class used to define a set of hooked function calls for a given event.
+     !!}
      private
    contains
-     !# <methods>
-     !#   <method description="Attach a hook to the event." method="attach" />
-     !#   <method description="Return true if the object is attached to this event." method="isAttached" />
-     !#   <method description="Detach a hook from the event." method="detach" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Attach a hook to the event." method="attach" />
+       <method description="Return true if the object is attached to this event." method="isAttached" />
+       <method description="Detach a hook from the event." method="detach" />
+     </methods>
+     !!]
      procedure :: attach     => eventHookUnspecifiedAttach
      procedure :: isAttached => eventHookUnspecifiedIsAttached
      procedure :: detach     => eventHookUnspecifiedDetach
@@ -139,21 +169,27 @@ module Events_Hooks
   ! thread-0 the default at levels greater than 0 is the exact same object as that at level-0 - in many cases
   ! (e.g. calculationResets) we do want to call this function in the case of the event being triggered even though it exists at a
   ! lower level. When default functionClass objects are removed this option should be deprecated.
-  !# <enumeration>
-  !#  <name>openMPThreadBinding</name>
-  !#  <description>Used to specify how hooked functions are bound to OpenMP threads.</description>
-  !#  <visibility>public</visibility>
-  !#  <entry label="none"     />
-  !#  <entry label="atLevel"  />
-  !#  <entry label="allLevels"/>
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>openMPThreadBinding</name>
+   <description>Used to specify how hooked functions are bound to OpenMP threads.</description>
+   <visibility>public</visibility>
+   <entry label="none"     />
+   <entry label="atLevel"  />
+   <entry label="allLevels"/>
+  </enumeration>
+  !!]
 
-  !# <eventHookManager/>
+  !![
+  <eventHookManager/>
+  !!]
 
 contains
 
   subroutine eventHookInitialize(self)
-    !% Initialize the OpenMP lock in an event object.
+    !!{
+    Initialize the OpenMP lock in an event object.
+    !!}
     class(eventHook), intent(inout) :: self
 
     !$ if (.not.self%initialized_) then
@@ -164,7 +200,9 @@ contains
   end subroutine eventHookInitialize
 
   subroutine eventHookLock(self,writeLock)
-    !% Lock the event to avoid race conditions between OpenMP threads.
+    !!{
+    Lock the event to avoid race conditions between OpenMP threads.
+    !!}
 #ifdef OMPPROFILE
     !$ use :: OMP_Lib, only : OMP_Get_WTime
 #endif
@@ -174,7 +212,9 @@ contains
 #endif
     class  (eventHook), intent(inout)           :: self
     logical           , intent(in   ), optional :: writeLock
-    !# <optionalArgument name="writeLock" defaultsTo=".true."/>
+    !![
+    <optionalArgument name="writeLock" defaultsTo=".true."/>
+    !!]
 
     if (writeLock_) then
 #ifdef OMPPROFILE
@@ -203,11 +243,15 @@ contains
   end subroutine eventHookLock
 
   subroutine eventHookUnlock(self,writeLock)
-    !% Unlock the event to avoid race conditions between OpenMP threads.
+    !!{
+    Unlock the event to avoid race conditions between OpenMP threads.
+    !!}
     implicit none
     class  (eventHook), intent(inout)           :: self
     logical           , intent(in   ), optional :: writeLock
-    !# <optionalArgument name="writeLock" defaultsTo=".true."/>
+    !![
+    <optionalArgument name="writeLock" defaultsTo=".true."/>
+    !!]
 
     if (writeLock_) then
        !$ call self%lock_%unsetWrite(haveReadLock=.false.)
@@ -218,7 +262,9 @@ contains
   end subroutine eventHookUnlock
   
   subroutine eventHookUnspecifiedAttach(self,object_,function_,openMPThreadBinding,label,dependencies)
-    !% Attach an object to an event hook.
+    !!{
+    Attach an object to an event hook.
+    !!}
     use    :: Galacticus_Error, only : Galacticus_Error_Report
     !$ use :: OMP_Lib         , only : OMP_Get_Ancestor_Thread_Num, OMP_Get_Level
     implicit none
@@ -230,7 +276,9 @@ contains
     procedure (                    )                                        :: function_
     class     (hook                )                         , pointer      :: hook_
     !$ integer                                                              :: i
-    !# <optionalArgument name="openMPThreadBinding" defaultsTo="openMPThreadBindingNone" />
+    !![
+    <optionalArgument name="openMPThreadBinding" defaultsTo="openMPThreadBindingNone" />
+    !!]
 
     ! Lock the object.
     !$ if (.not.self%initialized_) call Galacticus_Error_Report('event has not been initialized'//{introspection:location})
@@ -274,7 +322,9 @@ contains
   end subroutine eventHookUnspecifiedAttach
 
   subroutine eventHookResolveDependencies(self,hookNew,dependencies)
-    !% Resolve dependencies between hooked function calls.
+    !!{
+    Resolve dependencies between hooked function calls.
+    !!}
     use :: Galacticus_Error   , only : Galacticus_Error_Report, errorStatusSuccess
     use :: Sorting_Topological, only : Sort_Topological
     implicit none
@@ -384,7 +434,9 @@ contains
   end subroutine eventHookResolveDependencies
   
   logical function eventHookUnspecifiedIsAttached(self,object_,function_)
-    !% Return true if an object is attached to an event hook.
+    !!{
+    Return true if an object is attached to an event hook.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class    (eventHookUnspecified), intent(inout)          :: self
@@ -415,7 +467,9 @@ contains
   end function eventHookUnspecifiedIsAttached
 
   subroutine eventHookUnspecifiedDetach(self,object_,function_)
-    !% Attach an object to an event hook.
+    !!{
+    Attach an object to an event hook.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class    (eventHookUnspecified), intent(inout)          :: self
@@ -454,7 +508,9 @@ contains
   end subroutine eventHookUnspecifiedDetach
 
   integer function eventHookCount(self)
-    !% Return a count of the number of hooks into this event.
+    !!{
+    Return a count of the number of hooks into this event.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(eventHook), intent(inout):: self
@@ -467,7 +523,9 @@ contains
   end function eventHookCount
 
   function eventHookFirst(self)
-    !% Return a pointer to the first hook into this event.
+    !!{
+    Return a pointer to the first hook into this event.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(hook     ), pointer       :: eventHookFirst
@@ -479,30 +537,40 @@ contains
   end function eventHookFirst
 
   function dependencyExactConstructor(direction,label) result(self)
-    !% Constructor for an exact dependency.
+    !!{
+    Constructor for an exact dependency.
+    !!}
     implicit none
     type     (dependencyExact) :: self
     integer                    :: direction
     character(len=*          ) :: label
-    !# <constructorAssign variables="direction, label"/>
+    !![
+    <constructorAssign variables="direction, label"/>
+    !!]
 
     return
   end function dependencyExactConstructor
   
   function dependencyRegExConstructor(direction,label) result(self)
-    !% Constructor for a regular expression dependency.
+    !!{
+    Constructor for a regular expression dependency.
+    !!}
     implicit none
     type     (dependencyRegEx) :: self
     integer                    :: direction
     character(len=*          ) :: label
-    !# <constructorAssign variables="direction, label"/>
+    !![
+    <constructorAssign variables="direction, label"/>
+    !!]
 
     self%regEx_=regEx(label)
     return
   end function dependencyRegExConstructor
 
-  !# <hdfPreCloseTask>
-  !#  <unitName>eventsHooksWaitTimes</unitName>
-  !# </hdfPreCloseTask>
+  !![
+  <hdfPreCloseTask>
+   <unitName>eventsHooksWaitTimes</unitName>
+  </hdfPreCloseTask>
+  !!]
 
 end module Events_Hooks

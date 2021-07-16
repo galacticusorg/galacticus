@@ -17,25 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements class for the random jump component in differential evolution algorithms.
+!!{
+Contains a module which implements class for the random jump component in differential evolution algorithms.
+!!}
 
 module Posterior_Sample_Differential_Random_Jump
-  !% Implements a class for the random jump component in differential evolution algorithms.
+  !!{
+  Implements a class for the random jump component in differential evolution algorithms.
+  !!}
   use :: Model_Parameters        , only : modelParameterList
   use :: Posterior_Sampling_State, only : posteriorSampleStateClass
   private
 
-  !# <functionClass>
-  !#  <name>posteriorSampleDffrntlEvltnRandomJump</name>
-  !#  <descriptiveName>Posterior Sampling Differential Evolution Random Jumps</descriptiveName>
-  !#  <description>Class providing random jumps to be added to proposals in differential evolution posterior samplers.</description>
-  !#  <method name="sample" >
-  !#   <description>Sample from the jump distribution.</description>
-  !#   <type>double precision, dimension(size(modelParameters_))</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type (modelParameterList       ), dimension(:), intent(in   ) :: modelParameters_</argument>
-  !#   <argument>class(posteriorSampleStateClass)              , intent(inout) :: simulationState</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>posteriorSampleDffrntlEvltnRandomJump</name>
+   <descriptiveName>Posterior Sampling Differential Evolution Random Jumps</descriptiveName>
+   <description>Class providing random jumps to be added to proposals in differential evolution posterior samplers.</description>
+   <method name="sample" >
+    <description>Sample from the jump distribution.</description>
+    <type>double precision, dimension(size(modelParameters_))</type>
+    <pass>yes</pass>
+    <argument>type (modelParameterList       ), dimension(:), intent(in   ) :: modelParameters_</argument>
+    <argument>class(posteriorSampleStateClass)              , intent(inout) :: simulationState</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Posterior_Sample_Differential_Random_Jump

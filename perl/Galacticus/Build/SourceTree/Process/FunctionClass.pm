@@ -975,11 +975,11 @@ CODE
 						$assignments          .= "else\n";
 						$assignments          .= " allocate(destination%".$name.",mold=self%".$name.")\n";
 					    }
-					    $deepCopyResetCode .= "call self%".$name."%deepCopyReset   ()\n";
-					    $deepCopyResetCode .= "call self%".$name."%deepCopyFinalize()\n";
-					    $assignments       .= "call self%".$name."%deepCopy(destination%".$name.")\n";
-					    $assignments       .= "self%".$name."%copiedSelf => destination%".$name."\n";
-					    $assignments       .= "call destination%".$name."%autoHook()\n";
+					    $deepCopyResetCode    .= "call self%".$name."%deepCopyReset   ()\n";
+					    $deepCopyFinalizeCode .= "call self%".$name."%deepCopyFinalize()\n";
+					    $assignments          .= "call self%".$name."%deepCopy(destination%".$name.")\n";
+					    $assignments          .= "self%".$name."%copiedSelf => destination%".$name."\n";
+					    $assignments          .= "call destination%".$name."%autoHook()\n";
 					    if ( grep {$_ eq "pointer"}  @{$declaration->{'attributes'}} ) {
 						$assignments       .= "end if\n";
 					    }
@@ -1459,6 +1459,8 @@ CODE
 	    # Add "stateStore" and "stateRestore" method.
 	    my $stateStoreCode;
 	    my $stateRestoreCode;
+	    my $stateLinkedListVariables;
+            @{$stateLinkedListVariables} = ();
 	    my %stateStoreModules   = ( "Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "ISO_C_Binding" => 1 );
 	    my %stateRestoreModules = ( "Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "ISO_C_Binding" => 1 );
 	    my @outputUnusedVariables;
@@ -1722,6 +1724,7 @@ CODE
 					}
 				    }
 				}
+				# Check for a custom state store/restore.
 				$hasCustomStateStore   = 1
 				    if
 				    (
@@ -1740,6 +1743,10 @@ CODE
 			}
 			$node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 		    }
+		    # Handle linked lists.
+		    (my $linkedListInputCode, my $linkedListOutputCode) = &stateStoreLinkedList($nonAbstractClass,$stateLinkedListVariables);
+		    $inputCode  .= $linkedListInputCode;
+		    $outputCode .= $linkedListOutputCode;
 		    # Move to the parent class.
 		    $class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
 		}
@@ -2252,6 +2259,8 @@ CODE
                  if ( $labelUsed );
             $stateStoreCode   = " integer(c_size_t) :: position\n".$stateStoreCode;
             $stateRestoreCode = " integer(c_size_t) :: position\n".$stateRestoreCode;
+	    $stateStoreCode   = &Fortran::Utils::Format_Variable_Definitions($stateLinkedListVariables).$stateStoreCode;
+	    $stateRestoreCode = &Fortran::Utils::Format_Variable_Definitions($stateLinkedListVariables).$stateRestoreCode;
 	    $methods{'stateStore'} =
 	    {
 		description => "Store the state of this object to file.",
@@ -2344,7 +2353,8 @@ CODE
 		}
 	    }
 	    $modulePreContains->{'content'} .= "    contains\n";
-	    $modulePreContains->{'content'} .= "    !# <methods>\n";
+	    $modulePreContains->{'content'} .= "    !![\n";
+	    $modulePreContains->{'content'} .= "    <methods>\n";
 	    my $generics;
             foreach my $methodName ( keys(%methods) ) {
                 next
@@ -2386,14 +2396,15 @@ CODE
 				}
 				$separator     = ",";
 			    }
+			    last;
 			}
 		    }
 		}
-		$modulePreContains->{'content'} .= "    !#  <method method=\"".$methodName."\">\n";
-		$modulePreContains->{'content'} .= "    !#   <description>\n";
-                $modulePreContains->{'content'} .= join("\n",map {"    !#    ".$_} split("\n",$method->{'description'}))."\n";
-                $modulePreContains->{'content'} .= "    !#   </description>\n";
-		$modulePreContains->{'content'} .= "    !#  </method>\n";
+		$modulePreContains->{'content'} .= "     <method method=\"".$methodName."\">\n";
+		$modulePreContains->{'content'} .= "      <description>\n";
+                $modulePreContains->{'content'} .= join("\n",map {"       ".$_} split("\n",$method->{'description'}))."\n";
+                $modulePreContains->{'content'} .= "      </description>\n";
+		$modulePreContains->{'content'} .= "     </method>\n";
 		if ( exists($directive->{'generic'}) ) {
 		    foreach my $generic ( &List::ExtraUtils::as_array($directive->{'generic'}) ) {
 			if ( grep {$_ eq $methodName} &List::ExtraUtils::as_array($generic->{'method'}) ) {
@@ -2406,13 +2417,14 @@ CODE
 		}
 	    }
 	    foreach my $generic ( &List::ExtraUtils::hashList($generics, keyAs => "name") ) {
-		$modulePreContains->{'content'} .= "    !#  <method method=\"".$generic->{'name'}."\">\n";
-		$modulePreContains->{'content'} .= "    !#     <description>\n";
-		$modulePreContains->{'content'} .= "    !#      ".join(" | ",@{$generic->{'description'}})."\n";
-		$modulePreContains->{'content'} .= "    !#     </description>\n";
-		$modulePreContains->{'content'} .= "    !#  </method>\n";
+		$modulePreContains->{'content'} .= "    <method method=\"".$generic->{'name'}."\">\n";
+		$modulePreContains->{'content'} .= "       <description>\n";
+		$modulePreContains->{'content'} .= "        ".join(" | ",@{$generic->{'description'}})."\n";
+		$modulePreContains->{'content'} .= "       </description>\n";
+		$modulePreContains->{'content'} .= "    </method>\n";
 	    }
-	    $modulePreContains->{'content'} .= "    !# </methods>\n";
+	    $modulePreContains->{'content'} .= "    </methods>\n";
+	    $modulePreContains->{'content'} .= "    !!]\n";
 	    my $methodTable = Text::Table->new(
 		{
 		    is_sep => 1,
@@ -2547,7 +2559,9 @@ CODE
 	    $modulePreContains->{'content'} .= "\n";
 	    # Create default constructor.
 	    $modulePostContains->{'content'} .= "   ".($allowRecursion ? "recursive " : "")."function ".$directive->{'name'}."CnstrctrDflt()\n";
-	    $modulePostContains->{'content'} .= "      !% Return a pointer to the default {\\normalfont \\ttfamily ".$directive->{'name'}."} object.\n";
+	    $modulePostContains->{'content'} .= "      !!{\n";
+	    $modulePostContains->{'content'} .= "      Return a pointer to the default {\\normalfont \\ttfamily ".$directive->{'name'}."} object.\n";
+	    $modulePostContains->{'content'} .= "      !!}\n";
 	    $modulePostContains->{'content'} .= "      implicit none\n";
 	    $modulePostContains->{'content'} .= "      class(".$directive->{'name'}."Class), pointer :: ".$directive->{'name'}."CnstrctrDflt\n\n";
 	    $modulePostContains->{'content'} .= "      if (.not.associated(".$directive->{'name'}."Default)) ";
@@ -2572,7 +2586,9 @@ CODE
 	    $modulePostContains->{'content'} .= "   end function ".$directive->{'name'}."CnstrctrDflt\n\n";
 	    # Create XML constructor.
 	    $modulePostContains->{'content'} .= "   ".($allowRecursion ? "recursive " : "")."function ".$directive->{'name'}."CnstrctrPrmtrs(parameters,copyInstance,parameterName) result(self)\n";
-	    $modulePostContains->{'content'} .= "      !% Return a pointer to a newly created {\\normalfont \\ttfamily ".$directive->{'name'}."} object as specified by the provided parameters.\n";
+	    $modulePostContains->{'content'} .= "      !!{\n";
+	    $modulePostContains->{'content'} .= "      Return a pointer to a newly created {\\normalfont \\ttfamily ".$directive->{'name'}."} object as specified by the provided parameters.\n";
+	    $modulePostContains->{'content'} .= "      !!}\n";
 	    $modulePostContains->{'content'} .= "      use Input_Parameters\n";
 	    $modulePostContains->{'content'} .= "      use Galacticus_Error\n";
 	    $modulePostContains->{'content'} .= "      implicit none\n";
@@ -3015,7 +3031,9 @@ CODE
             &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},$bindingNode);
 	    # Create initialization function.
 	    $modulePostContains->{'content'} .= "   ".($allowRecursion ? "recursive " : "")."subroutine ".$directive->{'name'}."Initialize()\n";
-	    $modulePostContains->{'content'} .= "      !% Initialize the default {\\normalfont \\ttfamily ".$directive->{'name'}."} object.\n";
+	    $modulePostContains->{'content'} .= "      !!{\n";
+	    $modulePostContains->{'content'} .= "      Initialize the default {\\normalfont \\ttfamily ".$directive->{'name'}."} object.\n";
+	    $modulePostContains->{'content'} .= "      !!}\n";
 	    $modulePostContains->{'content'} .= "      use ISO_Varying_String\n";
 	    $modulePostContains->{'content'} .= "      use Input_Parameters\n";
 	    $modulePostContains->{'content'} .= "      use Galacticus_Error\n";
@@ -3042,7 +3060,9 @@ CODE
 		$modulePostContains->{'content'} .= "        select type (".$directive->{'name'}."Default)\n";
 		$modulePostContains->{'content'} .= "        type is (".$class->{'name'}.")\n";
 
-		$modulePostContains->{'content'} .= "        !# <referenceConstruct ownerLoc=\"module:".$node->{'parent'}->{'name'}."\" object=\"".$directive->{'name'}."Default\" constructor=\"".$class->{'name'}."(subParameters)\" />\n";
+		$modulePostContains->{'content'} .= "        !![\n";
+		$modulePostContains->{'content'} .= "        <referenceConstruct ownerLoc=\"module:".$node->{'parent'}->{'name'}."\" object=\"".$directive->{'name'}."Default\" constructor=\"".$class->{'name'}."(subParameters)\" />\n";
+		$modulePostContains->{'content'} .= "        !!]\n";
 		$modulePostContains->{'content'} .= "        end select\n";
 	    }
 	    $modulePostContains->{'content'} .= "      case default\n";
@@ -3063,7 +3083,9 @@ CODE
 	    # Create initialization function for recursive construction of the default object.
 	    if ( $allowRecursion ) {
 		$modulePostContains->{'content'} .= "   ".($allowRecursion ? "recursive " : "")."function ".$directive->{'name'}."RecursiveDefault() result(self)\n";
-		$modulePostContains->{'content'} .= "      !% Construct a recursive copy of the default {\\normalfont \\ttfamily ".$directive->{'name'}."} object.\n";
+		$modulePostContains->{'content'} .= "      !!{\n";
+		$modulePostContains->{'content'} .= "      Construct a recursive copy of the default {\\normalfont \\ttfamily ".$directive->{'name'}."} object.\n";
+		$modulePostContains->{'content'} .= "      !!}\n";
 		$modulePostContains->{'content'} .= "      use Input_Parameters, only : inputParameters, globalParameters\n";
 		$modulePostContains->{'content'} .= "      use Galacticus_Error, only : Galacticus_Error_Report\n";
 		$modulePostContains->{'content'} .= "      use Function_Classes, only : debugStackPush, debugStackPop, debugReporting\n"
@@ -3116,11 +3138,15 @@ CODE
 	    # Create global state store/restore functions.
 	    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}.$_,"public")
 		foreach ( "DoStateStore", "DoStateRetrieve" );
-	    $modulePostContains->{'content'} .= "  !# <galacticusStateStoreTask>\n";
-	    $modulePostContains->{'content'} .= "  !#  <unitName>".$directive->{'name'}."DoStateStore</unitName>\n";
-	    $modulePostContains->{'content'} .= "  !# </galacticusStateStoreTask>\n";
+	    $modulePostContains->{'content'} .= "  !![\n";
+	    $modulePostContains->{'content'} .= "  <galacticusStateStoreTask>\n";
+	    $modulePostContains->{'content'} .= "   <unitName>".$directive->{'name'}."DoStateStore</unitName>\n";
+	    $modulePostContains->{'content'} .= "  </galacticusStateStoreTask>\n";
+	    $modulePostContains->{'content'} .= "  !!]\n";
 	    $modulePostContains->{'content'} .= "  subroutine ".$directive->{'name'}."DoStateStore(stateFile,gslStateFile,stateOperationID)\n";
-	    $modulePostContains->{'content'} .= "    !% Store the state to file.\n";
+	    $modulePostContains->{'content'} .= "    !!{\n";
+	    $modulePostContains->{'content'} .= "    Store the state to file.\n";
+	    $modulePostContains->{'content'} .= "    !!}\n";
 	    $modulePostContains->{'content'} .= "    use, intrinsic :: ISO_C_Binding     , only : c_size_t                  , c_ptr\n";
 	    $modulePostContains->{'content'} .= "    use            :: ISO_Varying_String, only : var_str\n";
 	    $modulePostContains->{'content'} .= "    use            :: String_Handling   , only : operator(//)\n";
@@ -3141,11 +3167,15 @@ CODE
 	    $modulePostContains->{'content'} .= "    end if\n";
 	    $modulePostContains->{'content'} .= "    return\n";
 	    $modulePostContains->{'content'} .= "  end subroutine ".$directive->{'name'}."DoStateStore\n\n";
-	    $modulePostContains->{'content'} .= "  !# <galacticusStateRetrieveTask>\n";
-	    $modulePostContains->{'content'} .= "  !#  <unitName>".$directive->{'name'}."DoStateRetrieve</unitName>\n";
-	    $modulePostContains->{'content'} .= "  !# </galacticusStateRetrieveTask>\n";
+	    $modulePostContains->{'content'} .= "  !![\n";
+	    $modulePostContains->{'content'} .= "  <galacticusStateRetrieveTask>\n";
+	    $modulePostContains->{'content'} .= "   <unitName>".$directive->{'name'}."DoStateRetrieve</unitName>\n";
+	    $modulePostContains->{'content'} .= "  </galacticusStateRetrieveTask>\n";
+	    $modulePostContains->{'content'} .= "  !!]\n";
 	    $modulePostContains->{'content'} .= "  subroutine ".$directive->{'name'}."DoStateRetrieve(stateFile,gslStateFile,stateOperationID)\n";
-	    $modulePostContains->{'content'} .= "    !% Retrieve the state from file.\n";
+	    $modulePostContains->{'content'} .= "    !!{\n";
+	    $modulePostContains->{'content'} .= "    Retrieve the state from file.\n";
+	    $modulePostContains->{'content'} .= "    !!}\n";
 	    $modulePostContains->{'content'} .= "    use, intrinsic :: ISO_C_Binding     , only : c_size_t                  , c_ptr\n";
 	    $modulePostContains->{'content'} .= "    use            :: ISO_Varying_String, only : var_str\n";
 	    $modulePostContains->{'content'} .= "    use            :: String_Handling   , only : operator(//)\n";
@@ -3171,13 +3201,19 @@ CODE
 
 	    # Create global destroy function.
 	    &Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$directive->{'name'}."DoDestroy","public");
-	    $modulePostContains->{'content'} .= "  !# <functionClassDestroyTask>\n";
-	    $modulePostContains->{'content'} .= "  !#  <unitName>".$directive->{'name'}."DoDestroy</unitName>\n";
-	    $modulePostContains->{'content'} .= "  !# </functionClassDestroyTask>\n";
+	    $modulePostContains->{'content'} .= "  !![\n";
+	    $modulePostContains->{'content'} .= "  <functionClassDestroyTask>\n";
+	    $modulePostContains->{'content'} .= "   <unitName>".$directive->{'name'}."DoDestroy</unitName>\n";
+	    $modulePostContains->{'content'} .= "  </functionClassDestroyTask>\n";
+	    $modulePostContains->{'content'} .= "  !!]\n";
 	    $modulePostContains->{'content'} .= "  subroutine ".$directive->{'name'}."DoDestroy()\n";
-	    $modulePostContains->{'content'} .= "    !% Destroy the default object.\n";
+	    $modulePostContains->{'content'} .= "    !!{\n";
+	    $modulePostContains->{'content'} .= "    Destroy the default object.\n";
+	    $modulePostContains->{'content'} .= "    !!}\n";
 	    $modulePostContains->{'content'} .= "    implicit none\n";
-	    $modulePostContains->{'content'} .= "    !# <objectDestructor owner=\"module:".$node->{'parent'}->{'name'}."\" name=\"".$directive->{'name'}."Default\"/>\n";
+	    $modulePostContains->{'content'} .= "    !![\n";
+	    $modulePostContains->{'content'} .= "    <objectDestructor owner=\"module:".$node->{'parent'}->{'name'}."\" name=\"".$directive->{'name'}."Default\"/>\n";
+	    $modulePostContains->{'content'} .= "    !!]\n";
 	    $modulePostContains->{'content'} .= "    ".$directive->{'name'}."Initialized=.false.\n";
 	    $modulePostContains->{'content'} .= "    return\n";
 	    $modulePostContains->{'content'} .= "  end subroutine ".$directive->{'name'}."DoDestroy\n\n";
@@ -3247,7 +3283,9 @@ CODE
 		$modulePostContains->{'content'} .= ",".$argumentList
 		    unless ( $argumentList eq "" );
 		$modulePostContains->{'content'} .= ")\n";
-                $modulePostContains->{'content'} .= "      !% Default implementation of the {\\normalfont \\ttfamily ".$methodName."} method for the {\\normalfont \\ttfamily ".$directive->{'name'}."} class.\n";
+                $modulePostContains->{'content'} .= "      !!{\n";
+                $modulePostContains->{'content'} .= "      Default implementation of the {\\normalfont \\ttfamily ".$methodName."} method for the {\\normalfont \\ttfamily ".$directive->{'name'}."} class.\n";
+                $modulePostContains->{'content'} .= "      !!}\n";
 		if ( exists($method->{'code'}) ) {
 		    if ( exists($method->{'modules'}) ) {
 			if ( reftype($method->{'modules'}) ) {
@@ -3689,6 +3727,45 @@ do while (associated(item_))
 end do
 CODE
     return ($deepCopyCode,$deepCopyResetCode,$deepCopyFinalizeCode);
+}
+
+sub stateStoreLinkedList {
+    # Create state store/restore instructions for linked list objects.
+    my $nonAbstractClass    = shift();
+    my $linkedListVariables = shift();
+    return ("","","")
+	unless ( exists($nonAbstractClass->{'stateStore'}->{'linkedList'}) );
+    my $linkedList = $nonAbstractClass->{'stateStore'}->{'linkedList'};
+    # Add variables needed for linked list processing.
+    push(
+	@{$linkedListVariables},
+	{
+	    intrinsic  => 'type',
+	    type       => $linkedList->{'type'},
+	    attributes => [ 'pointer' ],
+	    variables  => [ 'item_' ]
+	}
+	)
+	unless ( grep {$_->{'type'} eq $linkedList->{'type'}} @{$linkedListVariables} );
+    # Generate code for the walk through the linked list.
+    $code::variable = $linkedList->{'variable'};
+    $code::object   = $linkedList->{'object'  };
+    $code::next     = $linkedList->{'next'    };
+    my $inputCode   = fill_in_string(<<'CODE', PACKAGE => 'code');
+item_ => self%{$variable}
+do while (associated(item_))
+   call item_%{$object}%stateRestore(stateFile,gslStateFile,stateOperationID)
+   item_ => item_%{$next}
+end do
+CODE
+    my $outputCode = fill_in_string(<<'CODE', PACKAGE => 'code');
+item_ => self%{$variable}
+do while (associated(item_))
+   call item_%{$object}%stateStore(stateFile,gslStateFile,stateOperationID)
+   item_ => item_%{$next}
+end do
+CODE
+    return ($inputCode,$outputCode);
 }
 
 1;

@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module for storing and reporting memory usage by the code.
+!!{
+Contains a module for storing and reporting memory usage by the code.
+!!}
 
 module Memory_Management
-  !% Routines and data type for storing and reporting on memory usage. Also contains routines for allocating and deallocating
-  !% arrays with automatic error checking and deallocation at program termination and memory usage reporting.
+  !!{
+  Routines and data type for storing and reporting on memory usage. Also contains routines for allocating and deallocating
+  arrays with automatic error checking and deallocation at program termination and memory usage reporting.
+  !!}
   use            :: Galacticus_Error, only : Galacticus_Error_Report
   use, intrinsic :: ISO_C_Binding   , only : c_double_complex       , c_int    , c_long
   use            :: Kind_Numbers    , only : kind_int8              , kind_quad
@@ -42,8 +46,10 @@ module Memory_Management
   integer(kind=kind_int8) :: usageAtPreviousReport  =0
 
   type memoryUsage
-     !% Dervied type variable for storing the properties of a single class of memory storage (memory usage, divisor for outputting
-     !% and suffix for outputting)
+     !!{
+     Dervied type variable for storing the properties of a single class of memory storage (memory usage, divisor for outputting
+     and suffix for outputting)
+     !!}
      integer  (kind=kind_int8) :: divisor, usage
      character(len=20        ) :: name
      character(len=3         ) :: suffix
@@ -56,7 +62,9 @@ module Memory_Management
   integer, parameter, public :: memoryTypeTotal=4
 
   type memoryUsageList
-     !% Dervied type variable for storing all memory usage in the code.
+     !!{
+     Dervied type variable for storing all memory usage in the code.
+     !!}
      type(memoryUsage) :: memoryType(4)
   end type memoryUsageList
 
@@ -75,7 +83,9 @@ module Memory_Management
   interface
      !: $(BUILDPATH)/utility.memory_usage.o
      function Memory_Usage_Get_C() bind(c,name='Memory_Usage_Get_C')
-       !% Template for a C function that returns the current memory usage.
+       !!{
+       Template for a C function that returns the current memory usage.
+       !!}
        import
        integer(kind=c_long) :: Memory_Usage_Get_C
      end function Memory_Usage_Get_C
@@ -96,8 +106,10 @@ module Memory_Management
 contains
 
   subroutine Memory_Usage_Report()
-    !% Writes a report on the current memory usage. The total memory use is evaluated and all usages are scaled into convenient
-    !% units prior to output.
+    !!{
+    Writes a report on the current memory usage. The total memory use is evaluated and all usages are scaled into convenient
+    units prior to output.
+    !!}
     use :: Display           , only : displayMessage
     use :: ISO_Varying_String, only : assignment(=) , varying_string
     implicit none
@@ -152,7 +164,9 @@ contains
   end subroutine Memory_Usage_Report
 
   subroutine Add_Memory_Component(memoryUsage_,headerText,usageText,join)
-    !% Add a memory type to the memory reporting strings.
+    !!{
+    Add a memory type to the memory reporting strings.
+    !!}
     use :: ISO_Varying_String, only : assignment(=), char          , len, operator(//), &
           &                           trim         , varying_string
     implicit none
@@ -165,9 +179,11 @@ contains
     character(len=13                )                :: usageString
     
     if (memoryUsage_%usage > 0) then
-       !# <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-       !#  <description>Internal file I/O in gfortran can be non-thread safe.</description>
-       !# </workaround>
+       !![
+       <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+        <description>Internal file I/O in gfortran can be non-thread safe.</description>
+       </workaround>
+       !!]
 #ifdef THREADSAFEIO
        !$omp critical(gfortranInternalIO)
 #endif
@@ -186,7 +202,9 @@ contains
   end subroutine Add_Memory_Component
 
   subroutine Set_Memory_Prefix(memoryUsage_)
-    !% Given a memory variable, sets the divisor and suffix required to put the memory usage into convenient units for output.
+    !!{
+    Given a memory variable, sets the divisor and suffix required to put the memory usage into convenient units for output.
+    !!}
     implicit none
     type            (memoryUsage   ), intent(inout) :: memoryUsage_
     integer         (kind=kind_int8), parameter     :: kilo        =1024
@@ -217,7 +235,9 @@ contains
   end subroutine Set_Memory_Prefix
 
   subroutine Code_Memory_Usage()
-    !% Determines the size of the ``text'' (i.e. code) size.
+    !!{
+    Determines the size of the ``text'' (i.e. code) size.
+    !!}
     implicit none
     character(len=80) :: procFileName, pid
     integer           :: ioStatus    , proc         , &
@@ -242,7 +262,9 @@ contains
   end subroutine Code_Memory_Usage
 
   subroutine Memory_Usage_Record(elementsUsed,memoryType,addRemove,blockCount,file,line)
-    !% Record a change in memory usage.
+    !!{
+    Record a change in memory usage.
+    !!}
     use            :: Display           , only : displayMessage, displayVerbosity, verbosityLevelDebug
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: ISO_Varying_String, only : assignment(=) , operator(//)    , varying_string

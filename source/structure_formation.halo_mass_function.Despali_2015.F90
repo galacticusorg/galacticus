@@ -17,34 +17,42 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a \cite{despali_universality_2015} dark matter halo mass function class.
+!!{
+Contains a module which implements a \cite{despali_universality_2015} dark matter halo mass function class.
+!!}
 
   use :: Cosmology_Functions    , only : cosmologyFunctionsClass
   use :: Virial_Density_Contrast, only : virialDensityContrastClass, virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
 
-  !# <haloMassFunction name="haloMassFunctionDespali2015">
-  !#  <description>
-  !#   A dark matter halo mass function class using the function given by \cite{despali_universality_2015}. This uses the
-  !#   functional form proposed by \cite{sheth_ellipsoidal_2001} but with parameters $a$, $p$, and $A$ set using eqn.~(12) of
-  !#   \cite{despali_universality_2015}.
-  !#  </description>
-  !#  <deepCopy>
-  !#   <functionClass variables="referenceDensityContrast"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="referenceDensityContrast"/>
-  !#  </stateStorable>
-  !# </haloMassFunction>
+  !![
+  <haloMassFunction name="haloMassFunctionDespali2015">
+   <description>
+    A dark matter halo mass function class using the function given by \cite{despali_universality_2015}. This uses the
+    functional form proposed by \cite{sheth_ellipsoidal_2001} but with parameters $a$, $p$, and $A$ set using eqn.~(12) of
+    \cite{despali_universality_2015}.
+   </description>
+   <deepCopy>
+    <functionClass variables="referenceDensityContrast"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="referenceDensityContrast"/>
+   </stateStorable>
+  </haloMassFunction>
+  !!]
   type, extends(haloMassFunctionShethTormen) :: haloMassFunctionDespali2015
-     !% A halo mass function class using the fitting function of \cite{despali_universality_2015}.
+     !!{
+     A halo mass function class using the fitting function of \cite{despali_universality_2015}.
+     !!}
      private
      class(cosmologyFunctionsClass                                       ), pointer :: cosmologyFunctions_      => null()
      class(virialDensityContrastClass                                    ), pointer :: virialDensityContrast_   => null()
      type (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer :: referenceDensityContrast => null()
     contains
-     !# <methods>
-     !#   <method description="Return the parameter $x$ in the \cite{despali_universality_2015} halo mass function fit." method="x" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return the parameter $x$ in the \cite{despali_universality_2015} halo mass function fit." method="x" />
+     </methods>
+     !!]
      final     ::                  despali2015Destructor
      procedure :: x             => despali2015X
      procedure :: a             => despali2015A
@@ -53,7 +61,9 @@
   end type haloMassFunctionDespali2015
 
   interface haloMassFunctionDespali2015
-     !% Constructors for the {\normalfont \ttfamily despali2015} halo mass function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily despali2015} halo mass function class.
+     !!}
      module procedure despali2015ConstructorParameters
      module procedure despali2015ConstructorInternal
   end interface haloMassFunctionDespali2015
@@ -61,7 +71,9 @@
 contains
 
   function despali2015ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily despali2015} halo mass function class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily despali2015} halo mass function class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (haloMassFunctionDespali2015  )                :: self
@@ -73,23 +85,29 @@ contains
     class(criticalOverdensityClass     ), pointer       :: criticalOverdensity_
 
     ! Check and read parameters.
-    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
-    !# <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
-    !# <objectBuilder class="virialDensityContrast"    name="virialDensityContrast_"    source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    <objectBuilder class="virialDensityContrast"    name="virialDensityContrast_"    source="parameters"/>
+    !!]
     self=haloMassFunctionDespali2015(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,criticalOverdensity_,virialDensityContrast_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"     />
-    !# <objectDestructor name="cosmologyFunctions_"      />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
-    !# <objectDestructor name="criticalOverdensity_"     />
-    !# <objectDestructor name="virialDensityContrast_"   />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"     />
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    <objectDestructor name="criticalOverdensity_"     />
+    <objectDestructor name="virialDensityContrast_"   />
+    !!]
     return
   end function despali2015ConstructorParameters
 
   function despali2015ConstructorInternal(cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,criticalOverdensity_,virialDensityContrast_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily despali2015} halo mass function class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily despali2015} halo mass function class.
+    !!}
     implicit none
     type (haloMassFunctionDespali2015  )                        :: self
     class(cosmologyParametersClass     ), target, intent(in   ) :: cosmologyParameters_
@@ -97,26 +115,36 @@ contains
     class(cosmologicalMassVarianceClass), target, intent(in   ) :: cosmologicalMassVariance_
     class(criticalOverdensityClass     ), target, intent(in   ) :: criticalOverdensity_
     class(virialDensityContrastClass   ), target, intent(in   ) :: virialDensityContrast_
-    !# <constructorAssign variables="*cosmologyParameters_,*cosmologyFunctions_,*cosmologicalMassVariance_,*criticalOverdensity_,*virialDensityContrast_"/>
+    !![
+    <constructorAssign variables="*cosmologyParameters_,*cosmologyFunctions_,*cosmologicalMassVariance_,*criticalOverdensity_,*virialDensityContrast_"/>
+    !!]
 
     allocate(self%referenceDensityContrast)
-    !# <referenceConstruct isResult="yes" owner="self" object="referenceDensityContrast" constructor="virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(.true.,cosmologyFunctions_)"/>
+    !![
+    <referenceConstruct isResult="yes" owner="self" object="referenceDensityContrast" constructor="virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(.true.,cosmologyFunctions_)"/>
+    !!]
     return
   end function despali2015ConstructorInternal
 
   subroutine despali2015Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily despali2015} halo mass function class.
+    !!{
+    Destructor for the {\normalfont \ttfamily despali2015} halo mass function class.
+    !!}
     implicit none
     type(haloMassFunctionDespali2015), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"     />
-    !# <objectDestructor name="self%virialDensityContrast_"  />
-    !# <objectDestructor name="self%referenceDensityContrast"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"     />
+    <objectDestructor name="self%virialDensityContrast_"  />
+    <objectDestructor name="self%referenceDensityContrast"/>
+    !!]
     return
   end subroutine despali2015Destructor
 
   double precision function despali2015A(self,time,mass)
-    !% Return the parameter $a$ in the {\normalfont \ttfamily despali2015} halo mass function at the given time and mass.
+    !!{
+    Return the parameter $a$ in the {\normalfont \ttfamily despali2015} halo mass function at the given time and mass.
+    !!}
     implicit none
     class           (haloMassFunctionDespali2015), intent(inout) :: self
     double precision                             , intent(in   ) :: time , mass
@@ -130,7 +158,9 @@ contains
   end function despali2015A
 
   double precision function despali2015P(self,time,mass)
-    !% Return the parameter $p$ in the {\normalfont \ttfamily despali2015} halo mass function at the given time and mass.
+    !!{
+    Return the parameter $p$ in the {\normalfont \ttfamily despali2015} halo mass function at the given time and mass.
+    !!}
     implicit none
     class           (haloMassFunctionDespali2015), intent(inout) :: self
     double precision                             , intent(in   ) :: time , mass
@@ -144,7 +174,9 @@ contains
   end function despali2015P
 
   double precision function despali2015Normalization(self,time,mass)
-    !% Return the normalization, $A$, in the {\normalfont \ttfamily despali2015} halo mass function at the given time and mass.
+    !!{
+    Return the normalization, $A$, in the {\normalfont \ttfamily despali2015} halo mass function at the given time and mass.
+    !!}
     implicit none
     class           (haloMassFunctionDespali2015), intent(inout) :: self
     double precision                             , intent(in   ) :: time , mass
@@ -157,7 +189,9 @@ contains
   end function despali2015Normalization
 
   double precision function despali2015X(self,time,mass)
-    !% Return the parameter $x$ in the {\normalfont \ttfamily despali2015} halo mass function at the given time and mass.
+    !!{
+    Return the parameter $x$ in the {\normalfont \ttfamily despali2015} halo mass function at the given time and mass.
+    !!}
     implicit none
     class           (haloMassFunctionDespali2015), intent(inout) :: self
     double precision                             , intent(in   ) :: time , mass

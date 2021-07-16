@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test integration routines.
+!!{
+Contains a program to test integration routines.
+!!}
 
 program Test_Integration
-  !% Tests that numerical integration routines work.
+  !!{
+  Tests that numerical integration routines work.
+  !!}
   use :: Display                   , only : displayVerbositySet, verbosityLevelStandard
   use :: Numerical_Constants_Math  , only : Pi
   use :: Numerical_Integration     , only : integrator

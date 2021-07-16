@@ -17,28 +17,34 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of dark matter halo profiles with finite resolution (to mimic the effects of resolution in N-body
-  !% simulations for example).
+  !!{
+  An implementation of dark matter halo profiles with finite resolution (to mimic the effects of resolution in N-body
+  simulations for example).
+  !!}
 
   use :: Cosmology_Functions         , only : cosmologyFunctionsClass
   use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
 
-  !# <darkMatterProfileDMO name="darkMatterProfileDMOFiniteResolution">
-  !#  <description>
-  !#   A dark matter profile DMO class which applies a finite resolution to some other DMO class, typically to mimic the effects
-  !#   of finite resolution in an N-body simulation. Specifically, the density profile is given by
-  !#   \begin{equation}
-  !#    \rho(r) = \rho^\prime(r) \left( 1 + \left[ \frac{\Delta x}{r} \right]^2 \right)^{-1/2},
-  !#   \end{equation}
-  !#   where $\Delta x$ is the larger of the resolution length, {\normalfont \ttfamily [lengthResolution]}, and the radius in the
-  !#   original profile enclosing the mass resolution, {\normalfont \ttfamily [massResolution]}.
-  !#
-  !#   Note that this choice was constructed to give a constant density core in an NFW density profile. For a density profile, $\rho^\prime(r)$, which
-  !#   rises more steeply than $r^{-1}$ as $r \rightarrow 0$ we will still have a cuspy density profile under this model.
-  !#  </description>
-  !# </darkMatterProfileDMO>
+  !![
+  <darkMatterProfileDMO name="darkMatterProfileDMOFiniteResolution">
+   <description>
+    A dark matter profile DMO class which applies a finite resolution to some other DMO class, typically to mimic the effects
+    of finite resolution in an N-body simulation. Specifically, the density profile is given by
+    \begin{equation}
+     \rho(r) = \rho^\prime(r) \left( 1 + \left[ \frac{\Delta x}{r} \right]^2 \right)^{-1/2},
+    \end{equation}
+    where $\Delta x$ is the larger of the resolution length, {\normalfont \ttfamily [lengthResolution]}, and the radius in the
+    original profile enclosing the mass resolution, {\normalfont \ttfamily [massResolution]}.
+  
+    Note that this choice was constructed to give a constant density core in an NFW density profile. For a density profile, $\rho^\prime(r)$, which
+    rises more steeply than $r^{-1}$ as $r \rightarrow 0$ we will still have a cuspy density profile under this model.
+   </description>
+  </darkMatterProfileDMO>
+  !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOFiniteResolution
-     !% A dark matter halo profile class implementing finiteResolution dark matter halos.
+     !!{
+     A dark matter halo profile class implementing finiteResolution dark matter halos.
+     !!}
      private
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_      => null()
      class           (cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_        => null()
@@ -49,10 +55,12 @@
           &                                                  lengthResolutionPrevious            , enclosedMassPrevious, &
           &                                                  enclosedMassRadiusPrevious
    contains
-     !# <methods>
-     !#   <method description="Return the resolution length in physical units." method="lengthResolutionPhysical"/>
-     !#   <method description="Reset memoized calculations."                    method="calculationReset"        />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return the resolution length in physical units." method="lengthResolutionPhysical"/>
+       <method description="Reset memoized calculations."                    method="calculationReset"        />
+     </methods>
+     !!]
      final     ::                                      finiteResolutionDestructor
      procedure :: autoHook                          => finiteResolutionAutoHook
      procedure :: calculationReset                  => finiteResolutionCalculationReset
@@ -78,7 +86,9 @@
   end type darkMatterProfileDMOFiniteResolution
 
   interface darkMatterProfileDMOFiniteResolution
-     !% Constructors for the {\normalfont \ttfamily finiteResolution} dark matter halo profile class.
+     !!{
+     Constructors for the {\normalfont \ttfamily finiteResolution} dark matter halo profile class.
+     !!}
      module procedure finiteResolutionConstructorParameters
      module procedure finiteResolutionConstructorInternal
   end interface darkMatterProfileDMOFiniteResolution
@@ -88,7 +98,9 @@
 contains
 
   function finiteResolutionConstructorParameters(parameters) result(self)
-    !% Default constructor for the {\normalfont \ttfamily finiteResolution} dark matter halo profile class.
+    !!{
+    Default constructor for the {\normalfont \ttfamily finiteResolution} dark matter halo profile class.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (darkMatterProfileDMOFiniteResolution)                :: self
@@ -100,40 +112,46 @@ contains
     type            (varying_string                      )                :: nonAnalyticSolver
     logical                                                               :: resolutionIsComoving
 
-    !# <inputParameter>
-    !#   <name>lengthResolution</name>
-    !#   <source>parameters</source>
-    !#   <description>The resolution length, $\Delta x$.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massResolution</name>
-    !#   <source>parameters</source>
-    !#   <description>The resolution mass, $\Delta M$.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>resolutionIsComoving</name>
-    !#   <source>parameters</source>
-    !#   <description>If true, the resolution length is assumed to be fixed in comoving coordinates, otherwise in physical coordinates.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>nonAnalyticSolver</name>
-    !#   <defaultValue>var_str('fallThrough')</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
+    !![
+    <inputParameter>
+      <name>lengthResolution</name>
+      <source>parameters</source>
+      <description>The resolution length, $\Delta x$.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massResolution</name>
+      <source>parameters</source>
+      <description>The resolution mass, $\Delta M$.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>resolutionIsComoving</name>
+      <source>parameters</source>
+      <description>If true, the resolution length is assumed to be fixed in comoving coordinates, otherwise in physical coordinates.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>nonAnalyticSolver</name>
+      <defaultValue>var_str('fallThrough')</defaultValue>
+      <source>parameters</source>
+      <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
+    </inputParameter>
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
+    !!]
     self=darkMatterProfileDMOFiniteResolution(lengthResolution,massResolution,resolutionIsComoving,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),darkMatterProfileDMO_,darkMatterHaloScale_,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterProfileDMO_"/>
-    !# <objectDestructor name="darkMatterHaloScale_" />
-    !# <objectDestructor name="cosmologyFunctions_"  />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterProfileDMO_"/>
+    <objectDestructor name="darkMatterHaloScale_" />
+    <objectDestructor name="cosmologyFunctions_"  />
+    !!]
     return
   end function finiteResolutionConstructorParameters
 
   function finiteResolutionConstructorInternal(lengthResolution,massResolution,resolutionIsComoving,nonAnalyticSolver,darkMatterProfileDMO_,darkMatterHaloScale_,cosmologyFunctions_) result(self)
-    !% Generic constructor for the {\normalfont \ttfamily finiteResolution} dark matter profile class.
+    !!{
+    Generic constructor for the {\normalfont \ttfamily finiteResolution} dark matter profile class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterProfileDMOFiniteResolution)                        :: self
@@ -143,7 +161,9 @@ contains
     double precision                                      , intent(in   )         :: lengthResolution       , massResolution
     integer                                               , intent(in   )         :: nonAnalyticSolver
     logical                                               , intent(in   )         :: resolutionIsComoving
-    !# <constructorAssign variables="lengthResolution, massResolution, resolutionIsComoving, nonAnalyticSolver, *darkMatterProfileDMO_, *darkMatterHaloScale_, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="lengthResolution, massResolution, resolutionIsComoving, nonAnalyticSolver, *darkMatterProfileDMO_, *darkMatterHaloScale_, *cosmologyFunctions_"/>
+    !!]
     
     if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Galacticus_Error_Report('invalid non-analytic solver type'//{introspection:location})
     self%lastUniqueID              =-1_kind_int8
@@ -155,7 +175,9 @@ contains
   end function finiteResolutionConstructorInternal
 
   subroutine finiteResolutionAutoHook(self)
-    !% Attach to the calculation reset event.
+    !!{
+    Attach to the calculation reset event.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(darkMatterProfileDMOFiniteResolution), intent(inout) :: self
@@ -165,18 +187,24 @@ contains
   end subroutine finiteResolutionAutoHook
 
   subroutine finiteResolutionDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily finiteResolution} dark matter halo profile class.
+    !!{
+    Destructor for the {\normalfont \ttfamily finiteResolution} dark matter halo profile class.
+    !!}
     implicit none
     type(darkMatterProfileDMOFiniteResolution), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterProfileDMO_"/>
-    !# <objectDestructor name="self%darkMatterHaloScale_" />
-    !# <objectDestructor name="self%cosmologyFunctions_"  />
+    !![
+    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    <objectDestructor name="self%darkMatterHaloScale_" />
+    <objectDestructor name="self%cosmologyFunctions_"  />
+    !!]
     return
   end subroutine finiteResolutionDestructor
 
   subroutine finiteResolutionCalculationReset(self,node)
-    !% Reset the dark matter profile calculation.
+    !!{
+    Reset the dark matter profile calculation.
+    !!}
     implicit none
     class(darkMatterProfileDMOFiniteResolution), intent(inout) :: self
     type (treeNode                            ), intent(inout) :: node
@@ -194,8 +222,10 @@ contains
   end subroutine finiteResolutionCalculationReset
 
   double precision function finiteResolutionDensity(self,node,radius)
-    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (darkMatterProfileDMOFiniteResolution), intent(inout) :: self
@@ -216,8 +246,10 @@ contains
   end function finiteResolutionDensity
 
   double precision function finiteResolutionDensityLogSlope(self,node,radius)
-    !% Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOFiniteResolution), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
@@ -241,8 +273,10 @@ contains
   end function finiteResolutionDensityLogSlope
 
   double precision function finiteResolutionRadiusEnclosingDensity(self,node,density)
-    !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
-    !% {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$).
+    !!{
+    Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
+    {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$).
+    !!}
     implicit none
     class           (darkMatterProfileDMOFiniteResolution), intent(inout), target :: self
     type            (treeNode                            ), intent(inout), target :: node
@@ -257,8 +291,10 @@ contains
   end function finiteResolutionRadiusEnclosingDensity
 
   double precision function finiteResolutionRadiusEnclosingMass(self,node,mass)
-    !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
-    !% {\normalfont \ttfamily mass} (given in units of $M_\odot$).
+    !!{
+    Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
+    {\normalfont \ttfamily mass} (given in units of $M_\odot$).
+    !!}
     implicit none
     class           (darkMatterProfileDMOFiniteResolution), intent(inout), target :: self
     type            (treeNode                            ), intent(inout), target :: node
@@ -273,7 +309,9 @@ contains
   end function finiteResolutionRadiusEnclosingMass
 
   double precision function finiteResolutionRadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
-    !% Returns the radial moment of the density profile.
+    !!{
+    Returns the radial moment of the density profile.
+    !!}
     implicit none
     class           (darkMatterProfileDMOFiniteResolution), intent(inout)           :: self
     type            (treeNode                            ), intent(inout)           :: node
@@ -289,8 +327,10 @@ contains
   end function finiteResolutionRadialMoment
 
   double precision function finiteResolutionEnclosedMass(self,node,radius)
-    !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
-    !% units of Mpc).
+    !!{
+    Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
+    units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOFiniteResolution), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
@@ -310,8 +350,10 @@ contains
   end function finiteResolutionEnclosedMass
 
   double precision function finiteResolutionPotential(self,node,radius,status)
-    !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
-    !% \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
+    \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOFiniteResolution), intent(inout)           :: self
     type            (treeNode                            ), intent(inout), target   :: node
@@ -327,8 +369,10 @@ contains
   end function finiteResolutionPotential
 
   double precision function finiteResolutionCircularVelocity(self,node,radius)
-    !% Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOFiniteResolution), intent(inout) :: self
@@ -348,7 +392,9 @@ contains
   end function finiteResolutionCircularVelocity
 
   double precision function finiteResolutionRadiusCircularVelocityMaximum(self,node)
-    !% Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    !!{
+    Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class(darkMatterProfileDMOFiniteResolution), intent(inout) :: self
     type (treeNode                            ), intent(inout) :: node
@@ -362,7 +408,9 @@ contains
   end function finiteResolutionRadiusCircularVelocityMaximum
 
   double precision function finiteResolutionCircularVelocityMaximum(self,node)
-    !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
+    !!{
+    Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class(darkMatterProfileDMOFiniteResolution), intent(inout) :: self
     type (treeNode                            ), intent(inout) :: node
@@ -376,8 +424,10 @@ contains
   end function finiteResolutionCircularVelocityMaximum
 
   double precision function finiteResolutionRadialVelocityDispersion(self,node,radius)
-    !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOFiniteResolution), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
@@ -392,8 +442,10 @@ contains
   end function finiteResolutionRadialVelocityDispersion
 
   double precision function finiteResolutionRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
-    !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
-    !% in units of km s$^{-1}$ Mpc).
+    !!{
+    Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
+    in units of km s$^{-1}$ Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOFiniteResolution), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
@@ -408,7 +460,9 @@ contains
   end function finiteResolutionRadiusFromSpecificAngularMomentum
 
   double precision function finiteResolutionRotationNormalization(self,node)
-    !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
+    !!{
+    Return the normalization of the rotation velocity vs. specific angular momentum relation.
+    !!}
     implicit none
     class           (darkMatterProfileDMOFiniteResolution), intent(inout) :: self
     type            (treeNode                            ), intent(inout) :: node
@@ -421,7 +475,9 @@ contains
   end function finiteResolutionRotationNormalization
 
   double precision function finiteResolutionEnergy(self,node)
-    !% Return the energy of a finiteResolution halo density profile.
+    !!{
+    Return the energy of a finiteResolution halo density profile.
+    !!}
     implicit none
     class(darkMatterProfileDMOFiniteResolution), intent(inout) :: self
     type (treeNode                            ), intent(inout) :: node
@@ -435,7 +491,9 @@ contains
   end function finiteResolutionEnergy
 
   double precision function finiteResolutionEnergyGrowthRate(self,node)
-    !% Return the rate of change of the energy of a finiteResolution halo density profile.
+    !!{
+    Return the rate of change of the energy of a finiteResolution halo density profile.
+    !!}
     implicit none
     class(darkMatterProfileDMOFiniteResolution), intent(inout)         :: self
     type (treeNode                            ), intent(inout), target :: node
@@ -449,8 +507,10 @@ contains
   end function finiteResolutionEnergyGrowthRate
 
   double precision function finiteResolutionKSpace(self,node,waveNumber)
-    !% Returns the Fourier transform of the finiteResolution density profile at the specified {\normalfont \ttfamily waveNumber}
-    !% (given in Mpc$^{-1}$), using the expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; eqn.~81).
+    !!{
+    Returns the Fourier transform of the finiteResolution density profile at the specified {\normalfont \ttfamily waveNumber}
+    (given in Mpc$^{-1}$), using the expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; eqn.~81).
+    !!}
     implicit none
     class           (darkMatterProfileDMOFiniteResolution), intent(inout)         :: self
     type            (treeNode                            ), intent(inout), target :: node
@@ -465,8 +525,10 @@ contains
   end function finiteResolutionKSpace
 
   double precision function finiteResolutionFreefallRadius(self,node,time)
-    !% Returns the freefall radius in the finiteResolution density profile at the specified {\normalfont \ttfamily time} (given in
-    !% Gyr).
+    !!{
+    Returns the freefall radius in the finiteResolution density profile at the specified {\normalfont \ttfamily time} (given in
+    Gyr).
+    !!}
     implicit none
     class           (darkMatterProfileDMOFiniteResolution), intent(inout), target :: self
     type            (treeNode                            ), intent(inout), target :: node
@@ -481,8 +543,10 @@ contains
   end function finiteResolutionFreefallRadius
 
   double precision function finiteResolutionFreefallRadiusIncreaseRate(self,node,time)
-    !% Returns the rate of increase of the freefall radius in the finiteResolution density profile at the specified {\normalfont
-    !% \ttfamily time} (given in Gyr).
+    !!{
+    Returns the rate of increase of the freefall radius in the finiteResolution density profile at the specified {\normalfont
+    \ttfamily time} (given in Gyr).
+    !!}
     implicit none
     class           (darkMatterProfileDMOFiniteResolution), intent(inout), target :: self
     type            (treeNode                            ), intent(inout), target :: node
@@ -497,7 +561,9 @@ contains
   end function finiteResolutionFreefallRadiusIncreaseRate
 
   double precision function finiteResolutionLengthResolutionPhysical(self,node)
-    !% Return the resolution length in physical units.
+    !!{
+    Return the resolution length in physical units.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(darkMatterProfileDMOFiniteResolution), intent(inout) :: self

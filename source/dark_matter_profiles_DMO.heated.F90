@@ -17,34 +17,40 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of heated dark matter halo profiles.
+  !!{
+  An implementation of heated dark matter halo profiles.
+  !!}
 
   use :: Root_Finder, only : rootFinder
     
-  !# <darkMatterProfileDMO name="darkMatterProfileDMOHeated">
-  !#  <description>
-  !#   A dark matter profile DMO class in which dark matter halos start out with a density profile defined by another {\normalfont
-  !#   \ttfamily darkMatterProfileDMO}. For subhalos, this profile is modified by tidal heating, under the assumption that the
-  !#   energy of a shell of mass before and after heating are related by
-  !#   \begin{equation}
-  !#   { \mathrm{G} M^\prime(r^\prime) \over r^\prime } = { \mathrm{G} M(r) \over r } + Q r^2,
-  !#   \end{equation}
-  !#   where $M(r)$ is the mass enclosed within a radius $r$, and $Q$ represents a normalized tidal heating (see
-  !#   \S\ref{sec:ComponentSatelliteOrbiting} for example). Primes indicate values after heating, while unprimed variables
-  !#   indicate quantities prior to heating. With the assumption of no shell crossing, $M^\prime(r^\prime)=M(r)$ and this equation
-  !#   can be solved for $r$ given $r^\prime$.
-  !#   
-  !#   Not all methods have anakytic solutions for this profile. If {\normalfont \ttfamily [nonAnalyticSolver]}$=${\normalfont
-  !#   \ttfamily fallThrough} then attempts to call these methods in heated profiles will simply return the result from the
-  !#   unheated profile, otherwise a numerical calculation is performed.
-  !#  </description>
-  !# </darkMatterProfileDMO>
+  !![
+  <darkMatterProfileDMO name="darkMatterProfileDMOHeated">
+   <description>
+    A dark matter profile DMO class in which dark matter halos start out with a density profile defined by another {\normalfont
+    \ttfamily darkMatterProfileDMO}. For subhalos, this profile is modified by tidal heating, under the assumption that the
+    energy of a shell of mass before and after heating are related by
+    \begin{equation}
+    { \mathrm{G} M^\prime(r^\prime) \over r^\prime } = { \mathrm{G} M(r) \over r } + Q r^2,
+    \end{equation}
+    where $M(r)$ is the mass enclosed within a radius $r$, and $Q$ represents a normalized tidal heating (see
+    \S\ref{sec:ComponentSatelliteOrbiting} for example). Primes indicate values after heating, while unprimed variables
+    indicate quantities prior to heating. With the assumption of no shell crossing, $M^\prime(r^\prime)=M(r)$ and this equation
+    can be solved for $r$ given $r^\prime$.
+    
+    Not all methods have anakytic solutions for this profile. If {\normalfont \ttfamily [nonAnalyticSolver]}$=${\normalfont
+    \ttfamily fallThrough} then attempts to call these methods in heated profiles will simply return the result from the
+    unheated profile, otherwise a numerical calculation is performed.
+   </description>
+  </darkMatterProfileDMO>
+  !!]
 
   use :: Dark_Matter_Profiles_Generic, only : enumerationNonAnalyticSolversEncode, enumerationNonAnalyticSolversIsValid, nonAnalyticSolversFallThrough
   use :: Kind_Numbers                , only : kind_int8
 
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOHeated
-     !% A dark matter halo profile class implementing heated dark matter halos.
+     !!{
+     A dark matter halo profile class implementing heated dark matter halos.
+     !!}
      private
      class           (darkMatterProfileDMOClass    ), pointer :: darkMatterProfileDMO_         => null()
      class           (darkMatterProfileHeatingClass), pointer :: darkMatterProfileHeating_     => null()
@@ -54,10 +60,12 @@
      logical                                                  :: velocityDispersionApproximate
      type            (rootFinder                   )          :: finder
    contains
-     !# <methods>
-     !#   <method description="Reset memoized calculations."                                                                                    method="calculationReset"/>
-     !#   <method description="Return the initial radius corresponding to the given final radius in a heated dark matter halo density profile." method="radiusInitial"   />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Reset memoized calculations."                                                                                    method="calculationReset"/>
+       <method description="Return the initial radius corresponding to the given final radius in a heated dark matter halo density profile." method="radiusInitial"   />
+     </methods>
+     !!]
      final     ::                                      heatedDestructor
      procedure :: autoHook                          => heatedAutoHook
      procedure :: calculationReset                  => heatedCalculationReset
@@ -83,7 +91,9 @@
   end type darkMatterProfileDMOHeated
 
   interface darkMatterProfileDMOHeated
-     !% Constructors for the {\normalfont \ttfamily heated} dark matter halo profile class.
+     !!{
+     Constructors for the {\normalfont \ttfamily heated} dark matter halo profile class.
+     !!}
      module procedure heatedConstructorParameters
      module procedure heatedConstructorInternal
   end interface darkMatterProfileDMOHeated
@@ -97,7 +107,9 @@
 contains
 
   function heatedConstructorParameters(parameters) result(self)
-    !% Default constructor for the {\normalfont \ttfamily heated} dark matter halo profile class.
+    !!{
+    Default constructor for the {\normalfont \ttfamily heated} dark matter halo profile class.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (darkMatterProfileDMOHeated    )                :: self
@@ -109,37 +121,43 @@ contains
     logical                                                         :: velocityDispersionApproximate
     double precision                                                :: toleranceRelativeVelocityDispersion
 
-    !# <inputParameter>
-    !#   <name>nonAnalyticSolver</name>
-    !#   <defaultValue>var_str('fallThrough')</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>velocityDispersionApproximate</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>If {\normalfont \ttfamily true}, radial velocity dispersion is computed using an approximate method in which we assume that $\sigma_\mathrm{r}^2(r) \rightarrow \sigma_\mathrm{r}^2(r) - (2/3) \epsilon(r)$, where $\epsilon(r)$ is the specific heating energy. If {\normalfont \ttfamily false} then radial velocity dispersion is computed by numerically solving the Jeans equation.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>toleranceRelativeVelocityDispersion</name>
-    !#   <defaultValue>1.0d-6</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>The relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
-    !# <objectBuilder class="darkMatterProfileHeating" name="darkMatterProfileHeating_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>nonAnalyticSolver</name>
+      <defaultValue>var_str('fallThrough')</defaultValue>
+      <source>parameters</source>
+      <description>Selects how solutions are computed when no analytic solution is available. If set to ``{\normalfont \ttfamily fallThrough}'' then the solution ignoring heating is used, while if set to ``{\normalfont \ttfamily numerical}'' then numerical solvers are used to find solutions.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>velocityDispersionApproximate</name>
+      <defaultValue>.true.</defaultValue>
+      <source>parameters</source>
+      <description>If {\normalfont \ttfamily true}, radial velocity dispersion is computed using an approximate method in which we assume that $\sigma_\mathrm{r}^2(r) \rightarrow \sigma_\mathrm{r}^2(r) - (2/3) \epsilon(r)$, where $\epsilon(r)$ is the specific heating energy. If {\normalfont \ttfamily false} then radial velocity dispersion is computed by numerically solving the Jeans equation.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>toleranceRelativeVelocityDispersion</name>
+      <defaultValue>1.0d-6</defaultValue>
+      <source>parameters</source>
+      <description>The relative tolerance to use in numerical solutions for the velocity dispersion in dark-matter-only density profiles.</description>
+    </inputParameter>
+    <objectBuilder class="darkMatterProfileDMO"     name="darkMatterProfileDMO_"     source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"      name="darkMatterHaloScale_"      source="parameters"/>
+    <objectBuilder class="darkMatterProfileHeating" name="darkMatterProfileHeating_" source="parameters"/>
+    !!]
     self=darkMatterProfileDMOHeated(enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),velocityDispersionApproximate,toleranceRelativeVelocityDispersion,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterProfileDMO_"    />
-    !# <objectDestructor name="darkMatterHaloScale_"     />
-    !# <objectDestructor name="darkMatterProfileHeating_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterProfileDMO_"    />
+    <objectDestructor name="darkMatterHaloScale_"     />
+    <objectDestructor name="darkMatterProfileHeating_"/>
+    !!]
     return
   end function heatedConstructorParameters
 
   function heatedConstructorInternal(nonAnalyticSolver,velocityDispersionApproximate,toleranceRelativeVelocityDispersion,darkMatterProfileDMO_,darkMatterHaloScale_,darkMatterProfileHeating_) result(self)
-    !% Generic constructor for the {\normalfont \ttfamily heated} dark matter profile class.
+    !!{
+    Generic constructor for the {\normalfont \ttfamily heated} dark matter profile class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (darkMatterProfileDMOHeated   )                        :: self
@@ -150,7 +168,9 @@ contains
     logical                                        , intent(in   )         :: velocityDispersionApproximate
     double precision                               , intent(in   )         :: toleranceRelativeVelocityDispersion
     double precision                               , parameter             :: toleranceAbsolute                  =0.0d0, toleranceRelative=1.0d-6
-    !# <constructorAssign variables="nonAnalyticSolver, velocityDispersionApproximate, toleranceRelativeVelocityDispersion, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileHeating_"/>
+    !![
+    <constructorAssign variables="nonAnalyticSolver, velocityDispersionApproximate, toleranceRelativeVelocityDispersion, *darkMatterProfileDMO_, *darkMatterHaloScale_, *darkMatterProfileHeating_"/>
+    !!]
 
     ! Validate.
     if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Galacticus_Error_Report('invalid non-analytic solver type'//{introspection:location})
@@ -167,7 +187,9 @@ contains
   end function heatedConstructorInternal
 
   subroutine heatedAutoHook(self)
-    !% Attach to the calculation reset event.
+    !!{
+    Attach to the calculation reset event.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
     implicit none
     class(darkMatterProfileDMOHeated), intent(inout) :: self
@@ -177,20 +199,26 @@ contains
   end subroutine heatedAutoHook
 
   subroutine heatedDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily heated} dark matter halo profile class.
+    !!{
+    Destructor for the {\normalfont \ttfamily heated} dark matter halo profile class.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(darkMatterProfileDMOHeated), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterProfileDMO_"     />
-    !# <objectDestructor name="self%darkMatterHaloScale_"      />
-    !# <objectDestructor name="self%darkMatterProfileHeating_" />
+    !![
+    <objectDestructor name="self%darkMatterProfileDMO_"     />
+    <objectDestructor name="self%darkMatterHaloScale_"      />
+    <objectDestructor name="self%darkMatterProfileHeating_" />
+    !!]
     call calculationResetEvent%detach(self,heatedCalculationReset)
     return
   end subroutine heatedDestructor
 
   subroutine heatedCalculationReset(self,node)
-    !% Reset the dark matter profile calculation.
+    !!{
+    Reset the dark matter profile calculation.
+    !!}
     implicit none
     class(darkMatterProfileDMOHeated), intent(inout) :: self
     type (treeNode                  ), intent(inout) :: node
@@ -207,8 +235,10 @@ contains
   end subroutine heatedCalculationReset
 
   double precision function heatedDensity(self,node,radius)
-    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     use :: Numerical_Constants_Math    , only : Pi
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
@@ -260,8 +290,10 @@ contains
   end function heatedDensity
 
   double precision function heatedDensityLogSlope(self,node,radius)
-    !% Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node
@@ -276,8 +308,10 @@ contains
   end function heatedDensityLogSlope
 
   double precision function heatedRadiusEnclosingDensity(self,node,density)
-    !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
-    !% {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$).
+    !!{
+    Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
+    {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$).
+    !!}
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout), target :: self
     type            (treeNode                  ), intent(inout), target :: node
@@ -292,8 +326,10 @@ contains
   end function heatedRadiusEnclosingDensity
 
   double precision function heatedRadiusEnclosingMass(self,node,mass)
-    !% Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
-    !% {\normalfont \ttfamily mass} (given in units of $M_\odot$).
+    !!{
+    Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given
+    {\normalfont \ttfamily mass} (given in units of $M_\odot$).
+    !!}
     use :: Galactic_Structure_Options      , only : radiusLarge
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
@@ -317,8 +353,10 @@ contains
   end function heatedRadiusEnclosingMass
 
   double precision function heatedRadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
-    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout)           :: self
     type            (treeNode                  ), intent(inout)           :: node
@@ -334,8 +372,10 @@ contains
   end function heatedRadialMoment
 
   double precision function heatedEnclosedMass(self,node,radius)
-    !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
-    !% units of Mpc).
+    !!{
+    Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
+    units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node
@@ -346,8 +386,10 @@ contains
   end function heatedEnclosedMass
 
   double precision function heatedRadiusInitial(self,node,radiusFinal)
-    !% Find the initial radius corresponding to the given {\normalfont \ttfamily radiusFinal} in
-    !% the heated dark matter profile.
+    !!{
+    Find the initial radius corresponding to the given {\normalfont \ttfamily radiusFinal} in
+    the heated dark matter profile.
+    !!}
     use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout), target  :: self
@@ -405,7 +447,9 @@ contains
   end function heatedRadiusInitial
 
   double precision function heatedRadiusInitialRoot(radiusInitial)
-    !% Root function used in finding initial radii in heated dark matter halo profiles.
+    !!{
+    Root function used in finding initial radii in heated dark matter halo profiles.
+    !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: radiusInitial
@@ -452,8 +496,10 @@ contains
   end function heatedRadiusInitialRoot
 
   double precision function heatedPotential(self,node,radius,status)
-    !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
-    !% \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont
+    \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout)           :: self
     type            (treeNode                  ), intent(inout), target   :: node
@@ -469,8 +515,10 @@ contains
   end function heatedPotential
 
   double precision function heatedCircularVelocity(self,node,radius)
-    !% Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout) :: self
@@ -490,7 +538,9 @@ contains
   end function heatedCircularVelocity
 
   double precision function heatedRadiusCircularVelocityMaximum(self,node)
-    !% Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    !!{
+    Returns the radius (in Mpc) at which the maximum circular velocity is acheived in the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class(darkMatterProfileDMOHeated), intent(inout) :: self
     type (treeNode                  ), intent(inout) :: node
@@ -504,7 +554,9 @@ contains
   end function heatedRadiusCircularVelocityMaximum
 
   double precision function heatedCircularVelocityMaximum(self,node)
-    !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
+    !!{
+    Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
     implicit none
     class(darkMatterProfileDMOHeated), intent(inout) :: self
     type (treeNode                  ), intent(inout) :: node
@@ -518,8 +570,10 @@ contains
   end function heatedCircularVelocityMaximum
 
   double precision function heatedRadialVelocityDispersion(self,node,radius)
-    !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node
@@ -545,8 +599,10 @@ contains
   end function heatedRadialVelocityDispersion
 
   double precision function heatedRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
-    !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
-    !% in units of km s$^{-1}$ Mpc).
+    !!{
+    Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
+    in units of km s$^{-1}$ Mpc).
+    !!}
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout) :: self
     type            (treeNode                  ), intent(inout) :: node
@@ -561,7 +617,9 @@ contains
   end function heatedRadiusFromSpecificAngularMomentum
 
   double precision function heatedRotationNormalization(self,node)
-    !% Return the normalization of the rotation velocity vs. specific angular momentum relation.
+    !!{
+    Return the normalization of the rotation velocity vs. specific angular momentum relation.
+    !!}
     implicit none
     class(darkMatterProfileDMOHeated), intent(inout) :: self
     type (treeNode                  ), intent(inout) :: node
@@ -575,7 +633,9 @@ contains
   end function heatedRotationNormalization
 
   double precision function heatedEnergy(self,node)
-    !% Return the energy of a heated halo density profile.
+    !!{
+    Return the energy of a heated halo density profile.
+    !!}
     implicit none
     class(darkMatterProfileDMOHeated), intent(inout) :: self
     type (treeNode                  ), intent(inout) :: node
@@ -589,7 +649,9 @@ contains
   end function heatedEnergy
 
   double precision function heatedEnergyGrowthRate(self,node)
-    !% Return the rate of change of the energy of a heated halo density profile.
+    !!{
+    Return the rate of change of the energy of a heated halo density profile.
+    !!}
     implicit none
     class(darkMatterProfileDMOHeated), intent(inout)         :: self
     type (treeNode                  ), intent(inout), target :: node
@@ -603,8 +665,10 @@ contains
   end function heatedEnergyGrowthRate
 
   double precision function heatedKSpace(self,node,waveNumber)
-    !% Returns the Fourier transform of the heated density profile at the specified {\normalfont \ttfamily waveNumber}
-    !% (given in Mpc$^{-1}$), using the expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; eqn.~81).
+    !!{
+    Returns the Fourier transform of the heated density profile at the specified {\normalfont \ttfamily waveNumber}
+    (given in Mpc$^{-1}$), using the expression given in \citeauthor{cooray_halo_2002}~(\citeyear{cooray_halo_2002}; eqn.~81).
+    !!}
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout)         :: self
     type            (treeNode                  ), intent(inout), target :: node
@@ -619,8 +683,10 @@ contains
   end function heatedKSpace
 
   double precision function heatedFreefallRadius(self,node,time)
-    !% Returns the freefall radius in the heated density profile at the specified {\normalfont \ttfamily time} (given in
-    !% Gyr).
+    !!{
+    Returns the freefall radius in the heated density profile at the specified {\normalfont \ttfamily time} (given in
+    Gyr).
+    !!}
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout), target :: self
     type            (treeNode                  ), intent(inout), target :: node
@@ -635,8 +701,10 @@ contains
   end function heatedFreefallRadius
 
   double precision function heatedFreefallRadiusIncreaseRate(self,node,time)
-    !% Returns the rate of increase of the freefall radius in the heated density profile at the specified {\normalfont
-    !% \ttfamily time} (given in Gyr).
+    !!{
+    Returns the rate of increase of the freefall radius in the heated density profile at the specified {\normalfont
+    \ttfamily time} (given in Gyr).
+    !!}
     implicit none
     class           (darkMatterProfileDMOHeated), intent(inout), target :: self
     type            (treeNode                  ), intent(inout), target :: node

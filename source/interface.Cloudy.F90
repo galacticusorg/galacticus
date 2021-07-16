@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides various interfaces to the \gls{cloudy} code.
+!!{
+Contains a module which provides various interfaces to the \gls{cloudy} code.
+!!}
 
 module Interfaces_Cloudy
-  !% Provides various interfaces to the \gls{cloudy} code.
+  !!{
+  Provides various interfaces to the \gls{cloudy} code.
+  !!}
   private
   public :: Interface_Cloudy_Initialize
 
 contains
 
   subroutine Interface_Cloudy_Initialize(cloudyPath,cloudyVersion,static)
-    !% Initialize the interface with Cloudy, including downloading and compiling Cloudy if necessary.
+    !!{
+    Initialize the interface with Cloudy, including downloading and compiling Cloudy if necessary.
+    !!}
     use :: Display           , only : displayMessage         , verbosityLevelWorking
     use :: File_Utilities    , only : File_Exists
     use :: Galacticus_Error  , only : Galacticus_Error_Report
@@ -42,7 +48,9 @@ contains
     character(len=3         )                          :: staticDefault
     character(len=1024      )                          :: compilerPath
     type     (varying_string)                          :: command
-    !# <optionalArgument name="static" defaultsTo=".false." />
+    !![
+    <optionalArgument name="static" defaultsTo=".false." />
+    !!]
 
     ! Specify Cloudy version.
     cloudyVersion="c17.02"

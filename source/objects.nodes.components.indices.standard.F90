@@ -17,36 +17,46 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements the standard indices component.
+!!{
+Contains a module which implements the standard indices component.
+!!}
 
 module Node_Component_Indices_Standard
-  !% Implements the standard indices component.
+  !!{
+  Implements the standard indices component.
+  !!}
   implicit none
   private
   public :: Node_Component_Indices_Standard_Merger_Tree_Init
 
-  !# <component>
-  !#  <class>indices</class>
-  !#  <name>standard</name>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>branchTip</name>
-  !#     <type>longInteger</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#     <output unitsInSI="0.0d0" comment="Index of the node at the tip of the branch in which this galaxy formed."/>
-  !#   </property>
-  !#  </properties>
-  !# </component>
+  !![
+  <component>
+   <class>indices</class>
+   <name>standard</name>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>branchTip</name>
+      <type>longInteger</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+      <output unitsInSI="0.0d0" comment="Index of the node at the tip of the branch in which this galaxy formed."/>
+    </property>
+   </properties>
+  </component>
+  !!]
 
 contains
 
-  !# <mergerTreeInitializeTask>
-  !#  <unitName>Node_Component_Indices_Standard_Merger_Tree_Init</unitName>
-  !# </mergerTreeInitializeTask>
+  !![
+  <mergerTreeInitializeTask>
+   <unitName>Node_Component_Indices_Standard_Merger_Tree_Init</unitName>
+  </mergerTreeInitializeTask>
+  !!]
   subroutine Node_Component_Indices_Standard_Merger_Tree_Init(node)
-    !% Initialize the indices component by creating components in nodes and storing indices.
+    !!{
+    Initialize the indices component by creating components in nodes and storing indices.
+    !!}
     use :: Galacticus_Nodes, only : defaultIndicesComponent, nodeComponentIndices, nodeComponentIndicesStandard, treeNode
     implicit none
     type (treeNode            ), intent(inout), pointer :: node

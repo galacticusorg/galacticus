@@ -17,17 +17,23 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module of useful atomic constants.
+!!{
+Contains a module of useful atomic constants.
+!!}
 
 module Numerical_Constants_Atomic
-  !% Contains various useful atomic constants.
+  !!{
+  Contains various useful atomic constants.
+  !!}
   use :: Numerical_Constants_Physical, only : electronMass     , plancksConstant, speedLight
   use :: Numerical_Constants_Units   , only : angstromsPerMeter, rydbergs
   implicit none
   public
 
   ! Atomic mass unit (in kg).
-  !# <gslConstant variable="atomicMassUnit" gslSymbol="GSL_CONST_MKSA_UNIFIED_ATOMIC_MASS" gslHeader="gsl_const_mksa"/>
+  !![
+  <gslConstant variable="atomicMassUnit" gslSymbol="GSL_CONST_MKSA_UNIFIED_ATOMIC_MASS" gslHeader="gsl_const_mksa"/>
+  !!]
 
   ! Atomic masses.
   double precision, parameter :: atomicMassHydrogen                =1.007825d0

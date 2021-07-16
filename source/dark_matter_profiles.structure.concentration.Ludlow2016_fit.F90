@@ -17,8 +17,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of dark matter halo profile concentrations using the \cite{ludlow_mass-concentration-redshift_2016}
-  !% fitting function.
+  !!{
+  An implementation of dark matter halo profile concentrations using the \cite{ludlow_mass-concentration-redshift_2016}
+  fitting function.
+  !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
@@ -26,18 +28,22 @@
   use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMOEinasto
   use :: Virial_Density_Contrast   , only : virialDensityContrastFixed
 
-  !# <darkMatterProfileConcentration name="darkMatterProfileConcentrationLudlow2016Fit">
-  !#  <description>Dark matter halo concentrations are computed using the fitting function of \cite{ludlow_mass-concentration-redshift_2016}.</description>
-  !#  <deepCopy>
-  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
-  !#  </stateStorable>
-  !# </darkMatterProfileConcentration>
+  !![
+  <darkMatterProfileConcentration name="darkMatterProfileConcentrationLudlow2016Fit">
+   <description>Dark matter halo concentrations are computed using the fitting function of \cite{ludlow_mass-concentration-redshift_2016}.</description>
+   <deepCopy>
+    <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="virialDensityContrastDefinition_, darkMatterProfileDMODefinition_"/>
+   </stateStorable>
+  </darkMatterProfileConcentration>
+  !!]
   type, extends(darkMatterProfileConcentrationClass) :: darkMatterProfileConcentrationLudlow2016Fit
-     !% A dark matter halo profile concentration class implementing the fitting function of
-     !% \cite{ludlow_mass-concentration-redshift_2016}.
+     !!{
+     A dark matter halo profile concentration class implementing the fitting function of
+     \cite{ludlow_mass-concentration-redshift_2016}.
+     !!}
      private
      class(cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_              => null()
      class(cosmologyParametersClass     ), pointer :: cosmologyParameters_             => null()
@@ -52,7 +58,9 @@
   end type darkMatterProfileConcentrationLudlow2016Fit
 
   interface darkMatterProfileConcentrationLudlow2016Fit
-     !% Constructors for the {\normalfont \ttfamily ludlow2016Fit} dark matter halo profile concentration class.
+     !!{
+     Constructors for the {\normalfont \ttfamily ludlow2016Fit} dark matter halo profile concentration class.
+     !!}
      module procedure ludlow2016FitConstructorParameters
      module procedure ludlow2016FitConstructorInternal
   end interface darkMatterProfileConcentrationLudlow2016Fit
@@ -60,7 +68,9 @@
 contains
 
   function ludlow2016FitConstructorParameters(parameters) result(self)
-    !% Default constructor for the {\normalfont \ttfamily ludlow2016Fit} dark matter halo profile concentration class.
+    !!{
+    Default constructor for the {\normalfont \ttfamily ludlow2016Fit} dark matter halo profile concentration class.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (darkMatterProfileConcentrationLudlow2016Fit)                :: self
@@ -69,19 +79,25 @@ contains
     class(cosmologyParametersClass                   ), pointer       :: cosmologyParameters_
     class(cosmologicalMassVarianceClass              ), pointer       :: cosmologicalMassVariance_
 
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !!]
     self=darkMatterProfileConcentrationLudlow2016Fit(cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"      />
-    !# <objectDestructor name="cosmologyParameters_"     />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="cosmologyParameters_"     />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    !!]
     return
   end function ludlow2016FitConstructorParameters
 
   function ludlow2016FitConstructorInternal(cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_) result(self)
-    !% Constructor for the {\normalfont \ttfamily ludlow2016Fit} dark matter halo profile concentration class.
+    !!{
+    Constructor for the {\normalfont \ttfamily ludlow2016Fit} dark matter halo profile concentration class.
+    !!}
     use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleVirialDensityContrastDefinition
     use :: Virial_Density_Contrast, only : fixedDensityTypeCritical
     implicit none
@@ -90,58 +106,68 @@ contains
     class(cosmologyParametersClass                          ), intent(in   ), target  :: cosmologyParameters_
     class(cosmologicalMassVarianceClass                     ), intent(in   ), target  :: cosmologicalMassVariance_
     type (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
-    !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_, *cosmologicalMassVariance_"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_, *cosmologicalMassVariance_"/>
+    !!]
 
     allocate(self%virialDensityContrastDefinition_)
     allocate(self%darkMatterProfileDMODefinition_ )
     allocate(     darkMatterHaloScaleDefinition_  )
-    !# <referenceConstruct owner="self" object="virialDensityContrastDefinition_">
-    !#  <constructor>
-    !#   virialDensityContrastFixed                        (                                                                            &amp;
-    !#    &amp;                                             densityContrastValue                =200.0d0                              , &amp;
-    !#    &amp;                                             densityType                         =fixedDensityTypeCritical             , &amp;
-    !#    &amp;                                             turnAroundOverVirialRadius          =2.0d0                                , &amp;
-    !#    &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
-    !#    &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_               &amp;
-    !#    &amp;                                            )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <referenceConstruct              object="darkMatterHaloScaleDefinition_"  >
-    !#  <constructor>
-    !#   darkMatterHaloScaleVirialDensityContrastDefinition(                                                                            &amp;
-    !#    &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
-    !#    &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_             , &amp;
-    !#    &amp;                                             virialDensityContrast_              =self%virialDensityContrastDefinition_  &amp;
-    !#    &amp;                                            )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_" >
-    !#  <constructor>
-    !#   darkMatterProfileDMOEinasto                       (                                                                            &amp;
-    !#    &amp;                                             darkMatterHaloScale_                =darkMatterHaloScaleDefinition_         &amp;
-    !#    &amp;                                            )
-    !#  </constructor>
-    !# </referenceConstruct>
-    !# <objectDestructor                name  ="darkMatterHaloScaleDefinition_" />
+    !![
+    <referenceConstruct owner="self" object="virialDensityContrastDefinition_">
+     <constructor>
+      virialDensityContrastFixed                        (                                                                            &amp;
+       &amp;                                             densityContrastValue                =200.0d0                              , &amp;
+       &amp;                                             densityType                         =fixedDensityTypeCritical             , &amp;
+       &amp;                                             turnAroundOverVirialRadius          =2.0d0                                , &amp;
+       &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+       &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_               &amp;
+       &amp;                                            )
+     </constructor>
+    </referenceConstruct>
+    <referenceConstruct              object="darkMatterHaloScaleDefinition_"  >
+     <constructor>
+      darkMatterHaloScaleVirialDensityContrastDefinition(                                                                            &amp;
+       &amp;                                             cosmologyParameters_                =self%cosmologyParameters_            , &amp;
+       &amp;                                             cosmologyFunctions_                 =self%cosmologyFunctions_             , &amp;
+       &amp;                                             virialDensityContrast_              =self%virialDensityContrastDefinition_  &amp;
+       &amp;                                            )
+     </constructor>
+    </referenceConstruct>
+    <referenceConstruct owner="self" object="darkMatterProfileDMODefinition_" >
+     <constructor>
+      darkMatterProfileDMOEinasto                       (                                                                            &amp;
+       &amp;                                             darkMatterHaloScale_                =darkMatterHaloScaleDefinition_         &amp;
+       &amp;                                            )
+     </constructor>
+    </referenceConstruct>
+    <objectDestructor                name  ="darkMatterHaloScaleDefinition_" />
+    !!]
     return
   end function ludlow2016FitConstructorInternal
 
   subroutine ludlow2016FitDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily ludlow2016Fit} dark matter halo profile concentration class.
+    !!{
+    Destructor for the {\normalfont \ttfamily ludlow2016Fit} dark matter halo profile concentration class.
+    !!}
     implicit none
     type(darkMatterProfileConcentrationLudlow2016Fit), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"             />
-    !# <objectDestructor name="self%cosmologyParameters_"            />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"       />
-    !# <objectDestructor name="self%virialDensityContrastDefinition_"/>
-    !# <objectDestructor name="self%darkMatterProfileDMODefinition_" />
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"             />
+    <objectDestructor name="self%cosmologyParameters_"            />
+    <objectDestructor name="self%cosmologicalMassVariance_"       />
+    <objectDestructor name="self%virialDensityContrastDefinition_"/>
+    <objectDestructor name="self%darkMatterProfileDMODefinition_" />
+    !!]
     return
   end subroutine ludlow2016FitDestructor
 
   double precision function ludlow2016FitConcentration(self,node)
-    !% Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
-    !% \cite{ludlow_mass-concentration-redshift_2016} fitting function.
+    !!{
+    Return the concentration of the dark matter halo profile of {\normalfont \ttfamily node} using the
+    \cite{ludlow_mass-concentration-redshift_2016} fitting function.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic     , treeNode
     implicit none
@@ -177,8 +203,10 @@ contains
   end function ludlow2016FitConcentration
 
   function ludlow2016FitDensityContrastDefinition(self)
-    !% Return a virial density contrast object defining that used in the definition of concentration in the
-    !% \cite{diemer_universal_2014} algorithm.
+    !!{
+    Return a virial density contrast object defining that used in the definition of concentration in the
+    \cite{diemer_universal_2014} algorithm.
+    !!}
     implicit none
     class(virialDensityContrastClass                 ), pointer       :: ludlow2016FitDensityContrastDefinition
     class(darkMatterProfileConcentrationLudlow2016Fit), intent(inout) :: self
@@ -188,8 +216,10 @@ contains
   end function ludlow2016FitDensityContrastDefinition
 
   function ludlow2016FitDarkMatterProfileDefinition(self)
-    !% Return a dark matter density profile object defining that used in the definition of concentration in the
-    !% \cite{ludlow_mass-concentration-redshift_2016} algorithm.
+    !!{
+    Return a dark matter density profile object defining that used in the definition of concentration in the
+    \cite{ludlow_mass-concentration-redshift_2016} algorithm.
+    !!}
     implicit none
     class(darkMatterProfileDMOClass                  ), pointer       :: ludlow2016FitDarkMatterProfileDefinition
     class(darkMatterProfileConcentrationLudlow2016Fit), intent(inout) :: self

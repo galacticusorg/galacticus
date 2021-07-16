@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <task name="taskBuildToolRecFast">
-  !#  <description>A task which builds the RecFast tool.</description>
-  !# </task>
+  !![
+  <task name="taskBuildToolRecFast">
+   <description>A task which builds the RecFast tool.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskBuildToolRecFast
-     !% Implementation of a task which builds the RecFast tool.
+     !!{
+     Implementation of a task which builds the RecFast tool.
+     !!}
      private
    contains
      procedure :: perform            => buildToolRecFastPerform
@@ -29,14 +33,18 @@
   end type taskBuildToolRecFast
 
   interface taskBuildToolRecFast
-     !% Constructors for the {\normalfont \ttfamily buildToolRecFast} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily buildToolRecFast} task.
+     !!}
      module procedure buildToolRecFastParameters
   end interface taskBuildToolRecFast
 
 contains
 
   function buildToolRecFastParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily buildToolRecFast} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily buildToolRecFast} task class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(taskBuildToolRecFast)                :: self
@@ -48,7 +56,9 @@ contains
   end function buildToolRecFastParameters
 
   subroutine buildToolRecFastPerform(self,status)
-    !% Builds the tabulation.
+    !!{
+    Builds the tabulation.
+    !!}
     use :: Display           , only : displayIndent               , displayMessage, displayUnindent
     use :: Galacticus_Error  , only : errorStatusSuccess
     use :: Interfaces_RecFast, only : Interface_RecFast_Initialize
@@ -67,7 +77,9 @@ contains
   end subroutine buildToolRecFastPerform
 
   logical function buildToolRecFastRequiresOutputFile(self)
-    !% Specifies that this task does not requires the main output file.
+    !!{
+    Specifies that this task does not requires the main output file.
+    !!}
     implicit none
     class(taskBuildToolRecFast), intent(inout) :: self
     !$GLC attributes unused :: self

@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements tracking of dynamics statistics related to bars.
+!!{
+Contains a module which implements tracking of dynamics statistics related to bars.
+!!}
 
 module Node_Component_Dynamics_Statistics_Bars
-  !% Implements tracking of dynamics statistics related to bars.
+  !!{
+  Implements tracking of dynamics statistics related to bars.
+  !!}
   use :: Dark_Matter_Halo_Scales            , only : darkMatterHaloScaleClass
   use :: Galactic_Dynamics_Bar_Instabilities, only : galacticDynamicsBarInstabilityClass
   implicit none
@@ -29,35 +33,37 @@ module Node_Component_Dynamics_Statistics_Bars
        &    Node_Component_Dynamics_Statistics_Bars_Thread_Initialize  , Node_Component_Dynamics_Statistics_Bars_Initialize, &
        &    Node_Component_Dynamics_Statistics_Bars_Thread_Uninitialize
 
-  !# <component>
-  !#  <class>dynamicsStatistics</class>
-  !#  <name>bars</name>
-  !#  <isDefault>false</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>time</name>
-  !#     <type>double</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#   <property>
-  !#     <name>barInstabilityTimescale</name>
-  !#     <type>double</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#   <property>
-  !#     <name>adiabaticRatio</name>
-  !#     <type>double</type>
-  !#     <rank>1</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-  !#   </property>
-  !#  </properties>
-  !#  <bindings>
-  !#   <binding method="record" function="Node_Component_Dynamics_Statistics_Bars_Record" bindsTo="component" description="Record the current bar-dynamical state of the node." returnType="\void" arguments="\doublezero\ time\argin, \doublezero\ barInstabilityTimescale\argin, \doublezero adiabaticRatio\argin" />
-  !#  </bindings>
-  !#  <functions>objects.nodes.components.dynamics_statistics.bars.bound_functions.inc</functions>
-  !# </component>
+  !![
+  <component>
+   <class>dynamicsStatistics</class>
+   <name>bars</name>
+   <isDefault>false</isDefault>
+   <properties>
+    <property>
+      <name>time</name>
+      <type>double</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+    <property>
+      <name>barInstabilityTimescale</name>
+      <type>double</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+    <property>
+      <name>adiabaticRatio</name>
+      <type>double</type>
+      <rank>1</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
+    </property>
+   </properties>
+   <bindings>
+    <binding method="record" function="Node_Component_Dynamics_Statistics_Bars_Record" bindsTo="component" description="Record the current bar-dynamical state of the node." returnType="\void" arguments="\doublezero\ time\argin, \doublezero\ barInstabilityTimescale\argin, \doublezero adiabaticRatio\argin" />
+   </bindings>
+   <functions>objects.nodes.components.dynamics_statistics.bars.bound_functions.inc</functions>
+  </component>
+  !!]
 
   ! Objects used by this component.
   class(darkMatterHaloScaleClass           ), pointer :: darkMatterHaloScale_
@@ -71,64 +77,86 @@ module Node_Component_Dynamics_Statistics_Bars
 
 contains
 
-  !# <nodeComponentInitializationTask>
-  !#  <unitName>Node_Component_Dynamics_Statistics_Bars_Initialize</unitName>
-  !# </nodeComponentInitializationTask>
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>Node_Component_Dynamics_Statistics_Bars_Initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
   subroutine Node_Component_Dynamics_Statistics_Bars_Initialize(parameters_)
-    !% Initializes the tree node standard disk methods module.
+    !!{
+    Initializes the tree node standard disk methods module.
+    !!}
     use :: Galacticus_Nodes, only : defaultDynamicsStatisticsComponent
     use :: Input_Parameters, only : inputParameter                    , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
 
     if (defaultDynamicsStatisticsComponent%barsIsActive()) then
-       !# <inputParameter>
-       !#   <name>dynamicsStatisticsBarsFrequency</name>
-       !#   <defaultValue>0.1d0</defaultValue>
-       !#   <description>The frequency (in fractions of the host halo dynamical time) at which to record the bar dynamical status of satellite galaxies.</description>
-       !#   <source>parameters_</source>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>dynamicsStatisticsBarsFrequency</name>
+         <defaultValue>0.1d0</defaultValue>
+         <description>The frequency (in fractions of the host halo dynamical time) at which to record the bar dynamical status of satellite galaxies.</description>
+         <source>parameters_</source>
+       </inputParameter>
+       !!]
     end if
     return
   end subroutine Node_Component_Dynamics_Statistics_Bars_Initialize
 
-  !# <nodeComponentThreadInitializationTask>
-  !#  <unitName>Node_Component_Dynamics_Statistics_Bars_Thread_Initialize</unitName>
-  !# </nodeComponentThreadInitializationTask>
+  !![
+  <nodeComponentThreadInitializationTask>
+   <unitName>Node_Component_Dynamics_Statistics_Bars_Thread_Initialize</unitName>
+  </nodeComponentThreadInitializationTask>
+  !!]
   subroutine Node_Component_Dynamics_Statistics_Bars_Thread_Initialize(parameters_)
-    !% Initializes the tree node very simple disk profile module.
+    !!{
+    Initializes the tree node very simple disk profile module.
+    !!}
     use :: Galacticus_Nodes, only : defaultDynamicsStatisticsComponent
     use :: Input_Parameters, only : inputParameter                    , inputParameters
     implicit none
     type(inputParameters), intent(inout) :: parameters_
 
     if (defaultDynamicsStatisticsComponent%barsIsActive()) then
-       !# <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters_"/>
-       !# <objectBuilder class="galacticDynamicsBarInstability" name="galacticDynamicsBarInstability_" source="parameters_"/>
+       !![
+       <objectBuilder class="darkMatterHaloScale"            name="darkMatterHaloScale_"            source="parameters_"/>
+       <objectBuilder class="galacticDynamicsBarInstability" name="galacticDynamicsBarInstability_" source="parameters_"/>
+       !!]
     end if
     return
   end subroutine Node_Component_Dynamics_Statistics_Bars_Thread_Initialize
 
-  !# <nodeComponentThreadUninitializationTask>
-  !#  <unitName>Node_Component_Dynamics_Statistics_Bars_Thread_Uninitialize</unitName>
-  !# </nodeComponentThreadUninitializationTask>
+  !![
+  <nodeComponentThreadUninitializationTask>
+   <unitName>Node_Component_Dynamics_Statistics_Bars_Thread_Uninitialize</unitName>
+  </nodeComponentThreadUninitializationTask>
+  !!]
   subroutine Node_Component_Dynamics_Statistics_Bars_Thread_Uninitialize()
-    !% Uninitializes the tree node very simple disk profile module.
+    !!{
+    Uninitializes the tree node very simple disk profile module.
+    !!}
     use :: Galacticus_Nodes, only : defaultDynamicsStatisticsComponent
     implicit none
 
     if (defaultDynamicsStatisticsComponent%barsIsActive()) then
-       !# <objectDestructor name="darkMatterHaloScale_"           />
-       !# <objectDestructor name="galacticDynamicsBarInstability_"/>
+       !![
+       <objectDestructor name="darkMatterHaloScale_"           />
+       <objectDestructor name="galacticDynamicsBarInstability_"/>
+       !!]
     end if
     return
   end subroutine Node_Component_Dynamics_Statistics_Bars_Thread_Uninitialize
 
-  !# <rateComputeTask>
-  !#  <unitName>Node_Component_Dynamics_Statistics_Bars_Rate_Compute</unitName>
-  !# </rateComputeTask>
+  !![
+  <rateComputeTask>
+   <unitName>Node_Component_Dynamics_Statistics_Bars_Rate_Compute</unitName>
+  </rateComputeTask>
+  !!]
   subroutine Node_Component_Dynamics_Statistics_Bars_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
-    !% Compute the standard disk node mass rate of change.
+    !!{
+    Compute the standard disk node mass rate of change.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultDynamicsStatisticsComponent , interruptTask, nodeComponentBasic, nodeComponentDynamicsStatistics, &
           &                         nodeComponentDynamicsStatisticsBars, treeNode
@@ -174,7 +202,9 @@ contains
   end subroutine Node_Component_Dynamics_Statistics_Bars_Rate_Compute
 
   subroutine Node_Component_Dynamics_Statistics_Bars_Record(node)
-    !% Record the bar dynamical state of a satellite galaxy.
+    !!{
+    Record the bar dynamical state of a satellite galaxy.
+    !!}
     use :: Galacticus_Nodes        , only : nodeComponentBasic                              , nodeComponentDisk , nodeComponentDynamicsStatistics, nodeComponentDynamicsStatisticsBars, &
           &                                 nodeComponentSatellite                          , treeNode
     use :: Kepler_Orbits           , only : keplerOrbit
@@ -214,11 +244,15 @@ contains
     return
   end subroutine Node_Component_Dynamics_Statistics_Bars_Record
 
-  !# <mergerTreeExtraOutputTask>
-  !#  <unitName>Node_Component_Dynamics_Statistics_Bars_Output</unitName>
-  !# </mergerTreeExtraOutputTask>
+  !![
+  <mergerTreeExtraOutputTask>
+   <unitName>Node_Component_Dynamics_Statistics_Bars_Output</unitName>
+  </mergerTreeExtraOutputTask>
+  !!]
   subroutine Node_Component_Dynamics_Statistics_Bars_Output(node,iOutput,treeIndex,nodePassesFilter)
-    !% Store the dynamical histories of galaxies to \glc\ output file.
+    !!{
+    Store the dynamical histories of galaxies to \glc\ output file.
+    !!}
     use            :: Galacticus_HDF5                 , only : galacticusOutputFile
     use            :: Galacticus_Nodes                , only : nodeComponentDynamicsStatistics, nodeComponentDynamicsStatisticsBars, treeNode
     use            :: IO_HDF5                         , only : hdf5Object

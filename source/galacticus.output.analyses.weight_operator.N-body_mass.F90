@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a weight operator class in which the weight is multiplied by an integral over the N-body
-!% halo mass distribution.
+!!{
+Contains a module which implements a weight operator class in which the weight is multiplied by an integral over the N-body
+halo mass distribution.
+!!}
 
   use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
 
-  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorNbodyMass">
-  !#  <description>A weight operator class in which the weight is multiplied by an integral over the N-body halo mass distribution.</description>
-  !# </outputAnalysisWeightOperator>
+  !![
+  <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorNbodyMass">
+   <description>A weight operator class in which the weight is multiplied by an integral over the N-body halo mass distribution.</description>
+  </outputAnalysisWeightOperator>
+  !!]
   type, extends(outputAnalysisWeightOperatorNormal) :: outputAnalysisWeightOperatorNbodyMass
-     !% A weight operator class in which the weight is multiplied by an integral over the N-body halo mass distribution.
+     !!{
+     A weight operator class in which the weight is multiplied by an integral over the N-body halo mass distribution.
+     !!}
      private
      class(nbodyHaloMassErrorClass), pointer :: nbodyHaloMassError_ => null()
    contains
@@ -35,7 +41,9 @@
   end type outputAnalysisWeightOperatorNbodyMass
 
   interface outputAnalysisWeightOperatorNbodyMass
-     !% Constructors for the ``nbodyMass'' output analysis class.
+     !!{
+     Constructors for the ``nbodyMass'' output analysis class.
+     !!}
      module procedure nbodyMassConstructorParameters
      module procedure nbodyMassConstructorInternal
   end interface outputAnalysisWeightOperatorNbodyMass
@@ -43,7 +51,9 @@
 contains
 
   function nbodyMassConstructorParameters(parameters) result(self)
-    !% Constructor for the ``nbodyMass'' output analysis weight operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``nbodyMass'' output analysis weight operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (outputAnalysisWeightOperatorNbodyMass)                :: self
@@ -54,29 +64,35 @@ contains
     double precision                                                       :: rangeLower                      , rangeUpper
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>rangeLower</name>
-    !#   <source>parameters</source>
-    !#   <description>Lower integration limit for the nbodyMass distribution weight operator.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>rangeUpper</name>
-    !#   <source>parameters</source>
-    !#   <description>Upper integration limit for the nbodyMass distribution weight operator.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="nodePropertyExtractor"           name="nodePropertyExtractor_"           source="parameters"/>
-    !# <objectBuilder class="outputAnalysisPropertyOperator"  name="outputAnalysisPropertyOperator_"  source="parameters"/>
-    !# <objectBuilder class="nbodyHaloMassError"              name="nbodyHaloMassError_"              source="parameters"/>
+    !![
+    <inputParameter>
+      <name>rangeLower</name>
+      <source>parameters</source>
+      <description>Lower integration limit for the nbodyMass distribution weight operator.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>rangeUpper</name>
+      <source>parameters</source>
+      <description>Upper integration limit for the nbodyMass distribution weight operator.</description>
+    </inputParameter>
+    <objectBuilder class="nodePropertyExtractor"           name="nodePropertyExtractor_"           source="parameters"/>
+    <objectBuilder class="outputAnalysisPropertyOperator"  name="outputAnalysisPropertyOperator_"  source="parameters"/>
+    <objectBuilder class="nbodyHaloMassError"              name="nbodyHaloMassError_"              source="parameters"/>
+    !!]
     self=outputAnalysisWeightOperatorNbodyMass(rangeLower,rangeUpper,nodePropertyExtractor_,outputAnalysisPropertyOperator_,nbodyHaloMassError_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="nodePropertyExtractor_"/>
-    !# <objectDestructor name="outputAnalysisPropertyOperator_" />
-    !# <objectDestructor name="nbodyHaloMassError_"             />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="nodePropertyExtractor_"/>
+    <objectDestructor name="outputAnalysisPropertyOperator_" />
+    <objectDestructor name="nbodyHaloMassError_"             />
+    !!]
     return
   end function nbodyMassConstructorParameters
 
   function nbodyMassConstructorInternal(rangeLower,rangeUpper,nodePropertyExtractor_,outputAnalysisPropertyOperator_,nbodyHaloMassError_) result (self)
-    !% Internal constructor for the ``nbodyMass'' output analysis distribution operator class.
+    !!{
+    Internal constructor for the ``nbodyMass'' output analysis distribution operator class.
+    !!}
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Node_Property_Extractors, only : nodePropertyExtractorClass, nodePropertyExtractorScalar
     implicit none
@@ -85,7 +101,9 @@ contains
     class           (nodePropertyExtractorClass           ), intent(in   ), target :: nodePropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass  ), intent(in   ), target :: outputAnalysisPropertyOperator_
     class(nbodyHaloMassErrorClass                         ), intent(in   ), target :: nbodyHaloMassError_
-    !# <constructorAssign variables="rangeLower, rangeUpper, *nodePropertyExtractor_, *outputAnalysisPropertyOperator_, *nbodyHaloMassError_"/>
+    !![
+    <constructorAssign variables="rangeLower, rangeUpper, *nodePropertyExtractor_, *outputAnalysisPropertyOperator_, *nbodyHaloMassError_"/>
+    !!]
 
     select type (nodePropertyExtractor_)
     class is (nodePropertyExtractorScalar)
@@ -97,17 +115,23 @@ contains
   end function nbodyMassConstructorInternal
 
   subroutine nbodyMassDestructor(self)
-    !% Destructor for  the ``nbodyMass'' output analysis weight operator class.
+    !!{
+    Destructor for  the ``nbodyMass'' output analysis weight operator class.
+    !!}
     type(outputAnalysisWeightOperatorNbodyMass), intent(inout) :: self
 
-    !# <objectDestructor name="self%nbodyHaloMassError_"             />
-    !# <objectDestructor name="self%nodePropertyExtractor_"/>
-    !# <objectDestructor name="self%outputAnalysisPropertyOperator_" />
+    !![
+    <objectDestructor name="self%nbodyHaloMassError_"             />
+    <objectDestructor name="self%nodePropertyExtractor_"/>
+    <objectDestructor name="self%outputAnalysisPropertyOperator_" />
+    !!]
     return
   end subroutine nbodyMassDestructor
 
   double precision function nbodyMassRootVariance(self,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
-    !% Return the root variance for use in the ``nbodyMass'' output analysis weight operator class.
+    !!{
+    Return the root variance for use in the ``nbodyMass'' output analysis weight operator class.
+    !!}
     use :: Node_Property_Extractors, only : nodePropertyExtractorScalar
     implicit none
     class           (outputAnalysisWeightOperatorNbodyMass), intent(inout) :: self

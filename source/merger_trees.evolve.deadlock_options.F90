@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides an enumeration for tree deadlock statuses.
+!!{
+Contains a module which provides an enumeration for tree deadlock statuses.
+!!}
 
 module Merger_Trees_Evolve_Deadlock_Status
-  !% Provides an enumeration for tree deadlock statuses.
+  !!{
+  Provides an enumeration for tree deadlock statuses.
+  !!}
   public
 
-  !# <enumeration>
-  !#  <name>deadlockStatus</name>
-  !#  <description>Specifies deadlock status during merger tree evolution.</description>
-  !#  <entry label="isNotDeadlocked" />
-  !#  <entry label="isReporting"     />
-  !#  <entry label="isSuspendable"   />
-  !#  <entry label="isDeadlocked"    />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>deadlockStatus</name>
+   <description>Specifies deadlock status during merger tree evolution.</description>
+   <entry label="isNotDeadlocked" />
+   <entry label="isReporting"     />
+   <entry label="isSuspendable"   />
+   <entry label="isDeadlocked"    />
+  </enumeration>
+  !!]
 end module Merger_Trees_Evolve_Deadlock_Status

@@ -17,14 +17,20 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a tree walker for trees under construction.
+  !!{
+  Contains a module which implements a tree walker for trees under construction.
+  !!}
   use :: Galacticus_Nodes, only : mergerTree, treeNode
 
-  !# <mergerTreeWalker name="mergerTreeWalkerTreeConstruction">
-  !#  <description>Provides a merger tree walker for trees under construction.</description>
-  !# </mergerTreeWalker>
+  !![
+  <mergerTreeWalker name="mergerTreeWalkerTreeConstruction">
+   <description>Provides a merger tree walker for trees under construction.</description>
+  </mergerTreeWalker>
+  !!]
   type, extends(mergerTreeWalkerClass) :: mergerTreeWalkerTreeConstruction
-     !% A merger tree walker for trees under construction.
+     !!{
+     A merger tree walker for trees under construction.
+     !!}
      private
      type   (mergerTree), pointer :: tree => null()
      type   (treeNode  ), pointer :: node => null()
@@ -35,7 +41,9 @@
   end type mergerTreeWalkerTreeConstruction
 
   interface mergerTreeWalkerTreeConstruction
-     !% Constructors for the {\normalfont \ttfamily treeConstruction} merger tree walker class.
+     !!{
+     Constructors for the {\normalfont \ttfamily treeConstruction} merger tree walker class.
+     !!}
      module procedure treeConstructionParameters
      module procedure treeConstructionInternal
   end interface mergerTreeWalkerTreeConstruction
@@ -43,12 +51,14 @@
 contains
 
   function treeConstructionParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily treeConstruction} merger tree walker class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily treeConstruction} merger tree walker class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeWalkerTreeConstruction)                :: self
-    type(inputParameters         ), intent(inout) :: parameters
+    type(inputParameters                 ), intent(inout) :: parameters
     !$GLC attributes unused :: self, parameters
 
     call Galacticus_Error_Report('this class can not be built from parameters'//{introspection:location})
@@ -56,7 +66,9 @@ contains
   end function treeConstructionParameters
 
   function treeConstructionInternal(tree) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily treeConstruction} merger tree walker class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily treeConstruction} merger tree walker class.
+    !!}
     implicit none
     type   (mergerTreeWalkerTreeConstruction)                        :: self
     type   (mergerTree                      ), intent(in   ), target :: tree
@@ -68,8 +80,10 @@ contains
   end function treeConstructionInternal
 
   logical function treeConstructionNext(self,node)
-    !% This function will update the given {\normalfont \ttfamily node} to the next node which should be visited in a tree to
-    !% perform a walk suitable for trees under construction.
+    !!{
+    This function will update the given {\normalfont \ttfamily node} to the next node which should be visited in a tree to
+    perform a walk suitable for trees under construction.
+    !!}
     implicit none
     class(mergerTreeWalkerTreeConstruction), intent(inout)          :: self
     type (treeNode                        ), intent(inout), pointer :: node
@@ -119,7 +133,9 @@ contains
   end function treeConstructionNext
 
   logical function treeConstructionNodesRemain(self)
-    !% Returns true if more nodes remain to be walked to.
+    !!{
+    Returns true if more nodes remain to be walked to.
+    !!}
     implicit none
     class(mergerTreeWalkerTreeConstruction), intent(inout) :: self
 

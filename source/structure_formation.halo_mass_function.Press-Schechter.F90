@@ -17,22 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a \cite{press_formation_1974} dark matter halo mass function class.
+!!{
+Contains a module which implements a \cite{press_formation_1974} dark matter halo mass function class.
+!!}
   use :: Cosmological_Density_Field    , only : cosmologicalMassVarianceClass
   use :: Excursion_Sets_First_Crossings, only : excursionSetFirstCrossingClass
 
-  !# <haloMassFunction name="haloMassFunctionPressSchechter">
-  !#  <description>
-  !#   A dark matter halo mass function class using the function given by \cite{press_formation_1974}. Specifically,
-  !#   \begin{equation}
-  !#   n(M,t) = 2 {\Omega_\mathrm{M} \rho_\mathrm{crit} \over M^2} \alpha \sigma^2(M) f[S(M,t)],
-  !#   \end{equation}
-  !#   where $\alpha = \mathrm{d}\ln\sigma/\mathrm{d}\ln M$ and $f[S]$ is the excursion set barrier first crossing distribution
-  !#   for variance $S(M)=\sigma^2(M)$, computed using the selected \refClass{excursionSetFirstCrossingClass}.
-  !#  </description>
-  !# </haloMassFunction>
+  !![
+  <haloMassFunction name="haloMassFunctionPressSchechter">
+   <description>
+    A dark matter halo mass function class using the function given by \cite{press_formation_1974}. Specifically,
+    \begin{equation}
+    n(M,t) = 2 {\Omega_\mathrm{M} \rho_\mathrm{crit} \over M^2} \alpha \sigma^2(M) f[S(M,t)],
+    \end{equation}
+    where $\alpha = \mathrm{d}\ln\sigma/\mathrm{d}\ln M$ and $f[S]$ is the excursion set barrier first crossing distribution
+    for variance $S(M)=\sigma^2(M)$, computed using the selected \refClass{excursionSetFirstCrossingClass}.
+   </description>
+  </haloMassFunction>
+  !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionPressSchechter
-     !% A halo mass function class using the model of \cite{press_formation_1974}.
+     !!{
+     A halo mass function class using the model of \cite{press_formation_1974}.
+     !!}
      private
      class(cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_  => null()
      class(excursionSetFirstCrossingClass), pointer :: excursionSetFirstCrossing_ => null()
@@ -42,7 +48,9 @@
   end type haloMassFunctionPressSchechter
 
   interface haloMassFunctionPressSchechter
-     !% Constructors for the {\normalfont \ttfamily pressSchechter} halo mass function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily pressSchechter} halo mass function class.
+     !!}
      module procedure pressSchechterConstructorParameters
      module procedure pressSchechterConstructorInternal
   end interface haloMassFunctionPressSchechter
@@ -50,7 +58,9 @@
 contains
 
   function pressSchechterConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily pressSchechter} halo mass function class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily pressSchechter} halo mass function class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (haloMassFunctionPressSchechter)                :: self
@@ -59,42 +69,56 @@ contains
     class(excursionSetFirstCrossingClass), pointer       :: excursionSetFirstCrossing_
     class(cosmologyParametersClass      ), pointer       :: cosmologyParameters_
 
-    !# <objectBuilder class="cosmologyParameters"       name="cosmologyParameters_"       source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance"  name="cosmologicalMassVariance_"  source="parameters"/>
-    !# <objectBuilder class="excursionSetFirstCrossing" name="excursionSetFirstCrossing_" source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyParameters"       name="cosmologyParameters_"       source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance"  name="cosmologicalMassVariance_"  source="parameters"/>
+    <objectBuilder class="excursionSetFirstCrossing" name="excursionSetFirstCrossing_" source="parameters"/>
+    !!]
     self=haloMassFunctionPressSchechter(cosmologyParameters_,cosmologicalMassVariance_,excursionSetFirstCrossing_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"      />
-    !# <objectDestructor name="cosmologicalMassVariance_" />
-    !# <objectDestructor name="excursionSetFirstCrossing_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"      />
+    <objectDestructor name="cosmologicalMassVariance_" />
+    <objectDestructor name="excursionSetFirstCrossing_"/>
+    !!]
     return
   end function pressSchechterConstructorParameters
 
   function pressSchechterConstructorInternal(cosmologyParameters_,cosmologicalMassVariance_,excursionSetFirstCrossing_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily pressSchechter} halo mass function class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily pressSchechter} halo mass function class.
+    !!}
     implicit none
     type (haloMassFunctionPressSchechter)                        :: self
     class(cosmologyParametersClass      ), target, intent(in   ) :: cosmologyParameters_
     class(cosmologicalMassVarianceClass ), target, intent(in   ) :: cosmologicalMassVariance_
     class(excursionSetFirstCrossingClass), target, intent(in   ) :: excursionSetFirstCrossing_
-    !# <constructorAssign variables="*cosmologyParameters_, *cosmologicalMassVariance_, *excursionSetFirstCrossing_"/>
+    !![
+    <constructorAssign variables="*cosmologyParameters_, *cosmologicalMassVariance_, *excursionSetFirstCrossing_"/>
+    !!]
 
     return
   end function pressSchechterConstructorInternal
 
   subroutine pressSchechterDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily pressSchechter} halo mass function class.
+    !!{
+    Destructor for the {\normalfont \ttfamily pressSchechter} halo mass function class.
+    !!}
     implicit none
     type(haloMassFunctionPressSchechter), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"       />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"  />
-    !# <objectDestructor name="self%excursionSetFirstCrossing_" />
+    !![
+    <objectDestructor name="self%cosmologyParameters_"       />
+    <objectDestructor name="self%cosmologicalMassVariance_"  />
+    <objectDestructor name="self%excursionSetFirstCrossing_" />
+    !!]
     return
   end subroutine pressSchechterDestructor
 
   double precision function pressSchechterDifferential(self,time,mass,node)
-    !% Return the differential halo mass function at the given time and mass.
+    !!{
+    Return the differential halo mass function at the given time and mass.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (haloMassFunctionPressSchechter), intent(inout)           :: self

@@ -28,9 +28,16 @@ my $workDirectoryName = $ENV{'BUILDPATH'}."/";
 # Get an XML parser.
 my $xml                     = new XML::Simple();
 # Load the state storables file which lists all known functionClasses.
-my $stateStorables = -e $workDirectoryName."stateStorables.xml" ? $xml->XMLin($workDirectoryName."stateStorables.xml") : undef();
+my $stateStorables          = -e $workDirectoryName."stateStorables.xml" ? $xml->XMLin($workDirectoryName."stateStorables.xml") : undef();
+# Load the file of directive locations.
+die("Error: directiveLocations.xml not found")
+    unless ( -e $workDirectoryName."directiveLocations.xml" );
+my $locations               = $xml->XMLin($workDirectoryName."directiveLocations.xml");
 # Extract names of functionClasses.
 my @functionClasses = map {$_ =~ s/Class$//; $_} sort(keys(%{$stateStorables->{'functionClasses'}}));
+# Build a list of files containing functionClass implementations.
+my @functionClassFileList = map {&List::ExtraUtils::as_array($locations->{$_}->{'file'})} @functionClasses;
+my %functionClassFiles = map { $_ => 1 } @functionClassFileList;
 # Build list of allowed names.
 my @allowedNames = ( "functionClass", @functionClasses, @{$stateStorables->{'functionClassInstances'}} );
 if ( exists($stateStorables->{'functionClassTypes'}->{'name'}) ) {
@@ -50,8 +57,8 @@ if ( $havePerFile ) {
     $digestsPerFile = retrieve($ENV{'BUILDPATH'}."/".$blobFileName);
     $updateTime     = -M       $ENV{'BUILDPATH'}."/".$blobFileName ;
 }
-# List of types which were updated.
-my @updatedTypes;
+# Hash of types which were updated.
+my %updatedTypes;
 # Open the source diretory, finding F90 and cpp files.
 opendir(my $sourceDirectory,$sourceDirectoryName."/source");
 while ( my $fileName = readdir($sourceDirectory) ) {
@@ -94,40 +101,62 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 	    }
 	}
 	close($dependencyFile);
+	# Handle any directives in this file.
+	## sourceDigest directive.
+	if ( grep {$_ eq $fileToProcess} &List::ExtraUtils::as_array($locations->{'sourceDigest'}->{'file'}) ) {
+	    my @sourceDigests = &Galacticus::Build::Directives::Extract_Directives($fileToProcess,'sourceDigest');
+	    foreach my $sourceDigest ( @sourceDigests ) {
+		my $hashName = $sourceDigest->{'name'};
+		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName]);
+		@{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = ();
+		$updatedTypes{$hashName} = 1;
+	    }
+	}
+	## functionClassType directive.
+	if ( grep {$_ eq $fileToProcess} &List::ExtraUtils::as_array($locations->{'functionClassType'}->{'file'}) ) {
+	    my @functionClassTypes = &Galacticus::Build::Directives::Extract_Directives($fileToProcess,'functionClassType');
+	    foreach my $functionClassType ( @functionClassTypes ) {
+		my $hashName = $functionClassType->{'name'};
+		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName]);
+		@{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = ( "functionClass" );
+		$updatedTypes{$hashName} = 1;
+	    }
+	}
+	## functionClass directive.
+	if ( grep {$_ eq $fileToProcess} &List::ExtraUtils::as_array($locations->{'functionClass'}->{'file'}) ) {
+	    my @functionClasses = &Galacticus::Build::Directives::Extract_Directives($fileToProcess,'functionClass');
+	    foreach my $functionClass ( @functionClasses ) {
+		my $hashName = $functionClass->{'name'}."Class";
+		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName]);
+		if ( exists($functionClass->{'extends'}) ) {
+		    @{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = ( $functionClass->{'extends'} );
+		} else {
+		    @{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = ( "functionClass"             );
+		}
+		$updatedTypes{$hashName} = 1;
+	    }
+	}
 	# Walk the source code tree.
-	my $tree  = &Galacticus::Build::SourceTree::ParseFile($fileToProcess);
-	my $depth = 0;
-	my $node  = $tree;
-	while ( $node ) {
-	    my $isImplementation = grep {$node->{'type'} eq $_} @functionClasses;
-	    if ( $node->{'type'} eq "functionClass" || $node->{'type'} eq "functionClassType" || $node->{'type'} eq "sourceDigest" || $isImplementation ) {
-		my $hashName = $node->{'directive'}->{'name'}.($node->{'type'} eq "functionClass" ? "Class" : "");
-		# Find which class it extends.
-		my @classDependencies;
-		if ( $isImplementation ) {
+	if ( exists($functionClassFiles{$fileToProcess}) ) {
+	    my $tree  = &Galacticus::Build::SourceTree::ParseFile($fileToProcess);
+	    my $depth = 0;
+	    my $node  = $tree;
+	    while ( $node ) {
+		if ( grep {$node->{'type'} eq $_} @functionClasses ) {
+		    my $hashName = $node->{'directive'}->{'name'};
+		    # Find which class it extends.
 		    my $classNode = $node;
-		    (my $class, @classDependencies) = &Galacticus::Build::SourceTree::Process::FunctionClass::Utils::Class_Dependencies($classNode,$node->{'type'});
+		    (my $class, my @classDependencies) = &Galacticus::Build::SourceTree::Process::FunctionClass::Utils::Class_Dependencies($classNode,$node->{'type'});
 		    # For self-referencing types, remove the self-reference here.
 		    @classDependencies = map {$_ eq $class->{'type'} ? () : $_} @classDependencies;
-		} elsif ( $node->{'type'} eq "functionClassType" ) {
-		    push(@classDependencies,"functionClass");
-		} elsif ( $node->{'type'} eq "sourceDigest" ) {
-		    # No dependency here.
-		} else {
-		    # functionClass directive.
-		    if ( exists($node->{'directive'}->{'extends'}) ) {
-			push(@classDependencies,$node->{'directive'}->{'extends'});
-		    } else {
-			push(@classDependencies,"functionClass");
-		    }
+		    # Store hash and dependencies.
+		    $digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName]);
+		    @{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = @classDependencies;
+		    $updatedTypes{$hashName} = 1;
 		}
-		# Store hash and dependencies.
-		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName]);
-		@{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = @classDependencies;
-		push(@updatedTypes,$hashName);		
+		$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
 	    }
-	    $node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
-	}		
+	}
     }
 }
 close($sourceDirectory);
@@ -137,15 +166,21 @@ if ( ! $updateTime || ( -M "source/".$functionClassFileName < $updateTime ) ) {
     $digestsPerFile->{'types'}->{'functionClass'}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$functionClassFileName]);
     @{$digestsPerFile->{'types'}->{'functionClass'}->{'dependencies'}} = ();
     delete($digestsPerFile->{'types'}->{'functionClass'}->{'compositeMD5'});
-    push(@updatedTypes,"functionClass");
+    $updatedTypes{'functionClass'} = 1;
 }
 # Recursively remove the composite hash for this type, and any dependent type.
-while ( scalar(@updatedTypes) > 0 ) {
-    my $hashNameReset = pop(@updatedTypes);
-    foreach my $hashName ( sort(keys(%{$digestsPerFile->{'types'}})) ) {
-	push(@updatedTypes,$hashName)
-	    if ( (! grep {$_ eq $hashName} @updatedTypes) && (grep {$_ eq $hashNameReset} @{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}}) );
-    }    
+my %dependenciesInverted;
+foreach my $hashName ( keys(%{$digestsPerFile->{'types'}}) ) {
+    foreach my $hashNameDependent ( @{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} ) {
+	push(@{$dependenciesInverted{$hashNameDependent}},$hashName);
+    }
+}
+while ( scalar(keys(%updatedTypes)) > 0 ) {
+    my ($hashNameReset) = %updatedTypes;
+    delete($updatedTypes{$hashNameReset});
+    foreach ( @{$dependenciesInverted{$hashNameReset}} ) {
+ 	$updatedTypes{$_} = 1;
+    }
     delete($digestsPerFile->{'types'}->{$hashNameReset}->{'compositeMD5'})
 	if ( exists($digestsPerFile->{'types'}->{$hashNameReset}->{'compositeMD5'}) );
 }

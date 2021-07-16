@@ -66,7 +66,7 @@
 
      <!-- Feedback -->
      <modelParameter value="active">
-       <name value="nodeOperatorMethod::nodeOperatorMethod[2]::stellarFeedbackOutflowsMethod::stellarFeedbackOutflowsMethod::velocityCharacteristic"/>
+       <name value="nodeOperatorMethod::nodeOperatorMethod[4]::stellarFeedbackOutflowsMethod::stellarFeedbackOutflowsMethod::velocityCharacteristic"/>
        <distributionFunction1DPrior value="uniform">
 	 <limitLower value="25.0"/>
 	 <limitUpper value="500.0"/>

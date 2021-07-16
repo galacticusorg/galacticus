@@ -12,7 +12,7 @@ use List::ExtraUtils;
 use List::Uniq qw(uniq);
 use Storable;
 
-# Scans source code for "!#" directives and generates a Makefile.
+# Scans source code for "!![...!!]" directives and generates a Makefile.
 # Andrew Benson (09-September-2016)
 
 # Read command line arguments.
@@ -75,14 +75,14 @@ foreach my $fileName ( @sourceFileNames ) {
 	    push(@fileNames,@includedFiles);
 	    push(@{$directivesPerFile->{$fileIdentifier}->{'files'}},@includedFiles);
 	    # Get all directives in the file.
-	    foreach my $directive ( &Galacticus::Build::Directives::Extract_Directives($filePathName,"*", comment => qr/^\s*(!|\/\/)\#\s+/, setRootElementType => 1) ) {
+	    foreach my $directive ( &Galacticus::Build::Directives::Extract_Directives($filePathName,"*", setRootElementType => 1) ) {
 		# Act on the directive. "Include" directives are handled separately from other directives.
 		if ( $directive->{'rootElementType'} eq "include" ) {
 		    # Store the source file name for this directive.
 		    $directive->{'source'} = $filePathName;
 		    # Determine the file name to be included, store it, then remove the include statement from the directive.
 		    ($directive->{'fileName'} = $ENV{'BUILDPATH'}."/".$1) =~ s/\.inc$/\.Inc/
-			if ( $directive->{'content'} =~ m/^\s*\#??include\s*["'<](.+)["'>]/i );
+			if ( $directive->{'content'} =~ m/^\s*\#??include\s*["'<](.+)["'>]/im );
 		    delete($directive->{'content'});
 		    # Create an entry for this directive in the list of include directives.
 		    my $xmlOutput                        = new XML::Simple( NoAttr => 1, RootName => $directive->{'rootElementType'} );

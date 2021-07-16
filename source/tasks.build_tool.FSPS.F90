@@ -17,11 +17,15 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <task name="taskBuildToolFSPS">
-  !#  <description>A task which builds the FSPS tool.</description>
-  !# </task>
+  !![
+  <task name="taskBuildToolFSPS">
+   <description>A task which builds the FSPS tool.</description>
+  </task>
+  !!]
   type, extends(taskClass) :: taskBuildToolFSPS
-     !% Implementation of a task which builds the FSPS tool.
+     !!{
+     Implementation of a task which builds the FSPS tool.
+     !!}
      private
    contains
      procedure :: perform            => buildToolFSPSPerform
@@ -29,14 +33,18 @@
   end type taskBuildToolFSPS
 
   interface taskBuildToolFSPS
-     !% Constructors for the {\normalfont \ttfamily buildToolFSPS} task.
+     !!{
+     Constructors for the {\normalfont \ttfamily buildToolFSPS} task.
+     !!}
      module procedure buildToolFSPSParameters
   end interface taskBuildToolFSPS
 
 contains
 
   function buildToolFSPSParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily buildToolFSPS} task class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily buildToolFSPS} task class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(taskBuildToolFSPS)                :: self
@@ -48,7 +56,9 @@ contains
   end function buildToolFSPSParameters
 
   subroutine buildToolFSPSPerform(self,status)
-    !% Builds the tabulation.
+    !!{
+    Builds the tabulation.
+    !!}
     use :: Display         , only : displayIndent            , displayMessage, displayUnindent
     use :: Galacticus_Error, only : errorStatusSuccess
     use :: Interfaces_FSPS , only : Interface_FSPS_Initialize
@@ -67,7 +77,9 @@ contains
   end subroutine buildToolFSPSPerform
 
   logical function buildToolFSPSRequiresOutputFile(self)
-    !% Specifies that this task does not requires the main output file.
+    !!{
+    Specifies that this task does not requires the main output file.
+    !!}
     implicit none
     class(taskBuildToolFSPS), intent(inout) :: self
     !$GLC attributes unused :: self

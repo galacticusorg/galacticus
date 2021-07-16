@@ -17,30 +17,38 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a stellar initial mass function class for the \cite{miller_initial_1979} \gls{imf}.
+  !!{
+  Implements a stellar initial mass function class for the \cite{miller_initial_1979} \gls{imf}.
+  !!}
 
-  !# <initialMassFunction name="initialMassFunctionMillerScalo1979">
-  !#  <description>
-  !#   A stellar initial mass function class for the \cite{miller_initial_1979} \gls{imf}:
-  !#   \begin{equation}
-  !#    \phi(M) \propto \left\{ \begin{array}{ll}
-  !#    M^{-1.25} &amp; \hbox{ for } 0.10M_\odot &lt; M &lt; 1.00M_\odot \\
-  !#    M^{-2.00} &amp; \hbox{ for } 1.00M_\odot &lt; M &lt; 2.00M_\odot \\
-  !#    M^{-2.30} &amp; \hbox{ for } 2.00M_\odot &lt; M &lt; 10.0M_\odot \\
-  !#    M^{-3.30} &amp; \hbox{ for } 10.0M_\odot &lt; M &lt; 125M_\odot \\
-  !#    0 &amp; \hbox {otherwise.} \end{array} \right.
-  !#   \end{equation}
-  !#  </description>
-  !# </initialMassFunction>
+  !![
+  <initialMassFunction name="initialMassFunctionMillerScalo1979">
+   <description>
+    A stellar initial mass function class for the \cite{miller_initial_1979} \gls{imf}:
+    \begin{equation}
+     \phi(M) \propto \left\{ \begin{array}{ll}
+     M^{-1.25} &amp; \hbox{ for } 0.10M_\odot &lt; M &lt; 1.00M_\odot \\
+     M^{-2.00} &amp; \hbox{ for } 1.00M_\odot &lt; M &lt; 2.00M_\odot \\
+     M^{-2.30} &amp; \hbox{ for } 2.00M_\odot &lt; M &lt; 10.0M_\odot \\
+     M^{-3.30} &amp; \hbox{ for } 10.0M_\odot &lt; M &lt; 125M_\odot \\
+     0 &amp; \hbox {otherwise.} \end{array} \right.
+    \end{equation}
+   </description>
+  </initialMassFunction>
+  !!]
   type, extends(initialMassFunctionPiecewisePowerLaw) :: initialMassFunctionMillerScalo1979
-     !% A stellar initial mass function class for the \cite{miller_initial_1979} \gls{imf}.
+     !!{
+     A stellar initial mass function class for the \cite{miller_initial_1979} \gls{imf}.
+     !!}
      private
    contains
      procedure :: label => millerScalo1979Label
   end type initialMassFunctionMillerScalo1979
 
   interface initialMassFunctionMillerScalo1979
-     !% Constructors for the {\normalfont \ttfamily millerScalo1979} initial mass function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily millerScalo1979} initial mass function class.
+     !!}
      module procedure millerScalo1979ConstructorParameters
      module procedure millerScalo1979ConstructorInternal
   end interface initialMassFunctionMillerScalo1979
@@ -48,7 +56,9 @@
 contains
 
   function millerScalo1979ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily millerScalo1979} initial mass function class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily millerScalo1979} initial mass function class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(initialMassFunctionMillerScalo1979)                :: self
@@ -60,7 +70,9 @@ contains
   end function millerScalo1979ConstructorParameters
 
   function millerScalo1979ConstructorInternal() result(self)
-    !% Internal constructor for the {\normalfont \ttfamily millerScalo1979} initial mass function.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily millerScalo1979} initial mass function.
+    !!}
     implicit none
     type(initialMassFunctionMillerScalo1979):: self
 
@@ -72,7 +84,9 @@ contains
   end function millerScalo1979ConstructorInternal
 
   function millerScalo1979Label(self)
-    !% Return a label for this \gls{imf}.
+    !!{
+    Return a label for this \gls{imf}.
+    !!}
     implicit none
     class(initialMassFunctionMillerScalo1979), intent(inout) :: self
     type (varying_string                    )                :: millerScalo1979Label

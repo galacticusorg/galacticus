@@ -17,37 +17,49 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements searching of ordered arrays.
+!!{
+Contains a module which implements searching of ordered arrays.
+!!}
 
 ! Add dependency on GSL library.
 !; gsl
 
 module Arrays_Search
-  !% Implements searching of ordered arrays.
+  !!{
+  Implements searching of ordered arrays.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_size_t, c_double
   implicit none
   private
   public :: searchArray, searchArrayClosest, searchIndexed
 
-  !# <generic identifier="Type">
-  !#  <instance label="integer8" intrinsic="integer(kind_int8)"  />
-  !#  <instance label="varstr"   intrinsic="type(varying_string)"/>
-  !# </generic>
+  !![
+  <generic identifier="Type">
+   <instance label="integer8" intrinsic="integer(kind_int8)"  />
+   <instance label="varstr"   intrinsic="type(varying_string)"/>
+  </generic>
+  !!]
 
   interface searchArray
-     !% Generic interface for array searching routines.
+     !!{
+     Generic interface for array searching routines.
+     !!}
      module procedure searchArrayDouble
      module procedure searchArray{Type¦label}
   end interface searchArray
 
   interface searchIndexed
-     !% Generic interface for array searching routines using indexing.
+     !!{
+     Generic interface for array searching routines using indexing.
+     !!}
      module procedure searchIndexedInteger8
   end interface searchIndexed
 
   interface
      function gsl_interp_bsearch(x_array,x,index_lo,index_hi) bind(c,name='gsl_interp_bsearch')
-       !% Template for the GSL binary search function.
+       !!{
+       Template for the GSL binary search function.
+       !!}
        import
        integer(c_size_t)                              :: gsl_interp_bsearch
        real   (c_double), dimension(*), intent(in   ) :: x_array
@@ -59,8 +71,10 @@ module Arrays_Search
 contains
 
   function searchArrayDouble(arrayToSearch,valueToFind)
-    !% Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for value, $v(=${\normalfont \ttfamily valueToFind}$)$,
-    !% to find the index $i$ such that $x(i) \le v < x(i+1)$.
+    !!{
+    Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for value, $v(=${\normalfont \ttfamily valueToFind}$)$,
+    to find the index $i$ such that $x(i) \le v < x(i+1)$.
+    !!}
     implicit none
     integer         (c_size_t)                              :: searchArrayDouble
     double precision          , dimension(:), intent(in   ) :: arrayToSearch
@@ -78,8 +92,10 @@ contains
   end function searchArrayDouble
 
   function searchArray{Type¦label}(arrayToSearch,valueToFind)
-    !% Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for value, $v(=${\normalfont \ttfamily valueToFind}$)$,
-    !% to find the index $i$ such that $x(i) \le v < x(i+1)$.
+    !!{
+    Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for value, $v(=${\normalfont \ttfamily valueToFind}$)$,
+    to find the index $i$ such that $x(i) \le v < x(i+1)$.
+    !!}
     {Type¦match¦^(varstr)$¦  use :: ISO_Varying_String, only : varying_string, operator(<), operator(>), operator(<=), operator(>=)¦}
     {Type¦match¦^(integer8)$¦use :: Kind_Numbers      , only : kind_int8¦}
     implicit none
@@ -127,9 +143,11 @@ contains
   end function searchArray{Type¦label}
 
   function searchArrayClosest(arrayToSearch,valueToFind,tolerance,status)
-    !% Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for the entry closest to value, $v(=${\normalfont
-    !% \ttfamily valueToFind}$)$ and returns the index of that element in the array. Optionally, a tolerance may be specified
-    !% within which the two values must match.
+    !!{
+    Searches an array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, for the entry closest to value, $v(=${\normalfont
+    \ttfamily valueToFind}$)$ and returns the index of that element in the array. Optionally, a tolerance may be specified
+    within which the two values must match.
+    !!}
     use :: Galacticus_Error    , only : Galacticus_Error_Report, errorStatusFail, errorStatusSuccess
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
@@ -179,9 +197,11 @@ contains
   end function searchArrayClosest
 
   function searchIndexedInteger8(arrayToSearch,arrayIndex,valueToFind)
-    !% Searches a long integer array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, which is rank ordered when indexed by
-    !% {\normalfont \ttfamily arrayIndex}, for value, $v(=${\normalfont \ttfamily valueToFind}$)$, to find the index $i$ such that
-    !% $x(i) \le v < x(i+1)$.
+    !!{
+    Searches a long integer array, $x=(${\normalfont \ttfamily arrayToSearch}$)$, which is rank ordered when indexed by
+    {\normalfont \ttfamily arrayIndex}, for value, $v(=${\normalfont \ttfamily valueToFind}$)$, to find the index $i$ such that
+    $x(i) \le v < x(i+1)$.
+    !!}
     use :: Kind_Numbers , only : kind_int8
     implicit none
     integer(kind=kind_int8)                              :: searchIndexedInteger8

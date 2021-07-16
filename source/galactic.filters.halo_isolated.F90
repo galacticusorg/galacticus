@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a filter which passes only isolated halos.
+!!{
+Contains a module which implements a filter which passes only isolated halos.
+!!}
 
-  !# <galacticFilter name="galacticFilterHaloIsolated">
-  !#  <description>A filter which passes only isolated halos.</description>
-  !# </galacticFilter>
+  !![
+  <galacticFilter name="galacticFilterHaloIsolated">
+   <description>A filter which passes only isolated halos.</description>
+  </galacticFilter>
+  !!]
   type, extends(galacticFilterClass) :: galacticFilterHaloIsolated
-     !% A galactic filter class which passes only isolated halos.
+     !!{
+     A galactic filter class which passes only isolated halos.
+     !!}
      private
    contains
      procedure :: passes => haloIsolatedPasses
   end type galacticFilterHaloIsolated
 
   interface galacticFilterHaloIsolated
-     !% Constructors for the ``haloIsolated'' galactic filter class.
+     !!{
+     Constructors for the ``haloIsolated'' galactic filter class.
+     !!}
      module procedure haloIsolatedConstructorParameters
   end interface galacticFilterHaloIsolated
 
 contains
 
   function haloIsolatedConstructorParameters(parameters) result(self)
-    !% Constructor for the ``haloIsolated'' galactic filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``haloIsolated'' galactic filter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(galacticFilterHaloIsolated)                :: self
@@ -49,7 +59,9 @@ contains
   end function haloIsolatedConstructorParameters
 
   logical function haloIsolatedPasses(self,node)
-    !% Implement a galactic filter which passes only isolated halos.
+    !!{
+    Implement a galactic filter which passes only isolated halos.
+    !!}
     implicit none
     class(galacticFilterHaloIsolated), intent(inout)         :: self
     type (treeNode                  ), intent(inout), target :: node

@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a galactic high-pass filter for spheroid stellar mass.
+!!{
+Contains a module which implements a galactic high-pass filter for spheroid stellar mass.
+!!}
 
-  !# <galacticFilter name="galacticFilterSpheroidStellarMass">
-  !#  <description>
-  !#  A galactic high-pass filter for stellar mass. Galaxies with a spheroid stellar mass greater than or equal
-  !#  to a fixed threshold, $M_{\star,0}=${\normalfont \ttfamily [massThreshold]}.
-  !#  </description>
-  !# </galacticFilter>
+  !![
+  <galacticFilter name="galacticFilterSpheroidStellarMass">
+   <description>
+   A galactic high-pass filter for stellar mass. Galaxies with a spheroid stellar mass greater than or equal
+   to a fixed threshold, $M_{\star,0}=${\normalfont \ttfamily [massThreshold]}.
+   </description>
+  </galacticFilter>
+  !!]
   type, extends(galacticFilterClass) :: galacticFilterSpheroidStellarMass
-     !% A galactic high-pass filter class for spheroid stellar mass.
+     !!{
+     A galactic high-pass filter class for spheroid stellar mass.
+     !!}
      private
      double precision :: massThreshold
    contains
@@ -34,7 +40,9 @@
   end type galacticFilterSpheroidStellarMass
 
   interface galacticFilterSpheroidStellarMass
-     !% Constructors for the ``spheroidStellarMass'' galactic filter class.
+     !!{
+     Constructors for the ``spheroidStellarMass'' galactic filter class.
+     !!}
      module procedure spheroidStellarMassConstructorParameters
      module procedure spheroidStellarMassConstructorInternal
   end interface galacticFilterSpheroidStellarMass
@@ -42,7 +50,9 @@
 contains
 
   function spheroidStellarMassConstructorParameters(parameters) result(self)
-    !% Constructor for the ``spheroidStellarMass'' galactic filter class which takes a parameter set as input.
+    !!{
+    Constructor for the ``spheroidStellarMass'' galactic filter class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (galacticFilterSpheroidStellarMass)                :: self
@@ -50,28 +60,38 @@ contains
     double precision                                                   :: massThreshold
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>massThreshold</name>
-    !#   <source>parameters</source>
-    !#   <description>The parameter $M_0$ (in units of $M_\odot$) appearing in the stellar mass threshold for the spheroid stellar mass galactic filter class.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>massThreshold</name>
+      <source>parameters</source>
+      <description>The parameter $M_0$ (in units of $M_\odot$) appearing in the stellar mass threshold for the spheroid stellar mass galactic filter class.</description>
+    </inputParameter>
+    !!]
     self=galacticFilterSpheroidStellarMass(massThreshold)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function spheroidStellarMassConstructorParameters
 
   function spheroidStellarMassConstructorInternal(massThreshold) result(self)
-    !% Internal constructor for the ``spheroidStellarMass'' galactic filter class.
+    !!{
+    Internal constructor for the ``spheroidStellarMass'' galactic filter class.
+    !!}
     implicit none
     type            (galacticFilterSpheroidStellarMass)                :: self
     double precision                                   , intent(in   ) :: massThreshold
-    !# <constructorAssign variables="massThreshold"/>
+    !![
+    <constructorAssign variables="massThreshold"/>
+    !!]
 
     return
   end function spheroidStellarMassConstructorInternal
 
   logical function spheroidStellarMassPasses(self,node)
-    !% Implement a  stellar mass high-pass galactic filter.
+    !!{
+    Implement a  stellar mass high-pass galactic filter.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
     class           (galacticFilterSpheroidStellarMass), intent(inout)         :: self

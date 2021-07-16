@@ -36,96 +36,102 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a merger tree constructor class which constructs a merger tree given a full specification in XML.
+  !!{
+  Implements a merger tree constructor class which constructs a merger tree given a full specification in XML.
+  !!}
 
   use :: FoX_DOM                 , only : node
   use :: IO_XML                  , only : xmlNodeList
   use :: Numerical_Random_Numbers, only : randomNumberGeneratorClass
 
-  !# <mergerTreeConstructor name="mergerTreeConstructorFullySpecified">
-  !#  <description>
-  !#   A merger tree constructor class which constructs a merger tree given a full specification in XML. This class will construct
-  !#   a merger tree, and set properties of components in each node, using a description read from an XML document. The document
-  !#   is specified via the {\normalfont \ttfamily [fileName]} input parameter.
-  !#   
-  !#   The tree specification document looks as follows:
-  !#   \begin{verbatim}
-  !#   &lt;!-- Simple initial conditions test case --&gt;
-  !#   &lt;initialConditions&gt;
-  !#   
-  !#     &lt;node&gt;
-  !#       &lt;index&gt;2&lt;/index&gt;
-  !#       &lt;parent&gt;1&lt;/parent&gt;
-  !#       &lt;firstChild&gt;-1&lt;/firstChild&gt;
-  !#       &lt;sibling&gt;-1&lt;/sibling&gt;
-  !#       &lt;basic&gt;
-  !#         &lt;time&gt;1.0&lt;/time&gt;
-  !#         &lt;timeLastIsolated&gt;1.0&lt;/timeLastIsolated&gt;
-  !#         &lt;mass&gt;1.0e12&lt;/mass&gt;
-  !#         &lt;accretionRate&gt;7.9365079e9&lt;/accretionRate&gt;
-  !#       &lt;/basic&gt;
-  !#       &lt;spin&gt;
-  !#         &lt;spin&gt;0.1&lt;/spin&gt;
-  !#       &lt;/spin&gt;
-  !#       &lt;disk&gt;
-  !#         &lt;massGas&gt;1.0e10&lt;/massGas&gt;
-  !#         &lt;angularMomentum&gt;1.0e10&lt;/angularMomentum&gt;
-  !#         &lt;abundancesGas&gt;
-  !#   	&lt;metals&gt;1.0e9&lt;/metals&gt;
-  !#   	&lt;Fe&gt;1.0e9&lt;/Fe&gt;
-  !#         &lt;/abundancesGas&gt;
-  !#       &lt;/disk&gt;
-  !#     &lt;/node&gt;
-  !#   
-  !#     &lt;node&gt;
-  !#       &lt;index&gt;1&lt;/index&gt;
-  !#       &lt;parent&gt;-1&lt;/parent&gt;
-  !#       &lt;firstChild&gt;2&lt;/firstChild&gt;
-  !#       &lt;sibling&gt;-1&lt;/sibling&gt;
-  !#       &lt;basic&gt;
-  !#         &lt;time&gt;13.8&lt;/time&gt;
-  !#         &lt;timeLastIsolated&gt;13.8&lt;/timeLastIsolated&gt;
-  !#         &lt;mass&gt;1.1e12&lt;/mass&gt;
-  !#         &lt;accretionRate&gt;7.8125e9&lt;/accretionRate&gt;
-  !#       &lt;/basic&gt;
-  !#       &lt;position&gt;
-  !#         &lt;position&gt;1.23&lt;/position&gt;
-  !#         &lt;position&gt;6.31&lt;/position&gt;
-  !#         &lt;position&gt;3.59&lt;/position&gt;
-  !#       &lt;/position&gt;
-  !#     &lt;/node&gt;
-  !#   
-  !#   &lt;/initialConditions&gt;
-  !#   \end{verbatim}
-  !#   The document consists of a set of {\normalfont \ttfamily node} elements, each of which defines a single node in the merger
-  !#   tree. Each {\normalfont \ttfamily node} element must specify the {\normalfont \ttfamily index} of the node, along with the
-  !#   index of the node's {\normalfont \ttfamily parent}, {\normalfont \ttfamily firstChild}, and {\normalfont \ttfamily
-  !#   sibling}.
-  !#   
-  !#   Each {\normalfont \ttfamily node} element may contain elements which specify the properties of a component in the node. For
-  !#   example, a {\normalfont \ttfamily basic} element will specify properties of the ``basic'' component. If multiple elements
-  !#   for a given component type are present, then multiple instances of that component will be created in the node.
-  !#   
-  !#   Within a component definition element scalar properties are set using an element with the same name as that property
-  !#   (e.g. {\normalfont \ttfamily mass} in the {\normalfont \ttfamily basic} components in the above example). Rank-1 properties
-  !#   are set using a list of elements with the same name as the property (e.g. {\normalfont \ttfamily position} in the
-  !#   {\normalfont \ttfamily position} component in the above example).
-  !#   
-  !#   For composite properties (e.g. abundances), the specification element should contain sub-elements that specify each
-  !#   property of the composite. Currently only the {\normalfont \ttfamily abundances} object supports specification in this way,
-  !#   as detailed below:
-  !#   \begin{description}
-  !#    \item [{\normalfont \ttfamily abundances}] (See {\normalfont \ttfamily abundancesGas} in the above example.) The total
-  !#    metal content is specified via a {\normalfont \ttfamily metals} element. If other elements are being tracked, their
-  !#    content is specified via an element with the short-name of the element (e.g. {\normalfont \ttfamily Fe} for iron).
-  !#   \end{description}
-  !#  </description>
-  !#  <deepCopy>
-  !#    <increment variables="document%copyCount" atomic="yes"/>
-  !#  </deepCopy>
-  !# </mergerTreeConstructor>
+  !![
+  <mergerTreeConstructor name="mergerTreeConstructorFullySpecified">
+   <description>
+    A merger tree constructor class which constructs a merger tree given a full specification in XML. This class will construct
+    a merger tree, and set properties of components in each node, using a description read from an XML document. The document
+    is specified via the {\normalfont \ttfamily [fileName]} input parameter.
+    
+    The tree specification document looks as follows:
+    \begin{verbatim}
+    &lt;!-- Simple initial conditions test case --&gt;
+    &lt;initialConditions&gt;
+    
+      &lt;node&gt;
+        &lt;index&gt;2&lt;/index&gt;
+        &lt;parent&gt;1&lt;/parent&gt;
+        &lt;firstChild&gt;-1&lt;/firstChild&gt;
+        &lt;sibling&gt;-1&lt;/sibling&gt;
+        &lt;basic&gt;
+          &lt;time&gt;1.0&lt;/time&gt;
+          &lt;timeLastIsolated&gt;1.0&lt;/timeLastIsolated&gt;
+          &lt;mass&gt;1.0e12&lt;/mass&gt;
+          &lt;accretionRate&gt;7.9365079e9&lt;/accretionRate&gt;
+        &lt;/basic&gt;
+        &lt;spin&gt;
+          &lt;spin&gt;0.1&lt;/spin&gt;
+        &lt;/spin&gt;
+        &lt;disk&gt;
+          &lt;massGas&gt;1.0e10&lt;/massGas&gt;
+          &lt;angularMomentum&gt;1.0e10&lt;/angularMomentum&gt;
+          &lt;abundancesGas&gt;
+    	&lt;metals&gt;1.0e9&lt;/metals&gt;
+    	&lt;Fe&gt;1.0e9&lt;/Fe&gt;
+          &lt;/abundancesGas&gt;
+        &lt;/disk&gt;
+      &lt;/node&gt;
+    
+      &lt;node&gt;
+        &lt;index&gt;1&lt;/index&gt;
+        &lt;parent&gt;-1&lt;/parent&gt;
+        &lt;firstChild&gt;2&lt;/firstChild&gt;
+        &lt;sibling&gt;-1&lt;/sibling&gt;
+        &lt;basic&gt;
+          &lt;time&gt;13.8&lt;/time&gt;
+          &lt;timeLastIsolated&gt;13.8&lt;/timeLastIsolated&gt;
+          &lt;mass&gt;1.1e12&lt;/mass&gt;
+          &lt;accretionRate&gt;7.8125e9&lt;/accretionRate&gt;
+        &lt;/basic&gt;
+        &lt;position&gt;
+          &lt;position&gt;1.23&lt;/position&gt;
+          &lt;position&gt;6.31&lt;/position&gt;
+          &lt;position&gt;3.59&lt;/position&gt;
+        &lt;/position&gt;
+      &lt;/node&gt;
+    
+    &lt;/initialConditions&gt;
+    \end{verbatim}
+    The document consists of a set of {\normalfont \ttfamily node} elements, each of which defines a single node in the merger
+    tree. Each {\normalfont \ttfamily node} element must specify the {\normalfont \ttfamily index} of the node, along with the
+    index of the node's {\normalfont \ttfamily parent}, {\normalfont \ttfamily firstChild}, and {\normalfont \ttfamily
+    sibling}.
+    
+    Each {\normalfont \ttfamily node} element may contain elements which specify the properties of a component in the node. For
+    example, a {\normalfont \ttfamily basic} element will specify properties of the ``basic'' component. If multiple elements
+    for a given component type are present, then multiple instances of that component will be created in the node.
+    
+    Within a component definition element scalar properties are set using an element with the same name as that property
+    (e.g. {\normalfont \ttfamily mass} in the {\normalfont \ttfamily basic} components in the above example). Rank-1 properties
+    are set using a list of elements with the same name as the property (e.g. {\normalfont \ttfamily position} in the
+    {\normalfont \ttfamily position} component in the above example).
+    
+    For composite properties (e.g. abundances), the specification element should contain sub-elements that specify each
+    property of the composite. Currently only the {\normalfont \ttfamily abundances} object supports specification in this way,
+    as detailed below:
+    \begin{description}
+     \item [{\normalfont \ttfamily abundances}] (See {\normalfont \ttfamily abundancesGas} in the above example.) The total
+     metal content is specified via a {\normalfont \ttfamily metals} element. If other elements are being tracked, their
+     content is specified via an element with the short-name of the element (e.g. {\normalfont \ttfamily Fe} for iron).
+    \end{description}
+   </description>
+   <deepCopy>
+     <increment variables="document%copyCount" atomic="yes"/>
+   </deepCopy>
+  </mergerTreeConstructor>
+  !!]
   type, extends(mergerTreeConstructorClass) :: mergerTreeConstructorFullySpecified
-     !% A class implementing merger tree construction from a full specification of the tree in XML.
+     !!{
+     A class implementing merger tree construction from a full specification of the tree in XML.
+     !!}
      private
      class  (randomNumberGeneratorClass), pointer                   :: randomNumberGenerator_ => null()
      type   (varying_string            )                            :: fileName
@@ -138,14 +144,18 @@
   end type mergerTreeConstructorFullySpecified
 
   type :: documentContainer
-     !% A container for XML docoment.
+     !!{
+     A container for XML docoment.
+     !!}
      private
      type   (node), pointer :: doc       => null()
      integer                :: copyCount
   end type documentContainer
 
   interface mergerTreeConstructorFullySpecified
-     !% Constructors for the {\normalfont \ttfamily fullySpecified} merger tree constructor class.
+     !!{
+     Constructors for the {\normalfont \ttfamily fullySpecified} merger tree constructor class.
+     !!}
      module procedure fullySpecifiedConstructorParameters
      module procedure fullySpecifiedConstructorInternal
   end interface mergerTreeConstructorFullySpecified
@@ -153,7 +163,9 @@
 contains
 
   function fullySpecifiedConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily fullySpecified} merger tree operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily fullySpecified} merger tree operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (mergerTreeConstructorFullySpecified)                :: self
@@ -161,20 +173,26 @@ contains
     class(randomNumberGeneratorClass         ), pointer       :: randomNumberGenerator_
     type (varying_string                     )                :: fileName
 
-    !# <inputParameter>
-    !#   <name>fileName</name>
-    !#   <description>The name of the file containing the merger tree specification.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>fileName</name>
+      <description>The name of the file containing the merger tree specification.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    !!]
     self=mergerTreeConstructorFullySpecified(fileName,randomNumberGenerator_)
-    !# <inputParametersValidate source="parameters"/>
-     !# <objectDestructor name="randomNumberGenerator_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+     <objectDestructor name="randomNumberGenerator_"/>
+     !!]
    return
   end function fullySpecifiedConstructorParameters
 
   function fullySpecifiedConstructorInternal(fileName,randomNumberGenerator_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily fullySpecified} merger tree operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily fullySpecified} merger tree operator class.
+    !!}
     use :: FoX_DOM         , only : parseFile
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: IO_XML          , only : XML_Get_Elements_By_Tag_Name
@@ -183,7 +201,9 @@ contains
     type   (varying_string                     ), intent(in   )         :: fileName
     class  (randomNumberGeneratorClass         ), intent(in   ), target :: randomNumberGenerator_
     integer                                                             :: ioErr
-    !# <constructorAssign variables="fileName, *randomNumberGenerator_"/>
+    !![
+    <constructorAssign variables="fileName, *randomNumberGenerator_"/>
+    !!]
 
     !$omp critical (FoX_DOM_Access)
     if (.not.associated(self%document)) allocate(self%document)
@@ -201,7 +221,9 @@ contains
   end function fullySpecifiedConstructorInternal
 
   subroutine fullySpecifiedDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily fullySpecified} merger tree constructor class.
+    !!{
+    Destructor for the {\normalfont \ttfamily fullySpecified} merger tree constructor class.
+    !!}
     use :: FoX_DOM, only : destroy
     implicit none
     type(mergerTreeConstructorFullySpecified), intent(inout) :: self
@@ -216,12 +238,16 @@ contains
        if (associated(self%document)) deallocate(self%document)
        !$omp end critical (FoX_DOM_Access)
     end if
-    !# <objectDestructor name="self%randomNumberGenerator_"/>
+    !![
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    !!]
     return
   end subroutine fullySpecifiedDestructor
 
   function fullySpecifiedConstruct(self,treeNumber,finished) result(tree)
-    !% Construct a fully-specified merger tree.
+    !!{
+    Construct a fully-specified merger tree.
+    !!}
     use            :: Display          , only : displayIndent               , displayUnindent, displayVerbosity, verbosityLevelInfo
     use            :: FoX_DOM          , only : node
     use            :: Galacticus_Error , only : Galacticus_Error_Report
@@ -275,9 +301,11 @@ contains
        ! Restart the random number sequence.
        allocate(tree%randomNumberGenerator_,mold=self%randomNumberGenerator_)
        !$omp critical(mergerTreeConstructFullySpecifiedDeepCopyReset)
-       !# <deepCopyReset variables="self%randomNumberGenerator_"/>
-       !# <deepCopy source="self%randomNumberGenerator_" destination="tree%randomNumberGenerator_"/>
-       !# <deepCopyFinalize variables="tree%randomNumberGenerator_"/>
+       !![
+       <deepCopyReset variables="self%randomNumberGenerator_"/>
+       <deepCopy source="self%randomNumberGenerator_" destination="tree%randomNumberGenerator_"/>
+       <deepCopyFinalize variables="tree%randomNumberGenerator_"/>
+       !!]
        !$omp end critical(mergerTreeConstructFullySpecifiedDeepCopyReset)
         call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
        ! Begin writing report.
@@ -325,7 +353,9 @@ contains
   contains
 
     function indexNode(nodeDefinition,indexType,required)
-      !% Extract and return an index from a node definition as used when constructing fully-specified merger trees.
+      !!{
+      Extract and return an index from a node definition as used when constructing fully-specified merger trees.
+      !!}
       use :: FoX_Dom         , only : node
       use :: Galacticus_Error, only : Galacticus_Error_Report
       use :: Kind_Numbers    , only : kind_int8
@@ -341,7 +371,9 @@ contains
       type     (xmlNodeList   ), dimension(:) , allocatable :: indexElements
       type     (node          )               , pointer     :: indexElement
       integer                                               :: indexValue
-      !# <optionalArgument name="required" defaultsTo=".true." />
+      !![
+      <optionalArgument name="required" defaultsTo=".true." />
+      !!]
       
       ! Find all matching tags.
       call XML_Get_Elements_By_Tag_Name(nodeDefinition,indexType,indexElements)
@@ -364,7 +396,9 @@ contains
     end function indexNode
 
     function nodeLookup(nodeArray,indexValue) result (node)
-      !% Find the position of a node in the {\normalfont \ttfamily nodeArray} array given its {\normalfont \ttfamily indexValue}.
+      !!{
+      Find the position of a node in the {\normalfont \ttfamily nodeArray} array given its {\normalfont \ttfamily indexValue}.
+      !!}
       use :: Galacticus_Error, only : Galacticus_Error_Report
       use :: Galacticus_Nodes, only : treeNode               , treeNodeList
       use :: Kind_Numbers    , only : kind_int8

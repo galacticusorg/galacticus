@@ -17,36 +17,42 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a posterior sampling simulation class which implements a tempered differential evolution algorithm.
+  !!{
+  Implementation of a posterior sampling simulation class which implements a tempered differential evolution algorithm.
+  !!}
 
   use :: Posterior_Sampling_Prop_Size_Temp_Exp, only : posteriorSampleDffrntlEvltnPrpslSzTmpExpClass
 
-  !# <posteriorSampleSimulation name="posteriorSampleSimulationTemperedDffrntlEvltn">
-  !#  <description>
-  !#   This class extends the {\normalfont \ttfamily differentialEvolution} option to include tempering during which the likelihood
-  !#   function is heated up and cooled down to allow chains to more easily walk through the likelihood landscape. In addition to the
-  !#   options for the {\normalfont \ttfamily differentialEvolution} algorithm, the details of the algorithm are controlled by the
-  !#   following sub-parameters:
-  !#   \begin{description}
-  !#   \item[{\normalfont \ttfamily [untemperedStepCount]}] The number of untempered (i.e. $T=1$) steps to take between tempering cycles.
-  !#   \item[{\normalfont \ttfamily [temperatureMaximum]}] The maximum temperature to use when tempering.
-  !#   \item[{\normalfont \ttfamily [temperedLevels]}] The number of tempered levels to use.
-  !#   \item[{\normalfont \ttfamily [stepsPerLevel]}] The number of differential evolution steps to take at each tempering level.
-  !#   \item[{\normalfont \ttfamily [logFlushCount]}] The number of steps after which the log file will be flushed to disk.
-  !#   \end{description}
-  !#   
-  !#   In each tempering cycle, the temperature is raised through levels $1$\ldots$N$ (where $N=${\normalfont \ttfamily temperedLevels}),
-  !#   and then back down through levels $N-1$\ldots$1$. The temperature at level $i$ is given by:
-  !#   \begin{equation}
-  !#   \log T_i = {i \over N} \log T_\mathrm{max},
-  !#   \end{equation}
-  !#   where $T_\mathrm{max}=${\normalfont \ttfamily temperatureMaximum}. During tempered steps, the $\gamma$ parameter of the
-  !#   differential evolution algorithm is increased by a factor $T^\alpha$, where $\alpha$ is provided by the {\normalfont \ttfamily
-  !#   proposalSizeTemperatureExponent} class. A value of $\alpha=1/2$ is optimal for a Gaussian likelihood.
-  !#  </description>
-  !# </posteriorSampleSimulation>
+  !![
+  <posteriorSampleSimulation name="posteriorSampleSimulationTemperedDffrntlEvltn">
+   <description>
+    This class extends the {\normalfont \ttfamily differentialEvolution} option to include tempering during which the likelihood
+    function is heated up and cooled down to allow chains to more easily walk through the likelihood landscape. In addition to the
+    options for the {\normalfont \ttfamily differentialEvolution} algorithm, the details of the algorithm are controlled by the
+    following sub-parameters:
+    \begin{description}
+    \item[{\normalfont \ttfamily [untemperedStepCount]}] The number of untempered (i.e. $T=1$) steps to take between tempering cycles.
+    \item[{\normalfont \ttfamily [temperatureMaximum]}] The maximum temperature to use when tempering.
+    \item[{\normalfont \ttfamily [temperedLevels]}] The number of tempered levels to use.
+    \item[{\normalfont \ttfamily [stepsPerLevel]}] The number of differential evolution steps to take at each tempering level.
+    \item[{\normalfont \ttfamily [logFlushCount]}] The number of steps after which the log file will be flushed to disk.
+    \end{description}
+    
+    In each tempering cycle, the temperature is raised through levels $1$\ldots$N$ (where $N=${\normalfont \ttfamily temperedLevels}),
+    and then back down through levels $N-1$\ldots$1$. The temperature at level $i$ is given by:
+    \begin{equation}
+    \log T_i = {i \over N} \log T_\mathrm{max},
+    \end{equation}
+    where $T_\mathrm{max}=${\normalfont \ttfamily temperatureMaximum}. During tempered steps, the $\gamma$ parameter of the
+    differential evolution algorithm is increased by a factor $T^\alpha$, where $\alpha$ is provided by the {\normalfont \ttfamily
+    proposalSizeTemperatureExponent} class. A value of $\alpha=1/2$ is optimal for a Gaussian likelihood.
+   </description>
+  </posteriorSampleSimulation>
+  !!]
   type, extends(posteriorSampleSimulationDifferentialEvolution) :: posteriorSampleSimulationTemperedDffrntlEvltn
-     !% Implementation of a posterior sampling simulation class which implements a tempered differential evolution algorithm.
+     !!{
+     Implementation of a posterior sampling simulation class which implements a tempered differential evolution algorithm.
+     !!}
      private
      integer                                                                                    :: untemperedStepCount                      , temperingLevelCount    , &
           &                                                                                        stepsPerLevel
@@ -56,10 +62,12 @@
      double precision                                               , allocatable, dimension(:) :: temperatures
      class           (posteriorSampleStateClass                    ), allocatable, dimension(:) :: temperedStates
    contains
-     !# <methods>
-     !#   <method description="Return the current tempering level." method="initialize" />
-     !#   <method description="Return the current tempering level." method="level" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return the current tempering level." method="initialize" />
+       <method description="Return the current tempering level." method="level" />
+     </methods>
+     !!]
      final     ::                   temperedDifferentialEvolutionDestructor
      procedure :: logging        => temperedDifferentialEvolutionLogging
      procedure :: acceptProposal => temperedDifferentialEvolutionAcceptProposal
@@ -71,7 +79,9 @@
   end type posteriorSampleSimulationTemperedDffrntlEvltn
 
   interface posteriorSampleSimulationTemperedDffrntlEvltn
-     !% Constructors for the {\normalfont \ttfamily temperedDifferentialEvolution} posterior sampling convergence class.
+     !!{
+     Constructors for the {\normalfont \ttfamily temperedDifferentialEvolution} posterior sampling convergence class.
+     !!}
      module procedure temperedDifferentialEvolutionConstructorParameters
      module procedure temperedDifferentialEvolutionConstructorInternal
   end interface posteriorSampleSimulationTemperedDffrntlEvltn
@@ -79,8 +89,10 @@
 contains
 
   function temperedDifferentialEvolutionConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily temperedDifferentialEvolution} posterior sampling simulation class which builds the object from a
-    !% parameter set.
+    !!{
+    Constructor for the {\normalfont \ttfamily temperedDifferentialEvolution} posterior sampling simulation class which builds the object from a
+    parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (posteriorSampleSimulationTemperedDffrntlEvltn)                :: self
@@ -91,38 +103,44 @@ contains
     double precision                                                               :: temperatureMaximum
 
     self%posteriorSampleSimulationDifferentialEvolution=posteriorSampleSimulationDifferentialEvolution(parameters)
-    !# <inputParameter>
-    !#   <name>untemperedStepCount</name>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of untempered steps to take.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>stepsPerLevel</name>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number of steps to take at each tempering level.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>temperingLevelCount</name>
-    !#   <defaultValue>10</defaultValue>
-    !#   <description>The number tempering levels to use.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>temperatureMaximum</name>
-    !#   <description>The maximum temperature to reach.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="posteriorSampleDffrntlEvltnPrpslSzTmpExp" name="posteriorSampleDffrntlEvltnPrpslSzTmpExp_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>untemperedStepCount</name>
+      <defaultValue>10</defaultValue>
+      <description>The number of untempered steps to take.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>stepsPerLevel</name>
+      <defaultValue>10</defaultValue>
+      <description>The number of steps to take at each tempering level.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>temperingLevelCount</name>
+      <defaultValue>10</defaultValue>
+      <description>The number tempering levels to use.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>temperatureMaximum</name>
+      <description>The maximum temperature to reach.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="posteriorSampleDffrntlEvltnPrpslSzTmpExp" name="posteriorSampleDffrntlEvltnPrpslSzTmpExp_" source="parameters"/>
+    !!]
     call self%initialize(posteriorSampleDffrntlEvltnPrpslSzTmpExp_,temperingLevelCount,untemperedStepCount,stepsPerLevel,temperatureMaximum)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="posteriorSampleDffrntlEvltnPrpslSzTmpExp_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="posteriorSampleDffrntlEvltnPrpslSzTmpExp_"/>
+    !!]
     return
   end function temperedDifferentialEvolutionConstructorParameters
 
   function temperedDifferentialEvolutionConstructorInternal(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,posteriorSampleDffrntlEvltnProposalSize_,posteriorSampleDffrntlEvltnRandomJump_,posteriorSampleDffrntlEvltnPrpslSzTmpExp_,randomNumberGenerator_,stepsMaximum,acceptanceAverageCount,stateSwapCount,recomputeCount,logFileRoot,sampleOutliers,logFlushCount,reportCount,interactionRoot,appendLogs,loadBalance,ignoreChainNumberAdvice,temperingLevelCount,untemperedStepCount,stepsPerLevel,temperatureMaximum) result(self)
-    !% Internal constructor for the ``temperedDifferentialEvolution'' simulation class.
+    !!{
+    Internal constructor for the ``temperedDifferentialEvolution'' simulation class.
+    !!}
     implicit none
     type            (posteriorSampleSimulationTemperedDffrntlEvltn)                                      :: self
     type            (modelParameterList                           ), intent(in   ), target, dimension(:) :: modelParametersActive_                  , modelParametersInactive_
@@ -151,7 +169,9 @@ contains
   end function temperedDifferentialEvolutionConstructorInternal
 
   subroutine temperedDifferentialEvolutionInitialize(self,posteriorSampleDffrntlEvltnPrpslSzTmpExp_,temperingLevelCount,untemperedStepCount,stepsPerLevel,temperatureMaximum)
-    !% Finished initialization of tempered differential evolution simulation objects during construction.
+    !!{
+    Finished initialization of tempered differential evolution simulation objects during construction.
+    !!}
     use :: Posterior_Sampling_State, only : posteriorSampleStateSimple
     implicit none
     class           (posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout)         :: self
@@ -185,16 +205,22 @@ contains
   end subroutine temperedDifferentialEvolutionInitialize
 
   subroutine temperedDifferentialEvolutionDestructor(self)
-    !% Destroy a tempered differential evolution simulation object.
+    !!{
+    Destroy a tempered differential evolution simulation object.
+    !!}
     implicit none
     type(posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout) :: self
 
-    !# <objectDestructor name="self%posteriorSampleDffrntlEvltnPrpslSzTmpExp_"/>
+    !![
+    <objectDestructor name="self%posteriorSampleDffrntlEvltnPrpslSzTmpExp_"/>
+    !!]
     return
   end subroutine temperedDifferentialEvolutionDestructor
 
   logical function temperedDifferentialEvolutionLogging(self)
-    !% Specifies whether or not the current state should be logged to file during differential evolution.
+    !!{
+    Specifies whether or not the current state should be logged to file during differential evolution.
+    !!}
     implicit none
     class(posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout) :: self
 
@@ -203,7 +229,9 @@ contains
   end function temperedDifferentialEvolutionLogging
 
   subroutine temperedDifferentialEvolutionUpdate(self,stateVector)
-    !% Update the differential evolution simulator state.
+    !!{
+    Update the differential evolution simulator state.
+    !!}
     use :: Display           , only : displayIndent     , displayMessage, displayUnindent, displayVerbosity, &
           &                           verbosityLevelInfo
     use :: ISO_Varying_String, only : varying_string
@@ -293,7 +321,9 @@ contains
   end subroutine temperedDifferentialEvolutionUpdate
 
   integer function temperedDifferentialEvolutionLevel(self)
-    !% Return the actual tempering level.
+    !!{
+    Return the actual tempering level.
+    !!}
     implicit none
     class(posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout) :: self
 
@@ -306,7 +336,9 @@ contains
   end function temperedDifferentialEvolutionLevel
 
   double precision function temperedDifferentialEvolutionStepSize(self,forceAcceptance)
-    !% Return the step size parameter, $\gamma$, for a differential evolution step.
+    !!{
+    Return the step size parameter, $\gamma$, for a differential evolution step.
+    !!}
     implicit none
     class           (posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout) :: self
     logical                                                        , intent(inout) :: forceAcceptance
@@ -327,7 +359,9 @@ contains
   end function temperedDifferentialEvolutionStepSize
 
   double precision function temperedDifferentialEvolutionTemperature(self)
-    !% Return the temperature.
+    !!{
+    Return the temperature.
+    !!}
     implicit none
     class(posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout) :: self
 
@@ -340,7 +374,9 @@ contains
   end function temperedDifferentialEvolutionTemperature
 
   logical function temperedDifferentialEvolutionAcceptProposal(self,logPosterior,logPosteriorProposed,logLikelihoodVariance,logLikelihoodVarianceProposed)
-    !% Return whether or not to accept a proposal.
+    !!{
+    Return whether or not to accept a proposal.
+    !!}
     implicit none
     class           (posteriorSampleSimulationTemperedDffrntlEvltn), intent(inout) :: self
     double precision                                               , intent(in   ) :: logPosterior         , logPosteriorProposed         , &

@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements the standard class for evolving nodes in merger trees.
+  !!{
+  Implements the standard class for evolving nodes in merger trees.
+  !!}
 
   use :: Kind_Numbers                , only : kind_int8
   use :: Merger_Tree_Evolve_Profilers, only : mergerTreeEvolveProfilerClass
@@ -25,17 +27,21 @@
   use :: Nodes_Operators             , only : nodeOperatorClass
   use :: Numerical_ODE_Solvers       , only : odeSolver
   
-  !# <mergerTreeNodeEvolver name="mergerTreeNodeEvolverStandard">
-  !#  <description>The standard merger tree node evolver.</description>
-  !#  <deepCopy>
-  !#   <ignore variables="galacticStructureSolver_"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <exclude variables="galacticStructureSolver_"/>
-  !#  </stateStorable>
-  !# </mergerTreeNodeEvolver>
+  !![
+  <mergerTreeNodeEvolver name="mergerTreeNodeEvolverStandard">
+   <description>The standard merger tree node evolver.</description>
+   <deepCopy>
+    <ignore variables="galacticStructureSolver_"/>
+   </deepCopy>
+   <stateStorable>
+    <exclude variables="galacticStructureSolver_"/>
+   </stateStorable>
+  </mergerTreeNodeEvolver>
+  !!]
   type, extends(mergerTreeNodeEvolverClass) :: mergerTreeNodeEvolverStandard
-     !% Implementation of the standard merger tree node evolver.
+     !!{
+     Implementation of the standard merger tree node evolver.
+     !!}
      private
      class           (mergerTreeNodeMergerClass    ), pointer                   :: mergerTreeNodeMerger_               => null()
      double precision                                                           :: odeToleranceAbsolute                         , odeToleranceRelative         , &
@@ -76,7 +82,9 @@
   end type mergerTreeNodeEvolverStandard
 
   interface mergerTreeNodeEvolverStandard
-     !% Constructors for the {\normalfont \ttfamily standard} merger tree node evolver.
+     !!{
+     Constructors for the {\normalfont \ttfamily standard} merger tree node evolver.
+     !!}
      module procedure standardConstructorParameters
      module procedure standardConstructorInternal
   end interface mergerTreeNodeEvolverStandard
@@ -91,33 +99,39 @@
   !$GLC ignore outlive :: standardSolver
   
   ! Enumeration of latent variable integrator.
-  !# <enumeration>
-  !#  <name>latentIntegratorType</name>
-  !#  <description>Used to specify the type of latent variable integrator to use.</description>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <entry label="gaussKronrod"/>
-  !#  <entry label="trapezoidal" />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>latentIntegratorType</name>
+   <description>Used to specify the type of latent variable integrator to use.</description>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="gaussKronrod"/>
+   <entry label="trapezoidal" />
+  </enumeration>
+  !!]
 
   ! Enumeration of ODE algorithms.
-  !# <enumeration>
-  !#  <name>standardODEAlgorithm</name>
-  !#  <description>Used to specify the type of ODE algorithm to use.</description>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <entry label="rungeKuttaCashKarp"     />
-  !#  <entry label="rungeKuttaSecondOrder"  />
-  !#  <entry label="rungeKutta"             />
-  !#  <entry label="rungeKuttaFehlberg"     />
-  !#  <entry label="rungeKuttaPrinceDormand"/>
-  !#  <entry label="multistepAdams"         />
-  !#  <entry label="bulirschStoer"          />
-  !#  <entry label="bdf"                    />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>standardODEAlgorithm</name>
+   <description>Used to specify the type of ODE algorithm to use.</description>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="rungeKuttaCashKarp"     />
+   <entry label="rungeKuttaSecondOrder"  />
+   <entry label="rungeKutta"             />
+   <entry label="rungeKuttaFehlberg"     />
+   <entry label="rungeKuttaPrinceDormand"/>
+   <entry label="multistepAdams"         />
+   <entry label="bulirschStoer"          />
+   <entry label="bdf"                    />
+  </enumeration>
+  !!]
 
 contains
 
   function standardConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily standard} merger tree node evolver class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily standard} merger tree node evolver class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerTreeNodeEvolverStandard)                :: self
@@ -132,69 +146,71 @@ contains
          &                                                            odeJacobianStepSizeRelative
     logical                                                        :: profileOdeEvolver          , reuseODEStepSize
 
-    !# <inputParameter>
-    !#   <name>odeToleranceAbsolute</name>
-    !#   <defaultValue>0.01d0</defaultValue>
-    !#   <description>The absolute tolerance used in solving differential equations for node evolution.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>odeToleranceRelative</name>
-    !#   <defaultValue>1.0d-2</defaultValue>
-    !#   <description>The relative tolerance used in solving differential equations for node evolution.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>odeJacobianStepSizeRelative</name>
-    !#   <defaultValue>0.01d0</defaultValue>
-    !#   <description>The relative step size to use when perturbing properties for purposes of computing a finite difference approximation to the ODE system Jacobian.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>odeAlgorithm</name>
-    !#   <defaultValue>var_str('rungeKuttaCashKarp')</defaultValue>
-    !#   <description>The algorithm to use in the ODE solver.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>odeAlgorithmNonJacobian</name>
-    !#   <defaultValue>var_str('rungeKuttaCashKarp')</defaultValue>
-    !#   <description>The algorithm to use in the ODE solver.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>odeLatentIntegratorType</name>
-    !#   <defaultValue>var_str('trapezoidal')</defaultValue>
-    !#   <description>The type of integrator to use for latent variables.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>odeLatentIntegratorOrder</name>
-    !#   <defaultValue>15</defaultValue>
-    !#   <description>The order of the integrator for latent variables.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>odeLatentIntegratorIntervalsMaximum</name>
-    !#   <defaultValue>1000</defaultValue>
-    !#   <description>The maxium number of intervals allowed in the integrator for latent variables.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>profileOdeEvolver</name>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>Specifies whether or not to profile the ODE evolver.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>reuseODEStepSize</name>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <description>If true, re-use the previous ODE step size when resuming the evolution of a node. Otherwise, the initial step size is not specified.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="mergerTreeNodeMerger"     name="mergerTreeNodeMerger_"     source="parameters"/>
-    !# <objectBuilder class="nodeOperator"             name="nodeOperator_"             source="parameters"/>
-    !# <objectBuilder class="mergerTreeEvolveProfiler" name="mergerTreeEvolveProfiler_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>odeToleranceAbsolute</name>
+      <defaultValue>0.01d0</defaultValue>
+      <description>The absolute tolerance used in solving differential equations for node evolution.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>odeToleranceRelative</name>
+      <defaultValue>1.0d-2</defaultValue>
+      <description>The relative tolerance used in solving differential equations for node evolution.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>odeJacobianStepSizeRelative</name>
+      <defaultValue>0.01d0</defaultValue>
+      <description>The relative step size to use when perturbing properties for purposes of computing a finite difference approximation to the ODE system Jacobian.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>odeAlgorithm</name>
+      <defaultValue>var_str('rungeKuttaCashKarp')</defaultValue>
+      <description>The algorithm to use in the ODE solver.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>odeAlgorithmNonJacobian</name>
+      <defaultValue>var_str('rungeKuttaCashKarp')</defaultValue>
+      <description>The algorithm to use in the ODE solver.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>odeLatentIntegratorType</name>
+      <defaultValue>var_str('trapezoidal')</defaultValue>
+      <description>The type of integrator to use for latent variables.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>odeLatentIntegratorOrder</name>
+      <defaultValue>15</defaultValue>
+      <description>The order of the integrator for latent variables.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>odeLatentIntegratorIntervalsMaximum</name>
+      <defaultValue>1000</defaultValue>
+      <description>The maxium number of intervals allowed in the integrator for latent variables.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>profileOdeEvolver</name>
+      <defaultValue>.false.</defaultValue>
+      <description>Specifies whether or not to profile the ODE evolver.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>reuseODEStepSize</name>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, re-use the previous ODE step size when resuming the evolution of a node. Otherwise, the initial step size is not specified.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="mergerTreeNodeMerger"     name="mergerTreeNodeMerger_"     source="parameters"/>
+    <objectBuilder class="nodeOperator"             name="nodeOperator_"             source="parameters"/>
+    <objectBuilder class="mergerTreeEvolveProfiler" name="mergerTreeEvolveProfiler_" source="parameters"/>
+    !!]
     self=mergerTreeNodeEvolverStandard(                                                                                                         &
          &                                                                        odeToleranceAbsolute                                        , &
          &                                                                        odeToleranceRelative                                        , &
@@ -210,15 +226,19 @@ contains
          &                                                                        nodeOperator_                                               , &
          &                                                                        mergerTreeEvolveProfiler_                                     &
          &                            )
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="mergerTreeNodeMerger_"    />
-    !# <objectDestructor name="nodeOperator_"            />
-    !# <objectDestructor name="mergerTreeEvolveProfiler_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="mergerTreeNodeMerger_"    />
+    <objectDestructor name="nodeOperator_"            />
+    <objectDestructor name="mergerTreeEvolveProfiler_"/>
+    !!]
     return
   end function standardConstructorParameters
 
    function standardConstructorInternal(odeToleranceAbsolute,odeToleranceRelative,odeAlgorithm,odeAlgorithmNonJacobian,odeJacobianStepSizeRelative,odeLatentIntegratorType,odeLatentIntegratorOrder,odeLatentIntegratorIntervalsMaximum,profileOdeEvolver,reuseODEStepSize,mergerTreeNodeMerger_,nodeOperator_,mergerTreeEvolveProfiler_) result(self)
-     !% Internal constructor for the {\normalfont \ttfamily standard} merger tree node evolver class.
+     !!{
+     Internal constructor for the {\normalfont \ttfamily standard} merger tree node evolver class.
+     !!}
      use :: Galacticus_Error     , only : Galacticus_Error_Report
      use :: Numerical_ODE_Solvers, only : GSL_ODEIV2_Step_RK2    , GSL_ODEIV2_Step_RK4    , GSL_ODEIV2_Step_RK8PD, GSL_ODEIV2_Step_RKCK       , &
           &                               GSL_ODEIV2_Step_RKF45  , GSL_ODEIV2_Step_msAdams, GSL_ODEIV2_step_BSimp, GSL_ODEIV2_step_MSBDFActive
@@ -233,7 +253,9 @@ contains
      class           (mergerTreeNodeMergerClass    ), intent(in   ), target :: mergerTreeNodeMerger_
      class           (nodeOperatorClass            ), intent(in   ), target :: nodeOperator_
      class           (mergerTreeEvolveProfilerClass), intent(in   ), target :: mergerTreeEvolveProfiler_
-    !# <constructorAssign variables="odeToleranceAbsolute, odeToleranceRelative, odeJacobianStepSizeRelative, odeLatentIntegratorType, odeLatentIntegratorOrder, odeLatentIntegratorIntervalsMaximum, profileOdeEvolver, reuseODEStepSize, *mergerTreeNodeMerger_, *nodeOperator_, *mergerTreeEvolveProfiler_"/>
+    !![
+    <constructorAssign variables="odeToleranceAbsolute, odeToleranceRelative, odeJacobianStepSizeRelative, odeLatentIntegratorType, odeLatentIntegratorOrder, odeLatentIntegratorIntervalsMaximum, profileOdeEvolver, reuseODEStepSize, *mergerTreeNodeMerger_, *nodeOperator_, *mergerTreeEvolveProfiler_"/>
+    !!]
 
      ! Construct ODE solver object.
      self%useJacobian=.false.
@@ -284,7 +306,9 @@ contains
    end function standardConstructorInternal
 
   subroutine standardAutoHook(self)
-    !% Attach to various event hooks.
+    !!{
+    Attach to various event hooks.
+    !!}
     use :: Events_Hooks, only : openMPThreadBindingAtLevel, subhaloPromotionEvent
     implicit none
     class(mergerTreeNodeEvolverStandard), intent(inout) :: self
@@ -294,20 +318,26 @@ contains
   end subroutine standardAutoHook
 
   subroutine standardDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily standard} merger tree node evolver class.
+    !!{
+    Destructor for the {\normalfont \ttfamily standard} merger tree node evolver class.
+    !!}
     use :: Events_Hooks, only : subhaloPromotionEvent
     implicit none
     type(mergerTreeNodeEvolverStandard), intent(inout) :: self
 
-    !# <objectDestructor name="self%mergerTreeNodeMerger_"    />
-    !# <objectDestructor name="self%nodeOperator_"            />
-    !# <objectDestructor name="self%mergerTreeEvolveProfiler_"/>
+    !![
+    <objectDestructor name="self%mergerTreeNodeMerger_"    />
+    <objectDestructor name="self%nodeOperator_"            />
+    <objectDestructor name="self%mergerTreeEvolveProfiler_"/>
+    !!]
     if (subhaloPromotionEvent%isAttached(self,standardNodeSubhaloPromotion)) call subhaloPromotionEvent%detach(self,standardNodeSubhaloPromotion)
     return
   end subroutine standardDestructor
 
   subroutine standardEvolve(self,tree,node,timeEnd,interrupted,functionInterrupt,galacticStructureSolver__,systemClockMaximum,status)
-    !% Evolves {\normalfont \ttfamily node} to time {\normalfont \ttfamily timeEnd}, or until evolution is interrupted.
+    !!{
+    Evolves {\normalfont \ttfamily node} to time {\normalfont \ttfamily timeEnd}, or until evolution is interrupted.
+    !!}
     use            :: Display                       , only : displayIndent                , displayMessage                                  , displayUnindent                                , displayMagenta    , &
          &                                                   displayReset
     use            :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
@@ -320,18 +350,28 @@ contains
     use            :: Memory_Management             , only : Memory_Usage_Record
     use            :: Numerical_Integration2        , only : integratorMultiVectorized1D  , integratorMultiVectorizedCompositeGaussKronrod1D, integratorMultiVectorizedCompositeTrapezoidal1D
     use            :: ODE_Solver_Error_Codes        , only : odeSolverInterrupt
-    !# <include directive="preEvolveTask"      type="moduleUse">
+    !![
+    <include directive="preEvolveTask"      type="moduleUse">
+    !!]
     include 'objects.tree_node.pre_evolve.modules.inc'
-    !# </include>
-    !# <include directive="scaleSetTask"       type="moduleUse">
+    !![
+    </include>
+    <include directive="scaleSetTask"       type="moduleUse">
+    !!]
     include 'objects.tree_node.set_scale.modules.inc'
-    !# </include>
-    !# <include directive="inactiveSetTask"    type="moduleUse">
+    !![
+    </include>
+    <include directive="inactiveSetTask"    type="moduleUse">
+    !!]
     include 'objects.tree_node.set_inactive.modules.inc'
-    !# </include>
-    !# <include directive="analyticSolverTask" type="moduleUse">
+    !![
+    </include>
+    <include directive="analyticSolverTask" type="moduleUse">
+    !!]
     include 'objects.tree_node.analytic_solver_task.modules.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     implicit none
     class           (mergerTreeNodeEvolverStandard)             , intent(inout), target  :: self
     type            (mergerTree                   )             , intent(inout)          :: tree
@@ -367,10 +407,14 @@ contains
     end if
     ! Call functions to perform any pre-evolution tasks.
     call self%nodeOperator_%differentialEvolutionPre(node)
-    !# <include directive="preEvolveTask" type="functionCall" functionType="void">
-    !#  <functionArgs>node</functionArgs>
+    !![
+    <include directive="preEvolveTask" type="functionCall" functionType="void">
+     <functionArgs>node</functionArgs>
+    !!]
     include 'objects.tree_node.pre_evolve.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
 
     ! Determine the end time for this node - either the specified end time, or the time associated with the parent node, whichever
     ! occurs first.
@@ -384,10 +428,14 @@ contains
     call Galacticus_Calculations_Reset(node)
     ! Attempt to find analytic solutions.
     solvedAnalytically=.false.
-    !# <include directive="analyticSolverTask" type="functionCall" functionType="void">
-    !#  <functionArgs>node,timeStart,timeEnd,solvedAnalytically</functionArgs>
+    !![
+    <include directive="analyticSolverTask" type="functionCall" functionType="void">
+     <functionArgs>node,timeStart,timeEnd,solvedAnalytically</functionArgs>
+    !!]
     include 'objects.tree_node.analytic_solver_task.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     ! Check if an analytic solution was available - use numerical solution if not.
     if (solvedAnalytically) then
        ! An analytic solution was available. Record that no interrupt therefore occurred.
@@ -467,10 +515,14 @@ contains
           ! Determine active and inactive properties.
           call node%odeStepInactivesInitialize()
           if (jacobianSolver) then
-             !# <include directive="inactiveSetTask" type="functionCall" functionType="void">
-             !#  <functionArgs>node</functionArgs>
+             !![
+             <include directive="inactiveSetTask" type="functionCall" functionType="void">
+              <functionArgs>node</functionArgs>
+             !!]
              include 'objects.tree_node.set_inactive.inc'
-             !# </include>
+             !![
+             </include>
+             !!]
           end if
           ! Compute offsets into serialization arrays for rates and scales.
           call node%serializationOffsets(self%propertyTypeODE       )
@@ -485,10 +537,15 @@ contains
           self%propertyValuesInactiveSaved(1:self%propertyCountInactive)=self%propertyValuesInactive(1:self%propertyCountInactive)
           ! Compute scales for all properties and extract from the node.
           call node%odeStepScalesInitialize()
-          !# <include directive="scaleSetTask" type="functionCall" functionType="void">
-          !#  <functionArgs>node</functionArgs>
+          !![
+          <include directive="scaleSetTask" type="functionCall" functionType="void">
+           <functionArgs>node</functionArgs>
+          !!]
           include 'objects.tree_node.set_scale.inc'
-          !# </include>
+          !![
+          </include>
+          !!]
+          call self%nodeOperator_%differentialEvolutionScales(node)
           call node%serializeScales(self%propertyScalesActive  ,self%propertyTypeODE       )
           call node%serializeScales(self%propertyScalesInactive,self%propertyTypeIntegrator)
           ! Check for zero property scales which will cause floating point overflow in the ODE solver.
@@ -558,27 +615,29 @@ contains
                    else
                       odeAlgorithm=self%odeAlgorithmNonJacobian
                    end if
-                   !# <conditionalCall>
-		   !#  <call>
-                   !#   solver=odeSolver(                                                     &amp;
-                   !#    &amp;                             self%propertyCountActive         , &amp;
-                   !#    &amp;                                  standardODEs                , &amp;
-                   !#    &amp;           toleranceAbsolute=self%odeToleranceAbsolute        , &amp;
-                   !#    &amp;           toleranceRelative=self%odeToleranceRelative        , &amp;
-                   !#    &amp;           scale            =self%propertyScalesActive        , &amp;
-                   !#    &amp;           stepperType      =     odeAlgorithm                , &amp;
-                   !#    &amp;           postStep         =     standardPostStepProcessing  , &amp;
-                   !#    &amp;           finalState       =     standardFinalStateProcessing, &amp;
-                   !#    &amp;           errorHandler     =     standardErrorHandler          &amp;                                      
-                   !#    &amp;           {conditions}                                         &amp;
-                   !#    &amp;          )
-		   !#  </call>
-                   !#  <argument name="jacobian"                value="standardODEsJacobian"      condition="jacobianSolver"        />
-                   !#  <argument name="integrator"              value="integrator_"               condition="jacobianSolver"        />
-                   !#  <argument name="integratorErrorTolerant" value=".true."                    condition="jacobianSolver"        />
-                   !#  <argument name="integrands"              value="standardIntegrands"        condition="jacobianSolver"        />
-                   !#  <argument name="errorAnalyzer"           value="standardStepErrorAnalyzer" condition="self%profileOdeEvolver"/>
-                   !# </conditionalCall>
+                   !![
+                   <conditionalCall>
+		    <call>
+                     solver=odeSolver(                                                     &amp;
+                      &amp;                             self%propertyCountActive         , &amp;
+                      &amp;                                  standardODEs                , &amp;
+                      &amp;           toleranceAbsolute=self%odeToleranceAbsolute        , &amp;
+                      &amp;           toleranceRelative=self%odeToleranceRelative        , &amp;
+                      &amp;           scale            =self%propertyScalesActive        , &amp;
+                      &amp;           stepperType      =     odeAlgorithm                , &amp;
+                      &amp;           postStep         =     standardPostStepProcessing  , &amp;
+                      &amp;           finalState       =     standardFinalStateProcessing, &amp;
+                      &amp;           errorHandler     =     standardErrorHandler          &amp;                                      
+                      &amp;           {conditions}                                         &amp;
+                      &amp;          )
+		    </call>
+                    <argument name="jacobian"                value="standardODEsJacobian"      condition="jacobianSolver"        />
+                    <argument name="integrator"              value="integrator_"               condition="jacobianSolver"        />
+                    <argument name="integratorErrorTolerant" value=".true."                    condition="jacobianSolver"        />
+                    <argument name="integrands"              value="standardIntegrands"        condition="jacobianSolver"        />
+                    <argument name="errorAnalyzer"           value="standardStepErrorAnalyzer" condition="self%profileOdeEvolver"/>
+                   </conditionalCall>
+                   !!]
                    solverInitialized=.true.
                 end if
                 if (self%reuseODEStepSize) then
@@ -636,7 +695,6 @@ contains
              end if
           end if
           if (solvedNumerically) then
-             call node%timeStepSet(stepSize)
              ! Extract values.
              call node%deserializeValues(self%propertyValuesActive  ,self%propertyTypeODE       )
              call node%deserializeValues(self%propertyValuesInactive,self%propertyTypeIntegrator)            
@@ -645,10 +703,12 @@ contains
              if (self%timeInterruptFirst /= 0.0d0) then
                 interrupted=.true.
                 functionInterrupt => self%functionInterruptFirst
-                call basic%timeSet(self%timeInterruptFirst)
+                call basic%timeSet    (self%timeInterruptFirst)
+                call node %timeStepSet(     -1.0d0            )
              else
                 interrupted=.false.
-                call basic%timeSet(     timeEnd           )
+                call basic%timeSet    (     timeEnd           )
+                call node %timeStepSet(     stepSize          )
              end if
           end if
        end do
@@ -656,15 +716,19 @@ contains
     ! Call routines to perform any post-evolution tasks.
     if (associated(node)) then
        call self%nodeOperator_%differentialEvolutionPost(node)
-       !# <eventHook name="postEvolve">
-       !#  <callWith>node</callWith>
-       !# </eventHook>
+       !![
+       <eventHook name="postEvolve">
+        <callWith>node</callWith>
+       </eventHook>
+       !!]
     end if
     return
   end subroutine standardEvolve
 
   logical function standardIsAccurate(self,valueNode,valueExpected)
-    !% Return true if a tree node property is within expected accuracy of a given value.
+    !!{
+    Return true if a tree node property is within expected accuracy of a given value.
+    !!}
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
     class           (mergerTreeNodeEvolverStandard), intent(inout) :: self
@@ -675,7 +739,9 @@ contains
   end function standardIsAccurate
 
   subroutine standardIntegrands(time,propertyValues,propertyRates,inactivePropertyInitialValues,evaluate,integrands)
-    !% Evaluates integrands for node evolution.
+    !!{
+    Evaluates integrands for node evolution.
+    !!}
     use :: Galacticus_Nodes, only : interruptTask, propertyTypeInactive, rateComputeState
     implicit none
     double precision               , intent(in   ), dimension(:  ) :: time
@@ -719,7 +785,9 @@ contains
   end subroutine standardIntegrands
 
   subroutine standardFinalStateProcessing(propertyValues)
-    !% Perform any actions based on the final state of the ODE step.
+    !!{
+    Perform any actions based on the final state of the ODE step.
+    !!}
     implicit none
     double precision, intent(in   ), dimension(:) :: propertyValues
 
@@ -729,19 +797,21 @@ contains
   end subroutine standardFinalStateProcessing
 
   integer function standardODEs(time,y,dydt)
-    !% Function which evaluates the set of ODEs for the evolution of a specific node.
+    !!{
+    Function which evaluates the set of ODEs for the evolution of a specific node.
+    !!}
     use :: Galacticus_Error      , only : errorStatusXCPU
     use :: Galacticus_Nodes      , only : interruptTask  , nodeComponentBasic
     use :: Interface_GSL         , only : GSL_Success
     use :: ODE_Solver_Error_Codes, only : interruptedAtX , odeSolverInterrupt
     implicit none
-    double precision                     , intent(in   )               :: time
-    double precision                     , intent(in   ), dimension(:) :: y
-    double precision                     , intent(  out), dimension(:) :: dydt
-    logical                                                            :: interrupt
-    procedure       (interruptTask     ), pointer                      :: functionInterrupt
-    class           (nodeComponentBasic), pointer                      :: basic
-    integer         (kind_int8         )                               :: systemClockCount
+    double precision                    , intent(in   )               :: time
+    double precision                    , intent(in   ), dimension(:) :: y
+    double precision                    , intent(  out), dimension(:) :: dydt
+    logical                                                           :: interrupt
+    procedure       (interruptTask     ), pointer                     :: functionInterrupt
+    class           (nodeComponentBasic), pointer                     :: basic
+    integer         (kind_int8         )                              :: systemClockCount
 
     ! Check for exceeding wall time.
     if (standardSelf%systemClockMaximum > 0_kind_int8) then
@@ -808,7 +878,9 @@ contains
   end function standardODEs
 
   integer function standardODEsJacobian(time,propertyValues0,derivativeRatesValues,derivativeRatesTime)
-    !% Function which evaluates the set of ODEs for the evolution of a specific node.
+    !!{
+    Function which evaluates the set of ODEs for the evolution of a specific node.
+    !!}
     use :: Interface_GSL, only : GSL_Success
     implicit none
     double precision                                                                                             , intent(in   ) :: time
@@ -876,11 +948,17 @@ contains
   end function standardODEsJacobian
 
   subroutine standardDerivativesCompute(node,interrupt,functionInterruptReturn,propertyType)
-    !% Call routines to set alls derivatives for {\normalfont \ttfamily node}.
+    !!{
+    Call routines to set alls derivatives for {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
-    !# <include directive="rateComputeTask" type="moduleUse">
+    !![
+    <include directive="rateComputeTask" type="moduleUse">
+    !!]
     include 'objects.node.component.derivatives.modules.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     implicit none
     type     (treeNode), intent(inout)          :: node
     logical            , intent(  out)          :: interrupt
@@ -894,16 +972,22 @@ contains
     ! Call component routines to indicate that derivative calculation is commencing.
     call Galacticus_Calculations_Reset(node)
     ! Trigger an event to perform any pre-derivative calculations.
-    !# <eventHook name="preDerivative">
-    !#  <callWith>node,propertyType</callWith>
-    !# </eventHook>
+    !![
+    <eventHook name="preDerivative">
+     <callWith>node,propertyType</callWith>
+    </eventHook>
+    !!]
     ! Do not attempt to compute derivatives for nodes which are not solvable.
     if (.not.node%isSolvable) return
     ! Call component routines to compute derivatives.
-    !# <include directive="rateComputeTask" type="functionCall" functionType="void">
-    !#  <functionArgs>node,interrupt,functionInterrupt,propertyType</functionArgs>
+    !![
+    <include directive="rateComputeTask" type="functionCall" functionType="void">
+     <functionArgs>node,interrupt,functionInterrupt,propertyType</functionArgs>
+    !!]
     include 'objects.node.component.derivatives.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     call standardSelf%nodeOperator_%differentialEvolution(node,interrupt,functionInterrupt,propertyType)
     ! Return the procedure pointer.
     functionInterruptReturn => functionInterrupt
@@ -911,7 +995,9 @@ contains
   end subroutine standardDerivativesCompute
 
   subroutine standardErrorHandler(status,time,y)
-    !% Handles errors in the ODE solver when evolving \glc\ nodes. Dumps the content of the node.
+    !!{
+    Handles errors in the ODE solver when evolving \glc\ nodes. Dumps the content of the node.
+    !!}
     use            :: Display        , only : displayIndent      , displayMessage        , displayUnindent, displayVerbosity, &
           &                                   displayVerbositySet, verbosityLevelStandard
     use, intrinsic :: ISO_C_Binding  , only : c_double           , c_int
@@ -981,7 +1067,9 @@ contains
   end subroutine standardErrorHandler
 
   function standardODEStepTolerances(propertyValues)
-    !% Compute the tolerances on each property being evolved in the ODE stystem at the current timestep.
+    !!{
+    Compute the tolerances on each property being evolved in the ODE stystem at the current timestep.
+    !!}
     implicit none
     double precision                         , dimension(standardSelf%propertyCountActive) :: standardODEStepTolerances
     double precision          , intent(in   ), dimension(standardSelf%propertyCountActive) :: propertyValues
@@ -997,27 +1085,39 @@ contains
   end function standardODEStepTolerances
 
   subroutine standardPostStepProcessing(y,postStepStatus) bind(c)
-    !% Perform any post-step actions on the node.
+    !!{
+    Perform any post-step actions on the node.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_double   , c_int
     use            :: Interface_GSL, only : GSL_Success
-    !# <include directive="postStepTask" type="moduleUse">
+    !![
+    <include directive="postStepTask" type="moduleUse">
+    !!]
     include 'objects.tree_node.post_step.modules.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     implicit none
     real   (kind=c_double), intent(inout), dimension(*) :: y
     integer(kind=c_int   ), intent(inout)               :: postStepStatus
 
     call standardSelf%activeNode%deserializeValues(y(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
-    !# <include directive="postStepTask" type="functionCall" functionType="void">
-    !#  <functionArgs>standardSelf%activeNode,postStepStatus</functionArgs>
+    !![
+    <include directive="postStepTask" type="functionCall" functionType="void">
+     <functionArgs>standardSelf%activeNode,postStepStatus</functionArgs>
+    !!]
     include 'objects.tree_node.post_step.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     if (postStepStatus /= GSL_Success) call standardSelf%activeNode%serializeValues(y(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
     return
   end subroutine standardPostStepProcessing
 
   subroutine standardStepErrorAnalyzer(currentPropertyValue,currentPropertyError,timeStep,stepStatus) bind(c)
-    !% Profiles ODE solver step sizes and errors.
+    !!{
+    Profiles ODE solver step sizes and errors.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_double   , c_int
     use            :: Interface_GSL, only : GSL_Success
     implicit none
@@ -1054,7 +1154,9 @@ contains
   end subroutine standardStepErrorAnalyzer
 
   subroutine standardPromote(self,node)
-    !% Transfer the properties of {\normalfont \ttfamily node} to its parent node, then destroy it.
+    !!{
+    Transfer the properties of {\normalfont \ttfamily node} to its parent node, then destroy it.
+    !!}
     use :: Display        , only : displayMessage, displayVerbosity, verbosityLevelInfo
     use :: String_Handling, only : operator(//)
     implicit none
@@ -1075,9 +1177,11 @@ contains
     end if
     ! Perform any processing necessary before this halo is promoted.
     call self%nodeOperator_%nodePromote(node)
-    !# <eventHook name="nodePromotion">
-    !#  <callWith>node</callWith>
-    !# </eventHook>
+    !![
+    <eventHook name="nodePromotion">
+     <callWith>node</callWith>
+    </eventHook>
+    !!]
     ! Copy timestep to the parent.
     call parentNode%timeStepSet(node%timeStep())
     ! Move the components of node to the parent.
@@ -1138,13 +1242,19 @@ contains
   end subroutine standardPromote
 
   subroutine standardMerge(self,node)
-    !% Handles instances where {\normalfont \ttfamily node} is about to merge with its parent node.
+    !!{
+    Handles instances where {\normalfont \ttfamily node} is about to merge with its parent node.
+    !!}
     use :: Display         , only : displayMessage    , displayVerbosity, verbosityLevelInfo
     use :: Galacticus_Nodes, only : nodeComponentBasic
     use :: String_Handling , only : operator(//)
-    !# <include directive="nodeMergerTask" type="moduleUse">
+    !![
+    <include directive="nodeMergerTask" type="moduleUse">
+    !!]
     include 'events.node_mergers.process.modules.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     implicit none
     class    (mergerTreeNodeEvolverStandard), intent(inout) :: self
     type     (treeNode                     ), intent(inout) :: node
@@ -1161,10 +1271,14 @@ contains
        call displayMessage(message,verbosityLevelInfo)
     end if
     ! Call subroutines to perform any necessary processing prior to this node merger event.
-    !# <include directive="nodeMergerTask" type="functionCall" functionType="void">
-    !#  <functionArgs>node</functionArgs>
+    !![
+    <include directive="nodeMergerTask" type="functionCall" functionType="void">
+     <functionArgs>node</functionArgs>
+    !!]
     include 'events.node_mergers.process.inc'
-    !# </include>
+    !![
+    </include>
+    !!]
     call self%nodeOperator_        %nodesMerge(node)
     ! Process the merger.
     call self%mergerTreeNodeMerger_%process   (node)
@@ -1172,7 +1286,9 @@ contains
   end subroutine standardMerge
 
   subroutine standardNodeSubhaloPromotion(self,node,nodePromotion)
-    !% Promote a recently promoted subhalo to its new parent.
+    !!{
+    Promote a recently promoted subhalo to its new parent.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(*       ), intent(inout)          :: self

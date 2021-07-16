@@ -19,16 +19,22 @@
 
   !+    Contributions to this file made by: Omid Sameie.
 
-  !% Contains a module which provides a power spectrum window function class that implements the smooth-$k$ space filter of
-  !% \cite{leo_new_2018}.
+  !!{
+  Contains a module which provides a power spectrum window function class that implements the smooth-$k$ space filter of
+  \cite{leo_new_2018}.
+  !!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
 
-  !# <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionSmoothKSpace">
-  !#  <description>A smooth window function for filtering of power spectra.</description>
-  !# </powerSpectrumWindowFunction>
+  !![
+  <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionSmoothKSpace">
+   <description>A smooth window function for filtering of power spectra.</description>
+  </powerSpectrumWindowFunction>
+  !!]
   type, extends(powerSpectrumWindowFunctionClass) :: powerSpectrumWindowFunctionSmoothKSpace
-     !% A smooth power spectrum window function class.
+     !!{
+     A smooth power spectrum window function class.
+     !!}
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      double precision                                    :: beta                          , normalization
@@ -39,7 +45,9 @@
   end type powerSpectrumWindowFunctionSmoothKSpace
 
   interface powerSpectrumWindowFunctionSmoothKSpace
-     !% Constructors for the {\normalfont \ttfamily smoothKSpace} power spectrum window function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily smoothKSpace} power spectrum window function class.
+     !!}
      module procedure smoothKSpaceConstructorParameters
      module procedure smoothKSpaceConstructorInternal
   end interface powerSpectrumWindowFunctionSmoothKSpace
@@ -47,7 +55,9 @@
 contains
 
   function smoothKSpaceConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily smoothKSpace} power spectrum window function class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily smoothKSpace} power spectrum window function class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (powerSpectrumWindowFunctionSmoothKSpace)                :: self
@@ -55,52 +65,66 @@ contains
     class           (cosmologyParametersClass               ), pointer       :: cosmologyParameters_
     double precision                                                         :: beta                , normalization
 
-    !# <inputParameter>
-    !#   <name>normalization</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>3.5d0</defaultValue>
-    !#   <description>
-    !#   The parameter ``normalization'' is equivalent to the normalization for a sharp-$k$ filter. It serves as the ratio of mass scales of the object to the one in the spherical model: $R/R_\mathrm{topHat}$.
-    !#   </description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>beta</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>3.7d0</defaultValue>
-    !#   <description>
-    !#   The parameter ``beta'' is defined as the exponent of ``$kR$'' in the denominator of the window function: $W(kR)= 1/[1+(kR)^\beta]$.
-    !#   </description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>normalization</name>
+      <source>parameters</source>
+      <defaultValue>3.5d0</defaultValue>
+      <description>
+      The parameter ``normalization'' is equivalent to the normalization for a sharp-$k$ filter. It serves as the ratio of mass scales of the object to the one in the spherical model: $R/R_\mathrm{topHat}$.
+      </description>
+    </inputParameter>
+    <inputParameter>
+      <name>beta</name>
+      <source>parameters</source>
+      <defaultValue>3.7d0</defaultValue>
+      <description>
+      The parameter ``beta'' is defined as the exponent of ``$kR$'' in the denominator of the window function: $W(kR)= 1/[1+(kR)^\beta]$.
+      </description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !!]
     self = powerSpectrumWindowFunctionSmoothKSpace(cosmologyParameters_,beta,normalization)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    !!]
     return
   end function smoothKSpaceConstructorParameters
 
   function smoothKSpaceConstructorInternal(cosmologyParameters_,beta,normalization) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily smoothKSpace} power spectrum window function class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily smoothKSpace} power spectrum window function class.
+    !!}
     implicit none
     type            (powerSpectrumWindowFunctionSmoothKSpace)                        :: self
     class           (cosmologyParametersClass               ), intent(in   ), target :: cosmologyParameters_
     double precision                                         , intent(in   )         :: beta                , normalization
-    !# <constructorAssign variables="beta, normalization, *cosmologyParameters_"/>
+    !![
+    <constructorAssign variables="beta, normalization, *cosmologyParameters_"/>
+    !!]
 
     return
   end function smoothKSpaceConstructorInternal
 
   subroutine smoothKSpaceDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily smoothKSpace} power spectrum window function class.
+    !!{
+    Destructor for the {\normalfont \ttfamily smoothKSpace} power spectrum window function class.
+    !!}
     implicit none
     type(powerSpectrumWindowFunctionSmoothKSpace), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    !!]
     return
   end subroutine smoothKSpaceDestructor
 
   double precision function smoothKSpaceValue(self,wavenumber,smoothingMass)
-    !% Smooth-$k$ space power spectrum window function proposed in \cite{leo_new_2018}.
-    !% spectrum.
+    !!{
+    Smooth-$k$ space power spectrum window function proposed in \cite{leo_new_2018}.
+    spectrum.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (powerSpectrumWindowFunctionSmoothKSpace), intent(inout) :: self
@@ -128,8 +152,10 @@ contains
   end function smoothKSpaceValue
 
   double precision function smoothKSpaceWavenumberMaximum(self,smoothingMass)
-    !% Maximum wavenumber for a top hat in real space window function Fourier transformed into $k$-space used in computing the
-    !% variance of the power spectrum.
+    !!{
+    Maximum wavenumber for a top hat in real space window function Fourier transformed into $k$-space used in computing the
+    variance of the power spectrum.
+    !!}
     implicit none
     class           (powerSpectrumWindowFunctionSmoothKSpace), intent(inout) :: self
     double precision                                         , intent(in   ) :: smoothingMass

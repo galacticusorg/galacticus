@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data importer for Rockstar files.
+!!{
+Contains a module which implements an N-body data importer for Rockstar files.
+!!}
 
   use :: Cosmology_Parameters, only : cosmologyParametersClass
   
-  !# <nbodyImporter name="nbodyImporterRockstar">
-  !#  <description>An importer for Rockstar files.</description>
-  !# </nbodyImporter>
+  !![
+  <nbodyImporter name="nbodyImporterRockstar">
+   <description>An importer for Rockstar files.</description>
+  </nbodyImporter>
+  !!]
   type, extends(nbodyImporterClass) :: nbodyImporterRockstar
-     !% An importer for Rockstar files.
+     !!{
+     An importer for Rockstar files.
+     !!}
      private
      class  (cosmologyParametersClass)              , pointer     :: cosmologyParameters_    => null()
      integer                          , dimension(:), allocatable :: readColumns                      , readColumnsType     , &
@@ -41,90 +47,98 @@
   end type nbodyImporterRockstar
 
   interface nbodyImporterRockstar
-     !% Constructors for the {\normalfont \ttfamily rockstar} N-body importer class.
+     !!{
+     Constructors for the {\normalfont \ttfamily rockstar} N-body importer class.
+     !!}
      module procedure rockstarConstructorParameters
      module procedure rockstarConstructorInternal
   end interface nbodyImporterRockstar
 
   ! Enumeration of Rockstar columns.
-  !# <enumeration>
-  !#  <name>rockstarColumn</name>
-  !#  <description>Enumeration of columns in Rockstar output files.</description>
-  !#  <indexing>0</indexing>
-  !#  <visibility>public</visibility>
-  !#  <encodeFunction>yes</encodeFunction>
-  !#  <validator>yes</validator>
-  !#  <entry label="scale"                          />
-  !#  <entry label="id"                             />
-  !#  <entry label="desc_scale"                     />
-  !#  <entry label="desc_id"                        />
-  !#  <entry label="num_prog"                       />
-  !#  <entry label="pid"                            />
-  !#  <entry label="upid"                           />
-  !#  <entry label="desc_pid"                       />
-  !#  <entry label="phantom"                        />
-  !#  <entry label="sam_Mvir"                       />
-  !#  <entry label="Mvir"                           />
-  !#  <entry label="Rvir"                           />
-  !#  <entry label="rs"                             />
-  !#  <entry label="vrms"                           />
-  !#  <entry label="mmp"                            />
-  !#  <entry label="scale_of_last_MM"               />
-  !#  <entry label="Vmax"                           />
-  !#  <entry label="X"                              />
-  !#  <entry label="Y"                              />
-  !#  <entry label="Z"                              />
-  !#  <entry label="VX"                             />
-  !#  <entry label="VY"                             />
-  !#  <entry label="VZ"                             />
-  !#  <entry label="JX"                             />
-  !#  <entry label="JY"                             />
-  !#  <entry label="JZ"                             />
-  !#  <entry label="Spin"                           />
-  !#  <entry label="Breadth_first_ID"               />
-  !#  <entry label="Depth_first_ID"                 />
-  !#  <entry label="Tree_root_ID"                   />
-  !#  <entry label="Orig_halo_ID"                   />
-  !#  <entry label="Snap_num"                       />
-  !#  <entry label="Next_coprogenitor_depthfirst_ID"/>
-  !#  <entry label="Last_progenitor_depthfirst_ID"  />
-  !#  <entry label="Last_mainleaf_depthfirst_ID"    />
-  !#  <entry label="Tidal_Force"                    />
-  !#  <entry label="Tidal_ID"                       />
-  !#  <entry label="Rs_Klypin"                      />
-  !#  <entry label="Mmvir_all"                      />
-  !#  <entry label="M200b"                          />
-  !#  <entry label="M200c"                          />
-  !#  <entry label="M500c"                          />
-  !#  <entry label="M2500c"                         />
-  !#  <entry label="Xoff"                           />
-  !#  <entry label="Voff"                           />
-  !#  <entry label="Spin_Bullock"                   />
-  !#  <entry label="b_to_a"                         />
-  !#  <entry label="c_to_a"                         />
-  !#  <entry label="Ax"                             />
-  !#  <entry label="Ay"                             />
-  !#  <entry label="Az"                             />
-  !#  <entry label="b_to_a500c"                     />
-  !#  <entry label="c_to_a500c"                     />
-  !#  <entry label="Ax500c"                         />
-  !#  <entry label="Ay500c"                         />
-  !#  <entry label="Az500c"                         />
-  !#  <entry label="TU"                             />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>rockstarColumn</name>
+   <description>Enumeration of columns in Rockstar output files.</description>
+   <indexing>0</indexing>
+   <visibility>public</visibility>
+   <encodeFunction>yes</encodeFunction>
+   <validator>yes</validator>
+   <entry label="scale"                          />
+   <entry label="id"                             />
+   <entry label="desc_scale"                     />
+   <entry label="desc_id"                        />
+   <entry label="num_prog"                       />
+   <entry label="pid"                            />
+   <entry label="upid"                           />
+   <entry label="desc_pid"                       />
+   <entry label="phantom"                        />
+   <entry label="sam_Mvir"                       />
+   <entry label="Mvir"                           />
+   <entry label="Rvir"                           />
+   <entry label="rs"                             />
+   <entry label="vrms"                           />
+   <entry label="mmp"                            />
+   <entry label="scale_of_last_MM"               />
+   <entry label="Vmax"                           />
+   <entry label="X"                              />
+   <entry label="Y"                              />
+   <entry label="Z"                              />
+   <entry label="VX"                             />
+   <entry label="VY"                             />
+   <entry label="VZ"                             />
+   <entry label="JX"                             />
+   <entry label="JY"                             />
+   <entry label="JZ"                             />
+   <entry label="Spin"                           />
+   <entry label="Breadth_first_ID"               />
+   <entry label="Depth_first_ID"                 />
+   <entry label="Tree_root_ID"                   />
+   <entry label="Orig_halo_ID"                   />
+   <entry label="Snap_num"                       />
+   <entry label="Next_coprogenitor_depthfirst_ID"/>
+   <entry label="Last_progenitor_depthfirst_ID"  />
+   <entry label="Last_mainleaf_depthfirst_ID"    />
+   <entry label="Tidal_Force"                    />
+   <entry label="Tidal_ID"                       />
+   <entry label="Rs_Klypin"                      />
+   <entry label="Mmvir_all"                      />
+   <entry label="M200b"                          />
+   <entry label="M200c"                          />
+   <entry label="M500c"                          />
+   <entry label="M2500c"                         />
+   <entry label="Xoff"                           />
+   <entry label="Voff"                           />
+   <entry label="Spin_Bullock"                   />
+   <entry label="b_to_a"                         />
+   <entry label="c_to_a"                         />
+   <entry label="Ax"                             />
+   <entry label="Ay"                             />
+   <entry label="Az"                             />
+   <entry label="b_to_a500c"                     />
+   <entry label="c_to_a500c"                     />
+   <entry label="Ax500c"                         />
+   <entry label="Ay500c"                         />
+   <entry label="Az500c"                         />
+   <entry label="TU"                             />
+  </enumeration>
+  !!]
 
-  !# <enumeration>
-  !#  <name>columnType</name>
-  !#  <description>Enumeration of columns types in Rockstar output files.</description>
-  !#  <visibility>private</visibility>
-  !#  <entry label="integer"/>
-  !#  <entry label="real"   />
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>columnType</name>
+   <description>Enumeration of columns types in Rockstar output files.</description>
+   <visibility>private</visibility>
+   <entry label="integer"/>
+   <entry label="real"   />
+  </enumeration>
+  !!]
   
 contains
 
   function rockstarConstructorParameters(parameters) result (self)
-    !% Constructor for the {\normalfont \ttfamily rockstar} N-body importer class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily rockstar} N-body importer class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nbodyImporterRockstar   )                              :: self
@@ -135,44 +149,52 @@ contains
     type   (varying_string          )                              :: fileName            , label
     integer                                                        :: i
     
-    !# <inputParameter>
-    !#   <name>fileName</name>
-    !#   <source>parameters</source>
-    !#   <description>The name of the file to read.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>label</name>
-    !#   <source>parameters</source>
-    !#   <description>A label for the simulation</description>
-    !#   <defaultValue>var_str('primary')</defaultValue>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>fileName</name>
+      <source>parameters</source>
+      <description>The name of the file to read.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>label</name>
+      <source>parameters</source>
+      <description>A label for the simulation</description>
+      <defaultValue>var_str('primary')</defaultValue>
+    </inputParameter>
+    !!]
     if (parameters%isPresent('readColumns')) then
        allocate(readColumnsText(parameters%count('readColumns')))
        allocate(readColumns    (parameters%count('readColumns')))
-       !# <inputParameter>
-       !#   <name>readColumns</name>
-       !#   <source>parameters</source>
-       !#   <variable>readColumnsText</variable>
-       !#   <description>The names of additional columns to read.</description>
-       !# </inputParameter>
+       !![
+       <inputParameter>
+         <name>readColumns</name>
+         <source>parameters</source>
+         <variable>readColumnsText</variable>
+         <description>The names of additional columns to read.</description>
+       </inputParameter>
+       !!]
        do i=1,size(readColumns)
           readColumns(i)=enumerationRockstarColumnEncode(char(readColumnsText(i)),includesPrefix=.false.)
        end do
     end if
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <conditionalCall>
-    !# <call>
-    !#  self=nbodyImporterRockstar(fileName,label,cosmologyParameters_{conditions})
-    !# </call>
-    !# <argument name="readColumns" value="readColumns" parameterPresent="parameters" />
-    !# </conditionalCall>
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
+    !![
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <conditionalCall>
+    <call>
+     self=nbodyImporterRockstar(fileName,label,cosmologyParameters_{conditions})
+    </call>
+    <argument name="readColumns" value="readColumns" parameterPresent="parameters" />
+    </conditionalCall>
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    !!]
     return
   end function rockstarConstructorParameters
 
   function rockstarConstructorInternal(fileName,label,cosmologyParameters_,readColumns) result (self)
-    !% Internal constructor for the {\normalfont \ttfamily rockstar} N-body importer class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily rockstar} N-body importer class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type   (nbodyImporterRockstar   )                                        :: self
@@ -180,7 +202,9 @@ contains
     integer                          , intent(in   ), dimension(:), optional :: readColumns
     type   (varying_string          ), intent(in   )                         :: fileName            , label
     integer                                                                  :: i
-    !# <constructorAssign variables="fileName, label, *cosmologyParameters_, readColumns"/>
+    !![
+    <constructorAssign variables="fileName, label, *cosmologyParameters_, readColumns"/>
+    !!]
 
     ! If extra read columns are requested, determine the number of integer and real columns.
     if (allocated(self%readColumns)) then
@@ -272,16 +296,22 @@ contains
   end function rockstarConstructorInternal
 
   subroutine rockstarDestructor(self)
-    !% Destructor for {\normalfont \ttfamily rockstar} importer class.
+    !!{
+    Destructor for {\normalfont \ttfamily rockstar} importer class.
+    !!}
     implicit none
     type(nbodyImporterRockstar), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    !!]
     return
   end subroutine rockstarDestructor
 
   subroutine rockstarImport(self,simulations)
-    !% Import data from a Rockstar file.
+    !!{
+    Import data from a Rockstar file.
+    !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     use :: Display             , only : displayCounter        , displayCounterClear     , displayIndent     , displayUnindent         , &
           &                             verbosityLevelStandard
@@ -537,7 +567,9 @@ contains
   end subroutine rockstarImport
 
   logical function rockstarIsHDF5(self)
-    !% Return whether or not the imported data is from an HDF5 file.
+    !!{
+    Return whether or not the imported data is from an HDF5 file.
+    !!}
     implicit none
     class(nbodyImporterRockstar), intent(inout) :: self
 

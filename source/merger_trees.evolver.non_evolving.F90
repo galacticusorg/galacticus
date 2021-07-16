@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a non-evolving class for evolving merger trees.
+  !!{
+  Implements a non-evolving class for evolving merger trees.
+  !!}
 
   use :: Merger_Tree_Initialization     , only : mergerTreeInitializorClass
   
-  !# <mergerTreeEvolver name="mergerTreeEvolverNonEvolving">
-  !#  <description>A non-evolving merger tree evolver.</description>
-  !# </mergerTreeEvolver>
+  !![
+  <mergerTreeEvolver name="mergerTreeEvolverNonEvolving">
+   <description>A non-evolving merger tree evolver.</description>
+  </mergerTreeEvolver>
+  !!]
   type, extends(mergerTreeEvolverClass) :: mergerTreeEvolverNonEvolving
-     !% Implementation of a non-evolving  merger tree evolver.
+     !!{
+     Implementation of a non-evolving  merger tree evolver.
+     !!}
      private
      class  (mergerTreeInitializorClass), pointer :: mergerTreeInitializor_ => null()
      logical                                      :: pruneTree
@@ -35,7 +41,9 @@
   end type mergerTreeEvolverNonEvolving
 
   interface mergerTreeEvolverNonEvolving
-     !% Constructors for the {\normalfont \ttfamily nonEvolving} merger tree evolver.
+     !!{
+     Constructors for the {\normalfont \ttfamily nonEvolving} merger tree evolver.
+     !!}
      module procedure nonEvolvingConstructorParameters
      module procedure nonEvolvingConstructorInternal
   end interface mergerTreeEvolverNonEvolving
@@ -43,7 +51,9 @@
 contains
 
   function nonEvolvingConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily nonEvolving} merger tree evolver class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily nonEvolving} merger tree evolver class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type   (mergerTreeEvolverNonEvolving)                :: self
@@ -51,41 +61,55 @@ contains
     logical                                              :: pruneTree
     class  (mergerTreeInitializorClass  ), pointer       :: mergerTreeInitializor_
 
-    !# <inputParameter>
-    !#   <name>pruneTree</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.false.</defaultValue>
-    !#   <description>If true, prune the tree to the evolve-to-time after each evolution.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="mergerTreeInitializor"  name="mergerTreeInitializor_"  source="parameters"/>
+    !![
+    <inputParameter>
+      <name>pruneTree</name>
+      <source>parameters</source>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, prune the tree to the evolve-to-time after each evolution.</description>
+    </inputParameter>
+    <objectBuilder class="mergerTreeInitializor"  name="mergerTreeInitializor_"  source="parameters"/>
+    !!]
     self=mergerTreeEvolverNonEvolving(pruneTree,mergerTreeInitializor_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="mergerTreeInitializor_" />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="mergerTreeInitializor_" />
+    !!]
     return
   end function nonEvolvingConstructorParameters
 
   function nonEvolvingConstructorInternal(pruneTree,mergerTreeInitializor_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily nonEvolving} merger tree evolver class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily nonEvolving} merger tree evolver class.
+    !!}
     implicit none
     type   (mergerTreeEvolverNonEvolving)                        :: self
     class  (mergerTreeInitializorClass  ), intent(in   ), target :: mergerTreeInitializor_
     logical                              , intent(in   )         :: pruneTree
-    !# <constructorAssign variables="pruneTree, *mergerTreeInitializor_"/>
+    !![
+    <constructorAssign variables="pruneTree, *mergerTreeInitializor_"/>
+    !!]
 
     return
   end function nonEvolvingConstructorInternal
 
   subroutine nonEvolvingDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily nonEvolving} merger tree evolver class.
+    !!{
+    Destructor for the {\normalfont \ttfamily nonEvolving} merger tree evolver class.
+    !!}
     implicit none
     type(mergerTreeEvolverNonEvolving), intent(inout) :: self
 
-    !# <objectDestructor name="self%mergerTreeInitializor_"/>
+    !![
+    <objectDestructor name="self%mergerTreeInitializor_"/>
+    !!]
     return
   end subroutine nonEvolvingDestructor
 
   subroutine nonEvolvingEvolve(self,tree,timeEnd,treeDidEvolve,suspendTree,deadlockReporting,systemClockMaximum,initializationLock,status)
-    !% Evolves all properties of a merger tree to the specified time.
+    !!{
+    Evolves all properties of a merger tree to the specified time.
+    !!}
     use    :: Galacticus_Error     , only : errorStatusSuccess
     use    :: Merger_Tree_Operators, only : mergerTreeOperatorPruneByTime
     !$ use :: OMP_Lib              , only : OMP_Set_Lock                 , OMP_Unset_Lock, omp_lock_kind

@@ -17,18 +17,24 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a merger mass movements class which uses a simple calculation.
+  !!{
+  Implements a merger mass movements class which uses a simple calculation.
+  !!}
 
   use :: Kind_Numbers, only : kind_int8
 
-  !# <mergerMassMovements name="mergerMassMovementsVerySimple">
-  !#  <description>
-  !#   A merger mass movements class which assumes that the satellite material is always added to the disk of the host, while the
-  !#   host mass is not moved.
-  !#  </description>
-  !# </mergerMassMovements>
+  !![
+  <mergerMassMovements name="mergerMassMovementsVerySimple">
+   <description>
+    A merger mass movements class which assumes that the satellite material is always added to the disk of the host, while the
+    host mass is not moved.
+   </description>
+  </mergerMassMovements>
+  !!]
   type, extends(mergerMassMovementsClass) :: mergerMassMovementsVerySimple
-     !% A merger mass movements class which uses a simple calculation.
+     !!{
+     A merger mass movements class which uses a simple calculation.
+     !!}
      private
      double precision                 :: massRatioMajorMerger
      integer         (kind=kind_int8) :: lastUniqueID
@@ -40,7 +46,9 @@
   end type mergerMassMovementsVerySimple
 
   interface mergerMassMovementsVerySimple
-     !% Constructors for the {\normalfont \ttfamily verySimple} merger mass movements class.
+     !!{
+     Constructors for the {\normalfont \ttfamily verySimple} merger mass movements class.
+     !!}
      module procedure verySimpleConstructorParameters
      module procedure verySimpleConstructorInternal
   end interface mergerMassMovementsVerySimple
@@ -48,30 +56,40 @@
 contains
 
   function verySimpleConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily verySimple} merger mass movements class which takes a parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily verySimple} merger mass movements class which takes a parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (mergerMassMovementsVerySimple)                :: self
     type            (inputParameters              ), intent(inout) :: parameters
     double precision                                               :: massRatioMajorMerger
 
-    !# <inputParameter>
-    !#   <name>massRatioMajorMerger</name>
-    !#   <defaultValue>0.25d0</defaultValue>
-    !#   <description>The mass ratio above which mergers are considered to be ``major''.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>massRatioMajorMerger</name>
+      <defaultValue>0.25d0</defaultValue>
+      <description>The mass ratio above which mergers are considered to be ``major''.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
     self=mergerMassMovementsVerySimple(massRatioMajorMerger)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function verySimpleConstructorParameters
 
   function verySimpleConstructorInternal(massRatioMajorMerger) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily verySimple} merger mass movements.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily verySimple} merger mass movements.
+    !!}
     implicit none
     type            (mergerMassMovementsVerySimple)                :: self
     double precision                               , intent(in   ) :: massRatioMajorMerger
-    !# <constructorAssign variables="massRatioMajorMerger"/>
+    !![
+    <constructorAssign variables="massRatioMajorMerger"/>
+    !!]
 
     self%lastUniqueID       =-huge(0_kind_int8)
     self%mergerIsMajor      =.false.
@@ -80,7 +98,9 @@ contains
   end function verySimpleConstructorInternal
 
   subroutine verySimpleAutoHook(self)
-    !% Attach to the calculation reset event.
+    !!{
+    Attach to the calculation reset event.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent, openMPThreadBindingAllLevels
     implicit none
     class(mergerMassMovementsVerySimple), intent(inout) :: self
@@ -91,7 +111,9 @@ contains
   end subroutine verySimpleAutoHook
 
   subroutine verySimpleDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily verySimple} dark matter halo profile class.
+    !!{
+    Destructor for the {\normalfont \ttfamily verySimple} dark matter halo profile class.
+    !!}
     use :: Events_Hooks, only : calculationResetEvent, satelliteMergerEvent
     implicit none
     type(mergerMassMovementsVerySimple), intent(inout) :: self
@@ -102,7 +124,9 @@ contains
   end subroutine verySimpleDestructor
 
   subroutine verySimpleCalculationReset(self,node)
-    !% Reset the dark matter profile calculation.
+    !!{
+    Reset the dark matter profile calculation.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(*       ), intent(inout) :: self
@@ -119,7 +143,9 @@ contains
   end subroutine verySimpleCalculationReset
 
   subroutine verySimpleGetHook(self,node)
-    !% Hookable wrapper around the get function.
+    !!{
+    Hookable wrapper around the get function.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class  (*       ), intent(inout)         :: self
@@ -138,7 +164,9 @@ contains
   end subroutine verySimpleGetHook
 
   subroutine verySimpleGet(self,node,destinationGasSatellite,destinationStarsSatellite,destinationGasHost,destinationStarsHost,mergerIsMajor)
-    !% Determine where stars and gas move as the result of a merger event using a very simple algorithm.
+    !!{
+    Determine where stars and gas move as the result of a merger event using a very simple algorithm.
+    !!}
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : massTypeGalactic
     implicit none

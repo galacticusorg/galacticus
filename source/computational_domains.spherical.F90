@@ -23,16 +23,22 @@
   use            :: Radiative_Transfer_Matters     , only : radiativeTransferMatterClass     , radiativeTransferPropertiesMatter
 
   type :: sphericalBoundaries
-     !% Type used to store boundaries of computational domain cells for spherical domains.
+     !!{
+     Type used to store boundaries of computational domain cells for spherical domains.
+     !!}
      private
      double precision, allocatable, dimension(:) :: boundary
   end type sphericalBoundaries
   
-  !# <computationalDomain name="computationalDomainSpherical">
-  !#  <description>A computational domain using a spherical grid.</description>
-  !# </computationalDomain>
+  !![
+  <computationalDomain name="computationalDomainSpherical">
+   <description>A computational domain using a spherical grid.</description>
+  </computationalDomain>
+  !!]
   type, extends(computationalDomainClass) :: computationalDomainSpherical
-     !% Implementation of a computational domain using a spherical grid.
+     !!{
+     Implementation of a computational domain using a spherical grid.
+     !!}
      private
      double precision                                                , dimension(2) :: boundaries
      integer         (c_size_t                         )                            :: countCells
@@ -60,26 +66,34 @@
   end type computationalDomainSpherical
 
   interface computationalDomainSpherical
-     !% Constructors for the {\normalfont \ttfamily spherical} computational domain.
+     !!{
+     Constructors for the {\normalfont \ttfamily spherical} computational domain.
+     !!}
      module procedure sphericalConstructorParameters
      module procedure sphericalConstructorInternal
   end interface computationalDomainSpherical
 
   type, extends(domainIterator) :: domainIteratorSpherical
-     !% An interactor for spherical computational domains.
+     !!{
+     An interactor for spherical computational domains.
+     !!}
      private
      type(multiCounter) :: counter_
    contains
-     !# <methods>
-     !#   <method description="Move to the next cell in the domain." method="next" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Move to the next cell in the domain." method="next" />
+     </methods>
+     !!]
      procedure :: next => domainIteratorSphericalNext
   end type domainIteratorSpherical
   
 contains
 
   function sphericalConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily spherical} computational domain class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily spherical} computational domain class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (computationalDomainSpherical     )                :: self
@@ -91,47 +105,53 @@ contains
     double precision                                                   :: convergencePercentile        , convergenceThreshold, &
          &                                                                convergenceRatioThreshold
     
-    !# <inputParameter>
-    !#   <name>boundaries</name>
-    !#   <defaultValue>[+0.0d0,+1.0d0]</defaultValue>
-    !#   <description>The $r$-interval spanned by the computational domain.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>countCells</name>
-    !#   <defaultValue>3_c_size_t</defaultValue>
-    !#   <description>The number of cells in the domain in radius.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>convergencePercentile</name>
-    !#   <defaultValue>0.99d0</defaultValue>
-    !#   <description>The percentile used in the convergence criterion.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>convergenceThreshold</name>
-    !#   <defaultValue>2.0d0</defaultValue>
-    !#   <description>The threshold for the convergence measure.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>convergenceRatioThreshold</name>
-    !#   <defaultValue>1.1d0</defaultValue>
-    !#   <description>The threshold for the change in convergence criterion.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="radiativeTransferMatter"      name="radiativeTransferMatter_"      source="parameters"/>
-    !# <objectBuilder class="radiativeTransferConvergence" name="radiativeTransferConvergence_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>boundaries</name>
+      <defaultValue>[+0.0d0,+1.0d0]</defaultValue>
+      <description>The $r$-interval spanned by the computational domain.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>countCells</name>
+      <defaultValue>3_c_size_t</defaultValue>
+      <description>The number of cells in the domain in radius.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>convergencePercentile</name>
+      <defaultValue>0.99d0</defaultValue>
+      <description>The percentile used in the convergence criterion.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>convergenceThreshold</name>
+      <defaultValue>2.0d0</defaultValue>
+      <description>The threshold for the convergence measure.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>convergenceRatioThreshold</name>
+      <defaultValue>1.1d0</defaultValue>
+      <description>The threshold for the change in convergence criterion.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="radiativeTransferMatter"      name="radiativeTransferMatter_"      source="parameters"/>
+    <objectBuilder class="radiativeTransferConvergence" name="radiativeTransferConvergence_" source="parameters"/>
+    !!]
     self=computationalDomainSpherical(boundaries,countCells,convergencePercentile,convergenceThreshold,convergenceRatioThreshold,radiativeTransferMatter_,radiativeTransferConvergence_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="radiativeTransferMatter_"     />
-    !# <objectDestructor name="radiativeTransferConvergence_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="radiativeTransferMatter_"     />
+    <objectDestructor name="radiativeTransferConvergence_"/>
+    !!]
     return
   end function sphericalConstructorParameters
 
   function sphericalConstructorInternal(boundaries,countCells,convergencePercentile,convergenceThreshold,convergenceRatioThreshold,radiativeTransferMatter_,radiativeTransferConvergence_) result(self)
-    !% Constructor for the {\normalfont \ttfamily spherical} computational domain class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily spherical} computational domain class which takes a parameter set as input.
+    !!}
     use :: Numerical_Ranges, only : Make_Range, rangeTypeLinear
     implicit none
     type            (computationalDomainSpherical     )                              :: self
@@ -141,7 +161,9 @@ contains
          &                                                                              convergenceRatioThreshold
     class           (radiativeTransferMatterClass     ), target      , intent(in   ) :: radiativeTransferMatter_
     class           (radiativeTransferConvergenceClass), target      , intent(in   ) :: radiativeTransferConvergence_
-    !# <constructorAssign variables="boundaries, countCells, convergencePercentile, convergenceThreshold, convergenceRatioThreshold, *radiativeTransferMatter_, *radiativeTransferConvergence_"/>
+    !![
+    <constructorAssign variables="boundaries, countCells, convergencePercentile, convergenceThreshold, convergenceRatioThreshold, *radiativeTransferMatter_, *radiativeTransferConvergence_"/>
+    !!]
     
     ! Construct cell boundaries.
     allocate(self%boundariesCells%boundary(countCells+1))
@@ -153,17 +175,23 @@ contains
   end function sphericalConstructorInternal
 
   subroutine sphericalDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily spherical} computational domain class.
+    !!{
+    Destructor for the {\normalfont \ttfamily spherical} computational domain class.
+    !!}
     implicit none
     type(computationalDomainSpherical), intent(inout) :: self
 
-    !# <objectDestructor name="self%radiativeTransferMatter_"     />
-    !# <objectDestructor name="self%radiativeTransferConvergence_"/>
+    !![
+    <objectDestructor name="self%radiativeTransferMatter_"     />
+    <objectDestructor name="self%radiativeTransferConvergence_"/>
+    !!]
     return
   end subroutine sphericalDestructor
 
   subroutine sphericalInitialize(self)
-    !% Initialize the computational domain.
+    !!{
+    Initialize the computational domain.
+    !!}
     use :: Computational_Domain_Volume_Integrators, only : computationalDomainVolumeIntegratorSpherical
     use :: Display                                , only : displayCounter                              , displayCounterClear  , displayIndent, displayUnindent, &
           &                                                verbosityLevelStandard                      , verbosityLevelWorking
@@ -242,7 +270,9 @@ contains
   end subroutine sphericalInitialize
 
   subroutine sphericalIterator(self,iterator)
-    !% Construct an iterator for this domain,
+    !!{
+    Construct an iterator for this domain,
+    !!}
     implicit none
     class(computationalDomainSpherical), intent(inout)              :: self
     class(domainIterator              ), intent(inout), allocatable :: iterator
@@ -265,7 +295,9 @@ contains
   end function domainIteratorSphericalNext
   
   subroutine sphericalReset(self)
-    !% Reset the computational domain prior to a new iteration.
+    !!{
+    Reset the computational domain prior to a new iteration.
+    !!}
     implicit none
     class  (computationalDomainSpherical), intent(inout) :: self
     integer(c_size_t                    )                :: i
@@ -277,7 +309,9 @@ contains
   end subroutine sphericalReset
 
   subroutine sphericalIndicesFromPosition(self,position,indices)
-    !% Determine the indices of the cell containing the given point.
+    !!{
+    Determine the indices of the cell containing the given point.
+    !!}
     use :: Arrays_Search, only : searchArray
 
     implicit none
@@ -306,7 +340,9 @@ contains
   end subroutine sphericalIndicesFromPosition
 
   double precision function sphericalAbsorptionCoefficient(self,photonPacket,indices)
-    !% Return the absorption coefficient for the given photon packet in the given domain cell.
+    !!{
+    Return the absorption coefficient for the given photon packet in the given domain cell.
+    !!}
     implicit none
     class  (computationalDomainSpherical      )              , intent(inout) :: self
     class  (radiativeTransferPhotonPacketClass)              , intent(inout) :: photonPacket
@@ -322,7 +358,9 @@ contains
   end function sphericalAbsorptionCoefficient
   
   double precision function sphericalLengthToCellBoundary(self,photonPacket,indices,indicesNeighbor,positionBoundary)
-    !% Return the length to the first domain cell boundary intersected by the given photon packet.
+    !!{
+    Return the length to the first domain cell boundary intersected by the given photon packet.
+    !!}
     implicit none
     class           (computationalDomainSpherical      )                           , intent(inout) :: self
     class           (radiativeTransferPhotonPacketClass)                           , intent(inout) :: photonPacket
@@ -407,7 +445,9 @@ contains
   end function sphericalLengthToCellBoundary
 
   subroutine sphericalAccumulatePhotonPacket(self,photonPacket,indices,absorptionCoefficient,lengthTraversed)
-    !% Accumulate ``absorptions'' from the photon packet as it traverses a cell of the computational domain.
+    !!{
+    Accumulate ``absorptions'' from the photon packet as it traverses a cell of the computational domain.
+    !!}
     implicit none
     class           (computationalDomainSpherical      )              , intent(inout) :: self
     class           (radiativeTransferPhotonPacketClass)              , intent(inout) :: photonPacket
@@ -426,7 +466,9 @@ contains
   end subroutine sphericalAccumulatePhotonPacket
 
   logical function sphericalInteractWithPhotonPacket(self,photonPacket,indices)
-    !% Allow matter in a domain cell to interact with the photon packet.
+    !!{
+    Allow matter in a domain cell to interact with the photon packet.
+    !!}
     implicit none
     class  (computationalDomainSpherical      )              , intent(inout) :: self
     class  (radiativeTransferPhotonPacketClass)              , intent(inout) :: photonPacket
@@ -445,7 +487,9 @@ contains
   end function sphericalInteractWithPhotonPacket
   
   subroutine sphericalStateSolve(self)
-    !% Solve for the state of matter in the computational domain.
+    !!{
+    Solve for the state of matter in the computational domain.
+    !!}
     use :: Display         , only : displayCounter    , displayCounterClear   , displayIndent        , displayMessage, &
           &                         displayUnindent   , verbosityLevelStandard, verbosityLevelWorking
     use :: Galacticus_Error, only : errorStatusSuccess
@@ -518,7 +562,9 @@ contains
   end subroutine sphericalStateSolve
 
   logical function sphericalConverged(self)
-    !% Return the convergence state of the computational domain.
+    !!{
+    Return the convergence state of the computational domain.
+    !!}
     use :: Arrays_Search                  , only : searchArray
     use :: Disparity_Ratios               , only : Disparity_Ratio
     use :: Display                        , only : displayIndent     , displayMessage        , displayUnindent, displayVerbosity, &
@@ -601,7 +647,9 @@ contains
   end function sphericalConverged
 
   subroutine sphericalOutput(self,outputGroup)
-    !% Output the computational domain.
+    !!{
+    Output the computational domain.
+    !!}
     !$ use :: IO_HDF5                         , only : hdf5Access
     use    :: ISO_Varying_String              , only : char
     use    :: Numerical_Constants_Astronomical, only : megaparsec

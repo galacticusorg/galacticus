@@ -17,26 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides an object that implements concentrations of dark matter halo profiles.
+!!{
+Contains a module which provides an object that implements concentrations of dark matter halo profiles.
+!!}
 
 module Dark_Matter_Profile_Scales
-  !% Provides a class that implements scale radii dark matter halo profiles.
+  !!{
+  Provides a class that implements scale radii dark matter halo profiles.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   implicit none
   private
 
-  !# <functionClass>
-  !#  <name>darkMatterProfileScaleRadius</name>
-  !#  <descriptiveName>Dark Matter Profile Scale Radii</descriptiveName>
-  !#  <description>Class providing dark matter profile scale radii.</description>
-  !#  <default>concentration</default>
-  !#  <method name="radius" >
-  !#   <description>Returns the scale radius for the given {\normalfont \ttfamily node}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <selfTarget>yes</selfTarget>
-  !#   <argument>type(treeNode), intent(inout), target :: node</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>darkMatterProfileScaleRadius</name>
+   <descriptiveName>Dark Matter Profile Scale Radii</descriptiveName>
+   <description>Class providing dark matter profile scale radii.</description>
+   <default>concentration</default>
+   <method name="radius" >
+    <description>Returns the scale radius for the given {\normalfont \ttfamily node}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
+    <argument>type(treeNode), intent(inout), target :: node</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Dark_Matter_Profile_Scales

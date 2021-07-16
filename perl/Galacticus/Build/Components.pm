@@ -40,8 +40,10 @@ use Galacticus::Build::Components::Components;
 use Galacticus::Build::Components::Classes;
 use Galacticus::Build::Components::Classes::Names;
 use Galacticus::Build::Components::Classes::CreateDestroy;
+use Galacticus::Build::Components::Classes::Evolve;
 use Galacticus::Build::Components::Classes::Deferred;
 use Galacticus::Build::Components::Classes::Defaults;
+use Galacticus::Build::Components::Classes::MetaProperties;
 use Galacticus::Build::Components::Classes::Output;
 use Galacticus::Build::Components::Classes::State;
 use Galacticus::Build::Components::Classes::Serialization;
@@ -101,7 +103,7 @@ sub Components_Parse_Directive {
     die("Galacticus::Build::Components::Components_Parse_Directive: no class present"          )
 	unless ( exists($build->{'currentDocument'}->{'class'}) );
     # Construct an ID for this component.
-    my $componentID = ucfirst($build->{'currentDocument'}->{'class'}).ucfirst($build->{'currentDocument'}->{'name'});    
+    my $componentID = ucfirst($build->{'currentDocument'}->{'class'}).ucfirst($build->{'currentDocument'}->{'name'});
     # Check for pre-existing component with identical name.
     die("Galacticus::Build::Components::Components_Parse_Directive: multiple components with ID '".$componentID."'")
 	if ( exists($build->{'components'}->{$componentID}) );
@@ -144,7 +146,7 @@ sub Components_Generate_Output {
     $build->{'content'}     .= join("\n",map {"  include \"".$_."\"\n"} @includeDependencies)."\n";
     # Create a Makefile to specify dependencies on these include files.
     open(makeFile,">".$ENV{'BUILDPATH'}."/Makefile_Component_Includes.tmp");
-    print makeFile $ENV{'BUILDPATH'}."/objects.nodes.o:".join("",map {" ".$ENV{'BUILDPATH'}."/".$_} @includeDependencies)
+    print makeFile $ENV{'BUILDPATH'}."/objects.nodes.o ".$ENV{'BUILDPATH'}."/objects.nodes.p.F90:".join("",map {" ".$ENV{'BUILDPATH'}."/".$_} @includeDependencies)
 	if ( scalar(@includeDependencies) > 0 );
     close(makeFile);
     &File::Changes::Update($ENV{'BUILDPATH'}."/Makefile_Component_Includes" ,$ENV{'BUILDPATH'}."/Makefile_Component_Includes.tmp" ); 
@@ -223,11 +225,11 @@ sub boundFunctionTable {
 	if ( defined($descriptionText) ) {
 	    ++$methodCount;
 	    my $methodName = (exists($_->{'descriptor'}) && exists($_->{'descriptor'}->{'methodName'})) ? $_->{'descriptor'}->{'methodName'} : $_->{'name'};
-	    $description .= "     !#  <method method=\"".$methodName."\" description=\"".$descriptionText."\"/>\n";
+	    $description .= "      <method method=\"".$methodName."\" description=\"".$descriptionText."\"/>\n";
 	}
     }
     if ( $methodCount >= 1 ) {
-	$description = "     !# <methods>\n".$description."     !# </methods>\n";
+	$description = "     !![\n     <methods>\n".$description."     </methods>\n     !!]\n\n";
     }
     # Construct final product.
     my $product = "";
@@ -278,8 +280,11 @@ sub derivedTypesSerialize {
 	    if ( exists($type->{'extends'}) );
 	$build->{'content'} .= " :: ".$type->{'name'}."\n";
 	# Insert any comment.
-	$build->{'content'} .= "  !% ".$type->{'comment'}."\n"
-	    if ( exists($type->{'comment'}) );
+	if ( exists($type->{'comment'}) ) {
+	    $build->{'content'} .= "  !!{\n";
+	    $build->{'content'} .= "  ".$type->{'comment'}."\n";
+	    $build->{'content'} .= "  !!}\n";
+	}
 	# Declare contents private.
 	$build->{'content'} .= "    private\n";
 	# Process any data content.
@@ -378,7 +383,9 @@ sub functionsSerialize {
 	# Serialize function opener.
 	$build->{'content'} .= join(" ",@functionAttributes)." ".$type." ".$form." ".$function->{'name'}."(".join(",",@arguments).") ".$result."\n";
 	# Serialize description.
-	$build->{'content'} .= "   !% ".$function->{'description'}."\n";
+	$build->{'content'} .= "   !!{\n";
+	$build->{'content'} .= "   ".$function->{'description'}."\n";
+	$build->{'content'} .= "   !!}\n";
 	# Serialize module uses.
 	my @intrinsicModules = ( "iso_c_binding" );
 	foreach my $module ( @{$function->{'modules'}} ) {

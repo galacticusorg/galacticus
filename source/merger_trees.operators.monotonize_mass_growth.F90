@@ -17,33 +17,43 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a merger tree operator which makes mass growth along
-  !% branch monotonically increasing.
+  !!{
+  Contains a module which implements a merger tree operator which makes mass growth along
+  branch monotonically increasing.
+  !!}
 
-  !# <mergerTreeOperator name="mergerTreeOperatorMonotonizeMassGrowth">
-  !#  <description>
-  !#   A merger tree operator class which enforces monotonic growth a halo mass along each branch of each merger tree. It does
-  !#   this by searching the tree for nodes which are less massive than the sum of the masses of their immediate progenitors, and
-  !#   increasing the mass of such nodes to equal the sum of the masses of their immediate progenitors.
-  !#  </description>
-  !# </mergerTreeOperator>
+  !![
+  <mergerTreeOperator name="mergerTreeOperatorMonotonizeMassGrowth">
+   <description>
+    A merger tree operator class which enforces monotonic growth a halo mass along each branch of each merger tree. It does
+    this by searching the tree for nodes which are less massive than the sum of the masses of their immediate progenitors, and
+    increasing the mass of such nodes to equal the sum of the masses of their immediate progenitors.
+   </description>
+  </mergerTreeOperator>
+  !!]
   type, extends(mergerTreeOperatorClass) :: mergerTreeOperatorMonotonizeMassGrowth
-     !% A merger tree operator class makes mass growth along branch monotonically increasing.
+     !!{
+     A merger tree operator class makes mass growth along branch monotonically increasing.
+     !!}
      private
    contains
      procedure :: operatePreEvolution => monotonizeMassGrowthOperatePreEvolution
   end type mergerTreeOperatorMonotonizeMassGrowth
 
   interface mergerTreeOperatorMonotonizeMassGrowth
-     !% Constructors for the mass growth monotonizing merger tree operator class.
+     !!{
+     Constructors for the mass growth monotonizing merger tree operator class.
+     !!}
      module procedure monotonizeMassGrowthConstructorParameters
   end interface mergerTreeOperatorMonotonizeMassGrowth
 
 contains
 
   function monotonizeMassGrowthConstructorParameters(parameters)
-    !% Constructor for the mass growth monotonizing merger tree operator class which takes a
-    !% parameter set as input.
+    !!{
+    Constructor for the mass growth monotonizing merger tree operator class which takes a
+    parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeOperatorMonotonizeMassGrowth)                :: monotonizeMassGrowthConstructorParameters
@@ -55,7 +65,9 @@ contains
   end function monotonizeMassGrowthConstructorParameters
 
   subroutine monotonizeMassGrowthOperatePreEvolution(self,tree)
-    !% Perform a mass growth monotonizing operation on a merger tree.
+    !!{
+    Perform a mass growth monotonizing operation on a merger tree.
+    !!}
     use :: Galacticus_Nodes   , only : mergerTree                   , nodeComponentBasic, treeNode
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerIsolatedNodes
     implicit none

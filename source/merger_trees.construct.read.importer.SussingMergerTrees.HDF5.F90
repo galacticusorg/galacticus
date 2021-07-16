@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of the merger tree importer class for ``Sussing Merger Trees'' format merger tree files.
+  !!{
+  An implementation of the merger tree importer class for ``Sussing Merger Trees'' format merger tree files.
+  !!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
   use :: IO_HDF5                   , only : hdf5Object
 
-  !# <mergerTreeImporter name="mergerTreeImporterSussingHDF5">
-  !#  <description>Importer for ``Sussing Merger Trees'' HDF5 format merger tree files (Thomas et al.; in prep.).</description>
-  !# </mergerTreeImporter>
+  !![
+  <mergerTreeImporter name="mergerTreeImporterSussingHDF5">
+   <description>Importer for ``Sussing Merger Trees'' HDF5 format merger tree files (Thomas et al.; in prep.).</description>
+  </mergerTreeImporter>
+  !!]
   type, extends(mergerTreeImporterSussing) :: mergerTreeImporterSussingHDF5
-     !% A merger tree importer class for ``Sussing Merger Trees'' HDF5 format merger tree files (Thomas et al.; in prep.).
+     !!{
+     A merger tree importer class for ``Sussing Merger Trees'' HDF5 format merger tree files (Thomas et al.; in prep.).
+     !!}
      private
      class(cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
      type (hdf5Object                   )          :: file                               , snapshots
@@ -37,7 +43,9 @@
   end type mergerTreeImporterSussingHDF5
 
   interface mergerTreeImporterSussingHDF5
-     !% Constructors for the {\normalfont \ttfamily sussing} HDF5 format merger tree importer class.
+     !!{
+     Constructors for the {\normalfont \ttfamily sussing} HDF5 format merger tree importer class.
+     !!}
      module procedure sussingHDF5ConstructorParameters
      module procedure sussingHDF5ConstructorInternal
   end interface mergerTreeImporterSussingHDF5
@@ -45,21 +53,29 @@
 contains
 
   function sussingHDF5ConstructorParameters(parameters) result(self)
-    !% Default constructor for the ``Sussing Merger Trees'' HDF5 format (Thomas et al.; in prep.) merger tree importer.
+    !!{
+    Default constructor for the ``Sussing Merger Trees'' HDF5 format (Thomas et al.; in prep.) merger tree importer.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type(mergerTreeImporterSussingHDF5)                :: self
     type(inputParameters              ), intent(inout) :: parameters
 
-    !# <objectBuilder class="cosmologicalMassVariance" name="self%cosmologicalMassVariance_" source="parameters"/>
+    !![
+    <objectBuilder class="cosmologicalMassVariance" name="self%cosmologicalMassVariance_" source="parameters"/>
+    !!]
     self%mergerTreeImporterSussing=mergerTreeImporterSussing(parameters)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !!]
     return
   end function sussingHDF5ConstructorParameters
 
   function sussingHDF5ConstructorInternal(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,randomNumberGenerator_) result(self)
-    !% Default constructor for the ``Sussing Merger Trees'' HDF5 format (Thomas et al.; in prep.) merger tree importer.
+    !!{
+    Default constructor for the ``Sussing Merger Trees'' HDF5 format (Thomas et al.; in prep.) merger tree importer.
+    !!}
     implicit none
     type            (mergerTreeImporterSussingHDF5)                              :: self
     class           (cosmologyParametersClass     ), intent(in   ), target       :: cosmologyParameters_
@@ -72,14 +88,18 @@ contains
          &                                                                          massOption
     double precision                               , intent(in   )               :: subvolumeBuffer          , badValue        , &
          &                                                                          treeSampleRate
-    !# <constructorAssign variables="*cosmologicalMassVariance_"/>
+    !![
+    <constructorAssign variables="*cosmologicalMassVariance_"/>
+    !!]
 
     self%mergerTreeImporterSussing=mergerTreeImporterSussing(fatalMismatches,fatalNonTreeNode,subvolumeCount,subvolumeBuffer,subvolumeIndex,badValue,badValueTest,treeSampleRate,massOption,cosmologyParameters_,cosmologyFunctions_,randomNumberGenerator_)
     return
   end function sussingHDF5ConstructorInternal
 
   subroutine sussingHDF5Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily sussing} HDF5 format merger tree importer class.
+    !!{
+    Destructor for the {\normalfont \ttfamily sussing} HDF5 format merger tree importer class.
+    !!}
     use :: IO_HDF5, only : hdf5Access
     implicit none
     type(mergerTreeImporterSussingHDF5), intent(inout) :: self
@@ -88,12 +108,16 @@ contains
     if (self%snapshots%isOpen()) call self%snapshots%close()
     if (self%file     %isOpen()) call self%file     %close()
     !$ call hdf5Access%unset()
-    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !![
+    <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !!]
     return
   end subroutine sussingHDF5Destructor
 
   subroutine sussingHDF5Open(self,fileName)
-    !% Validate a {\normalfont \ttfamily sussing} HDF5 format merger tree file.
+    !!{
+    Validate a {\normalfont \ttfamily sussing} HDF5 format merger tree file.
+    !!}
     use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
     use :: Display                         , only : displayMessage         , verbosityLevelWarn
     use :: Galacticus_Error                , only : Galacticus_Error_Report
@@ -209,7 +233,9 @@ contains
   end subroutine sussingHDF5Open
 
   subroutine sussingHDF5Load(self,nodeSelfIndices,nodeIndexRanks,nodeDescendentLocations,nodeIncomplete,nodeCountTrees,nodeTreeIndices,treeIndicesAssigned,branchJumpCheckRequired,massUnits,lengthUnits,velocityUnits)
-    !% Load a {\normalfont \ttfamily sussing} HDF5 format merger tree data.
+    !!{
+    Load a {\normalfont \ttfamily sussing} HDF5 format merger tree data.
+    !!}
     use            :: Arrays_Search    , only : searchIndexed
     use            :: Display          , only : displayCounter         , displayCounterClear, displayIndent, displayUnindent, &
           &                                     verbosityLevelWorking
@@ -451,7 +477,9 @@ contains
   contains
 
     function decodeUnits(unitString)
-      !% Decode a textual unit definition and construct an importer units object from it.
+      !!{
+      Decode a textual unit definition and construct an importer units object from it.
+      !!}
       use :: Display                         , only : displayMagenta         , displayReset
       use :: Galacticus_Error                , only : Galacticus_Error_Report, Galacticus_Warn
       use :: Numerical_Constants_Astronomical, only : kiloParsec             , massSolar

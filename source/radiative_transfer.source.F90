@@ -17,49 +17,55 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides photon sources for radiative transfer calculations.
+!!{
+Contains a module which provides photon sources for radiative transfer calculations.
+!!}
 
 module Radiative_Transfer_Sources
-  !% Provides a class that implements photon sources for radiative transfer calculations.
+  !!{
+  Provides a class that implements photon sources for radiative transfer calculations.
+  !!}
   use :: Radiative_Transfer_Photon_Packet, only : radiativeTransferPhotonPacketClass
   private
 
-  !# <functionClass>
-  !#  <name>radiativeTransferSource</name>
-  !#  <descriptiveName>Radiative Transfer Photon Sources</descriptiveName>
-  !#  <description>Class providing photon sources for radiative transfer calculations.</description>
-  !#  <default>point</default>
-  !#  <method name="initializePhotonPacket" >
-  !#   <description>Initialize a photon packet from the source.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <argument>class(radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket</argument>
-  !#  </method>
-  !#  <method name="spectrum" >
-  !#   <description>Return the spectrum (in units of $L_\odot$ \AA$^{-1}$) of the source at the given {\normalfont \ttfamily wavelength}.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   )           :: wavelength</argument>
-  !#   <argument>integer         , intent(in   ), optional :: sourceType</argument>
-  !#  </method>
-  !#  <method name="luminosity" >
-  !#   <description>Return the luminosity (in units of $L_\odot$) of the source at the given wavelength range.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>double precision, intent(in   )           :: wavelengthMinimum, wavelengthMaximum</argument>
-  !#   <argument>integer         , intent(in   ), optional :: sourceType</argument>
-  !#  </method>
-  !#  <method name="sourceTypeCount" >
-  !#   <description>Return the number of source types.</description>
-  !#   <type>integer</type>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !#  <method name="sourceTypeName" >
-  !#   <description>Return the name of the requested of source type.</description>
-  !#   <type>type(varying_string)</type>
-  !#   <pass>yes</pass>
-  !#   <argument>integer, intent(in   ) :: sourceType</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>radiativeTransferSource</name>
+   <descriptiveName>Radiative Transfer Photon Sources</descriptiveName>
+   <description>Class providing photon sources for radiative transfer calculations.</description>
+   <default>point</default>
+   <method name="initializePhotonPacket" >
+    <description>Initialize a photon packet from the source.</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <argument>class(radiativeTransferPhotonPacketClass), intent(inout) :: photonPacket</argument>
+   </method>
+   <method name="spectrum" >
+    <description>Return the spectrum (in units of $L_\odot$ \AA$^{-1}$) of the source at the given {\normalfont \ttfamily wavelength}.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   )           :: wavelength</argument>
+    <argument>integer         , intent(in   ), optional :: sourceType</argument>
+   </method>
+   <method name="luminosity" >
+    <description>Return the luminosity (in units of $L_\odot$) of the source at the given wavelength range.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>double precision, intent(in   )           :: wavelengthMinimum, wavelengthMaximum</argument>
+    <argument>integer         , intent(in   ), optional :: sourceType</argument>
+   </method>
+   <method name="sourceTypeCount" >
+    <description>Return the number of source types.</description>
+    <type>integer</type>
+    <pass>yes</pass>
+   </method>
+   <method name="sourceTypeName" >
+    <description>Return the name of the requested of source type.</description>
+    <type>type(varying_string)</type>
+    <pass>yes</pass>
+    <argument>integer, intent(in   ) :: sourceType</argument>
+   </method>
+  </functionClass>
+  !!]
   
 end module Radiative_Transfer_Sources

@@ -17,24 +17,30 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements the atomic photo-ionization cross-section class.
+!!{
+Contains a module that implements the atomic photo-ionization cross-section class.
+!!}
 
 module Atomic_Cross_Sections_Ionization_Photo
-  !% Implements the atomic photo-ionization cross-section class.
+  !!{
+  Implements the atomic photo-ionization cross-section class.
+  !!}
   private
 
-  !# <functionClass>
-  !#  <name>atomicCrossSectionIonizationPhoto</name>
-  !#  <descriptiveName>Atomic cross sections for photo-ionization.</descriptiveName>
-  !#  <description>Class providing atomic cross sections for photo-ionization.</description>
-  !#  <default>verner</default>
-  !#  <method name="crossSection" >
-  !#   <description>Returns the cross-section for photoionization (in units of cm$^2$) for a given atom in a given ionization state at the specified {\normalfont \ttfamily wavelength} (given in units of \AA).</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>integer         , intent(in   ) :: atomicNumber, ionizationState, shellNumber</argument>
-  !#   <argument>double precision, intent(in   ) :: wavelength</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>atomicCrossSectionIonizationPhoto</name>
+   <descriptiveName>Atomic cross sections for photo-ionization.</descriptiveName>
+   <description>Class providing atomic cross sections for photo-ionization.</description>
+   <default>verner</default>
+   <method name="crossSection" >
+    <description>Returns the cross-section for photoionization (in units of cm$^2$) for a given atom in a given ionization state at the specified {\normalfont \ttfamily wavelength} (given in units of \AA).</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>integer         , intent(in   ) :: atomicNumber, ionizationState, shellNumber</argument>
+    <argument>double precision, intent(in   ) :: wavelength</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Atomic_Cross_Sections_Ionization_Photo

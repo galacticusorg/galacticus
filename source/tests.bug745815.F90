@@ -18,8 +18,10 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 program Tests_Bug745815
-  !% Tests for regression of Bug \#745815 (http://bugs.launchpad.net/galacticus/+bug/745815): Skipping of a node during a tree
-  !% walk.
+  !!{
+  Tests for regression of Bug \#745815 (http://bugs.launchpad.net/galacticus/+bug/745815): Skipping of a node during a tree
+  walk.
+  !!}
   use :: Display            , only : displayVerbositySet     , verbosityLevelStandard
   use :: Galacticus_Nodes   , only : mergerTree              , treeNode              , treeNodeList
   use :: ISO_Varying_String , only : assignment(=)           , varying_string

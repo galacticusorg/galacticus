@@ -17,35 +17,43 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% An implementation of the hot halo mass distribution class which uses the ``hydrostatic'' profile used by the Enzo simulation code.
+!!{
+An implementation of the hot halo mass distribution class which uses the ``hydrostatic'' profile used by the Enzo simulation code.
+!!}
 
   use :: Hot_Halo_Mass_Distributions_Core_Radii, only : hotHaloMassDistributionCoreRadiusClass
   use :: Hot_Halo_Temperature_Profiles         , only : hotHaloTemperatureProfile             , hotHaloTemperatureProfileClass
 
-  !# <hotHaloMassDistribution name="hotHaloMassDistributionEnzoHydrostatic">
-  !#  <description>
-  !#   A hot halo mass distribution class which adopts a spherically symmetric density profile for the hot halo motivated by the
-  !#   ``hydrostatic'' profile available in the \gls{enzo} code. Specifically,
-  !#   \begin{equation}
-  !#    \rho_\mathrm{hot halo}(r) \propto \left\{ \begin{array}{ll} T^{-1} r^{-1} &amp; \hbox{ if } r &gt; r_\mathrm{core} \\ T^{-1}
-  !#    r_\mathrm{core}^{-1} &amp; \hbox{ if } r \le r_\mathrm{core}, \end{array} \right.
-  !#   \end{equation}
-  !#   where the core radius, $r_\mathrm{core}$, is set using the selected cored profile core radius method (see
-  !#   \refPhysics{hotHaloMassDistributionCoreRadius}). The profile is normalized such that the current mass in the
-  !#   hot gas profile is contained within the outer radius of the hot halo, $r_\mathrm{hot, outer}$. Note that the \gls{enzo}
-  !#   hydrostatic profile does not include this core, but without introducing this the profile mass can be divergent at small
-  !#   radii.
-  !#  </description>
-  !# </hotHaloMassDistribution>
+  !![
+  <hotHaloMassDistribution name="hotHaloMassDistributionEnzoHydrostatic">
+   <description>
+    A hot halo mass distribution class which adopts a spherically symmetric density profile for the hot halo motivated by the
+    ``hydrostatic'' profile available in the \gls{enzo} code. Specifically,
+    \begin{equation}
+     \rho_\mathrm{hot halo}(r) \propto \left\{ \begin{array}{ll} T^{-1} r^{-1} &amp; \hbox{ if } r &gt; r_\mathrm{core} \\ T^{-1}
+     r_\mathrm{core}^{-1} &amp; \hbox{ if } r \le r_\mathrm{core}, \end{array} \right.
+    \end{equation}
+    where the core radius, $r_\mathrm{core}$, is set using the selected cored profile core radius method (see
+    \refPhysics{hotHaloMassDistributionCoreRadius}). The profile is normalized such that the current mass in the
+    hot gas profile is contained within the outer radius of the hot halo, $r_\mathrm{hot, outer}$. Note that the \gls{enzo}
+    hydrostatic profile does not include this core, but without introducing this the profile mass can be divergent at small
+    radii.
+   </description>
+  </hotHaloMassDistribution>
+  !!]
   type, extends(hotHaloMassDistributionClass) :: hotHaloMassDistributionEnzoHydrostatic
-     !% An implementation of the hot halo mass distribution class which uses the ``hydrostatic'' profile used by the Enzo simulation code.
+     !!{
+     An implementation of the hot halo mass distribution class which uses the ``hydrostatic'' profile used by the Enzo simulation code.
+     !!}
      private
      class(hotHaloTemperatureProfileClass        ), pointer :: hotHaloTemperatureProfile_ => null()
      class(hotHaloMassDistributionCoreRadiusClass), pointer :: hotHaloMassDistributionCoreRadius_ => null()
    contains
-     !# <methods>
-     !#   <method description="Return the normalization of the density profile." method="densityNormalization" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return the normalization of the density profile." method="densityNormalization" />
+     </methods>
+     !!]
      final     ::                          enzoHydrostaticDestructor
      procedure :: densityNormalization  => enzoHydrostaticDensityNormalization
      procedure :: density               => enzoHydrostaticDensity
@@ -56,7 +64,9 @@
   end type hotHaloMassDistributionEnzoHydrostatic
 
   interface hotHaloMassDistributionEnzoHydrostatic
-     !% Constructors for the {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution class.
+     !!{
+     Constructors for the {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution class.
+     !!}
      module procedure enzoHydrostaticConstructorParameters
      module procedure enzoHydrostaticConstructorInternal
   end interface hotHaloMassDistributionEnzoHydrostatic
@@ -69,7 +79,9 @@
 contains
 
   function enzoHydrostaticConstructorParameters(parameters) result(self)
-    !% Default constructor for the {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution class.
+    !!{
+    Default constructor for the {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution class.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (hotHaloMassDistributionEnzoHydrostatic)                :: self
@@ -77,39 +89,53 @@ contains
     class(hotHaloTemperatureProfileClass        ), pointer       :: hotHaloTemperatureProfile_
     class(hotHaloMassDistributionCoreRadiusClass), pointer       :: hotHaloMassDistributionCoreRadius_
 
-    !# <objectBuilder class="hotHaloTemperatureProfile"         name="hotHaloTemperatureProfile_"         source="parameters"/>
-    !# <objectBuilder class="hotHaloMassDistributionCoreRadius" name="hotHaloMassDistributionCoreRadius_" source="parameters"/>
+    !![
+    <objectBuilder class="hotHaloTemperatureProfile"         name="hotHaloTemperatureProfile_"         source="parameters"/>
+    <objectBuilder class="hotHaloMassDistributionCoreRadius" name="hotHaloMassDistributionCoreRadius_" source="parameters"/>
+    !!]
     self=hotHaloMassDistributionEnzoHydrostatic(hotHaloTemperatureProfile_,hotHaloMassDistributionCoreRadius_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="hotHaloTemperatureProfile_"        />
-    !# <objectDestructor name="hotHaloMassDistributionCoreRadius_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="hotHaloTemperatureProfile_"        />
+    <objectDestructor name="hotHaloMassDistributionCoreRadius_"/>
+    !!]
     return
   end function enzoHydrostaticConstructorParameters
 
   function enzoHydrostaticConstructorInternal(hotHaloTemperatureProfile_,hotHaloMassDistributionCoreRadius_) result(self)
-    !% Generic constructor for the {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution class.
+    !!{
+    Generic constructor for the {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (hotHaloMassDistributionEnzoHydrostatic)                        :: self
     class(hotHaloTemperatureProfileClass        ), intent(in   ), target :: hotHaloTemperatureProfile_
     class(hotHaloMassDistributionCoreRadiusClass), intent(in   ), target :: hotHaloMassDistributionCoreRadius_
-    !# <constructorAssign variables="*hotHaloTemperatureProfile_, *hotHaloMassDistributionCoreRadius_"/>
+    !![
+    <constructorAssign variables="*hotHaloTemperatureProfile_, *hotHaloMassDistributionCoreRadius_"/>
+    !!]
 
     return
   end function enzoHydrostaticConstructorInternal
 
   subroutine enzoHydrostaticDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution class.
+    !!{
+    Destructor for the {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution class.
+    !!}
     implicit none
     type(hotHaloMassDistributionEnzoHydrostatic), intent(inout) :: self
 
-    !# <objectDestructor name="self%hotHaloTemperatureProfile_"        />
-    !# <objectDestructor name="self%hotHaloMassDistributionCoreRadius_"/>
+    !![
+    <objectDestructor name="self%hotHaloTemperatureProfile_"        />
+    <objectDestructor name="self%hotHaloMassDistributionCoreRadius_"/>
+    !!]
     return
   end subroutine enzoHydrostaticDestructor
 
   double precision function enzoHydrostaticDensityNormalization(self,node)
-    !% Return the density normalization in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
+    !!{
+    Return the density normalization in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
+    !!}
     use :: Galacticus_Nodes     , only : nodeComponentHotHalo, treeNode
     use :: Numerical_Integration, only : integrator
     implicit none
@@ -141,7 +167,9 @@ contains
   end function enzoHydrostaticDensityNormalization
 
   double precision function enzoHydrostaticEnclosedMassIntegrand(radius)
-    !% Integrand used in finding the normalization of the {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
+    !!{
+    Integrand used in finding the normalization of the {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: radius
@@ -162,7 +190,9 @@ contains
   end function enzoHydrostaticEnclosedMassIntegrand
 
   double precision function enzoHydrostaticDensity(self,node,radius)
-    !% Return the density in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
+    !!{
+    Return the density in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
+    !!}
     implicit none
     class           (hotHaloMassDistributionEnzoHydrostatic), intent(inout) :: self
     type            (treeNode                              ), intent(inout) :: node
@@ -180,8 +210,10 @@ contains
   end function enzoHydrostaticDensity
 
   double precision function enzoHydrostaticDensityLogSlope(self,node,radius)
-    !% Return the logarithmic slope of the density profile in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass
-    !% distribution.
+    !!{
+    Return the logarithmic slope of the density profile in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass
+    distribution.
+    !!}
     implicit none
     class           (hotHaloMassDistributionEnzoHydrostatic), intent(inout) :: self
     type            (treeNode                              ), intent(inout) :: node
@@ -199,7 +231,9 @@ contains
   end function enzoHydrostaticDensityLogSlope
 
   double precision function enzoHydrostaticEnclosedMass(self,node,radius)
-    !% Return the enclosed mass in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
+    !!{
+    Return the enclosed mass in a {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
+    !!}
     use :: Galacticus_Nodes     , only : nodeComponentHotHalo, treeNode
     use :: Numerical_Integration, only : integrator
     implicit none
@@ -228,7 +262,9 @@ contains
   end function enzoHydrostaticEnclosedMass
 
   double precision function enzoHydrostaticRadialMoment(self,node,moment,radius)
-    !% Return a radial moment of an {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
+    !!{
+    Return a radial moment of an {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
+    !!}
     use :: Galacticus_Nodes     , only : nodeComponentHotHalo, treeNode
     use :: Numerical_Integration, only : integrator
     implicit none
@@ -256,7 +292,9 @@ contains
   contains
 
     double precision function enzoHydrostaticRadialMomentIntegrand(radius)
-      !% Integrand used in finding the normalization of the {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
+      !!{
+      Integrand used in finding the normalization of the {\normalfont \ttfamily enzoHydrostatic} hot halo mass distribution.
+      !!}
       implicit none
       double precision, intent(in   ) :: radius
       double precision                :: temperature, radiusEffective
@@ -276,9 +314,11 @@ contains
   end function enzoHydrostaticRadialMoment
 
   double precision function enzoHydrostaticRotationNormalization(self,node)
-    !% Return the relation between specific angular momentum and rotation velocity (assuming a
-    !% rotation velocity that is constant in radius) for {\normalfont \ttfamily node}. Specifically, the
-    !% normalization, $A$, returned is such that $V_\mathrm{rot} = A J/M$.
+    !!{
+    Return the relation between specific angular momentum and rotation velocity (assuming a
+    rotation velocity that is constant in radius) for {\normalfont \ttfamily node}. Specifically, the
+    normalization, $A$, returned is such that $V_\mathrm{rot} = A J/M$.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
     implicit none
     class(hotHaloMassDistributionEnzoHydrostatic), intent(inout) :: self

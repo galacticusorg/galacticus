@@ -17,61 +17,69 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which provides a class that implements general tasks to be performed by \glc.
+!!{
+Contains a module which provides a class that implements general tasks to be performed by \glc.
+!!}
 
 module Task_Evolve_Forests_Work_Shares
-  !% Provides a class that implements general tasks to be performed by \glc.
+  !!{
+  Provides a class that implements general tasks to be performed by \glc.
+  !!}
   use   , intrinsic :: ISO_C_Binding, only : c_size_t
   !$ use            :: OMP_Lib      , only : OMP_Get_Thread_Num
   private
 
-  !# <functionClass>
-  !#  <name>evolveForestsWorkShare</name>
-  !#  <descriptiveName>Evolve Forests Work Share</descriptiveName>
-  !#  <description>Class providing work sharing for the evolve forests task.</description>
-  !#  <default>FCFS</default>
-  !#  <data>integer :: workerIDOffset_=-1, workerCount_=-1</data>
-  !#  <method name="forestNumber" >
-  !#   <description>Return the number of the forest to process.</description>
-  !#   <type>integer(c_size_t)</type>
-  !#   <pass>yes</pass>
-  !#   <argument>logical, intent(in   ) :: utilizeOpenMPThreads</argument>
-  !#  </method>
-  !#  <method name="ping" >
-  !#   <description>Pings the work-share object (useful to allow synchronization).</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#   <code>
-  !#    !$GLC attributes unused :: self
-  !#   </code>
-  !#  </method>
-  !#  <method name="workerID" >
-  !#   <description>Return a unique worker ID.</description>
-  !#   <type>integer</type>
-  !#   <pass>yes</pass>
-  !#   <argument>logical, intent(in   ) :: utilizeOpenMPThreads</argument>
-  !#   <code>
-  !#    if (self%workerIDOffset_ &lt; 0) call evolveForestsWorkerIDs(self,utilizeOpenMPThreads)
-  !#    evolveForestsWorkShareWorkerID=self%workerIDOffset_
-  !#    !$  evolveForestsWorkShareWorkerID=evolveForestsWorkShareWorkerID+OMP_Get_Thread_Num()
-  !#   </code>
-  !#  </method>
-  !#  <method name="workerCount" >
-  !#   <description>Return the count of workers.</description>
-  !#   <type>integer</type>
-  !#   <pass>yes</pass>
-  !#   <argument>logical, intent(in   ) :: utilizeOpenMPThreads</argument>
-  !#   <code>
-  !#    if (self%workerIDOffset_ &lt; 0) call evolveForestsWorkerIDs(self,utilizeOpenMPThreads)
-  !#    evolveForestsWorkShareWorkerCount=self%workerCount_
-  !#   </code>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>evolveForestsWorkShare</name>
+   <descriptiveName>Evolve Forests Work Share</descriptiveName>
+   <description>Class providing work sharing for the evolve forests task.</description>
+   <default>FCFS</default>
+   <data>integer :: workerIDOffset_=-1, workerCount_=-1</data>
+   <method name="forestNumber" >
+    <description>Return the number of the forest to process.</description>
+    <type>integer(c_size_t)</type>
+    <pass>yes</pass>
+    <argument>logical, intent(in   ) :: utilizeOpenMPThreads</argument>
+   </method>
+   <method name="ping" >
+    <description>Pings the work-share object (useful to allow synchronization).</description>
+    <type>void</type>
+    <pass>yes</pass>
+    <code>
+     !$GLC attributes unused :: self
+    </code>
+   </method>
+   <method name="workerID" >
+    <description>Return a unique worker ID.</description>
+    <type>integer</type>
+    <pass>yes</pass>
+    <argument>logical, intent(in   ) :: utilizeOpenMPThreads</argument>
+    <code>
+     if (self%workerIDOffset_ &lt; 0) call evolveForestsWorkerIDs(self,utilizeOpenMPThreads)
+     evolveForestsWorkShareWorkerID=self%workerIDOffset_
+     !$  evolveForestsWorkShareWorkerID=evolveForestsWorkShareWorkerID+OMP_Get_Thread_Num()
+    </code>
+   </method>
+   <method name="workerCount" >
+    <description>Return the count of workers.</description>
+    <type>integer</type>
+    <pass>yes</pass>
+    <argument>logical, intent(in   ) :: utilizeOpenMPThreads</argument>
+    <code>
+     if (self%workerIDOffset_ &lt; 0) call evolveForestsWorkerIDs(self,utilizeOpenMPThreads)
+     evolveForestsWorkShareWorkerCount=self%workerCount_
+    </code>
+   </method>
+  </functionClass>
+  !!]
 
 contains
 
   subroutine evolveForestsWorkerIDs(self,utilizeOpenMPThreads)
-    !% Constructs an ID for this worker which is unique across all MPI and OpenMP threads.
+    !!{
+    Constructs an ID for this worker which is unique across all MPI and OpenMP threads.
+    !!}
 #ifdef USEMPI
     use    :: MPI_Utilities, only : mpiSelf
 #endif

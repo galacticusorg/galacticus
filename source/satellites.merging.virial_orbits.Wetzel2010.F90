@@ -17,7 +17,9 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of virial orbits using the \cite{wetzel_orbits_2010} orbital parameter distribution.
+  !!{
+  An implementation of virial orbits using the \cite{wetzel_orbits_2010} orbital parameter distribution.
+  !!}
 
   use :: Cosmological_Density_Field, only : criticalOverdensityClass
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
@@ -26,29 +28,33 @@
   use :: Tables                    , only : table1D                              , table1DLogarithmicLinear
   use :: Virial_Density_Contrast   , only : virialDensityContrastFriendsOfFriends
 
-  !# <virialOrbit name="virialOrbitWetzel2010">
-  !#  <description>
-  !#   A virial orbits class which selects orbital parameters randomly from the distribution given by \cite{wetzel_orbits_2010},
-  !#   including the redshift and mass dependence of the distributions. Note that the parameter $R_1$ can become negative (which
-  !#   is unphysical) for certain regimes of mass and redshift according to the fitting function for $R_1$ given by
-  !#   \cite{wetzel_orbits_2010}. Therefore, we enforce $R_1>0.05$. Similarly, the parameter $C_1$ can become very large in some
-  !#   regimes which is probably an artifact of the fitting function used rather than physically meaningful (and which causes
-  !#   numerical difficulties in evaluating the distribution). We therefore prevent $C_1$ from exceeding $9.999999$\footnote{We
-  !#   use this value rather than $10$ since the GSL $_2F_1$ hypergeomtric function fails in some cases when $C_1\ge 10$.} If the
-  !#   virial density contrast definition differs from that used by \cite{wetzel_orbits_2010} then the orbit is assigned based on
-  !#   \cite{wetzel_orbits_2010}'s definition and then propagated to the virial radius relevant to the current definition of
-  !#   density contrast.
-  !#  </description>
-  !#  <deepCopy>
-  !#   <functionClass variables="virialDensityContrast_"/>
-  !#  </deepCopy>
-  !#  <stateStorable>
-  !#   <functionClass variables="virialDensityContrast_"/>
-  !#  </stateStorable>
-  !# </virialOrbit>
+  !![
+  <virialOrbit name="virialOrbitWetzel2010">
+   <description>
+    A virial orbits class which selects orbital parameters randomly from the distribution given by \cite{wetzel_orbits_2010},
+    including the redshift and mass dependence of the distributions. Note that the parameter $R_1$ can become negative (which
+    is unphysical) for certain regimes of mass and redshift according to the fitting function for $R_1$ given by
+    \cite{wetzel_orbits_2010}. Therefore, we enforce $R_1>0.05$. Similarly, the parameter $C_1$ can become very large in some
+    regimes which is probably an artifact of the fitting function used rather than physically meaningful (and which causes
+    numerical difficulties in evaluating the distribution). We therefore prevent $C_1$ from exceeding $9.999999$\footnote{We
+    use this value rather than $10$ since the GSL $_2F_1$ hypergeomtric function fails in some cases when $C_1\ge 10$.} If the
+    virial density contrast definition differs from that used by \cite{wetzel_orbits_2010} then the orbit is assigned based on
+    \cite{wetzel_orbits_2010}'s definition and then propagated to the virial radius relevant to the current definition of
+    density contrast.
+   </description>
+   <deepCopy>
+    <functionClass variables="virialDensityContrast_"/>
+   </deepCopy>
+   <stateStorable>
+    <functionClass variables="virialDensityContrast_"/>
+   </stateStorable>
+  </virialOrbit>
+  !!]
 
   type, extends(virialOrbitClass) :: virialOrbitWetzel2010
-     !% A virial orbit class using the \cite{wetzel_orbits_2010} orbital parameter distribution.
+     !!{
+     A virial orbit class using the \cite{wetzel_orbits_2010} orbital parameter distribution.
+     !!}
      private
      integer                                                     :: pericentricRadiusCount
      type   (table1DLogarithmicLinear             )              :: pericentricRadiusTable
@@ -71,7 +77,9 @@
   end type virialOrbitWetzel2010
 
   interface virialOrbitWetzel2010
-     !% Constructors for the {\normalfont \ttfamily wetzel2010} virial orbit class.
+     !!{
+     Constructors for the {\normalfont \ttfamily wetzel2010} virial orbit class.
+     !!}
      module procedure wetzel2010ConstructorParameters
      module procedure wetzel2010ConstructorInternal
   end interface virialOrbitWetzel2010
@@ -96,7 +104,9 @@
 contains
 
   function wetzel2010ConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily wetzel2010} virial orbits class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily wetzel2010} virial orbits class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (virialOrbitWetzel2010   )                :: self
@@ -105,19 +115,25 @@ contains
     class(cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
     class(criticalOverdensityClass), pointer       :: criticalOverdensity_
 
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="criticalOverdensity" name="criticalOverdensity_" source="parameters"/>
+    !![
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="criticalOverdensity" name="criticalOverdensity_" source="parameters"/>
+    !!]
     self=virialOrbitWetzel2010(darkMatterHaloScale_,cosmologyFunctions_,criticalOverdensity_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
-    !# <objectDestructor name="criticalOverdensity_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="criticalOverdensity_"/>
+    !!]
     return
   end function wetzel2010ConstructorParameters
 
   function wetzel2010ConstructorInternal(darkMatterHaloScale_,cosmologyFunctions_,criticalOverdensity_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily wetzel2010} virial orbits class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily wetzel2010} virial orbits class.
+    !!}
     use :: Hypergeometric_Functions, only : Hypergeometric_1F1
     implicit none
     type            (virialOrbitWetzel2010   )                        :: self
@@ -128,7 +144,9 @@ contains
     integer                                                           :: iRadius
     double precision                                                  :: x                         , xGamma2                                  , &
          &                                                               probabilityCumulative     , probabilityCumulativeNormalization
-    !# <constructorAssign variables="*darkMatterHaloScale_, *cosmologyFunctions_, *criticalOverdensity_"/>
+    !![
+    <constructorAssign variables="*darkMatterHaloScale_, *cosmologyFunctions_, *criticalOverdensity_"/>
+    !!]
 
     ! Initialize root finder.
     self%finder=rootFinder(                                             &
@@ -166,24 +184,32 @@ contains
     call self%pericentricRadiusTable%reverse(self%pericentricRadiusTableInverse)
     ! Create virial density contrast definition.
     allocate(self%virialDensityContrast_)
-    !# <referenceConstruct isResult="yes" owner="self" object="virialDensityContrast_" constructor="virialDensityContrastFriendsOfFriends(linkingLength=0.168d0,densityRatio=4.688d0)"/>
+    !![
+    <referenceConstruct isResult="yes" owner="self" object="virialDensityContrast_" constructor="virialDensityContrastFriendsOfFriends(linkingLength=0.168d0,densityRatio=4.688d0)"/>
+    !!]
     return
   end function wetzel2010ConstructorInternal
 
   subroutine wetzel2010Destructor(self)
-    !% Destructor for the {\normalfont \ttfamily wetzel2010} virial orbits class.
+    !!{
+    Destructor for the {\normalfont \ttfamily wetzel2010} virial orbits class.
+    !!}
     implicit none
     type(virialOrbitWetzel2010), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_"  />
-    !# <objectDestructor name="self%cosmologyFunctions_"   />
-    !# <objectDestructor name="self%criticalOverdensity_"  />
-    !# <objectDestructor name="self%virialDensityContrast_"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"  />
+    <objectDestructor name="self%cosmologyFunctions_"   />
+    <objectDestructor name="self%criticalOverdensity_"  />
+    <objectDestructor name="self%virialDensityContrast_"/>
+    !!]
     return
   end subroutine wetzel2010Destructor
 
   function wetzel2010Orbit(self,node,host,acceptUnboundOrbits)
-    !% Return wetzel2010 orbital parameters for a satellite.
+    !!{
+    Return wetzel2010 orbital parameters for a satellite.
+    !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Error                    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
@@ -211,11 +237,15 @@ contains
     basic                => node%basic         ()
     hostBasic            => host%basic         ()
     ! Find virial density contrast under Wetzel (2010) definition.
-    !# <referenceAcquire target="virialDensityContrast_" source="self%densityContrastDefinition()"/>
+    !![
+    <referenceAcquire target="virialDensityContrast_" source="self%densityContrastDefinition()"/>
+    !!]
     ! Find mass, radius, and velocity in the host corresponding to the Wetzel (2010) virial density contrast definition.
     massHost     =Dark_Matter_Profile_Mass_Definition(host,virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHostSelf,velocityHost)
     massSatellite=Dark_Matter_Profile_Mass_Definition(node,virialDensityContrast_%densityContrast(    basic%mass(),    basic%timeLastIsolated())                            )
-    !# <objectDestructor name="virialDensityContrast_"/>
+    !![
+    <objectDestructor name="virialDensityContrast_"/>
+    !!]
     ! Get the time at which this node exists.
     timeNode=basic%time()
     ! Get the expansion factor.
@@ -272,7 +302,9 @@ contains
   end function wetzel2010Orbit
 
   function wetzel2010DensityContrastDefinition(self)
-    !% Return a virial density contrast object defining that used in the definition of \cite{wetzel_orbits_2010} virial orbits.
+    !!{
+    Return a virial density contrast object defining that used in the definition of \cite{wetzel_orbits_2010} virial orbits.
+    !!}
     implicit none
     class(virialDensityContrastClass), pointer       :: wetzel2010DensityContrastDefinition
     class(virialOrbitWetzel2010     ), intent(inout) :: self
@@ -282,7 +314,9 @@ contains
   end function wetzel2010DensityContrastDefinition
 
   double precision function wetzel2010CircularityRoot(circularity)
-    !% Function used in finding the circularity corresponding to a given cumulative probability.
+    !!{
+    Function used in finding the circularity corresponding to a given cumulative probability.
+    !!}
     double precision, intent(in   ) :: circularity
     double precision                :: cumulativeProbability
 
@@ -292,7 +326,9 @@ contains
   end function wetzel2010CircularityRoot
 
   double precision function wetzel2010CircularityCumulativeProbability(circularity)
-    !% The cumulative probability distribution for orbital circularity.
+    !!{
+    The cumulative probability distribution for orbital circularity.
+    !!}
     use :: Hypergeometric_Functions, only : Hypergeometric_2F1
     implicit none
     double precision, intent(in   ) :: circularity
@@ -303,7 +339,9 @@ contains
   end function wetzel2010CircularityCumulativeProbability
 
   double precision function wetzel2010VelocityTangentialMagnitudeMean(self,node,host)
-    !% Return the mean magnitude of the tangential velocity.
+    !!{
+    Return the mean magnitude of the tangential velocity.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(virialOrbitWetzel2010), intent(inout) :: self
@@ -316,7 +354,9 @@ contains
   end function wetzel2010VelocityTangentialMagnitudeMean
 
   function wetzel2010VelocityTangentialVectorMean(self,node,host)
-    !% Return the mean of the vector tangential velocity.
+    !!{
+    Return the mean of the vector tangential velocity.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                       , dimension(3)  :: wetzel2010VelocityTangentialVectorMean
@@ -330,7 +370,9 @@ contains
   end function wetzel2010VelocityTangentialVectorMean
 
   double precision function wetzel2010AngularMomentumMagnitudeMean(self,node,host)
-    !% Return the mean magnitude of the angular momentum.
+    !!{
+    Return the mean magnitude of the angular momentum.
+    !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     implicit none
@@ -354,7 +396,9 @@ contains
   end function wetzel2010AngularMomentumMagnitudeMean
 
   function wetzel2010AngularMomentumVectorMean(self,node,host)
-    !% Return the mean of the vector angular momentum.
+    !!{
+    Return the mean of the vector angular momentum.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                       , dimension(3)  :: wetzel2010AngularMomentumVectorMean
@@ -368,7 +412,9 @@ contains
   end function wetzel2010AngularMomentumVectorMean
 
   double precision function wetzel2010VelocityTotalRootMeanSquared(self,node,host)
-    !% Return the root mean squared total velocity.
+    !!{
+    Return the root mean squared total velocity.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class(virialOrbitWetzel2010), intent(inout) :: self
@@ -381,7 +427,9 @@ contains
   end function wetzel2010VelocityTotalRootMeanSquared
 
   double precision function wetzel2010EnergyMean(self,node,host)
-    !% Return the mean magnitude of the tangential velocity.
+    !!{
+    Return the mean magnitude of the tangential velocity.
+    !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
     use :: Galacticus_Nodes                    , only : nodeComponentBasic                 , treeNode
     use :: Numerical_Constants_Astronomical        , only : gravitationalConstantGalacticus

@@ -19,20 +19,26 @@
 
   use :: Kind_Numbers, only : kind_int8
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorIntegerTuple" abstract="yes">
-  !#  <description>An abstract output analysis property extractor class which provides a tuple of integer properties.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorIntegerTuple" abstract="yes">
+   <description>An abstract output analysis property extractor class which provides a tuple of integer properties.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorClass), abstract :: nodePropertyExtractorIntegerTuple
-     !% A integerTuple property extractor.
+     !!{
+     A integerTuple property extractor.
+     !!}
      private
    contains
-     !# <methods>
-     !#   <method description="Return the number of properties in the tuple." method="elementCount" pass="yes" />
-     !#   <method description="Extract the properties from the given {\normalfont \ttfamily node}." method="extract" pass="yes" />
-     !#   <method description="Return the names of the properties extracted." method="names" pass="yes" />
-     !#   <method description="Return descriptions of the properties extracted." method="descriptions" pass="yes" />
-     !#   <method description="Return the units of the properties extracted in the SI system." method="unitsInSI" pass="yes" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Return the number of properties in the tuple." method="elementCount" pass="yes" />
+       <method description="Extract the properties from the given {\normalfont \ttfamily node}." method="extract" pass="yes" />
+       <method description="Return the names of the properties extracted." method="names" pass="yes" />
+       <method description="Return descriptions of the properties extracted." method="descriptions" pass="yes" />
+       <method description="Return the units of the properties extracted in the SI system." method="unitsInSI" pass="yes" />
+     </methods>
+     !!]
      procedure(integerTupleElementCount), deferred :: elementCount
      procedure(integerTupleExtract     ), deferred :: extract
      procedure(integerTupleNames       ), deferred :: names
@@ -42,7 +48,9 @@
 
   abstract interface
      function integerTupleExtract(self,node,time,instance)
-       !% Interface for {\normalfont \ttfamily integerTuple} property extraction.
+       !!{
+       Interface for {\normalfont \ttfamily integerTuple} property extraction.
+       !!}
        import nodePropertyExtractorIntegerTuple, treeNode, multiCounter, kind_int8
        integer         (kind_int8                        ), dimension(:) , allocatable :: integerTupleExtract
        class           (nodePropertyExtractorIntegerTuple), intent(inout)              :: self
@@ -54,7 +62,9 @@
 
   abstract interface
      function integerTupleNames(self,time)
-       !% Interface for {\normalfont \ttfamily integerTuple} property names.
+       !!{
+       Interface for {\normalfont \ttfamily integerTuple} property names.
+       !!}
        import varying_string, nodePropertyExtractorIntegerTuple
        type            (varying_string                   ), dimension(:) , allocatable :: integerTupleNames
        class           (nodePropertyExtractorIntegerTuple), intent(inout)              :: self
@@ -64,7 +74,9 @@
 
   abstract interface
      function integerTupleUnitsInSI(self,time)
-       !% Interface for {\normalfont \ttfamily integerTuple property units.
+       !!{
+       Interface for {\normalfont \ttfamily integerTuple property units.
+       !!}
        import nodePropertyExtractorIntegerTuple
        double precision                                    , dimension(:) , allocatable :: integerTupleUnitsInSI
        class           (nodePropertyExtractorIntegerTuple), intent(inout)              :: self
@@ -74,7 +86,9 @@
 
   abstract interface
      integer function integerTupleElementCount(self,time)
-       !% Interface for {\normalfont \ttfamily integerTuple} element count.
+       !!{
+       Interface for {\normalfont \ttfamily integerTuple} element count.
+       !!}
        import nodePropertyExtractorIntegerTuple
        class           (nodePropertyExtractorIntegerTuple), intent(inout) :: self
        double precision                                   , intent(in   ) :: time

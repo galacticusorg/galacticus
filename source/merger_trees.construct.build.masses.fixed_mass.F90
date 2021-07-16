@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a merger tree masses class which uses a fixed mass for trees.
+  !!{
+  Implementation of a merger tree masses class which uses a fixed mass for trees.
+  !!}
   use :: Cosmology_Parameters   , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
-  !# <mergerTreeBuildMasses name="mergerTreeBuildMassesFixedMass">
-  !#  <description>A merger tree masses class which uses a fixed mass for trees.</description>
-  !# </mergerTreeBuildMasses>
+  !![
+  <mergerTreeBuildMasses name="mergerTreeBuildMassesFixedMass">
+   <description>A merger tree masses class which uses a fixed mass for trees.</description>
+  </mergerTreeBuildMasses>
+  !!]
   type, extends(mergerTreeBuildMassesClass) :: mergerTreeBuildMassesFixedMass
-     !% Implementation of a merger tree masses class which samples masses from a distribution.
+     !!{
+     Implementation of a merger tree masses class which samples masses from a distribution.
+     !!}
      private
      class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_   => null()
      class           (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_   => null()
@@ -45,8 +51,10 @@
 contains
 
   function fixedMassConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily fixedMass} merger tree masses class which takes a parameter set as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily fixedMass} merger tree masses class which takes a parameter set as
+    input.
+    !!}
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Input_Parameters , only : inputParameter         , inputParameters
     use :: Memory_Management, only : allocateArray
@@ -101,41 +109,47 @@ contains
     call allocateArray(massTree  ,[fixedHalosCount])
     call allocateArray(treeCount ,[fixedHalosCount])
     call allocateArray(radiusTree,[fixedHalosCount])
-    !# <inputParameter>
-    !#   <name>massTree</name>
-    !#   <defaultValue>spread(1.0d12,1,fixedHalosCount)</defaultValue>
-    !#   <description>Specifies the masses of halos to use when building halos.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>treeCount</name>
-    !#   <defaultValue>spread(1,1,fixedHalosCount)</defaultValue>
-    !#   <description>Specifies the number of halos to use when building halos.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>radiusTree</name>
-    !#   <defaultValue>spread(-1.0d0,1,fixedHalosCount)</defaultValue>
-    !#   <description>Specifies the radii within which halo masses are specified when building halos.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massIntervalFractional</name>
-    !#   <defaultValue>0.1d0</defaultValue>
-    !#   <description>The fractional mass interval occupied by the trees. Where the intervals of trees of different mass would overlap this interval will be truncated.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>massTree</name>
+      <defaultValue>spread(1.0d12,1,fixedHalosCount)</defaultValue>
+      <description>Specifies the masses of halos to use when building halos.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>treeCount</name>
+      <defaultValue>spread(1,1,fixedHalosCount)</defaultValue>
+      <description>Specifies the number of halos to use when building halos.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>radiusTree</name>
+      <defaultValue>spread(-1.0d0,1,fixedHalosCount)</defaultValue>
+      <description>Specifies the radii within which halo masses are specified when building halos.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>massIntervalFractional</name>
+      <defaultValue>0.1d0</defaultValue>
+      <description>The fractional mass interval occupied by the trees. Where the intervals of trees of different mass would overlap this interval will be truncated.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !!]
     self=mergerTreeBuildMassesFixedMass(massTree,radiusTree,treeCount,massIntervalFractional,cosmologyParameters_,darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
+    !!]
     return
   end function fixedMassConstructorParameters
 
   function fixedMassConstructorInternal(massTree,radiusTree,treeCount,massIntervalFractional,cosmologyParameters_,darkMatterHaloScale_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily fixedMass} merger tree masses class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily fixedMass} merger tree masses class.
+    !!}
     implicit none
     type            (mergerTreeBuildMassesFixedMass)                              :: self
     double precision                                , intent(in   ), dimension(:) :: massTree              , radiusTree
@@ -143,23 +157,31 @@ contains
     double precision                                , intent(in   )               :: massIntervalFractional
     class           (cosmologyParametersClass      ), intent(in   ), target       :: cosmologyParameters_
     class           (darkMatterHaloScaleClass      ), intent(in   ), target       :: darkMatterHaloScale_
-    !# <constructorAssign variables="massTree, radiusTree, treeCount, massIntervalFractional, *cosmologyParameters_, *darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="massTree, radiusTree, treeCount, massIntervalFractional, *cosmologyParameters_, *darkMatterHaloScale_"/>
+    !!]
 
     return
   end function fixedMassConstructorInternal
 
   subroutine fixedMassDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily fixedMass} merger tree masses class.
+    !!{
+    Destructor for the {\normalfont \ttfamily fixedMass} merger tree masses class.
+    !!}
     implicit none
     type(mergerTreeBuildMassesFixedMass), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyParameters_"/>
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    !!]
     return
   end subroutine fixedMassDestructor
 
   subroutine fixedMassConstruct(self,time,mass,massMinimum,massMaximum,weight)
-    !% Construct a set of merger tree masses by sampling from a distribution.
+    !!{
+    Construct a set of merger tree masses by sampling from a distribution.
+    !!}
     use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
     use :: Galacticus_Nodes              , only : nodeComponentBasic           , treeNode
     use :: Memory_Management             , only : allocateArray
@@ -229,7 +251,9 @@ contains
   contains
 
     double precision function massEnclosed(massTree)
-      !% Root finding function used to set the halo mass given the halo radius.
+      !!{
+      Root finding function used to set the halo mass given the halo radius.
+      !!}
       use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
       use :: Galactic_Structure_Options        , only : massTypeDark
       implicit none

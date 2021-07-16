@@ -17,30 +17,40 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of a spectrum postprocessor that suppresses the Lyman continuum.
+  !!{
+  An implementation of a spectrum postprocessor that suppresses the Lyman continuum.
+  !!}
 
-  !# <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorLycSuppress">
-  !#  <description>
-  !#   A stellar population spectrum postprocessor class that suppresses all emission in the Lyman continuum.
-  !#  </description>
-  !# </stellarPopulationSpectraPostprocessor>
+  !![
+  <stellarPopulationSpectraPostprocessor name="stellarPopulationSpectraPostprocessorLycSuppress">
+   <description>
+    A stellar population spectrum postprocessor class that suppresses all emission in the Lyman continuum.
+   </description>
+  </stellarPopulationSpectraPostprocessor>
+  !!]
   type, extends(stellarPopulationSpectraPostprocessorClass) :: stellarPopulationSpectraPostprocessorLycSuppress
-     !% A stellar population spectrum postprocessor which completely supresses the Lyman continuum.
+     !!{
+     A stellar population spectrum postprocessor which completely supresses the Lyman continuum.
+     !!}
      private
    contains
      procedure :: multiplier => lycSuppressMultiplier
   end type stellarPopulationSpectraPostprocessorLycSuppress
 
   interface stellarPopulationSpectraPostprocessorLycSuppress
-     !% Constructors for the {\normalfont \ttfamily lycSuppress} stellar population spectra postprocessor class.
+     !!{
+     Constructors for the {\normalfont \ttfamily lycSuppress} stellar population spectra postprocessor class.
+     !!}
      module procedure lycSuppressConstructorParameters
   end interface stellarPopulationSpectraPostprocessorLycSuppress
 
 contains
 
   function lycSuppressConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily lycSuppress} stellar population spectra postprocessor class which takes a
-    !% parameter list as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily lycSuppress} stellar population spectra postprocessor class which takes a
+    parameter list as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(stellarPopulationSpectraPostprocessorLycSuppress)                :: self
@@ -52,7 +62,9 @@ contains
   end function lycSuppressConstructorParameters
 
   double precision function lycSuppressMultiplier(self,wavelength,age,redshift)
-    !% Suppress the Lyman continuum in a spectrum.
+    !!{
+    Suppress the Lyman continuum in a spectrum.
+    !!}
     use :: Numerical_Constants_Atomic, only : lymanSeriesLimitWavelengthHydrogen
     implicit none
     class           (stellarPopulationSpectraPostprocessorLycSuppress), intent(inout) :: self

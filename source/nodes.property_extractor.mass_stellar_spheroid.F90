@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a spheroid stellar mass output analysis property extractor class.
+!!{
+Contains a module which implements a spheroid stellar mass output analysis property extractor class.
+!!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorMassStellarSpheroid">
-  !#  <description>A spheroid stellar mass output analysis property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorMassStellarSpheroid">
+   <description>A spheroid stellar mass output analysis property extractor class.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassStellarSpheroid
-     !% A stelalr mass output analysis class.
+     !!{
+     A stelalr mass output analysis class.
+     !!}
      private
    contains
      procedure :: extract     => massStellarSpheroidExtract
@@ -35,14 +41,18 @@
   end type nodePropertyExtractorMassStellarSpheroid
 
   interface nodePropertyExtractorMassStellarSpheroid
-     !% Constructors for the ``massStellarSpheroid'' output analysis class.
+     !!{
+     Constructors for the ``massStellarSpheroid'' output analysis class.
+     !!}
      module procedure massStellarSpheroidConstructorParameters
   end interface nodePropertyExtractorMassStellarSpheroid
 
 contains
 
   function massStellarSpheroidConstructorParameters(parameters) result(self)
-    !% Constructor for the ``massStellarSpheroid'' output analysis property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``massStellarSpheroid'' output analysis property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorMassStellarSpheroid)                :: self
@@ -54,7 +64,9 @@ contains
   end function massStellarSpheroidConstructorParameters
 
   double precision function massStellarSpheroidExtract(self,node,instance)
-    !% Implement a stellar mass-weighted morphology output analysis.
+    !!{
+    Implement a stellar mass-weighted morphology output analysis.
+    !!}
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : componentTypeSpheroid           , massTypeStellar, radiusLarge
     implicit none
@@ -68,7 +80,9 @@ contains
   end function massStellarSpheroidExtract
 
   integer function massStellarSpheroidType(self)
-    !% Return the type of the stellar mass-weighted morphology property.
+    !!{
+    Return the type of the stellar mass-weighted morphology property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorMassStellarSpheroid), intent(inout) :: self
@@ -79,7 +93,9 @@ contains
   end function massStellarSpheroidType
 
   integer function massStellarSpheroidQuantity(self)
-    !% Return the class of the stellar luminosity property.
+    !!{
+    Return the class of the stellar luminosity property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyQuantityMass
     implicit none
     class(nodePropertyExtractorMassStellarSpheroid), intent(inout) :: self
@@ -90,7 +106,9 @@ contains
   end function massStellarSpheroidQuantity
 
   function massStellarSpheroidName(self)
-    !% Return the name of the massStellarSpheroid property.
+    !!{
+    Return the name of the massStellarSpheroid property.
+    !!}
     implicit none
     type (varying_string                          )                :: massStellarSpheroidName
     class(nodePropertyExtractorMassStellarSpheroid), intent(inout) :: self
@@ -101,7 +119,9 @@ contains
   end function massStellarSpheroidName
 
   function massStellarSpheroidDescription(self)
-    !% Return a description of the massStellarSpheroid property.
+    !!{
+    Return a description of the massStellarSpheroid property.
+    !!}
     implicit none
     type (varying_string                          )                :: massStellarSpheroidDescription
     class(nodePropertyExtractorMassStellarSpheroid), intent(inout) :: self
@@ -112,7 +132,9 @@ contains
   end function massStellarSpheroidDescription
 
   double precision function massStellarSpheroidUnitsInSI(self)
-    !% Return the units of the massStellarSpheroid property in the SI system.
+    !!{
+    Return the units of the massStellarSpheroid property in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(nodePropertyExtractorMassStellarSpheroid), intent(inout) :: self

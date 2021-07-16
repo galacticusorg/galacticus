@@ -17,13 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !# <radiativeTransferSpectrum name="radiativeTransferSpectrumBandPassFilter">
-  !#  <description>
-  !#   A photon spectrum class which simply truncates some other photon spectrum class outside of some band.
-  !#  </description>
-  !# </radiativeTransferSpectrum>
+  !![
+  <radiativeTransferSpectrum name="radiativeTransferSpectrumBandPassFilter">
+   <description>
+    A photon spectrum class which simply truncates some other photon spectrum class outside of some band.
+   </description>
+  </radiativeTransferSpectrum>
+  !!]
   type, extends(radiativeTransferSpectrumClass) :: radiativeTransferSpectrumBandPassFilter
-     !% Implementation of a spectrum band pass filter for radiative transfer calculations.
+     !!{
+     Implementation of a spectrum band pass filter for radiative transfer calculations.
+     !!}
      private
      class           (radiativeTransferSpectrumClass), pointer :: radiativeTransferSpectrum_ => null()
      double precision                                          :: wavelengthMinimum                   , wavelengthMaximum
@@ -34,7 +38,9 @@
   end type radiativeTransferSpectrumBandPassFilter
   
   interface radiativeTransferSpectrumBandPassFilter
-     !% Constructors for the {\normalfont \ttfamily bandPassFilter} radiative transfer spectrum class.
+     !!{
+     Constructors for the {\normalfont \ttfamily bandPassFilter} radiative transfer spectrum class.
+     !!}
      module procedure bandPassFilterConstructorParameters
      module procedure bandPassFilterConstructorInternal
   end interface radiativeTransferSpectrumBandPassFilter
@@ -42,8 +48,10 @@
 contains
 
   function bandPassFilterConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily bandPassFilter} radiative transfer spectrum class which takes a parameter set as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily bandPassFilter} radiative transfer spectrum class which takes a parameter set as
+    input.
+    !!}
     use :: Input_Parameters, only : inputParameters, inputParameter
     implicit none
     type            (radiativeTransferSpectrumBandPassFilter)                :: self
@@ -51,47 +59,61 @@ contains
     class           (radiativeTransferSpectrumClass         ), pointer       :: radiativeTransferSpectrum_
     double precision                                                         :: wavelengthMinimum         , wavelengthMaximum
 
-    !# <inputParameter>
-    !#   <name>wavelengthMinimum</name>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The minimum wavelength (in units of \AA) to pass the spectrum.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>wavelengthMaximum</name>
-    !#   <defaultValue>huge(0.0d0)</defaultValue>
-    !#   <description>The maximum wavelength (in units of \AA) to pass the spectrum.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="radiativeTransferSpectrum" name="radiativeTransferSpectrum_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>wavelengthMinimum</name>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The minimum wavelength (in units of \AA) to pass the spectrum.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>wavelengthMaximum</name>
+      <defaultValue>huge(0.0d0)</defaultValue>
+      <description>The maximum wavelength (in units of \AA) to pass the spectrum.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="radiativeTransferSpectrum" name="radiativeTransferSpectrum_" source="parameters"/>
+    !!]
     self=radiativeTransferSpectrumBandPassFilter(wavelengthMinimum,wavelengthMaximum,radiativeTransferSpectrum_)
-    !# <inputParametersValidate source="parameters"/>
-     !# <objectDestructor name="radiativeTransferSpectrum_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+     <objectDestructor name="radiativeTransferSpectrum_"/>
+     !!]
    return
   end function bandPassFilterConstructorParameters
 
   function bandPassFilterConstructorInternal(wavelengthMinimum,wavelengthMaximum,radiativeTransferSpectrum_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily bandPassFilter} radiative transfer photon packet class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily bandPassFilter} radiative transfer photon packet class.
+    !!}
     implicit none
     type            (radiativeTransferSpectrumBandPassFilter)                        :: self
     double precision                                         , intent(in   )         :: wavelengthMinimum         , wavelengthMaximum
     class           (radiativeTransferSpectrumClass         ), intent(in   ), target :: radiativeTransferSpectrum_
-    !# <constructorAssign variables="wavelengthMinimum, wavelengthMaximum, *radiativeTransferSpectrum_"/>
+    !![
+    <constructorAssign variables="wavelengthMinimum, wavelengthMaximum, *radiativeTransferSpectrum_"/>
+    !!]
 
     return
   end function bandPassFilterConstructorInternal
 
   subroutine bandPassFilterDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily bandPassFilter} radiative transfer photon packet class.
+    !!{
+    Destructor for the {\normalfont \ttfamily bandPassFilter} radiative transfer photon packet class.
+    !!}
     implicit none
     type(radiativeTransferSpectrumBandPassFilter), intent(inout) :: self
 
-    !# <objectDestructor name="self%radiativeTransferSpectrum_"/>
+    !![
+    <objectDestructor name="self%radiativeTransferSpectrum_"/>
+    !!]
     return
   end subroutine bandPassFilterDestructor
 
   double precision function bandPassFilterLuminosity(self,wavelengthMinimum,wavelengthMaximum)
-    !% Compute the luminosity in the given wavelength range for a power-law spectrum.
+    !!{
+    Compute the luminosity in the given wavelength range for a power-law spectrum.
+    !!}
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
     class           (radiativeTransferSpectrumBandPassFilter), intent(inout) :: self
@@ -109,7 +131,9 @@ contains
   end function bandPassFilterLuminosity
   
   double precision function bandPassFilterSpectrum(self,wavelength)
-    !% Return the spectrum of the power-law.
+    !!{
+    Return the spectrum of the power-law.
+    !!}
     implicit none
     class           (radiativeTransferSpectrumBandPassFilter), intent(inout) :: self
     double precision                                         , intent(in   ) :: wavelength

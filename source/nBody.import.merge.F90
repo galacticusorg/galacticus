@@ -17,16 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data importer which merges data from other importers.
+!!{
+Contains a module which implements an N-body data importer which merges data from other importers.
+!!}
   
-  !# <nbodyImporter name="nbodyImporterMerge">
-  !#  <description>An importer which merges data from other importers.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="nbodyImporterList" variable="importers" next="next" object="importer_" objectType="nbodyImporterClass"/>
-  !#  </deepCopy>
-  !# </nbodyImporter>
+  !![
+  <nbodyImporter name="nbodyImporterMerge">
+   <description>An importer which merges data from other importers.</description>
+   <deepCopy>
+    <linkedList type="nbodyImporterList" variable="importers" next="next" object="importer_" objectType="nbodyImporterClass"/>
+   </deepCopy>
+   <stateStore>
+    <linkedList type="nbodyImporterList" variable="importers" next="next" object="importer_"/>
+   </stateStore>
+  </nbodyImporter>
+  !!]
   type, extends(nbodyImporterClass) :: nbodyImporterMerge
-     !% An importer which merges data from other importers.
+     !!{
+     An importer which merges data from other importers.
+     !!}
      private
      type(nbodyImporterList), pointer :: importers => null()
      type(varying_string   )          :: label
@@ -37,7 +46,9 @@
   end type nbodyImporterMerge
 
   interface nbodyImporterMerge
-     !% Constructors for the {\normalfont \ttfamily merge} N-body importer class.
+     !!{
+     Constructors for the {\normalfont \ttfamily merge} N-body importer class.
+     !!}
      module procedure mergeConstructorParameters
      module procedure mergeConstructorInternal
   end interface nbodyImporterMerge
@@ -45,7 +56,9 @@
 contains
 
   function mergeConstructorParameters(parameters) result (self)
-    !% Constructor for the {\normalfont \ttfamily merge} N-body importer class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily merge} N-body importer class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nbodyImporterMerge)                :: self
@@ -53,13 +66,15 @@ contains
     type   (nbodyImporterList ), pointer       :: importer_
     integer                                    :: i
 
-    !# <inputParameter>
-    !#   <name>label</name>
-    !#   <source>parameters</source>
-    !#   <variable>self%label</variable>
-    !#   <description>A label for the simulation</description>
-    !#   <defaultValue>var_str('*')</defaultValue>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>label</name>
+      <source>parameters</source>
+      <variable>self%label</variable>
+      <description>A label for the simulation</description>
+      <defaultValue>var_str('*')</defaultValue>
+    </inputParameter>
+    !!]
     self     %importers => null()
     importer_           => null()
     do i=1,parameters%copiesCount('nbodyImporter',zeroIfNotPresent=.true.)
@@ -70,31 +85,41 @@ contains
           allocate(self%importers)
           importer_ => self%importers
        end if
-       !# <objectBuilder class="nbodyImporter" name="importer_%importer_" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="nbodyImporter" name="importer_%importer_" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function mergeConstructorParameters
 
   function mergeConstructorInternal(label,importers) result (self)
-    !% Internal constructor for the {\normalfont \ttfamily merge} N-body importer class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily merge} N-body importer class.
+    !!}
     implicit none
     type(nbodyImporterMerge)                         :: self
     type(nbodyImporterList ), target , intent(in   ) :: importers
     type(varying_string    )         , intent(in   ) :: label
     type(nbodyImporterList ), pointer                :: importer_
-    !# <constructorAssign variables="label"/>
+    !![
+    <constructorAssign variables="label"/>
+    !!]
     
     self     %importers => importers
     importer_           => importers
     do while (associated(importer_))
-       !# <referenceCountIncrement owner="importer_" object="importer_"/>
+       !![
+       <referenceCountIncrement owner="importer_" object="importer_"/>
+       !!]
        importer_ => importer_%next
     end do
     return
   end function mergeConstructorInternal
 
   subroutine mergeDestructor(self)
-    !% Destructor for {\normalfont \ttfamily merge} importer class.
+    !!{
+    Destructor for {\normalfont \ttfamily merge} importer class.
+    !!}
     implicit none
     type(nbodyImporterMerge), intent(inout) :: self
     type(nbodyImporterList ), pointer       :: importer_, importerNext
@@ -103,7 +128,9 @@ contains
        importer_ => self%importers
        do while (associated(importer_))
           importerNext => importer_%next
-          !# <objectDestructor name="importer_%importer_"/>
+          !![
+          <objectDestructor name="importer_%importer_"/>
+          !!]
           deallocate(importer_)
           importer_ => importerNext
        end do
@@ -112,7 +139,9 @@ contains
   end subroutine mergeDestructor
 
   subroutine mergeImport(self,simulations)
-    !% Merge data from multiple importers.
+    !!{
+    Merge data from multiple importers.
+    !!}
     use :: Display         , only : displayIndent          , displayUnindent         , verbosityLevelStandard
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Hashes          , only : doubleHash             , integerSizeTHash        , rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, &
@@ -283,7 +312,9 @@ contains
   end subroutine mergeImport
 
   logical function mergeIsHDF5(self)
-    !% Return whether or not the imported data is from an HDF5 file.
+    !!{
+    Return whether or not the imported data is from an HDF5 file.
+    !!}
     implicit none
     class(nbodyImporterMerge), intent(inout) :: self
 

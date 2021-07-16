@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which deletes named properties from the simulation.
+!!{
+Contains a module which implements an N-body data operator which deletes named properties from the simulation.
+!!}
 
-  !# <nbodyOperator name="nbodyOperatorDeleteProperties">
-  !#  <description>An N-body data operator which deletes named properties from the simulation.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorDeleteProperties">
+   <description>An N-body data operator which deletes named properties from the simulation.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorDeleteProperties
-     !% An N-body data operator which deletes named properties from the simulation.
+     !!{
+     An N-body data operator which deletes named properties from the simulation.
+     !!}
      private
     type(varying_string), allocatable  , dimension(:) :: propertyNames
    contains
@@ -31,7 +37,9 @@
   end type nbodyOperatorDeleteProperties
 
   interface nbodyOperatorDeleteProperties
-     !% Constructors for the {\normalfont \ttfamily deleteProperties} N-body operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily deleteProperties} N-body operator class.
+     !!}
      module procedure deletePropertiesConstructorParameters
      module procedure deletePropertiesConstructorInternal
   end interface nbodyOperatorDeleteProperties
@@ -39,7 +47,9 @@
 contains
 
   function deletePropertiesConstructorParameters(parameters) result (self)
-    !% Constructor for the {\normalfont \ttfamily deleteProperties} N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily deleteProperties} N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(nbodyOperatorDeleteProperties)                              :: self
@@ -47,28 +57,38 @@ contains
     type(varying_string               ), allocatable  , dimension(:) :: propertyNames
 
     allocate(propertyNames(parameters%count('propertyNames',zeroIfNotPresent=.true.)))
-    !# <inputParameter>
-    !#   <name>propertyNames</name>
-    !#   <source>parameters</source>
-    !#   <description>A list of named properties to be deleted from the simulation.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>propertyNames</name>
+      <source>parameters</source>
+      <description>A list of named properties to be deleted from the simulation.</description>
+    </inputParameter>
+    !!]
     self=nbodyOperatorDeleteProperties(propertyNames)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function deletePropertiesConstructorParameters
 
   function deletePropertiesConstructorInternal(propertyNames) result (self)
-    !% Internal constructor for the {\normalfont \ttfamily deleteProperties} N-body operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily deleteProperties} N-body operator class.
+    !!}
     implicit none
     type(nbodyOperatorDeleteProperties)                              :: self
     type(varying_string               ), intent(in   ), dimension(:) :: propertyNames
-    !# <constructorAssign variables="propertyNames"/>
+    !![
+    <constructorAssign variables="propertyNames"/>
+    !!]
     
     return
   end function deletePropertiesConstructorInternal
 
   subroutine deletePropertiesOperate(self,simulations)
-    !% Identify and flag particles which have been always isolated.
+    !!{
+    Identify and flag particles which have been always isolated.
+    !!}
     use :: Display         , only : displayIndent          , displayMessage, displayUnindent, verbosityLevelStandard
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none

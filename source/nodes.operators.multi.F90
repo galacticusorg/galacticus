@@ -17,37 +17,50 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Contains a module which implements a multi node operator class.
+  !!{
+  Contains a module which implements a multi node operator class.
+  !!}
 
   type, public :: multiProcessList
      class(nodeOperatorClass), pointer :: process_
      type (multiProcessList ), pointer :: next     => null()
   end type multiProcessList
 
-  !# <nodeOperator name="nodeOperatorMulti">
-  !#  <description>A multi node operator property process class.</description>
-  !#  <deepCopy>
-  !#   <linkedList type="multiProcessList" variable="processes" next="next" object="process_" objectType="nodeOperatorClass"/>
-  !#  </deepCopy>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorMulti">
+   <description>A multi node operator property process class.</description>
+   <deepCopy>
+    <linkedList type="multiProcessList" variable="processes" next="next" object="process_" objectType="nodeOperatorClass"/>
+   </deepCopy>
+   <stateStore>
+    <linkedList type="multiProcessList" variable="processes" next="next" object="process_"/>
+   </stateStore>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorMulti
-     !% A multi node operator output process class, which applies multiple node operators.
+     !!{
+     A multi node operator output process class, which applies multiple node operators.
+     !!}
      private
      type(multiProcessList), pointer :: processes => null()
    contains
      final     ::                                        multiDestructor
+     procedure :: nodeTreeInitialize                  => multiNodeTreeInitialize
      procedure :: nodeInitialize                      => multiNodeInitialize
      procedure :: nodesMerge                          => multiNodesMerge
      procedure :: nodePromote                         => multiNodePromote
      procedure :: galaxiesMerge                       => multiGalaxiesMerge
      procedure :: differentialEvolutionPre            => multiDifferentialEvolutionPre
      procedure :: differentialEvolution               => multiDifferentialEvolution
+     procedure :: differentialEvolutionScales         => multiDifferentialEvolutionScales
      procedure :: differentialEvolutionStepFinalState => multiDifferentialEvolutionStepFinalState
      procedure :: differentialEvolutionPost           => multiDifferentialEvolutionPost
   end type nodeOperatorMulti
 
   interface nodeOperatorMulti
-     !% Constructors for the {\normalfont \ttfamily multi} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily multi} node operator class.
+     !!}
      module procedure multiConstructorParameters
      module procedure multiConstructorInternal
   end interface nodeOperatorMulti
@@ -55,7 +68,9 @@
 contains
 
   function multiConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily multi} node operator property process class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily multi} node operator property process class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type   (nodeOperatorMulti)                :: self
@@ -73,13 +88,17 @@ contains
           allocate(self%processes)
           process_ => self%processes
        end if
-       !# <objectBuilder class="nodeOperator" name="process_%process_" source="parameters" copy="i" />
+       !![
+       <objectBuilder class="nodeOperator" name="process_%process_" source="parameters" copy="i" />
+       !!]
     end do
     return
   end function multiConstructorParameters
 
   function multiConstructorInternal(processes) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily multi} output process property process class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily multi} output process property process class.
+    !!}
     implicit none
     type(nodeOperatorMulti)                         :: self
     type(multiProcessList ), target , intent(in   ) :: processes
@@ -88,14 +107,18 @@ contains
     self    %processes => processes
     process_          => processes
     do while (associated(process_))
-       !# <referenceCountIncrement owner="process_" object="process_"/>
+       !![
+       <referenceCountIncrement owner="process_" object="process_"/>
+       !!]
        process_ => process_%next
     end do
     return
   end function multiConstructorInternal
 
   subroutine multiDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily multi} output process property process class.
+    !!{
+    Destructor for the {\normalfont \ttfamily multi} output process property process class.
+    !!}
     implicit none
     type(nodeOperatorMulti), intent(inout) :: self
     type(multiProcessList ), pointer       :: process_, processNext
@@ -104,7 +127,9 @@ contains
        process_ => self%processes
        do while (associated(process_))
           processNext => process_%next
-          !# <objectDestructor name="process_%process_"/>
+          !![
+          <objectDestructor name="process_%process_"/>
+          !!]
           deallocate(process_)
           process_ => processNext
        end do
@@ -112,8 +137,27 @@ contains
     return
   end subroutine multiDestructor
 
+  subroutine multiNodeTreeInitialize(self,node)
+    !!{
+    Perform node tree initialization.
+    !!}
+    implicit none
+    class(nodeOperatorMulti), intent(inout)          :: self
+    type (treeNode         ), intent(inout), target  :: node
+    type (multiProcessList )               , pointer :: process_
+
+    process_ => self%processes
+    do while (associated(process_))
+       call process_%process_%nodeTreeInitialize(node)
+       process_ => process_%next
+    end do
+    return
+  end subroutine multiNodeTreeInitialize
+
   subroutine multiNodeInitialize(self,node)
-    !% Perform node initialization.
+    !!{
+    Perform node initialization.
+    !!}
     implicit none
     class(nodeOperatorMulti), intent(inout)          :: self
     type (treeNode         ), intent(inout), target  :: node
@@ -128,7 +172,9 @@ contains
   end subroutine multiNodeInitialize
 
   subroutine multiNodesMerge(self,node)
-    !% Act on a merger between galaxies.
+    !!{
+    Act on a merger between galaxies.
+    !!}
     implicit none
     class(nodeOperatorMulti), intent(inout) :: self
     type (treeNode         ), intent(inout) :: node
@@ -143,7 +189,9 @@ contains
   end subroutine multiNodesMerge
 
   subroutine multiNodePromote(self,node)
-    !% Act on a node promotion event.
+    !!{
+    Act on a node promotion event.
+    !!}
     implicit none
     class(nodeOperatorMulti), intent(inout) :: self
     type (treeNode         ), intent(inout) :: node
@@ -158,7 +206,9 @@ contains
   end subroutine multiNodePromote
 
   subroutine multiGalaxiesMerge(self,node)
-    !% Act on a merger between galaxies.
+    !!{
+    Act on a merger between galaxies.
+    !!}
     implicit none
     class(nodeOperatorMulti), intent(inout) :: self
     type (treeNode         ), intent(inout) :: node
@@ -173,7 +223,9 @@ contains
   end subroutine multiGalaxiesMerge
 
   subroutine multiDifferentialEvolutionPre(self,node)
-    !% Act on a node before differential evolution.
+    !!{
+    Act on a node before differential evolution.
+    !!}
     implicit none
     class(nodeOperatorMulti), intent(inout) :: self
     type (treeNode         ), intent(inout) :: node
@@ -187,8 +239,27 @@ contains
     return
   end subroutine multiDifferentialEvolutionPre
 
+  subroutine multiDifferentialEvolutionScales(self,node)
+    !!{
+    Set absolute ODE solver scales prior to differential evolution.
+    !!}
+    implicit none
+    class(nodeOperatorMulti), intent(inout) :: self
+    type (treeNode         ), intent(inout) :: node
+    type (multiProcessList ), pointer       :: process_
+
+    process_ => self%processes
+    do while (associated(process_))
+       call process_%process_%differentialEvolutionScales(node)
+       process_ => process_%next
+    end do
+    return
+  end subroutine multiDifferentialEvolutionScales
+
   subroutine multiDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
-    !% Act on a node during differential evolution.
+    !!{
+    Act on a node during differential evolution.
+    !!}
     implicit none
     class    (nodeOperatorMulti), intent(inout), target  :: self
     type     (treeNode         ), intent(inout)          :: node
@@ -206,7 +277,9 @@ contains
   end subroutine multiDifferentialEvolution
 
   subroutine multiDifferentialEvolutionStepFinalState(self,node)
-    !% Act on a node after a differential evolution ODE step.
+    !!{
+    Act on a node after a differential evolution ODE step.
+    !!}
     implicit none
     class(nodeOperatorMulti), intent(inout) :: self
     type (treeNode         ), intent(inout) :: node
@@ -221,7 +294,9 @@ contains
   end subroutine multiDifferentialEvolutionStepFinalState
 
   subroutine multiDifferentialEvolutionPost(self,node)
-    !% Act on a node after differential evolution.
+    !!{
+    Act on a node after differential evolution.
+    !!}
     implicit none
     class(nodeOperatorMulti), intent(inout) :: self
     type (treeNode         ), intent(inout) :: node

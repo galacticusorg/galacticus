@@ -17,13 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements calculations of Gamma functions.
+!!{
+Contains a module which implements calculations of Gamma functions.
+!!}
 
 ! Add dependency on GSL library.
 !; gsl
 
 module Gamma_Functions
-  !% Implements calculations of Gamma functions.
+  !!{
+  Implements calculations of Gamma functions.
+  !!}
   use, intrinsic :: ISO_C_Binding, only : c_double
   implicit none
   private
@@ -32,28 +36,36 @@ module Gamma_Functions
 
   interface
      function gsl_sf_gamma_inc(a,x) bind(c,name='gsl_sf_gamma_inc')
-       !% Template for the GSL unnormalized incomplete Gamma function.
+       !!{
+       Template for the GSL unnormalized incomplete Gamma function.
+       !!}
        import
        real(c_double)        :: gsl_sf_gamma_inc
        real(c_double), value :: a               , x
      end function gsl_sf_gamma_inc
 
      function gsl_sf_gamma_inc_Q(a,x) bind(c,name='gsl_sf_gamma_inc_Q')
-       !% Template for the GSL incomplete Gamma function.
+       !!{
+       Template for the GSL incomplete Gamma function.
+       !!}
        import
        real(c_double)        :: gsl_sf_gamma_inc_Q
        real(c_double), value :: a                 , x
      end function gsl_sf_gamma_inc_Q
 
      function gsl_sf_gamma_inc_P(a,x) bind(c,name='gsl_sf_gamma_inc_P')
-       !% Template for the GSL complementary incomplete Gamma function.
+       !!{
+       Template for the GSL complementary incomplete Gamma function.
+       !!}
        import
        real(c_double)        :: gsl_sf_gamma_inc_P
        real(c_double), value :: a                 , x
      end function gsl_sf_gamma_inc_P
      
      function gsl_sf_lngamma(x) bind(c,name='gsl_sf_lngamma')
-       !% Template for the GSL log-of-the-Gamma function.
+       !!{
+       Template for the GSL log-of-the-Gamma function.
+       !!}
        import
        real(c_double)        :: gsl_sf_lngamma
        real(c_double), value :: x
@@ -63,7 +75,9 @@ module Gamma_Functions
 contains
 
   double precision function Gamma_Function_Incomplete_Unnormalized(exponent,argument)
-    !% Computes the unnormalized incomplete Gamma function.
+    !!{
+    Computes the unnormalized incomplete Gamma function.
+    !!}
     implicit none
     double precision, intent(in   ) :: argument, exponent
 
@@ -72,7 +86,9 @@ contains
   end function Gamma_Function_Incomplete_Unnormalized
 
   double precision function Gamma_Function_Incomplete(exponent,argument)
-    !% Computes the incomplete Gamma function.
+    !!{
+    Computes the incomplete Gamma function.
+    !!}
     implicit none
     double precision, intent(in   ) :: argument, exponent
 
@@ -81,7 +97,9 @@ contains
   end function Gamma_Function_Incomplete
 
   double precision function Gamma_Function_Incomplete_Complementary(exponent,argument)
-    !% Computes the complementary incomplete Gamma function.
+    !!{
+    Computes the complementary incomplete Gamma function.
+    !!}
     implicit none
     double precision, intent(in   ) :: argument, exponent
 
@@ -90,7 +108,9 @@ contains
   end function Gamma_Function_Incomplete_Complementary
 
   double precision function Gamma_Function(argument)
-    !% Computes the Gamma function.
+    !!{
+    Computes the Gamma function.
+    !!}
     implicit none
     double precision, intent(in   ) :: argument
 
@@ -99,7 +119,9 @@ contains
   end function Gamma_Function
 
   double precision function Gamma_Function_Logarithmic(argument)
-    !% Computes the logarithm of the Gamma function.
+    !!{
+    Computes the logarithm of the Gamma function.
+    !!}
     implicit none
     double precision, intent(in   ) :: argument
 
@@ -108,7 +130,9 @@ contains
   end function Gamma_Function_Logarithmic
 
   double precision function Inverse_Gamma_Function_Incomplete_Complementary(a,P)
-    !% Returns the inverse of the incomplete function. That is, it returns $x$ given $P(a,x)$.
+    !!{
+    Returns the inverse of the incomplete function. That is, it returns $x$ given $P(a,x)$.
+    !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : varying_string         , assignment(=), operator(//)
     use :: Incomplete_Gamma  , only : GamInv
@@ -141,7 +165,9 @@ contains
   end function Inverse_Gamma_Function_Incomplete_Complementary
 
   double precision function Inverse_Gamma_Function_Incomplete(a,Q)
-    !% Returns the inverse of the incomplete function. That is, it returns $x$ given $Q(a,x)$.
+    !!{
+    Returns the inverse of the incomplete function. That is, it returns $x$ given $Q(a,x)$.
+    !!}
     implicit none
     double precision, intent(in   ) :: Q, a
     double precision                :: P

@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% An implementation of the hot halo outflow reincorporation class in which reincorporation occurs on a multiple of the halo
-!% dynamical timescale.
+!!{
+An implementation of the hot halo outflow reincorporation class in which reincorporation occurs on a multiple of the halo
+dynamical timescale.
+!!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
-  !# <hotHaloOutflowReincorporation name="hotHaloOutflowReincorporationHaloDynamicalTime">
-  !#  <description>An implementation of the hot halo outflow reincorporation class in which reincorporation occurs on a multiple of the halo dynamical timescale.</description>
-  !# </hotHaloOutflowReincorporation>
+  !![
+  <hotHaloOutflowReincorporation name="hotHaloOutflowReincorporationHaloDynamicalTime">
+   <description>An implementation of the hot halo outflow reincorporation class in which reincorporation occurs on a multiple of the halo dynamical timescale.</description>
+  </hotHaloOutflowReincorporation>
+  !!]
   type, extends(hotHaloOutflowReincorporationClass) :: hotHaloOutflowReincorporationHaloDynamicalTime
-     !% An implementation of the hot halo outflow reincorporation class in which reincorporation occurs on a multiple of the halo dynamical timescale.
+     !!{
+     An implementation of the hot halo outflow reincorporation class in which reincorporation occurs on a multiple of the halo dynamical timescale.
+     !!}
      private
      double precision                                    :: multiplier
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
@@ -36,7 +42,9 @@
   end type hotHaloOutflowReincorporationHaloDynamicalTime
 
   interface hotHaloOutflowReincorporationHaloDynamicalTime
-     !% Constructors for the {\normalfont \ttfamily haloDynamicalTime} hot halo outflow reincorporation class.
+     !!{
+     Constructors for the {\normalfont \ttfamily haloDynamicalTime} hot halo outflow reincorporation class.
+     !!}
      module procedure haloDynamicalTimeConstructorParameters
      module procedure haloDynamicalTimeConstructorInternal
   end interface hotHaloOutflowReincorporationHaloDynamicalTime
@@ -44,8 +52,10 @@
 contains
 
   function haloDynamicalTimeConstructorParameters(parameters) result(self)
-    !% Default constructor for the {\normalfont \ttfamily haloDynamicalTime} hot halo outflow reincorporation class which
-    !% takes a parameter set as input.
+    !!{
+    Default constructor for the {\normalfont \ttfamily haloDynamicalTime} hot halo outflow reincorporation class which
+    takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (hotHaloOutflowReincorporationHaloDynamicalTime)                :: self
@@ -53,41 +63,55 @@ contains
     class           (darkMatterHaloScaleClass                      ), pointer       :: darkMatterHaloScale_
     double precision                                                                :: multiplier
 
-    !# <inputParameter>
-    !#   <name>multiplier</name>
-    !#   <defaultValue>5.0d0</defaultValue>
-    !#   <description>Specifies the rate at which reheated mass is returned to the hot phase in units of the inverse halo dynamical timed.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    !![
+    <inputParameter>
+      <name>multiplier</name>
+      <defaultValue>5.0d0</defaultValue>
+      <description>Specifies the rate at which reheated mass is returned to the hot phase in units of the inverse halo dynamical timed.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
+    !!]
     self=hotHaloOutflowReincorporationHaloDynamicalTime(multiplier,darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
+    !!]
     return
   end function haloDynamicalTimeConstructorParameters
 
   function haloDynamicalTimeConstructorInternal(multiplier,darkMatterHaloScale_) result(self)
-    !% Default constructor for the {\normalfont \ttfamily haloDynamicalTime} hot halo outflow reincorporation class.
+    !!{
+    Default constructor for the {\normalfont \ttfamily haloDynamicalTime} hot halo outflow reincorporation class.
+    !!}
     implicit none
     type            (hotHaloOutflowReincorporationHaloDynamicalTime)                        :: self
     double precision                                                , intent(in   )         :: multiplier
     class           (darkMatterHaloScaleClass                      ), intent(in   ), target :: darkMatterHaloScale_
-    !# <constructorAssign variables="multiplier, *darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="multiplier, *darkMatterHaloScale_"/>
+    !!]
 
     return
   end function haloDynamicalTimeConstructorInternal
 
   subroutine haloDynamicalTimeDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily haloDynamicalTime} hot halo outflow reincorporation class.
+    !!{
+    Destructor for the {\normalfont \ttfamily haloDynamicalTime} hot halo outflow reincorporation class.
+    !!}
     implicit none
     type(hotHaloOutflowReincorporationHaloDynamicalTime), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_" />
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_" />
+    !!]
     return
   end subroutine haloDynamicalTimeDestructor
 
   double precision function haloDynamicalTimeRate(self,node)
-    !% Return the rate of mass reincorporation for outflowed gas in the hot halo.
+    !!{
+    Return the rate of mass reincorporation for outflowed gas in the hot halo.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
     implicit none
     class(hotHaloOutflowReincorporationHaloDynamicalTime), intent(inout) :: self

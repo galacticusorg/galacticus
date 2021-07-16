@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an orbital radius output analysis property extractor class.
+!!{
+Contains a module which implements an orbital radius output analysis property extractor class.
+!!}
 
-  !# <nodePropertyExtractor name="nodePropertyExtractorRadiusOrbital">
-  !#  <description>An orbital radius output analysis property extractor class.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorRadiusOrbital">
+   <description>An orbital radius output analysis property extractor class.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorRadiusOrbital
-     !% An orbital radius property extractor output analysis class.
+     !!{
+     An orbital radius property extractor output analysis class.
+     !!}
      private
    contains
      procedure :: extract     => radiusOrbitalExtract
@@ -34,14 +40,18 @@
   end type nodePropertyExtractorRadiusOrbital
 
   interface nodePropertyExtractorRadiusOrbital
-     !% Constructors for the ``radiusOrbital'' output analysis class.
+     !!{
+     Constructors for the ``radiusOrbital'' output analysis class.
+     !!}
      module procedure radiusOrbitalConstructorParameters
   end interface nodePropertyExtractorRadiusOrbital
 
 contains
 
   function radiusOrbitalConstructorParameters(parameters) result(self)
-    !% Constructor for the ``radiusOrbital'' output analysis property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``radiusOrbital'' output analysis property extractor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorRadiusOrbital)                :: self
@@ -53,7 +63,9 @@ contains
   end function radiusOrbitalConstructorParameters
 
   double precision function radiusOrbitalExtract(self,node,instance)
-    !% Implement a radiusOrbital output analysis.
+    !!{
+    Implement a radiusOrbital output analysis.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite
     use :: Vectors         , only : Vector_Magnitude
     implicit none
@@ -83,7 +95,9 @@ contains
   end function radiusOrbitalExtract
 
   integer function radiusOrbitalType(self)
-    !% Return the type of the halo mass property.
+    !!{
+    Return the type of the halo mass property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorRadiusOrbital), intent(inout) :: self
@@ -94,7 +108,9 @@ contains
   end function radiusOrbitalType
 
   function radiusOrbitalName(self)
-    !% Return the name of the radiusOrbital property.
+    !!{
+    Return the name of the radiusOrbital property.
+    !!}
     implicit none
     type (varying_string                    )                :: radiusOrbitalName
     class(nodePropertyExtractorRadiusOrbital), intent(inout) :: self
@@ -105,7 +121,9 @@ contains
   end function radiusOrbitalName
 
   function radiusOrbitalDescription(self)
-    !% Return a description of the radiusOrbital property.
+    !!{
+    Return a description of the radiusOrbital property.
+    !!}
     implicit none
     type (varying_string                    )                :: radiusOrbitalDescription
     class(nodePropertyExtractorRadiusOrbital), intent(inout) :: self
@@ -116,7 +134,9 @@ contains
   end function radiusOrbitalDescription
 
   double precision function radiusOrbitalUnitsInSI(self)
-    !% Return the units of the radiusOrbital property in the SI system.
+    !!{
+    Return the units of the radiusOrbital property in the SI system.
+    !!}
     use :: Numerical_Constants_Astronomical, only : megaParsec
     implicit none
     class(nodePropertyExtractorRadiusOrbital), intent(inout) :: self

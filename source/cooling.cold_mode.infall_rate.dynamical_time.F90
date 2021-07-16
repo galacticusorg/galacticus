@@ -17,21 +17,27 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a calculation of cold mode infall rates assuming infall on a dynamical timescale.
+  !!{
+  Implementation of a calculation of cold mode infall rates assuming infall on a dynamical timescale.
+  !!}
 
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
 
-  !# <coldModeInfallRate name="coldModeInfallRateDynamicalTime">
-  !#  <description>
-  !#   A cold mode infall rate class in which the infall rate from the cold mode is given by
-  !#   \begin{equation}
-  !#   \dot{M}_\mathrm{infall, cold mode} = f_\mathrm{infall, cold mode}{M_\mathrm{cold mode} \over \tau_\mathrm{dyn}},
-  !#   \end{equation}
-  !#   where $f_\mathrm{infall, cold mode}=${\normalfont \ttfamily [dynamicalRateFraction]}.
-  !#  </description>
-  !# </coldModeInfallRate>
+  !![
+  <coldModeInfallRate name="coldModeInfallRateDynamicalTime">
+   <description>
+    A cold mode infall rate class in which the infall rate from the cold mode is given by
+    \begin{equation}
+    \dot{M}_\mathrm{infall, cold mode} = f_\mathrm{infall, cold mode}{M_\mathrm{cold mode} \over \tau_\mathrm{dyn}},
+    \end{equation}
+    where $f_\mathrm{infall, cold mode}=${\normalfont \ttfamily [dynamicalRateFraction]}.
+   </description>
+  </coldModeInfallRate>
+  !!]
   type, extends(coldModeInfallRateClass) :: coldModeInfallRateDynamicalTime
-     !% Implementation of a calculation of cold mode infall rates assuming infall on a dynamical timescale.
+     !!{
+     Implementation of a calculation of cold mode infall rates assuming infall on a dynamical timescale.
+     !!}
      private
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
      double precision                                    :: dynamicalRateFraction
@@ -41,7 +47,9 @@
   end type coldModeInfallRateDynamicalTime
 
   interface coldModeInfallRateDynamicalTime
-     !% Constructors for the dynamicalTime cooling time class.
+     !!{
+     Constructors for the dynamicalTime cooling time class.
+     !!}
      module procedure dynamicalTimeConstructorParameters
      module procedure dynamicalTimeConstructorInternal
   end interface coldModeInfallRateDynamicalTime
@@ -49,7 +57,9 @@
 contains
 
   function dynamicalTimeConstructorParameters(parameters) result(self)
-    !% Constructor for the dynamical time cooling time class which builds the object from a parameter set.
+    !!{
+    Constructor for the dynamical time cooling time class which builds the object from a parameter set.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (coldModeInfallRateDynamicalTime)                :: self
@@ -57,28 +67,36 @@ contains
     class           (darkMatterHaloScaleClass       ), pointer       :: darkMatterHaloScale_
     double precision                                                 :: dynamicalRateFraction
 
-    !# <inputParameter>
-    !#   <name>dynamicalRateFraction</name>
-    !#   <defaultValue>2.0d0</defaultValue>
-    !#   <source>parameters</source>
-    !#   <description>The fraction of the inverse dynamical time to use as the rate for infall of the cold mode component.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>dynamicalRateFraction</name>
+      <defaultValue>2.0d0</defaultValue>
+      <source>parameters</source>
+      <description>The fraction of the inverse dynamical time to use as the rate for infall of the cold mode component.</description>
+    </inputParameter>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !!]
     self=coldModeInfallRateDynamicalTime(dynamicalRateFraction,darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
+    !!]
     return
   end function dynamicalTimeConstructorParameters
 
   function dynamicalTimeConstructorInternal(dynamicalRateFraction,darkMatterHaloScale_) result(self)
-    !% Internal constructor for the dynamical time cooling time class.
+    !!{
+    Internal constructor for the dynamical time cooling time class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type            (coldModeInfallRateDynamicalTime)                        :: self
     class           (darkMatterHaloScaleClass       ), intent(in   ), target :: darkMatterHaloScale_
     double precision                                 , intent(in   )         :: dynamicalRateFraction
-    !# <constructorAssign variables="dynamicalRateFraction, *darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="dynamicalRateFraction, *darkMatterHaloScale_"/>
+    !!]
 
     ! Check that the properties we need are gettable.
     if (.not.defaultHotHaloComponent%massColdIsGettable())                                  &
@@ -90,16 +108,22 @@ contains
   end function dynamicalTimeConstructorInternal
 
   subroutine dynamicalTimeDestructor(self)
-    !% Destructor for the dynamical time cold mode infall rate class.
+    !!{
+    Destructor for the dynamical time cold mode infall rate class.
+    !!}
     implicit none
     type(coldModeInfallRateDynamicalTime), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_"/>
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_"/>
+    !!]
     return
   end subroutine dynamicalTimeDestructor
 
   double precision function dynamicalTimeInfallRate(self,node)
-    !% Computes the cold mode infall rate as a fraction of the halo dynamical time.
+    !!{
+    Computes the cold mode infall rate as a fraction of the halo dynamical time.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentHotHalo, treeNode
     implicit none
     class(coldModeInfallRateDynamicalTime), intent(inout) :: self

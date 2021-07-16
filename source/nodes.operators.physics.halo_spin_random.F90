@@ -17,15 +17,21 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implements a node operator class that initializes halo spins to random values drawn from a distribution.
+  !!{
+  Implements a node operator class that initializes halo spins to random values drawn from a distribution.
+  !!}
 
   use :: Halo_Spin_Distributions, only : haloSpinDistributionClass
 
-  !# <nodeOperator name="nodeOperatorHaloSpinRandom">
-  !#  <description>A node operator class that initializes halo spins to random values drawn from a distribution.</description>
-  !# </nodeOperator>
+  !![
+  <nodeOperator name="nodeOperatorHaloSpinRandom">
+   <description>A node operator class that initializes halo spins to random values drawn from a distribution.</description>
+  </nodeOperator>
+  !!]
   type, extends(nodeOperatorClass) :: nodeOperatorHaloSpinRandom
-     !% A node operator class that initializes halo spins to random values drawn from a distribution.
+     !!{
+     A node operator class that initializes halo spins to random values drawn from a distribution.
+     !!}
      private
      class           (haloSpinDistributionClass), pointer :: haloSpinDistribution_ => null()
      double precision                                     :: factorReset
@@ -35,7 +41,9 @@
   end type nodeOperatorHaloSpinRandom
   
   interface nodeOperatorHaloSpinRandom
-     !% Constructors for the {\normalfont \ttfamily haloSpinRandom} node operator class.
+     !!{
+     Constructors for the {\normalfont \ttfamily haloSpinRandom} node operator class.
+     !!}
      module procedure haloSpinRandomConstructorParameters
      module procedure haloSpinRandomConstructorInternal
   end interface nodeOperatorHaloSpinRandom
@@ -43,7 +51,9 @@
 contains
   
   function haloSpinRandomConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily haloSpinRandom} node operator class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily haloSpinRandom} node operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type            (nodeOperatorHaloSpinRandom)                :: self
@@ -51,41 +61,55 @@ contains
     class           (haloSpinDistributionClass ), pointer       :: haloSpinDistribution_
     double precision                                            :: factorReset
      
-    !# <inputParameter>
-    !#   <name>factorReset</name>
-    !#   <defaultValue>2.0d0</defaultValue>
-    !#   <description>The factor by which a node must increase in mass before its spin parameter is reset.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>factorReset</name>
+      <defaultValue>2.0d0</defaultValue>
+      <description>The factor by which a node must increase in mass before its spin parameter is reset.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="parameters"/>
+    !!]
     self=nodeOperatorHaloSpinRandom(factorReset,haloSpinDistribution_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="haloSpinDistribution_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="haloSpinDistribution_"/>
+    !!]
     return
   end function haloSpinRandomConstructorParameters
 
   function haloSpinRandomConstructorInternal(factorReset,haloSpinDistribution_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily haloSpinRandom} node operator class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily haloSpinRandom} node operator class.
+    !!}
     implicit none
     type            (nodeOperatorHaloSpinRandom)                        :: self
     class           (haloSpinDistributionClass ), intent(in   ), target :: haloSpinDistribution_
     double precision                            , intent(in   )         :: factorReset
-    !# <constructorAssign variables="factorReset, *haloSpinDistribution_"/>
+    !![
+    <constructorAssign variables="factorReset, *haloSpinDistribution_"/>
+    !!]
 
     return
   end function haloSpinRandomConstructorInternal
 
   subroutine haloSpinRandomDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily haloSpinRandom} node operator class.
+    !!{
+    Destructor for the {\normalfont \ttfamily haloSpinRandom} node operator class.
+    !!}
     implicit none
     type(nodeOperatorHaloSpinRandom), intent(inout) :: self
 
-    !# <objectDestructor name="self%haloSpinDistribution_"/>
+    !![
+    <objectDestructor name="self%haloSpinDistribution_"/>
+    !!]
     return
   end subroutine haloSpinRandomDestructor
 
   subroutine haloSpinRandomNodeInitialize(self,node)
-    !% Assign a randomly-drawn spin to a node.
+    !!{
+    Assign a randomly-drawn spin to a node.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpin
     implicit none
     class           (nodeOperatorHaloSpinRandom), intent(inout)          :: self

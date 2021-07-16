@@ -17,8 +17,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
-!% code of \cite{lawrence_coyote_2010}.
+!!{
+Contains a module which implements a nonlinear power spectrum class in which the nonlinear power spectrum is computed using the
+code of \cite{lawrence_coyote_2010}.
+!!}
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
@@ -27,15 +29,19 @@
   use :: Numerical_Interpolation   , only : interpolator
   use :: Power_Spectra_Primordial  , only : powerSpectrumPrimordialClass
 
-  !# <powerSpectrumNonlinear name="powerSpectrumNonlinearCosmicEmu">
-  !#  <description>
-  !#   Provides a nonlinear power spectrum class in which the power spectrum is computed using the code of
-  !#   \cite{lawrence_coyote_2010}. The CosmicEmu code will be downloaded, compiled and run as necessary if this option is
-  !#   utilized.
-  !#  </description>
-  !# </powerSpectrumNonlinear>
+  !![
+  <powerSpectrumNonlinear name="powerSpectrumNonlinearCosmicEmu">
+   <description>
+    Provides a nonlinear power spectrum class in which the power spectrum is computed using the code of
+    \cite{lawrence_coyote_2010}. The CosmicEmu code will be downloaded, compiled and run as necessary if this option is
+    utilized.
+   </description>
+  </powerSpectrumNonlinear>
+  !!]
   type, extends(powerSpectrumNonlinearClass) :: powerSpectrumNonlinearCosmicEmu
-     !% A linear transfer function class.
+     !!{
+     A linear transfer function class.
+     !!}
      private
      integer                                                                    :: wavenumberCount
      double precision                               , allocatable, dimension(:) :: powerSpectrumTable                 , wavenumberTable
@@ -52,7 +58,9 @@
   end type powerSpectrumNonlinearCosmicEmu
 
   interface powerSpectrumNonlinearCosmicEmu
-     !% Constructors for the {\normalfont \ttfamily CosmicEmu} nonlinear power spectrum class.
+     !!{
+     Constructors for the {\normalfont \ttfamily CosmicEmu} nonlinear power spectrum class.
+     !!}
      module procedure cosmicEmuConstructorParameters
      module procedure cosmicEmuConstructorInternal
   end interface powerSpectrumNonlinearCosmicEmu
@@ -63,7 +71,9 @@
 contains
 
   function cosmicEmuConstructorParameters(parameters) result(self)
-    !% Constructor for the cosmicEmu nonlinear power spectrum class which takes a parameter set as input.
+    !!{
+    Constructor for the cosmicEmu nonlinear power spectrum class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (powerSpectrumNonlinearCosmicEmu)                :: self
@@ -75,22 +85,28 @@ contains
 
     ! Check and read parameters.
     ! Construct required objects.
-    !# <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
-    !# <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
-    !# <objectBuilder class="powerSpectrumPrimordial"  name="powerSpectrumPrimordial_"  source="parameters"/>
-    !# <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !![
+    <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
+    <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    <objectBuilder class="powerSpectrumPrimordial"  name="powerSpectrumPrimordial_"  source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    !!]
     ! Call the internal constructor.
     self=powerSpectrumNonlinearCosmicEmu(cosmologyFunctions_,cosmologyParameters_,powerSpectrumPrimordial_,cosmologicalMassVariance_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"      />
-    !# <objectDestructor name="cosmologyParameters_"     />
-    !# <objectDestructor name="powerSpectrumPrimordial_" />
-    !# <objectDestructor name="cosmologicalMassVariance_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"      />
+    <objectDestructor name="cosmologyParameters_"     />
+    <objectDestructor name="powerSpectrumPrimordial_" />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    !!]
     return
   end function cosmicEmuConstructorParameters
 
   function cosmicEmuConstructorInternal(cosmologyFunctions_,cosmologyParameters_,powerSpectrumPrimordial_,cosmologicalMassVariance_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily CosmicEmu} nonlinear power spectrum class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily CosmicEmu} nonlinear power spectrum class.
+    !!}
     use :: Galacticus_Error    , only : Galacticus_Error_Report
     use :: Numerical_Comparison, only : Values_Differ
     implicit none
@@ -99,7 +115,9 @@ contains
     class(cosmologyParametersClass       ), intent(in   ), target :: cosmologyParameters_
     class(powerSpectrumPrimordialClass   ), intent(in   ), target :: powerSpectrumPrimordial_
     class(cosmologicalMassVarianceClass  ), intent(in   ), target :: cosmologicalMassVariance_
-    !# <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_, *powerSpectrumPrimordial_, *cosmologicalMassVariance_"/>
+    !![
+    <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_, *powerSpectrumPrimordial_, *cosmologicalMassVariance_"/>
+    !!]
 
     ! Initialize state.
     self%timePrevious=-1.0d0
@@ -132,19 +150,25 @@ contains
   end function cosmicEmuConstructorInternal
 
   subroutine cosmicEmuDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily CosmicEmu} nonlinear power spectrum class.
+    !!{
+    Destructor for the {\normalfont \ttfamily CosmicEmu} nonlinear power spectrum class.
+    !!}
     implicit none
     type(powerSpectrumNonlinearCosmicEmu), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"      />
-    !# <objectDestructor name="self%cosmologyParameters_"     />
-    !# <objectDestructor name="self%powerSpectrumPrimordial_" />
-    !# <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"      />
+    <objectDestructor name="self%cosmologyParameters_"     />
+    <objectDestructor name="self%powerSpectrumPrimordial_" />
+    <objectDestructor name="self%cosmologicalMassVariance_"/>
+    !!]
     return
   end subroutine cosmicEmuDestructor
 
   double precision function cosmicEmuValue(self,waveNumber,time)
-    !% Return a nonlinear power spectrum equal using the code of \cite{lawrence_coyote_2010}.
+    !!{
+    Return a nonlinear power spectrum equal using the code of \cite{lawrence_coyote_2010}.
+    !!}
     use :: Cosmology_Parameters, only : hubbleUnitsLittleH
     use :: Display             , only : displayMessage              , verbosityLevelWorking
     use :: File_Utilities      , only : Count_Lines_In_File         , Directory_Make       , File_Exists, File_Lock, &

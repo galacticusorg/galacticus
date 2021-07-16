@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a program to test mathematical special functions.
+!!{
+Contains a program to test mathematical special functions.
+!!}
 
 program Test_Math_Special_Functions
-  !% Tests of mathematical special functions.
+  !!{
+  Tests of mathematical special functions.
+  !!}
   use :: Bessel_Functions        , only : Bessel_Function_I0               , Bessel_Function_I1                             , Bessel_Function_J0                     , Bessel_Function_J0_Zero   , &
           &                               Bessel_Function_J1               , Bessel_Function_J1_Zero                        , Bessel_Function_Jn                     , Bessel_Function_Jn_Zero   , &
           &                               Bessel_Function_K0               , Bessel_Function_K1

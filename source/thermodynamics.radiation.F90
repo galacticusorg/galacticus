@@ -18,7 +18,9 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 module Thermodynamics_Radiation
-  !% Implements calculations of thermal radiation.
+  !!{
+  Implements calculations of thermal radiation.
+  !!}
   implicit none
   private
   public :: Blackbody_Emission, Blackbody_Radiance
@@ -30,9 +32,11 @@ module Thermodynamics_Radiation
 contains
 
   double precision function Blackbody_Emission(wavelength,temperature,radianceType)
-    !% Compute the Planck blackbody spectral radiance (defined per unit wavelength, in units of J s$^{-1}$ m$^{-2}$ sr$^{-1}$
-    !% \AA$^{-1}$) or J s$^{-1}$ m$^{-2}$ sr$^{-1}$ Hz$^{-1}$ depending on the optional {\normalfont \ttfamily radianceType} argument). Input {\normalfont \ttfamily
-    !% wavelength} is in Angstroms, input temperature is in Kelvin.
+    !!{
+    Compute the Planck blackbody spectral radiance (defined per unit wavelength, in units of J s$^{-1}$ m$^{-2}$ sr$^{-1}$
+    \AA$^{-1}$) or J s$^{-1}$ m$^{-2}$ sr$^{-1}$ Hz$^{-1}$ depending on the optional {\normalfont \ttfamily radianceType} argument). Input {\normalfont \ttfamily
+    wavelength} is in Angstroms, input temperature is in Kelvin.
+    !!}
     use :: Numerical_Constants_Physical, only : boltzmannsConstant, plancksConstant, speedLight
     use :: Numerical_Constants_Units   , only : angstromsPerMeter
     implicit none
@@ -72,8 +76,10 @@ contains
   end function Blackbody_Emission
 
   double precision function Blackbody_Radiance(temperature)
-    !% Compute the Planck blackbody spectral radiance integrated over all frequencies (in units of J s$^{-1}$ m$^{-2}$
-    !% sr$^{-1}$). Input temperature is in Kelvin.
+    !!{
+    Compute the Planck blackbody spectral radiance integrated over all frequencies (in units of J s$^{-1}$ m$^{-2}$
+    sr$^{-1}$). Input temperature is in Kelvin.
+    !!}
     use :: Numerical_Constants_Math    , only : Pi
     use :: Numerical_Constants_Physical, only : stefanBoltzmannConstant
     implicit none

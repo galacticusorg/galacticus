@@ -17,51 +17,57 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of the lightcone geometry class which assumes a square field of view.
+  !!{
+  An implementation of the lightcone geometry class which assumes a square field of view.
+  !!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
   use :: Output_Times       , only : outputTimesClass
 
-  !# <geometryLightcone name="geometryLightconeSquare">
-  !#  <description>
-  !#   A lightcone geometry class which assumes a square field of view., i.e. defined such that a point $(x,y,z)$ is in the survey
-  !#   angular mask if $|\hbox{atan2}(y,x)| &lt; \psi/2$ and $|\hbox{atan2}(z,x)| &lt; \psi/2$ where $\hbox{atan2}()$ is the
-  !#   quadrant-aware inverse tangent function, and $\psi$ is the angular size of the field, we compute the solid angle of the
-  !#   lightcone as follows. Define a spherical coodinate system $(\theta,\phi)$ with the pole ($\theta=0$) aligned with the
-  !#   $x$-axis. The solid angle of the field is then
-  !#   \begin{equation}
-  !#    \Omega = 2 \pi \int_0^{\psi/2} \sin\theta \mathrm{d}\theta + 8 \int_{\psi/2}^{\tan^{-1}(\sqrt{2}\tan(\psi/2))} \mathrm{d}\theta \sin\theta \int_{\cos^{-1}(\tan(\psi/2)/\tan\theta)}^{\pi/4} \mathrm{d}\phi,
-  !#   \end{equation}
-  !#   which is
-  !#   \begin{equation}
-  !#    \Omega = 2 \pi [1-\cos(\psi/2)] + 8 \int_{\psi/2}^{\tan^{-1}(\sqrt{2}\tan(\psi/2))} \mathrm{d}\theta \sin\theta \left[ {\pi\over 4} - \cos^{-1}\left({\tan(\psi/2)\over \tan\theta}\right)\right],
-  !#   \end{equation}
-  !#   or
-  !#   \begin{equation}
-  !#    \Omega = 2 \pi [1 - \cos(\tan^{-1}(\sqrt{2}\tan(\psi/2)))] - 8 \int_{\psi/2}^{\tan^{-1}(\sqrt{2}\tan(\psi/2))} \mathrm{d}\theta \sin\theta \cos^{-1}\left({\tan(\psi/2)\over \tan\theta}\right),
-  !#   \end{equation}
-  !#   The final integral can be evaluated (using Mathematica for example) to give
-  !#   \begin{eqnarray}
-  !#    \Omega &amp;=&amp; 2 \pi [3 - \cos(\tan^{-1}(\sqrt{2}\tan(\psi/2)))] - 8 \sin(x) \left( \sqrt{(a^2+1)\cos(2x)+a^2-1}(\log(a(\sqrt{2}\sqrt{2a^2\cos^2(x)+\cos(2x)-1} \right. \nonumber \\
-  !#   &amp; &amp;  +2a))-\log(\sqrt{\cos(2x)-1}))\sqrt{\csc^2(x)(-((a^2+1)\cos(2x)+a^2-1))}-\cot(x)((a^2+1)\cos(2x)+a^2-1) \nonumber \\
-  !#   &amp; &amp; \left. \cos^{-1}(a \cot(x)) \right) / [(a^2+1)\cos(2x)+a^2-1],
-  !#   \end{eqnarray}
-  !#   where $a=\tan(\psi/2)$ and $x=\tan^{-1}[\sqrt{2}\tan (\psi/2)]$.
-  !#
-  !#   Various sub-parameters specify the details of the lightcone geometry. The {\normalfont \ttfamily lengthReplication} parameter
-  !#   should give the length of the simulation box (the box will be replicated to span the volume covered by the lightcone),
-  !#   with the {\normalfont \ttfamily lengthUnitsInSI} parameter giving the length unit in SI units and {\normalfont \ttfamily
-  !#   lengthHubbleExponent} giving the exponent of $h$ that appears in the length unit. The {\normalfont \ttfamily angularSize}
-  !#   parameter of {\normalfont \ttfamily fieldOfView} should gives the length of the side of the square field of view in
-  !#   degrees. The {\normalfont \ttfamily origin} element must contain the $x$, $y$, $z$ coordinates of the origin of the
-  !#   lightcone within the simulation box, while the {\normalfont \ttfamily unitVectorX} parameters must give unit vectors which
-  !#   point along the lightcone (for {\normalfont \ttfamily X}$=1$), and in the two directions perpendicular to the lightcone
-  !#   (for {\normalfont \ttfamily X}$=2$ and 3). The {\normalfont \ttfamily redshift} parameters must list the redshifts of
-  !#   available outputs.
-  !#  </description>
-  !# </geometryLightcone>
+  !![
+  <geometryLightcone name="geometryLightconeSquare">
+   <description>
+    A lightcone geometry class which assumes a square field of view., i.e. defined such that a point $(x,y,z)$ is in the survey
+    angular mask if $|\hbox{atan2}(y,x)| &lt; \psi/2$ and $|\hbox{atan2}(z,x)| &lt; \psi/2$ where $\hbox{atan2}()$ is the
+    quadrant-aware inverse tangent function, and $\psi$ is the angular size of the field, we compute the solid angle of the
+    lightcone as follows. Define a spherical coodinate system $(\theta,\phi)$ with the pole ($\theta=0$) aligned with the
+    $x$-axis. The solid angle of the field is then
+    \begin{equation}
+     \Omega = 2 \pi \int_0^{\psi/2} \sin\theta \mathrm{d}\theta + 8 \int_{\psi/2}^{\tan^{-1}(\sqrt{2}\tan(\psi/2))} \mathrm{d}\theta \sin\theta \int_{\cos^{-1}(\tan(\psi/2)/\tan\theta)}^{\pi/4} \mathrm{d}\phi,
+    \end{equation}
+    which is
+    \begin{equation}
+     \Omega = 2 \pi [1-\cos(\psi/2)] + 8 \int_{\psi/2}^{\tan^{-1}(\sqrt{2}\tan(\psi/2))} \mathrm{d}\theta \sin\theta \left[ {\pi\over 4} - \cos^{-1}\left({\tan(\psi/2)\over \tan\theta}\right)\right],
+    \end{equation}
+    or
+    \begin{equation}
+     \Omega = 2 \pi [1 - \cos(\tan^{-1}(\sqrt{2}\tan(\psi/2)))] - 8 \int_{\psi/2}^{\tan^{-1}(\sqrt{2}\tan(\psi/2))} \mathrm{d}\theta \sin\theta \cos^{-1}\left({\tan(\psi/2)\over \tan\theta}\right),
+    \end{equation}
+    The final integral can be evaluated (using Mathematica for example) to give
+    \begin{eqnarray}
+     \Omega &amp;=&amp; 2 \pi [3 - \cos(\tan^{-1}(\sqrt{2}\tan(\psi/2)))] - 8 \sin(x) \left( \sqrt{(a^2+1)\cos(2x)+a^2-1}(\log(a(\sqrt{2}\sqrt{2a^2\cos^2(x)+\cos(2x)-1} \right. \nonumber \\
+    &amp; &amp;  +2a))-\log(\sqrt{\cos(2x)-1}))\sqrt{\csc^2(x)(-((a^2+1)\cos(2x)+a^2-1))}-\cot(x)((a^2+1)\cos(2x)+a^2-1) \nonumber \\
+    &amp; &amp; \left. \cos^{-1}(a \cot(x)) \right) / [(a^2+1)\cos(2x)+a^2-1],
+    \end{eqnarray}
+    where $a=\tan(\psi/2)$ and $x=\tan^{-1}[\sqrt{2}\tan (\psi/2)]$.
+  
+    Various sub-parameters specify the details of the lightcone geometry. The {\normalfont \ttfamily lengthReplication} parameter
+    should give the length of the simulation box (the box will be replicated to span the volume covered by the lightcone),
+    with the {\normalfont \ttfamily lengthUnitsInSI} parameter giving the length unit in SI units and {\normalfont \ttfamily
+    lengthHubbleExponent} giving the exponent of $h$ that appears in the length unit. The {\normalfont \ttfamily angularSize}
+    parameter of {\normalfont \ttfamily fieldOfView} should gives the length of the side of the square field of view in
+    degrees. The {\normalfont \ttfamily origin} element must contain the $x$, $y$, $z$ coordinates of the origin of the
+    lightcone within the simulation box, while the {\normalfont \ttfamily unitVectorX} parameters must give unit vectors which
+    point along the lightcone (for {\normalfont \ttfamily X}$=1$), and in the two directions perpendicular to the lightcone
+    (for {\normalfont \ttfamily X}$=2$ and 3). The {\normalfont \ttfamily redshift} parameters must list the redshifts of
+    available outputs.
+   </description>
+  </geometryLightcone>
+  !!]
   type, extends(geometryLightconeClass) :: geometryLightconeSquare
-     !% A lightcone geometry class which assumes a square field of view.
+     !!{
+     A lightcone geometry class which assumes a square field of view.
+     !!}
      private
      class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_       => null()
      class           (outputTimesClass       ), pointer                   :: outputTimes_              => null()
@@ -76,30 +82,32 @@
           &                                                                  mergeTimeGettableChecked
      integer         (kind_int8              )                            :: nodeUniqueIDCrossing
    contains
-     !# <methods>
-     !#  <method method="positionAtOutput">
-     !#   <description>Returns the position of a point, {\normalfont \ttfamily nodePosition} (given in physical coordinates within the primary replicant volume), in comoving coordinates in the replicant volume in which it appears in the lightcone. If the point is \emph{not} in the lightcone the returned position is set to the largest possible negative number in each coordinate. If the optional {\normalfont \ttfamily positionFound} argument is given it will be set to true or false to indicate whether or not the point was found in the lightcone volume.</description>
-     !#  </method>
-     !#  <method method="replicants">
-     !#   <description>
-     !#    Performs various actions related to replicants of nodes appearing in lightcone output, depending on the value of the {\normalfont \ttfamily action} argument:
-     !#    \begin{description}
-     !#    \item[{\normalfont \ttfamily replicantActionCount}] returns in {\normalfont \ttfamily count} the number of replicants in which the node appears in the lightcone;
-     !#    \item[{\normalfont \ttfamily replicantActionAny}] returns true in {\normalfont \ttfamily isInLightcone} if the given position appears in \emph{any} replicant in the lightcone;
-     !#    \item[{\normalfont \ttfamily replicantActionInstance}] returns in {\normalfont \ttfamily position} the position in the {\normalfont \ttfamily instance}$^\mathrm{th}$ replicant in which this position appears in the lightcone.
-     !#    \end{description}
-     !#   </description>
-     !#  </method>
-     !#  <method method="periodicRange">
-     !#   <description>Computes the range of periodic replicants which could contribute to the lightcone in the given interval.</description>
-     !#  </method>
-     !#  <method method="nodePositionReplicant">
-     !#   <description>Computes the comoving position of a node in the specified replicant.</description>
-     !#  </method>
-     !#  <method method="nodeVelocityReplicant">
-     !#   <description>Computes the physical velocity of a node in the specified replicant.</description>
-     !#  </method>
-     !# </methods>
+     !![
+     <methods>
+      <method method="positionAtOutput">
+       <description>Returns the position of a point, {\normalfont \ttfamily nodePosition} (given in physical coordinates within the primary replicant volume), in comoving coordinates in the replicant volume in which it appears in the lightcone. If the point is \emph{not} in the lightcone the returned position is set to the largest possible negative number in each coordinate. If the optional {\normalfont \ttfamily positionFound} argument is given it will be set to true or false to indicate whether or not the point was found in the lightcone volume.</description>
+      </method>
+      <method method="replicants">
+       <description>
+        Performs various actions related to replicants of nodes appearing in lightcone output, depending on the value of the {\normalfont \ttfamily action} argument:
+        \begin{description}
+        \item[{\normalfont \ttfamily replicantActionCount}] returns in {\normalfont \ttfamily count} the number of replicants in which the node appears in the lightcone;
+        \item[{\normalfont \ttfamily replicantActionAny}] returns true in {\normalfont \ttfamily isInLightcone} if the given position appears in \emph{any} replicant in the lightcone;
+        \item[{\normalfont \ttfamily replicantActionInstance}] returns in {\normalfont \ttfamily position} the position in the {\normalfont \ttfamily instance}$^\mathrm{th}$ replicant in which this position appears in the lightcone.
+        \end{description}
+       </description>
+      </method>
+      <method method="periodicRange">
+       <description>Computes the range of periodic replicants which could contribute to the lightcone in the given interval.</description>
+      </method>
+      <method method="nodePositionReplicant">
+       <description>Computes the comoving position of a node in the specified replicant.</description>
+      </method>
+      <method method="nodeVelocityReplicant">
+       <description>Computes the physical velocity of a node in the specified replicant.</description>
+      </method>
+     </methods>
+     !!]
      final     ::                              squareDestructor
      procedure :: isInLightcone             => squareIsInLightcone
      procedure :: replicationCount          => squareReplicationCount
@@ -117,26 +125,32 @@
   end type geometryLightconeSquare
 
   interface geometryLightconeSquare
-     !% Constructors for the {\normalfont \ttfamily square} dark matter halo spin distribution class.
+     !!{
+     Constructors for the {\normalfont \ttfamily square} dark matter halo spin distribution class.
+     !!}
      module procedure squareConstructorParameters
      module procedure squareConstructorInternal
   end interface geometryLightconeSquare
 
   ! Enumeration describing actions for the replicant method.
-  !# <enumeration>
-  !#  <name>replicantAction</name>
-  !#  <description>Used to specify type of action required from the replicant method.</description>
-  !#  <visibility>private</visibility>
-  !#  <entry label="count"   />
-  !#  <entry label="any"     />
-  !#  <entry label="instance"/>
-  !# </enumeration>
+  !![
+  <enumeration>
+   <name>replicantAction</name>
+   <description>Used to specify type of action required from the replicant method.</description>
+   <visibility>private</visibility>
+   <entry label="count"   />
+   <entry label="any"     />
+   <entry label="instance"/>
+  </enumeration>
+  !!]
 
 contains
 
   function squareConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily square} lightcone geometry distribution class which takes a parameter list as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily square} lightcone geometry distribution class which takes a parameter list as
+    input.
+    !!}
     use :: Cosmology_Parameters            , only : cosmologyParameters    , cosmologyParametersClass, hubbleUnitsLittleH
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Input_Parameters                , only : inputParameter         , inputParameters
@@ -155,64 +169,72 @@ contains
     integer                                                    :: lengthHubbleExponent
     logical                                                    :: timeEvolvesAlongLightcone
 
-    !# <inputParameter>
-    !#   <name>origin</name>
-    !#   <source>parameters</source>
-    !#   <variable>origin</variable>
-    !#   <description>The origin for the lightcone.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>unitVector1</name>
-    !#   <source>parameters</source>
-    !#   <description>The first (radial) unit vector defining the lightcone geometry.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>origin</name>
+      <source>parameters</source>
+      <variable>origin</variable>
+      <description>The origin for the lightcone.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>unitVector1</name>
+      <source>parameters</source>
+      <description>The first (radial) unit vector defining the lightcone geometry.</description>
+    </inputParameter>
+    !!]
     unitVector(:,1)=unitVector1
-    !# <inputParameter>
-    !#   <name>unitVector2</name>
-    !#   <source>parameters</source>
-    !#   <description>The second (angular) unit vector defining the lightcone geometry.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>unitVector2</name>
+      <source>parameters</source>
+      <description>The second (angular) unit vector defining the lightcone geometry.</description>
+    </inputParameter>
+    !!]
     unitVector(:,2)=unitVector2
-    !# <inputParameter>
-    !#   <name>unitVector3</name>
-    !#   <source>parameters</source>
-    !#   <description>The third (angular) unit vector defining the lightcone geometry.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>unitVector3</name>
+      <source>parameters</source>
+      <description>The third (angular) unit vector defining the lightcone geometry.</description>
+    </inputParameter>
+    !!]
     unitVector(:,3)=unitVector3
-    !# <inputParameter>
-    !#   <name>lengthReplication</name>
-    !#   <source>parameters</source>
-    !#   <variable>lengthReplication</variable>
-    !#   <description>The length of the simulation box being used to construct the lightcone.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>lengthUnitsInSI</name>
-    !#   <source>parameters</source>
-    !#   <variable>lengthUnitsInSI</variable>
-    !#   <description>The units of the box length in the SI system.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>lengthHubbleExponent</name>
-    !#   <source>parameters</source>
-    !#   <variable>lengthHubbleExponent</variable>
-    !#   <description>The exponent of the ``little-$h$'' parameter used in the definition of the box length.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>angularSize</name>
-    !#   <source>parameters</source>
-    !#   <variable>angularSize</variable>
-    !#   <description>The angular size (i.e. side length) of the square field of view of the lightcone (in units of degrees).</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>timeEvolvesAlongLightcone</name>
-    !#   <source>parameters</source>
-    !#   <defaultValue>.true.</defaultValue>
-    !#   <variable>timeEvolvesAlongLightcone</variable>
-    !#   <description>If {\normalfont \ttfamily true}, cosmic time evolves along the lightcone as expected. Otherwise, time is fixed at the present epoch throughout the lightone. This allows construction of lightcones with no evolution.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    !# <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
+    !![
+    <inputParameter>
+      <name>lengthReplication</name>
+      <source>parameters</source>
+      <variable>lengthReplication</variable>
+      <description>The length of the simulation box being used to construct the lightcone.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>lengthUnitsInSI</name>
+      <source>parameters</source>
+      <variable>lengthUnitsInSI</variable>
+      <description>The units of the box length in the SI system.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>lengthHubbleExponent</name>
+      <source>parameters</source>
+      <variable>lengthHubbleExponent</variable>
+      <description>The exponent of the ``little-$h$'' parameter used in the definition of the box length.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>angularSize</name>
+      <source>parameters</source>
+      <variable>angularSize</variable>
+      <description>The angular size (i.e. side length) of the square field of view of the lightcone (in units of degrees).</description>
+    </inputParameter>
+    <inputParameter>
+      <name>timeEvolvesAlongLightcone</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <variable>timeEvolvesAlongLightcone</variable>
+      <description>If {\normalfont \ttfamily true}, cosmic time evolves along the lightcone as expected. Otherwise, time is fixed at the present epoch throughout the lightone. This allows construction of lightcones with no evolution.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
+    !!]
     ! Convert angle to radians.
     angularSize=angularSize*degreesToRadians
     ! Convert lengths units internal units.
@@ -223,15 +245,19 @@ contains
     lengthReplication   =lengthReplication*unitConversionLength
     ! Construct the object.
     self=geometryLightconeSquare(origin,unitVector,angularSize,lengthReplication,timeEvolvesAlongLightcone,cosmologyFunctions_,outputTimes_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
-    !# <objectDestructor name="cosmologyFunctions_" />
-    !# <objectDestructor name="outputTimes_"        />
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="outputTimes_"        />
+    !!]
     return
   end function squareConstructorParameters
 
   function squareConstructorInternal(origin,unitVector,angularSize,lengthReplication,timeEvolvesAlongLightcone,cosmologyFunctions_,outputTimes_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily square} lightcone geometry distribution class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily square} lightcone geometry distribution class.
+    !!}
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: ISO_Varying_String      , only : var_str                , varying_string
     use :: Memory_Management       , only : allocateArray          , deallocateArray
@@ -256,7 +282,9 @@ contains
          &                                                                      magnitude
     character       (len=12                 )                                :: label
     type            (varying_string         )                                :: message
-    !# <constructorAssign variables="origin, unitVector, angularSize, lengthReplication, timeEvolvesAlongLightcone, *cosmologyFunctions_, *outputTimes_"/>
+    !![
+    <constructorAssign variables="origin, unitVector, angularSize, lengthReplication, timeEvolvesAlongLightcone, *cosmologyFunctions_, *outputTimes_"/>
+    !!]
 
     ! Extract times from the outputTimes object.
     allocate(self%outputTimes(self%outputTimes_%count()))
@@ -349,7 +377,9 @@ contains
   contains
 
     double precision function inverseCosineIntegral(a,x)
-      !% Integral of $\sin(x)*\cos^{-1}[a/tan(x)]$ evaluated using Wolfram Alpha.
+      !!{
+      Integral of $\sin(x)*\cos^{-1}[a/tan(x)]$ evaluated using Wolfram Alpha.
+      !!}
       use :: Trigonometric_Functions, only : cosec, cot
       implicit none
       double precision, intent(in) :: a , x
@@ -376,17 +406,23 @@ contains
   end function squareConstructorInternal
 
   subroutine squareDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily square} lightcone geometry distribution class.
+    !!{
+    Destructor for the {\normalfont \ttfamily square} lightcone geometry distribution class.
+    !!}
     implicit none
     type(geometryLightconeSquare), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_" />
-    !# <objectDestructor name="self%outputTimes_"        />
+    !![
+    <objectDestructor name="self%cosmologyFunctions_" />
+    <objectDestructor name="self%outputTimes_"        />
+    !!]
     return
   end subroutine squareDestructor
 
   function squareReplicationCount(self,node)
-    !% Determine the number of times {\normalfont \ttfamily node} appears in the lightcone.
+    !!{
+    Determine the number of times {\normalfont \ttfamily node} appears in the lightcone.
+    !!}
     use            :: Arrays_Search   , only : searchArrayClosest
     use            :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentPosition, treeNode
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
@@ -406,11 +442,13 @@ contains
   end function squareReplicationCount
 
   logical function squareIsInLightcone(self,node,atPresentEpoch,radiusBuffer)
-    !% Determine if the given {\normalfont \ttfamily node} lies within the lightcone. Note that, when called with {\normalfont
-    !% \ttfamily atPresentEpoch=false} this function returns true if the node is in the lightcone at any point during its
-    !% existance. However, this check is made assuming that each node remains at fixed comoving coordinates between each output
-    !% time---there is no consideration of movement between output times. It is therefore recommended that some buffer is added to
-    !% catch any nodes which may briefly enter the lightcone between output times.
+    !!{
+    Determine if the given {\normalfont \ttfamily node} lies within the lightcone. Note that, when called with {\normalfont
+    \ttfamily atPresentEpoch=false} this function returns true if the node is in the lightcone at any point during its
+    existance. However, this check is made assuming that each node remains at fixed comoving coordinates between each output
+    time---there is no consideration of movement between output times. It is therefore recommended that some buffer is added to
+    catch any nodes which may briefly enter the lightcone between output times.
+    !!}
     use            :: Arrays_Search       , only : searchArrayClosest
     use            :: Galacticus_Error    , only : Galacticus_Component_List, Galacticus_Error_Report
     use            :: Galacticus_Nodes    , only : defaultPositionComponent , defaultSatelliteComponent, nodeComponentBasic, nodeComponentPosition, &
@@ -437,7 +475,9 @@ contains
          &                                                                    timeFinal
     character       (len=10                 )                              :: label
     type            (varying_string         )                              :: message
-    !# <optionalArgument name="atPresentEpoch" defaultsTo=".true." />
+    !![
+    <optionalArgument name="atPresentEpoch" defaultsTo=".true." />
+    !!]
 
     ! Get the basic component.
     basic => node%basic()
@@ -581,7 +621,9 @@ contains
   end function squareIsInLightcone
 
   double precision function squareSolidAngle(self)
-    !% Return the solid angle (in steradians) of a square lightcone.
+    !!{
+    Return the solid angle (in steradians) of a square lightcone.
+    !!}
     implicit none
     class(geometryLightconeSquare), intent(inout) :: self
 
@@ -590,7 +632,9 @@ contains
   end function squareSolidAngle
 
   function squarePosition(self,node,instance)
-    !% Return the position of the node in lightcone coordinates.
+    !!{
+    Return the position of the node in lightcone coordinates.
+    !!}
     use            :: Arrays_Search       , only : searchArrayClosest
     use            :: Galacticus_Error    , only : Galacticus_Error_Report
     use            :: Galacticus_Nodes    , only : nodeComponentBasic      , nodeComponentPosition, treeNode
@@ -628,7 +672,9 @@ contains
   end function squarePosition
 
   function squareVelocity(self,node,instance)
-    !% Return the velocity of the node in lightcone coordinates.
+    !!{
+    Return the velocity of the node in lightcone coordinates.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentPosition, treeNode
     implicit none
     double precision                         , dimension(3)  :: squarevelocity
@@ -649,7 +695,9 @@ contains
   end function squareVelocity
 
   subroutine squareReplicants(self,output,nodePosition,action,count,isInLightcone,radiusBuffer,instance,position)
-    !% Compute quantities related to the number of replicants in which a node appears.
+    !!{
+    Compute quantities related to the number of replicants in which a node appears.
+    !!}
     use            :: Galacticus_Error, only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Vectors         , only : Vector_Magnitude
@@ -739,7 +787,9 @@ contains
   end subroutine squareReplicants
 
   function squarePositionAtOutput(self,output,nodePosition,instance)
-    !% Return the position of the node in lightcone coordinates.
+    !!{
+    Return the position of the node in lightcone coordinates.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     double precision                                        , dimension(3) :: squarePositionAtOutput
@@ -753,7 +803,9 @@ contains
   end function squarePositionAtOutput
 
   double precision function squareTimeLightconeCrossing(self,node,timeEnd)
-    !% Return the time of the next lightcone crossing for this node.
+    !!{
+    Return the time of the next lightcone crossing for this node.
+    !!}
     use :: Galacticus_Nodes                , only : nodeComponentBasic     , nodeComponentPosition
     use :: Numerical_Constants_Astronomical, only : Mpc_per_km_per_s_To_Gyr, gigaYear             , megaParsec
     use :: Numerical_Constants_Physical    , only : speedLight
@@ -860,7 +912,9 @@ contains
   contains
 
     double precision function timeCrossingRoot(time)
-      !% Function used to find the time at which a node crosses the lightcone.
+      !!{
+      Function used to find the time at which a node crosses the lightcone.
+      !!}
       implicit none
       double precision, intent(in   ) :: time
       double precision, dimension(3)  :: positionNode
@@ -876,7 +930,9 @@ contains
   end function squareTimeLightconeCrossing
 
   function squarePositionLightconeCrossing(self,node)
-    !% Return the position at the next lightcone crossing for this node.
+    !!{
+    Return the position at the next lightcone crossing for this node.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                         , dimension(3)  :: squarePositionLightconeCrossing
@@ -889,7 +945,9 @@ contains
   end function squarePositionLightconeCrossing
   
   function squareVelocityLightconeCrossing(self,node)
-    !% Return the velocity at the next lightcone crossing for this node.
+    !!{
+    Return the velocity at the next lightcone crossing for this node.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     double precision                         , dimension(3)  :: squareVelocityLightconeCrossing
@@ -902,7 +960,9 @@ contains
   end function squareVelocityLightconeCrossing
   
   function squarePeriodicRange(self,distanceMinimum,distanceMaximum,radiusBuffer,originBuffered,distanceMinimumBuffered,distanceMaximumBuffered)
-    !% Compute the range of possible replicants of the volume which could be in the lightcone in the given interval.
+    !!{
+    Compute the range of possible replicants of the volume which could be in the lightcone in the given interval.
+    !!}
     implicit none
     integer                                                 , dimension(3,2)           :: squarePeriodicRange
     class           (geometryLightconeSquare), intent(inout)                           :: self
@@ -913,7 +973,9 @@ contains
     double precision                                        , dimension(3  )           :: origin
     double precision                                                                   :: distanceMinimum_       , distanceMaximum_       , &
          &                                                                                lengthOffsetOrigin
-    !# <optionalArgument name="radiusBuffer" defaultsTo="0.0d0" />
+    !![
+    <optionalArgument name="radiusBuffer" defaultsTo="0.0d0" />
+    !!]
 
     ! If a buffer radius (i.e. a point is to be considered to be inside the lightcone if it is within that distance from an edge
     ! of the cone) is being specified then adjust origin. We shift the origin backward along the lightcone principal axis such
@@ -982,7 +1044,9 @@ contains
   end function squarePeriodicRange
 
   function squareNodePositionReplicant(self,node,time,origin,replicant,setTime,positionPeriodicReference)
-    !% Compute the comoving position of the given node in the given replicant.
+    !!{
+    Compute the comoving position of the given node in the given replicant.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentPosition
     implicit none
     double precision                                        , dimension(3)           :: squareNodePositionReplicant
@@ -998,7 +1062,9 @@ contains
     double precision                                        , dimension(3)           :: positionComovingNode       , positionComovingReference
     integer                                                                          :: i
     double precision                                                                 :: timeOriginal               , expansionFactor
-    !# <optionalArgument name="setTime" defaultsTo=".false." />
+    !![
+    <optionalArgument name="setTime" defaultsTo=".false." />
+    !!]
 
     if (setTime_) then
        basic        => node %basic()
@@ -1025,7 +1091,9 @@ contains
   end function squareNodePositionReplicant
 
   function squareNodeVelocityReplicant(self,node,time,replicant,setTime)
-    !% Compute the physical velocity of the given node in the given replicant.
+    !!{
+    Compute the physical velocity of the given node in the given replicant.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentPosition
     implicit none
     double precision                                        , dimension(3)           :: squareNodeVelocityReplicant
@@ -1039,7 +1107,9 @@ contains
     double precision                                        , dimension(3)           :: velocity
     integer                                                                          :: i
     double precision                                                                 :: timeOriginal
-    !# <optionalArgument name="setTime" defaultsTo=".false." />
+    !![
+    <optionalArgument name="setTime" defaultsTo=".false." />
+    !!]
 
     if (setTime_) then
        basic        => node %basic()

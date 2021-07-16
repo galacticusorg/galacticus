@@ -17,13 +17,19 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an output analysis property extractor class that extracts a property from the host node of the given node.
+!!{
+Contains a module which implements an output analysis property extractor class that extracts a property from the host node of the given node.
+!!}
   
-  !# <nodePropertyExtractor name="nodePropertyExtractorHostNode">
-  !#  <description>An output analysis property extractor class that extracts a property from the host node of the given node.</description>
-  !# </nodePropertyExtractor>
+  !![
+  <nodePropertyExtractor name="nodePropertyExtractorHostNode">
+   <description>An output analysis property extractor class that extracts a property from the host node of the given node.</description>
+  </nodePropertyExtractor>
+  !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorHostNode
-     !% A property extractor output analysis class that extracts a property from the host node of the given node.
+     !!{
+     A property extractor output analysis class that extracts a property from the host node of the given node.
+     !!}
      private
      class(nodePropertyExtractorScalar), pointer :: nodePropertyExtractor_
    contains
@@ -36,7 +42,9 @@
   end type nodePropertyExtractorHostNode
 
   interface nodePropertyExtractorHostNode
-     !% Constructors for the ``hostNode'' node property extractor class.
+     !!{
+     Constructors for the ``hostNode'' node property extractor class.
+     !!}
      module procedure hostNodeConstructorParameters
      module procedure hostNodeConstructorInternal
   end interface nodePropertyExtractorHostNode
@@ -44,7 +52,9 @@
 contains
 
   function hostNodeConstructorParameters(parameters) result(self)
-    !% Constructor for the ``hostNode'' node property extractor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``hostNode'' node property extractor class which takes a parameter set as input.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -52,39 +62,53 @@ contains
     type (inputParameters              ), intent(inout) :: parameters
     class(nodePropertyExtractorClass   ), pointer       :: nodePropertyExtractor_
     
-    !# <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
+    !![
+    <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
+    !!]
     select type (nodePropertyExtractor_)
     class is (nodePropertyExtractorScalar)
        self=nodePropertyExtractorHostNode(nodePropertyExtractor_)
     class default
        call Galacticus_Error_Report('extracted property must be a real scalar'//{introspection:location})
     end select
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="nodePropertyExtractor_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="nodePropertyExtractor_"/>
+    !!]
     return
   end function hostNodeConstructorParameters
 
   function hostNodeConstructorInternal(nodePropertyExtractor_) result(self)
-    !% Internal constructor for the ``hostNode'' node property extractor class.
+    !!{
+    Internal constructor for the ``hostNode'' node property extractor class.
+    !!}
     implicit none
     type (nodePropertyExtractorHostNode)                        :: self
     class(nodePropertyExtractorScalar  ), intent(in   ), target :: nodePropertyExtractor_
-    !# <constructorAssign variables="*nodePropertyExtractor_"/>
+    !![
+    <constructorAssign variables="*nodePropertyExtractor_"/>
+    !!]
 
     return
   end function hostNodeConstructorInternal
   
   subroutine hostNodeDestructor(self)
-    !% Destructor for  the ``hostNode'' node property extractor class.
+    !!{
+    Destructor for  the ``hostNode'' node property extractor class.
+    !!}
     implicit none
     type(nodePropertyExtractorHostNode), intent(inout) :: self
 
-    !# <objectDestructor name="self%nodePropertyExtractor_"/>
+    !![
+    <objectDestructor name="self%nodePropertyExtractor_"/>
+    !!]
     return
   end subroutine hostNodeDestructor
   
   double precision function hostNodeExtract(self,node,instance)
-    !% Implement a hostNode output analysis.
+    !!{
+    Implement a hostNode output analysis.
+    !!}
     implicit none
     class(nodePropertyExtractorHostNode), intent(inout)           :: self
     type (treeNode                     ), intent(inout), target   :: node
@@ -100,7 +124,9 @@ contains
   end function hostNodeExtract
 
   integer function hostNodeType(self)
-    !% Return the type of the halo mass property.
+    !!{
+    Return the type of the halo mass property.
+    !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
     class(nodePropertyExtractorHostNode), intent(inout) :: self
@@ -110,7 +136,9 @@ contains
   end function hostNodeType
 
   function hostNodeName(self)
-    !% Return the name of the hostNode property.
+    !!{
+    Return the name of the hostNode property.
+    !!}
     use :: String_Handling, only : String_Upper_Case_First
     implicit none
     type (varying_string               )                :: hostNodeName
@@ -121,7 +149,9 @@ contains
   end function hostNodeName
 
   function hostNodeDescription(self)
-    !% Return a description of the hostNode property.
+    !!{
+    Return a description of the hostNode property.
+    !!}
     implicit none
     type (varying_string               )                :: hostNodeDescription
     class(nodePropertyExtractorHostNode), intent(inout) :: self
@@ -131,7 +161,9 @@ contains
   end function hostNodeDescription
 
   double precision function hostNodeUnitsInSI(self)
-    !% Return the units of the hostNode property in the SI system.
+    !!{
+    Return the units of the hostNode property in the SI system.
+    !!}
     implicit none
     class(nodePropertyExtractorHostNode), intent(inout) :: self
 

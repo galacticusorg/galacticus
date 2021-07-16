@@ -17,19 +17,25 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a linear excursion set barrier class.
+!!{
+Contains a module which implements a linear excursion set barrier class.
+!!}
 
-  !# <excursionSetBarrier name="excursionSetBarrierLinear">
-  !#  <description>
-  !#   A linear excursion set barrier class. The barrier is given by:
-  !#   \begin{equation}
-  !#   B(S) = B_0 + B_1 S,
-  !#   \end{equation}
-  !#   where $B_0=${\normalfont \ttfamily [coefficientConstant]}, and $B_0=${\normalfont \ttfamily [coefficientLinear]}.
-  !#  </description>
-  !# </excursionSetBarrier>
+  !![
+  <excursionSetBarrier name="excursionSetBarrierLinear">
+   <description>
+    A linear excursion set barrier class. The barrier is given by:
+    \begin{equation}
+    B(S) = B_0 + B_1 S,
+    \end{equation}
+    where $B_0=${\normalfont \ttfamily [coefficientConstant]}, and $B_0=${\normalfont \ttfamily [coefficientLinear]}.
+   </description>
+  </excursionSetBarrier>
+  !!]
   type, extends(excursionSetBarrierClass) :: excursionSetBarrierLinear
-     !% A linear excursion set barrier class.
+     !!{
+     A linear excursion set barrier class.
+     !!}
      private
      double precision :: coefficientConstant, coefficientLinear
     contains
@@ -38,7 +44,9 @@
   end type excursionSetBarrierLinear
 
   interface excursionSetBarrierLinear
-     !% Constructors for the linear excursion set barrier class.
+     !!{
+     Constructors for the linear excursion set barrier class.
+     !!}
      module procedure linearConstructorParameters
      module procedure linearConstructorInternal
   end interface excursionSetBarrierLinear
@@ -46,7 +54,9 @@
 contains
 
   function linearConstructorParameters(parameters) result(self)
-    !% Constructor for the linear excursion set class which takes a parameter set as input.
+    !!{
+    Constructor for the linear excursion set class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (excursionSetBarrierLinear)                :: self
@@ -54,37 +64,47 @@ contains
     double precision                                           :: coefficientConstant, coefficientLinear
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>coefficientConstant</name>
-    !#   <source>parameters</source>
-    !#   <variable>coefficientConstant</variable>
-    !#   <defaultValue>1.67d0</defaultValue>
-    !#   <description>The constant coefficient in the linear excursion set barrier.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>coefficientLinear</name>
-    !#   <source>parameters</source>
-    !#   <variable>coefficientLinear</variable>
-    !#   <defaultValue>0.0d0</defaultValue>
-    !#   <description>The linear coefficient in the linear excursion set barrier.</description>
-    !# </inputParameter>
+    !![
+    <inputParameter>
+      <name>coefficientConstant</name>
+      <source>parameters</source>
+      <variable>coefficientConstant</variable>
+      <defaultValue>1.67d0</defaultValue>
+      <description>The constant coefficient in the linear excursion set barrier.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>coefficientLinear</name>
+      <source>parameters</source>
+      <variable>coefficientLinear</variable>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The linear coefficient in the linear excursion set barrier.</description>
+    </inputParameter>
+    !!]
     self=excursionSetBarrierLinear(coefficientConstant,coefficientLinear)
-    !# <inputParametersValidate source="parameters"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
    return
   end function linearConstructorParameters
 
   function linearConstructorInternal(coefficientConstant,coefficientLinear) result(self)
-    !% Internal constructor for the linear excursion set class.
+    !!{
+    Internal constructor for the linear excursion set class.
+    !!}
     implicit none
     type            (excursionSetBarrierLinear)                :: self
     double precision                           , intent(in   ) :: coefficientConstant, coefficientLinear
-    !# <constructorAssign variables="coefficientConstant, coefficientLinear"/>
+    !![
+    <constructorAssign variables="coefficientConstant, coefficientLinear"/>
+    !!]
 
     return
   end function linearConstructorInternal
 
   double precision function linearBarrier(self,variance,time,node,rateCompute)
-    !% Return the excursion set barrier at the given variance and time.
+    !!{
+    Return the excursion set barrier at the given variance and time.
+    !!}
     implicit none
     class           (excursionSetBarrierLinear), intent(inout) :: self
     double precision                           , intent(in   ) :: variance, time
@@ -98,7 +118,9 @@ contains
   end function linearBarrier
 
   double precision function linearBarrierGradient(self,variance,time,node,rateCompute)
-    !% Return the gradient with respect to variance of the excursion set barrier at the given variance and time.
+    !!{
+    Return the gradient with respect to variance of the excursion set barrier at the given variance and time.
+    !!}
     implicit none
     class           (excursionSetBarrierLinear), intent(inout) :: self
     double precision                           , intent(in   ) :: variance   , time

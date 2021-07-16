@@ -17,20 +17,26 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a dark matter halo mass function class which modifies another mass function by convolving
-!% with a mass-dependent error.
+!!{
+Contains a module which implements a dark matter halo mass function class which modifies another mass function by convolving
+with a mass-dependent error.
+!!}
 
   use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassError, nbodyHaloMassErrorClass
 
-  !# <haloMassFunction name="haloMassFunctionErrorConvolved">
-  !#  <description>
-  !#   The halo mass function is computed by convolving another halo mass function with a mass dependent error. Specifically, the
-  !#   mass function is convolved with a Gaussian random error distribution with width computed using the given {\normalfont
-  !#   \ttfamily nbodyHaloMassError} object.
-  !#  </description>
-  !# </haloMassFunction>
+  !![
+  <haloMassFunction name="haloMassFunctionErrorConvolved">
+   <description>
+    The halo mass function is computed by convolving another halo mass function with a mass dependent error. Specifically, the
+    mass function is convolved with a Gaussian random error distribution with width computed using the given {\normalfont
+    \ttfamily nbodyHaloMassError} object.
+   </description>
+  </haloMassFunction>
+  !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionErrorConvolved
-     !% A halo mass function class convolves another halo mass function with a mass dependent error.
+     !!{
+     A halo mass function class convolves another halo mass function with a mass dependent error.
+     !!}
      private
      double precision                                   :: errorFractionalMaximum
      class           (haloMassFunctionClass  ), pointer :: massFunctionIntrinsic  => null()
@@ -41,7 +47,9 @@
   end type haloMassFunctionErrorConvolved
 
   interface haloMassFunctionErrorConvolved
-     !% Constructors for the {\normalfont \ttfamily errorConvolved} halo mass function class.
+     !!{
+     Constructors for the {\normalfont \ttfamily errorConvolved} halo mass function class.
+     !!}
      module procedure errorConvolvedConstructorParameters
      module procedure errorConvolvedConstructorInternal
   end interface haloMassFunctionErrorConvolved
@@ -55,7 +63,9 @@
 contains
 
   function errorConvolvedConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily errorConvolved} halo mass function class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily errorConvolved} halo mass function class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (haloMassFunctionErrorConvolved)                :: self
@@ -66,48 +76,62 @@ contains
     double precision                                                :: errorFractionalMaximum
 
     ! Check and read parameters.
-    !# <inputParameter>
-    !#   <name>errorFractionalMaximum</name>
-    !#   <source>parameters</source>
-    !#   <description>Maximum allowed fractional error in halo mass.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"  source="parameters"/>
-    !# <objectBuilder class="nbodyHaloMassError"  name="nBodyHaloMassError_"   source="parameters"/>
-    !# <objectBuilder class="haloMassFunction"    name="massFunctionIntrinsic" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>errorFractionalMaximum</name>
+      <source>parameters</source>
+      <description>Maximum allowed fractional error in halo mass.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"  source="parameters"/>
+    <objectBuilder class="nbodyHaloMassError"  name="nBodyHaloMassError_"   source="parameters"/>
+    <objectBuilder class="haloMassFunction"    name="massFunctionIntrinsic" source="parameters"/>
+    !!]
     self=haloMassFunctionErrorConvolved(massFunctionIntrinsic,cosmologyParameters_,nBodyHaloMassError_,errorFractionalMaximum)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_" />
-    !# <objectDestructor name="nBodyHaloMassError_"  />
-    !# <objectDestructor name="massFunctionIntrinsic"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_" />
+    <objectDestructor name="nBodyHaloMassError_"  />
+    <objectDestructor name="massFunctionIntrinsic"/>
+    !!]
     return
   end function errorConvolvedConstructorParameters
 
   function errorConvolvedConstructorInternal(massFunctionIntrinsic,cosmologyParameters_,nBodyHaloMassError_,errorFractionalMaximum) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily errorConvolved} halo mass function class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily errorConvolved} halo mass function class.
+    !!}
     implicit none
     type            (haloMassFunctionErrorConvolved)                        :: self
     class           (haloMassFunctionClass         ), target, intent(in   ) :: massFunctionIntrinsic
     class           (cosmologyParametersClass      ), target, intent(in   ) :: cosmologyParameters_
     class           (nBodyHaloMassErrorClass       ), target, intent(in   ) :: nBodyHaloMassError_
     double precision                                        , intent(in   ) :: errorFractionalMaximum
-    !# <constructorAssign variables="*massFunctionIntrinsic, *cosmologyParameters_, *nBodyHaloMassError_, errorFractionalMaximum"/>
+    !![
+    <constructorAssign variables="*massFunctionIntrinsic, *cosmologyParameters_, *nBodyHaloMassError_, errorFractionalMaximum"/>
+    !!]
 
     return
   end function errorConvolvedConstructorInternal
 
   subroutine errorConvolvedDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily errorConvolved} halo mass function class.
+    !!{
+    Destructor for the {\normalfont \ttfamily errorConvolved} halo mass function class.
+    !!}
     implicit none
     type(haloMassFunctionErrorConvolved), intent(inout) :: self
 
-    !# <objectDestructor name="self%massFunctionIntrinsic" />
-    !# <objectDestructor name="self%cosmologyParameters_"  />
-    !# <objectDestructor name="self%nBodyHaloMassError_"   />
+    !![
+    <objectDestructor name="self%massFunctionIntrinsic" />
+    <objectDestructor name="self%cosmologyParameters_"  />
+    <objectDestructor name="self%nBodyHaloMassError_"   />
+    !!]
     return
   end subroutine errorConvolvedDestructor
 
   double precision function errorConvolvedDifferential(self,time,mass,node)
-    !% Return the differential halo mass function at the given time and mass.
+    !!{
+    Return the differential halo mass function at the given time and mass.
+    !!}
     use :: Galacticus_Nodes     , only : nodeComponentBasic, treeNode
     use :: Numerical_Integration, only : integrator
     implicit none
@@ -155,7 +179,9 @@ contains
   contains
 
     double precision function errorConvolvedConvolution(massPrime)
-      !% Integrand function used in convolving the dark matter halo mass function.
+      !!{
+      Integrand function used in convolving the dark matter halo mass function.
+      !!}
       use :: Numerical_Constants_Math, only : Pi
       implicit none
       double precision, intent(in   ) :: massPrime

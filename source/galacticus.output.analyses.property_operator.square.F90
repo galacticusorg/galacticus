@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a square output analysis property operator class.
+!!{
+Contains a module which implements a square output analysis property operator class.
+!!}
 
-  !# <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSquare">
-  !#  <description>An square output analysis property operator class.</description>
-  !# </outputAnalysisPropertyOperator>
+  !![
+  <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorSquare">
+   <description>An square output analysis property operator class.</description>
+  </outputAnalysisPropertyOperator>
+  !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorSquare
-     !% An square root output property operator class.
+     !!{
+     An square root output property operator class.
+     !!}
      private
    contains
      procedure :: operate  => squareOperate
   end type outputAnalysisPropertyOperatorSquare
 
   interface outputAnalysisPropertyOperatorSquare
-     !% Constructors for the ``square'' output analysis class.
+     !!{
+     Constructors for the ``square'' output analysis class.
+     !!}
      module procedure squareConstructorParameters
   end interface outputAnalysisPropertyOperatorSquare
 
 contains
 
   function squareConstructorParameters(parameters)
-    !% Constructor for the ``square'' output analysis property operateor class which takes a parameter set as input.
+    !!{
+    Constructor for the ``square'' output analysis property operateor class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisPropertyOperatorSquare)                :: squareConstructorParameters
@@ -49,7 +59,9 @@ contains
   end function squareConstructorParameters
 
   double precision function squareOperate(self,propertyValue,node,propertyType,outputIndex)
-    !% Implement an square root output analysis property operator.
+    !!{
+    Implement an square root output analysis property operator.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (outputAnalysisPropertyOperatorSquare), intent(inout)           :: self

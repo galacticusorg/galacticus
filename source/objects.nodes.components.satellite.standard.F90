@@ -17,9 +17,13 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module of satellite orbit tree node methods.
+!!{
+Contains a module of satellite orbit tree node methods.
+!!}
 module Node_Component_Satellite_Standard
-  !% Implements the standard satellite component.
+  !!{
+  Implements the standard satellite component.
+  !!}
   use :: Dark_Matter_Halos_Mass_Loss_Rates, only : darkMatterHaloMassLossRateClass
   use :: Kepler_Orbits                    , only : keplerOrbit
   use :: Satellite_Merging_Timescales     , only : satelliteMergingTimescalesClass
@@ -32,46 +36,48 @@ module Node_Component_Satellite_Standard
        &    Node_Component_Satellite_Standard_Inactive           , Node_Component_Satellite_Standard_Thread_Initialize, &
        &    Node_Component_Satellite_Standard_Thread_Uninitialize
 
-  !# <component>
-  !#  <class>satellite</class>
-  !#  <name>standard</name>
-  !#  <isDefault>true</isDefault>
-  !#  <properties>
-  !#   <property>
-  !#     <name>mergeTime</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <classDefault>-1.0d0</classDefault>
-  !#     <getFunction>Node_Component_Satellite_Standard_Merge_Time</getFunction>
-  !#     <output unitsInSI="gigaYear" comment="Time until satellite merges."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>timeOfMerging</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isVirtual="true" />
-  !#     <classDefault>-1.0d0</classDefault>
-  !#     <getFunction>Node_Component_Satellite_Standard_Time_Of_Merging</getFunction>
-  !#     <setFunction>Node_Component_Satellite_Standard_Time_Of_Merging_Set</setFunction>
-  !#   </property>
-  !#   <property>
-  !#     <name>boundMass</name>
-  !#     <type>double</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-  !#     <classDefault>selfBasicComponent%mass()</classDefault>
-  !#     <output unitsInSI="massSolar" comment="Bound mass of the node."/>
-  !#   </property>
-  !#   <property>
-  !#     <name>virialOrbit</name>
-  !#     <type>keplerOrbit</type>
-  !#     <rank>0</rank>
-  !#     <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="set:get" />
-  !#   </property>
-  !#  </properties>
-  !#  <functions>objects.nodes.components.satellite.standard.bound_functions.inc</functions>
-  !# </component>
+  !![
+  <component>
+   <class>satellite</class>
+   <name>standard</name>
+   <isDefault>true</isDefault>
+   <properties>
+    <property>
+      <name>mergeTime</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <classDefault>-1.0d0</classDefault>
+      <getFunction>Node_Component_Satellite_Standard_Merge_Time</getFunction>
+      <output unitsInSI="gigaYear" comment="Time until satellite merges."/>
+    </property>
+    <property>
+      <name>timeOfMerging</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" isVirtual="true" />
+      <classDefault>-1.0d0</classDefault>
+      <getFunction>Node_Component_Satellite_Standard_Time_Of_Merging</getFunction>
+      <setFunction>Node_Component_Satellite_Standard_Time_Of_Merging_Set</setFunction>
+    </property>
+    <property>
+      <name>boundMass</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
+      <classDefault>selfBasicComponent%mass()</classDefault>
+      <output unitsInSI="massSolar" comment="Bound mass of the node."/>
+    </property>
+    <property>
+      <name>virialOrbit</name>
+      <type>keplerOrbit</type>
+      <rank>0</rank>
+      <attributes isSettable="true" isGettable="true" isEvolvable="false" isDeferred="set:get" />
+    </property>
+   </properties>
+   <functions>objects.nodes.components.satellite.standard.bound_functions.inc</functions>
+  </component>
+  !!]
 
   ! Objects used by this component.
   class(darkMatterHaloMassLossRateClass), pointer :: darkMatterHaloMassLossRate_
@@ -93,11 +99,15 @@ module Node_Component_Satellite_Standard
 
 contains
 
-  !# <nodeComponentInitializationTask>
-  !#  <unitName>Node_Component_Satellite_Standard_Initialize</unitName>
-  !# </nodeComponentInitializationTask>
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>Node_Component_Satellite_Standard_Initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
    subroutine Node_Component_Satellite_Standard_Initialize(parameters_)
-     !% Initializes the standard satellite orbit component module.
+     !!{
+     Initializes the standard satellite orbit component module.
+     !!}
      use :: Galacticus_Nodes, only : nodeComponentSatelliteStandard
      use :: Input_Parameters, only : inputParameter                , inputParameters
      implicit none
@@ -106,27 +116,33 @@ contains
 
      if (satellite%standardIsActive()) then
         ! Determine if satellite orbits are to be stored.
-        !# <inputParameter>
-        !#   <name>satelliteOrbitStoreOrbitalParameters</name>
-        !#   <defaultValue>.true.</defaultValue>
-        !#   <description>Specifies whether satellite virial orbital parameters should be stored (otherwise they are computed
-        !#      again---possibly at random---each time they are requested).</description>
-        !#   <source>parameters_</source>
-        !# </inputParameter>
+        !![
+        <inputParameter>
+          <name>satelliteOrbitStoreOrbitalParameters</name>
+          <defaultValue>.true.</defaultValue>
+          <description>Specifies whether satellite virial orbital parameters should be stored (otherwise they are computed
+             again---possibly at random---each time they are requested).</description>
+          <source>parameters_</source>
+        </inputParameter>
+        !!]
         ! Determine if satellite orbits are to be reset on halo formation events.
-        !# <inputParameter>
-        !#   <name>satelliteOrbitResetOnHaloFormation</name>
-        !#   <defaultValue>.false.</defaultValue>
-        !#   <description>Specifies whether satellite virial orbital parameters should be reset on halo formation events.</description>
-        !#   <source>parameters_</source>
-        !# </inputParameter>
+        !![
+        <inputParameter>
+          <name>satelliteOrbitResetOnHaloFormation</name>
+          <defaultValue>.false.</defaultValue>
+          <description>Specifies whether satellite virial orbital parameters should be reset on halo formation events.</description>
+          <source>parameters_</source>
+        </inputParameter>
+        !!]
         ! Determine if bound mass is an inactive variable.
-        !# <inputParameter>
-        !#   <name>satelliteBoundMassIsInactive</name>
-        !#   <defaultValue>.false.</defaultValue>
-        !#   <description>Specifies whether or not the bound mass variable of the standard satellite component is inactive (i.e. does not appear in any ODE being solved).</description>
-        !#   <source>parameters_</source>
-        !# </inputParameter>
+        !![
+        <inputParameter>
+          <name>satelliteBoundMassIsInactive</name>
+          <defaultValue>.false.</defaultValue>
+          <description>Specifies whether or not the bound mass variable of the standard satellite component is inactive (i.e. does not appear in any ODE being solved).</description>
+          <source>parameters_</source>
+        </inputParameter>
+        !!]
          ! Specify the function to use for setting virial orbits.
         call satellite%virialOrbitSetFunction(Node_Component_Satellite_Standard_Virial_Orbit_Set)
         call satellite%virialOrbitFunction   (Node_Component_Satellite_Standard_Virial_Orbit    )
@@ -134,45 +150,61 @@ contains
      return
    end subroutine Node_Component_Satellite_Standard_Initialize
 
-   !# <nodeComponentThreadInitializationTask>
-   !#  <unitName>Node_Component_Satellite_Standard_Thread_Initialize</unitName>
-   !# </nodeComponentThreadInitializationTask>
+   !![
+   <nodeComponentThreadInitializationTask>
+    <unitName>Node_Component_Satellite_Standard_Thread_Initialize</unitName>
+   </nodeComponentThreadInitializationTask>
+   !!]
    subroutine Node_Component_Satellite_Standard_Thread_Initialize(parameters_)
-     !% Initializes the tree node standard satellite module.
+     !!{
+     Initializes the tree node standard satellite module.
+     !!}
      use :: Galacticus_Nodes, only : defaultSatelliteComponent
      use :: Input_Parameters, only : inputParameter           , inputParameters
      implicit none
      type(inputParameters), intent(inout) :: parameters_
 
      if (defaultSatelliteComponent%standardIsActive()) then
-        !# <objectBuilder class="darkMatterHaloMassLossRate" name="darkMatterHaloMassLossRate_" source="parameters_"/>
-        !# <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="parameters_"/>
-        !# <objectBuilder class="satelliteMergingTimescales" name="satelliteMergingTimescales_" source="parameters_"/>
+        !![
+        <objectBuilder class="darkMatterHaloMassLossRate" name="darkMatterHaloMassLossRate_" source="parameters_"/>
+        <objectBuilder class="virialOrbit"                name="virialOrbit_"                source="parameters_"/>
+        <objectBuilder class="satelliteMergingTimescales" name="satelliteMergingTimescales_" source="parameters_"/>
+        !!]
      end if
      return
    end subroutine Node_Component_Satellite_Standard_Thread_Initialize
 
-   !# <nodeComponentThreadUninitializationTask>
-   !#  <unitName>Node_Component_Satellite_Standard_Thread_Uninitialize</unitName>
-   !# </nodeComponentThreadUninitializationTask>
+   !![
+   <nodeComponentThreadUninitializationTask>
+    <unitName>Node_Component_Satellite_Standard_Thread_Uninitialize</unitName>
+   </nodeComponentThreadUninitializationTask>
+   !!]
    subroutine Node_Component_Satellite_Standard_Thread_Uninitialize()
-     !% Uninitializes the tree node standard satellite module.
+     !!{
+     Uninitializes the tree node standard satellite module.
+     !!}
      use :: Galacticus_Nodes, only : defaultSatelliteComponent
      implicit none
 
      if (defaultSatelliteComponent%standardIsActive()) then
-        !# <objectDestructor name="darkMatterHaloMassLossRate_"/>
-        !# <objectDestructor name="virialOrbit_"               />
-        !# <objectDestructor name="satelliteMergingTimescales_"/>
+        !![
+        <objectDestructor name="darkMatterHaloMassLossRate_"/>
+        <objectDestructor name="virialOrbit_"               />
+        <objectDestructor name="satelliteMergingTimescales_"/>
+        !!]
      end if
      return
    end subroutine Node_Component_Satellite_Standard_Thread_Uninitialize
 
-  !# <inactiveSetTask>
-  !#  <unitName>Node_Component_Satellite_Standard_Inactive</unitName>
-  !# </inactiveSetTask>
+  !![
+  <inactiveSetTask>
+   <unitName>Node_Component_Satellite_Standard_Inactive</unitName>
+  </inactiveSetTask>
+  !!]
   subroutine Node_Component_Satellite_Standard_Inactive(node)
-    !% Set Jacobian zero status for properties of {\normalfont \ttfamily node}.
+    !!{
+    Set Jacobian zero status for properties of {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentSatelliteStandard, treeNode
     implicit none
     type (treeNode              ), intent(inout), pointer :: node
@@ -188,12 +220,16 @@ contains
     return
   end subroutine Node_Component_Satellite_Standard_Inactive
 
-  !# <mergerTreeInitializeTask>
-  !#  <unitName>Node_Component_Satellite_Standard_Tree_Initialize</unitName>
-  !#  <after>darkMatterProfile</after>
-  !# </mergerTreeInitializeTask>
+  !![
+  <mergerTreeInitializeTask>
+   <unitName>Node_Component_Satellite_Standard_Tree_Initialize</unitName>
+   <after>darkMatterProfile</after>
+  </mergerTreeInitializeTask>
+  !!]
   subroutine Node_Component_Satellite_Standard_Tree_Initialize(node)
-    !% Initialize the standard satellite component.
+    !!{
+    Initialize the standard satellite component.
+    !!}
     use :: Galacticus_Nodes, only : treeNode
     implicit none
     type(treeNode), intent(inout), pointer :: node
@@ -212,11 +248,15 @@ contains
     return
   end subroutine Node_Component_Satellite_Standard_Tree_Initialize
 
-  !# <rateComputeTask>
-  !#  <unitName>Node_Component_Satellite_Standard_Rate_Compute</unitName>
-  !# </rateComputeTask>
+  !![
+  <rateComputeTask>
+   <unitName>Node_Component_Satellite_Standard_Rate_Compute</unitName>
+  </rateComputeTask>
+  !!]
   subroutine Node_Component_Satellite_Standard_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
-    !% Compute the time until satellite merging rate of change.
+    !!{
+    Compute the time until satellite merging rate of change.
+    !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatellite, nodeComponentSatelliteStandard, propertyTypeActive, &
           &                         propertyTypeAll          , propertyTypeInactive  , treeNode
     implicit none
@@ -254,7 +294,9 @@ contains
   end subroutine Node_Component_Satellite_Standard_Rate_Compute
 
   function Node_Component_Satellite_Standard_Virial_Orbit(self) result(orbit)
-    !% Return the orbit of the satellite at the virial radius.
+    !!{
+    Return the orbit of the satellite at the virial radius.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSatelliteStandard, treeNode
     implicit none
     type (keplerOrbit                   )                :: orbit
@@ -285,7 +327,9 @@ contains
   end function Node_Component_Satellite_Standard_Virial_Orbit
 
   subroutine Node_Component_Satellite_Standard_Virial_Orbit_Set(self,orbit)
-    !% Set the orbit of the satellite at the virial radius.
+    !!{
+    Set the orbit of the satellite at the virial radius.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentSatellite, nodeComponentSatelliteStandard, treeNode
     implicit none
     class           (nodeComponentSatellite         ), intent(inout) :: self
@@ -310,11 +354,15 @@ contains
     return
   end subroutine Node_Component_Satellite_Standard_Virial_Orbit_Set
 
-  !# <scaleSetTask>
-  !#  <unitName>Node_Component_Satellite_Standard_Scale_Set</unitName>
-  !# </scaleSetTask>
+  !![
+  <scaleSetTask>
+   <unitName>Node_Component_Satellite_Standard_Scale_Set</unitName>
+  </scaleSetTask>
+  !!]
   subroutine Node_Component_Satellite_Standard_Scale_Set(node)
-    !% Set scales for properties of {\normalfont \ttfamily node}.
+    !!{
+    Set scales for properties of {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSatellite, nodeComponentSatelliteStandard, treeNode
     implicit none
     type            (treeNode              ), intent(inout), pointer :: node
@@ -337,11 +385,15 @@ contains
     return
   end subroutine Node_Component_Satellite_Standard_Scale_Set
 
-  !# <haloFormationTask>
-  !#  <unitName>Node_Component_Satellite_Standard_Halo_Formation_Task</unitName>
-  !# </haloFormationTask>
+  !![
+  <haloFormationTask>
+   <unitName>Node_Component_Satellite_Standard_Halo_Formation_Task</unitName>
+  </haloFormationTask>
+  !!]
   subroutine Node_Component_Satellite_Standard_Halo_Formation_Task(node)
-    !% Reset the orbits of satellite galaxies on halo formation events.
+    !!{
+    Reset the orbits of satellite galaxies on halo formation events.
+    !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, treeNode
     implicit none
     type(treeNode), intent(inout) :: node
@@ -364,14 +416,18 @@ contains
     return
   end subroutine Node_Component_Satellite_Standard_Halo_Formation_Task
 
-  !# <nodeMergerTask>
-  !#  <unitName>Node_Component_Satellite_Standard_Create</unitName>
-  !# </nodeMergerTask>
-  !# <satelliteHostChangeTask>
-  !#  <unitName>Node_Component_Satellite_Standard_Create</unitName>
-  !# </satelliteHostChangeTask>
+  !![
+  <nodeMergerTask>
+   <unitName>Node_Component_Satellite_Standard_Create</unitName>
+  </nodeMergerTask>
+  <satelliteHostChangeTask>
+   <unitName>Node_Component_Satellite_Standard_Create</unitName>
+  </satelliteHostChangeTask>
+  !!]
   subroutine Node_Component_Satellite_Standard_Create(node)
-    !% Create a satellite orbit component and assign a time until merging and a bound mass equal initially to the total halo mass.
+    !!{
+    Create a satellite orbit component and assign a time until merging and a bound mass equal initially to the total halo mass.
+    !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentBasic           , nodeComponentSatellite, nodeComponentSatelliteStandard, &
          &                          treeNode
     use :: Kepler_Orbits   , only : keplerOrbitMasses        , keplerOrbitRadius            , keplerOrbitTheta      , keplerOrbitPhi                , &

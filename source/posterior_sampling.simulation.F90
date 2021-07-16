@@ -17,22 +17,28 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements a class of posterior sampling simulators.
+!!{
+Contains a module which implements a class of posterior sampling simulators.
+!!}
 
 module Posterior_Sampling_Simulation
-  !% Implements a class of posterior sampling simulators.
+  !!{
+  Implements a class of posterior sampling simulators.
+  !!}
   private
 
-  !# <functionClass>
-  !#  <name>posteriorSampleSimulation</name>
-  !#  <descriptiveName>Posterior Sampling Simulations</descriptiveName>
-  !#  <description>Class providing simulators for posterior sampling.</description>
-  !#  <default>differentialEvolution</default>
-  !#  <method name="simulate" >
-  !#   <description>Perform the simulation.</description>
-  !#   <type>void</type>
-  !#   <pass>yes</pass>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>posteriorSampleSimulation</name>
+   <descriptiveName>Posterior Sampling Simulations</descriptiveName>
+   <description>Class providing simulators for posterior sampling.</description>
+   <default>differentialEvolution</default>
+   <method name="simulate" >
+    <description>Perform the simulation.</description>
+    <type>void</type>
+    <pass>yes</pass>
+   </method>
+  </functionClass>
+  !!]
 
 end module Posterior_Sampling_Simulation

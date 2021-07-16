@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module defining the history object type.
+!!{
+Contains a module defining the history object type.
+!!}
 
 module Histories
-  !% Defines the history object type.
+  !!{
+  Defines the history object type.
+  !!}
   use :: Kind_Numbers, only : kind_int8
   implicit none
   private
@@ -32,39 +36,43 @@ module Histories
   end interface operator(*)
 
   type history
-     !% The history object type.
+     !!{
+     The history object type.
+     !!}
      double precision, allocatable, dimension(:  ) :: time
      double precision, allocatable, dimension(:,:) :: data
      integer                                       :: rangeType
    contains
-     !# <methods>
-     !#   <method description="Addition operator." method="operator(+)" />
-     !#   <method description="Subtraction operator." method="operator(-)" />
-     !#   <method description="Division operator." method="operator(/)" />
-     !#   <method description="Multiplication operator." method="operator(*)" />
-     !#   <method description="Returns true if the history is entirely zero." method="isZero" />
-     !#   <method description="Creates a history object with a specified range of times." method="create" />
-     !#   <method description="Build a history object from an XML definition." method="builder" />
-     !#   <method description="Dump a history object." method="dump" />
-     !#   <method description="Dump a history object in binary." method="dumpRaw" />
-     !#   <method description="Read a history object in binary." method="readRaw" />
-     !#   <method description="Clone a history object." method="clone" />
-     !#   <method description="Destroys a history object." method="destroy" />
-     !#   <method description="Removes any times in a history which have become outdated." method="trim" />
-     !#   <method description="Removes any times in a history \emph{after} the given time. Optionally returns a history object with the removed history." method="trimForward" />
-     !#   <method description="Adds two histories, possibly with different time series." method="increment" />
-     !#   <method description="Adds two histories, possibly with different time series, by interpolating the second onto the times of the first and adding the interpolated values." method="interpolatedIncrement" />
-     !#   <method description="Extends the time range of a history to encompass the specified limits." method="extend" />
-     !#   <method description="Resets all entries in a history to zero." method="reset" />
-     !#   <method description="Set all entries in a history to unity." method="setToUnity" />
-     !#   <method description="Returns true if the given history has been created." method="exists" />
-     !#   <method description="Returns an array with the timesteps (i.e. the intervals between successive times) in the given history." method="timeSteps" />
-     !#   <method description="Return a count of the number of properties in a serialized history object." method="serializeCount" />
-     !#   <method description="Serialize a history object to an array." method="serialize" />
-     !#   <method description="Deserialize a history object from an array." method="deserialize" />
-     !#   <method description="Append a history or single instant onto the end of a history." method="append" />
-     !#   <method description="Returns the size of any non-static components of the type." method="nonStaticSizeOf" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Addition operator." method="operator(+)" />
+       <method description="Subtraction operator." method="operator(-)" />
+       <method description="Division operator." method="operator(/)" />
+       <method description="Multiplication operator." method="operator(*)" />
+       <method description="Returns true if the history is entirely zero." method="isZero" />
+       <method description="Creates a history object with a specified range of times." method="create" />
+       <method description="Build a history object from an XML definition." method="builder" />
+       <method description="Dump a history object." method="dump" />
+       <method description="Dump a history object in binary." method="dumpRaw" />
+       <method description="Read a history object in binary." method="readRaw" />
+       <method description="Clone a history object." method="clone" />
+       <method description="Destroys a history object." method="destroy" />
+       <method description="Removes any times in a history which have become outdated." method="trim" />
+       <method description="Removes any times in a history \emph{after} the given time. Optionally returns a history object with the removed history." method="trimForward" />
+       <method description="Adds two histories, possibly with different time series." method="increment" />
+       <method description="Adds two histories, possibly with different time series, by interpolating the second onto the times of the first and adding the interpolated values." method="interpolatedIncrement" />
+       <method description="Extends the time range of a history to encompass the specified limits." method="extend" />
+       <method description="Resets all entries in a history to zero." method="reset" />
+       <method description="Set all entries in a history to unity." method="setToUnity" />
+       <method description="Returns true if the given history has been created." method="exists" />
+       <method description="Returns an array with the timesteps (i.e. the intervals between successive times) in the given history." method="timeSteps" />
+       <method description="Return a count of the number of properties in a serialized history object." method="serializeCount" />
+       <method description="Serialize a history object to an array." method="serialize" />
+       <method description="Deserialize a history object from an array." method="deserialize" />
+       <method description="Append a history or single instant onto the end of a history." method="append" />
+       <method description="Returns the size of any non-static components of the type." method="nonStaticSizeOf" />
+     </methods>
+     !!]
      procedure ::                          History_Add
      procedure ::                          History_Subtract
      procedure ::                          History_Divide
@@ -101,26 +109,30 @@ module Histories
   end type history
 
   type longIntegerHistory
-     !% The history object type.
+     !!{
+     The history object type.
+     !!}
      double precision                , allocatable, dimension(:  ) :: time
      integer         (kind=kind_int8), allocatable, dimension(:,:) :: data
      integer                                                       :: rangeType
    contains
-     !# <methods>
-     !#   <method description="Creates a history object with a specified range of times." method="create" />
-     !#   <method description="Build a history object from an XML definition." method="builder" />
-     !#   <method description="Dump a history object." method="dump" />
-     !#   <method description="Dump a history object in binary." method="dumpRaw" />
-     !#   <method description="Read a history object in binary." method="readRaw" />
-     !#   <method description="Clone a history object." method="clone" />
-     !#   <method description="Destroys a history object." method="destroy" />
-     !#   <method description="Removes any times in a history which have become outdated." method="trim" />
-     !#   <method description="Removes any times in a history \emph{after} the given time. Optionally returns a history object with the removed history." method="trimForward" />
-     !#   <method description="Resets all entries in a history to zero." method="reset" />
-     !#   <method description="Returns true if the given history has been created." method="exists" />
-     !#   <method description="Append a history or single instant onto the end of a history." method="append" />
-     !#   <method description="Returns the size of any non-static components of the type." method="nonStaticSizeOf" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Creates a history object with a specified range of times." method="create" />
+       <method description="Build a history object from an XML definition." method="builder" />
+       <method description="Dump a history object." method="dump" />
+       <method description="Dump a history object in binary." method="dumpRaw" />
+       <method description="Read a history object in binary." method="readRaw" />
+       <method description="Clone a history object." method="clone" />
+       <method description="Destroys a history object." method="destroy" />
+       <method description="Removes any times in a history which have become outdated." method="trim" />
+       <method description="Removes any times in a history \emph{after} the given time. Optionally returns a history object with the removed history." method="trimForward" />
+       <method description="Resets all entries in a history to zero." method="reset" />
+       <method description="Returns true if the given history has been created." method="exists" />
+       <method description="Append a history or single instant onto the end of a history." method="append" />
+       <method description="Returns the size of any non-static components of the type." method="nonStaticSizeOf" />
+     </methods>
+     !!]
      procedure :: builder         => History_Long_Integer_Builder
      procedure :: dump            => History_Long_Integer_Dump
      procedure :: dumpRaw         => History_Long_Integer_Dump_Raw
@@ -150,7 +162,9 @@ module Histories
 contains
 
   subroutine History_Create(history_,historyCount,timesCount,timeBegin,timeEnd,rangeType)
-    !% Create a history object.
+    !!{
+    Create a history object.
+    !!}
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : Memory_Usage_Record    , memoryTypeNodes
     use :: Numerical_Ranges , only : Make_Range             , rangeTypeLogarithmic, rangeTypeUndefined
@@ -188,7 +202,9 @@ contains
   end subroutine History_Create
 
   subroutine History_Destroy(history_,recordMemory)
-    !% Destroy a history.
+    !!{
+    Destroy a history.
+    !!}
     use :: Memory_Management, only : Memory_Usage_Record, memoryTypeNodes
     implicit none
     class  (history), intent(inout)           :: history_
@@ -215,7 +231,9 @@ contains
   end subroutine History_Destroy
 
   subroutine History_Long_Integer_Create(history_,historyCount,timesCount,timeBegin,timeEnd,rangeType)
-    !% Create a history object.
+    !!{
+    Create a history object.
+    !!}
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : Memory_Usage_Record    , memoryTypeNodes
     use :: Numerical_Ranges , only : Make_Range             , rangeTypeLogarithmic, rangeTypeUndefined
@@ -253,7 +271,9 @@ contains
   end subroutine History_Long_Integer_Create
 
   subroutine History_Long_Integer_Destroy(history_,recordMemory)
-    !% Destroy a history.
+    !!{
+    Destroy a history.
+    !!}
     use :: Memory_Management, only : Memory_Usage_Record, memoryTypeNodes
     implicit none
     class  (longIntegerHistory), intent(inout)           :: history_
@@ -280,7 +300,9 @@ contains
   end subroutine History_Long_Integer_Destroy
 
   subroutine History_Builder(self,historyDefinition)
-    !% Build a {\normalfont \ttfamily history} object from the given XML {\normalfont \ttfamily historyDefinition}.
+    !!{
+    Build a {\normalfont \ttfamily history} object from the given XML {\normalfont \ttfamily historyDefinition}.
+    !!}
     use :: FoX_DOM         , only : node
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
@@ -293,7 +315,9 @@ contains
   end subroutine History_Builder
 
   subroutine History_Long_Integer_Builder(self,historyDefinition)
-    !% Build a {\normalfont \ttfamily longIntegerHistory} object from the given XML {\normalfont \ttfamily historyDefinition}.
+    !!{
+    Build a {\normalfont \ttfamily longIntegerHistory} object from the given XML {\normalfont \ttfamily historyDefinition}.
+    !!}
     use :: FoX_DOM         , only : node
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
@@ -306,7 +330,9 @@ contains
   end subroutine History_Long_Integer_Builder
 
   subroutine History_Dump(self)
-    !% Dumps a history object.
+    !!{
+    Dumps a history object.
+    !!}
     use :: Display           , only : displayMessage
     use :: ISO_Varying_String, only : assignment(=) , operator(//), varying_string
     implicit none
@@ -332,7 +358,9 @@ contains
   end subroutine History_Dump
 
   subroutine History_Dump_Raw(self,fileHandle)
-    !% Dumps a history object in binary.
+    !!{
+    Dumps a history object in binary.
+    !!}
     implicit none
     class  (history), intent(in   ) :: self
     integer         , intent(in   ) :: fileHandle
@@ -348,7 +376,9 @@ contains
   end subroutine History_Dump_Raw
 
   subroutine History_Read_Raw(self,fileHandle)
-    !% Read a history object in binary.
+    !!{
+    Read a history object in binary.
+    !!}
     use :: Memory_Management, only : allocateArray
     implicit none
     class  (history), intent(inout) :: self
@@ -369,7 +399,9 @@ contains
   end subroutine History_Read_Raw
 
   subroutine History_Reset(history_)
-    !% Reset a history by zeroing all elements, but leaving the structure (and times) intact.
+    !!{
+    Reset a history by zeroing all elements, but leaving the structure (and times) intact.
+    !!}
     implicit none
     class(history), intent(inout) :: history_
 
@@ -378,7 +410,9 @@ contains
   end subroutine History_Reset
 
   subroutine History_Long_Integer_Dump(self)
-    !% Dumps a history object.
+    !!{
+    Dumps a history object.
+    !!}
     use :: Display           , only : displayMessage
     use :: ISO_Varying_String, only : assignment(=) , operator(//), varying_string
     implicit none
@@ -404,7 +438,9 @@ contains
   end subroutine History_Long_Integer_Dump
 
   subroutine History_Long_Integer_Dump_Raw(self,fileHandle)
-    !% Dumps a history object in binary.
+    !!{
+    Dumps a history object in binary.
+    !!}
     implicit none
     class  (longIntegerHistory), intent(in   ) :: self
     integer                    , intent(in   ) :: fileHandle
@@ -420,7 +456,9 @@ contains
   end subroutine History_Long_Integer_Dump_Raw
 
   subroutine History_Long_Integer_Read_Raw(self,fileHandle)
-    !% Read a history object in binary.
+    !!{
+    Read a history object in binary.
+    !!}
     use :: Memory_Management, only : allocateArray
     implicit none
     class  (longIntegerHistory), intent(inout) :: self
@@ -441,7 +479,9 @@ contains
   end subroutine History_Long_Integer_Read_Raw
 
   subroutine History_Long_Integer_Reset(history_)
-    !% Reset a history by zeroing all elements, but leaving the structure (and times) intact.
+    !!{
+    Reset a history by zeroing all elements, but leaving the structure (and times) intact.
+    !!}
     implicit none
     class(longIntegerHistory), intent(inout) :: history_
 
@@ -450,7 +490,9 @@ contains
   end subroutine History_Long_Integer_Reset
 
   subroutine History_Set_To_Unity(history_)
-    !% Reset a history by zeroing all elements, but leaving the structure (and times) intact.
+    !!{
+    Reset a history by zeroing all elements, but leaving the structure (and times) intact.
+    !!}
     implicit none
     class(history), intent(inout) :: history_
 
@@ -459,7 +501,9 @@ contains
   end subroutine History_Set_To_Unity
 
   logical function History_Exists(history_)
-    !% Returns true if the history has been created.
+    !!{
+    Returns true if the history has been created.
+    !!}
     implicit none
     class(history), intent(in   ) :: history_
 
@@ -468,7 +512,9 @@ contains
   end function History_Exists
 
   subroutine History_Clone(self,historyToClone)
-    !% Clone a history object.
+    !!{
+    Clone a history object.
+    !!}
     use :: Memory_Management, only : allocateArray, deallocateArray, memoryTypeNodes
     implicit none
     class(history), intent(inout) :: self
@@ -489,7 +535,9 @@ contains
   end subroutine History_Clone
 
   logical function History_Long_Integer_Exists(history_)
-    !% Returns true if the history has been created.
+    !!{
+    Returns true if the history has been created.
+    !!}
     implicit none
     class(longIntegerHistory), intent(in   ) :: history_
 
@@ -498,7 +546,9 @@ contains
   end function History_Long_Integer_Exists
 
   subroutine History_Long_Integer_Clone(self,historyToClone)
-    !% Clone a longIntegerHistory object.
+    !!{
+    Clone a longIntegerHistory object.
+    !!}
     use :: Memory_Management, only : allocateArray, deallocateArray, memoryTypeNodes
     implicit none
     class(longIntegerHistory), intent(inout) :: self
@@ -519,7 +569,9 @@ contains
   end subroutine History_Long_Integer_Clone
 
   logical function History_Is_Zero(self)
-    !% Test whether a history object is all zero.
+    !!{
+    Test whether a history object is all zero.
+    !!}
     implicit none
     class(history), intent(in   ) :: self
 
@@ -531,7 +583,9 @@ contains
   end function History_Is_Zero
 
   function History_Add(history1,history2)
-    !% Add two history objects.
+    !!{
+    Add two history objects.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (history)                          :: History_Add
@@ -555,7 +609,9 @@ contains
   end function History_Add
 
   function History_Subtract(history1,history2)
-    !% Subtract two history objects.
+    !!{
+    Subtract two history objects.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type (history)                          :: History_Subtract
@@ -581,7 +637,9 @@ contains
   end function History_Subtract
 
   integer function History_Serialize_Count(self)
-    !% Return the number of properties required to track a history.
+    !!{
+    Return the number of properties required to track a history.
+    !!}
     implicit none
     class(history), intent(in   ) :: self
 
@@ -594,7 +652,9 @@ contains
   end function History_Serialize_Count
 
   subroutine History_Deserialize(self,historyArray)
-    !% Pack history from an array into a history structure.
+    !!{
+    Pack history from an array into a history structure.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (history)              , intent(inout) :: self
@@ -610,7 +670,9 @@ contains
   end subroutine History_Deserialize
 
   subroutine History_Serialize(self,historyArray)
-    !% Pack history from an array into an history structure.
+    !!{
+    Pack history from an array into an history structure.
+    !!}
     implicit none
     class           (history)              , intent(in   ) :: self
     double precision         , dimension(:), intent(  out) :: historyArray(:)
@@ -621,10 +683,12 @@ contains
   end subroutine History_Serialize
 
   subroutine History_Trim(history_,currentTime,minimumPointsToRemove)
-    !% Removes outdated information from ``future histories'' (i.e. histories that store data for future reference). Removes all
-    !% but one entry prior to the given {\normalfont \ttfamily currentTime} (this allows for interpolation of the history to the current
-    !% time). Optionally, the remove is done only if it will remove more than {\normalfont \ttfamily minimumPointsToRemove} entries (since the
-    !% removal can be slow this allows for some optimization).
+    !!{
+    Removes outdated information from ``future histories'' (i.e. histories that store data for future reference). Removes all
+    but one entry prior to the given {\normalfont \ttfamily currentTime} (this allows for interpolation of the history to the current
+    time). Optionally, the remove is done only if it will remove more than {\normalfont \ttfamily minimumPointsToRemove} entries (since the
+    removal can be slow this allows for some optimization).
+    !!}
     use            :: Galacticus_Error , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : Memory_Usage_Record    , memoryTypeNodes
@@ -686,8 +750,10 @@ contains
   end subroutine History_Trim
 
   subroutine History_Trim_Forward(self,time,removedHistory)
-    !% Removes all points in a history after the given {\normalfont \ttfamily time}. Optionally, the removed history can be
-    !% returned as {\normalfont \ttfamily removedHistory}.
+    !!{
+    Removes all points in a history after the given {\normalfont \ttfamily time}. Optionally, the removed history can be
+    returned as {\normalfont \ttfamily removedHistory}.
+    !!}
     use            :: Arrays_Search    , only : searchArray
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : allocateArray, deallocateArray
@@ -732,10 +798,12 @@ contains
   end subroutine History_Trim_Forward
 
   subroutine History_Long_Integer_Trim(history_,currentTime,minimumPointsToRemove)
-    !% Removes outdated information from ``future histories'' (i.e. histories that store data for future reference). Removes all
-    !% but one entry prior to the given {\normalfont \ttfamily currentTime} (this allows for interpolation of the history to the current
-    !% time). Optionally, the remove is done only if it will remove more than {\normalfont \ttfamily minimumPointsToRemove} entries (since the
-    !% removal can be slow this allows for some optimization).
+    !!{
+    Removes outdated information from ``future histories'' (i.e. histories that store data for future reference). Removes all
+    but one entry prior to the given {\normalfont \ttfamily currentTime} (this allows for interpolation of the history to the current
+    time). Optionally, the remove is done only if it will remove more than {\normalfont \ttfamily minimumPointsToRemove} entries (since the
+    removal can be slow this allows for some optimization).
+    !!}
     use            :: Galacticus_Error , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : Memory_Usage_Record    , memoryTypeNodes
@@ -797,8 +865,10 @@ contains
   end subroutine History_Long_Integer_Trim
 
   subroutine History_Long_Integer_Trim_Forward(self,time,removedHistory)
-    !% Removes all points in a history after the given {\normalfont \ttfamily time}. Optionally, the removed history can be
-    !% returned as {\normalfont \ttfamily removedHistory}.
+    !!{
+    Removes all points in a history after the given {\normalfont \ttfamily time}. Optionally, the removed history can be
+    returned as {\normalfont \ttfamily removedHistory}.
+    !!}
     use            :: Arrays_Search    , only : searchArray
     use, intrinsic :: ISO_C_Binding    , only : c_size_t
     use            :: Memory_Management, only : allocateArray, deallocateArray
@@ -843,7 +913,9 @@ contains
   end subroutine History_Long_Integer_Trim_Forward
 
   subroutine History_Long_Integer_Append_History(self,append)
-    !% Append a history to a long integer history.
+    !!{
+    Append a history to a long integer history.
+    !!}
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none
@@ -876,7 +948,9 @@ contains
   end subroutine History_Long_Integer_Append_History
 
   subroutine History_Long_Integer_Append_Epoch(self,time,append)
-    !% Append a history to a long integer history.
+    !!{
+    Append a history to a long integer history.
+    !!}
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none
@@ -912,7 +986,9 @@ contains
   end subroutine History_Long_Integer_Append_Epoch
 
   subroutine History_Append_History(self,append)
-    !% Append a history to a long integer history.
+    !!{
+    Append a history to a long integer history.
+    !!}
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none
@@ -945,7 +1021,9 @@ contains
   end subroutine History_Append_History
 
   subroutine History_Append_Epoch(self,time,append)
-    !% Append a history to a long integer history.
+    !!{
+    Append a history to a long integer history.
+    !!}
     use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray          , deallocateArray
     implicit none
@@ -981,9 +1059,11 @@ contains
   end subroutine History_Append_Epoch
 
    subroutine History_Interpolated_Increment(history_,addHistory)
-     !% Adds the data in {\normalfont \ttfamily addHistory} to that in {\normalfont \ttfamily history\_}. This function is
-     !% designed for histories that track instantaneous rates. The rates in {\normalfont \ttfamily addHistory} are interpolated to
-     !% the times in {\normalfont \ttfamily history\_} and added to the rates in {\normalfont \ttfamily history\_}.
+     !!{
+     Adds the data in {\normalfont \ttfamily addHistory} to that in {\normalfont \ttfamily history\_}. This function is
+     designed for histories that track instantaneous rates. The rates in {\normalfont \ttfamily addHistory} are interpolated to
+     the times in {\normalfont \ttfamily history\_} and added to the rates in {\normalfont \ttfamily history\_}.
+     !!}
      use            :: Galacticus_Error       , only : Galacticus_Error_Report
      use, intrinsic :: ISO_C_Binding          , only : c_size_t
      use            :: Numerical_Interpolation, only : interpolator
@@ -1045,11 +1125,13 @@ contains
    end subroutine History_Interpolated_Increment
 
    subroutine History_Increment(history_,addHistory,autoExtend)
-     !% Combines the data in {\normalfont \ttfamily addHistory} with that in {\normalfont \ttfamily history\_}. This function is designed for histories that
-     !% track integrated quantities (such as total mass of stars formed in a time interval for example). {\normalfont \ttfamily history\_} will be
-     !% extended if necessary to span the range of {\normalfont \ttfamily addHistory}. Then, the data from {\normalfont \ttfamily addHistory} will be added to
-     !% that in {\normalfont \ttfamily history\_} by finding the fraction of each timestep in {\normalfont \ttfamily addHistory} that overlaps with each timestep
-     !% in {\normalfont \ttfamily history\_} and assuming that the corresponding fraction of the data value should be added to {\normalfont \ttfamily history\_}.
+     !!{
+     Combines the data in {\normalfont \ttfamily addHistory} with that in {\normalfont \ttfamily history\_}. This function is designed for histories that
+     track integrated quantities (such as total mass of stars formed in a time interval for example). {\normalfont \ttfamily history\_} will be
+     extended if necessary to span the range of {\normalfont \ttfamily addHistory}. Then, the data from {\normalfont \ttfamily addHistory} will be added to
+     that in {\normalfont \ttfamily history\_} by finding the fraction of each timestep in {\normalfont \ttfamily addHistory} that overlaps with each timestep
+     in {\normalfont \ttfamily history\_} and assuming that the corresponding fraction of the data value should be added to {\normalfont \ttfamily history\_}.
+     !!}
      use            :: Arrays_Search   , only : searchArray
      use            :: Galacticus_Error, only : Galacticus_Error_Report
      use, intrinsic :: ISO_C_Binding   , only : c_size_t
@@ -1064,7 +1146,9 @@ contains
      double precision                                    :: fractionContributed, timeBegin           , &
           &                                                 timeEnd            , timeBeginAdd        , &
           &                                                 timeEndAdd
-     !# <optionalArgument name="autoExtend" defaultsTo=".false." />
+     !![
+     <optionalArgument name="autoExtend" defaultsTo=".false." />
+     !!]
 
      select type (history_)
      type is (history)
@@ -1140,7 +1224,9 @@ contains
    end subroutine History_Increment
 
    function History_Divide(self,divisor)
-     !% Divides history data by a double precision {\normalfont \ttfamily divisor}.
+     !!{
+     Divides history data by a double precision {\normalfont \ttfamily divisor}.
+     !!}
      implicit none
      type            (history)                :: History_Divide
      class           (history), intent(in   ) :: self
@@ -1155,7 +1241,9 @@ contains
    end function History_Divide
 
    function History_Multiply(self,multiplier)
-     !% Multiplies history data by a double precision {\normalfont \ttfamily multiplier}.
+     !!{
+     Multiplies history data by a double precision {\normalfont \ttfamily multiplier}.
+     !!}
      implicit none
      type            (history)                :: History_Multiply
      class           (history), intent(in   ) :: self
@@ -1170,7 +1258,9 @@ contains
    end function History_Multiply
 
   function History_Multiply_Switched(multiplier,history1)
-    !% Multiply a scalar by an history object.
+    !!{
+    Multiply a scalar by an history object.
+    !!}
     implicit none
     type            (history)                :: History_Multiply_Switched
     type            (history), intent(in   ) :: history1
@@ -1181,7 +1271,9 @@ contains
   end function History_Multiply_Switched
 
    subroutine History_Extend(history_,timeRange,times)
-     !% Extends a history to encompass the given time range.
+     !!{
+     Extends a history to encompass the given time range.
+     !!}
      use :: Galacticus_Error  , only : Galacticus_Error_Report
      use :: ISO_Varying_String, only : assignment(=)          , operator(//)        , varying_string
      use :: Numerical_Ranges  , only : rangeTypeLinear        , rangeTypeLogarithmic, rangeTypeUndefined
@@ -1309,7 +1401,9 @@ contains
    end subroutine History_Extend
 
   subroutine History_Timesteps(history_,timeSteps)
-    !% Return an array of time intervals in {\normalfont \ttfamily history\_}.
+    !!{
+    Return an array of time intervals in {\normalfont \ttfamily history\_}.
+    !!}
     use :: Memory_Management, only : allocateArray  , memoryTypeNodes
     use :: Numerical_Ranges , only : rangeTypeLinear, rangeTypeLogarithmic
     implicit none
@@ -1337,7 +1431,9 @@ contains
   end subroutine History_Timesteps
 
   function History_Non_Static_Size_Of(self)
-    !% Return the size of any non-static components of the object.
+    !!{
+    Return the size of any non-static components of the object.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     integer(c_size_t)                :: History_Non_Static_Size_Of
@@ -1352,7 +1448,9 @@ contains
   end function History_Non_Static_Size_Of
 
   function History_Long_Integer_Non_Static_Size_Of(self)
-    !% Return the size of any non-static components of the object.
+    !!{
+    Return the size of any non-static components of the object.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     integer(c_size_t          )                :: History_Long_Integer_Non_Static_Size_Of

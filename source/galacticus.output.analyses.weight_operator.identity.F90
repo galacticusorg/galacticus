@@ -17,27 +17,37 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an identity analysis weight operator class.
+!!{
+Contains a module which implements an identity analysis weight operator class.
+!!}
 
-  !# <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorIdentity">
-  !#  <description>An identity analysis weight operator class.</description>
-  !# </outputAnalysisWeightOperator>
+  !![
+  <outputAnalysisWeightOperator name="outputAnalysisWeightOperatorIdentity">
+   <description>An identity analysis weight operator class.</description>
+  </outputAnalysisWeightOperator>
+  !!]
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorIdentity
-     !% An identity weight operator class.
+     !!{
+     An identity weight operator class.
+     !!}
      private
    contains
      procedure :: operate => identityOperate
   end type outputAnalysisWeightOperatorIdentity
 
   interface outputAnalysisWeightOperatorIdentity
-     !% Constructors for the ``identity'' output analysis class.
+     !!{
+     Constructors for the ``identity'' output analysis class.
+     !!}
      module procedure identityConstructorParameters
   end interface outputAnalysisWeightOperatorIdentity
 
 contains
 
   function identityConstructorParameters(parameters) result(self)
-    !% Constructor for the ``identity'' output analysis weight operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``identity'' output analysis weight operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(outputAnalysisWeightOperatorIdentity)                :: self
@@ -50,7 +60,9 @@ contains
   end function identityConstructorParameters
 
   double precision function identityOperate(self,weightValue,node,propertyValue,propertyValueIntrinsic,propertyType,propertyQuantity,outputIndex)
-    !% Implement an identity output analysis weight operator.
+    !!{
+    Implement an identity output analysis weight operator.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (outputAnalysisWeightOperatorIdentity), intent(inout) :: self

@@ -17,26 +17,32 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module that implements calculations of tidal fields acting on satellites.
+!!{
+Contains a module that implements calculations of tidal fields acting on satellites.
+!!}
 
 module Satellites_Tidal_Fields
-  !% Implements calculations of tidal fields acting on satellites.
+  !!{
+  Implements calculations of tidal fields acting on satellites.
+  !!}
   use :: Galacticus_Nodes, only : treeNode
   private
 
-  !# <functionClass>
-  !#  <name>satelliteTidalField</name>
-  !#  <descriptiveName>Satellite halo tidal field models.</descriptiveName>
-  !#  <description>
-  !#   Class providing models of tidal fields experienced by satellite halos.
-  !#  </description>
-  !#  <default>null</default>
-  !#  <method name="tidalTensorRadial" >
-  !#   <description>Returns the radial component, $\Phi_\mathrm{rr}$, of the tidal tensor, $\Phi_\mathrm{ab}$.</description>
-  !#   <type>double precision</type>
-  !#   <pass>yes</pass>
-  !#   <argument>type(treeNode), intent(inout) :: node</argument>
-  !#  </method>
-  !# </functionClass>
+  !![
+  <functionClass>
+   <name>satelliteTidalField</name>
+   <descriptiveName>Satellite halo tidal field models.</descriptiveName>
+   <description>
+    Class providing models of tidal fields experienced by satellite halos.
+   </description>
+   <default>null</default>
+   <method name="tidalTensorRadial" >
+    <description>Returns the radial component, $\Phi_\mathrm{rr}$, of the tidal tensor, $\Phi_\mathrm{ab}$.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <argument>type(treeNode), intent(inout) :: node</argument>
+   </method>
+  </functionClass>
+  !!]
 
 end module Satellites_Tidal_Fields

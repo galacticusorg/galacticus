@@ -17,13 +17,17 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Implements the geometry of the SDSS survey used by \cite{montero-dorta_sdss_2009}.
+!!{
+Implements the geometry of the SDSS survey used by \cite{montero-dorta_sdss_2009}.
+!!}
 
   use :: Cosmology_Functions, only : cosmologyFunctionsClass
 
-  !# <surveyGeometry name="surveyGeometryMonteroDorta2009SDSS">
-  !#  <description>Implements the geometry of the SDSS survey of \cite{montero-dorta_sdss_2009}.</description>
-  !# </surveyGeometry>
+  !![
+  <surveyGeometry name="surveyGeometryMonteroDorta2009SDSS">
+   <description>Implements the geometry of the SDSS survey of \cite{montero-dorta_sdss_2009}.</description>
+  </surveyGeometry>
+  !!]
   type, extends(surveyGeometryBernardi2013SDSS) :: surveyGeometryMonteroDorta2009SDSS
      private
      class           (cosmologyFunctionsClass), pointer :: cosmologyFunctions_ => null()
@@ -37,7 +41,9 @@
   end type surveyGeometryMonteroDorta2009SDSS
 
   interface surveyGeometryMonteroDorta2009SDSS
-     !% Constructors for the \cite{montero-dorta_sdss_2009} survey geometry class.
+     !!{
+     Constructors for the \cite{montero-dorta_sdss_2009} survey geometry class.
+     !!}
      module procedure monteroDorta2009SDSSConstructorParameters
      module procedure monteroDorta2009SDSSConstructorInternal
   end interface surveyGeometryMonteroDorta2009SDSS
@@ -45,7 +51,9 @@
 contains
 
   function monteroDorta2009SDSSConstructorParameters(parameters) result (self)
-    !% Constructor for the \cite{montero-dorta_sdss_2009} conditional mass function class which takes a parameter set as input.
+    !!{
+    Constructor for the \cite{montero-dorta_sdss_2009} conditional mass function class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type     (surveyGeometryMonteroDorta2009SDSS)                :: self
@@ -53,27 +61,35 @@ contains
     class    (cosmologyFunctionsClass           ), pointer       :: cosmologyFunctions_
     character(len=1                             )                :: band
 
-    !# <inputParameter>
-    !#   <name>band</name>
-    !#   <source>parameters</source>
-    !#   <description>The band for which the survey geometry should be computed.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>band</name>
+      <source>parameters</source>
+      <description>The band for which the survey geometry should be computed.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
+    !!]
     self=surveyGeometryMonteroDorta2009SDSS(band,cosmologyFunctions_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyFunctions_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyFunctions_"/>
+    !!]
     return
   end function monteroDorta2009SDSSConstructorParameters
 
   function monteroDorta2009SDSSConstructorInternal(band,cosmologyFunctions_,redshiftMinimum,redshiftMaximum) result (self)
-    !% Default constructor for the \cite{montero-dorta_sdss_2009} survey geometry class.
+    !!{
+    Default constructor for the \cite{montero-dorta_sdss_2009} survey geometry class.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (surveyGeometryMonteroDorta2009SDSS)                          :: self
     character       (len=1                             ), intent(in   )           :: band
     class           (cosmologyFunctionsClass           ), intent(in   ), target   :: cosmologyFunctions_
     double precision                                    , intent(in   ), optional :: redshiftMinimum    , redshiftMaximum
-    !# <constructorAssign variables="band, *cosmologyFunctions_"/>
+    !![
+    <constructorAssign variables="band, *cosmologyFunctions_"/>
+    !!]
 
     ! Set survey limits.
     select case (band)
@@ -114,16 +130,22 @@ contains
   end function monteroDorta2009SDSSConstructorInternal
 
   subroutine monteroDorta2009SDSSDestructor(self)
-    !% Destructor for the ``monteroDorta2009SDSS'' survey geometry class.
+    !!{
+    Destructor for the ``monteroDorta2009SDSS'' survey geometry class.
+    !!}
     implicit none
     type(surveyGeometryMonteroDorta2009SDSS), intent(inout) :: self
 
-    !# <objectDestructor name="self%cosmologyFunctions_"/>
+    !![
+    <objectDestructor name="self%cosmologyFunctions_"/>
+    !!]
     return
   end subroutine monteroDorta2009SDSSDestructor
 
   double precision function monteroDorta2009SDSSDistanceMinimum(self,mass,magnitudeAbsolute,luminosity,field)
-    !% Compute the maximum distance at which a galaxy is visible.
+    !!{
+    Compute the maximum distance at which a galaxy is visible.
+    !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (surveyGeometryMonteroDorta2009SDSS), intent(inout)           :: self
@@ -145,7 +167,9 @@ contains
   end function monteroDorta2009SDSSDistanceMinimum
 
   double precision function monteroDorta2009SDSSDistanceMaximum(self,mass,magnitudeAbsolute,luminosity,field)
-    !% Compute the maximum distance at which a galaxy is visible.
+    !!{
+    Compute the maximum distance at which a galaxy is visible.
+    !!}
     use :: Cosmology_Functions_Options, only : distanceTypeComoving
     use :: Galacticus_Error           , only : Galacticus_Error_Report
     implicit none

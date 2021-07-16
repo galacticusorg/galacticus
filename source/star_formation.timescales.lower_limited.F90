@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% Implementation of a timescale for star formation which limits the timescale to be above a given multiple of the component
-  !% dynamical time.
+  !!{
+  Implementation of a timescale for star formation which limits the timescale to be above a given multiple of the component
+  dynamical time.
+  !!}
 
-  !# <starFormationTimescale name="starFormationTimescaleLowerLimited">
-  !#  <description>A timescale for star formation which limits the timescale to be above a given multiple of the component dynamical time.
-  !#  </description>
-  !# </starFormationTimescale>
+  !![
+  <starFormationTimescale name="starFormationTimescaleLowerLimited">
+   <description>A timescale for star formation which limits the timescale to be above a given multiple of the component dynamical time.
+   </description>
+  </starFormationTimescale>
+  !!]
   type, extends(starFormationTimescaleClass) :: starFormationTimescaleLowerLimited
-     !% Implementation of a timescale for star formation which limits the timescale to be above a given multiple of the component
-     !% dynamical time.
+     !!{
+     Implementation of a timescale for star formation which limits the timescale to be above a given multiple of the component
+     dynamical time.
+     !!}
      private
      class           (starFormationTimescaleClass), pointer :: starFormationTimescale_
      double precision                                       :: timescaleMinimum
@@ -36,7 +42,9 @@
   end type starFormationTimescaleLowerLimited
 
   interface starFormationTimescaleLowerLimited
-     !% Constructors for the {\normalfont \ttfamily lowerLimited} timescale for star formation class.
+     !!{
+     Constructors for the {\normalfont \ttfamily lowerLimited} timescale for star formation class.
+     !!}
      module procedure lowerLimitedConstructorParameters
      module procedure lowerLimitedConstructorInternal
   end interface starFormationTimescaleLowerLimited
@@ -44,8 +52,10 @@
 contains
 
   function lowerLimitedConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily lowerLimited} timescale for star formation class which takes a parameter set as
-    !% input.
+    !!{
+    Constructor for the {\normalfont \ttfamily lowerLimited} timescale for star formation class which takes a parameter set as
+    input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (starFormationTimescaleLowerLimited)                :: self
@@ -53,27 +63,35 @@ contains
     class           (starFormationTimescaleClass       ), pointer       :: starFormationTimescale_
     double precision                                                    :: timescaleMinimum
 
-    !# <inputParameter>
-    !#   <name>timescaleMinimum</name>
-    !#   <defaultValue>1.0d-3</defaultValue>
-    !#   <description>The minimum timescale for star formation in units of the dynamical time.</description>
-    !#   <source>parameters</source>
-    !# </inputParameter>
-    !# <objectBuilder class="starFormationTimescale"  name="starFormationTimescale_"  source="parameters"/>
+    !![
+    <inputParameter>
+      <name>timescaleMinimum</name>
+      <defaultValue>1.0d-3</defaultValue>
+      <description>The minimum timescale for star formation in units of the dynamical time.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <objectBuilder class="starFormationTimescale"  name="starFormationTimescale_"  source="parameters"/>
+    !!]
     self=starFormationTimescaleLowerLimited(timescaleMinimum,starFormationTimescale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="starFormationTimescale_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="starFormationTimescale_"/>
+    !!]
     return
   end function lowerLimitedConstructorParameters
 
   function lowerLimitedConstructorInternal(timescaleMinimum,starFormationTimescale_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily lowerLimited} timescale for star formation class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily lowerLimited} timescale for star formation class.
+    !!}
     use :: Galacticus_Nodes, only : defaultDiskComponent, defaultSpheroidComponent
     implicit none
     type            (starFormationTimescaleLowerLimited)                        :: self
     double precision                                    , intent(in   )         :: timescaleMinimum
     class           (starFormationTimescaleClass       ), intent(in   ), target :: starFormationTimescale_
-    !# <constructorAssign variables="timescaleMinimum, *starFormationTimescale_"/>
+    !![
+    <constructorAssign variables="timescaleMinimum, *starFormationTimescale_"/>
+    !!]
     
     self%diskSupported    = defaultDiskComponent    %velocityIsGettable() &
          &                 .and.                                          &
@@ -85,8 +103,10 @@ contains
   end function lowerLimitedConstructorInternal
 
   double precision function lowerLimitedTimescale(self,component)
-    !% Return a star formation rate for the given {\normalfont \ttfamily component} which is limited to be no smaller than a given
-    !% multiple of the dynamical time.
+    !!{
+    Return a star formation rate for the given {\normalfont \ttfamily component} which is limited to be no smaller than a given
+    multiple of the dynamical time.
+    !!}
     use :: Array_Utilities                 , only : operator(.intersection.)
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                , only : nodeComponent           , nodeComponentDisk, nodeComponentSpheroid, defaultDiskComponent, &

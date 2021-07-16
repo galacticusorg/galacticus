@@ -17,10 +17,14 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements structure tasks for the cold mode hot halo component.
+!!{
+Contains a module which implements structure tasks for the cold mode hot halo component.
+!!}
 
 module Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks
-  !% Implements structure tasks for the cold mode hot halo component.
+  !!{
+  Implements structure tasks for the cold mode hot halo component.
+  !!}
   use :: Hot_Halo_Cold_Mode_Density_Core_Radii, only : hotHaloColdModeCoreRadiiClass
   use :: Mass_Distributions                   , only : massDistributionBetaProfile
   use :: Dark_Matter_Halo_Scales              , only : darkMatterHaloScaleClass
@@ -38,11 +42,15 @@ module Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks
 
 contains
 
-  !# <enclosedMassTask>
-  !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task</unitName>
-  !# </enclosedMassTask>
+  !![
+  <enclosedMassTask>
+   <unitName>Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task</unitName>
+  </enclosedMassTask>
+  !!]
   double precision function Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task(node,radius,componentType,massType,weightBy,weightIndex)
-    !% Computes the mass within a given radius for the cold mode hot halo component.
+    !!{
+    Computes the mass within a given radius for the cold mode hot halo component.
+    !!}
     use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeColdHalo, massTypeAll , massTypeBaryonic, &
           &                                   massTypeGaseous        , radiusLarge          , weightByMass
     use :: Galacticus_Nodes          , only : defaultHotHaloComponent, nodeComponentHotHalo , treeNode
@@ -81,11 +89,15 @@ contains
     return
   end function Node_Component_Hot_Halo_Cold_Mode_Enclosed_Mass_Task
 
-  !# <accelerationTask>
-  !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Acceleration_Task</unitName>
-  !# </accelerationTask>
+  !![
+  <accelerationTask>
+   <unitName>Node_Component_Hot_Halo_Cold_Mode_Acceleration_Task</unitName>
+  </accelerationTask>
+  !!]
   function Node_Component_Hot_Halo_Cold_Mode_Acceleration_Task(node,positionCartesian,componentType,massType)
-    !% Computes the acceleration due to a dark matter profile.
+    !!{
+    Computes the acceleration due to a dark matter profile.
+    !!}
     use :: Galactic_Structure_Options      , only : weightByMass                   , weightIndexNull
     use :: Galacticus_Nodes                , only : treeNode
     use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
@@ -109,11 +121,15 @@ contains
     return
   end function Node_Component_Hot_Halo_Cold_Mode_Acceleration_Task
 
-  !# <tidalTensorTask>
-  !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Tidal_Tensor_Task</unitName>
-  !# </tidalTensorTask>
+  !![
+  <tidalTensorTask>
+   <unitName>Node_Component_Hot_Halo_Cold_Mode_Tidal_Tensor_Task</unitName>
+  </tidalTensorTask>
+  !!]
   function Node_Component_Hot_Halo_Cold_Mode_Tidal_Tensor_Task(node,positionCartesian,componentType,massType)
-    !% Computes the tidalTensor due to the cold mode halo.
+    !!{
+    Computes the tidalTensor due to the cold mode halo.
+    !!}
     use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
     use :: Galacticus_Nodes            , only : treeNode
     use :: Numerical_Constants_Math    , only : Pi
@@ -144,11 +160,15 @@ contains
     return
   end function Node_Component_Hot_Halo_Cold_Mode_Tidal_Tensor_Task
 
-  !# <rotationCurveTask>
-  !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Task</unitName>
-  !# </rotationCurveTask>
+  !![
+  <rotationCurveTask>
+   <unitName>Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Task</unitName>
+  </rotationCurveTask>
+  !!]
   double precision function Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Task(node,radius,componentType,massType)
-    !% Computes the rotation curve at a given radius for the hot halo density profile.
+    !!{
+    Computes the rotation curve at a given radius for the hot halo density profile.
+    !!}
     use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
     use :: Galacticus_Nodes            , only : treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
@@ -168,11 +188,15 @@ contains
     return
   end function Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Task
 
-  !# <rotationCurveGradientTask>
-  !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Gradient_Task</unitName>
-  !# </rotationCurveGradientTask>
+  !![
+  <rotationCurveGradientTask>
+   <unitName>Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Gradient_Task</unitName>
+  </rotationCurveGradientTask>
+  !!]
   double precision function Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Gradient_Task(node,radius,componentType,massType)
-    !% Computes the rotation curve gradient at a given radius for the hot halo density profile.
+    !!{
+    Computes the rotation curve gradient at a given radius for the hot halo density profile.
+    !!}
     use :: Galactic_Structure_Options  , only : weightByMass                   , weightIndexNull
     use :: Galacticus_Nodes            , only : treeNode
     use :: Numerical_Constants_Math    , only : Pi
@@ -197,11 +221,15 @@ contains
     return
   end function Node_Component_Hot_Halo_Cold_Mode_Rotation_Curve_Gradient_Task
 
-  !# <densityTask>
-  !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Density_Task</unitName>
-  !# </densityTask>
+  !![
+  <densityTask>
+   <unitName>Node_Component_Hot_Halo_Cold_Mode_Density_Task</unitName>
+  </densityTask>
+  !!]
   double precision function Node_Component_Hot_Halo_Cold_Mode_Density_Task(node,positionSpherical,componentType,massType,weightBy,weightIndex)
-    !% Computes the density at a given position for a dark matter profile.
+    !!{
+    Computes the density at a given position for a dark matter profile.
+    !!}
     use :: Coordinates               , only : assignment(=)          , coordinateSpherical
     use :: Galactic_Structure_Options, only : componentTypeAll       , componentTypeColdHalo, massTypeAll, massTypeBaryonic, &
           &                                   massTypeGaseous        , weightByMass
@@ -237,11 +265,15 @@ contains
     return
   end function Node_Component_Hot_Halo_Cold_Mode_Density_Task
 
-  !# <chandrasekharIntegralTask>
-  !#  <unitName>Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral</unitName>
-  !# </chandrasekharIntegralTask>
+  !![
+  <chandrasekharIntegralTask>
+   <unitName>Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral</unitName>
+  </chandrasekharIntegralTask>
+  !!]
   function Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral(node,positionCartesian,velocityCartesian,componentType,massType)
-    !% Computes the Chandrasekhar integral due to a dark matter profile.
+    !!{
+    Computes the Chandrasekhar integral due to a dark matter profile.
+    !!}
     use :: Dark_Matter_Halo_Scales   , only : darkMatterHaloScale, darkMatterHaloScaleClass
     use :: Galactic_Structure_Options, only : weightByMass       , weightIndexNull
     use :: Galacticus_Nodes          , only : treeNode

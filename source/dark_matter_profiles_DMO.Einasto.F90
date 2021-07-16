@@ -17,25 +17,31 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  !% An implementation of ``Einasto'' dark matter halo profiles.
+  !!{
+  An implementation of ``Einasto'' dark matter halo profiles.
+  !!}
 
   use :: Numerical_Interpolation, only : interpolator
   use :: Root_Finder            , only : rootFinder
 
-  !# <darkMatterProfileDMO name="darkMatterProfileDMOEinasto">
-  !#  <description>
-  !#   A dark matter profile DMO class which implements the Einasto density profile (e.g. \citealt{cardone_spherical_2005}):
-  !#   \begin{equation}
-  !#     \rho_\mathrm{dark matter}(r) = \rho_{-2} \exp \left( - {2 \over \alpha} \left[ \left( {r \over r_{-2}} \right)^\alpha - 1
-  !#     \right] \right),
-  !#   \end{equation}
-  !#   normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the characteristic length
-  !#   $r_{-2} = r_\mathrm{virial}/c$ where $c$ is the halo concentration (see \refPhysics{darkMatterProfileConcentration}). The
-  !#   shape parameter, $\alpha$, is set using the density profile shape method (see \refPhysics{darkMatterProfileShape}).
-  !#  </description>
-  !# </darkMatterProfileDMO>
+  !![
+  <darkMatterProfileDMO name="darkMatterProfileDMOEinasto">
+   <description>
+    A dark matter profile DMO class which implements the Einasto density profile (e.g. \citealt{cardone_spherical_2005}):
+    \begin{equation}
+      \rho_\mathrm{dark matter}(r) = \rho_{-2} \exp \left( - {2 \over \alpha} \left[ \left( {r \over r_{-2}} \right)^\alpha - 1
+      \right] \right),
+    \end{equation}
+    normalized such that the total mass of the \gls{node} is enclosed with the virial radius and with the characteristic length
+    $r_{-2} = r_\mathrm{virial}/c$ where $c$ is the halo concentration (see \refPhysics{darkMatterProfileConcentration}). The
+    shape parameter, $\alpha$, is set using the density profile shape method (see \refPhysics{darkMatterProfileShape}).
+   </description>
+  </darkMatterProfileDMO>
+  !!]
   type, extends(darkMatterProfileDMOClass) :: darkMatterProfileDMOEinasto
-     !% A dark matter halo profile class implementing ``Einasto'' dark matter halos.
+     !!{
+     A dark matter halo profile class implementing ``Einasto'' dark matter halos.
+     !!}
      private
      ! Tables for specific angular momentum vs. radius table
      double precision                                              :: angularMomentumTableRadiusMinimum
@@ -99,19 +105,21 @@
      ! Root finders.
      type            (rootFinder  )                                :: finderEnclosedDensity                         , finderVelocityPeak
    contains
-     !# <methods>
-     !#   <method description="Returns the density (in units such that the virial mass and scale length are unity) in an Einasto dark matter profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="densityScaleFree" />
-     !#   <method description="Returns the enclosed mass (in units of the virial mass) in an Einasto dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="enclosedMassScaleFree" />
-     !#   <method description="Returns the scale-free radial velocity dispersion in an Einasto dark matter profile." method="radialVelocityDispersionScaleFree" />
-     !#   <method description="Tabulates the radial velocity dispersion vs. radius for Einasto halos." method="radialVelocityDispersionTabulate" />
-     !#   <method description="Create a tabulation of the energy of Einasto profiles as a function of their concentration of $\alpha$ parameter." method="energyTableMake" />
-     !#   <method description="Create a tabulation of the Fourier transform of Einasto profiles as a function of their $\alpha$ parameter and dimensionless wavenumber." method="fourierProfileTableMake" />
-     !#   <method description="Tabulates the freefall time vs. freefall radius for Einasto halos." method="freefallTabulate" />
-     !#   <method description="Compute the freefall time in a scale-free Einasto halo." method="freefallTimeScaleFree" />
-     !#   <method description="Returns the gravitational potential (in units where the virial mass and scale radius are unity) in an Einasto dark matter profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="potentialScaleFree" />
-     !#   <method description=" Comptue the radius at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentumScaleFree} in a scale free Einasto profile." method="radiusFromSpecificAngularMomentumScaleFree" />
-     !#   <method description="Create a tabulation of the relation between specific angular momentum and radius in an Einasto profile." method="radiusFromSpecificAngularMomentumTableMake" />
-     !# </methods>
+     !![
+     <methods>
+       <method description="Returns the density (in units such that the virial mass and scale length are unity) in an Einasto dark matter profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="densityScaleFree" />
+       <method description="Returns the enclosed mass (in units of the virial mass) in an Einasto dark matter profile with given {\normalfont \ttfamily concentration} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="enclosedMassScaleFree" />
+       <method description="Returns the scale-free radial velocity dispersion in an Einasto dark matter profile." method="radialVelocityDispersionScaleFree" />
+       <method description="Tabulates the radial velocity dispersion vs. radius for Einasto halos." method="radialVelocityDispersionTabulate" />
+       <method description="Create a tabulation of the energy of Einasto profiles as a function of their concentration of $\alpha$ parameter." method="energyTableMake" />
+       <method description="Create a tabulation of the Fourier transform of Einasto profiles as a function of their $\alpha$ parameter and dimensionless wavenumber." method="fourierProfileTableMake" />
+       <method description="Tabulates the freefall time vs. freefall radius for Einasto halos." method="freefallTabulate" />
+       <method description="Compute the freefall time in a scale-free Einasto halo." method="freefallTimeScaleFree" />
+       <method description="Returns the gravitational potential (in units where the virial mass and scale radius are unity) in an Einasto dark matter profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont \ttfamily radius} (given in units of the scale radius)." method="potentialScaleFree" />
+       <method description=" Comptue the radius at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentumScaleFree} in a scale free Einasto profile." method="radiusFromSpecificAngularMomentumScaleFree" />
+       <method description="Create a tabulation of the relation between specific angular momentum and radius in an Einasto profile." method="radiusFromSpecificAngularMomentumTableMake" />
+     </methods>
+     !!]
      final     ::                                               einastoDestructor
      procedure :: density                                    => einastoDensity
      procedure :: densityLogSlope                            => einastoDensityLogSlope
@@ -143,7 +151,9 @@
   end type darkMatterProfileDMOEinasto
 
   interface darkMatterProfileDMOEinasto
-     !% Constructors for the {\normalfont \ttfamily einasto} dark matter halo profile class.
+     !!{
+     Constructors for the {\normalfont \ttfamily einasto} dark matter halo profile class.
+     !!}
      module procedure einastoConstructorParameters
      module procedure einastoConstructorInternal
   end interface darkMatterProfileDMOEinasto
@@ -170,22 +180,30 @@
 contains
 
   function einastoConstructorParameters(parameters) result(self)
-    !% Constructor for the {\normalfont \ttfamily einasto} dark matter halo profile class which takes a parameter set as input.
+    !!{
+    Constructor for the {\normalfont \ttfamily einasto} dark matter halo profile class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type (darkMatterProfileDMOEinasto )                :: self
     type (inputParameters             ), intent(inout) :: parameters
     class(darkMatterHaloScaleClass    ), pointer       :: darkMatterHaloScale_
 
-    !# <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !![
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    !!]
     self=darkMatterProfileDMOEinasto(darkMatterHaloScale_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="darkMatterHaloScale_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
+    !!]
     return
   end function einastoConstructorParameters
 
   function einastoConstructorInternal(darkMatterHaloScale_) result(self)
-    !% Internal constructor for the {\normalfont \ttfamily einasto} dark matter halo profile class.
+    !!{
+    Internal constructor for the {\normalfont \ttfamily einasto} dark matter halo profile class.
+    !!}
     use :: Array_Utilities , only : operator(.intersection.)
     use :: Galacticus_Error, only : Galacticus_Component_List        , Galacticus_Error_Report
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
@@ -194,7 +212,9 @@ contains
     type            (darkMatterProfileDMOEinasto)                        :: self
     class           (darkMatterHaloScaleClass   ), intent(in   ), target :: darkMatterHaloScale_
     double precision                             , parameter             :: toleranceAbsolute   =0.0d0, toleranceRelative=1.0d-3
-    !# <constructorAssign variables="*darkMatterHaloScale_"/>
+    !![
+    <constructorAssign variables="*darkMatterHaloScale_"/>
+    !!]
 
     ! Initialize table states.
     self%angularMomentumTableRadiusMinimum       = 1.0d-3
@@ -270,17 +290,23 @@ contains
   end function einastoConstructorInternal
 
   subroutine einastoDestructor(self)
-    !% Destructor for the {\normalfont \ttfamily einasto} dark matter halo profile class.
+    !!{
+    Destructor for the {\normalfont \ttfamily einasto} dark matter halo profile class.
+    !!}
     implicit none
     type(darkMatterProfileDMOEinasto), intent(inout) :: self
 
-    !# <objectDestructor name="self%darkMatterHaloScale_" />
+    !![
+    <objectDestructor name="self%darkMatterHaloScale_" />
+    !!]
     return
   end subroutine einastoDestructor
 
   double precision function einastoDensity(self,node,radius)
-    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
-    !% in units of Mpc).
+    !!{
+    Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
+    in units of Mpc).
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout) :: self
@@ -304,8 +330,10 @@ contains
   end function einastoDensity
 
   double precision function einastoDensityLogSlope(self,node,radius)
-    !% Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the logarithmic slope of the density in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout) :: self
@@ -329,8 +357,10 @@ contains
   end function einastoDensityLogSlope
 
   double precision function einastoRadialMoment(self,node,moment,radiusMinimum,radiusMaximum)
-    !% Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
-    !% in units of Mpc).
+    !!{
+    Returns the density (in $M_\odot$ Mpc$^{-3}$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given
+    in units of Mpc).
+    !!}
     use :: Galacticus_Nodes        , only : nodeComponentBasic, nodeComponentDarkMatterProfile         , treeNode
     use :: Gamma_Functions         , only : Gamma_Function    , Gamma_Function_Incomplete_Complementary
     use :: Numerical_Constants_Math, only : Pi
@@ -372,7 +402,9 @@ contains
   contains
 
     double precision function einastoRadialMomentScaleFree(radius)
-      !% Provides the scale-free part of the radial moment of the Einasto density profile.
+      !!{
+      Provides the scale-free part of the radial moment of the Einasto density profile.
+      !!}
       use :: Gamma_Functions, only : Gamma_Function_Incomplete
       implicit none
       double precision, intent(in   ) :: radius
@@ -389,8 +421,10 @@ contains
   end function einastoRadialMoment
 
   double precision function einastoEnclosedMass(self,node,radius)
-    !% Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
-    !% units of Mpc).
+    !!{
+    Returns the enclosed mass (in $M_\odot$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
+    units of Mpc).
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout) :: self
@@ -414,8 +448,10 @@ contains
   end function einastoEnclosedMass
 
   double precision function einastoCircularVelocity(self,node,radius)
-    !% Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
-    !% units of Mpc).
+    !!{
+    Returns the circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
+    units of Mpc).
+    !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
@@ -431,7 +467,9 @@ contains
   end function einastoCircularVelocity
 
   double precision function einastoCircularVelocityMaximum(self,node)
-    !% Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
+    !!{
+    Returns the maximum circular velocity (in km/s) in the dark matter profile of {\normalfont \ttfamily node}.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
     implicit none
     class           (darkMatterProfileDMOEinasto   ), intent(inout) :: self
@@ -453,7 +491,9 @@ contains
   end function einastoCircularVelocityMaximum
   
   double precision function einastoCircularVelocityPeakRadius(radius)
-    !% Computes the derivative of the square of circular velocity for an Einasto density profile.
+    !!{
+    Computes the derivative of the square of circular velocity for an Einasto density profile.
+    !!}
     use :: Gamma_Functions, only : Gamma_Function, Gamma_Function_Incomplete_Complementary
     implicit none
     double precision, intent(in   ) :: radius
@@ -480,8 +520,10 @@ contains
   end function einastoCircularVelocityPeakRadius
   
   double precision function einastoRadialVelocityDispersion(self,node,radius)
-    !% Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
-    !% {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!{
+    Returns the radial velocity dispersion (in km/s) in the dark matter profile of {\normalfont \ttfamily node} at the given
+    {\normalfont \ttfamily radius} (given in units of Mpc).
+    !!}
     use            :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile         , treeNode
     use            :: Gamma_Functions , only : Gamma_Function_Incomplete_Complementary
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
@@ -529,8 +571,10 @@ contains
   end function einastoRadialVelocityDispersion
 
   double precision function einastoPotential(self,node,radius,status)
-    !% Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
-    !% units of Mpc).
+    !!{
+    Returns the potential (in (km/s)$^2$) in the dark matter profile of {\normalfont \ttfamily node} at the given {\normalfont \ttfamily radius} (given in
+    units of Mpc).
+    !!}
     use :: Galactic_Structure_Options      , only : structureErrorCodeSuccess
     use :: Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentDarkMatterProfile, treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
@@ -561,8 +605,10 @@ contains
   end function einastoPotential
 
   double precision function einastoRadiusFromSpecificAngularMomentum(self,node,specificAngularMomentum)
-    !% Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
-    !% in units of km s$^{-1}$ Mpc).
+    !!{
+    Returns the radius (in Mpc) in {\normalfont \ttfamily node} at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentum} (given
+    in units of km s$^{-1}$ Mpc).
+    !!}
     use :: Galacticus_Nodes                , only : nodeComponentDarkMatterProfile , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
@@ -593,8 +639,10 @@ contains
   end function einastoRadiusFromSpecificAngularMomentum
 
   double precision function einastoRadiusFromSpecificAngularMomentumScaleFree(self,alpha,specificAngularMomentumScaleFree)
-    !% Comptue the radius at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentumScaleFree} in a scale free Einasto
-    !% profile.
+    !!{
+    Comptue the radius at which a circular orbit has the given {\normalfont \ttfamily specificAngularMomentumScaleFree} in a scale free Einasto
+    profile.
+    !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout)  :: self
@@ -628,7 +676,9 @@ contains
   end function einastoRadiusFromSpecificAngularMomentumScaleFree
 
   subroutine einastoRadiusFromSpecificAngularMomentumTableMake(self,alphaRequired,specificAngularMomentumRequired)
-    !% Create a tabulation of the relation between specific angular momentum and radius in an Einasto profile.
+    !!{
+    Create a tabulation of the relation between specific angular momentum and radius in an Einasto profile.
+    !!}
     use :: Gamma_Functions  , only : Gamma_Function_Incomplete_Complementary
     use :: Memory_Management, only : allocateArray                          , deallocateArray
     use :: Numerical_Ranges , only : Make_Range                             , rangeTypeLinear, rangeTypeLogarithmic
@@ -711,7 +761,9 @@ contains
   end subroutine einastoRadiusFromSpecificAngularMomentumTableMake
 
   double precision function einastoRotationNormalization(self,node)
-    !% Return the rotation normalization of an Einasto halo density profile.
+    !!{
+    Return the rotation normalization of an Einasto halo density profile.
+    !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
     use :: Gamma_Functions , only : Gamma_Function                , Gamma_Function_Incomplete_Complementary
     implicit none
@@ -738,7 +790,9 @@ contains
   end function einastoRotationNormalization
 
   double precision function einastoEnergy(self,node)
-    !% Return the energy of an Einasto halo density profile.
+    !!{
+    Return the energy of an Einasto halo density profile.
+    !!}
     use            :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     implicit none
@@ -783,7 +837,9 @@ contains
   end function einastoEnergy
 
   double precision function einastoEnergyGrowthRate(self,node)
-    !% Return the energy of an Einasto halo density profile.
+    !!{
+    Return the energy of an Einasto halo density profile.
+    !!}
     use            :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     implicit none
@@ -841,7 +897,9 @@ contains
   end function einastoEnergyGrowthRate
 
   subroutine einastoEnergyTableMake(self,concentrationRequired,alphaRequired)
-    !% Create a tabulation of the energy of Einasto profiles as a function of their concentration of $\alpha$ parameter.
+    !!{
+    Create a tabulation of the energy of Einasto profiles as a function of their concentration of $\alpha$ parameter.
+    !!}
     use :: Memory_Management       , only : allocateArray, deallocateArray
     use :: Numerical_Constants_Math, only : Pi
     use :: Numerical_Integration   , only : integrator
@@ -949,7 +1007,9 @@ contains
   contains
 
     double precision function einastoPotentialEnergyIntegrand(radius)
-      !% Integrand for Einasto profile potential energy.
+      !!{
+      Integrand for Einasto profile potential energy.
+      !!}
       implicit none
       double precision, intent(in   ) :: radius
 
@@ -958,7 +1018,9 @@ contains
     end function einastoPotentialEnergyIntegrand
 
     double precision function einastoKineticEnergyIntegrand(radius)
-      !% Integrand for Einasto profile kinetic energy.
+      !!{
+      Integrand for Einasto profile kinetic energy.
+      !!}
       implicit none
       double precision, intent(in   ) :: radius
 
@@ -969,7 +1031,9 @@ contains
     end function einastoKineticEnergyIntegrand
 
     double precision function einastoJeansEquationIntegrand(radius)
-      !% Integrand for Einasto profile Jeans equation.
+      !!{
+      Integrand for Einasto profile Jeans equation.
+      !!}
       implicit none
       double precision, intent(in   ) :: radius
 
@@ -982,8 +1046,10 @@ contains
   end subroutine einastoEnergyTableMake
 
   double precision function einastoEnclosedMassScaleFree(self,radius,concentration,alpha)
-    !% Returns the enclosed mass (in units of the virial mass) in an Einasto dark matter profile with given {\normalfont \ttfamily concentration} at the
-    !% given {\normalfont \ttfamily radius} (given in units of the scale radius).
+    !!{
+    Returns the enclosed mass (in units of the virial mass) in an Einasto dark matter profile with given {\normalfont \ttfamily concentration} at the
+    given {\normalfont \ttfamily radius} (given in units of the scale radius).
+    !!}
     use :: Gamma_Functions, only : Gamma_Function_Incomplete_Complementary
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
@@ -996,8 +1062,10 @@ contains
   end function einastoEnclosedMassScaleFree
 
   double precision function einastoDensityScaleFree(self,radius,concentration,alpha)
-    !% Returns the density (in units such that the virial mass and scale length are unity) in an Einasto dark matter profile with
-    !% given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).
+    !!{
+    Returns the density (in units such that the virial mass and scale length are unity) in an Einasto dark matter profile with
+    given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont \ttfamily radius} (given in units of the scale radius).
+    !!}
     use :: Gamma_Functions         , only : Gamma_Function, Gamma_Function_Incomplete_Complementary
     use :: Numerical_Constants_Math, only : Pi
     implicit none
@@ -1016,10 +1084,12 @@ contains
   end function einastoDensityScaleFree
 
   double precision function einastoPotentialScaleFree(self,radius,concentration,alpha)
-    !% Returns the gravitational potential (in units where the virial mass and scale radius are unity) in an Einasto dark matter
-    !% profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont
-    !% \ttfamily radius} (given in units of the scale radius). Uses the results from \cite{retana-montenegro_analytical_2012},
-    !% their equations (19) and (20).
+    !!{
+    Returns the gravitational potential (in units where the virial mass and scale radius are unity) in an Einasto dark matter
+    profile with given {\normalfont \ttfamily concentration} and {\normalfont \ttfamily alpha} at the given {\normalfont
+    \ttfamily radius} (given in units of the scale radius). Uses the results from \cite{retana-montenegro_analytical_2012},
+    their equations (19) and (20).
+    !!}
     use :: Gamma_Functions, only : Gamma_Function, Gamma_Function_Incomplete, Gamma_Function_Incomplete_Complementary
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
@@ -1052,7 +1122,9 @@ contains
   end function einastoPotentialScaleFree
 
   double precision function einastoKSpace(self,node,wavenumber)
-    !% Returns the Fourier transform of the Einasto density profile at the specified {\normalfont \ttfamily waveNumber} (given in Mpc$^{-1}$)).
+    !!{
+    Returns the Fourier transform of the Einasto density profile at the specified {\normalfont \ttfamily waveNumber} (given in Mpc$^{-1}$)).
+    !!}
     use            :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, treeNode
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     implicit none
@@ -1100,8 +1172,10 @@ contains
   end function einastoKSpace
 
   subroutine einastoFourierProfileTableMake(self,wavenumberRequired,concentrationRequired,alphaRequired)
-    !% Create a tabulation of the Fourier transform of Einasto profiles as a function of their $\alpha$ parameter and
-    !% dimensionless wavenumber.
+    !!{
+    Create a tabulation of the Fourier transform of Einasto profiles as a function of their $\alpha$ parameter and
+    dimensionless wavenumber.
+    !!}
     use            :: Display              , only : displayCounter         , displayCounterClear  , displayIndent       , displayUnindent, &
           &                                         verbosityLevelInfo     , verbosityLevelWorking
     use            :: Galacticus_Error     , only : Galacticus_Error_Report, errorStatusSuccess
@@ -1237,7 +1311,9 @@ contains
   contains
 
     double precision function einastoFourierProfileIntegrand(radius)
-      !% Integrand for Einasto Fourier profile.
+      !!{
+      Integrand for Einasto Fourier profile.
+      !!}
       use :: Numerical_Constants_Math, only : Pi
       implicit none
       double precision, intent(in   ) :: radius
@@ -1250,7 +1326,9 @@ contains
   end subroutine einastoFourierProfileTableMake
 
   double precision function einastoFreefallRadius(self,node,time)
-    !% Returns the freefall radius in the Einasto density profile at the specified {\normalfont \ttfamily time} (given in Gyr).
+    !!{
+    Returns the freefall radius in the Einasto density profile at the specified {\normalfont \ttfamily time} (given in Gyr).
+    !!}
     use            :: Galacticus_Nodes                , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile , treeNode
     use            :: Gamma_Functions                 , only : Gamma_Function_Incomplete_Complementary
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
@@ -1317,8 +1395,10 @@ contains
   end function einastoFreefallRadius
 
   double precision function einastoFreefallRadiusIncreaseRate(self,node,time)
-    !% Returns the rate of increase of the freefall radius in the Einasto density profile at the specified {\normalfont \ttfamily time} (given in
-    !% Gyr).
+    !!{
+    Returns the rate of increase of the freefall radius in the Einasto density profile at the specified {\normalfont \ttfamily time} (given in
+    Gyr).
+    !!}
     use            :: Galacticus_Nodes                , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile , treeNode
     use            :: Gamma_Functions                 , only : Gamma_Function_Incomplete_Complementary
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
@@ -1385,7 +1465,9 @@ contains
   end function einastoFreefallRadiusIncreaseRate
 
   subroutine einastoFreefallTabulate(self,freefallTimeScaleFree,alphaRequired)
-    !% Tabulates the freefall time vs. freefall radius for Einasto halos.
+    !!{
+    Tabulates the freefall time vs. freefall radius for Einasto halos.
+    !!}
     use :: Display          , only : displayCounter, displayIndent  , displayUnindent     , verbosityLevelWorking
     use :: Memory_Management, only : allocateArray , deallocateArray
     use :: Numerical_Ranges , only : Make_Range    , rangeTypeLinear, rangeTypeLogarithmic
@@ -1472,7 +1554,9 @@ contains
   end subroutine einastoFreefallTabulate
 
   double precision function einastoFreefallTimeScaleFree(self,radius,alpha)
-    !% Compute the freefall time in a scale-free Einasto halo.
+    !!{
+    Compute the freefall time in a scale-free Einasto halo.
+    !!}
     use :: Numerical_Integration, only : integrator
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout) :: self
@@ -1491,7 +1575,9 @@ contains
   contains
 
     double precision function einastoFreefallTimeScaleFreeIntegrand(radius)
-      !% Integrand function used for finding the free-fall time in Einasto halos.
+      !!{
+      Integrand function used for finding the free-fall time in Einasto halos.
+      !!}
       implicit none
       double precision, intent(in   ) :: radius
 
@@ -1508,8 +1594,10 @@ contains
   end function einastoFreefallTimeScaleFree
 
   double precision function einastoRadiusEnclosingDensity(self,node,density)
-    !% Implementation of function to compute the radius enclosing a given density for Einasto dark matter halo profiles. This
-    !% function uses a numerical root finder to find the enclosing radius---this is likely not the most efficient solution\ldots
+    !!{
+    Implementation of function to compute the radius enclosing a given density for Einasto dark matter halo profiles. This
+    function uses a numerical root finder to find the enclosing radius---this is likely not the most efficient solution\ldots
+    !!}
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout), target :: self
     type            (treeNode                   ), intent(inout), target :: node
@@ -1523,7 +1611,9 @@ contains
   end function einastoRadiusEnclosingDensity
 
   double precision function einastoRadiusEnclosingDensityRoot(radius)
-    !% Root function used in finding the radius enclosing a given density in Einasto profiles.
+    !!{
+    Root function used in finding the radius enclosing a given density in Einasto profiles.
+    !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     double precision, intent(in   ) :: radius
@@ -1538,7 +1628,9 @@ contains
   end function einastoRadiusEnclosingDensityRoot
 
   double precision function einastoRadialVelocityDispersionScaleFree(self,radius,alpha)
-    !% Compute the radial velocity dispersion in a scale-free Einasto halo.
+    !!{
+    Compute the radial velocity dispersion in a scale-free Einasto halo.
+    !!}
     use :: Numerical_Integration, only : integrator
     implicit none
     class           (darkMatterProfileDMOEinasto), intent(inout)            :: self
@@ -1560,7 +1652,9 @@ contains
   contains
 
     double precision function einastoJeansEquationIntegrand(radius)
-      !% Integrand for Einasto drak matter profile Jeans equation.
+      !!{
+      Integrand for Einasto drak matter profile Jeans equation.
+      !!}
       use :: Gamma_Functions, only : Gamma_Function_Incomplete_Complementary
       implicit none
       double precision, intent(in   ) :: radius
@@ -1578,7 +1672,9 @@ contains
   end function einastoRadialVelocityDispersionScaleFree
 
   subroutine einastoRadialVelocityDispersionTabulate(self,radius,alphaRequired)
-    !% Tabulates the radial velocity dispersion vs. radius for Einasto halos.
+    !!{
+    Tabulates the radial velocity dispersion vs. radius for Einasto halos.
+    !!}
     use :: Display          , only : displayCounter, displayIndent  , displayUnindent     , verbosityLevelWorking
     use :: Memory_Management, only : allocateArray , deallocateArray
     use :: Numerical_Ranges , only : Make_Range    , rangeTypeLinear, rangeTypeLogarithmic
