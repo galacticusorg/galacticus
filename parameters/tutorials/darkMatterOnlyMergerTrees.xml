@@ -111,10 +111,6 @@
   <nodeOperator value="multi">
     <!-- Halo concentrations -->
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
-    <!-- Halo spins -->
-    <nodeOperator value="haloSpinRandom">
-      <factorReset value="2.0"/>
-    </nodeOperator>
   </nodeOperator>
 
 </parameters>

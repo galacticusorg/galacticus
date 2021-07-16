@@ -185,7 +185,8 @@ contains
     !!{
     Constructor for the ``massFunctionHI'' output analysis class which reads bin information from a standard format file.
     !!}
-    use :: IO_HDF5                         , only : hdf5Access                       , hdf5Object
+    use :: HDF5_Access                     , only : hdf5Access
+    use :: IO_HDF5                         , only : hdf5Object
     use :: Output_Analysis_Molecular_Ratios, only : outputAnalysisMolecularRatioClass
     implicit none
     type            (outputAnalysisMassFunctionHI           )                              :: self

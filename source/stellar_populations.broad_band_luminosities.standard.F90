@@ -310,7 +310,8 @@ contains
           &                                                    verbosityLevelWorking  , displayMagenta                       , displayGreen   , displayReset
     use            :: File_Utilities                  , only : File_Exists            , File_Lock                            , File_Unlock    , lockDescriptor
     use            :: Galacticus_Error                , only : Galacticus_Error_Report, Galacticus_Warn                      , errorStatusFail, errorStatusSuccess
-    use            :: IO_HDF5                         , only : hdf5Access             , hdf5Object
+    use            :: HDF5_Access                     , only : hdf5Access
+    use            :: IO_HDF5                         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: ISO_Varying_String              , only : assignment(=)          , char                                 , operator(//)   , var_str
     use            :: Input_Parameters                , only : inputParameters
@@ -333,6 +334,8 @@ contains
     class           (stellarPopulationSpectraClass                 ), pointer                         :: stellarPopulationSpectra_
     class           (stellarPopulationSpectraPostprocessorClass    ), pointer                         :: stellarPopulationSpectraPostprocessorPrevious_
     type            (integrator                                    ), allocatable                     :: integrator_                                   , integratorAB_
+    type            (inputParameters                               ), save                            :: descriptor
+    !$omp threadprivate(descriptor)
     integer         (c_size_t                                      )                                  :: iAge                                          , iLuminosity                          , &
          &                                                                                               iMetallicity                                  , jLuminosity                          , &
          &                                                                                               populationID
@@ -347,7 +350,6 @@ contains
     character       (len=16                                        )                                  :: datasetName                                   , redshiftLabel                        , &
          &                                                                                               label
     type            (hdf5Object                                    )                                  :: luminositiesFile
-    type            (inputParameters                               )                                  :: descriptor
 
     ! Obtain a read lock on the luminosity tables.
     call self%luminosityTableLock%setRead()

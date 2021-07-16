@@ -183,7 +183,7 @@ contains
     !!{
     Compute and output the emission spectrum.
     !!}
-    use :: IO_HDF5                         , only : hdf5Access
+    use :: HDF5_Access                     , only : hdf5Access
     use :: Numerical_Constants_Astronomical, only : luminositySolar
     use :: Numerical_Integration           , only : integrator
     use :: MPI_Utilities                   , only : mpiSelf

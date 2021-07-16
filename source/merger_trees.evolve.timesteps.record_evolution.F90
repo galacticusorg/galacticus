@@ -276,7 +276,8 @@ contains
     !!}
     use            :: Galacticus_Error                , only : Galacticus_Error_Report
     use            :: Galacticus_HDF5                 , only : galacticusOutputFile
-    use            :: IO_HDF5                         , only : hdf5Access             , hdf5Object
+    use            :: HDF5_Access                     , only : hdf5Access
+    use            :: IO_HDF5                         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: ISO_Varying_String              , only : var_str                , varying_string
     use            :: Kind_Numbers                    , only : kind_int8

@@ -167,7 +167,8 @@ contains
     !!}
     use :: Display          , only : displayMessage, displayMagenta    , displayReset
     use :: Galacticus_Paths , only : galacticusPath, pathTypeDataStatic
-    use :: IO_HDF5          , only : hdf5Access    , hdf5Object
+    use :: HDF5_Access      , only : hdf5Access
+    use :: IO_HDF5          , only : hdf5Object
     use :: Linear_Algebra   , only : assignment(=)
     use :: Memory_Management, only : allocateArray , deallocateArray
     type            (posteriorSampleLikelihoodMassFunction)                              :: self

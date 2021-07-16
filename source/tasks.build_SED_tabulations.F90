@@ -161,8 +161,9 @@ contains
     class           (nodeComponentBasic     ), pointer                       :: basic
     class           (nodeComponentDisk      ), pointer                       :: disk
     class           (nodeComponentSpheroid  ), pointer                       :: spheroid
-    double precision                         , parameter                     :: mass                    =1.0d12
-    type            (history                )                                :: starFormationHistoryDisk       , starFormationHistorySpheroid
+    double precision                         , parameter                     :: mass                    =1.0d+12
+    double precision                         , parameter                     :: epsilon                 =1.0d-06
+    type            (history                )                                :: starFormationHistoryDisk        , starFormationHistorySpheroid
     integer         (c_size_t               )                                :: i
     double precision                                                         :: time
     type            (multiCounter           )                                :: instance
@@ -180,8 +181,13 @@ contains
     basic    => node    %basic   (autoCreate=.true.)
     ! Initialize a single instance.
     instance=multiCounter([1_c_size_t])
-    ! Choose a beginning time.
-    time=self%outputTimes_%time(1_c_size_t)
+    ! Choose a beginning time. Set this to slightly before the first output time to ensure that the initial set of times assigned
+    ! to each history corresponds to the first (and not the second) output time).
+    time   =+self%outputTimes_%time(1_c_size_t) &
+         &  *(                                  &
+         &    +1.0d0                            &
+         &    -epsilon                          &
+         &   )
     call basic%timeSet            (time)
     call basic%timeLastIsolatedSet(time)
     call basic%massSet            (mass)

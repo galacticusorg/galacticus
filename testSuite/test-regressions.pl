@@ -30,6 +30,7 @@ my %options =
      submitSleepDuration =>  1,
      waitSleepDuration   => 10
     );
+&Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
 print "\n\n:--> Running regression test cases...\n";
 &Galacticus::Launch::PBS::SubmitJobs(\%options,@pbsJobs)

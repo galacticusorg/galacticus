@@ -42,7 +42,8 @@ contains
     use :: Galacticus_HDF5   , only : hdf5SieveBufferSize       , hdf5UseLatestFormat , hdf5CompressionLevel, hdf5CacheElementsCount, &
          &                            galacticusOutputFileIsOpen, galacticusOutputFile, hdf5CacheSizeBytes  , hdf5ChunkSize
     use :: HDF5              , only : hsize_t                   , size_t
-    use :: IO_HDF5           , only : hdf5Access                , IO_HDF5_Set_Defaults
+    use :: HDF5_Access       , only : hdf5Access
+    use :: IO_HDF5           , only : IO_HDF5_Set_Defaults
     use :: ISO_Varying_String, only : var_str                   , char                , operator(//)        , extract               , &
          &                            len                       , operator(==)
     use :: Input_Parameters  , only : inputParameters           , inputParameter
@@ -183,7 +184,7 @@ contains
     !!}
     use :: Galacticus_HDF5   , only : galacticusOutputFileIsOpen, galacticusOutputFile
     use :: File_Utilities    , only : File_Rename
-    use :: IO_HDF5           , only : hdf5Access
+    use :: HDF5_Access       , only : hdf5Access
     use :: ISO_Varying_String, only : operator(/=)
     !![
     <include directive="hdfPreCloseTask" type="moduleUse">

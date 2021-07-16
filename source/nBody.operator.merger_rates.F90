@@ -164,7 +164,7 @@ contains
     use    :: Display         , only : displayCounter         , displayCounterClear   , displayIndent, displayMessage, &
           &                            displayUnindent        , verbosityLevelStandard
     use    :: Galacticus_Error, only : Galacticus_Error_Report
-    use    :: IO_HDF5         , only : hdf5Access
+    use    :: HDF5_Access     , only : hdf5Access
 #ifdef USEMPI
     use    :: MPI_Utilities   , only : mpiSelf
 #endif

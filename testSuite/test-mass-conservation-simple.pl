@@ -7,12 +7,33 @@ use lib $ENV{'GALACTICUS_ANALYSIS_PERL_PATH'}."/perl";
 use PDL;
 use PDL::NiceSlice;
 use Galacticus::HDF5;
+use Galacticus::Options;
 
 # Run a simple model to test mass conservation.
 # Andrew Benson (28-April-2016)
 
+# Read in any configuration options.
+my $config;
+if ( -e "galacticusConfig.xml" ) {
+    my $xml = new XML::Simple;
+    $config = $xml->XMLin("galacticusConfig.xml");
+}
+
+# Parse config options.
+my $queueManager = &Galacticus::Options::Config(                'queueManager' );
+my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     });
+
+# Set default options.
+my %options =
+    (
+     'pbsJobMaximum' => exists($queueConfig->{'jobMaximum'}) ? $queueConfig->{'jobMaximum'} : 100,
+    );
+
+# Get any command line options.
+&Galacticus::Options::Parse_Options(\@ARGV,\%options);
+
 # Run the model.
-system("cd ..; scripts/aux/launch.pl testSuite/parameters/test-mass-conservation-simple.xml");
+system("cd ..; scripts/aux/launch.pl testSuite/parameters/test-mass-conservation-simple.xml ".join(" ",map {"--".$_." ".$options{$_}} keys(%options)));
 
 # Check for failed models.
 system("grep -q -i fatal outputs/test-mass-conservation-simple/galacticus_*/galacticus.log");

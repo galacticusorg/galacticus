@@ -214,7 +214,8 @@ contains
     Outputs tree information content function.
     !!}
     use :: Galacticus_HDF5, only : galacticusOutputFile
-    use :: IO_HDF5        , only : hdf5Access          , hdf5Object
+    use :: HDF5_Access    , only : hdf5Access
+    use :: IO_HDF5        , only : hdf5Object
     implicit none
     class  (mergerTreeOperatorProfiler), intent(inout)               :: self
     type   (hdf5Object                )                              :: profilerGroup

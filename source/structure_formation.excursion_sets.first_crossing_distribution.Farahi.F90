@@ -1067,7 +1067,8 @@ contains
     !!}
     use :: Display           , only : displayIndent, displayMessage  , displayUnindent, verbosityLevelWorking
     use :: File_Utilities    , only : File_Exists  , File_Name_Expand
-    use :: IO_HDF5           , only : hdf5Access   , hdf5Object
+    use :: HDF5_Access       , only : hdf5Access
+    use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : operator(//) , var_str         , varying_string
     use :: Memory_Management , only : allocateArray, deallocateArray
     implicit none
@@ -1206,7 +1207,8 @@ contains
     Write tabulated data on excursion set first crossing probabilities to file.
     !!}
     use :: HDF5   , only : hsize_t
-    use :: IO_HDF5, only : hdf5Access, hdf5Object
+    use :: HDF5_Access, only : hdf5Access
+    use :: IO_HDF5, only : hdf5Object
     implicit none
     class(excursionSetFirstCrossingFarahi), intent(inout) :: self
     type (hdf5Object                     )                :: dataFile, dataGroup

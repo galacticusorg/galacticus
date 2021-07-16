@@ -126,7 +126,8 @@ contains
     use            :: Galacticus_HDF5   , only : galacticusOutputFile
     use            :: Galacticus_Paths  , only : galacticusPath         , pathTypeExec
     use            :: HDF5              , only : h5get_libversion_f
-    use            :: IO_HDF5           , only : hdf5Access             , hdf5Object
+    use            :: HDF5_Access       , only : hdf5Access
+    use            :: IO_HDF5           , only : hdf5Object
     use, intrinsic :: ISO_C_Binding     , only : c_char                 , c_f_pointer , c_null_char
     use            :: ISO_Varying_String, only : assignment(=)          , char        , operator(//), operator(/=), &
           &                                      varying_string

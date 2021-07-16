@@ -541,17 +541,23 @@ contains
     !!}
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout) :: self
-    double precision                                       , intent(in   ) :: rootVariance   , time
-    double precision                                                       :: h              , hTime     , &
+    double precision                                       , intent(in   ) :: rootVariance      , time
+    double precision                                                       :: rootVarianceActual
+    double precision                                                       :: h                 , hTime     , &
          &                                                                    interpolantTime
-    integer                                                                :: i              , iBoundLeft, &
-         &                                                                    iBoundRight    , k         , &
+    integer                                                                :: i                 , iBoundLeft, &
+         &                                                                    iBoundRight       , k         , &
          &                                                                    j
 
+    if (self%growthIsMassDependent_) then
+       rootVarianceActual=rootVariance
+    else
+       rootVarianceActual=rootVariance/self%linearGrowth_%value(time)
+    end if
     ! If the requested root-variance is below the lowest value tabulated, attempt to tabulate to higher mass (lower
     ! root-variance).
     call self%retabulate(time=time)
-    do while (rootVariance < self%rootVarianceTable(1)%y(-1))
+    do while (rootVarianceActual < self%rootVarianceTable(1)%y(-1))
        call self%retabulate(self%rootVarianceTable(1)%x(-1)*2.0d0,time)
     end do
     ! Get interpolants in time.
@@ -562,7 +568,7 @@ contains
        hTime=0.0d0
     end if
     ! If sigma exceeds the highest value tabulated, simply return the lowest tabulated mass.
-    if (rootVariance > self%rootVarianceTable(k)%y(1)) then
+    if (rootVarianceActual > self%rootVarianceTable(k)%y(1)) then
        filteredPowerMass=self%rootVarianceTable(k)%x(1)
     else
        ! Iterate over times.
@@ -580,14 +586,14 @@ contains
           iBoundRight=size(self%rootVarianceUniqueTable(j)%rootVariance)
           do while (iBoundLeft+1 < iBoundRight)
              i=int((iBoundLeft+iBoundRight)/2)
-             if (self%rootVarianceUniqueTable(j)%rootVariance(i) < rootVariance) then
+             if (self%rootVarianceUniqueTable(j)%rootVariance(i) < rootVarianceActual) then
                 iBoundRight=i
              else
                 iBoundLeft =i
              end if
           end do
           i                =self%rootVarianceUniqueTable(j)%index(iBoundRight)
-          h                =+(     rootVariance               -self%rootVarianceTable(j)%y(i)) &
+          h                =+(     rootVarianceActual         -self%rootVarianceTable(j)%y(i)) &
                &            /(self%rootVarianceTable(j)%y(i-1)-self%rootVarianceTable(j)%y(i))
           filteredPowerMass=+filteredPowerMass                                    &
                &            +exp(                                                 &
@@ -1001,7 +1007,8 @@ contains
     !!}
     use :: Display       , only : displayMessage           , verbosityLevelWorking
     use :: File_Utilities, only : File_Exists
-    use :: IO_HDF5       , only : hdf5Access               , hdf5Object
+    use :: HDF5_Access   , only : hdf5Access
+    use :: IO_HDF5       , only : hdf5Object
     use :: Tables        , only : table1DLogarithmicCSpline, table1DLogarithmicMonotoneCSpline
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
@@ -1068,7 +1075,8 @@ contains
     !!}
     use :: Display, only : displayMessage, verbosityLevelWorking
     use :: HDF5   , only : hsize_t
-    use :: IO_HDF5, only : hdf5Access    , hdf5Object
+    use :: HDF5_Access, only : hdf5Access
+    use :: IO_HDF5, only : hdf5Object
     implicit none
     class           (cosmologicalMassVarianceFilteredPower), intent(inout)               :: self
     double precision                                       , dimension(:  ), allocatable :: massTmp

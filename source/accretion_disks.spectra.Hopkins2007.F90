@@ -99,7 +99,8 @@ contains
           &                                                    File_Unlock
     use            :: Galacticus_Error                , only : Galacticus_Error_Report
     use            :: Galacticus_Paths                , only : galacticusPath         , pathTypeDataDynamic , pathTypeDataStatic
-    use            :: IO_HDF5                         , only : hdf5Access             , hdf5Object
+    use            :: HDF5_Access                     , only : hdf5Access
+    use            :: IO_HDF5                         , only : hdf5Object
     use, intrinsic :: ISO_Fortran_Env
     use            :: Numerical_Constants_Astronomical, only : luminositySolar
     use            :: Numerical_Constants_Physical    , only : speedLight

@@ -162,7 +162,8 @@ contains
     !!{
     Constructor for the ``subhaloMassFunction'' output analysis class for internal use.
     !!}
-    use :: IO_HDF5                , only : hdf5Object                , hdf5Access
+    use :: HDF5_Access            , only : hdf5Access
+    use :: IO_HDF5                , only : hdf5Object
     use :: Output_Times           , only : outputTimesClass
     use :: Cosmology_Functions    , only : cosmologyFunctionsClass
     use :: File_Utilities         , only : File_Name_Expand
@@ -511,7 +512,8 @@ contains
     Implement a {\normalfont \ttfamily subhaloMassFunction} output analysis finalization.
     !!}
     use :: Galacticus_HDF5                 , only : galacticusOutputFile
-    use :: IO_HDF5                         , only : hdf5Access          , hdf5Object
+    use :: HDF5_Access                     , only : hdf5Access
+    use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(outputAnalysisSubhaloMassFunction), intent(inout) :: self

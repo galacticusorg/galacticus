@@ -1,6 +1,6 @@
---- autosps.f90.orig	2018-07-16 16:29:38.380415174 +0000
-+++ autosps.f90	2018-07-16 17:05:15.169206382 +0000
-@@ -24,14 +24,14 @@
+--- a/src/autosps.f90
++++ b/src/autosps.f90
+@@ -24,20 +24,33 @@ PROGRAM AUTOSPS
    !set IMF
    WRITE(6,*)  'enter IMF [0-5; def:0]:'
    WRITE(6,*) ' (0=Salpeter, 1=Chabrier 2003, 2=Kroupa 2001, '//&
@@ -17,3 +17,22 @@
       WRITE(*,*) 'ERROR: imf out of bounds: ',imf_type
       STOP
    ENDIF
+   WRITE(6,'(" ---> Using IMF",1x,I1)') imf_type
+   
+ 
++  !set IMF file name
++  IF (IMF_TYPE.EQ.6) THEN
++     WRITE(6,*)
++     WRITE(6,*)  'Enter IMF filename [def: "galacticus.imf"]'
++     READ(5,'(A)')  aux
++     IF (len(trim(aux)).EQ.0) THEN
++        file1 = 'galacticus.imf'
++     ELSE
++        READ(aux,'(A)') imfFileName
++     ENDIF
++     WRITE(6,'(" ---> IMF filename:",1x,A100)') imfFileName
++  ENDIF
++
+   !setup directory and metallicity array
+   CALL GETENV('SPS_HOME',SPS_HOME)
+   IF (LEN_TRIM(SPS_HOME).EQ.0) THEN

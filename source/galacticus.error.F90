@@ -100,6 +100,7 @@ contains
     Display an error message.
     !!}
 #ifndef UNCLEANEXIT
+    use    :: HDF5_Access  , only : hdf5Access
     use    :: HDF5         , only : H5Close_F
 #endif
     !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
@@ -120,15 +121,17 @@ contains
     !$ else
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
-    call BackTrace             (     )
-    call Galacticus_Warn_Review(     )
-    call Flush                 (    0)
+    call BackTrace             ( )
+    call Galacticus_Warn_Review( )
+    call Flush                 (0)
 #ifdef UNCLEANEXIT
     call Exit(1)
 #else
-    call H5Close_F             (error)
-    call H5Close_C             (     )
-    call Abort                 (     )
+    !$ call hdf5Access%set  (     )
+    call    H5Close_F       (error)
+    call    H5Close_C       (     )
+    !$ call hdf5Access%unset(     )
+    call    Abort           (     )
 #endif
     return
   end subroutine Galacticus_Error_Report_Char
@@ -228,10 +231,11 @@ contains
     Handle {\normalfont \ttfamily SIGINT} signals, by flushing all data and then aborting.
     !!}
 #ifndef UNCLEANEXIT
+    use    :: HDF5_Access  , only : hdf5Access
     use    :: HDF5         , only : H5Close_F
 #endif
 #ifdef USEMPI
-    use    :: MPI          , only : MPI_COmm_Rank     , MPI_Comm_World
+    use    :: MPI          , only : MPI_Comm_Rank     , MPI_Comm_World
 #endif
     !$ use :: OMP_Lib      , only : OMP_Get_Thread_Num, OMP_In_Parallel
     use    :: Display      , only : displayRed        , displayBold    , displayReset
@@ -254,9 +258,15 @@ contains
     !$ else
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
-    call BackTrace                (     )
-    call Galacticus_Warn_Review   (     )
-    call Flush                    (    0)
+#ifndef UNCLEANEXIT
+    !$ call hdf5Access%set  (     )
+    call    H5Close_F       (error)
+    call    H5Close_C       (     )
+    !$ call hdf5Access%unset(     )
+#endif
+    call Galacticus_Warn_Review( )
+    call BackTrace             ( )
+    call Flush                 (0)
 #ifdef UNCLEANEXIT
     call Exit(1)
 #else
@@ -271,9 +281,7 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call H5Close_F(error)
-    call H5Close_C(     )
-    call Abort    (     )
+    call Abort()
 #endif
     return
   end subroutine Galacticus_Signal_Handler_SIGINT
@@ -283,6 +291,7 @@ contains
     Handle {\normalfont \ttfamily SIGSEGV} signals, by flushing all data and then aborting.
     !!}
 #ifndef UNCLEANEXIT
+    use    :: HDF5_Access  , only : hdf5Access
     use    :: HDF5         , only : H5Close_F
 #endif
 #ifdef USEMPI
@@ -309,9 +318,15 @@ contains
     !$ else
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
-    call BackTrace                (     )
-    call Galacticus_Warn_Review   (     )
-    call Flush                    (    0)
+#ifndef UNCLEANEXIT
+    !$ call hdf5Access%set  (     )
+    call    H5Close_F       (error)
+    call    H5Close_C       (     )
+    !$ call hdf5Access%unset(     )
+#endif
+    call Galacticus_Warn_Review( )
+    call BackTrace             ( )
+    call Flush                 (0)
 #ifdef UNCLEANEXIT
     call Exit(1)
 #else
@@ -326,9 +341,7 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call H5Close_F(error)
-    call H5Close_C(     )
-    call Abort    (     )
+    call Abort()
 #endif
     return
   end subroutine Galacticus_Signal_Handler_SIGSEGV
@@ -338,6 +351,7 @@ contains
     Handle {\normalfont \ttfamily SIGFPE} signals, by flushing all data and then aborting.
     !!}
 #ifndef UNCLEANEXIT
+    use    :: HDF5_Access  , only : hdf5Access
     use    :: HDF5         , only : H5Close_F
 #endif
 #ifdef USEMPI
@@ -364,9 +378,15 @@ contains
     !$ else
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
-    call BackTrace                (     )
-    call Galacticus_Warn_Review   (     )
-    call Flush                    (    0)
+#ifndef UNCLEANEXIT
+    !$ call hdf5Access%set  (     )
+    call    H5Close_F       (error)
+    call    H5Close_C       (     )
+    !$ call hdf5Access%unset(     )
+#endif
+    call Galacticus_Warn_Review( )
+    call BackTrace             ( )
+    call Flush                 (0)
 #ifdef UNCLEANEXIT
     call Exit(1)
 #else
@@ -381,9 +401,7 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call H5Close_F(error)
-    call H5Close_C(     )
-    call Abort    (     )
+    call Abort()
 #endif
     return
   end subroutine Galacticus_Signal_Handler_SIGFPE
@@ -393,6 +411,7 @@ contains
     Handle {\normalfont \ttfamily SIGBUS} signals, by flushing all data and then aborting.
     !!}
 #ifndef UNCLEANEXIT
+    use    :: HDF5_Access  , only : hdf5Access
     use    :: HDF5         , only : H5Close_F
 #endif
 #ifdef USEMPI
@@ -419,9 +438,15 @@ contains
     !$ else
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
-    call BackTrace                (     )
-    call Galacticus_Warn_Review   (     )
-    call Flush                    (    0)
+#ifndef UNCLEANEXIT
+    !$ call hdf5Access%set  (     )
+    call    H5Close_F       (error)
+    call    H5Close_C       (     )
+    !$ call hdf5Access%unset(     )
+#endif
+    call Galacticus_Warn_Review( )
+    call BackTrace             ( )
+    call Flush                 (0)
 #ifdef UNCLEANEXIT
     call Exit(1)
 #else
@@ -436,9 +461,7 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call H5Close_F(error)
-    call H5Close_C(     )
-    call Abort    (     )
+    call Abort()
 #endif
     return
   end subroutine Galacticus_Signal_Handler_SIGBUS
@@ -448,6 +471,7 @@ contains
     Handle {\normalfont \ttfamily SIGILL} signals, by flushing all data and then aborting.
     !!}
 #ifndef UNCLEANEXIT
+    use    :: HDF5_Access  , only : hdf5Access
     use    :: HDF5         , only : H5Close_F
 #endif
 #ifdef USEMPI
@@ -474,9 +498,15 @@ contains
     !$ else
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
-    call BackTrace                (     )
-    call Galacticus_Warn_Review   (     )
-    call Flush                    (    0)
+#ifndef UNCLEANEXIT
+    !$ call hdf5Access%set  (     )
+    call    H5Close_F       (error)
+    call    H5Close_C       (     )
+    !$ call hdf5Access%unset(     )
+#endif
+    call Galacticus_Warn_Review( )
+    call BackTrace             ( )
+    call Flush                 (0)
 #ifdef UNCLEANEXIT
     call Exit(1)
 #else
@@ -491,9 +521,7 @@ contains
        call Sleep(errorWaitTime)
     end if
 #endif
-    call H5Close_F                (error)
-    call H5Close_C                (     )
-    call Abort                    (     )
+    call Abort()
 #endif
     return
   end subroutine Galacticus_Signal_Handler_SIGILL
@@ -503,6 +531,7 @@ contains
     Handle {\normalfont \ttfamily SIGXCPU} signals, by flushing all data and then aborting.
     !!}
 #ifndef UNCLEANEXIT
+    use :: HDF5_Access  , only : hdf5Access
     use :: HDF5         , only : H5Close_F
 #endif
     use :: Display      , only : displayRed  , displayBold, displayReset
@@ -517,8 +546,10 @@ contains
     end if
     call Flush(0)
 #ifndef UNCLEANEXIT
-    call H5Close_F(error)
-    call H5Close_C()
+    !$ call hdf5Access%set  (     )
+    call    H5Close_F       (error)
+    call    H5Close_C       (     )
+    !$ call hdf5Access%unset(     )
 #endif
     call Exit(errorStatusXCPU)
     return
@@ -529,6 +560,7 @@ contains
     Handle errors from the GSL library, by flushing all data and then aborting.
     !!}
 #ifndef UNCLEANEXIT
+    use               :: HDF5_Access       , only : hdf5Access
     use               :: HDF5              , only : H5Close_F
 #endif
     use   , intrinsic :: ISO_C_Binding     , only : c_char
@@ -562,26 +594,30 @@ contains
        !$ else
        !$    write (0,*) " => Error occurred in master thread"
        !$ end if
-    call BackTrace                (     )
-    call Galacticus_Warn_Review   (     )
-    call Flush                    (    0)
+#ifndef UNCLEANEXIT
+    !$ call hdf5Access%set  (     )
+    call    H5Close_F       (error)
+    call    H5Close_C       (     )
+    !$ call hdf5Access%unset(     )
+#endif
+       call Galacticus_Warn_Review( )
+       call BackTrace             ( )
+       call Flush                 (0)
 #ifdef UNCLEANEXIT
-    call Exit(1)
+       call Exit(1)
 #else
 #ifdef USEMPI
-    call MPI_Initialized(flag,error)
-    if (flag) then
-       call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
-       call hostnm(hostName)
-       write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
-       write (0,'(a,i8,a)') " => Sleeping for ",errorWaitTime,"s to allow for attachment of debugger"
-       call Flush(0)
-       call Sleep(errorWaitTime)
-    end if
+       call MPI_Initialized(flag,error)
+       if (flag) then
+          call MPI_Comm_Rank(MPI_Comm_World,mpiRank,error)
+          call hostnm(hostName)
+          write (0,*) " => Error occurred in MPI process ",mpiRank,"; PID ",getPID(),"; host ",trim(hostName)
+          write (0,'(a,i8,a)') " => Sleeping for ",errorWaitTime,"s to allow for attachment of debugger"
+          call Flush(0)
+          call Sleep(errorWaitTime)
+       end if
 #endif
-    call H5Close_F(error)
-    call H5Close_C(     )
-    call Abort    (     )
+       call Abort()
 #endif
     else
        errorStatusGSL=errorNumber

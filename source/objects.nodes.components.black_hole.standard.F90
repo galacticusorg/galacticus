@@ -970,7 +970,8 @@ contains
     !!}
     use :: Galacticus_HDF5 , only : galacticusOutputFile
     use :: Galacticus_Nodes, only : nodeComponentBasic  , treeNode
-    use :: IO_HDF5         , only : hdf5Access          , hdf5Object
+    use :: HDF5_Access     , only : hdf5Access
+    use :: IO_HDF5         , only : hdf5Object
     implicit none
     type            (treeNode          ), intent(inout) :: node
     double precision                    , intent(in   ) :: massBlackHole1    , massBlackHole2
@@ -1011,7 +1012,8 @@ contains
     !!}
     use            :: Galacticus_HDF5   , only : galacticusOutputFile
     use            :: Galacticus_Nodes  , only : nodeComponentBlackHole, treeNode
-    use            :: IO_HDF5           , only : hdf5Access            , hdf5Object
+    use            :: HDF5_Access       , only : hdf5Access
+    use            :: IO_HDF5           , only : hdf5Object
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: ISO_Varying_String, only : assignment(=)         , char           , varying_string
     use            :: Kind_Numbers      , only : kind_int8

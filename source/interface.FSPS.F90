@@ -32,6 +32,9 @@ module Interfaces_FSPS
   ! Lock object to prevent multiple threads/processes attempting to build the code simultaneously.
   type(lockDescriptor) :: fspsLock
 
+  ! Lock object to prevent multiple threads/processes attempting to build the same IMF simultaneously.
+  type(lockDescriptor) :: imfLock
+
 contains
 
   subroutine Interface_FSPS_Initialize(fspsPath,fspsVersion,static)
@@ -121,9 +124,10 @@ contains
     !!}
     use :: Dates_and_Times                 , only : Formatted_Date_and_Time
     use :: File_Utilities                  , only : Directory_Make         , File_Exists    , File_Name_Temporary, File_Path, &
-          &                                         File_Remove
+          &                                         File_Remove            , File_Lock      , File_Unlock
     use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: IO_HDF5                         , only : hdf5Access             , hdf5Object
+    use :: HDF5_Access                     , only : hdf5Access
+    use :: IO_HDF5                         , only : hdf5Object
     use :: ISO_Varying_String              , only : char                   , operator(//)   , trim               , var_str  , &
           &                                         varying_string
     use :: Numerical_Constants_Astronomical, only : gigaYear               , luminositySolar, massSolar
@@ -141,7 +145,8 @@ contains
     double precision                , allocatable  , dimension(:,:,:           ) :: spectrum
     integer                         , parameter                                  :: fileFormatCurrent= 1
     type            (varying_string)                                             :: fspsVersion         , fspsPath         , &
-         &                                                                          outputFileName      , fspsInputFileName
+         &                                                                          outputFileName      , fspsInputFileName, &
+         &                                                                          imfFileName
     integer                                                                      :: iIMF                , outputFile       , &
          &                                                                          iMetallicity        , inputFile        , &
          &                                                                          iAge                , ageCount         , &
@@ -155,7 +160,8 @@ contains
     ! Ensure FSPS is available.
     call Interface_FSPS_Initialize(fspsPath,fspsVersion)
     ! Output the IMF file.
-    open(newUnit=outputFile,file="galacticus.imf",status='unknown',form='formatted')
+    imfFileName=File_Name_Temporary("galacticus.imf")
+    open(newUnit=outputFile,file=char(imfFileName),status='unknown',form='formatted')
     do iIMF=1,imf%size()
        write (outputFile,'(2(1x,e12.6))') imf%x(iIMF),imf%y(iIMF)
     end do
@@ -166,17 +172,22 @@ contains
        outputFileName="imf"//trim(imfName)//".iZ"//iMetallicity
        ! Generate output file if necessary.
        if (.not.File_Exists(fspsPath//"/OUTPUTS/"//outputFileName//".spec")) then
-          ! Create parameter file for FSPS.
-          fspsInputFileName=File_Name_Temporary("fsps.inp")
-          open(newUnit=outputFile,file=char(fspsInputFileName),status='unknown',form='formatted')
-          write (outputFile,'(i1)') 6                    ! IMF.
-          write (outputFile,'(i1)') 0                    ! Generate SSP.
-          write (outputFile,'(i2)') iMetallicity         ! Specify metallicity.
-          write (outputFile,'(a)' ) "no"                 ! Do not include dust.
-          write (outputFile,'(a)' ) char(outputFileName) ! Specify filename.
-          close(outputFile)
-          call System_Command_Do("export SPS_HOME="//fspsPath//"; "//fspsPath//"/src/autosps.exe < "//fspsInputFileName)
-          call File_Remove(char(fspsInputFileName))
+          call File_Lock(char(fspsPath//"/OUTPUTS/"//outputFileName),imfLock)
+          if (.not.File_Exists(fspsPath//"/OUTPUTS/"//outputFileName//".spec")) then
+             ! Create parameter file for FSPS.
+             fspsInputFileName=File_Name_Temporary("fsps.inp")
+             open(newUnit=outputFile,file=char(fspsInputFileName),status='unknown',form='formatted')
+             write (outputFile,'(i1)') 6                    ! IMF.
+             write (outputFile,'(a)' ) char(   imfFileName) ! Specify IMF filename.
+             write (outputFile,'(i1)') 0                    ! Generate SSP.
+             write (outputFile,'(i2)') iMetallicity         ! Specify metallicity.
+             write (outputFile,'(a)' ) "no"                 ! Do not include dust.
+             write (outputFile,'(a)' ) char(outputFileName) ! Specify filename.
+             close(outputFile)
+             call System_Command_Do("export SPS_HOME="//fspsPath//"; "//fspsPath//"/src/autosps.exe < "//fspsInputFileName)
+             call File_Remove(char(fspsInputFileName))
+          end if
+          call File_Unlock(imfLock)
        end if
        ! Parse the output file.
        open(newUnit=inputFile,file=char(fspsPath//"/OUTPUTS/"//outputFileName//".spec"),status='old',form='formatted')
@@ -200,8 +211,8 @@ contains
        close(inputFile)
     end do
     ! Clean up.
-    call File_Remove("galacticus.imf")
-    ! Convert ages from loagrithmic form.
+    call File_Remove(imfFileName)
+    ! Convert ages from logarithmic form.
     age=10.0d0**(age-9.0d0)
     ! Write output file.
     call Directory_Make(char(File_Path(char(spectraFileName))))

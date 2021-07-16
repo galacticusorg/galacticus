@@ -156,7 +156,7 @@ contains
     use    :: Arrays_Search     , only : searchArray
     use    :: Display           , only : displayCounter    , displayCounterClear   , displayIndent, displayMessage, &
           &                              displayUnindent   , verbosityLevelStandard
-    use    :: IO_HDF5           , only : hdf5Access
+    use    :: HDF5_Access       , only : hdf5Access
     use    :: ISO_Varying_String, only : var_str
 #ifdef USEMPI
     use    :: MPI_Utilities     , only : mpiSelf

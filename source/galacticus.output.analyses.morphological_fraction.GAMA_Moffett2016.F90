@@ -130,7 +130,8 @@ contains
     use :: Galactic_Filters                      , only : galacticFilterStellarMass
     use :: Galacticus_Paths                      , only : galacticusPath                                     , pathTypeDataStatic
     use :: Geometry_Surveys                      , only : surveyGeometryBaldry2012GAMA
-    use :: IO_HDF5                               , only : hdf5Access                                         , hdf5Object
+    use :: HDF5_Access                           , only : hdf5Access
+    use :: IO_HDF5                               , only : hdf5Object
     use :: Memory_Management                     , only : allocateArray
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassStellar                   , nodePropertyExtractorMassStellarMorphology
     use :: Numerical_Constants_Astronomical      , only : massSolar
@@ -454,7 +455,8 @@ contains
     Implement a {\normalfont \ttfamily morphologicalFractionGAMAMoffett2016} output analysis finalization.
     !!}
     use :: Galacticus_HDF5, only : galacticusOutputFile
-    use :: IO_HDF5        , only : hdf5Access          , hdf5Object
+    use :: HDF5_Access    , only : hdf5Access
+    use :: IO_HDF5        , only : hdf5Object
     implicit none
     class(outputAnalysisMorphologicalFractionGAMAMoffett2016), intent(inout) :: self
     type (hdf5Object                                        )                :: analysesGroup, analysisGroup, &

@@ -205,7 +205,8 @@ contains
     !!{
     Constructor for the ``luminosityFunctionHalpha'' output analysis class which reads bin information from a standard format file.
     !!}
-    use :: IO_HDF5                       , only : hdf5Access, hdf5Object
+    use :: HDF5_Access                   , only : hdf5Access
+    use :: IO_HDF5                       , only : hdf5Object
     use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
     use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
     implicit none

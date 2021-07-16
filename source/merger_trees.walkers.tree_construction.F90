@@ -58,7 +58,7 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeWalkerTreeConstruction)                :: self
-    type(inputParameters         ), intent(inout) :: parameters
+    type(inputParameters                 ), intent(inout) :: parameters
     !$GLC attributes unused :: self, parameters
 
     call Galacticus_Error_Report('this class can not be built from parameters'//{introspection:location})

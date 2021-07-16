@@ -1370,7 +1370,8 @@ contains
     Attempt to restore a table from file.
     !!}
     use :: File_Utilities    , only : File_Exists    , File_Lock               , File_Unlock, lockDescriptor
-    use :: IO_HDF5           , only : hdf5Access     , hdf5Object
+    use :: HDF5_Access       , only : hdf5Access
+    use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char
     implicit none
     class           (virialOrbitLossCone)             , intent(inout) :: self
@@ -1424,7 +1425,8 @@ contains
     !!}
     use :: File_Utilities    , only : Directory_Make, File_Lock , File_Unlock, File_Path, &
          &                            lockDescriptor
-    use :: IO_HDF5           , only : hdf5Access    , hdf5Object
+    use :: HDF5_Access       , only : hdf5Access
+    use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char
     implicit none
     class(virialOrbitLossCone), intent(inout) :: self

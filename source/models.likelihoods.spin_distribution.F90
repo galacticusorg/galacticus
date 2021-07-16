@@ -168,7 +168,8 @@ contains
     !!}
     use :: Cosmology_Functions, only : cosmologyFunctionsClass
     use :: Galacticus_Error   , only : Galacticus_Error_Report
-    use :: IO_HDF5            , only : hdf5Access             , hdf5Object
+    use :: HDF5_Access        , only : hdf5Access
+    use :: IO_HDF5            , only : hdf5Object
     use :: Memory_Management  , only : allocateArray
     implicit none
     type            (posteriorSampleLikelihoodSpinDistribution)                        :: self
