@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which computes mass functions.
-
+  !!{
+  Contains a module which implements an N-body data operator which computes mass functions.
+  !!}
+  
   use            :: Cosmology_Parameters, only : cosmologyParametersClass
   use, intrinsic :: ISO_C_Binding       , only : c_size_t
-
-  !# <nbodyOperator name="nbodyOperatorConcentrationDistributionFunction">
-  !#  <description>An N-body data operator which computes mass functions.</description>
-  !# </nbodyOperator>
+  
+  !![
+  <nbodyOperator name="nbodyOperatorConcentrationDistributionFunction">
+   <description>An N-body data operator which computes mass functions.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorConcentrationDistributionFunction
-     !% An N-body data operator which computes mass functions.
+     !!{
+     An N-body data operator which computes mass functions.
+     !!}
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_        => null()
      double precision                                    :: massMinimum                          , massMaximum         , &
@@ -40,7 +46,9 @@
   end type nbodyOperatorConcentrationDistributionFunction
 
   interface nbodyOperatorConcentrationDistributionFunction
-     !% Constructors for the ``concentrationDistributionFunction'' N-body operator class.
+     !!{
+     Constructors for the ``concentrationDistributionFunction'' N-body operator class.
+     !!}
      module procedure concentrationDistributionFunctionConstructorParameters
      module procedure concentrationDistributionFunctionConstructorInternal
   end interface nbodyOperatorConcentrationDistributionFunction
@@ -48,7 +56,9 @@
 contains
 
   function concentrationDistributionFunctionConstructorParameters(parameters) result (self)
-    !% Constructor for the ``concentrationDistributionFunction'' N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``concentrationDistributionFunction'' N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyOperatorConcentrationDistributionFunction)                :: self
@@ -60,55 +70,61 @@ contains
     type            (varying_string                                )                :: simulationReference        , simulationURL       , &
          &                                                                             description
 
-    !# <inputParameter>
-    !#   <name>massMinimum</name>
-    !#   <source>parameters</source>
-    !#   <description>The minimum mass to consider.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMaximum</name>
-    !#   <source>parameters</source>
-    !#   <description>The maximum mass to consider.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>concentrationMinimum</name>
-    !#   <source>parameters</source>
-    !#   <description>The minimum concentration to consider.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>concentrationMaximum</name>
-    !#   <source>parameters</source>
-    !#   <description>The maximum concentration to consider.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>concentrationCountPerDecade</name>
-    !#   <source>parameters</source>
-    !#   <description>The number of bins per decade of concentration.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>description</name>
-    !#   <source>parameters</source>
-    !#   <description>A description of this concentration distribution function.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>simulationReference</name>
-    !#   <source>parameters</source>
-    !#   <description>A reference for the simulation.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>simulationURL</name>
-    !#   <source>parameters</source>
-    !#   <description>A URL for the simulation.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !![
+    <inputParameter>
+      <name>massMinimum</name>
+      <source>parameters</source>
+      <description>The minimum mass to consider.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massMaximum</name>
+      <source>parameters</source>
+      <description>The maximum mass to consider.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>concentrationMinimum</name>
+      <source>parameters</source>
+      <description>The minimum concentration to consider.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>concentrationMaximum</name>
+      <source>parameters</source>
+      <description>The maximum concentration to consider.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>concentrationCountPerDecade</name>
+      <source>parameters</source>
+      <description>The number of bins per decade of concentration.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>description</name>
+      <source>parameters</source>
+      <description>A description of this concentration distribution function.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>simulationReference</name>
+      <source>parameters</source>
+      <description>A reference for the simulation.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>simulationURL</name>
+      <source>parameters</source>
+      <description>A URL for the simulation.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !!]
     self=nbodyOperatorConcentrationDistributionFunction(massMinimum,massMaximum,concentrationMinimum,concentrationMaximum,concentrationCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    !!]
     return
   end function concentrationDistributionFunctionConstructorParameters
 
   function concentrationDistributionFunctionConstructorInternal(massMinimum,massMaximum,concentrationMinimum,concentrationMaximum,concentrationCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
-    !% Internal constructor for the ``concentrationDistributionFunction'' N-body operator class.
+    !!{
+    Internal constructor for the ``concentrationDistributionFunction'' N-body operator class.
+    !!}
     implicit none
     type            (nbodyOperatorConcentrationDistributionFunction)                        :: self
     double precision                                                , intent(in   )         :: massMinimum                , massMaximum         , &
@@ -117,22 +133,30 @@ contains
     type            (varying_string                                ), intent(in   )         :: simulationReference        , simulationURL       , &
          &                                                                                     description
     class           (cosmologyParametersClass                      ), intent(in   ), target :: cosmologyParameters_
-    !# <constructorAssign variables="massMinimum, massMaximum, concentrationMinimum, concentrationMaximum, concentrationCountPerDecade, description, simulationReference, simulationURL, *cosmologyParameters_"/>
-
+    !![
+    <constructorAssign variables="massMinimum, massMaximum, concentrationMinimum, concentrationMaximum, concentrationCountPerDecade, description, simulationReference, simulationURL, *cosmologyParameters_"/>
+    !!]
+    
     return
   end function concentrationDistributionFunctionConstructorInternal
   
   subroutine concentrationDistributionFunctionDestructor(self)
-    !% Destructor for the ``concentrationDistributionFunction'' N-body operator class.
+    !!{
+    Destructor for the ``concentrationDistributionFunction'' N-body operator class.
+    !!}
     implicit none
     type(nbodyOperatorConcentrationDistributionFunction), intent(inout) :: self
-
-    !# <objectDestructor name="self%cosmologyParameters_"/>
+    
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    !!]
     return
   end subroutine concentrationDistributionFunctionDestructor
 
   subroutine concentrationDistributionFunctionOperate(self,simulations)
-    !% Compute concentration distribution function of particles.
+    !!{
+    Compute concentration distribution function of particles.
+    !!}
     use    :: Dates_and_Times   , only : Formatted_Date_and_Time
     use    :: Display           , only : displayCounter         , displayCounterClear   , displayIndent, displayMessage, &
           &                              displayUnindent        , verbosityLevelStandard

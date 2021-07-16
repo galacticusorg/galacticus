@@ -17,16 +17,22 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!% Contains a module which implements an N-body data operator which computes mass functions.
-
+  !!{
+  Contains a module which implements an N-body data operator which computes mass functions.
+  !!}
+  
   use            :: Cosmology_Parameters, only : cosmologyParametersClass
   use, intrinsic :: ISO_C_Binding       , only : c_size_t
 
-  !# <nbodyOperator name="nbodyOperatorSpinDistributionFunction">
-  !#  <description>An N-body data operator which computes mass functions.</description>
-  !# </nbodyOperator>
+  !![
+  <nbodyOperator name="nbodyOperatorSpinDistributionFunction">
+   <description>An N-body data operator which computes mass functions.</description>
+  </nbodyOperator>
+  !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSpinDistributionFunction
-     !% An N-body data operator which computes mass functions.
+     !!{
+     An N-body data operator which computes mass functions.
+     !!}
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      double precision                                    :: massMinimum                   , massMaximum  , &
@@ -40,7 +46,9 @@
   end type nbodyOperatorSpinDistributionFunction
 
   interface nbodyOperatorSpinDistributionFunction
-     !% Constructors for the ``spinDistributionFunction'' N-body operator class.
+     !!{
+     Constructors for the ``spinDistributionFunction'' N-body operator class.
+     !!}
      module procedure spinDistributionFunctionConstructorParameters
      module procedure spinDistributionFunctionConstructorInternal
   end interface nbodyOperatorSpinDistributionFunction
@@ -48,7 +56,9 @@
 contains
 
   function spinDistributionFunctionConstructorParameters(parameters) result (self)
-    !% Constructor for the ``spinDistributionFunction'' N-body operator class which takes a parameter set as input.
+    !!{
+    Constructor for the ``spinDistributionFunction'' N-body operator class which takes a parameter set as input.
+    !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (nbodyOperatorSpinDistributionFunction)                :: self
@@ -59,56 +69,62 @@ contains
     integer         (c_size_t                             )                :: spinCountPerDecade
     type            (varying_string                       )                :: simulationReference , simulationURL, &
          &                                                                    description
-
-    !# <inputParameter>
-    !#   <name>massMinimum</name>
-    !#   <source>parameters</source>
-    !#   <description>The minimum mass to consider.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>massMaximum</name>
-    !#   <source>parameters</source>
-    !#   <description>The maximum mass to consider.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>spinMinimum</name>
-    !#   <source>parameters</source>
-    !#   <description>The minimum spin to consider.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>spinMaximum</name>
-    !#   <source>parameters</source>
-    !#   <description>The maximum spin to consider.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>spinCountPerDecade</name>
-    !#   <source>parameters</source>
-    !#   <description>The number of bins per decade of spin.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>description</name>
-    !#   <source>parameters</source>
-    !#   <description>A description of this spin distribution function.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>simulationReference</name>
-    !#   <source>parameters</source>
-    !#   <description>A reference for the simulation.</description>
-    !# </inputParameter>
-    !# <inputParameter>
-    !#   <name>simulationURL</name>
-    !#   <source>parameters</source>
-    !#   <description>A URL for the simulation.</description>
-    !# </inputParameter>
-    !# <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    
+    !![
+    <inputParameter>
+      <name>massMinimum</name>
+      <source>parameters</source>
+      <description>The minimum mass to consider.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>massMaximum</name>
+      <source>parameters</source>
+      <description>The maximum mass to consider.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>spinMinimum</name>
+      <source>parameters</source>
+      <description>The minimum spin to consider.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>spinMaximum</name>
+      <source>parameters</source>
+      <description>The maximum spin to consider.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>spinCountPerDecade</name>
+      <source>parameters</source>
+      <description>The number of bins per decade of spin.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>description</name>
+      <source>parameters</source>
+      <description>A description of this spin distribution function.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>simulationReference</name>
+      <source>parameters</source>
+      <description>A reference for the simulation.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>simulationURL</name>
+      <source>parameters</source>
+      <description>A URL for the simulation.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
+    !!]
     self=nbodyOperatorSpinDistributionFunction(massMinimum,massMaximum,spinMinimum,spinMaximum,spinCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"/>
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
+    !!]
     return
   end function spinDistributionFunctionConstructorParameters
 
   function spinDistributionFunctionConstructorInternal(massMinimum,massMaximum,spinMinimum,spinMaximum,spinCountPerDecade,description,simulationReference,simulationURL,cosmologyParameters_) result (self)
-    !% Internal constructor for the ``spinDistributionFunction'' N-body operator class.
+    !!{
+    Internal constructor for the ``spinDistributionFunction'' N-body operator class.
+    !!}
     implicit none
     type            (nbodyOperatorSpinDistributionFunction)                        :: self
     double precision                                       , intent(in   )         :: massMinimum         , massMaximum, &
@@ -117,22 +133,30 @@ contains
     type            (varying_string                       ), intent(in   )         :: simulationReference , simulationURL, &
          &                                                                            description
     class           (cosmologyParametersClass             ), intent(in   ), target :: cosmologyParameters_
-    !# <constructorAssign variables="massMinimum, massMaximum, spinMinimum, spinMaximum, spinCountPerDecade, description, simulationReference, simulationURL, *cosmologyParameters_"/>
-
+    !![
+    <constructorAssign variables="massMinimum, massMaximum, spinMinimum, spinMaximum, spinCountPerDecade, description, simulationReference, simulationURL, *cosmologyParameters_"/>
+    !!]
+    
     return
   end function spinDistributionFunctionConstructorInternal
   
   subroutine spinDistributionFunctionDestructor(self)
-    !% Destructor for the ``spinDistributionFunction'' N-body operator class.
+    !!{
+    Destructor for the ``spinDistributionFunction'' N-body operator class.
+    !!}
     implicit none
     type(nbodyOperatorSpinDistributionFunction), intent(inout) :: self
-
-    !# <objectDestructor name="self%cosmologyParameters_"/>
+    
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    !!]
     return
   end subroutine spinDistributionFunctionDestructor
 
   subroutine spinDistributionFunctionOperate(self,simulations)
-    !% Compute spin distribution function of particles.
+    !!{
+    Compute spin distribution function of particles.
+    !!}
     use    :: Dates_and_Times   , only : Formatted_Date_and_Time
     use    :: Display           , only : displayCounter         , displayCounterClear   , displayIndent, displayMessage, &
           &                              displayUnindent        , verbosityLevelStandard
