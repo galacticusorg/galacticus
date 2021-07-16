@@ -26,7 +26,7 @@ $options{'outputDirectory'} = $galacticusFileName =~ m/^(.*)\/[^\/]+$/ ? $1 : ge
 my $galacticusFile = new PDL::IO::HDF5($galacticusFileName);
 # Iterate over all analyses.
 my $analysesGroup = $galacticusFile->group('analyses');
-my @analyses      =  $analysesGroup->groups();
+my @analyses      = $analysesGroup ->groups(         );
 my $logLikelihoodTotal = pdl 0.0;
 foreach my $analysisName ( @analyses ) {
     print " -> ".$analysisName."\n";    # Extract all available attributes from this analysis.
