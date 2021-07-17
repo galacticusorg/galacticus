@@ -123,7 +123,7 @@ contains
     !!{
     Destructor for the {\normalfont \ttfamily galaxyMergersOutput} node operator class.
     !!}
-    !$ use :: IO_HDF5         , only : hdf5Access
+    !$ use :: HDF5_Access, only : hdf5Access
     implicit none
     type(nodeOperatorGalaxyMergersOutput), intent(inout) :: self
 
@@ -143,7 +143,7 @@ contains
     !!}
     use    :: Galacticus_HDF5 , only : galacticusOutputFile
     use    :: Galacticus_Nodes, only : nodeComponentBasic
-    !$ use :: IO_HDF5         , only : hdf5Access
+    !$ use :: HDF5_Access     , only : hdf5Access
     implicit none
     class(nodeOperatorGalaxyMergersOutput), intent(inout) :: self
     type (treeNode                       ), intent(inout) :: node
