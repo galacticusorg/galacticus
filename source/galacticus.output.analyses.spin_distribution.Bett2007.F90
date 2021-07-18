@@ -134,7 +134,7 @@ contains
     !!]
     self%outputAnalysisSpinDistribution=outputAnalysisSpinDistribution(                                                                                             &
          &                                                             char   (galacticusPath(pathTypeDataStatic)//'darkMatter/bett2007HaloSpinDistribution.hdf5'), &
-         &                                                             var_str(                                    'spinDistributionBett2007'                    ), &
+         &                                                             var_str(                                    'Bett2007'                                    ), &
          &                                                             var_str(                                    'Distribution of halo spin parameters'        ), &
          &                                                             logNormalRange                                                                             , &
          &                                                             errorTolerant                                                                              , &

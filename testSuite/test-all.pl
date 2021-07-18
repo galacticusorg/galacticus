@@ -20,15 +20,11 @@ use Galacticus::Options;
 # Andrew Benson (19-Aug-2010).
 
 # Read in any configuration options.
-my $config;
-if ( -e "galacticusConfig.xml" ) {
-    my $xml = new XML::Simple;
-    $config = $xml->XMLin("galacticusConfig.xml");
-}
+my $config = &Galacticus::Options::LoadConfig();
 
-# Parse config options.
 my $queueManager = &Galacticus::Options::Config(                'queueManager' );
-my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     });
+my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     })
+    if ( defined($queueManager) );
 
 # Set default options.
 my %options =
@@ -37,10 +33,10 @@ my %options =
      'skip-slow'           => "no" ,
      'timing'              => "no" ,
      'build-documentation' => "yes",
-     'pbsJobMaximum'       => exists($queueConfig->{'jobMaximum'}) ? $queueConfig->{'jobMaximum'} : 100,
-     'processesPerNode'    => exists($queueConfig->{'ppn'       }) ? $queueConfig->{'ppn'       } :   1,
-     'submitSleepDuration' =>                                                                         1,
-     'waitSleepDuration'   =>                                                                        10
+     'pbsJobMaximum'       => (defined($queueConfig) && exists($queueConfig->{'jobMaximum'})) ? $queueConfig->{'jobMaximum'} : 100,
+     'processesPerNode'    => (defined($queueConfig) && exists($queueConfig->{'ppn'       })) ? $queueConfig->{'ppn'       } :   1,
+     'submitSleepDuration' =>                                                                                                    1,
+     'waitSleepDuration'   =>                                                                                                   10
     );
 
 # Get any command line options.

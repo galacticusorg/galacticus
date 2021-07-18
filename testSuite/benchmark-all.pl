@@ -26,11 +26,7 @@ die("benchmark-all.pl <statusPath>")
 my $statusPath = $ARGV[0];
 
 # Read in any configuration options.
-my $config;
-if ( -e "galacticusConfig.xml" ) {
-    my $xml = new XML::Simple;
-    $config = $xml->XMLin("galacticusConfig.xml");
-}
+my $config = &Galacticus::Options::LoadConfig();
 
 # Identify e-mail options for this host.
 my $emailConfig;

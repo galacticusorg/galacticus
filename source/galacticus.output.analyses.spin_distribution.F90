@@ -276,7 +276,8 @@ contains
     Constructor for the ``progenitorMassFunction'' output analysis class which reads all required properties from file.
     !!}
     use :: Cosmology_Functions              , only : cosmologyFunctionsClass
-    use :: IO_HDF5                          , only : hdf5Object                , hdf5Access
+    use :: IO_HDF5                          , only : hdf5Object
+    use :: HDF5_Access                      , only : hdf5Access
     use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass
     use :: File_Utilities                   , only : File_Name_Expand
     use :: Virial_Density_Contrast          , only : virialDensityContrastClass
@@ -600,13 +601,11 @@ contains
     double precision                                , allocatable  , dimension(:,:) :: functionCovarianceCombined
     double precision                                , allocatable  , dimension(:  ) :: functionValueDifference
     logical                                         , allocatable  , dimension(:  ) :: mask
-    double precision                                , parameter                     :: logRatioZero              =7.0d0
     type            (vector                        )                                :: residual
     type            (matrix                        )                                :: covariance
-    integer         (c_size_t                      )                                :: i                               , j             , &
-         &                                                                             ii                              , jj
+    integer         (c_size_t                      )                                :: i                         , j , &
+         &                                                                             ii                        , jj
     integer                                                                         :: status
-    double precision                                                                :: covarianceTermTarget            , covarianceTerm
     
     ! Check for existance of a target distribution.
     if (allocated(self%functionValueTarget)) then

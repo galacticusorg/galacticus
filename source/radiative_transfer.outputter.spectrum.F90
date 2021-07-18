@@ -307,9 +307,9 @@ contains
     !!{
     Output the spectrum.
     !!}
-    !$ use :: IO_HDF5                      , only : hdf5Access
-    use :: Numerical_Constants_Astronomical, only : luminositySolar
-    use :: String_Handling                 , only : String_Upper_Case_First
+    !$ use :: HDF5_Access                     , only : hdf5Access
+    use    :: Numerical_Constants_Astronomical, only : luminositySolar
+    use    :: String_Handling                 , only : String_Upper_Case_First
     implicit none
     class  (radiativeTransferOutputterSpectrum), intent(inout) :: self
     type   (hdf5Object                        ), intent(inout) :: outputGroup

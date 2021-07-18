@@ -9,6 +9,18 @@ use Scalar::Util 'reftype';
 use XML::Simple;
 use List::ExtraUtils;
 
+sub LoadConfig {
+    # Load and return a Galacticus config file.
+    my $config;
+    if ( -e $ENV{'GALACTICUS_EXEC_PATH'}."/galacticusConfig.xml" ) {
+	my $xml = new XML::Simple;
+	$config = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/galacticusConfig.xml" );
+    } elsif ( -e $ENV{'HOME'}."/.galacticusConfig.xml" ) {
+	my $xml = new XML::Simple;
+	$config = $xml->XMLin($ENV{'HOME'                }."/.galacticusConfig.xml");
+    }
+}
+
 sub Config {
     # Return a section of the Galacticus config file for the current host.
     my $section          = shift();

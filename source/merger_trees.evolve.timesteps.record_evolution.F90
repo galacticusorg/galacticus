@@ -270,7 +270,7 @@ contains
     return
   end subroutine recordEvolutionStore
 
-  subroutine recordEvolutionOutput(self,node,iOutput,treeIndex,nodePassesFilter)
+  subroutine recordEvolutionOutput(self,node,iOutput,treeIndex,nodePassesFilter,treeLock)
     !!{
     Store main branch evolution to the output file.
     !!}
@@ -283,14 +283,17 @@ contains
     use            :: Kind_Numbers                    , only : kind_int8
     use            :: Numerical_Constants_Astronomical, only : gigaYear               , massSolar
     use            :: String_Handling                 , only : operator(//)
+    use            :: Locks                           , only : ompLock
     implicit none
     class  (*             ), intent(inout) :: self
     type   (treeNode      ), intent(inout) :: node
     integer(c_size_t      ), intent(in   ) :: iOutput
     integer(kind=kind_int8), intent(in   ) :: treeIndex
     logical                , intent(in   ) :: nodePassesFilter
+    type   (ompLock       ), intent(inout) :: treeLock
     type   (varying_string)                :: datasetName
     type   (hdf5Object    )                :: outputGroup     , dataset
+    !$GLC attributes unused :: treeLock
 
     select type (self)
     class is (mergerTreeEvolveTimestepRecordEvolution)

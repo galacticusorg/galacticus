@@ -220,20 +220,22 @@ contains
    <unitName>Node_Component_Mass_Flow_Statistics_Standard_Extra_Output</unitName>
   </mergerTreeExtraOutputTask>
   !!]
-  subroutine Node_Component_Mass_Flow_Statistics_Standard_Extra_Output(node,iOutput,treeIndex,nodePassesFilter)
+  subroutine Node_Component_Mass_Flow_Statistics_Standard_Extra_Output(node,iOutput,treeIndex,nodePassesFilter,treeLock)
     !!{
     Reset mass flow statistics at output time.
     !!}
     use            :: Galacticus_Nodes, only : nodeComponentMassFlowStatistics, nodeComponentMassFlowStatisticsStandard, treeNode, defaultMassFlowStatisticsComponent
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Kind_Numbers    , only : kind_int8
+    use            :: Locks           , only : ompLock
     implicit none
     type            (treeNode                       ), intent(inout), pointer :: node
     integer         (kind=kind_int8                 ), intent(in   )          :: treeIndex
     integer         (kind=c_size_t                  ), intent(in   )          :: iOutput
     logical                                          , intent(in   )          :: nodePassesFilter
+    type            (ompLock                        ), intent(inout)          :: treeLock
     class           (nodeComponentMassFlowStatistics),                pointer :: massFlowStatistics
-    !$GLC attributes unused :: iOutput, nodePassesFilter, treeIndex
+    !$GLC attributes unused :: iOutput, nodePassesFilter, treeIndex, treeLock
 
     ! Check if we are the default method.
     if (.not.defaultMassFlowStatisticsComponent%standardIsActive()) return

@@ -31,7 +31,6 @@ module IO_HDF5
   use            :: HDF5              , only : hid_t         , hsize_t, size_t
   use, intrinsic :: ISO_C_Binding     , only : c_char        , c_int  , c_ptr , c_size_t
   use            :: ISO_Varying_String, only : varying_string
-  use            :: Locks             , only : ompLock
   implicit none
   private
   public :: hdf5Object, IO_HDF5_Set_Defaults, IO_HDF5_Is_HDF5
@@ -41,9 +40,6 @@ module IO_HDF5
   logical                                                :: inCritical=.false.
   !$omp threadprivate(inCritical)
 #endif
-
-  ! Lock object to coordinate access to HDF5.
-  type   (ompLock)                              , public :: hdf5Access
 
   ! Record of initialization of this module.
   logical                                                :: hdf5IsInitalized       =.false.
@@ -378,6 +374,8 @@ contains
           &                         H5T_NATIVE_DOUBLE      , H5T_NATIVE_INTEGER, H5T_NATIVE_INTEGER_8, H5T_STD_I32BE , &
           &                         H5T_STD_I32LE          , H5T_STD_I64BE     , H5T_STD_I64LE       , H5T_STD_U32BE , &
           &                         H5T_STD_U32LE          , h5open_f
+    use :: HDF5_Access     , only : hdf5Access
+    use :: Locks           , only : ompLock
     implicit none
     integer :: errorCode
 
@@ -486,6 +484,7 @@ contains
     !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: HDF5            , only : HSIZE_T
+    use :: HDF5_Access     , only : hdf5Access
     implicit none
     integer(kind=HSIZE_T), intent(in   ), optional :: chunkSize
     integer              , intent(in   ), optional :: compressionLevel

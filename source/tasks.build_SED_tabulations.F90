@@ -148,6 +148,7 @@ contains
     use :: Node_Property_Extractors  , only : nodePropertyExtractorSED         , nodePropertyExtractorMulti
     use :: Galactic_Structure_Options, only : componentTypeDisk                , componentTypeSpheroid
     use :: Node_Components           , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
+    use :: Locks                     , only : ompLock
 #ifdef USEMPI
     use :: MPI_Utilities             , only : mpiBarrier                       , mpiSelf
 #endif
@@ -167,6 +168,7 @@ contains
     integer         (c_size_t               )                                :: i
     double precision                                                         :: time
     type            (multiCounter           )                                :: instance
+    type            (ompLock                )                                :: treeLock
     !$GLC attributes unused :: self
 
     call displayIndent ('Begin task: build SED tabulations')
@@ -181,6 +183,9 @@ contains
     basic    => node    %basic   (autoCreate=.true.)
     ! Initialize a single instance.
     instance=multiCounter([1_c_size_t])
+    ! Initialize a tree output lock - this is required by the star formation history output functions, even though we don't
+    ! actually need any locking here.
+    treeLock=ompLock()
     ! Choose a beginning time. Set this to slightly before the first output time to ensure that the initial set of times assigned
     ! to each history corresponds to the first (and not the second) output time).
     time   =+self%outputTimes_%time(1_c_size_t) &
@@ -231,7 +236,8 @@ contains
             &                                                    historyStarFormation=starFormationHistoryDisk    , &
             &                                                    indexOutput         =i                           , &
             &                                                    indexTree           =1_c_size_t                  , &
-            &                                                    componentType       =componentTypeDisk             &
+            &                                                    componentType       =componentTypeDisk           , &
+            &                                                    treeLock            =treeLock                      &
             &                                                   )
        call self%starFormationHistory_%output                   (                                                   &
             &                                                    node                =node                        , &
@@ -239,7 +245,8 @@ contains
             &                                                    historyStarFormation=starFormationHistorySpheroid, &
             &                                                    indexOutput         =i                           , &
             &                                                    indexTree           =1_c_size_t                  , &
-            &                                                    componentType       =componentTypeSpheroid         &
+            &                                                    componentType       =componentTypeSpheroid       , &
+            &                                                    treeLock            =treeLock                      &
             &                                                   )
        starFormationHistoryDisk    %data=1.0d0
        starFormationHistorySpheroid%data=1.0d0

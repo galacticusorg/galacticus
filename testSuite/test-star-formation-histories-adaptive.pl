@@ -38,17 +38,17 @@ foreach my $outputName ( sort($outputs->groups()) ) {
     my $nodesMassStellarDisk     = $nodeData->dataset('diskMassStellar'    )->get  (          );
     my $nodesMassStellarSpheroid = $nodeData->dataset('spheroidMassStellar')->get  (          );
     # Read corresponding star formation histories.
-    my $starFormationHistoryData = $starFormationHistories->group($outputName);
+    my $starFormationHistoryData        = $starFormationHistories  ->group  ($outputName                   )       ;
     my $sfhDiskStarFormationHistory     = $starFormationHistoryData->dataset('diskStarFormationHistory'    )->get();
     my $sfhSpheroidStarFormationHistory = $starFormationHistoryData->dataset('spheroidStarFormationHistory')->get();
     # Iterate over nodes, computing the integrated star formation history.
     my $nodesSFHIntegratedDisk     = pdl zeroes(nelem($nodesMassStellarDisk    ));
     my $nodesSFHIntegratedSpheroid = pdl zeroes(nelem($nodesMassStellarSpheroid));
     for(my $i=0;$i<nelem($nodesMassStellarDisk);++$i) {
-	$nodesSFHIntegratedDisk    ->(($i)) .= $sfhDiskStarFormationHistory    (($i),:,:)->sum()*(1.0-$recycledFraction);
-	$nodesSFHIntegratedSpheroid->(($i)) .= $sfhSpheroidStarFormationHistory(($i),:,:)->sum()*(1.0-$recycledFraction);
+	$nodesSFHIntegratedDisk    ->(($i)) .= $sfhDiskStarFormationHistory    (:,:,($i))->sum()*(1.0-$recycledFraction);
+	$nodesSFHIntegratedSpheroid->(($i)) .= $sfhSpheroidStarFormationHistory(:,:,($i))->sum()*(1.0-$recycledFraction);
     }
-    my $tolerance     = pdl 1.0e-3;
+    my $tolerance      = pdl 1.0e-3;
     my $statusDisk     = any(abs($nodesSFHIntegratedDisk    -$nodesMassStellarDisk    ) > $tolerance*$nodesMassStellarDisk    ) ? "FAILED" : "SUCCESS";
     my $statusSpheroid = any(abs($nodesSFHIntegratedSpheroid-$nodesMassStellarSpheroid) > $tolerance*$nodesMassStellarSpheroid) ? "FAILED" : "SUCCESS";
     print " -> ".$statusDisk    .": disk stellar mass\n"    ;

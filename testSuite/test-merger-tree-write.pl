@@ -10,20 +10,17 @@ use Galacticus::Options;
 # Andrew Benson (12-October-2012)
 
 # Read in any configuration options.
-my $config;
-if ( -e "galacticusConfig.xml" ) {
-    my $xml = new XML::Simple;
-    $config = $xml->XMLin("galacticusConfig.xml");
-}
+my $config = &Galacticus::Options::LoadConfig();
 
 # Parse config options.
 my $queueManager = &Galacticus::Options::Config(                'queueManager' );
-my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     });
+my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     })
+    if ( defined($queueManager) );
 
 # Set default options.
 my %options =
     (
-     'pbsJobMaximum' => exists($queueConfig->{'jobMaximum'}) ? $queueConfig->{'jobMaximum'} : 100,
+     'pbsJobMaximum' => (defined($queueConfig) && exists($queueConfig->{'jobMaximum'})) ? $queueConfig->{'jobMaximum'} : 100,
     );
 
 # Get any command line options.

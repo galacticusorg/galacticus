@@ -943,7 +943,7 @@ CODE
 				     &&
 				     $declaration->{'type'     } =~ m/^\s*hdf5object\s*$/i
 				    ) {
-					$deepCopyModules{'IO_HDF5'} = 1;
+					$deepCopyModules{'HDF5_Access'} = 1;
 					$assignments .= "!\$ call hdf5Access%set  ()\n";
 					$assignments .= "call self%".$_."%deepCopy(destination%".$_.")\n"
 					    foreach ( @{$declaration->{'variables'}} );
@@ -1169,7 +1169,7 @@ CODE
 			 &&
 			 $declaration->{'type'     } =~ m/^\s*hdf5object\s*$/i
 			) {
-			    $deepCopyModules{'IO_HDF5'} = 1;
+			    $deepCopyModules{'HDF5_Access'} = 1;
 			    $assignments .= "!\$ call hdf5Access%set  ()\n";
 			    $assignments .= "call self%".$_."%deepCopy(destination%".$_.")\n"
 				foreach ( @{$declaration->{'variables'}} );
@@ -1302,7 +1302,7 @@ CODE
 				     &&
 				     $declaration->{'type'     } =~ m/^\s*hdf5object\s*$/i
 				    ) {
-					$deepCopyModules{'IO_HDF5'} = 1;
+					$deepCopyModules{'HDF5_Access'} = 1;
 					$assignments .= "!\$ call hdf5Access%set  ()\n";
 					$assignments .= "call self%".$_."%deepCopy(destination%".$_.")\n"
 					    foreach ( @{$declaration->{'variables'}} );
