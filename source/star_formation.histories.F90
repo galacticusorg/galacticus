@@ -30,6 +30,7 @@ module Star_Formation_Histories
   use            :: Histories           , only : history
   use, intrinsic :: ISO_C_Binding       , only : c_size_t
   use            :: Kind_Numbers        , only : kind_int8
+  use            :: Locks               , only : ompLock
   implicit none
   private
 
@@ -76,12 +77,14 @@ module Star_Formation_Histories
     <argument>integer(c_size_t      ), intent(in   )         :: indexOutput</argument>
     <argument>integer(kind=kind_int8), intent(in   )         :: indexTree</argument>
     <argument>integer                , intent(in   )         :: componentType</argument>
+    <argument>type   (ompLock       ), intent(inout)         :: treeLock</argument>
    </method>
    <method name="outputFlush" >
     <description>Flush any buffered output.</description>
     <type>void</type>
     <pass>yes</pass>
-    <argument>integer, intent(in   ) :: componentType</argument>
+    <argument>integer         , intent(in   ) :: componentType</argument>
+    <argument>type   (ompLock), intent(inout) :: treeLock</argument>
     <code>
      !$GLC attributes unused :: self, componentType
      ! Do nothing by default.

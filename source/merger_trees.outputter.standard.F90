@@ -27,6 +27,7 @@
   use :: Kind_Numbers                      , only : kind_int8
   use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
   use :: Node_Property_Extractors          , only : nodePropertyExtractor, nodePropertyExtractorClass
+  use :: Locks                             , only : ompLock
 
   type outputGroup
      !!{
@@ -43,13 +44,17 @@
    <module variables="standardBufferSizeIncrement"/>
   </scoping>
   !!]
-  integer, parameter :: standardOutputGroupsIncrement=10, standardBufferSizeIncrement=1024
+  integer         , parameter :: standardOutputGroupsIncrement=10     , standardBufferSizeIncrement=1024
 
+  ! Lock object used to ensure merger trees are output contiguously.
+  type   (ompLock)            :: treeLock
+  logical                     :: treeLockInitialized          =.false.
+  
   !![
   <mergerTreeOutputter name="mergerTreeOutputterStandard">
    <description>The standard merger tree outputter.</description>
    <stateStorable>
-    <restoreTo variables="outputsGroupOpened" state=".false."/>
+    <restoreTo variables="outputsGroupOpened"                                                                                            state=".false."                    />
     <restoreTo variables="outputGroupsCount  , doublePropertiesWritten, integerPropertiesWritten, doubleBufferCount, integerBufferCount" state="0"                          />
     <restoreTo variables="doublePropertyCount, integerPropertyCount"                                                                     state="-1"                         />
     <restoreTo variables="integerBufferSize  , doubleBufferSize"                                                                         state="standardBufferSizeIncrement"/>
@@ -187,6 +192,12 @@ contains
     self%integerBufferCount      = 0
     self%integerBufferSize       =standardBufferSizeIncrement
     self%doubleBufferSize        =standardBufferSizeIncrement
+    !$omp critical(mergerTreeOutputterStandardInitialize)
+    if (.not.treeLockInitialized) then
+       treeLock           =ompLock()
+       treeLockInitialized=.true.
+    end if
+    !$omp end critical(mergerTreeOutputterStandardInitialize)
     return
   end function standardConstructorInternal
 
@@ -242,8 +253,6 @@ contains
     integer                                                               :: iProperty
     type            (hdf5Object                 )                         :: toDataset
 
-    ! Main output block.
-    !$omp critical(mergerTreeOutputterStandard)
     ! Create an output group.
     call self%outputGroupCreate(indexOutput,time)
     ! Iterate over trees.
@@ -273,29 +282,40 @@ contains
                 ! Perform an extra output tasks.
                 !![
                 <include directive="mergerTreeExtraOutputTask" type="functionCall" functionType="void">
-                 <functionArgs>node,indexOutput,node%hostTree%index,self%galacticFilter_%passes(node)</functionArgs>
+                 <functionArgs>node,indexOutput,node%hostTree%index,self%galacticFilter_%passes(node),treeLock</functionArgs>
                 !!]
 		include 'merger_trees.outputter.tasks.extra.inc'
                 !![
                 </include>
                 <eventHook name="mergerTreeExtraOutput">
-		 <callWith>node,indexOutput,node%hostTree,self%galacticFilter_%passes(node)</callWith>
+		 <callWith>node,indexOutput,node%hostTree,self%galacticFilter_%passes(node),treeLock</callWith>
                 </eventHook>  
                 !!]
              end if
           end do
           ! Finished output.
-          if (self%integerPropertyCount > 0 .and. self%integerBufferCount > 0) call self%dumpIntegerBuffer(indexOutput)
-          if (self% doublePropertyCount > 0 .and. self% doubleBufferCount > 0) call self%dumpDoubleBuffer (indexOutput)
+          if     (                                                                     &
+               &   (                                                                   &
+               &     (self%integerPropertyCount > 0 .and. self%integerBufferCount > 0) &
+               &    .or.                                                               &
+               &     (self% doublePropertyCount > 0 .and. self% doubleBufferCount > 0) &
+               &   )                                                                   &
+               &  .and.                                                                &
+               &   .not.treeLock%ownedByThread()                                       &
+               & ) call treeLock%set()
+          if         (self%integerPropertyCount > 0 .and. self%integerBufferCount > 0) call self%dumpIntegerBuffer(indexOutput)
+          if         (self% doublePropertyCount > 0 .and. self% doubleBufferCount > 0) call self%dumpDoubleBuffer (indexOutput)
           ! Perform an extra output tasks.
           !![
           <include directive="mergerTreeExtraOutputFlush" type="functionCall" functionType="void">
+            <functionArgs>treeLock</functionArgs>
           !!]
 	  include 'merger_trees.outputter.tasks.extra.flush.inc'
           !![
           </include>
           !!]
           ! Compute the start and length of regions to reference.
+          if (.not.treeLock%ownedByThread()) call treeLock%set()
           !$ call hdf5Access%set()
           referenceLength(1)=max(self%integerPropertiesWritten,self%doublePropertiesWritten)
           if      (allocated(self%integerProperty).and.self%outputGroups(indexOutput)%nodeDataGroup%hasDataset(self%integerProperty(1)%name)) then
@@ -338,11 +358,11 @@ contains
           call self%outputGroups(indexOutput)%hdf5Group%writeDataset(referenceLength           ,"mergerTreeCount"     ,"Number of nodes in nodeData datasets for each merger tree."  ,appendTo=.true.)
           call self%outputGroups(indexOutput)%hdf5Group%writeDataset([currentTree%volumeWeight],"mergerTreeWeight"    ,"Number density of each tree [Mpc⁻³]."                        ,appendTo=.true.)
           !$ call hdf5Access%unset()
+          if (treeLock%ownedByThread()) call treeLock%unset()
        end if
        ! Skip to the next tree.
        currentTree => currentTree%nextTree
     end do
-    !$omp end critical(mergerTreeOutputterStandard)
     return
   end subroutine standardOutputTree
 
@@ -355,9 +375,8 @@ contains
     class  (mergerTreeOutputterStandard), intent(inout) :: self
     type   (treeNode                   ), intent(inout) :: node
     integer(c_size_t                   ), intent(in   ) :: indexOutput
-    class(nodeComponentBasic), pointer :: basic
+    class  (nodeComponentBasic         ), pointer       :: basic
     
-    !$omp critical(mergerTreeOutputterStandard)
     ! Create an output group.
     basic => node%basic()
     call self%outputGroupCreate(indexOutput,basic%time())
@@ -373,9 +392,17 @@ contains
     ! Perform our output.
     call self%output(node,basic%time())
     ! Finished output.
+    if     (                                                                     &
+         &   (                                                                   &
+         &     (self%integerPropertyCount > 0 .and. self%integerBufferCount > 0) &
+         &    .or.                                                               &
+         &     (self% doublePropertyCount > 0 .and. self% doubleBufferCount > 0) &
+         &   )                                                                   &
+         &  .and.                                                                &
+         &   .not.treeLock%ownedByThread()                                       &
+         & ) call treeLock%set()
     if (self%integerPropertyCount > 0 .and. self%integerBufferCount > 0) call self%dumpIntegerBuffer(indexOutput)
     if (self% doublePropertyCount > 0 .and. self% doubleBufferCount > 0) call self%dumpDoubleBuffer (indexOutput)
-    !$omp end critical(mergerTreeOutputterStandard)
     return
   end subroutine standardOutputNode
 
