@@ -70,6 +70,9 @@ sub Find_Hash {
     my @fileNames = @{shift(@_)};
     my (%options) =         @_
 	if ( scalar(@_) > 0 );
+    # Set default set of include files to exclude.
+    @{$options{'includeFilesExcluded'}} = ()
+	unless ( exists($options{'includeFilesExcluded'}) );
     # Initialize reporting.
     $options{'report'} = 0
 	unless ( exists($options{'report'}) );
@@ -185,7 +188,7 @@ sub Find_Hash {
 					$useStoredHash = defined($digest);
 					if ( $useStoredHash ) {
 					    $digests{$sourceFileName} = $digest;
-					    print "   => Reading stored hash: ".$digests{$sourceFileName}."\n"
+					    print "   => Reading stored hash: ".$sourceFileName."\t".$digests{$sourceFileName}."\n"
 						if ( $options{'report'} );
 					}
 				    }
@@ -196,7 +199,7 @@ sub Find_Hash {
 					my $fileHasher = Digest::MD5->new();
 					if ( $suffix eq "F90" || $suffix eq "Inc" ) {
 					    # Parse the file ignoring whitespace and comments.
-					    $fileHasher->add(&Fortran::Utils::read_file($sourceFileName,state => "raw", followIncludes => 1, includeLocations => [ "../source", "../".$ENV{'BUILDPATH'} ], stripRegEx => qr/^\s*![^\#\@].*$/, stripLeading => 1, stripTrailing => 1, stripEmpty => 1));
+					    $fileHasher->add(&Fortran::Utils::read_file($sourceFileName,state => "raw", followIncludes => 1, includeLocations => [ "../source", "../".$ENV{'BUILDPATH'} ], includeFilesExcluded => $options{'includeFilesExcluded'}, stripRegEx => qr/^\s*!(?!(!\[|\$)).*$/, stripLeading => 1, stripTrailing => 1, stripEmpty => 1));
 					    # Search for use on any files from the data directory by this source file.
 					    my @extraFiles = 
 						map 
@@ -221,7 +224,7 @@ sub Find_Hash {
 					print $md5File $digests{$sourceFileName};
 					close($md5File);
 					&updateModificationTime($md5FileName);
-					print "   => Stored hash: ".$digests{$sourceFileName}."\n"
+					print "   => Stored hash: ".$sourceFileName."\t".$digests{$sourceFileName}."\n"
 					    if ( $options{'report'} );
 				    }
 				    close($md5Lock);
