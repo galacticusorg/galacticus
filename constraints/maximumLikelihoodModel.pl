@@ -38,7 +38,7 @@ my %options = (
 my $config = &Galacticus::Constraints::Parameters::parseConfig($parameterFile);
  
 # Extract MCMC directory.
-my $logFileRoot = $config->{'posteriorSampleSimulationMethod'}->{'logFileRoot'}->{'value'};
+my $logFileRoot = $config->{'posteriorSampleSimulation'}->{'logFileRoot'}->{'value'};
 (my $mcmcDirectory  = $logFileRoot) =~ s/\/[^\/]+$//;    
 
 # Find number of steps taken.
