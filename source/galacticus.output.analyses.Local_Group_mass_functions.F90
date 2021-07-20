@@ -190,7 +190,7 @@ contains
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                         , randomErrorMaximum
     double precision                                                     , intent(in   ), dimension(:  ) :: randomErrorPolynomialCoefficient                           , systematicErrorPolynomialCoefficient
     class           (outputTimesClass                                   ), intent(inout)                 :: outputTimes_
-    type            (nodePropertyExtractorMassStellar         )               , pointer        :: nodePropertyExtractor_
+    type            (nodePropertyExtractorMassStellar                   )               , pointer        :: nodePropertyExtractor_
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial    )               , pointer        :: outputAnalysisPropertyOperatorSystmtcPolynomial_
     type            (outputAnalysisPropertyOperatorLog10                )               , pointer        :: outputAnalysisPropertyOperatorLog10_
     type            (outputAnalysisPropertyOperatorSequence             )               , pointer        :: outputAnalysisPropertyOperator_
@@ -256,7 +256,7 @@ contains
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_                )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassStellar     (                                                   )"/>
+    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorMassStellar               (                                                   )"/>
     !!]
     ! Create property operators and unoperators to perform conversion to/from logarithmic mass.
     allocate(outputAnalysisPropertyOperatorLog10_            )
