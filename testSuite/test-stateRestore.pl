@@ -17,7 +17,7 @@ for(my $pass=0;$pass<2;++$pass) {
     print "State store/restore test pass #".$pass."\n";
 
     # Run full store model.
-    system("export OMP_NUM_THREADS=12; rm -f outputs/state.state* outputs/state.gsl.state*; cd ..; Galacticus.exe testSuite/parameters/state/store.xml"  );
+    system("export OMP_NUM_THREADS=12; rm -f outputs/state.state*:openMP* outputs/state.gsl.state*:openMP*; cd ..; Galacticus.exe testSuite/parameters/state/store.xml"  );
     die("FAILED: failed to run store model")
 	unless ( $? == 0 );
     # Find which threads ran the final tree.
