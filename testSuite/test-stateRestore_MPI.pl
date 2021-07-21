@@ -40,7 +40,7 @@ for(my $pass=0;$pass<2;++$pass) {
     print "State store/restore test pass #".$pass."\n";
 
     # Run full store model.
-    system("export OMP_NUM_THREADS=1; rm -f outputs/state.state* outputs/state.gsl.state*; cd ..; mpirun -np 8 Galacticus.exe_MPI testSuite/parameters/state/store.xml"  );
+    system("export OMP_NUM_THREADS=1; rm -f outputs/state.state*:MPI: outputs/state.gsl.state*:MPI*; cd ..; mpirun -np 8 Galacticus.exe_MPI testSuite/parameters/state/store.xml"  );
     die("FAILED: failed to run store model")
 	unless ( $? == 0 );
     # Find which threads ran the final tree.
