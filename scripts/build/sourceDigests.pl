@@ -88,7 +88,6 @@ foreach my $fileName ( @fileNames ) {
 	$rescan = 0
 	    unless ( grep {-M $_ < $updateTime} &List::ExtraUtils::as_array($digestsPerFile->{$fileIdentifier}->{'files'}) );
     }
-    print " RESCAN ".$rescan."\n";
     if ( $rescan ) {
 	delete($digestsPerFile->{$fileIdentifier})
     	    if ( $havePerFile && exists($digestsPerFile->{$fileIdentifier}) );
