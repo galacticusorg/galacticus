@@ -95,17 +95,17 @@ contains
           call displayMessage("unpacking CAMB code....",verbosityLevelWorking)
           call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//" -f "//galacticusPath(pathTypeDataDynamic)//"CAMB_"//char(cambVersion)//".tar.gz");          
           if (status /= 0 .or. .not.File_Exists(cambPath)) call Galacticus_Error_Report('failed to unpack CAMB code'//{introspection:location})
-       end if
-       ! Download the "forutils" package if necessary.
-       if (.not.File_Exists(cambPath//"../forutils/Makefile")) then
-          if (.not.File_Exists(cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz")) then
-             call displayMessage("downloading forutils code....",verbosityLevelWorking)
-             call System_Command_Do("wget https://github.com/cmbant/forutils/archive/refs/tags/"//char(forutilsVersion)//".tar.gz -O "//cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz",status)
-             if (status /= 0 .or. .not.File_Exists(cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz")) call Galacticus_Error_Report("unable to download forutils"//{introspection:location})
+          ! Download the "forutils" package if necessary.
+          if (.not.File_Exists(cambPath//"../forutils/Makefile")) then
+             if (.not.File_Exists(cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz")) then
+                call displayMessage("downloading forutils code....",verbosityLevelWorking)
+                call System_Command_Do("wget https://github.com/cmbant/forutils/archive/refs/tags/"//char(forutilsVersion)//".tar.gz -O "//cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz",status)
+                if (status /= 0 .or. .not.File_Exists(cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz")) call Galacticus_Error_Report("unable to download forutils"//{introspection:location})
+             end if
+             call displayMessage("unpacking forutils code....",verbosityLevelWorking)
+             call System_Command_Do("tar -x -v -z -C "//cambPath//"../forutils -f "//cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz --strip-components 1");          
+             if (status /= 0 .or. .not.File_Exists(cambPath//"../forutils/Makefile")) call Galacticus_Error_Report('failed to unpack forutils code'//{introspection:location})
           end if
-          call displayMessage("unpacking forutils code....",verbosityLevelWorking)
-          call System_Command_Do("tar -x -v -z -C "//cambPath//"../forutils -f "//cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz --strip-components 1");          
-          if (status /= 0 .or. .not.File_Exists(cambPath//"../forutils/Makefile")) call Galacticus_Error_Report('failed to unpack forutils code'//{introspection:location})
        end if
        call displayMessage("compiling CAMB code",verbosityLevelWorking)
        command='cd '//cambPath//'; sed -r -i~ s/"ifortErr\s*=.*"/"ifortErr = 1"/ Makefile; sed -r -i~ s/"gfortErr\s*=.*"/"gfortErr = 0"/ Makefile; sed -r -i~ s/"^FFLAGS\s*\+=\s*\-march=native"/"FFLAGS+="/ Makefile; sed -r -i~ s/"^FFLAGS\s*=\s*.*"/"FFLAGS = -cpp -Ofast -fopenmp'
@@ -334,16 +334,14 @@ contains
        write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'l_max_scalar                 ',2200.0d0
        write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'l_max_tensor                 ',1500.0d0
        write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'k_eta_max_tensor             ',3000.0d0
-       write (cambParameterFile,'(a,1x,"=",1x,a    )') 'use_physical                 ','F'
-       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'omega_baryon                 ',cosmologyParameters_%OmegaBaryon    ()
-       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'omega_cdm                    ',cosmologyParameters_%OmegaMatter    ()-cosmologyParameters_%OmegaBaryon()
-       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'omega_lambda                 ',cosmologyParameters_%OmegaDarkEnergy()
-       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'omega_neutrino               ',0.0d0
-       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'omk                          ',0.0d0
-       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'hubble                       ',cosmologyParameters_%HubbleConstant ()
+       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'ombh2                        ',(      cosmologyParameters_%OmegaBaryon   ()                                       )*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
+       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'omch2                        ',(      cosmologyParameters_%OmegaMatter   ()-cosmologyParameters_%OmegaBaryon    ())*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
+       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'omk                          ',(1.0d0-cosmologyParameters_%OmegaMatter   ()-cosmologyParameters_%OmegaDarkEnergy())*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
+       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'omnuh2                       ',(0.0d0                                                                             )*cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)**2
+       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'hubble                       ',                                                                                     cosmologyParameters_%HubbleConstant(                  )
        write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'w                            ',-1.0d0
        write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'cs2_lam                      ',1.0d0
-       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'temp_cmb                     ',cosmologyParameters_%temperatureCMB ()
+       write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'temp_cmb                     ',      cosmologyParameters_%temperatureCMB()
        write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'helium_fraction              ',heliumByMassPrimordial
        write (cambParameterFile,'(a,1x,"=",1x,e12.6)') 'massless_neutrinos           ',2.046d0
        write (cambParameterFile,'(a,1x,"=",1x,i1   )') 'nu_mass_eigenstates          ',1
