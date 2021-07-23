@@ -83,7 +83,7 @@ contains
        self%propertyIDs(i)=enumerationKeplerOrbitEncode(char(properties(i)),includesPrefix=.false.)
        select case (self%propertyIDs(i))
        case (keplerOrbitMasses             )
-          call Galacticus_Error_Report('"masses" property if unsupported'//{introspection:location})
+          call Galacticus_Error_Report('"masses" property is unsupported'//{introspection:location})
        case (keplerOrbitHostMass           )
           self%names_       (i)=prefix//'HostMass'
           self%descriptions_(i)='The mass of the host system [M☉].'
