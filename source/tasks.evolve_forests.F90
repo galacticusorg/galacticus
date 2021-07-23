@@ -971,6 +971,7 @@ contains
     <objectDestructor name="evolveForestsMergerTreeEvolver_"    />
     <objectDestructor name="evolveForestsMergerTreeConstructor_"/>
     <objectDestructor name="evolveForestsMergerTreeOperator_"   />
+    <objectDestructor name="evolveForestsNodeOperator_"         />
     !!]
     !$omp end parallel
 
