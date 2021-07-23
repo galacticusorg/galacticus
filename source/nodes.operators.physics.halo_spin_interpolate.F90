@@ -81,11 +81,11 @@ contains
     double precision                                                          :: timeInterval
     logical                                                                   :: spinIsVector
     
+    spin => node%spin()
     if (node%isPrimaryProgenitor()) then
        ! For primary progenitors compute and store the spin growth rate.
        basic        =>  node              %basic                         ()
        basicParent  =>  node       %parent%basic                         ()
-       spin         =>  node              %spin                          ()
        spinParent   =>  node       %parent%spin                          ()
        spinIsVector =   spin              %spinVectorGrowthRateIsSettable()
        timeInterval =  +basicParent       %time                          () &
