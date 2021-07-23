@@ -70,15 +70,16 @@ contains
     type   (varying_string), intent(  out)           :: cambPath, cambVersion
     logical                , intent(in   ), optional :: static
     integer                                          :: status  , flagsLength
-    type   (varying_string)                          :: command
+    type   (varying_string)                          :: command , forutilsVersion
     type   (lockDescriptor)                          :: fileLock
     !![
     <optionalArgument name="static" defaultsTo=".false." />
     !!]
 
     ! Set path and version
-    cambPath   =galacticusPath(pathTypeDataDynamic)//"CAMB/"
-    cambVersion="?"
+    cambVersion    ="1.3.2"
+    forutilsVersion="1.0"
+    cambPath       =galacticusPath(pathTypeDataDynamic)//"CAMB-"//cambVersion//"/fortran/"
     ! Build the CAMB code.
     if (.not.File_Exists(cambPath//"camb")) then
        call Directory_Make(cambPath)
@@ -86,17 +87,28 @@ contains
        ! Unpack the code.
        if (.not.File_Exists(cambPath//"Makefile")) then
           ! Download CAMB if necessary.
-          if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz")) then
+          if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB_"//char(cambVersion)//".tar.gz")) then
              call displayMessage("downloading CAMB code....",verbosityLevelWorking)
-             call System_Command_Do("wget http://camb.info/CAMB.tar.gz -O "//galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz",status)
-             if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz")) call Galacticus_Error_Report("unable to download CAMB"//{introspection:location})
+             call System_Command_Do("wget https://github.com/cmbant/CAMB/archive/refs/tags/"//char(cambVersion)//".tar.gz -O "//galacticusPath(pathTypeDataDynamic)//"CAMB_"//char(cambVersion)//".tar.gz",status)
+             if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"CAMB_"//char(cambVersion)//".tar.gz")) call Galacticus_Error_Report("unable to download CAMB"//{introspection:location})
           end if
           call displayMessage("unpacking CAMB code....",verbosityLevelWorking)
-          call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//" -f "//galacticusPath(pathTypeDataDynamic)//"CAMB.tar.gz");
+          call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//" -f "//galacticusPath(pathTypeDataDynamic)//"CAMB_"//char(cambVersion)//".tar.gz");          
           if (status /= 0 .or. .not.File_Exists(cambPath)) call Galacticus_Error_Report('failed to unpack CAMB code'//{introspection:location})
        end if
+       ! Download the "forutils" package if necessary.
+       if (.not.File_Exists(cambPath//"../forutils/Makefile")) then
+          if (.not.File_Exists(cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz")) then
+             call displayMessage("downloading forutils code....",verbosityLevelWorking)
+             call System_Command_Do("wget https://github.com/cmbant/forutils/archive/refs/tags/"//char(forutilsVersion)//".tar.gz -O "//cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz",status)
+             if (status /= 0 .or. .not.File_Exists(cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz")) call Galacticus_Error_Report("unable to download forutils"//{introspection:location})
+          end if
+          call displayMessage("unpacking forutils code....",verbosityLevelWorking)
+          call System_Command_Do("tar -x -v -z -C "//cambPath//"../forutils -f "//cambPath//"../forutils_"//char(forutilsVersion)//".tar.gz --strip-components 1");          
+          if (status /= 0 .or. .not.File_Exists(cambPath//"../forutils/Makefile")) call Galacticus_Error_Report('failed to unpack forutils code'//{introspection:location})
+       end if
        call displayMessage("compiling CAMB code",verbosityLevelWorking)
-       command='cd '//cambPath//'; sed -r -i~ s/"ifortErr\s*=.*"/"ifortErr = 1"/ Makefile; sed -r -i~ s/"gfortErr\s*=.*"/"gfortErr = 0"/ Makefile; sed -r -i~ s/"^FFLAGS\s*\+=\s*\-march=native"/"FFLAGS+="/ Makefile; sed -r -i~ s/"^FFLAGS\s*=\s*.*"/"FFLAGS = -Ofast -fopenmp'
+       command='cd '//cambPath//'; sed -r -i~ s/"ifortErr\s*=.*"/"ifortErr = 1"/ Makefile; sed -r -i~ s/"gfortErr\s*=.*"/"gfortErr = 0"/ Makefile; sed -r -i~ s/"^FFLAGS\s*\+=\s*\-march=native"/"FFLAGS+="/ Makefile; sed -r -i~ s/"^FFLAGS\s*=\s*.*"/"FFLAGS = -cpp -Ofast -fopenmp'
        if (static_) then
           ! Include Galacticus compilation flags here - may be necessary for static linking.
           call Get_Environment_Variable("GALACTICUS_FCFLAGS",length=flagsLength,status=status)
