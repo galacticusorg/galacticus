@@ -88,13 +88,33 @@ contains
     type            (treeNode                                           ), intent(inout), target      :: node
     double precision                                                     , intent(in   )              :: time
     type            (multiCounter                                       ), intent(inout), optional    :: instance
+    double precision                                                                                  :: powerLawIndexEarly                   , powerLawIndexLate, &
+         &                                                                                               log10TimeZero
     !$GLC attributes unused :: time, instance
 
+    if (node%hostTree%properties%exists('treeMAHHearin2021PowerLawIndexEarly')) then
+       powerLawIndexEarly=node%hostTree%properties%value('treeMAHHearin2021PowerLawIndexEarly')
+    else
+       ! Set an unphysical value if the property does not exist.
+       powerLawIndexEarly=-huge(0.0d0)
+    end if
+    if (node%hostTree%properties%exists('treeMAHHearin2021PowerLawIndexLate' )) then
+       powerLawIndexLate =node%hostTree%properties%value('treeMAHHearin2021PowerLawIndexLate' )
+    else
+       ! Set an unphysical value if the property does not exist.
+       powerLawIndexLate =-huge(0.0d0)
+    end if
+    if (node%hostTree%properties%exists('treeMAHHearin2021Log10TimeZero'     )) then
+       log10TimeZero     =node%hostTree%properties%value('treeMAHHearin2021Log10TimeZero'     )
+    else
+       ! Set an unphysical value if the property does not exist.
+       log10TimeZero     =-huge(0.0d0)
+    end if
     allocate(massAccretionHistoryHearin2021Extract(3))
-    massAccretionHistoryHearin2021Extract=[                                                                       &
-         &                                 node%hostTree%properties%value('treeMAHHearin2021PowerLawIndexEarly'), &
-         &                                 node%hostTree%properties%value('treeMAHHearin2021PowerLawIndexLate' ), &
-         &                                 node%hostTree%properties%value('treeMAHHearin2021Log10TimeZero'     )  &
+    massAccretionHistoryHearin2021Extract=[                    &
+         &                                 powerLawIndexEarly, &
+         &                                 powerLawIndexLate , &
+         &                                 log10TimeZero       &
          &                                ]
     return
   end function massAccretionHistoryHearin2021Extract
