@@ -80,9 +80,7 @@
     <!-- Halo concentrations -->
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spin -->
-    <nodeOperator value="haloSpinInterpolate">
-      <factorReset value="2.0"/>
-    </nodeOperator>
+    <nodeOperator value="haloSpinInterpolate"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>
