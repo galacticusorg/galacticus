@@ -33,8 +33,8 @@
       W(k) = {3 (\sin(x)-x \cos(x)) \over x^3} \times \exp{-k^2\sigma^2 \over 2},
       \end{equation}
       where $x = k R$ and $R=(3M/4\pi\bar{\rho})^{1/3}$ for a smoothing scale $M$ and mean matter density $\bar{\rho}$.
-      \sigma is the width of the smoothing Gaussian in real space. This exponentially cuts off the window function at $k \gg 1/\sigma$.
-    </description>
+      $\sigma$ is the width of the smoothing Gaussian in real space. This exponentially cuts off the window function at $k \gg 1/\sigma$.
+        </description>
   </powerSpectrumWindowFunction>
   !!]
   type, extends(powerSpectrumWindowFunctionClass) :: powerSpectrumWindowFunctionTopHatSmoothed
