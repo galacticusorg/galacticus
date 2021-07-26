@@ -105,8 +105,9 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpin, nodeComponentSpinScalar, treeNode, defaultSpinComponent
     implicit none
-    type (treeNode         ), intent(inout), pointer :: node
-    class(nodeComponentSpin)               , pointer :: spin
+    type            (treeNode         ), intent(inout), pointer :: node
+    class           (nodeComponentSpin)               , pointer :: spin
+    double precision                   , parameter              :: spinMinimum=1.0d-6
 
     ! Return immediately if this class is not in use.
     if (.not.defaultSpinComponent%scalarIsActive()) return
@@ -116,7 +117,7 @@ contains
     select type (spin)
     class is (nodeComponentSpinScalar)
        ! Set scale for spin.
-       call spin%spinScale(spin%spin())
+       call spin%spinScale(max(spin%spin(),spinMinimum))
     end select
     return
   end subroutine Node_Component_Spin_Scalar_Scale_Set

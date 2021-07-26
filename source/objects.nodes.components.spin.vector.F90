@@ -110,8 +110,9 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpin, nodeComponentSpinVector, treeNode, defaultSpinComponent
     implicit none
-    type (treeNode         ), intent(inout), pointer :: node
-    class(nodeComponentSpin)               , pointer :: spin
+    type            (treeNode         ), intent(inout), pointer :: node
+    class           (nodeComponentSpin)               , pointer :: spin
+    double precision                   , parameter              :: spinMinimum=1.0d-6
 
     ! Return immediately if this class is not in use.
     if (.not.defaultSpinComponent%vectorIsActive()) return
@@ -121,7 +122,7 @@ contains
     select type (spin)
     class is (nodeComponentSpinVector)
        ! Set scale for spin.
-       call spin%spinVectorScale([1.0d0,1.0d0,1.0d0]*spin%spin())
+       call spin%spinVectorScale([1.0d0,1.0d0,1.0d0]*max(spin%spin(),spinMinimum))
     end select
     return
   end subroutine Node_Component_Spin_Vector_Scale_Set
