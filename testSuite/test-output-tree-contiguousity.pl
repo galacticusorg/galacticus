@@ -12,14 +12,14 @@ use PDL::IO::HDF5;
 system("mkdir -p outputs/");
 
 # Run the model.
-# system("cd ..; Galacticus.exe testSuite/parameters/outputTreeContiguosity.xml");
-# unless ( $? == 0 ) {
-#     print "FAIL: output tree contiguosity model failed to run\n";
-#     exit;
-# }
+system("cd ..; Galacticus.exe testSuite/parameters/outputTreeContiguosity.xml");
+unless ( $? == 0 ) {
+    print "FAIL: output tree contiguosity model failed to run\n";
+    exit;
+}
 
 # Check for contiguous output.
-my $model   = new PDL::IO::HDF5("outputs/outputTreeContiguosity:MPI0000.hdf5"); ## AJB HACK remove MPI0000
+my $model   = new PDL::IO::HDF5("outputs/outputTreeContiguosity.hdf5");
 my $outputs = $model->group('Outputs');
 my $success = 1;
 foreach my $outputName ( $outputs->groups() ) {
