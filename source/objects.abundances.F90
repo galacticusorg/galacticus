@@ -29,12 +29,17 @@ module Abundances_Structure
   private
   public :: Abundances_Initialize    , Abundances_Names          , Abundances_Index_From_Name      , Abundances_Atomic_Index, &
        &    Abundances_Property_Count, Abundances_Get_Metallicity, Abundances_Mass_To_Mass_Fraction, abundances             , &
-       &    operator(*)              , max                       , abs
+       &    operator(*)              , max                       , abs                             , operator(>)
 
   ! Interface to multiplication operators with abundances objects as their second argument.
   interface operator(*)
      module procedure Abundances_Multiply_Switched
   end interface operator(*)
+
+  ! Interface to "gerater than" operators.
+  interface operator(>)
+     module procedure Abundances_Greater_Than
+  end interface operator(>)
 
   ! Interface to max() function for abundances objects.
   interface max
@@ -447,6 +452,18 @@ contains
     Abundances_Multiply_Switched=Abundances_Multiply(abundances1,multiplier)
     return
   end function Abundances_Multiply_Switched
+
+  logical function Abundances_Greater_Than(abundances1,abundances2)
+    !!{
+    Return an element-by-element ``$>$'' on two abundances objects.
+    !!}
+    implicit none
+    type(abundances), intent(in   ) :: abundances1, abundances2
+
+    Abundances_Greater_Than=abundances1%metallicityValue > abundances2%metallicityValue
+    if (elementsCount > 0) Abundances_Greater_Than=Abundances_Greater_Than .and. all(abundances1%elementalValue > abundances2%elementalValue)
+    return
+  end function Abundances_Greater_Than
 
   function Abundances_Max(abundances1,abundances2)
     !!{
