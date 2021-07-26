@@ -73,9 +73,13 @@ contains
     type            (polyRank{Type¦label})                               :: self
     {Type¦intrinsic}                      , dimension(..), intent(in   ) :: array
 
-    allocate(self%shape_(rank(array)))
-    allocate(self%data  (size(array)))
-    self   %shape_ =  shape(array                 )
+    allocate   (self%shape_(rank (array)))
+    if (rank(array) > 0) then
+       allocate(self%data  (size (array)))
+       self%shape_=         shape(array)
+    else
+       allocate(self%data(            1 ))
+    end if
     select rank (array)
     rank (0)
        self%data(1)=        array
