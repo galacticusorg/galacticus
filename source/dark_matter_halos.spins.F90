@@ -105,44 +105,35 @@ contains
     use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
     use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: Galacticus_Nodes        , only : nodeComponentBasic       , nodeComponentSpin, treeNode
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     type            (treeNode                 ), intent(inout) :: node
     class           (darkMatterProfileDMOClass), intent(inout) :: darkMatterProfileDMO_
     class           (nodeComponentBasic       ), pointer       :: basic
     class           (nodeComponentSpin        ), pointer       :: spin
-    double precision                                           :: rateFractional
+    double precision                                           :: energy               , energyGrowthRate
 
     call assertPropertiesGettable()
-    basic                                         =>  node%basic(                 )
-    spin                                          =>  node%spin (autoCreate=.true.)
-    Dark_Matter_Halo_Angular_Momentum_Growth_Rate =  +Dark_Matter_Halo_Angular_Momentum(node,darkMatterProfileDMO_)
-    if (Dark_Matter_Halo_Angular_Momentum_Growth_Rate == 0.0d0) return
-    rateFractional=0.0d0
-    if     (spin                  %spin            (    ) >  0.0d0) then
-       rateFractional=+rateFractional                                &
-            &         +spin                 %spinGrowthRate   (    ) &
-            &         /spin                 %spin             (    )
-    else if (spin                 %spinGrowthRate  (    ) /= 0.0d0) then
-       call Galacticus_Error_Report('spin is zero, but growth rate is non-zero'  //{introspection:location})
-    end if
-    if     (basic                 %mass            (    ) >  0.0d0) then
-       rateFractional=+rateFractional        &
-            &         +2.5d0                 &
-            &         *basic                %accretionRate   (    ) &
-            &         /basic                %mass            (    )
-    else if (basic                %accretionRate   (    ) /= 0.0d0) then
-       call Galacticus_Error_Report('mass is zero, but growth rate is non-zero'  //{introspection:location})
-    end if
-    if      (darkMatterProfileDMO_%energy          (node) /= 0.0d0) then
-       rateFractional=+rateFractional                               &
-            &         -0.5d0                                        &
-            &         *darkMatterProfileDMO_%energyGrowthRate(node) &
-            &         /darkMatterProfileDMO_%energy          (node)
-    else if (darkMatterProfileDMO_%energyGrowthRate(node) /= 0.0d0) then
-       call Galacticus_Error_Report('energy is zero, but growth rate is non-zero'//{introspection:location})
-    end if
-    Dark_Matter_Halo_Angular_Momentum_Growth_Rate=+Dark_Matter_Halo_Angular_Momentum_Growth_Rate &
-         &                                        *rateFractional
+    basic                                         =>  node                 %basic           (                 )
+    spin                                          =>  node                 %spin            (autoCreate=.true.)
+    energy                                        =   darkMatterProfileDMO_%energy          (           node  )
+    energyGrowthRate                              =   darkMatterProfileDMO_%energyGrowthRate(           node  )
+    Dark_Matter_Halo_Angular_Momentum_Growth_Rate =  +gravitationalConstantGalacticus              &
+         &                                           *(                                            & 
+         &                                             +         spin %spinGrowthRate  ()          &
+         &                                             *         basic%mass            ()  **2.5d0 &
+         &                                             /sqrt(abs(energy                  ))        &
+         &                                             +         spin %spin            ()          &
+         &                                             *2.5d0                                      &
+         &                                             *         basic%accretionRate   ()          &
+         &                                             *         basic%mass            ()  **1.5d0 &
+         &                                             /sqrt(abs(energy                  ))        &
+         &                                             +         spin%spin             ()          &
+         &                                             *         basic%mass            ()  **2.5d0 &
+         &                                             *0.5d0                                      &
+         &                                             *               energyGrowthRate            &
+         &                                             /     abs(      energy            ) **1.5d0 &
+         &                                            )
     return
   end function Dark_Matter_Halo_Angular_Momentum_Growth_Rate
 
