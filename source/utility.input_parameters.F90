@@ -390,6 +390,7 @@ contains
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)    , operator(/=)
     use :: String_Handling   , only : String_Strip
+    use :: HDF5_Access       , only : hdf5Access
     implicit none
     type     (inputParameters)                                        :: inputParametersConstructorNode
     type     (node           ), pointer     , intent(in   )           :: parametersNode
@@ -425,6 +426,7 @@ contains
     end if
     !$omp end critical (FoX_DOM_Access)
     ! Set a pointer to HDF5 object to which to write parameters.
+    !$ call hdf5Access%  set()
     if (present(outputParametersGroup)) then
        inputParametersConstructorNode%outputParameters         =outputParametersGroup%openGroup('Parameters')
        inputParametersConstructorNode%outputParametersCopied   =.false.
@@ -435,6 +437,7 @@ contains
        inputParametersConstructorNode%outputParametersCopied   =.false.
        inputParametersConstructorNode%outputParametersTemporary=.true.
     end if
+    !$ call hdf5Access%unset()
     ! Get allowed parameter names.
     call knownParameterNames(allowedParameterNamesCombined)
     allowedParameterFromFileCount=size(allowedParameterNamesCombined)
@@ -1385,7 +1388,6 @@ contains
     use :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName , hasAttribute, &
           &                           inException                      , node
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: HDF5_Access       , only : hdf5Access
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
     use :: ISO_Varying_String, only : assignment(=)                    , char              , operator(//), operator(==), &
           &                           trim

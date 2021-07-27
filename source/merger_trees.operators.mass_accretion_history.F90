@@ -224,13 +224,13 @@ contains
           node                                                                =>                                          node %firstChild
        end do
        ! Create the output group if necessary.
-       call hdf5Access%set()
+       !$ call hdf5Access%set()
        if (.not.self%outputGroup%isOpen()) self%outputGroup=galacticusOutputFile%openGroup(char(self%outputGroupName),'Mass accretion histories of main branches in merger trees.')
-       call hdf5Access%unset()
+       !$ call hdf5Access%unset()
        ! Output to HDF5 file.
        groupName='mergerTree'
        groupName=groupName//treeCurrent%index
-       call hdf5Access%set()
+       !$ call hdf5Access%set()
        if (self%outputGroup%hasGroup(char(groupName))) call Galacticus_Error_Report('duplicate tree index detected - mass accretion history can not be output'//char(10)//{introspection:location}//displayGreen()//'  HELP:'//displayReset()//' This can happen if reading merger trees which contain multiple root nodes from file. To avoid this problem, force tree indices to be reset to the index of the root node by adding the following to your input parameter file:'//char(10)//'  <mergerTreeReadTreeIndexToRootNodeIndex value="true" />>')
        treeGroup=self%outputGroup%openGroup(char(groupName),'Mass accretion history for main branch of merger tree.')
        call                             treeGroup       %writeDataset  (nodeIndex          ,'nodeIndex'          ,'Index of the node.'                                            )
@@ -244,7 +244,7 @@ contains
        if (self%includeSpin      ) call treeGroup       %writeDataset  (nodeSpin           ,'nodeSpin','Spin parameter of the node.'                                              )
        if (self%includeSpinVector) call treeGroup       %writeDataset  (nodeSpinVector     ,'nodeSpinVector','Spin parameter vector of the node.'                                 )
        call treeGroup       %close         (                                                                                                                                      )
-       call hdf5Access%unset()
+       !$ call hdf5Access%unset()
        ! Deallocate storage space.
        call                             deallocateArray(nodeIndex          )
        call                             deallocateArray(nodeTime           )
@@ -266,8 +266,8 @@ contains
     implicit none
     class(mergerTreeOperatorMassAccretionHistory), intent(inout) :: self
 
-    call hdf5Access%set()
+    !$ call hdf5Access%set()
     if (self%outputGroup%isOpen()) call self%outputGroup%close()
-    call hdf5Access%unset()
+    !$ call hdf5Access%unset()
     return
   end subroutine massAccretionHistoryFinalize

@@ -1577,9 +1577,8 @@ contains
     fileExists=appendActual.and.File_Exists(outputFileName)
 
     ! Open the output file.
-    call hdf5Access%set()
-    call outputFile%openFile(outputFileName,overWrite=.not.appendActual,objectsOverwritable=.true.,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
-
+    !$ call hdf5Access%set     (                                                                                                                                 )
+    call    outputFile%openFile(outputFileName,overWrite=.not.appendActual,objectsOverwritable=.true.,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
 
     ! Write a format version attribute.
     if (.not.fileExists) call outputFile%writeAttribute(2,"formatVersion")
@@ -1813,8 +1812,8 @@ contains
     call outputFile%writeAttribute(completeCount,"fileCompleteFlag")
 
     ! Close the output file.
-    call outputFile%close()
-    call hdf5Access%unset()
+    call    outputFile%close()
+    !$ call hdf5Access%unset()
 
     return
   end subroutine Merger_Tree_Data_Structure_Export_Galacticus
@@ -1868,8 +1867,8 @@ contains
     if (.not.mergerTrees%hasDescendentIndex) call Galacticus_Error_Report('descendent indices are required for this format'//{introspection:location})
 
     ! Open the output file.
-    call hdf5Access%set()
-    call outputFile%openFile(outputFileName,overWrite=.not.appendActual,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
+    !$ call hdf5Access%set     (                                                                                                      )
+    call    outputFile%openFile(outputFileName,overWrite=.not.appendActual,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
 
     ! Write the IRATE version.
     if (.not.fileExists) call outputFile%writeAttribute(0,"IRATEVersion")
@@ -2110,8 +2109,8 @@ contains
     end if
 
     ! Close the output file.
-    call outputFile%close()
-    call hdf5Access%unset()
+    call    outputFile%close()
+    !$ call hdf5Access%unset()
 
     return
   end subroutine Merger_Tree_Data_Structure_Export_IRATE

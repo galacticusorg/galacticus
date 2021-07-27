@@ -95,28 +95,28 @@ contains
     ! Determine if we need to compute cooling functions.
     computeCoolingFunctions=.false.
     if (File_Exists(fileNameCoolingFunction)) then
-       call hdf5Access%set()
-       call outputFile%openFile(char(fileNameCoolingFunction),readOnly=.true.)
+       !$ call hdf5Access%set     (                                             )
+       call    outputFile%openFile(char(fileNameCoolingFunction),readOnly=.true.)
        if (outputFile%hasAttribute('fileFormat')) then
           call outputFile%readAttribute('fileFormat',fileFormatFile)
           if (fileFormatFile /= versionFileFormatCurrent) computeCoolingFunctions=.true.
        end if
-       call outputFile%close()
-       call hdf5Access%unset()
+       call    outputFile%close()
+       !$ call hdf5Access%unset()
     else
        computeCoolingFunctions=.true.
     end if
     ! Determine if we need to compute chemical states.
     computeChemicalStates=.false.
     if (File_Exists(fileNameChemicalState)) then
-       call hdf5Access%set()
-       call outputFile%openFile(char(fileNameChemicalState),readOnly=.true.)
+       !$ call hdf5Access%set     (                                           )
+       call    outputFile%openFile(char(fileNameChemicalState),readOnly=.true.)
        if (outputFile%hasAttribute('fileFormat')) then
           call outputFile%readAttribute('fileFormat',fileFormatFile)
           if (fileFormatFile /= versionFileFormatCurrent) computeChemicalStates=.true.
        end if
-       call outputFile%close()
-       call hdf5Access%unset()
+       call    outputFile%close()
+       !$ call hdf5Access%unset()
     else
        computeChemicalStates=.true.
     end if
@@ -250,8 +250,8 @@ contains
        call displayCounterClear(verbosityLevelWorking)
        ! Output cooling functions to an HDF5 file.
        if (computeCoolingFunctions) then
-          !$ call hdf5Access%set()
-          call outputFile%openFile      (char(fileNameCoolingFunction))
+          !$ call hdf5Access%set           (                                                                                                                     )
+          call    outputFile%openFile      (char(fileNameCoolingFunction)                                                                                        )
           ! Store data.
           call    outputFile%writeDataset  (metallicitiesLogarithmic                                  ,'metallicity'                     ,datasetReturned=dataset)
           call    dataset   %writeAttribute('fix'                                                     ,'extrapolateLow'                                          )
@@ -283,30 +283,30 @@ contains
        end if
        ! Output chemical states to an HDF5 file.
        if (computeChemicalStates) then
-          call hdf5Access%set()
-          call outputFile%openFile      (char(fileNameChemicalState))
+          !$ call hdf5Access%set           (                                                                                                    )
+          call    outputFile%openFile      (char(fileNameChemicalState)                                                                         )
           ! Store data.
-          call outputFile%writeDataset  (metallicitiesLogarithmic                                  ,'metallicity'    ,datasetReturned=dataset)
-          call dataset   %writeAttribute('fix'                                                     ,'extrapolateLow'                         )
-          call dataset   %writeAttribute('fix'                                                     ,'extrapolateHigh'                        )
-          call dataset   %writeAttribute('K'                                                       ,'units'                                  )
-          call dataset   %writeAttribute(1.0d0                                                     ,'unitsInSI'                              )
-          call dataset   %close         (                                                                                                    )
-          call outputFile%writeDataset  (10.0d0**temperaturesLogarithmic                           ,'temperature'    ,datasetReturned=dataset)
-          call dataset   %writeAttribute('powerLaw'                                                ,'extrapolateLow'                         )
-          call dataset   %writeAttribute('powerLaw'                                                ,'extrapolateHigh'                        )
-          call dataset   %close         (                                                                                                    )
-          call outputFile%writeDataset  (densityElectron                                           ,'electronDensity',datasetReturned=dataset)
-          call dataset   %close         (                                                                                                    )
-          call outputFile%writeDataset  (densityHydrogenI                                          ,'hiDensity'      ,datasetReturned=dataset)
-          call dataset   %close         (                                                                                                    )
-          call outputFile%writeDataset  (densityHydrogenII                                         ,'hiiDensity'     ,datasetReturned=dataset)
-          call dataset   %close         (                                                                                                    )
+          call    outputFile%writeDataset  (metallicitiesLogarithmic                                  ,'metallicity'    ,datasetReturned=dataset)
+          call    dataset   %writeAttribute('fix'                                                     ,'extrapolateLow'                         )
+          call    dataset   %writeAttribute('fix'                                                     ,'extrapolateHigh'                        )
+          call    dataset   %writeAttribute('K'                                                       ,'units'                                  )
+          call    dataset   %writeAttribute(1.0d0                                                     ,'unitsInSI'                              )
+          call    dataset   %close         (                                                                                                    )
+          call    outputFile%writeDataset  (10.0d0**temperaturesLogarithmic                           ,'temperature'    ,datasetReturned=dataset)
+          call    dataset   %writeAttribute('powerLaw'                                                ,'extrapolateLow'                         )
+          call    dataset   %writeAttribute('powerLaw'                                                ,'extrapolateHigh'                        )
+          call    dataset   %close         (                                                                                                    )
+          call    outputFile%writeDataset  (densityElectron                                           ,'electronDensity',datasetReturned=dataset)
+          call    dataset   %close         (                                                                                                    )
+          call    outputFile%writeDataset  (densityHydrogenI                                          ,'hiDensity'      ,datasetReturned=dataset)
+          call    dataset   %close         (                                                                                                    )
+          call    outputFile%writeDataset  (densityHydrogenII                                         ,'hiiDensity'     ,datasetReturned=dataset)
+          call    dataset   %close         (                                                                                                    )
           ! Add attributes.
-          call outputFile%writeAttribute("CIE ionization states computed by Cloudy "//cloudyVersion,'description'                            )
-          call outputFile%writeAttribute(versionFileFormatCurrent                                  ,'fileFormat'                             )
-          call outputFile%close         (                                                                                                    )
-          !$ call hdf5Access%unset()
+          call    outputFile%writeAttribute("CIE ionization states computed by Cloudy "//cloudyVersion,'description'                            )
+          call    outputFile%writeAttribute(versionFileFormatCurrent                                  ,'fileFormat'                             )
+          call    outputFile%close         (                                                                                                    )
+          !$ call hdf5Access%unset         (                                                                                                    )
        end if
        call File_Unlock(fileLockChemicalState  )
        call File_Unlock(fileLockCoolingFunction)

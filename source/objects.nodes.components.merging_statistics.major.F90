@@ -210,7 +210,7 @@ contains
     ! Return if no major mergers occurred.
     if (.not.allocated(majorMergerTimes).or.size(majorMergerTimes) == 0) return
     ! Open the output group.
-    call hdf5Access%set()
+    !$ call hdf5Access%set()
     majorMergersGroup=galacticusOutputFile%openGroup("majorMergers","Major merger times.")
     groupName="Output"
     groupName=groupName//iOutput
@@ -220,11 +220,11 @@ contains
     treeGroup=outputGroup%openGroup(char(groupName),"Major merger times for all nodes in this tree")
     groupName="node"
     groupName=groupName//node%index()
-    call treeGroup%writeDataset(majorMergerTimes,char(groupName),"Major merger times.")
-    call treeGroup        %close()
-    call outputGroup      %close()
-    call majorMergersGroup%close()
-    call hdf5Access%unset()
+    call    treeGroup        %writeDataset(majorMergerTimes,char(groupName),"Major merger times.")
+    call    treeGroup        %close       (                                                      )
+    call    outputGroup      %close       (                                                      )
+    call    majorMergersGroup%close       (                                                      )
+    !$ call hdf5Access       %unset       (                                                      )
     return
   end subroutine Node_Component_Merging_Statistics_Major_Output
 
