@@ -339,7 +339,7 @@ contains
     use :: Galacticus_Nodes                  , only : nodeComponentBasic              , nodeComponentHotHalo
     use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options        , only : radiusLarge                     , massTypeGalactic
-     implicit none
+    implicit none
     class           (*                   ), intent(inout) :: self
     class           (nodeComponentHotHalo), intent(inout) :: hotHalo
     double precision                      , intent(in   ) :: massRate
