@@ -754,37 +754,6 @@ which is just the usual production of starlight due to star formation. As the fu
 
 If the {\normalfont \ttfamily [spheroidOutputStarFormationRate]}\index{spheroid!star formation rate!output}\index{star formation rate!output!spheroid} input parameter is set to true, then the instantaneous star formation rate in the spheroid (in units of $M_\odot$~Gyr$^{-1}$) will be included in the output, as {\normalfont \ttfamily spheroidStarFormationRate}.
 
-\section{Host History}
-
-This component class tracks various properties of the host halo of each \gls{node} over time.
-
-\subsection{``Standard'' Implemenation}
-
-\subsubsection{Properties}
-
-The standard host history implementation defines the following properties:
-\begin{description}
- \item [{\normalfont \ttfamily hostMassMaximum}] The maximum mass of the host halo in which this node has ever been hosted: $M_\mathrm{host, maximum}$ [{\normalfont \ttfamily hostHistoryHostMassMaximum}].
-\end{description}
-
-\subsubsection{Initialization}
-
-The maximum host mass is initialized to the initial host mass, or to $-1$ for initially isolated nodes.
-
-\subsubsection{Differential Evolution}
-
-N/A.
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Post evolution:} Immediately after evolution of the node, the maximum host mass is set to the maximum of the current host mass and the previous maximum host mass.\\
-
-\noindent\emph{Node mergers:} As for ``post evolution''.\\
-
-\noindent\emph{Satellite merging:} None.\\
-
-\noindent\emph{Node promotion:} As for ``post evolution''.\\
-
 \section{Mass Flow Statistics}
 
 This component class tracks the flow of mass between different components of a \gls{node}.
@@ -1412,44 +1381,6 @@ N/A.
 \noindent\emph{Satellite merging:} If the merger is major, the time of the merger is appended to the list of merging times for the host node.\\
 
 \noindent\emph{Node promotion:} Times recorded from the parent node are appended to those of the child node prior to promotion.\\
-
-\section{Age Statistics}
-
-This \gls{component} records statistics associated with galaxy or halo age.
-
-\subsection{``Standard'' Implementation}
-
-\subsubsection{Properties}
-
-The standard age statistics implementation defines the following properties:
-\begin{description}
- \item [{\normalfont \ttfamily (disk|spheroid)TimeWeightedIntegratedSFR}] A time-weighted integral over the star formation rate of the specified component [{\normalfont \ttfamily ageStatistics(Disk|Spheroid)TimeWeightedIntegratedSFR}];
- \item [{\normalfont \ttfamily (disk|spheroid)IntegratedSFR}] A unweighted integral over the star formation rate of the specified component [{\normalfont \ttfamily ageStatistics(Disk|Spheroid)IntegratedSFR}];
-\end{description}
-
-\subsubsection{Initialization}
-
-The integrals are all initialized to zero.
-
-\subsubsection{Differential Evolution}
-
-The time-weighted integrals evolve as:
-\begin{equation}
-{\mathrm{d}({M\tau})_\star\over\mathrm{d}t} = t \phi(t),
-\end{equation}
-where $t$ is cosmic time and $\phi(t)$ is the star formation rate in the component. The unweighted integrals evolve as:
-\begin{equation}
-{\mathrm{d}{M}_\star\over\mathrm{d}t} = \phi(t).
-\end{equation}
-The mean cosmic time of formation for the stars in either component can be found by taking the ratio of time-weighted to unweighted integrals. The mean age can then be found by subtracting the mean cosmic time of formation from the present time.
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Node mergers:} N/A.\\
-
-\noindent\emph{Satellite merging:} The values of the integrals are removed from the merging galaxy and transferred to the appropriate component of the target galaxy. Additionally, in a major merger, the values of the integral are transferred between components in the target galaxy as dictated by the merging rules.\\
-
-\noindent\emph{Node promotion:} N/A.\\
 
 \section{Formation Times}\label{sec:ComponentFormationTimes}
 
