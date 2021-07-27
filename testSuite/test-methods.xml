@@ -1136,11 +1136,6 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <componentHostHistory value="standard"/>
-  </parameters>
-  <parameters>
-    <formatVersion>2</formatVersion>
-    <version>0.9.4</version>
     <componentMassFlowStatistics value="standard"/>
   </parameters>
   <parameters>
