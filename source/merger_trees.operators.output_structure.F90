@@ -160,7 +160,7 @@ contains
        countPropertiesDouble  =  0
        countPropertiesInteger =  0
        select type (extractor_ => self%nodePropertyExtractor_)
-       type is (nodePropertyExtractorNull)
+       type  is (nodePropertyExtractorNull         )
           ! Null extractor - pointless.
           call Galacticus_Error_Report('null extractor is pointless'//{introspection:location})
        class is (nodePropertyExtractorScalar       )
@@ -283,8 +283,8 @@ contains
           call dataset  %writeAttribute(unitsInSIInteger (  i),'unitsInSI'                                                               )
           call dataset  %close         (                                                                                                 )
        end do
+       call    treeGroup %close()
        !$ call hdf5Access%unset()
-       call treeGroup%close()
        ! Free workspace.
        deallocate(propertiesDouble   )
        deallocate(propertiesInteger  )
