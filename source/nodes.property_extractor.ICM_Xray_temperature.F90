@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements an intracluster medium X-ray luminosity property extractor class.
+Contains a module which implements an intracluster medium X-ray luminosity-weighted temperature property extractor class.
 !!}
 
   use :: Cooling_Functions            , only : coolingFunction          , coolingFunctionClass
@@ -28,13 +28,13 @@ Contains a module which implements an intracluster medium X-ray luminosity prope
   use :: Hot_Halo_Temperature_Profiles, only : hotHaloTemperatureProfile, hotHaloTemperatureProfileClass
 
   !![
-  <nodePropertyExtractor name="nodePropertyExtractorICMXRayLuminosity">
-   <description>An intracluster medium X-ray luminosity property extractor class.</description>
+  <nodePropertyExtractor name="nodePropertyExtractorICMXRayTemperature">
+   <description>An intracluster medium X-ray luminosity-weighted temperature property extractor class.</description>
   </nodePropertyExtractor>
   !!]
-  type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorICMXRayLuminosity
+  type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorICMXRayTemperature
      !!{
-     A icmXRayLuminosity property extractor class.
+     An ICM luminosity-weighted temperature property extractor class.
      !!}
      private
      class(darkMatterHaloScaleClass      ), pointer :: darkMatterHaloScale_       => null()
@@ -43,37 +43,37 @@ Contains a module which implements an intracluster medium X-ray luminosity prope
      class(coolingFunctionClass          ), pointer :: coolingFunction_           => null()
      class(cosmologyFunctionsClass       ), pointer :: cosmologyFunctions_        => null()
    contains
-     final     ::                icmXRayLuminosityDestructor
-     procedure :: extract     => icmXRayLuminosityExtract
-     procedure :: name        => icmXRayLuminosityName
-     procedure :: description => icmXRayLuminosityDescription
-     procedure :: unitsInSI   => icmXRayLuminosityUnitsInSI
-     procedure :: type        => icmXRayLuminosityType
-  end type nodePropertyExtractorICMXRayLuminosity
+     final     ::                icmXRayTemperatureDestructor
+     procedure :: extract     => icmXRayTemperatureExtract
+     procedure :: name        => icmXRayTemperatureName
+     procedure :: description => icmXRayTemperatureDescription
+     procedure :: unitsInSI   => icmXRayTemperatureUnitsInSI
+     procedure :: type        => icmXRayTemperatureType
+  end type nodePropertyExtractorICMXRayTemperature
 
-  interface nodePropertyExtractorICMXRayLuminosity
+  interface nodePropertyExtractorICMXRayTemperature
      !!{
-     Constructors for the ``icmXRayLuminosity'' output analysis class.
+     Constructors for the ``icmXRayTemperature'' output analysis class.
      !!}
-     module procedure icmXRayLuminosityConstructorParameters
-     module procedure icmXRayLuminosityConstructorInternal
-  end interface nodePropertyExtractorICMXRayLuminosity
+     module procedure icmXRayTemperatureConstructorParameters
+     module procedure icmXRayTemperatureConstructorInternal
+  end interface nodePropertyExtractorICMXRayTemperature
 
 contains
 
-  function icmXRayLuminosityConstructorParameters(parameters) result(self)
+  function icmXRayTemperatureConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily icmXRayLuminosity} property extractor class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily icmXRayTemperature} property extractor class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (nodePropertyExtractorICMXRayLuminosity)                :: self
-    type (inputParameters                       ), intent(inout) :: parameters
-    class(darkMatterHaloScaleClass              ), pointer       :: darkMatterHaloScale_
-    class(hotHaloMassDistributionClass          ), pointer       :: hotHaloMassDistribution_
-    class(hotHaloTemperatureProfileClass        ), pointer       :: hotHaloTemperatureProfile_
-    class(coolingFunctionClass                  ), pointer       :: coolingFunction_
-    class(cosmologyFunctionsClass               ), pointer       :: cosmologyFunctions_
+    type (nodePropertyExtractorICMXRayTemperature)                :: self
+    type (inputParameters                        ), intent(inout) :: parameters
+    class(darkMatterHaloScaleClass               ), pointer       :: darkMatterHaloScale_
+    class(hotHaloMassDistributionClass           ), pointer       :: hotHaloMassDistribution_
+    class(hotHaloTemperatureProfileClass         ), pointer       :: hotHaloTemperatureProfile_
+    class(coolingFunctionClass                   ), pointer       :: coolingFunction_
+    class(cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
 
     !![
     <objectBuilder class="cosmologyFunctions"        name="cosmologyFunctions_"        source="parameters"/>
@@ -82,7 +82,7 @@ contains
     <objectBuilder class="hotHaloTemperatureProfile" name="hotHaloTemperatureProfile_" source="parameters"/>
     <objectBuilder class="coolingFunction"           name="coolingFunction_"           source="parameters"/>
     !!]
-    self=nodePropertyExtractorICMXRayLuminosity(cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,coolingFunction_)
+    self=nodePropertyExtractorICMXRayTemperature(cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,coolingFunction_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"       />
@@ -92,32 +92,32 @@ contains
     <objectDestructor name="coolingFunction_"          />
     !!]
     return
-  end function icmXRayLuminosityConstructorParameters
+  end function icmXRayTemperatureConstructorParameters
 
-  function icmXRayLuminosityConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,coolingFunction_) result(self)
+  function icmXRayTemperatureConstructorInternal(cosmologyFunctions_,darkMatterHaloScale_,hotHaloMassDistribution_,hotHaloTemperatureProfile_,coolingFunction_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily icmXRayLuminosity} property extractor class.
+    Internal constructor for the {\normalfont \ttfamily icmXRayTemperature} property extractor class.
     !!}
     implicit none
-    type (nodePropertyExtractorICMXRayLuminosity)                        :: self
-    class(cosmologyFunctionsClass               ), intent(in   ), target :: cosmologyFunctions_
-    class(darkMatterHaloScaleClass              ), intent(in   ), target :: darkMatterHaloScale_
-    class(hotHaloMassDistributionClass          ), intent(in   ), target :: hotHaloMassDistribution_
-    class(hotHaloTemperatureProfileClass        ), intent(in   ), target :: hotHaloTemperatureProfile_
-    class(coolingFunctionClass                  ), intent(in   ), target :: coolingFunction_
+    type (nodePropertyExtractorICMXRayTemperature)                        :: self
+    class(cosmologyFunctionsClass                ), intent(in   ), target :: cosmologyFunctions_
+    class(darkMatterHaloScaleClass               ), intent(in   ), target :: darkMatterHaloScale_
+    class(hotHaloMassDistributionClass           ), intent(in   ), target :: hotHaloMassDistribution_
+    class(hotHaloTemperatureProfileClass         ), intent(in   ), target :: hotHaloTemperatureProfile_
+    class(coolingFunctionClass                   ), intent(in   ), target :: coolingFunction_
     !![
     <constructorAssign variables="*cosmologyFunctions_, *darkMatterHaloScale_, *hotHaloMassDistribution_, *hotHaloTemperatureProfile_, *coolingFunction_"/>
     !!]
 
     return
-  end function icmXRayLuminosityConstructorInternal
+  end function icmXRayTemperatureConstructorInternal
 
-  subroutine icmXRayLuminosityDestructor(self)
+  subroutine icmXRayTemperatureDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily icmXRayLuminosity} property extractor class.
+    Destructor for the {\normalfont \ttfamily icmXRayTemperature} property extractor class.
     !!}
     implicit none
-    type(nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
+    type(nodePropertyExtractorICMXRayTemperature), intent(inout) :: self
 
     !![
     <objectDestructor name="self%cosmologyFunctions_"       />
@@ -127,9 +127,9 @@ contains
     <objectDestructor name="self%coolingFunction_"          />
     !!]
     return
-  end subroutine icmXRayLuminosityDestructor
+  end subroutine icmXRayTemperatureDestructor
 
-  double precision function icmXRayLuminosityExtract(self,node,instance)
+  double precision function icmXRayTemperatureExtract(self,node,instance)
     !!{
     Implement an ICM X-ray properties extractor.
     !!}
@@ -140,11 +140,12 @@ contains
     use :: Numerical_Integration       , only : integrator
     use :: Radiation_Fields            , only : radiationFieldCosmicMicrowaveBackground
     implicit none
-    class(nodePropertyExtractorICMXRayLuminosity ), intent(inout)           :: self
-    type (treeNode                               ), intent(inout), target   :: node
-    type (multiCounter                           ), intent(inout), optional :: instance
-    type (radiationFieldCosmicMicrowaveBackground), pointer                 :: radiation_
-    type (integrator                             )                          :: integratorLuminosity
+    class           (nodePropertyExtractorICMXRayTemperature), intent(inout)           :: self
+    type            (treeNode                               ), intent(inout), target   :: node
+    type            (multiCounter                           ), intent(inout), optional :: instance
+    type            (radiationFieldCosmicMicrowaveBackground), pointer                 :: radiation_
+    type            (integrator                             )                          :: integratorLuminosity, integratorTemperature
+    double precision                                                                   :: luminosity          , temperature
     !$GLC attributes unused :: self, instance
 
     ! Initialize radiation field.
@@ -153,11 +154,24 @@ contains
     <referenceConstruct object="radiation_" constructor="radiationFieldCosmicMicrowaveBackground(self%cosmologyFunctions_)"/>
     !!]
     ! Compute luminosity and temperature.
-    integratorLuminosity    =integrator                     (integrandLuminosityXray ,toleranceRelative                           =1.0d-3)
-    icmXRayLuminosityExtract=integratorLuminosity %integrate(0.0d0                   ,self%darkMatterHaloScale_%virialRadius(node)       )
+    integratorLuminosity =integrator                     (integrandLuminosityXray ,toleranceRelative                           =1.0d-3)
+    integratorTemperature=integrator                     (integrandTemperatureXray,toleranceRelative                           =1.0d-3)
+    luminosity           =integratorLuminosity %integrate(0.0d0                   ,self%darkMatterHaloScale_%virialRadius(node)       )
+    temperature          =integratorTemperature%integrate(0.0d0                   ,self%darkMatterHaloScale_%virialRadius(node)       )
+    if (luminosity > 0.0d0) then
+       temperature=+temperature        &
+            &      /luminosity         &
+            &      *boltzmannsConstant &
+            &      /kilo               &
+            &      /electronVolt
+    else
+       luminosity =+0.0d0
+       temperature=+0.0d0
+    end if
     !![
     <objectDestructor name="radiation_"/>
     !!]
+    icmXRayTemperatureExtract=temperature
     return
 
   contains
@@ -220,56 +234,69 @@ contains
       return
     end function integrandLuminosityXray
 
-  end function icmXRayLuminosityExtract
+    double precision function integrandTemperatureXray(radius)
+      !!{
+      Integrand function used for computing ICM X-ray luminosity-weighted temperatures.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: radius
 
-  function icmXRayLuminosityName(self)
+      integrandTemperatureXray=+integrandLuminosityXray                     (     radius) &
+           &                    *self%hotHaloTemperatureProfile_%temperature(node,radius)
+      return
+    end function integrandTemperatureXray
+
+  end function icmXRayTemperatureExtract
+
+  function icmXRayTemperatureName(self)
     !!{
-    Return the names of the {\normalfont \ttfamily icmXRayLuminosity} properties.
+    Return the names of the {\normalfont \ttfamily icmXRayTemperature} properties.
     !!}
     implicit none
-    type (varying_string                        )                :: icmXRayLuminosityName
-    class(nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
+    type (varying_string                         )                :: icmXRayTemperatureName
+    class(nodePropertyExtractorICMXRayTemperature), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    icmXRayLuminosityName=var_str('icmXrayLuminosity')
+    icmXRayTemperatureName=var_str('icmXrayTemperature')
     return
-  end function icmXRayLuminosityName
+  end function icmXRayTemperatureName
 
-  function icmXRayLuminosityDescription(self)
+  function icmXRayTemperatureDescription(self)
     !!{
-    Return descriptions of the {\normalfont \ttfamily icmXRayLuminosity} properties.
+    Return descriptions of the {\normalfont \ttfamily icmXRayTemperature} properties.
     !!}
     implicit none
-    type (varying_string                        )                :: icmXRayLuminosityDescription
-    class(nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
+    type (varying_string                         )                :: icmXRayTemperatureDescription
+    class(nodePropertyExtractorICMXRayTemperature), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    icmXRayLuminosityDescription=var_str('X-ray luminosity of the ICM [ergs/s]')
+    icmXRayTemperatureDescription=var_str('X-ray luminosity-weighted temperature of the ICM [keV]')
     return
-  end function icmXRayLuminosityDescription
+  end function icmXRayTemperatureDescription
 
-  double precision function icmXRayLuminosityUnitsInSI(self)
+  double precision function icmXRayTemperatureUnitsInSI(self)
     !!{
-    Return the units of the {\normalfont \ttfamily icmXRayLuminosity} properties in the SI system.
+    Return the units of the {\normalfont \ttfamily icmXRayTemperature} properties in the SI system.
     !!}
-    use :: Numerical_Constants_Units, only : ergs
+    use :: Numerical_Constants_Prefixes, only : kilo
+    use :: Numerical_Constants_Units   , only : electronVolt
     implicit none
-    class(nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
+    class(nodePropertyExtractorICMXRayTemperature), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    icmXRayLuminosityUnitsInSI=ergs
+    icmXRayTemperatureUnitsInSI=kilo*electronVolt
     return
-  end function icmXRayLuminosityUnitsInSI
+  end function icmXRayTemperatureUnitsInSI
 
-  integer function icmXRayLuminosityType(self)
+  integer function icmXRayTemperatureType(self)
     !!{
-    Return the type of the ICM X-ray luminosity property.
+    Return the type of the ICM X-ray temperature property.
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
-    class(nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
+    class(nodePropertyExtractorICMXRayTemperature), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    icmXRayLuminosityType=outputAnalysisPropertyTypeLinear
+    icmXRayTemperatureType=outputAnalysisPropertyTypeLinear
     return
-  end function icmXRayLuminosityType
+  end function icmXRayTemperatureType
