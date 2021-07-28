@@ -42,9 +42,11 @@ foreach my $analysisName ( @analyses ) {
     };
     ($attributes->{$_}) = $analysisGroup->attrGet($_)
 	foreach ( @attributeNames );
-    (my $logLikelihood) = $analysisGroup->attrGet('logLikelihood');
-    print "   -> logℒ = ".$logLikelihood."\n";
-    $logLikelihoodTotal += $logLikelihood;
+    if ( grep {$_ eq "logLikelihood"} $analysisGroup->attrs() ) {
+	(my $logLikelihood) = $analysisGroup->attrGet('logLikelihood');
+	print "   -> logℒ = ".$logLikelihood."\n";
+	$logLikelihoodTotal += $logLikelihood;
+    }
     # Skip cases for which we have no "type" specified.
     unless ( exists($attributes->{'type'}) ) {
 	print "Warning: analysis '".$analysisName."' has no 'type' attribute, so it can not be processed.\n";
