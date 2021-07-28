@@ -18,17 +18,17 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a mass-metallicity relation analysis class.
+  Contains a module which implements a black hole-bulge mass relation analysis class.
   !!}
 
   !![
   <outputAnalysis name="outputAnalysisBlackHoleBulgeRelation">
-   <description>A mass-metallicity relation output analysis class.</description>
+   <description>A black hole-bulge mass relation output analysis class.</description>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisBlackHoleBulgeRelation
      !!{
-     A mass-metallicity relation output analysis class.
+     A black hole-bulge mass relation output analysis class.
      !!}
      private
   end type outputAnalysisBlackHoleBulgeRelation
