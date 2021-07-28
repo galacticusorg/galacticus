@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <!-- Schema used to validate methods directives -->
+  
+  <xs:element name="methods">
+    <xs:complexType>
+      <xs:sequence>
+	<xs:element name="method" minOccurs="0" maxOccurs="unbounded">
+	  <xs:complexType>
+	    <xs:attribute name="method"      type="xs:string" use="required" />
+	    <xs:attribute name="description" type="xs:string" use="required" />
+	  </xs:complexType>
+	</xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  
+</xs:schema>
