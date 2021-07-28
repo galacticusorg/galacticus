@@ -747,9 +747,11 @@ contains
     call    analysisGroup%writeAttribute(          self%   yAxisIsLog                     ,'yAxisIsLog'                                                                                                    )
     call    analysisGroup%writeAttribute(     char(self%propertyLabel)                    ,'xDataset'                                                                                                      )
     call    analysisGroup%writeAttribute(     char(self%    meanLabel)                    ,'yDataset'                                                                                                      )
-    call    analysisGroup%writeAttribute(     char(self%    meanLabel)//"Target"          ,'yDatasetTarget'                                                                                                )
     call    analysisGroup%writeAttribute(     char(self%    meanLabel)//"Covariance"      ,'yCovariance'                                                                                                   )
-    call    analysisGroup%writeAttribute(     char(self%    meanLabel)//"CovarianceTarget",'yCovarianceTarget'                                                                                             )
+    if (allocated(self%meanValueTarget)) then
+       call analysisGroup%writeAttribute(     char(self%    meanLabel)//"Target"          ,'yDatasetTarget'                                                                                                )
+       call analysisGroup%writeAttribute(     char(self%    meanLabel)//"CovarianceTarget",'yCovarianceTarget'                                                                                             )
+    end if
     ! Write computed datasets.
     call    analysisGroup%writeDataset  (          self%binCenter                         ,char(self%propertyLabel)                    ,char(self%propertyComment)                 ,datasetReturned=dataset)
     call    dataset      %writeAttribute(     char(self%propertyUnits    )                ,'units'                                                                                                         )
