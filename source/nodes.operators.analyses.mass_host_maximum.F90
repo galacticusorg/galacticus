@@ -38,7 +38,7 @@
    contains
      !![
      <methods>
-       <method name="update" description="Update the maximum host mass of this node."/>
+       <method method="update" description="Update the maximum host mass of this node."/>
      </methods>
      !!]
      final     ::                              massHostMaximumDestructor
