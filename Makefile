@@ -5,19 +5,19 @@
 # Build option.
 GALACTICUS_BUILD_OPTION ?= default
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'default'
-export BUILDPATH = ./work/build
+export BUILDPATH ?= ./work/build
 export SUFFIX ?=
 else ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
-export BUILDPATH = ./work/buildMPI
+export BUILDPATH ?= ./work/buildMPI
 export SUFFIX ?=
 else ifeq '$(GALACTICUS_BUILD_OPTION)' 'gprof'
-export BUILDPATH = ./work/buildGProf
+export BUILDPATH ?= ./work/buildGProf
 export SUFFIX ?= _gprof
 else ifeq '$(GALACTICUS_BUILD_OPTION)' 'odeprof'
-export BUILDPATH = ./work/buildODEProf
+export BUILDPATH ?= ./work/buildODEProf
 export SUFFIX ?= _odeProf
 else ifeq '$(GALACTICUS_BUILD_OPTION)' 'compileprof'
-export BUILDPATH = ./work/build
+export BUILDPATH ?= ./work/build
 export SUFFIX ?=
 endif
 
