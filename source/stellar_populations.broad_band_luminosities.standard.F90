@@ -555,15 +555,29 @@ contains
                                   message="integration of stellar populations failed"
                                   call Galacticus_Error_Report(message//{introspection:location})
                                else
-                                  write (label,'(e9.3)') 2.0d0*self%integrationToleranceRelative
-                                  message=         "integration of stellar populations failed"                                        //char(10)
+                                  write (label,'(e9.3)')       self%integrationToleranceRelative
+                                  message=         "integration of stellar populations failed"                                              //char(10)
                                   message=message//displayGreen()
                                   message=message//"HELP: "
                                   message=message//displayReset()
-                                  message=message//"consider increasing the [self%integrationToleranceRelative]"                      //char(10)
-                                  message=message//"      parameter to "//trim(adjustl(label))//" to reduce the integration tolerance"//char(10)
-                                  message=message//"      required if you can accept this lower accuracy."
-                                  call Galacticus_Error_Report(message//{introspection:location})
+                                  message=message//      "consider increasing the integrationtolerance parameter from the currnet value of "
+                                  message=message//trim(adjustl(label))
+                                  write (label,'(e9.3)') 2.0d0*self%integrationToleranceRelative
+                                  message=message//"      to "
+                                  message=message//trim(adjustl(label))
+                                  message=message//      " if you can accept this lower accuracy."                                           //char(10)//char(10)
+                                  message=message//"      To do this, set in your parameter file:"                                           //char(10)//char(10)
+                                  message=message//'      <stellarPopulationBroadBandLuminosities value="standard">'                         //char(10)
+                                  message=message//'        <integrationToleranceRelative value="'
+                                  message=message//trim(adjustl(label))
+                                  message=message//      '"/>'                                                                               //char(10)
+                                  message=message//'      </stellarPopulationBroadBandLuminosities>'                                         //char(10)//char(10)
+                                  message=message//"      Alternative you can allow tolerances to be automatically degraded where"           //char(10)
+                                  message=message//"      needed to ensure convergence by setting in your parameter file:"                   //char(10)//char(10)
+                                  message=message//'      <stellarPopulationBroadBandLuminosities value="standard">'                         //char(10)
+                                  message=message//'        <integrationToleranceDegrade value="true"/>'                                     //char(10)
+                                  message=message//'      </stellarPopulationBroadBandLuminosities>'
+                                 call Galacticus_Error_Report(message//{introspection:location})
                                end if
                             end if
                          end do
