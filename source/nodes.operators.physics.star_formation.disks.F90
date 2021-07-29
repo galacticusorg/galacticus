@@ -259,17 +259,19 @@ contains
        if (propertyType == propertyTypeInactive .and. self%fractionMassRetainedFinal < self%fractionMassRetainedInitial) then
           spheroid => node%spheroid()
           ! Determine the fraction of mass (and light) formed at this time which will be retained in the disk at the final time in the step.
-          if (self%fractionMassRetainedFinal   == 0.0d0) then
+          if      (self%fractionMassRetainedFinal   == 0.0d0                      ) then
              ! The retained fraction reached zero by the end of the step, so no mass is retained.
              fractionMassRetained    =                                                                          0.0d0
+          else if (self%fractionMassRetainedFinal   >  disk%fractionMassRetained()) then
+             fractionMassRetained    =                                                                          1.0d0
           else
              ! Limit the retained fraction to unity (to avoid any rounding errors).
-             fractionMassRetained    =min(self%fractionMassRetainedFinal    /disk%fractionMassRetained       (),1.0d0)
+             fractionMassRetained    =    self%fractionMassRetainedFinal    /disk%fractionMassRetained       ()
           end if
           ! Determine the rate at which mass (and light) that was pre-existing at the start of this timestep is being transferred.
-          if (self%fractionMassRetainedInitial == 0.0d0) then
+          if      (self%fractionMassRetainedInitial == 0.0d0                      ) then
              ! The initial retained fraction was zero, so there should be no light to transfer - set a transfer rate of zero.
-             fractionMassRetainedRate=                                                                          0.0d0
+             fractionMassRetainedRate=                                                                        0.0d0
           else
              ! Limit the transfer rate of pre-existing light to be negative - it is not possible to transfer light *to* the
              ! disk, so any positive value here can arise only via rounding errors.
