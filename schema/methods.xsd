@@ -8,7 +8,10 @@
 	<xs:element name="method" minOccurs="0" maxOccurs="unbounded">
 	  <xs:complexType>
 	    <xs:attribute name="method"      type="xs:string" use="required" />
-	    <xs:attribute name="description" type="xs:string" use="required" />
+	    <xs:attribute name="description" type="xs:string"                />
+	    <xs:all>
+	      <xs:element name="description" minOccurs="0" type="xs:string"/>
+	    </xs:all>
 	  </xs:complexType>
 	</xs:element>
       </xs:sequence>
