@@ -6,13 +6,19 @@
 # Set defaults.
 PPN=1
 FORCE=yes
+SUFFIX=
+DIR=./work/build
+CLEAN=no
 
 # Get options.
-while getopts ":p:f:" option; do
+while getopts ":p:f:d:s:c:" option; do
 case "${option}"
 in
 f) FORCE=${OPTARG};;
 p) PPN=${OPTARG};;
+d) DIR=${OPTARG};;
+s) SUFFIX=${OPTARG};;
+c) CLEAN=${OPTARG};;
 \?) echo "Invalid option: $OPTARG";;
 :) echo "Invalid option: $OPTARG requires an argument";;
 esac
@@ -23,10 +29,10 @@ if [ "$FORCE" = "yes" ]; then
     rm -f                                                                                                                                     \
        doc/physics/*.tex doc/inputParameters/*.tex doc/enumerations/definitions/*.tex doc/enumerations/specifiers/*.tex doc/contributions.tex \
        doc/source_documentation.tex doc/dataEnumerationSpecifiers.tex doc/dataEnumerations.tex doc/dataMethods.tex
-    rm -rf work/build
+    rm -rf $DIR
 fi
 # Ensure that nodeComponent and treeNode objects are built, along with any functions.
-make -j$PPN GALACTICUS_BUILD_DOCS=yes all
+make -j$PPN GALACTICUS_BUILD_DOCS=yes SUFFIX=$SUFFIX BUILDPATH=$DIR all
 if [ $? -ne 0 ]; then
  echo Failed to build all executables
  exit 1
@@ -123,5 +129,12 @@ for type in "Usage" "Physics" "Development" "Source"; do
     done
 
 done
+
+# Clean build files if requested.
+if [ "$CLEAN" = "yes" ]; then
+    cd ..
+    rm -rf $DIR
+    rm *.exe$SUFFIX
+fi
 
 exit 0
