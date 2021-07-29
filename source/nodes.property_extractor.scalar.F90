@@ -30,10 +30,10 @@
    contains
      !![
      <methods>
-       <method description="Extract the property from the given {\normalfont \ttfamily node}." method="extract"     pass="yes"/>
-       <method description="Return the name of the property extracted."                        method="name"        pass="yes"/>
-       <method description="Return a description of the property extracted."                   method="description" pass="yes"/>
-       <method description="Return the units of the property extracted in the SI system."      method="unitsInSI"   pass="yes"/>
+       <method method="extract"     description="Extract the property from the given {\normalfont \ttfamily node}."/>
+       <method method="name"        description="Return the name of the property extracted."                       />
+       <method method="description" description="Return a description of the property extracted."                  />
+       <method method="unitsInSI"   description="Return the units of the property extracted in the SI system."     />
      </methods>
      !!]
      procedure(scalarExtract  ), deferred :: extract

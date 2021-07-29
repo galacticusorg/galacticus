@@ -47,14 +47,14 @@
    contains
      !![
      <methods>
-       <method description="Return a description of the columns."                                        method="columnDescriptions" pass="yes"/>
-       <method description="Return the number of properties in the tuple."                               method="elementCount"       pass="yes"/>
-       <method description="Extract the double properties from the given {\normalfont \ttfamily node}."  method="extractDouble"      pass="yes"/>
-       <method description="Extract the integer properties from the given {\normalfont \ttfamily node}." method="extractInteger"     pass="yes"/>
-       <method description="Return the names of the properties extracted."                               method="names"              pass="yes"/>
-       <method description="Return descriptions of the properties extracted."                            method="descriptions"       pass="yes"/>
-       <method description="Return the units of the properties extracted in the SI system."              method="unitsInSI"          pass="yes"/>
-       <method description="Return the ranks of the properties extracted."                               method="ranks"              pass="yes"/>
+       <method description="Return a description of the columns."                                        method="columnDescriptions"/>
+       <method description="Return the number of properties in the tuple."                               method="elementCount"      />
+       <method description="Extract the double properties from the given {\normalfont \ttfamily node}."  method="extractDouble"     />
+       <method description="Extract the integer properties from the given {\normalfont \ttfamily node}." method="extractInteger"    />
+       <method description="Return the names of the properties extracted."                               method="names"             />
+       <method description="Return descriptions of the properties extracted."                            method="descriptions"      />
+       <method description="Return the units of the properties extracted in the SI system."              method="unitsInSI"         />
+       <method description="Return the ranks of the properties extracted."                               method="ranks"             />
      </methods>
      !!]
      final     ::                       multiDestructor

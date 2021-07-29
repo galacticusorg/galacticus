@@ -32,11 +32,11 @@
    contains
      !![
      <methods>
-       <method description="Return the number of properties in the tuple." method="elementCount" pass="yes" />
-       <method description="Extract the properties from the given {\normalfont \ttfamily node}." method="extract" pass="yes" />
-       <method description="Return the names of the properties extracted." method="names" pass="yes" />
-       <method description="Return descriptions of the properties extracted." method="descriptions" pass="yes" />
-       <method description="Return the units of the properties extracted in the SI system." method="unitsInSI" pass="yes" />
+       <method method="elementCount" description="Return the number of properties in the tuple."                      />
+       <method method="extract"      description="Extract the properties from the given {\normalfont \ttfamily node}."/>
+       <method method="names"        description="Return the names of the properties extracted."                      />
+       <method method="descriptions" description="Return descriptions of the properties extracted."                   />
+       <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."     />
      </methods>
      !!]
      procedure(integerTupleElementCount), deferred :: elementCount
