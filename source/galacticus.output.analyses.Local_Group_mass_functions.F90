@@ -617,7 +617,7 @@ contains
     \protect\citealt{lu_connection_2016}]{boylan-kolchin_theres_2010}. This has been confirmed by examining the results of many
     tree realizations, although it in principal could be model-dependent.
     !!}
-    use :: Models_Likelihoods_Constants     , only : logImpossible
+    use :: Models_Likelihoods_Constants     , only : logImprobable
     use :: Statistics_Distributions_Discrete, only : distributionFunctionDiscrete1DNegativeBinomial
     implicit none
     class           (outputAnalysisLocalGroupMassFunction          ), intent(inout) :: self
@@ -630,7 +630,7 @@ contains
     do i=1,size(self%masses)
        if (self%massFunction(i) <= 0.0d0) then
           if (nint(self%massFunctionTarget(i)) > 0) then
-             localGroupMassFunctionLogLikelihood=logImpossible
+             localGroupMassFunctionLogLikelihood=logImprobable
              return
           end if
        else
@@ -639,9 +639,16 @@ contains
                &                                +1.0d0                                                          &
                &                                +self%negativeBinomialScatterFractional**2*self%massFunction(i) &
                &                               )
-          distribution                       = distributionFunctionDiscrete1DNegativeBinomial                (negativeBinomialProbabilitySuccess,     self%countFailures         )
-          localGroupMassFunctionLogLikelihood=+localGroupMassFunctionLogLikelihood                                                                                                 &
-               &                              +distribution                                  %massLogarithmic(                                   nint(self%massFunctionTarget(i)))
+          if (negativeBinomialProbabilitySuccess >= 1.0d0) then
+             if (nint(self%massFunctionTarget(i)) > 0) then
+                localGroupMassFunctionLogLikelihood=logImprobable
+                return
+             end if
+          else
+             distribution                       = distributionFunctionDiscrete1DNegativeBinomial                (negativeBinomialProbabilitySuccess,     self%countFailures         )
+             localGroupMassFunctionLogLikelihood=+localGroupMassFunctionLogLikelihood                                                                                                 &
+                  &                              +distribution                                  %massLogarithmic(                                   nint(self%massFunctionTarget(i)))
+          end if
        end if
     end do
     return
