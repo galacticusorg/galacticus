@@ -24,6 +24,9 @@ c) CLEAN=${OPTARG};;
 esac
 done
 
+# Export build directory.
+export BUILDPATH=$DIR
+
 # Clear out old build files.
 if [ "$FORCE" = "yes" ]; then
     rm -f                                                                                                                                     \
