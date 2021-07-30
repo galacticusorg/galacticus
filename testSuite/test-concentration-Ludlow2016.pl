@@ -42,10 +42,9 @@ my @tests =
 foreach my $test ( @tests ) {
 
     # Run the model.
-    &System::Redirect::tofile("cd ..; Galacticus.exe testSuite/parameters/concentrationDistributionLudlow2016".ucfirst($test->{'suffix'}).".xml","outputs/concentrationDistributionLudlow2016".ucfirst($test->{'suffix'}).".log");
+    system("cd ..; Galacticus.exe testSuite/parameters/concentrationDistributionLudlow2016".ucfirst($test->{'suffix'}).".xml");
     unless ( $? == 0 ) {
     	print "FAILED: Ludlow2016 ".$test->{'suffix'}." concentration model failed to run\n";
-    	system("cat outputs/concentrationDistributionLudlow2016".ucfirst($test->{'suffix'}).".log");
     	exit;
     }
     
