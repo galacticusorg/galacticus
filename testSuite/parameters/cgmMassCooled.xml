@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Default parameters for Galacticus v0.9.4 -->
+<!-- 30-October-2011                          -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Component selection -->
+  <componentBasic value="standard"/>
+  <componentBlackHole value="null"/>
+  <componentDarkMatterProfile value="null"/>
+  <componentDisk value="standard"/>
+  <componentHotHalo value="standard"/>
+  <componentSatellite value="standard"/>
+  <componentSpheroid value="null"/>
+  <componentSpin value="null"/>
+  <diskMassDistribution value="exponentialDisk">
+    <dimensionless value="true"/>
+  </diskMassDistribution>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions value="matterLambda"/>
+  <cosmologyParameters value="simple">
+    <HubbleConstant value="70.2"/>
+    <OmegaMatter value="0.2725"/>
+    <OmegaDarkEnergy value="0.7275"/>
+    <OmegaBaryon value="0.0455"/>
+    <temperatureCMB value="2.72548"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <transferFunction value="eisensteinHu1999">
+    <neutrinoNumberEffective value="3.046"/>
+    <neutrinoMassSummed value="0.000"/>
+  </transferFunction>
+  <powerSpectrumPrimordial value="powerLaw">
+    <index value="0.961"/>
+    <wavenumberReference value="1.000"/>
+    <running value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+  <cosmologicalMassVariance value="filteredPower">
+    <sigma_8 value="0.807"/>
+  </cosmologicalMassVariance>
+
+  <!-- Structure formation options -->
+  <linearGrowth value="collisionlessMatter"/>
+  <haloMassFunction value="tinker2008"/>
+  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+
+  <!-- Merger tree building options -->
+  <mergerTreeConstructor value="fullySpecified">
+    <fileName value="testSuite/parameters/cgmMassCooledTree.xml"/>
+  </mergerTreeConstructor>
+  
+  <!-- Substructure hierarchy options -->
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfileDMO value="isothermal"/>
+
+  <!-- Halo accretion options -->
+  <accretionHalo value="zero"/>
+
+  <!-- Dark matter halo profile -->
+  <darkMatterProfileDMO value="isothermal"/>
+
+  <!-- Hot halo model options -->
+  <hotHaloMassDistribution value="betaProfile"/>
+
+  <!-- Galactic structure options -->
+  <galacticStructureSolver value="fixed"/>
+
+  <!-- Node evolution and physics -->
+  <nodeOperator value="massCooled"/>
+
+  <!-- Numerical tolerances -->
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="0.01"/>
+    <odeToleranceRelative value="0.01"/>
+  </mergerTreeNodeEvolver>
+  <diskMassToleranceAbsolute value="1.0e-6"/>
+  <spheroidMassToleranceAbsolute value="1.0e-6"/>
+  <mergerTreeEvolver value="standard">
+    <timestepHostAbsolute value="1.0"/>
+    <timestepHostRelative value="0.1"/>
+  </mergerTreeEvolver>
+
+  <!-- Output options -->
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+  </mergerTreeOutputter>
+  <outputTimes value="list">
+    <times value="13.8"/>
+  </outputTimes>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="massCooled"/>
+  </nodePropertyExtractor>
+  
+  <!-- Output file -->
+  <galacticusOutputFileName value="testSuite/outputs/cgmMassCooled.hdf5"/>
+
+</parameters>

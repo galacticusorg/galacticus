@@ -208,47 +208,6 @@ where $\epsilon_{\bullet wind}=${\normalfont \ttfamily [blackHoleWindEfficiency]
 
 If the {\normalfont \ttfamily [blackHoleOutputAccretion]}\index{black holes!accretion}\index{accretion!black holes} input parameter is set to true, then rest mass accretion rate (in $M_\odot$ Gyr$^{-1}$) is output as {\normalfont \ttfamily blackHoleAccretionRate}.
 
-\section{Dynamics Statistics}
-
-This class collects statistics related to galaxy dynamics.
-
-\subsection{``Bars'' Implementation}
-
-\subsubsection{Properties}
-
-The ``bars'' dynamics statistics implementation defines the following properties:
-\begin{description}
- \item [{\normalfont \ttfamily time}] An array of times at which bar statistics are recorded.
- \item [{\normalfont \ttfamily barInstabilityTimescale}] The timescale of bar instability at each tabulated time.
- \item [{\normalfont \ttfamily adiabaticRatio}] The adiabatic ratio, $a$, of the galaxy at each tabulated time defined as:
-   \begin{equation}
-     a = \left( {r_\mathrm{peri} \over v_\mathrm{peri}} \right) \left( {2 \pi r_\mathrm{disk} \over v_\mathrm{disk}} \right)^{-1},
-   \end{equation}
-   where $r_\mathrm{peri}$ is the pericentric distance of the galaxies orbit, $v_\mathrm{peri}$ is the orbital velocity at pericenter, $r_\mathrm{disk}$ is the characteristic radius of the disk, and $v_\mathrm{disk}$ is the circular velocity at that radius. For non-satellite galaxies the adiabatic ratio is set to $-1$.
-\end{description}
-
-Bar statistics are recorded at a frequency given by {\normalfont \ttfamily [dynamicsStatisticsBarsFrequency]} times the host halo dynamical time.
-
-\subsubsection{Initialization}
-
-Component is not initialized, it is created as soon as a disk exists.
-
-\subsubsection{Differential Evolution}
-
-N/A.
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Node mergers:} None.\\
-
-\noindent\emph{Satellite merging:} None.\\
-
-\noindent\emph{Node promotion:} None.\\
-
-\subsubsection{Additional Output}
-
-Bar statistics time series are output for each node to a group {\normalfont \ttfamily Outputs/Output\textless O\textgreater/dynamicsStatistics/tree\textless T\textgreater} (where {\normalfont \ttfamily \textless O\textgreater} is the output number and {\normalfont \ttfamily \textless T\textgreater} is the tree index) into datasets named {\normalfont \ttfamily time\textless N\textgreater}, {\normalfont \ttfamily timeScale\textless N\textgreater}, and {\normalfont \ttfamily adiabaticRatio\textless N\textgreater} (where {\normalfont \ttfamily \textless N\textgreater} is the node index).
-
 \section{Hot Halo}
 
 \subsection{``Very Simple'' Implementation}
@@ -753,40 +712,6 @@ which is just the usual production of starlight due to star formation. As the fu
 \subsubsection{Additional Output}
 
 If the {\normalfont \ttfamily [spheroidOutputStarFormationRate]}\index{spheroid!star formation rate!output}\index{star formation rate!output!spheroid} input parameter is set to true, then the instantaneous star formation rate in the spheroid (in units of $M_\odot$~Gyr$^{-1}$) will be included in the output, as {\normalfont \ttfamily spheroidStarFormationRate}.
-
-\section{Mass Flow Statistics}
-
-This component class tracks the flow of mass between different components of a \gls{node}.
-
-\subsection{``Standard'' Implemenation}
-
-\subsubsection{Properties}
-
-The standard mass flow statistics implementation defines the following properties:
-\begin{description}
- \item [{\normalfont \ttfamily cooledMass}] The cumulative mass of has which has cooled directly onto this galaxy: $M_\mathrm{cooled}$ [{\normalfont \ttfamily massFlowStatisticsCooledMass}].
-\end{description}
-
-\subsubsection{Initialization}
-
-The cooled mass is initialized to zero.
-
-\subsubsection{Differential Evolution}
-
-The cooled mass increases at a rate equal to the cooling rate onto the galaxy:
-\begin{equation}
-  \dot{M_\mathrm{cooled}} = \dot{M}_\mathrm{cool}.
-\end{equation}
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Post evolution:} None.\\
-
-\noindent\emph{Node mergers:} None.\\
-
-\noindent\emph{Satellite merging:} None.\\
-
-\noindent\emph{Node promotion:} None.\\
 
 \section{Basic Properties}\label{sec:ComponentBasicProperties}
 

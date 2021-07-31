@@ -608,6 +608,16 @@
     </hotHaloMassDistribution>
   </parameters>
   
+  <!-- Output bar instability properties -->
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <nodePropertyExtractor value="multi">
+      <nodePropertyExtractor value="adiabaticRatioOrbitalDisk" iterable="no"/>
+      <nodePropertyExtractor value="timescaleBarInstability"   iterable="no"/>
+    </nodePropertyExtractor>
+  </parameters>
+
   <!-- Output density contrasts -->
   <parameters>
     <formatVersion>2</formatVersion>
@@ -1130,18 +1140,6 @@
     <hotHaloMassDistribution value="null"/>
     <satelliteOrbitStoreOrbitalParameters value="true"/>
     <mergerRemnantSize value="null"/>
-  </parameters>
-
-  <!-- Statistics and tracking components -->
-  <parameters>
-    <formatVersion>2</formatVersion>
-    <version>0.9.4</version>
-    <componentMassFlowStatistics value="standard"/>
-  </parameters>
-  <parameters>
-    <formatVersion>2</formatVersion>
-    <version>0.9.4</version>
-    <componentDynamicsStatistics value="bars"/>
   </parameters>
 
   <!-- Parallel processing of individual trees -->

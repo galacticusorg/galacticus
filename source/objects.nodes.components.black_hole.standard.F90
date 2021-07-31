@@ -377,7 +377,7 @@ contains
          &                                                                restMassAccretionRate                                                                                                                             , spheroidDensityOverCriticalDensity                             , &
          &                                                                spheroidDensityRadius2                                                                                                                            , spheroidGasMass                                                , &
          &                                                                spheroidRadius                                                                                                                                    , windEfficiencyNet                                              , &
-         &                                                                windFraction                                                                                                                                      , hotModeFraction
+         &                                                                windFraction
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -428,13 +428,6 @@ contains
           if (restMassAccretionRate > 0.0d0) call blackHole%spinRate(accretionDisks_%rateSpinUp(blackHole,restMassAccretionRate))
           ! Add heating to the hot halo component.
           if (blackHoleHeatsHotHalo) then
-             ! Compute jet coupling efficiency based on whether halo is cooling quasistatically. Reduce this efficiency as the gas
-             ! content in the halo drops below the cosmological mean.
-             if (coldModeTracked) then
-                hotModeFraction=1.0d0
-             else
-                hotModeFraction=Hot_Mode_Fraction(node)
-             end if
              ! Get jet power.
              heatingRate=blackHoleRadioModeFeedbackEfficiency*jetEfficiency*restMassAccretionRate*(speedLight/kilo)**2
              ! Pipe this power to the hot halo.
