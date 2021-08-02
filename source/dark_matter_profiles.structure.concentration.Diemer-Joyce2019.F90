@@ -311,31 +311,31 @@ contains
          &  .or.                               &
          &   basic%time() /= self%timePrevious &
          & ) then
-       peakHeight                       =+self%criticalOverdensity_     %value                          (time=basic%time(),mass=basic%mass()) &
-            &                            /self%cosmologicalMassVariance_%rootVariance                   (time=basic%time(),mass=basic%mass())
-       massHalo                         =+self%kappa**3                                                                                       &
+       peakHeight                       =+self%criticalOverdensity_     %value                          (time=basic%time(),mass=basic%mass(),node=node) &
+            &                            /self%cosmologicalMassVariance_%rootVariance                   (time=basic%time(),mass=basic%mass()          )
+       massHalo                         =+self%kappa**3                                                                                                 &
             &                            *basic%mass()
-       diemerJoyce2019PowerSpectrumSlope=-6.0d0                                                                                               &
-            &                            *self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(time=basic%time(),mass=massHalo    ) &
+       diemerJoyce2019PowerSpectrumSlope=-6.0d0                                                                                                         &
+            &                            *self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(time=basic%time(),mass=massHalo              ) &
             &                            -3.0d0
        alphaEffective                   =+self%linearGrowth_%logarithmicDerivativeExpansionFactor(time=basic%time())
-       A                                =+self%a0                                                                                             &
-            &                            *(                                                                                                   &
-            &                             +1.0d0                                                                                              &
-            &                             +self%a1*(diemerJoyce2019PowerSpectrumSlope+3.0d0)                                                  &
+       A                                =+self%a0                                                                                                       &
+            &                            *(                                                                                                             &
+            &                             +1.0d0                                                                                                        &
+            &                             +self%a1*(diemerJoyce2019PowerSpectrumSlope+3.0d0)                                                            &
             &                             )
-       B                                =+self%b0                                                                                             &
-            &                            *(                                                                                                   &
-            &                             +1.0d0                                                                                              &
-            &                             +self%b1*(diemerJoyce2019PowerSpectrumSlope+3.0d0)                                                  &
+       B                                =+self%b0                                                                                                       &
+            &                            *(                                                                                                             &
+            &                             +1.0d0                                                                                                        &
+            &                             +self%b1*(diemerJoyce2019PowerSpectrumSlope+3.0d0)                                                            &
             &                             )
-       C                                =+1.0d0                                                                                               &
+       C                                =+1.0d0                                                                                                         &
             &                            -self%cAlpha*(1.0d0-alphaEffective)
-       diemerJoyce2019GRoot             =+A                                                                                                   &
-            &                            /peakHeight                                                                                          &
-            &                            *(                                                                                                   &
-            &                             +1.0d0                                                                                              &
-            &                             +peakHeight**2/B                                                                                    &
+       diemerJoyce2019GRoot             =+A                                                                                                             &
+            &                            /peakHeight                                                                                                    &
+            &                            *(                                                                                                             &
+            &                             +1.0d0                                                                                                        &
+            &                             +peakHeight**2/B                                                                                              &
             &                             )
        ! Initial guess of the concentration.
        if (self%concentrationMeanPrevious < 0.0d0) self%concentrationMeanPrevious=5.0d0
