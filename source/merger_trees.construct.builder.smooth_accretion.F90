@@ -77,7 +77,7 @@ contains
     !![
     <objectBuilder class="cosmologyFunctions"                 name="cosmologyFunctions_"                 source="parameters"/>
     <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"/>
-    <objectBuilder class="mergerTreeMassResolution"           name="mergerTreeMassResolution_"            source="parameters"/>
+    <objectBuilder class="mergerTreeMassResolution"           name="mergerTreeMassResolution_"           source="parameters"/>
     <inputParameter>
       <name>massHaloDeclineFactor</name>
       <defaultValue>0.9d0</defaultValue>
