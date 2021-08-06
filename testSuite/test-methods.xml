@@ -326,6 +326,12 @@
  	<toleranceTopHat value="3.0e-4"/>
       </cosmologicalMassVariance>
     </transferFunction>
+    <transferFunction value="CLASSCDM">
+      <cosmologicalMassVariance value="filteredPower" parameterLevel="top">
+ 	<tolerance value="3.0e-4"/>
+ 	<toleranceTopHat value="3.0e-4"/>
+      </cosmologicalMassVariance>
+    </transferFunction>
     <transferFunction value="eisensteinHu1999"/>
   </parameters>
   <parameters>
