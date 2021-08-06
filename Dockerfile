@@ -27,5 +27,5 @@ RUN     cd /opt/galacticus &&\
 # Build external tools.
 RUN     cd /opt/galacticus &&\
 	./Galacticus.exe parameters/buildTools.xml &&\
-	rm /opt/datasets/dynamic/c17.02.tar.gz /opt/datasets/dynamic/CAMB_1.3.2.tar.gz
+	rm /opt/datasets/dynamic/c17.02.tar.gz /opt/datasets/dynamic/CAMB_1.3.2.tar.gz /opt/datasets/dynamic/class_public-3.0.1.tar.gz /opt/datasets/dynamic/FSPS_3.2.tar.gz
 	
