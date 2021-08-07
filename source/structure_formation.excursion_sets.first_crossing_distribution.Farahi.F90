@@ -1125,13 +1125,13 @@ contains
        ! Report.
        message=var_str('read excursion set first crossing probability from: ')//char(self%fileName)
        call displayIndent  (message,verbosityLevelWorking)
-       write (label,'(e12.6)') self%timeMinimum
+       write (label,'(e22.16)') self%timeMinimum
        message=var_str('    time minimum: ')//label//' Gyr'
        call displayMessage (message,verbosityLevelWorking)
-       write (label,'(e12.6)') self%timeMaximum
+       write (label,'(e22.16)') self%timeMaximum
        message=var_str('    time maximum: ')//label//' Gyr'
        call displayMessage (message,verbosityLevelWorking)
-       write (label,'(e12.6)') self%varianceMaximum
+       write (label,'(e22.16)') self%varianceMaximum
        message=var_str('variance maximum: ')//label
        call displayMessage (message,verbosityLevelWorking)
        call displayUnindent(''     ,verbosityLevelWorking)
@@ -1185,14 +1185,13 @@ contains
        ! Report.
        message=var_str('read excursion set first crossing rates from: ')//char(self%fileName)
        call displayIndent  (message,verbosityLevelWorking)
-       write (label,'(e12.6)') self%timeMinimumRate
+       write (label,'(e22.16)') self%timeMinimumRate
        message=var_str('    time minimum: ')//label//' Gyr'
        call displayMessage (message,verbosityLevelWorking)
-       write (label,'(e12.6)') self%timeMaximumRate
+       write (label,'(e22.16)') self%timeMaximumRate
        message=var_str('    time maximum: ')//label//' Gyr'
-       write (label,'(e12.6)') self%varianceMaximumRate
+       write (label,'(e22.16)') self%varianceMaximumRate
        message=var_str('variance minimum: ')//label
-       call displayMessage (message,verbosityLevelWorking)
        call displayMessage (message,verbosityLevelWorking)
        call displayUnindent(''     ,verbosityLevelWorking)
     end if
@@ -1206,12 +1205,16 @@ contains
     !!{
     Write tabulated data on excursion set first crossing probabilities to file.
     !!}
-    use :: HDF5   , only : hsize_t
-    use :: HDF5_Access, only : hdf5Access
-    use :: IO_HDF5, only : hdf5Object
+    use :: HDF5_Access       , only : hdf5Access
+    use :: IO_HDF5           , only : hdf5Object
+    use :: Display           , only : displayIndent, displayMessage, displayUnindent, verbosityLevelWorking
+    use :: HDF5              , only : hsize_t
+    use :: ISO_Varying_String, only : operator(//) , var_str       , varying_string
     implicit none
-    class(excursionSetFirstCrossingFarahi), intent(inout) :: self
-    type (hdf5Object                     )                :: dataFile, dataGroup
+    class    (excursionSetFirstCrossingFarahi), intent(inout) :: self
+    type     (hdf5Object                     )                :: dataFile, dataGroup
+    type     (varying_string                 )                :: message
+    character(len=32                         )                :: label
 
     ! Don't write anything if neither table is initialized.
     if (.not.(self%tableInitialized.or.self%tableInitializedRate)) return
@@ -1227,6 +1230,19 @@ contains
        call dataGroup%writeDataset(self%timeTable                    ,'time'                    ,'The cosmic times at which results are tabulated.'                     )
        call dataGroup%writeDataset(self%firstCrossingProbabilityTable,'firstCrossingProbability','The probability of first crossing as a function of variance and time.')
        call dataGroup%close()
+       ! Report.
+       message=var_str('write excursion set first crossing probability to: ')//char(self%fileName)
+       call displayIndent  (message,verbosityLevelWorking)
+       write (label,'(e22.16)') self%timeMinimum
+       message=var_str('    time minimum: ')//label//' Gyr'
+       call displayMessage (message,verbosityLevelWorking)
+       write (label,'(e22.16)') self%timeMaximum
+       message=var_str('    time maximum: ')//label//' Gyr'
+       call displayMessage (message,verbosityLevelWorking)
+       write (label,'(e22.16)') self%varianceMaximum
+       message=var_str('variance maximum: ')//label
+       call displayMessage (message,verbosityLevelWorking)
+       call displayUnindent(''     ,verbosityLevelWorking)
     end if
     ! Check if the rate table is populated.
     if (self%tableInitializedRate) then
@@ -1237,6 +1253,18 @@ contains
        call dataGroup%writeDataset(self%firstCrossingTableRate,'firstCrossingRate','The probability rate of first crossing as a function of variances and time.')
        call dataGroup%writeDataset(self%nonCrossingTableRate  ,'nonCrossingRate'  ,'The probability rate of non crossing as a function of variance and time.')
        call dataGroup%close()
+       ! Report.
+       message=var_str('wrote excursion set first crossing rates to: ')//char(self%fileName)
+       call displayIndent  (message,verbosityLevelWorking)
+       write (label,'(e22.16)') self%timeMinimumRate
+       message=var_str('    time minimum: ')//label//' Gyr'
+       call displayMessage (message,verbosityLevelWorking)
+       write (label,'(e22.16)') self%timeMaximumRate
+       message=var_str('    time maximum: ')//label//' Gyr'
+       write (label,'(e22.16)') self%varianceMaximumRate
+       message=var_str('variance minimum: ')//label
+       call displayMessage (message,verbosityLevelWorking)
+       call displayUnindent(''     ,verbosityLevelWorking)
     end if
     ! Close the data file.
     call dataFile%close()
