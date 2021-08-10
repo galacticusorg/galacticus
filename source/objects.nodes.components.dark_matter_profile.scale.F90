@@ -25,6 +25,7 @@ module Node_Component_Dark_Matter_Profile_Scale
   !!{
   Implements a dark matter profile method that provides a scale radius.
   !!}
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   implicit none
   private
   public :: Node_Component_Dark_Matter_Profile_Scale_Scale_Set        , Node_Component_Dark_Matter_Profile_Scale_Plausibility       , &
@@ -54,6 +55,10 @@ module Node_Component_Dark_Matter_Profile_Scale
   </component>
   !!]
 
+  ! Objects used by this component.
+  class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+  !$omp threadprivate(darkMatterHaloScale_)
+  
 contains
 
   !![
@@ -72,9 +77,13 @@ contains
     type(inputParameters), intent(inout) :: parameters_
     !$GLC attributes unused :: parameters_
 
-    if (defaultDarkMatterProfileComponent%scaleIsActive()) &
-         & call nodePromotionEvent%attach(defaultDarkMatterProfileComponent,nodePromotion,openMPThreadBindingAtLevel,label="nodeComponentDarkMatterProfileScale")
-    return
+    if (defaultDarkMatterProfileComponent%scaleIsActive()) then
+       !![
+       <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
+       !!]
+       call nodePromotionEvent%attach(defaultDarkMatterProfileComponent,nodePromotion,openMPThreadBindingAtLevel,label="nodeComponentDarkMatterProfileScale")
+     end if
+     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize
 
   !![
@@ -90,8 +99,12 @@ contains
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
 
-    if (defaultDarkMatterProfileComponent%scaleIsActive()) &
-         & call nodePromotionEvent%detach(defaultDarkMatterProfileComponent,nodePromotion)
+    if (defaultDarkMatterProfileComponent%scaleIsActive()) then
+       !![
+       <objectDestructor name="darkMatterHaloScale_"/>
+       !!]
+       call nodePromotionEvent%detach(defaultDarkMatterProfileComponent,nodePromotion)
+    end if
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize
 
@@ -117,7 +130,11 @@ contains
     ! Ensure that it is of the scale class.
     select type (darkMatterProfile)
     class is (nodeComponentDarkMatterProfileScale)
-       if (darkMatterProfile%scale() <= 0.0d0) then
+       if     (                                                                      &
+            &   darkMatterProfile%scale() <= 0.0d0                                   &
+            &  .or.                                                                  &
+            &   darkMatterProfile%scale() >  darkMatterHaloScale_%virialRadius(node) &
+            & ) then
           node%isPhysicallyPlausible=.false.
           node%isSolvable           =.false.
        end if
