@@ -646,7 +646,11 @@ contains
                         &                                         )                                                                          &
                         &                                        /sqrt(2.0_kind_quad*(varianceTableRateQuad(1)-varianceMidTableRateQuad(1))) &
                         &                                       )
-                   if (integralKernelRate <= 0.0d0) call Galacticus_Error_Report('integral kernel is non-positive - possibly the effective barrier is too large'//{introspection:location})
+                   ! If the integral kernel is zero (to machine precision) then simply assume no crossing rate.
+                   if (integralKernelRate <= 0.0d0) then
+                      firstCrossingTableRateQuad=0.0d0
+                      cycle
+                   end if
                    firstCrossingTableRateQuad(1)=+(                                                              &
                         &                          +1.0_kind_quad                                                &
                         &                          -erfApproximate(                                              &
