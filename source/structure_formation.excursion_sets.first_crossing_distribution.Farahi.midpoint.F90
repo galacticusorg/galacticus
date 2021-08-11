@@ -130,7 +130,7 @@ contains
     if (makeTable) then
        !$omp critical(farahiMidpointProbabilityTabulate)
        ! Attempt to read the file again now that we are within the critical section. If another thread made the file while we were waiting we may be able to skip building the table.
-       if (self%useFile.and..not.self%tableInitialized) then
+       if (self%useFile) then
           call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
           call self%fileRead()
           call File_Unlock(fileLock)
@@ -436,7 +436,7 @@ contains
     if (makeTable) then
        !$omp critical(farahiMidpointRateTabulate)
        ! Attempt to read the file again now that we are within the critical section. If another thread made the file while we were waiting we may be able to skip building the table.
-       if (self%useFile.and..not.self%tableInitialized) then
+       if (self%useFile) then
           call File_Lock(char(self%fileName),fileLock,lockIsShared=.true.)
           call self%fileRead()
           call File_Unlock(fileLock)
