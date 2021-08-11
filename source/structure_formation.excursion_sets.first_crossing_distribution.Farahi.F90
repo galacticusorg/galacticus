@@ -904,10 +904,10 @@ contains
 #endif
                 ! Construct the barrier table.
                 do i=1,self%varianceTableCountRate
-                   massProgenitor         =+cosmologicalMassVariance_%mass        (real(+varianceTableRateQuad(i)+varianceTableRateBaseQuad(iVariance),kind=8),self%timeTableRate(iTime)                        )
-                   growthFactorEffective  =+cosmologicalMassVariance_%rootVariance(      massProgenitor                                                       ,self%timeTableRate(iTime)                        ) &
-                        &                  /cosmologicalMassVariance_%rootVariance(      massProgenitor                                                       ,     timeProgenitor                              )
-                   barrierTableRateQuad(i)=+excursionSetBarrier_     %barrier     (real(+varianceTableRateQuad(i)+varianceTableRateBaseQuad(iVariance),kind=8),     timeProgenitor      ,node,rateCompute=.true.) &
+                   massProgenitor         =+cosmologicalMassVariance_%mass        (real(sqrt(+varianceTableRateQuad(i)+varianceTableRateBaseQuad(iVariance)),kind=8),self%timeTableRate(iTime)                        )
+                   growthFactorEffective  =+cosmologicalMassVariance_%rootVariance(           massProgenitor                                                        ,self%timeTableRate(iTime)                        ) &
+                        &                  /cosmologicalMassVariance_%rootVariance(           massProgenitor                                                        ,     timeProgenitor                              )
+                   barrierTableRateQuad(i)=+excursionSetBarrier_     %barrier     (real(     +varianceTableRateQuad(i)+varianceTableRateBaseQuad(iVariance) ,kind=8),     timeProgenitor      ,node,rateCompute=.true.) &
                         &                  *growthFactorEffective
                 end do
                 !$omp atomic
