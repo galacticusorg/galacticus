@@ -444,8 +444,8 @@ contains
     <referenceConstruct object="outputAnalysisWeightOperatorWeighted_" constructor="outputAnalysisWeightOperatorSequence(weightOperatorWeight_)"/>
     !!]
     ! Build weight operator that includes a final boolean operator. We use this in the unweighted case to allow filters to be
-    ! applied to the weight property. If any filter sets the property value to zero, this boolean operator will return zero,
-    ! otherwise it will return unity.
+    ! applied to the weight property. If any filter-type property operator sets the property value to zero, this boolean operator
+    ! will return zero, otherwise it will return unity.
     allocate(outputAnalysisWeightOperatorUnweighted_       )
     allocate(weightOperatorUnweighted_                     )
     allocate(weightOperatorUnweighted_                %next)
