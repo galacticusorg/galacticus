@@ -53,20 +53,23 @@ mass function) output analysis class.
   
      Consider first those galaxies which form in the main branch of each tree (i.e. those galaxies which are destined to become
      the central galaxy of the $z=0$ halo). Suppose that we simulate $N_k$ halos of root mass $M_k$ at $z=0$. In such halos the
-     main branch galaxies will, at any time, have stellar masses drawn from some distribution $p_k(M_\star|t)$. The number of
+     main branch galaxies will, at any time, have property values drawn from some distribution $p_k(M_\star|t)$. The number of
      such galaxies contributing to bin $i$ of the mass function is therefore binomially distributed with success probability
-     $p_{ik} = \int_{M_{i,\mathrm min}}^{M_{i,\mathrm max}} p_k(M_\star|t) \d M_\star$ and a sample size of $N_k$. The
-     contribution to the covariance matrix from these main branch galaxies is therefore:
+     $p_{ik} = \int_{M_{i,\mathrm min}}^{M_{i,\mathrm max}} p_k(M_\star|t) \d M_\star$ and a sample size of $N_k$.
+
+     Generalizing to consider all bins in our volume function, the number of galaxies in each bin will jointly follow a
+     \href{https://en.wikipedia.org/wiki/Multinomial_distribution}{multinomial distribution}. The contribution to the covariance
+     matrix from these main branch galaxies is therefore:     
      \begin{equation}
       \mathcal{C}_{ij} = \left\{ \begin{array}{ll} p_{ik}(1-p_{ik}) N_k w_k^2 &amp; \hbox{ if } i = j \\ -p_{ik} p_{jk} N_k w_k^2 &amp; \hbox{ otherwise,} \end{array} \right.
-     \end{equation}
+     \end{equation}     
      where $w_k$ is the weight to be assigned to each tree. To compute this covariance requires knowledge of the probabilities,
      $p_{ik}$. We estimate these directly from the model. To do this, we bin trees into narrow bins of root mass and assume that
      $p_{ik}$ does not vary significantly across the mass range of each bin. Using all realizations of trees that fall within a
-     given bin, $k$, we can directly estimate $p_{ik}$. In computing $p_{ik}$, the range of halo masses considered and the
-     fineness of binning in halo mass are determined by the parameters {\normalfont \ttfamily
-     [covarianceBinomialMassHaloMinimum]}, {\normalfont \ttfamily [covarianceBinomialMassHaloMaximum]}, and {\normalfont
-     \ttfamily [covarianceBinomialBinsPerDecade]}.
+     given bin, $k$, we can directly estimate $p_{ik}$. Similarly, $N_k w_k^2$ is found by accumulating squared weights in bins of
+     root mass. In computing $p_{ik}$ and $N_k$, the range of halo masses considered and the fineness of binning in halo mass are
+     determined by the parameters {\normalfont \ttfamily [covarianceBinomialMassHaloMinimum]}, {\normalfont \ttfamily
+     [covarianceBinomialMassHaloMaximum]}, and {\normalfont \ttfamily [covarianceBinomialBinsPerDecade]}.
   
      If instead, {\normalfont \ttfamily [covarianceModel]}$=${\normalfont \ttfamily Poisson}, the main branch galaxies are
      modeled as being sampled from a Poisson distribution (and so off-diagonal terms in the covariance matrix will be zero).
@@ -74,7 +77,7 @@ mass function) output analysis class.
      In addition to the main branch galaxies, each tree will contain a number of other galaxies (these will be ``satellite''
      galaxies at $z=0$, but at higher redshifts may still be central galaxies in their own halos). Tests have established that
      the number of satellites in halos is well described by a Poisson process. Note that, as described above, each galaxy
-     contributes a Gaussian distribution to the mass function due to modelling of random errors in stellar mass
+     contributes a Gaussian distribution to the mass function due to modelling of random errors in property value
      determinations. For main branch galaxies this is simply accounted for when accumulating the probabilities, $p_{ik}$. For
      satellite galaxies, off-diagonal contributions to the covariance matrix arise as a result, $C_{ij} = w_k f_i f_j$, where
      $f_i$ is the fraction of the galaxy contributing to bin $i$ of the mass function.
@@ -103,24 +106,24 @@ mass function) output analysis class.
      class           (galacticFilterClass                      ), pointer                     :: galacticFilter_                       => null()
      class           (outputTimesClass                         ), pointer                     :: outputTimes_                          => null()
      double precision                                           , dimension(:,:), allocatable :: outputWeight                                   , functionCovariance                               , &
-          &                                                                                      weightMainBranch                               , weightSquaredMainBranch                          , &
-          &                                                                                      functionCovarianceTarget
+          &                                                                                      weightMainBranch                               , functionCovarianceTarget
      double precision                                           , dimension(:  ), allocatable :: binCenter                                      , functionValue                                    , &
-          &                                                                                      functionValueTarget
+          &                                                                                      functionValueTarget                            , weightMainBranchSquared
      double precision                                           , dimension(:  ), allocatable :: binMinimum                                     , binMaximum
      integer         (c_size_t                                 )                              :: binCount                                       , bufferCount                                      , &
           &                                                                                      binCountTotal                                  , covarianceModelBinomialBinCount
      integer                                                                                  :: covarianceModel                                , covarianceBinomialBinsPerDecade
      double precision                                                                         :: covarianceBinomialMassHaloMinimum              , covarianceBinomialMassHaloMaximum                , &
-          &                                                                                      covarianceModelHaloMassMinimumLogarithmic      , covarianceModelHaloMassIntervalLogarithmicInverse
+          &                                                                                      covarianceModelHaloMassMinimumLogarithmic      , covarianceModelHaloMassIntervalLogarithmicInverse, &
+          &                                                                                      binWidth
      logical                                                                                  :: finalized                                      , xAxisIsLog                                       , &
           &                                                                                      yAxisIsLog                                     , likelihoodNormalize
      !$ integer      (omp_lock_kind                            )                              :: accumulateLock
    contains
      !![
      <methods>
-       <method description="Return the results of the volume function operator." method="results" />
-       <method description="Finalize the analysis of this function." method="finalizeAnalysis" />
+       <method description="Return the results of the volume function operator." method="results"         />
+       <method description="Finalize the analysis of this function."             method="finalizeAnalysis"/>
      </methods>
      !!]
      final     ::                     volumeFunction1DDestructor
@@ -173,7 +176,8 @@ contains
     integer                                                                                  :: covarianceBinomialBinsPerDecade
     type            (inputParameters                          )                              :: unoperatorParameters
     double precision                                                                         :: propertyUnitsInSI                    , distributionUnitsInSI            , &
-         &                                                                                      covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum
+         &                                                                                      covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum, &
+         &                                                                                      binWidth
     logical                                                                                  :: xAxisIsLog                           , yAxisIsLog                       , &
          &                                                                                      likelihoodNormalize
 
@@ -280,6 +284,18 @@ contains
       <variable>binCenter</variable>
       <description>The value of the property at the center of each bin.</description>
     </inputParameter>
+    !!]
+    if (size(binCenter) == 1) then
+       !![
+       <inputParameter>
+	 <name>binWidth</name>
+	 <source>parameters</source>
+	 <variable>binWidth</variable>
+	 <description>The width of the bins.</description>
+       </inputParameter>
+       !!]
+    end if
+    !![
     <inputParameter>
       <name>bufferCount</name>
       <source>parameters</source>
@@ -397,11 +413,12 @@ contains
            &amp;                          {conditions}                                                                                        &amp;
            &amp;                         )
      </call>
-     <argument name="functionValueTarget"      value="functionValueTarget"      parameterPresent="parameters"/>
-     <argument name="functionCovarianceTarget" value="functionCovarianceTarget" parameterPresent="parameters"/>
+     <argument name="functionValueTarget"      value="functionValueTarget"      parameterPresent="parameters"          />
+     <argument name="functionCovarianceTarget" value="functionCovarianceTarget" parameterPresent="parameters"          />
+     <argument name="binWidth"                 value="binWidth"                        condition="size(binCenter) == 1"/>
     </conditionalCall>
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="nodePropertyExtractor_"     />
+    <objectDestructor name="nodePropertyExtractor_"               />
     <objectDestructor name="outputAnalysisPropertyOperator_"      />
     <objectDestructor name="outputAnalysisPropertyUnoperator_"    />
     <objectDestructor name="outputAnalysisWeightOperator_"        />
@@ -413,7 +430,7 @@ contains
     return
   end function volumeFunction1DConstructorParameters
 
-  function volumeFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,distributionLabel,distributionComment,distributionUnits,distributionUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,outputAnalysisDistributionNormalizer_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,functionValueTarget,functionCovarianceTarget) result (self)
+  function volumeFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,distributionLabel,distributionComment,distributionUnits,distributionUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperator_,outputAnalysisDistributionOperator_,outputAnalysisDistributionNormalizer_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,functionValueTarget,functionCovarianceTarget,binWidth) result (self)
     !!{
     Constructor for the ``volumeFunction1D'' output analysis class for internal use.
     !!}
@@ -445,12 +462,13 @@ contains
     class           (outputTimesClass                         ), intent(in   ), target                   :: outputTimes_
     integer                                                    , intent(in   )                           :: covarianceModel
     integer                                                    , intent(in   ), optional                 :: covarianceBinomialBinsPerDecade
-    double precision                                           , intent(in   ), optional                 :: covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum
+    double precision                                           , intent(in   ), optional                 :: covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum, &
+         &                                                                                                  binWidth
     double precision                                           , intent(in   ), optional, dimension(:  ) :: functionValueTarget
     double precision                                           , intent(in   ), optional, dimension(:,:) :: functionCovarianceTarget
     integer         (c_size_t                                 )                                          :: i
     !![
-    <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, distributionLabel, distributionComment, distributionUnits, distributionUnitsInSI, binCenter, bufferCount, outputWeight, *nodePropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *outputAnalysisDistributionNormalizer_, *galacticFilter_, *outputTimes_, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, xAxisLabel='x', yAxisLabel='y', xAxisIsLog=.false., yAxisIsLog=.false., targetLabel, functionValueTarget, functionCovarianceTarget"/>
+    <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, distributionLabel, distributionComment, distributionUnits, distributionUnitsInSI, binCenter, bufferCount, outputWeight, *nodePropertyExtractor_, *outputAnalysisPropertyOperator_, *outputAnalysisPropertyUnoperator_, *outputAnalysisWeightOperator_, *outputAnalysisDistributionOperator_, *outputAnalysisDistributionNormalizer_, *galacticFilter_, *outputTimes_, covarianceModel, covarianceBinomialBinsPerDecade, covarianceBinomialMassHaloMinimum, covarianceBinomialMassHaloMaximum, xAxisLabel='x', yAxisLabel='y', xAxisIsLog=.false., yAxisIsLog=.false., targetLabel, functionValueTarget, functionCovarianceTarget, binWidth"/>
     !!]
 
     ! Validate.
@@ -469,24 +487,35 @@ contains
     ! Determine bin minima and maxima. Allocate arrays for bins that include buffer regions.
     call allocateArray(self%binMinimum,dimensions=[self%binCountTotal],lowerBounds=[-bufferCount+1])
     call allocateArray(self%binMaximum,dimensions=[self%binCountTotal],lowerBounds=[-bufferCount+1])
-    do i=1,self%binCount
-       if (i == 1) then
-          self%binMinimum(i)=+binCenter(i)+0.5d0*(self%binCenter(i  )-self%binCenter(i+1))
-       else
-          self%binMinimum(i)=             +0.5d0*(self%binCenter(i-1)+self%binCenter(i  ))
-       end if
-       if (i == self%binCount) then
-          self%binMaximum(i)=+binCenter(i)+0.5d0*(self%binCenter(i  )-self%binCenter(i-1))
-       else
-          self%binMaximum(i)=             +0.5d0*(self%binCenter(i  )+self%binCenter(i+1))
-       end if
-    end do
-    do i=1,bufferCount
-       self%binMinimum(            1-i)=self%binMinimum(            1)-dble(i)*(self%binMinimum(            2)-self%binMinimum(              1))
-       self%binMaximum(            1-i)=self%binMaximum(            1)-dble(i)*(self%binMinimum(            2)-self%binMinimum(              1))
-       self%binMinimum(self%binCount+i)=self%binMinimum(self%binCount)+dble(i)*(self%binMaximum(self%binCount)-self%binMaximum(self%binCount-1))
-       self%binMaximum(self%binCount+i)=self%binMaximum(self%binCount)+dble(i)*(self%binMaximum(self%binCount)-self%binMaximum(self%binCount-1))
-    end do
+    if (present(binWidth)) then
+       self%binMinimum(1:self%binCount)=+binCenter-0.5d0*binWidth
+       self%binMaximum(1:self%binCount)=+binCenter+0.5d0*binWidth
+       do i=1,bufferCount
+          self%binMinimum(            1-i)=self%binMinimum(            1)-dble(i)*binWidth
+          self%binMaximum(            1-i)=self%binMaximum(            1)-dble(i)*binWidth
+          self%binMinimum(self%binCount+i)=self%binMinimum(self%binCount)+dble(i)*binWidth
+          self%binMaximum(self%binCount+i)=self%binMaximum(self%binCount)+dble(i)*binWidth
+       end do
+    else
+       do i=1,self%binCount
+          if (i == 1) then
+             self%binMinimum(i)=+binCenter(i)+0.5d0*(self%binCenter(i  )-self%binCenter(i+1))
+          else
+             self%binMinimum(i)=             +0.5d0*(self%binCenter(i-1)+self%binCenter(i  ))
+          end if
+          if (i == self%binCount) then
+             self%binMaximum(i)=+binCenter(i)+0.5d0*(self%binCenter(i  )-self%binCenter(i-1))
+          else
+             self%binMaximum(i)=             +0.5d0*(self%binCenter(i  )+self%binCenter(i+1))
+          end if
+       end do
+       do i=1,bufferCount
+          self%binMinimum(            1-i)=self%binMinimum(            1)-dble(i)*(self%binMinimum(            2)-self%binMinimum(              1))
+          self%binMaximum(            1-i)=self%binMaximum(            1)-dble(i)*(self%binMinimum(            2)-self%binMinimum(              1))
+          self%binMinimum(self%binCount+i)=self%binMinimum(self%binCount)+dble(i)*(self%binMaximum(self%binCount)-self%binMaximum(self%binCount-1))
+          self%binMaximum(self%binCount+i)=self%binMaximum(self%binCount)+dble(i)*(self%binMaximum(self%binCount)-self%binMaximum(self%binCount-1))
+       end do
+    end if
     ! Allocate and initialize function values.
     call allocateArray(self%functionValue     ,[self%binCount              ])
     call allocateArray(self%functionCovariance,[self%binCount,self%binCount])
@@ -498,9 +527,9 @@ contains
        self%covarianceModelHaloMassMinimumLogarithmic        =log10(self%covarianceBinomialMassHaloMinimum)
        self%covarianceModelHaloMassIntervalLogarithmicInverse=dble(self%covarianceModelBinomialBinCount)/log10(self%covarianceBinomialMassHaloMaximum/self%covarianceBinomialMassHaloMinimum)
        call allocateArray(self%weightMainBranch       ,[self%binCount,self%covarianceModelBinomialBinCount])
-       call allocateArray(self%weightSquaredMainBranch,[self%binCount,self%covarianceModelBinomialBinCount])
+       call allocateArray(self%weightMainBranchSquared,[              self%covarianceModelBinomialBinCount])
        self%weightMainBranch       =0.0d0
-       self%weightSquaredMainBranch=0.0d0
+       self%weightMainBranchSquared=0.0d0
     end if
     ! Initialize finalization status.
     self%finalized=.false.
@@ -593,12 +622,12 @@ contains
        indexHaloMass =  floor((log10(basic%mass())-self%covarianceModelHaloMassMinimumLogarithmic)*self%covarianceModelHaloMassIntervalLogarithmicInverse)+1
        ! Accumulate weights to halo mass arrays.
        if (indexHaloMass >= 1 .and. indexHaloMass <= self%covarianceModelBinomialBinCount) then
-          self                 %weightMainBranch       ( :             ,indexHaloMass)=   &
-               &  +self        %weightMainBranch       ( :             ,indexHaloMass)    &
-               &  +distribution                        (1:self%binCount)
-          self                 %weightSquaredMainBranch( :             ,indexHaloMass)=   &
-               &  +self        %weightSquaredMainBranch( :             ,indexHaloMass)    &
-               &  +distribution                        (1:self%binCount              )**2
+          self                     %weightMainBranch       ( :             ,indexHaloMass)=    &
+               &  +    self        %weightMainBranch       ( :             ,indexHaloMass)     &
+               &  +    distribution                        (1:self%binCount)
+          self                     %weightMainBranchSquared(                indexHaloMass)=    &
+               &  +    self        %weightMainBranchSquared(                indexHaloMass)     &
+               &  +sum(distribution                        (1:self%binCount              ))**2
        end if
     else
        ! Construct contribution to the covariance matrix assuming Poisson statistics.
@@ -639,7 +668,7 @@ contains
        !$ call OMP_Set_Lock(reduced%accumulateLock)
        if (self%covarianceModel == outputAnalysisCovarianceModelBinomial) then
           reduced%weightMainBranch       =reduced%weightMainBranch       +self%weightMainBranch
-          reduced%weightSquaredMainBranch=reduced%weightSquaredMainBranch+self%weightSquaredMainBranch
+          reduced%weightMainBranchSquared=reduced%weightMainBranchSquared+self%weightMainBranchSquared
        end if
        reduced%functionCovariance        =reduced%functionCovariance     +self%functionCovariance
        reduced%functionValue             =reduced%functionValue          +self%functionValue
@@ -659,7 +688,7 @@ contains
     use :: IO_HDF5        , only : hdf5Object
     implicit none
     class(outputAnalysisVolumeFunction1D), intent(inout) :: self
-    type (hdf5Object                    )                :: analysesGroup        , analysisGroup, &
+    type (hdf5Object                    )                :: analysesGroup, analysisGroup, &
          &                                                  dataset
 
     ! Finalize analysis.
@@ -724,8 +753,7 @@ contains
     use :: Output_Analyses_Options, only : outputAnalysisCovarianceModelBinomial
     implicit none
     class           (outputAnalysisVolumeFunction1D), intent(inout) :: self
-    double precision                                , parameter     :: weightFractionMaximum=0.99d0
-    integer         (c_size_t                      )                :: i                           , j, &
+    integer         (c_size_t                      )                :: i                    , j, &
          &                                                             m
     double precision                                                :: weightMainBranchTotal
 
@@ -738,29 +766,22 @@ contains
           weightMainBranchTotal=sum(self%weightMainBranch(:,m))
           if (weightMainBranchTotal > 0.0d0) then
              do i=1,self%binCount
-                if (self%weightMainBranch(i,m) < weightFractionMaximum*weightMainBranchTotal) then
-                   ! General case - multiple halo mass bins contributed to this bin of the volume function.
-                   self               %functionCovariance     (i,i)=                       &
-                        &         self%functionCovariance     (i,i)                        &
-                        & +(1.0d0-self%weightMainBranch       (i,m)/weightMainBranchTotal) &
-                        & *       self%weightSquaredMainBranch(i,m)
-                else
-                   ! Special case - only one halo mass bin contributed to this bin of the volume function. We revert to Poisson
-                   ! statistics in this case to avoid having zero covariance.
-                   self               %functionCovariance     (i,i)=                       &
-                        &         self%functionCovariance     (i,i)                        &
-                        & +       self%weightSquaredMainBranch(i,m)
-                end if
+                ! For on-diagonal terms the variance is just n pᵢ (1-pᵢ). Here, pᵢ is the probability of contributing to bin i in
+                ! our function. We find this by dividing the weight of main branch galaxies in bin i by the sum of weights over
+                ! all bins. Finally, n is just the sum of squared weights for this halo mass bin.
+                self               %functionCovariance     (i,i)=                       &
+                     &         self%functionCovariance     (i,i)                        &
+                     & +       self%weightMainBranchSquared(  m)                        & ! +   n
+                     & *       self%weightMainBranch       (i,m)/weightMainBranchTotal  & !     pᵢ
+                     & *(1.0d0-self%weightMainBranch       (i,m)/weightMainBranchTotal)   !  (1-pᵢ)
                 do j=1,self%binCount
                    if (i == j) cycle
-                   self               %functionCovariance     (i,j)= &
-                        &  +      self%functionCovariance     (i,j)  &
-                        &  -      self%weightMainBranch       (i,m)  &
-                        &  *      self%weightMainBranch       (j,m)  &
-                        &  *sqrt(                                    &
-                        &         self%weightSquaredMainBranch(i,m)  &
-                        &        *self%weightSquaredMainBranch(j,m)  &
-                        &       )
+                   ! For off-diagonal terms the covariance is - n pᵢ pⱼ.
+                   self            %functionCovariance     (i,j)=                       &
+                        &  +   self%functionCovariance     (i,j)                        &
+                        &  -   self%weightMainBranchSquared(  m)                        & ! -   n
+                        &  *   self%weightMainBranch       (i,m)/weightMainBranchTotal  & !     pᵢ
+                        &  *   self%weightMainBranch       (j,m)/weightMainBranchTotal    !     pⱼ
                 end do
              end do
           end if
