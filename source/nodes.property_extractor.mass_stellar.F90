@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements a stellar mass output analysis property extractor class.
+Contains a module which implements a stellar mass property extractor class.
 !!}
 
   !![
@@ -28,7 +28,7 @@ Contains a module which implements a stellar mass output analysis property extra
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassStellar
      !!{
-     A stelalr mass output analysis class.
+     A stellar mass property extractor class.
      !!}
      private
    contains
@@ -42,7 +42,7 @@ Contains a module which implements a stellar mass output analysis property extra
 
   interface nodePropertyExtractorMassStellar
      !!{
-     Constructors for the ``massStellar'' output analysis class.
+     Constructors for the ``massStellar'' property extractor class.
      !!}
      module procedure massStellarConstructorParameters
   end interface nodePropertyExtractorMassStellar
@@ -84,7 +84,7 @@ contains
     Return the name of the massStellar property.
     !!}
     implicit none
-    type (varying_string                            )                :: massStellarName
+    type (varying_string                  )                :: massStellarName
     class(nodePropertyExtractorMassStellar), intent(inout) :: self
     !$GLC attributes unused :: self
 

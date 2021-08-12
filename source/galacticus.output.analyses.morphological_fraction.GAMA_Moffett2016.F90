@@ -338,12 +338,12 @@ contains
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_                     )
     !![
-    <referenceConstruct object="outputAnalysisPropertyUnoperator_"                constructor="outputAnalysisPropertyOperatorAntiLog10             (                                                                          )"/>
+    <referenceConstruct object="outputAnalysisPropertyUnoperator_"                constructor="outputAnalysisPropertyOperatorAntiLog10   (                                                                          )"/>
     !!]
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_                      )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassStellar          (                                                                          )"/>
+    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorMassStellar          (                                                                          )"/>
     !!]
     ! Create a morpology weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
@@ -365,7 +365,7 @@ contains
          &                                                         log10(masses)                                  , &
          &                                                         bufferCount                                    , &
          &                                                         outputWeight                                   , &
-         &                                                         nodePropertyExtractor_               , &
+         &                                                         nodePropertyExtractor_                         , &
          &                                                         outputAnalysisWeightPropertyExtractor_         , &
          &                                                         outputAnalysisPropertyOperator_                , &
          &                                                         outputAnalysisWeightPropertyOperator_          , &
