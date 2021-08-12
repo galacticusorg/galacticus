@@ -360,7 +360,7 @@ contains
     !!}
     use :: Display          , only : displayCounter , displayCounterClear  , displayIndent       , displayMessage, &
           &                          displayUnindent, verbosityLevelWorking
-    use :: Error_Functions  , only : erfApproximate
+    use :: Error_Functions  , only : Error_Function
     use :: File_Utilities   , only : File_Lock      , File_Unlock          , lockDescriptor
     use :: Kind_Numbers     , only : kind_dble      , kind_quad
     use :: MPI_Utilities    , only : mpiBarrier     , mpiSelf
@@ -489,7 +489,7 @@ contains
                   &                                        +2.0_kind_quad                                              &
                   &                                      *(                                                            &
                   &                                        +1.0_kind_quad                                              &
-                  &                                        -erfApproximate(                                            &
+                  &                                        -Error_Function(                                            &
                   &                                                        +barrierTable(1)                            &
                   &                                                        /sqrt(2.0_kind_quad*self%varianceTable(1))  &
                   &                                                       )                                            &
@@ -513,7 +513,7 @@ contains
                         &  +self%firstCrossingProbabilityTable(j,iTime)                                              &
                         &  *real(                                                                                    &
                         &        +1.0_kind_quad                                                                      &
-                        &        -erfApproximate(                                                                    &
+                        &        -Error_Function(                                                                    &
                         &                        +(                                                                  &
                         &                           +barrierTable(i)                                                 &
                         &                           -barrierTable(j)                                                 &
@@ -529,7 +529,7 @@ contains
                      &                                                 +2.0_kind_quad                                                &
                      &                                                 *(                                                            &
                      &                                                   +1.0_kind_quad                                              &
-                     &                                                   -erfApproximate(                                            &
+                     &                                                   -Error_Function(                                            &
                      &                                                                   +barrierTable(i)                            &
                      &                                                                   /sqrt(2.0_kind_quad*self%varianceTable(i))  &
                      &                                                                  )                                            &
@@ -710,7 +710,7 @@ contains
     !!}
     use :: Display          , only : displayCounter , displayCounterClear  , displayIndent       , displayMessage, &
           &                          displayUnindent, verbosityLevelWorking
-    use :: Error_Functions  , only : erfApproximate
+    use :: Error_Functions  , only : Error_Function
     use :: File_Utilities   , only : File_Lock      , File_Unlock          , lockDescriptor
     use :: Kind_Numbers     , only : kind_dble      , kind_quad
     use :: MPI_Utilities    , only : mpiBarrier     , mpiSelf
@@ -925,7 +925,7 @@ contains
                    firstCrossingTableRateQuad(1)=+2.0_kind_quad                                                  &
                         &                        *(                                                              &
                         &                          +1.0_kind_quad                                                &
-                        &                          -erfApproximate(                                              &
+                        &                          -Error_Function(                                              &
                         &                                          +(                                            &
                         &                                            +barrierTableRateQuad(1)                    &
                         &                                            -barrier                                    &
@@ -948,7 +948,7 @@ contains
                               &  *varianceTableStepRate                                                                     &
                               &  *(                                                                                         &
                               &    +1.0_kind_quad                                                                           &
-                              &    -erfApproximate(                                                                         &
+                              &    -Error_Function(                                                                         &
                               &                    +(                                                                       &
                               &                      +effectiveBarrierInitial                                               &
                               &                      -barrierTableRateQuad(j)                                               &
@@ -965,7 +965,7 @@ contains
                            &                              +2.0_kind_quad                                                  &
                            &                              *(                                                              &
                            &                                +1.0_kind_quad                                                &
-                           &                                -erfApproximate(                                              &
+                           &                                -Error_Function(                                              &
                            &                                                +effectiveBarrierInitial                      &
                            &                                                /sqrt(2.0_kind_quad*varianceTableRateQuad(i)) &
                            &                                               )                                              &

@@ -85,7 +85,7 @@ contains
     !!}
     use :: Display          , only : displayCounter , displayCounterClear  , displayIndent       , displayMessage, &
           &                          displayUnindent, verbosityLevelWorking
-    use :: Error_Functions  , only : erfApproximate
+    use :: Error_Functions  , only : Error_Function
     use :: File_Utilities   , only : File_Lock      , File_Unlock          , lockDescriptor
     use :: Kind_Numbers     , only : kind_dble      , kind_quad
     use :: MPI_Utilities    , only : mpiBarrier     , mpiSelf
@@ -221,7 +221,7 @@ contains
              end do
              self%firstCrossingProbabilityTable(0,iTime)=0.0d0
              integralKernel                             =+1.0_kind_quad                                                                   &
-                  &                                      -erfApproximate(                                                                 &
+                  &                                      -Error_Function(                                                                 &
                   &                                                      +(                                                               &
                   &                                                        +barrierTable   (1)                                            &
                   &                                                        -barrierMidTable(1)                                            &
@@ -231,7 +231,7 @@ contains
              self%firstCrossingProbabilityTable(1,iTime)=real(                                                              &
                   &                                           +(                                                            &
                   &                                             +1.0_kind_quad                                              &
-                  &                                             -erfApproximate(                                            &
+                  &                                             -Error_Function(                                            &
                   &                                                             +barrierTable(1)                            &
                   &                                                             /sqrt(2.0_kind_quad*self%varianceTable(1))  &
                   &                                                            )                                            &
@@ -256,7 +256,7 @@ contains
                         &  +self%firstCrossingProbabilityTable(j,iTime)                                              &
                         &  *real(                                                                                    &
                         &         1.0_kind_quad                                                                      &
-                        &        -erfApproximate(                                                                    &
+                        &        -Error_Function(                                                                    &
                         &                          (                                                                 &
                         &                           +barrierTable   (i)                                              &
                         &                           -barrierMidTable(j)                                              &
@@ -267,7 +267,7 @@ contains
                         &       )
                 end do
                 integralKernel=+1.0_kind_quad                                                                   &
-                     &         -erfApproximate(                                                                 &
+                     &         -Error_Function(                                                                 &
                      &                         +(                                                               &
                      &                           +barrierTable   (i)                                            &
                      &                           -barrierMidTable(i)                                            &
@@ -283,7 +283,7 @@ contains
                         &                                               +(                                                              &
                         &                                                 +(                                                            &
                         &                                                   +1.0_kind_quad                                              &
-                        &                                                   -erfApproximate(                                            &
+                        &                                                   -Error_Function(                                            &
                         &                                                                   +barrierTable(i)                            &
                         &                                                                   /sqrt(2.0_kind_quad*self%varianceTable(i))  &
                         &                                                                  )                                            &
@@ -371,7 +371,7 @@ contains
     !!}
     use :: Display          , only : displayCounter , displayCounterClear  , displayIndent       , displayMessage, &
           &                          displayUnindent, verbosityLevelWorking
-    use :: Error_Functions  , only : erfApproximate
+    use :: Error_Functions  , only : Error_Function
     use :: File_Utilities   , only : File_Lock      , File_Unlock          , lockDescriptor
     use :: Kind_Numbers     , only : kind_dble      , kind_quad
     use :: MPI_Utilities    , only : mpiBarrier     , mpiSelf
@@ -639,7 +639,7 @@ contains
                    firstCrossingTableRateQuad(1)= 0.0_kind_quad
                 else
                    integralKernelRate           =+1.0_kind_quad                                                                              &
-                        &                        -erfApproximate(                                                                            &
+                        &                        -Error_Function(                                                                            &
                         &                                        +(                                                                          &
                         &                                          +(barrierTableRateQuad   (1)-barrier)                                     &
                         &                                          -(barrierMidTableRateQuad(1)-barrier)                                     &
@@ -653,7 +653,7 @@ contains
                    end if
                    firstCrossingTableRateQuad(1)=+(                                                              &
                         &                          +1.0_kind_quad                                                &
-                        &                          -erfApproximate(                                              &
+                        &                          -Error_Function(                                              &
                         &                                          +(barrierTableRateQuad(1)-barrier)            &
                         &                                          /sqrt(2.0_kind_quad*varianceTableRateQuad(1)) &
                         &                                         )                                              &
@@ -667,7 +667,7 @@ contains
                    else
                       effectiveBarrierInitial=+barrierTableRateQuad(i)-barrier
                       integralKernelRate=+1.0_kind_quad                                                                              &
-                           &             -erfApproximate(                                                                            &
+                           &             -Error_Function(                                                                            &
                            &                             +(                                                                          &
                            &                               +effectiveBarrierInitial                                                  &
                            &                               -barrierMidTableRateQuad(i)                                               &
@@ -687,7 +687,7 @@ contains
                                erfValue=0.0_kind_quad
                             else
                                erfArgumentDenominator=sqrt(2.0_kind_quad*(varianceTableRateQuad(i)-varianceMidTableRateQuad(j)))
-                               erfValue=erfApproximate(erfArgumentNumerator/erfArgumentDenominator)
+                               erfValue=Error_Function(erfArgumentNumerator/erfArgumentDenominator)
                             end if
                             if (erfValue < 1.0_kind_quad) then
                                varianceTableStepRate=varianceTableRateQuad(j)-varianceTableRateQuad(j-1)
@@ -705,7 +705,7 @@ contains
                               &                            +0.0_kind_quad,                                                 &
                               &                            +(                                                              &
                               &                              +1.0_kind_quad                                                &
-                              &                              -erfApproximate(                                              &
+                              &                              -Error_Function(                                              &
                               &                                              +effectiveBarrierInitial                      &
                               &                                              /sqrt(2.0_kind_quad*varianceTableRateQuad(i)) &
                               &                                             )                                              &
