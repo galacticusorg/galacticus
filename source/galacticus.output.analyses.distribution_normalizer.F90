@@ -38,9 +38,9 @@ module Output_Analysis_Distribution_Normalizers
     <description>Normalize a distribution.</description>
     <type>void</type>
     <pass>yes</pass>
-    <argument>double precision, intent(inout), dimension(:  ) :: distribution</argument>
-    <argument>double precision, intent(inout), dimension(:,:) :: covariance</argument>
-    <argument>double precision, intent(in   ), dimension(:  ) :: propertyValueMinimum, propertyValueMaximum</argument>
+    <argument>double precision, intent(inout), dimension(:  ), optional :: distribution</argument>
+    <argument>double precision, intent(inout), dimension(:,:), optional :: covariance</argument>
+    <argument>double precision, intent(in   ), dimension(:  )           :: propertyValueMinimum, propertyValueMaximum</argument>
    </method>
   </functionClass>
   !!]
