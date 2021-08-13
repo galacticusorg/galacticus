@@ -83,14 +83,13 @@ contains
     !!{
     Return the excursion set barrier at the given variance and time.
     !!}
-    use :: Display          , only : displayCounter , displayCounterClear  , displayIndent       , displayMessage, &
-          &                          displayUnindent, verbosityLevelWorking
-    use :: Error_Functions  , only : Error_Function
-    use :: File_Utilities   , only : File_Lock      , File_Unlock          , lockDescriptor
-    use :: Kind_Numbers     , only : kind_dble      , kind_quad
-    use :: MPI_Utilities    , only : mpiBarrier     , mpiSelf
-    use :: Memory_Management, only : allocateArray  , deallocateArray
-    use :: Numerical_Ranges , only : Make_Range     , rangeTypeLinear      , rangeTypeLogarithmic
+    use :: Display          , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
+          &                          displayUnindent             , verbosityLevelWorking
+    use :: Error_Functions  , only : Error_Function_Complementary
+    use :: File_Utilities   , only : File_Lock                   , File_Unlock          , lockDescriptor
+    use :: MPI_Utilities    , only : mpiBarrier                  , mpiSelf
+    use :: Memory_Management, only : allocateArray               , deallocateArray
+    use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                 :: self
     double precision                                         , intent(in   )                 :: variance                     , time
@@ -107,7 +106,7 @@ contains
          &                                                                                      i                            , j             , &
          &                                                                                      jTime                        , jVariance
     double precision                                                                         :: sigma1f
-    real            (kind=kind_quad                         )                                :: integralKernel
+    double precision                                                                         :: integralKernel
     character       (len =9                                 )                                :: label
     type            (varying_string                         )                                :: message
     type            (lockDescriptor                         )                                :: fileLock
@@ -219,27 +218,20 @@ contains
                 barrierTable   (i)=excursionSetBarrier_%barrier(self%varianceTable   (i),self%timeTable(iTime),node,rateCompute=.false.)
                 barrierMidTable(i)=excursionSetBarrier_%barrier(     varianceMidTable(i),self%timeTable(iTime),node,rateCompute=.false.)
              end do
-             self%firstCrossingProbabilityTable(0,iTime)=0.0d0
-             integralKernel                             =+1.0_kind_quad                                                                   &
-                  &                                      -Error_Function(                                                                 &
-                  &                                                      +(                                                               &
-                  &                                                        +barrierTable   (1)                                            &
-                  &                                                        -barrierMidTable(1)                                            &
-                  &                                                       )                                                               &
-                  &                                                      /sqrt(2.0_kind_quad*(self%varianceTable(1)-varianceMidTable(1))) &
-                  &                                                     )
-             self%firstCrossingProbabilityTable(1,iTime)=real(                                                              &
-                  &                                           +(                                                            &
-                  &                                             +1.0_kind_quad                                              &
-                  &                                             -Error_Function(                                            &
-                  &                                                             +barrierTable(1)                            &
-                  &                                                             /sqrt(2.0_kind_quad*self%varianceTable(1))  &
-                  &                                                            )                                            &
-                  &                                            )                                                            &
-                  &                                           /self%varianceTableStep                                       &
-                  &                                           /integralKernel                                             , &
-                  &                                           kind=kind_dble                                                &
-                  &                                          )
+             self%firstCrossingProbabilityTable(0,iTime)= 0.0d0
+             integralKernel                             = Error_Function_Complementary(                                                         &
+                  &                                                                    +(                                                       &
+                  &                                                                      +barrierTable   (1)                                    &
+                  &                                                                      -barrierMidTable(1)                                    &
+                  &                                                                     )                                                       &
+                  &                                                                    /sqrt(2.0d0*(self%varianceTable(1)-varianceMidTable(1))) &
+                  &                                                                   )
+             self%firstCrossingProbabilityTable(1,iTime)= Error_Function_Complementary(                                   &
+                  &                                                                    +barrierTable(1)                   &
+                  &                                                                    /sqrt(2.0d0*self%varianceTable(1)) &
+                  &                                                                   )                                   &
+                  &                                      /self%varianceTableStep                                          &
+                  &                                      /integralKernel
              do i=2,self%varianceTableCount
 #ifdef USEMPI
                 if (mpiSelf%isMaster() .or. .not.self%coordinatedMPI_) then
@@ -252,50 +244,38 @@ contains
                 loopCount=loopCount+(i-1)
                 sigma1f  =0.0d0
                 do j=1,i-1
-                   sigma1f=+sigma1f                                                                                  &
-                        &  +self%firstCrossingProbabilityTable(j,iTime)                                              &
-                        &  *real(                                                                                    &
-                        &         1.0_kind_quad                                                                      &
-                        &        -Error_Function(                                                                    &
-                        &                          (                                                                 &
-                        &                           +barrierTable   (i)                                              &
-                        &                           -barrierMidTable(j)                                              &
-                        &                          )                                                                 &
-                        &                          /sqrt(2.0_kind_quad*(self%varianceTable(i)-varianceMidTable(j)))  &
-                        &                         )                                                                , &
-                        &        kind=kind_dble                                                                      &
-                        &       )
+                   sigma1f=+sigma1f                                                                               &
+                        &  +self%firstCrossingProbabilityTable(j,iTime)                                           &
+                        &  *Error_Function_Complementary(                                                         &
+                        &                                +(                                                       &
+                        &                                  +barrierTable   (i)                                    &
+                        &                                  -barrierMidTable(j)                                    &
+                        &                                 )                                                       &
+                        &                                /sqrt(2.0d0*(self%varianceTable(i)-varianceMidTable(j))) &
+                        &                               )
                 end do
-                integralKernel=+1.0_kind_quad                                                                   &
-                     &         -Error_Function(                                                                 &
-                     &                         +(                                                               &
-                     &                           +barrierTable   (i)                                            &
-                     &                           -barrierMidTable(i)                                            &
-                     &                          )                                                               &
-                     &                         /sqrt(2.0_kind_quad*(self%varianceTable(i)-varianceMidTable(i))) &
-                     &                        )
-                if (integralKernel==0.0_kind_quad) then
+                integralKernel=Error_Function_Complementary(                                                         &
+                     &                                      +(                                                       &
+                     &                                        +barrierTable   (i)                                    &
+                     &                                        -barrierMidTable(i)                                    &
+                     &                                       )                                                       &
+                     &                                      /sqrt(2.0d0*(self%varianceTable(i)-varianceMidTable(i))) &
+                     &                                     )
+                if (integralKernel==0.0d0) then
                    self%firstCrossingProbabilityTable(i,iTime)=0.0d0
                 else
-                   self%firstCrossingProbabilityTable(i,iTime)=real(                                                                    &
-                        &                                           max(                                                                &
-                        &                                               +0.0_kind_quad,                                                 &
-                        &                                               +(                                                              &
-                        &                                                 +(                                                            &
-                        &                                                   +1.0_kind_quad                                              &
-                        &                                                   -Error_Function(                                            &
-                        &                                                                   +barrierTable(i)                            &
-                        &                                                                   /sqrt(2.0_kind_quad*self%varianceTable(i))  &
-                        &                                                                  )                                            &
-                        &                                                  )                                                            &
-                        &                                                 /self%varianceTableStep                                       &
-                        &                                                 -1.0_kind_quad                                                &
-                        &                                                 *sigma1f                                                      &
-                        &                                                )                                                              &
-                        &                                               /integralKernel                                                 &
-                        &                                              )                                                              , &
-                        &                                           kind=kind_dble                                                      &
-                        &                                          )
+                   self%firstCrossingProbabilityTable(i,iTime)=max(                                                                            &
+                        &                                          +0.0d0,                                                                     &
+                        &                                          +(                                                                          &
+                        &                                            +Error_Function_Complementary(                                            &
+                        &                                                                          +barrierTable(i)                            &
+                        &                                                                          /sqrt(2.0d0*self%varianceTable(i))          &
+                        &                                                                         )                                            &
+                        &                                            /self%varianceTableStep                                                   &
+                        &                                            -sigma1f                                                                  &
+                        &                                           )                                                                          &
+                        &                                          /integralKernel                                                             &
+                        &                                         )
                 end if
              end do
              ! Force the probability at maximum variance to zero.
@@ -369,14 +349,14 @@ contains
     !!{
     Tabulate the excursion set crossing rate.
     !!}
-    use :: Display          , only : displayCounter , displayCounterClear  , displayIndent       , displayMessage, &
-          &                          displayUnindent, verbosityLevelWorking
-    use :: Error_Functions  , only : Error_Function
-    use :: File_Utilities   , only : File_Lock      , File_Unlock          , lockDescriptor
-    use :: Kind_Numbers     , only : kind_dble      , kind_quad
-    use :: MPI_Utilities    , only : mpiBarrier     , mpiSelf
-    use :: Memory_Management, only : allocateArray  , deallocateArray
-    use :: Numerical_Ranges , only : Make_Range     , rangeTypeLinear      , rangeTypeLogarithmic
+    use :: Display          , only : displayCounter              , displayCounterClear  , displayIndent       , displayMessage, &
+          &                          displayUnindent             , verbosityLevelWorking
+    use :: Error_Functions  , only : Error_Function_Complementary
+    use :: File_Utilities   , only : File_Lock                   , File_Unlock          , lockDescriptor
+    use :: Kind_Numbers     , only : kind_dble                   , kind_quad
+    use :: MPI_Utilities    , only : mpiBarrier                  , mpiSelf
+    use :: Memory_Management, only : allocateArray               , deallocateArray
+    use :: Numerical_Ranges , only : Make_Range                  , rangeTypeLinear      , rangeTypeLogarithmic
     implicit none
     class           (excursionSetFirstCrossingFarahiMidpoint), intent(inout)                   :: self
     double precision                                         , intent(in   )                   :: time                             , varianceProgenitor
@@ -410,8 +390,8 @@ contains
     real            (kind=kind_quad                         )                                  :: crossingFraction                 , effectiveBarrierInitial  , &
          &                                                                                        sigma1f                          , varianceTableStepRate    , &
          &                                                                                        barrier                          , integralKernelRate       , &
-         &                                                                                        growthFactorEffective            , erfArgumentNumerator     , &
-         &                                                                                        erfArgumentDenominator           , erfValue
+         &                                                                                        growthFactorEffective            , erfcArgumentNumerator    , &
+         &                                                                                        erfcArgumentDenominator          , erfcValue
     logical                                                                                    :: varianceMaximumChanged
 
     ! Determine if we need to make the table.
@@ -638,81 +618,72 @@ contains
                 if (varianceTableRateQuad(1)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate) then
                    firstCrossingTableRateQuad(1)= 0.0_kind_quad
                 else
-                   integralKernelRate           =+1.0_kind_quad                                                                              &
-                        &                        -Error_Function(                                                                            &
-                        &                                        +(                                                                          &
-                        &                                          +(barrierTableRateQuad   (1)-barrier)                                     &
-                        &                                          -(barrierMidTableRateQuad(1)-barrier)                                     &
-                        &                                         )                                                                          &
-                        &                                        /sqrt(2.0_kind_quad*(varianceTableRateQuad(1)-varianceMidTableRateQuad(1))) &
-                        &                                       )
+                   integralKernelRate           = Error_Function_Complementary(                                                                            &
+                        &                                                      +(                                                                          &
+                        &                                                        +(barrierTableRateQuad   (1)-barrier)                                     &
+                        &                                                        -(barrierMidTableRateQuad(1)-barrier)                                     &
+                        &                                                       )                                                                          &
+                        &                                                      /sqrt(2.0_kind_quad*(varianceTableRateQuad(1)-varianceMidTableRateQuad(1))) &
+                        &                                                     )
                    ! If the integral kernel is zero (to machine precision) then simply assume no crossing rate.
                    if (integralKernelRate <= 0.0d0) then
                       firstCrossingTableRateQuad=0.0d0
                       cycle
                    end if
-                   firstCrossingTableRateQuad(1)=+(                                                              &
-                        &                          +1.0_kind_quad                                                &
-                        &                          -Error_Function(                                              &
-                        &                                          +(barrierTableRateQuad(1)-barrier)            &
-                        &                                          /sqrt(2.0_kind_quad*varianceTableRateQuad(1)) &
-                        &                                         )                                              &
-                        &                         )                                                              &
-                        &                         /varianceTableStepRate                                         &
-                        &                         /integralKernelRate
+                   firstCrossingTableRateQuad(1)= Error_Function_Complementary(                                              &
+                        &                                                      +(barrierTableRateQuad(1)-barrier)            &
+                        &                                                      /sqrt(2.0_kind_quad*varianceTableRateQuad(1)) &
+                        &                                                     )                                              &
+                        &                        /varianceTableStepRate                                                      &
+                        &                        /integralKernelRate
                 end if
                 do i=2,self%varianceTableCountRate
                    if (varianceTableRateQuad(i)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate) then
                       firstCrossingTableRateQuad(i)=0.0_kind_quad
                    else
                       effectiveBarrierInitial=+barrierTableRateQuad(i)-barrier
-                      integralKernelRate=+1.0_kind_quad                                                                              &
-                           &             -Error_Function(                                                                            &
-                           &                             +(                                                                          &
-                           &                               +effectiveBarrierInitial                                                  &
-                           &                               -barrierMidTableRateQuad(i)                                               &
-                           &                               +barrier                                                                  &
-                           &                              )                                                                          &
-                           &                             /sqrt(2.0_kind_quad*(varianceTableRateQuad(i)-varianceMidTableRateQuad(i))) &
-                           &                            )
+                      integralKernelRate=Error_Function_Complementary(                                                                            &
+                           &                                          +(                                                                          &
+                           &                                            +effectiveBarrierInitial                                                  &
+                           &                                            -barrierMidTableRateQuad(i)                                               &
+                           &                                            +barrier                                                                  &
+                           &                                           )                                                                          &
+                           &                                          /sqrt(2.0_kind_quad*(varianceTableRateQuad(i)-varianceMidTableRateQuad(i))) &
+                           &                                         )
                       if (integralKernelRate==0.0_kind_quad) then
                          firstCrossingTableRateQuad(i)=0.0_kind_quad
                       else
                          sigma1f=+0.0_kind_quad
                          do j=1,i-1
-                            erfArgumentNumerator=+effectiveBarrierInitial    &
-                                 &               -barrierMidTableRateQuad(j) &
-                                 &               +barrier
-                            if (erfArgumentNumerator == 0.0d0) then
-                               erfValue=0.0_kind_quad
+                            erfcArgumentNumerator=+effectiveBarrierInitial    &
+                                 &                -barrierMidTableRateQuad(j) &
+                                 &                +barrier
+                            if (erfcArgumentNumerator == 0.0_kind_quad) then
+                               erfcValue=1.0_kind_quad
                             else
-                               erfArgumentDenominator=sqrt(2.0_kind_quad*(varianceTableRateQuad(i)-varianceMidTableRateQuad(j)))
-                               erfValue=Error_Function(erfArgumentNumerator/erfArgumentDenominator)
+                               erfcArgumentDenominator=sqrt(2.0_kind_quad*(varianceTableRateQuad(i)-varianceMidTableRateQuad(j)))
+                               erfcValue=Error_Function_Complementary(erfcArgumentNumerator/erfcArgumentDenominator)
                             end if
-                            if (erfValue < 1.0_kind_quad) then
+                            if (erfcValue > 0.0_kind_quad) then
                                varianceTableStepRate=varianceTableRateQuad(j)-varianceTableRateQuad(j-1)
                                sigma1f=+sigma1f                       &
                                     &  +firstCrossingTableRateQuad(j) &
                                     &  *varianceTableStepRate         &
-                                    &  *(                             &
-                                    &    +1.0_kind_quad               &
-                                    &    -erfValue                    &
-                                    &   )
+                                    &  *erfcValue
                             end if
                          end do
                          varianceTableStepRate=varianceTableRateQuad(i)-varianceTableRateQuad(i-1)
-                         firstCrossingTableRateQuad(i)=max(                                                                &
-                              &                            +0.0_kind_quad,                                                 &
-                              &                            +(                                                              &
-                              &                              +1.0_kind_quad                                                &
-                              &                              -Error_Function(                                              &
-                              &                                              +effectiveBarrierInitial                      &
-                              &                                              /sqrt(2.0_kind_quad*varianceTableRateQuad(i)) &
-                              &                                             )                                              &
-                              &                              -sigma1f                                                      &
-                              &                             )                                                              &
-                              &                            /varianceTableStepRate                                          &
-                              &                            /integralKernelRate                                             &
+                         firstCrossingTableRateQuad(i)=max(                                                                              &
+                              &                            +0.0_kind_quad,                                                               &
+                              &                            +(                                                                            &
+                              &                              +Error_Function_Complementary(                                              &
+                              &                                                            +effectiveBarrierInitial                      &
+                              &                                                            /sqrt(2.0_kind_quad*varianceTableRateQuad(i)) &
+                              &                                                           )                                              &
+                              &                              -sigma1f                                                                    &
+                              &                             )                                                                            &
+                              &                            /varianceTableStepRate                                                        &
+                              &                            /integralKernelRate                                                           &
                               &                           )
                          ! Remove unphysical values. Force the crossing rate at points close to maximum variance to zero if its value is one order of magnitude
                          ! larger than the value at previous point.
