@@ -33,7 +33,7 @@ contains
 
   subroutine Sort_Topological(countObjects,countDependencies,dependencies,order,countOrdered,status)
     !!{
-    Topological sorting function. Based on the example from \href{https://rosettacode.org/wiki/Topological_sort#Modern_Fortran}{Rosetta Code}. Arguments are:
+    Topological sorting function. Based on the example from \href{https://rosettacode.org/wiki/Topological_sort\#Modern_Fortran}{Rosetta Code}. Arguments are:
     \begin{description}
      \item[{\normalfont \ttfamily countObjects}\argin] the number of objects to be sorted;
      \item[{\normalfont \ttfamily countDependencies}\argin] the number of dependencies;
