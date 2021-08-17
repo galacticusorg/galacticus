@@ -139,7 +139,7 @@ sub function1DPlot {
     my $nonZero;
     my $nonZeroTarget;
     my $nonZeroBoth;
-    if ( $attributes->{'yAxisIsLog'} || ($options{'excludeZeros'} && $options{'excludeZeros'} eq "no") ) {
+    if ( ! $attributes->{'yAxisIsLog'} || ($options{'excludeZeros'} && $options{'excludeZeros'} eq "no") ) {
 	$nonZero       = pdl sequence(nelem($data->{'yDataset'}));
 	$nonZeroTarget = pdl sequence(nelem($data->{'yDataset'}));
 	$nonZeroBoth   = pdl sequence(nelem($data->{'yDataset'}));
