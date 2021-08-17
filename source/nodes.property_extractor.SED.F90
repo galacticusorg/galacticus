@@ -466,10 +466,12 @@ contains
     allocate(sedColumnDescriptions(self%size(time)))
     allocate(          wavelengths(self%size(time)))
     wavelengths=self%wavelengths(time)
+    !$omp critical(gfortranInternalIO)
     do i=1,size(sedColumnDescriptions)      
        write (label,'(a2,1x,e12.6,1x,a1)') "λ=",wavelengths(i),"Å"
        sedColumnDescriptions(i)=trim(label)
     end do
+    !$omp end critical(gfortranInternalIO)
     return
   end function sedColumnDescriptions
 
@@ -573,7 +575,9 @@ contains
           !$ call hdf5Access%set()
           call file%openFile(char(fileName))
           if (file%hasDataset('sedTemplate')) then
+             !$omp critical(gfortranInternalIO)
              write (label,'(f12.8)') self%outputTimes_%time(indexOutput)
+             !$omp end critical(gfortranInternalIO)
              call displayMessage("reading SED tabulation for time "//trim(adjustl(label))//" Gyr from file '"//fileName//"'",verbosityLevelWorking)
              call file%readDataset('sedTemplate',self%templates(sedIndexTemplateNode)%sed)
           end if
@@ -582,7 +586,9 @@ contains
        end if
        if (.not.allocated(self%templates(sedIndexTemplateNode)%sed)) then
           self%templates(sedIndexTemplateNode)%sed=self%luminosityMean(self%outputTimes_%time(indexOutput),starFormationHistory,parallelize=.true.)
+          !$omp critical(gfortranInternalIO)
           write (label,'(f12.8)') self%outputTimes_%time(indexOutput)
+          !$omp end critical(gfortranInternalIO)
           call displayMessage("storing SED tabulation for time "//trim(adjustl(label))//" Gyr to file '"//fileName//"'",verbosityLevelWorking)
           !$ call hdf5Access%set()
           call file%openFile(char(fileName),overWrite=.false.,readOnly=.false.)
@@ -696,7 +702,9 @@ contains
     end if
     !$omp master
     if (parallelize_) then
+       !$omp critical(gfortranInternalIO)
        write (label,'(f12.8)') time
+       !$omp end critical(gfortranInternalIO)
        call displayIndent("computing template SEDs for time "//trim(adjustl(label))//" Gyr",verbosityLevelWorking)
     end if
     !$omp end master
@@ -874,13 +882,21 @@ contains
     
     descriptor=inputParameters()
     call setLiveNodeLists(descriptor%document,.false.)
+    !$omp critical(gfortranInternalIO)
     write (parameterLabel,'(i17)'   ) self%frame
+    !$omp end critical(gfortranInternalIO)
     call descriptor%addParameter('frame'            ,trim(adjustl(parameterLabel)))
+    !$omp critical(gfortranInternalIO)
     write (parameterLabel,'(e17.10)') self%wavelengthMinimum
+    !$omp end critical(gfortranInternalIO)
     call descriptor%addParameter('wavelengthMinimum',trim(adjustl(parameterLabel)))
+    !$omp critical(gfortranInternalIO)
     write (parameterLabel,'(e17.10)') self%wavelengthMaximum
+    !$omp end critical(gfortranInternalIO)
     call descriptor%addParameter('wavelengthMaximum',trim(adjustl(parameterLabel)))
+    !$omp critical(gfortranInternalIO)
     write (parameterLabel,'(e17.10)') self%resolution
+    !$omp end critical(gfortranInternalIO)
     call descriptor%addParameter('resolution'       ,trim(adjustl(parameterLabel)))
     call self%stellarPopulationSpectra_%descriptor(descriptor)
     call self%starFormationHistory_    %descriptor(descriptor)
@@ -888,14 +904,18 @@ contains
     call self%cosmologyFunctions_      %descriptor(descriptor)
     values=""
     do i=1,size(self%metallicityBoundaries)
+       !$omp critical(gfortranInternalIO)
        write (parameterLabel,'(e17.10)') self                %metallicityBoundaries(i)
+       !$omp end critical(gfortranInternalIO)
        values=values//trim(adjustl(parameterLabel))
        if (i < size(self%metallicityBoundaries)) values=values//":"
     end do
     call descriptor%addParameter('metallicity',char(values))
     values=""
     do i=1,size(starFormationHistory%time)
+       !$omp critical(gfortranInternalIO)
        write (parameterLabel,'(e17.10)') starFormationHistory%time                 (i)
+       !$omp end critical(gfortranInternalIO)
        values=values//trim(adjustl(parameterLabel))
        if (i < size(starFormationHistory%time)) values=values//":"
     end do
