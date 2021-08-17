@@ -112,7 +112,7 @@ CODE
 name=self%nodeComponent{ucfirst($member->{'extends'}->{'class'}).ucfirst($member->{'extends'}->{'name'})}%nameFromIndex(count,propertyType)
 if (count <= 0) return
 CODE
-    } else {
+    } elsif ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
 	# Include meta-properties here.
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated({$class->{'name'}}MetaPropertyNames)) then
@@ -251,8 +251,8 @@ CODE
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 {$implementationTypeName}SerializeCount=self%nodeComponent{ucfirst($member->{'extends'}->{'class'}).ucfirst($member->{'extends'}->{'name'})}%serializeCount(propertyType)
 CODE
-	} else {
-    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+    } elsif ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 {$implementationTypeName}SerializeCount={$class->{'name'}}MetaPropertyEvolvableCount
 CODE
     }
@@ -389,7 +389,7 @@ if (count > 0) then
  offset=offset+count
 end if
 CODE
-    } else {
+    } elsif ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
 	# For non-extended types serialize meta-properties.
 	$code::offsetName = &offsetName('all',$code::class->{'name'},'metaProperties');
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
@@ -533,7 +533,7 @@ if (count > 0) then
  offset=offset+count
 end if
 CODE
-    } else {
+    } elsif ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
 	# For non-extended types serialize meta-properties.
 	$code::offsetName = &offsetName('all',$code::class->{'name'},'metaProperties');
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
@@ -662,7 +662,7 @@ CODE
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 call self%nodeComponent{ucfirst($code::member->{'extends'}->{'class'}).ucfirst($code::member->{'extends'}->{'name'})}%serializationOffsets(count,countSubset,propertyType)
 CODE
-    } else {
+    } elsif ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
 	# For non-extended types compute offsets for meta-properties.
 	# Set the offset for this property to the current count plus 1 (since we haven't yet updated the count. 
 	$code::offsetNameAll      = &offsetName('all'     ,$code::class->{'name'},'metaProperties');
@@ -671,10 +671,9 @@ CODE
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
 if (allocated({$class->{'name'}}MetaPropertyNames)) then
 CODE
-
-    foreach my $status ( "all", "active", "inactive" ) {
-	$code::offsetName = &offsetName($status,$code::class->{'name'},'metaProperties');
-	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
+	foreach my $status ( "all", "active", "inactive" ) {
+	    $code::offsetName = &offsetName($status,$code::class->{'name'},'metaProperties');
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
  if (.not.allocated({$offsetName})) then
   allocate({$offsetName}({$class->{'name'}}MetaPropertyEvolvableCount))
  else if (size({$offsetName}) /= {$class->{'name'}}MetaPropertyEvolvableCount) then
@@ -682,8 +681,7 @@ CODE
   allocate({$offsetName}({$class->{'name'}}MetaPropertyEvolvableCount))
  end if
 CODE
-    }
-
+	}
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
  do i=1,size({$class->{'name'}}MetaPropertyNames)
   if (.not.{$class->{'name'}}MetaPropertyEvolvable(i)) cycle
@@ -761,18 +759,20 @@ sub Implementation_ODE_Offset_Variables {
     my $class  = shift();
     my $member = shift();
     # Include meta-properties for just the null class (since we need only one copy of these per-class).
-    if ( $member->{'name'} eq "null" ) {
-	foreach my $status ( "all", "active", "inactive" ) {
-	    my $offsetName = &offsetName($status,$class->{'name'},'metaProperties');
-	    push(
-		@{$build->{'variables'}},
-		{
-		    intrinsic  => "integer",
-		    ompPrivate => 1,
-		    attributes => [ "allocatable", "dimension(:)" ],
-		    variables  => [ $offsetName ]
-		}
-		);
+    if ( grep {$class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	if ( $member->{'name'} eq "null" ) {
+	    foreach my $status ( "all", "active", "inactive" ) {
+		my $offsetName = &offsetName($status,$class->{'name'},'metaProperties');
+		push(
+		    @{$build->{'variables'}},
+		    {
+			intrinsic  => "integer",
+			ompPrivate => 1,
+			attributes => [ "allocatable", "dimension(:)" ],
+			variables  => [ $offsetName ]
+		    }
+		    );
+	    }
 	}
     }
     # Iterate over non-virtual, evolving properties.

@@ -154,12 +154,14 @@ CODE
 	}
     }
     # Allocate and initialize meta-properties.
-    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated({$class->{'name'}}MetaPropertyNames).and..not.allocated(self%metaProperties)) then
  allocate(self%metaProperties(size({$class->{'name'}}MetaPropertyNames)))
  self%metaProperties=0.0d0
 end if
 CODE
+    }
     # Add required modules to function.
     push(@{$function->{'modules'}},keys(%modules))
 	if ( %modules );
@@ -398,7 +400,8 @@ CODE
 CODE
     }
     # Build any meta-properties.
-    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated({$class->{'name'}}MetaPropertyNames)) then
  !$omp critical (FoX_DOM_Access)
  do i=1,size(({$class->{'name'}}MetaPropertyNames))
@@ -412,6 +415,7 @@ if (allocated({$class->{'name'}}MetaPropertyNames)) then
  !$omp end critical (FoX_DOM_Access)
 end if
 CODE
+    }
     # Insert a type-binding for this function.
     push(
 	@{$build->{'types'}->{$code::implementationTypeName}->{'boundFunctions'}},
