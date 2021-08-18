@@ -223,70 +223,75 @@ contains
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
 
     ! Compute the mass in the notional hot halo.
-    basic        =>  node   %basic        ()
     hotHalo      =>  node   %hotHalo      ()
-    massNotional =  +hotHalo%mass         ()                                                      &
-         &          +hotHalo%outflowedMass()                                                      &
-         &          +Galactic_Structure_Enclosed_Mass(node,radiusLarge,massType=massTypeGalactic)
-    if (massNotional <= 0.0d0) return
-    ! Compute the mean density and temperature of the hot halo.
-    density    =+massNotional             &
-         &      *3.0d0                    &
-         &      /4.0d0                    &
-         &      /Pi                       &
-         &      /hotHalo%outerRadius()**3
-    temperature=self%hotHaloTemperatureProfile_%temperature(node,hotHalo%outerRadius())
-    ! Get the abundances for this node.
-    abundances_=hotHalo%abundances()
-    call abundances_%massToMassFraction(hotHalo%mass())
-    ! Get the chemicals for this node.
-    if (Chemicals_Property_Count () > 0) then
-       chemicalMasses_=hotHalo%chemicals()
-       ! Scale all chemical masses by their mass in atomic mass units to get a number density.
-       call chemicalMasses_%massToNumber(chemicalDensities_)
-       ! Compute factor converting mass of chemicals in (M_Solar/M_Atomic) to number density in cm⁻³.
-       if (hotHalo%outerRadius() > 0.0d0) then
-          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(hotHalo%outerRadius())
-       else
-          massToDensityConversion=0.0d0
+    select type (hotHalo)
+    type is (nodeComponentHotHalo)
+       ! Hot halo does not exists - nothing to do here.
+    class default
+       basic        =>  node   %basic        ()
+       massNotional =  +hotHalo%mass         ()                                                      &
+            &          +hotHalo%outflowedMass()                                                      &
+            &          +Galactic_Structure_Enclosed_Mass(node,radiusLarge,massType=massTypeGalactic)
+       if (massNotional <= 0.0d0) return
+       ! Compute the mean density and temperature of the hot halo.
+       density    =+massNotional             &
+            &      *3.0d0                    &
+            &      /4.0d0                    &
+            &      /Pi                       &
+            &      /hotHalo%outerRadius()**3
+       temperature=self%hotHaloTemperatureProfile_%temperature(node,hotHalo%outerRadius())
+       ! Get the abundances for this node.
+       abundances_=hotHalo%abundances()
+       call abundances_%massToMassFraction(hotHalo%mass())
+       ! Get the chemicals for this node.
+       if (Chemicals_Property_Count () > 0) then
+          chemicalMasses_=hotHalo%chemicals()
+          ! Scale all chemical masses by their mass in atomic mass units to get a number density.
+          call chemicalMasses_%massToNumber(chemicalDensities_)
+          ! Compute factor converting mass of chemicals in (M_Solar/M_Atomic) to number density in cm⁻³.
+          if (hotHalo%outerRadius() > 0.0d0) then
+             massToDensityConversion=Chemicals_Mass_To_Density_Conversion(hotHalo%outerRadius())
+          else
+             massToDensityConversion=0.0d0
+          end if
+          ! Convert to number density.
+          chemicalDensities_=chemicalDensities_*massToDensityConversion
        end if
-       ! Convert to number density.
-       chemicalDensities_=chemicalDensities_*massToDensityConversion
-    end if
-    ! Set epoch for radiation field.
-    call self%radiation%timeSet(basic%time())
-    ! Compute number density of hydrogen (in cm⁻³).
-    numberDensityHydrogen  =  +density                                    &
-         &                    *abundances_     %hydrogenMassFraction()    &
-         &                    *massSolar                                  &
-         &                    /massHydrogenAtom                           &
-         &                    /hecto                                  **3 &
-         &                    /megaParsec                             **3
-    ! Get the number density of all species, including electrons.
-    numberDensityAllSpecies=+                                                numberDensityHydrogen                                                            &
-         &                  /     abundances_   %hydrogenNumberFraction(                                                                                    ) &
-         &                  +self%chemicalState_%electronDensity       (     numberDensityHydrogen,temperature,abundances_                   ,self%radiation)
-    ! Get the cooling function (in ergs cm³ s⁻¹).
-    coolingFunction        =+self%coolingFunction_%coolingFunction     (node,numberDensityHydrogen,temperature,abundances_,chemicalDensities_,self%radiation)
-    ! Compute the number of particles in the halo.
-    countParticles         =+numberDensityAllSpecies &
-         &                  *4.0d0                   &
-         &                  *Pi                      &
-         &                  /3.0d0                   &
-         &                  *(                       &
-         &                    +hotHalo%outerRadius() &
-         &                    *megaParsec            &
-         &                    /centi                 &
-         &                   )**3
-    ! Set the rate. Note that the "cooling function" here is λ(T,Z) = Λ(T,Z) nₕ², where Λ(T,Z) is the usual cooling function and
-    ! nₕ is the number density of hydrogen atoms. We want to evaluate the integral ∫ dt Λ(T,Z) nₕ N where N is the total number of
-    ! particles in the halo. This can be written as ∫ dt λ(T,Z) nₕ⁻¹ N.
-    call hotHalo%metaPropertyRate(                        &
-         &                         self%energyradiatedID, &
-         &                        +coolingFunction        &
-         &                        /numberDensityHydrogen  &
-         &                        *countParticles         &
-         &                       )
+       ! Set epoch for radiation field.
+       call self%radiation%timeSet(basic%time())
+       ! Compute number density of hydrogen (in cm⁻³).
+       numberDensityHydrogen  =  +density                                    &
+            &                    *abundances_     %hydrogenMassFraction()    &
+            &                    *massSolar                                  &
+            &                    /massHydrogenAtom                           &
+            &                    /hecto                                  **3 &
+            &                    /megaParsec                             **3
+       ! Get the number density of all species, including electrons.
+       numberDensityAllSpecies=+                                                numberDensityHydrogen                                                            &
+            &                  /     abundances_   %hydrogenNumberFraction(                                                                                    ) &
+            &                  +self%chemicalState_%electronDensity       (     numberDensityHydrogen,temperature,abundances_                   ,self%radiation)
+       ! Get the cooling function (in ergs cm³ s⁻¹).
+       coolingFunction        =+self%coolingFunction_%coolingFunction     (node,numberDensityHydrogen,temperature,abundances_,chemicalDensities_,self%radiation)
+       ! Compute the number of particles in the halo.
+       countParticles         =+numberDensityAllSpecies &
+            &                  *4.0d0                   &
+            &                  *Pi                      &
+            &                  /3.0d0                   &
+            &                  *(                       &
+            &                    +hotHalo%outerRadius() &
+            &                    *megaParsec            &
+            &                    /centi                 &
+            &                   )**3
+       ! Set the rate. Note that the "cooling function" here is λ(T,Z) = Λ(T,Z) nₕ², where Λ(T,Z) is the usual cooling function and
+       ! nₕ is the number density of hydrogen atoms. We want to evaluate the integral ∫ dt Λ(T,Z) nₕ N where N is the total number of
+       ! particles in the halo. This can be written as ∫ dt λ(T,Z) nₕ⁻¹ N.
+       call hotHalo%metaPropertyRate(                        &
+            &                         self%energyradiatedID, &
+            &                        +coolingFunction        &
+            &                        /numberDensityHydrogen  &
+            &                        *countParticles         &
+            &                       )
+    end select
     return
   end subroutine coolingEnergyRadiatedDifferentialEvolution
 
@@ -301,13 +306,18 @@ contains
     class(nodeComponentHotHalo             ), pointer       :: hotHalo, hotHaloParent
 
     ! Update the energy radiated to include any energy radiated in the parent node.
-    hotHalo       => node       %hotHalo(                 )
-    hotHaloParent => node%parent%hotHalo(autoCreate=.true.)
-    call hotHalo%metaPropertySet(                                                      &
-         &                                                      self%energyRadiatedID, &
-         &                       +hotHalo      %metaPropertyGet(self%energyRadiatedID) &
-         &                       +hotHaloParent%metaPropertyGet(self%energyRadiatedID) &
-         &                      )
+    hotHalo => node%hotHalo()
+    select type (hotHalo)
+    type is (nodeComponentHotHalo)
+       ! Component has not yet been created - therefore we do not need to do anything here.
+    class default
+       hotHaloParent => node%parent%hotHalo(autoCreate=.true.)
+       call hotHalo%metaPropertySet(                                                      &
+            &                                                      self%energyRadiatedID, &
+            &                       +hotHalo      %metaPropertyGet(self%energyRadiatedID) &
+            &                       +hotHaloParent%metaPropertyGet(self%energyRadiatedID) &
+            &                      )
+    end select
     return
   end subroutine coolingEnergyRadiatedNodePromote
   
