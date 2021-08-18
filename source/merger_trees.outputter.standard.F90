@@ -515,8 +515,9 @@ contains
           ! Array property extractor - extract and store the values.
           doubleArray =extractor_%extract       (node,time,instance)
           do i=1,+extractor_%elementCount(                  time)
-             if (     allocated(self%doubleProperty (doubleProperty +i)%rank1)) then
-                if (size(self%doubleProperty (doubleProperty +i)%rank1,dim=1) /= size(doubleArray,dim=1)) deallocate(self%doubleProperty (doubleProperty +i)%rank1)
+             if (     allocated(self%doubleProperty (doubleProperty +i)%scalar))                          deallocate(self%doubleProperty (doubleProperty +i)%scalar)
+             if (     allocated(self%doubleProperty (doubleProperty +i)%rank1 )) then
+                if (size(self%doubleProperty (doubleProperty +i)%rank1,dim=1) /= size(doubleArray,dim=1)) deallocate(self%doubleProperty (doubleProperty +i)%rank1 )
              end if
              if (.not.allocated(self%doubleProperty (doubleProperty +i)%rank1)) allocate(self%doubleProperty (doubleProperty +i)%rank1(size(doubleArray,dim=1),self%doubleBufferSize))
              self%doubleProperty (doubleProperty +i)%rank1(:,self%doubleBufferCount)=doubleArray (:,i)
@@ -530,14 +531,16 @@ contains
           do i=1,extractor_%elementCount(elementTypeDouble ,time)
              select case (doubleProperties(i)%rank())
              case (0)
+                if (     allocated(self%doubleProperty (doubleProperty +i)%rank1 ))            deallocate(self%doubleProperty (doubleProperty +i)%rank1 )
                 if (.not.allocated(self%doubleProperty (doubleProperty +i)%scalar)) then
                    allocate(self%doubleProperty(doubleProperty+i)%scalar(          self%doubleBufferSize))
                 end if
                 self%doubleProperty (doubleProperty +i)%scalar(  self%doubleBufferCount )=doubleProperties(i)
              case (1)
-                if (     allocated(self%doubleProperty(doubleProperty +i)%rank1)) then
+                if (     allocated(self%doubleProperty(doubleProperty +i)%scalar))             deallocate(self%doubleProperty (doubleProperty +i)%scalar)
+                if (     allocated(self%doubleProperty(doubleProperty +i)%rank1 )) then
                    shape_=doubleProperties(i)%shape()
-                   if (size(self%doubleProperty (doubleProperty +i)%rank1,dim=1) /= shape_(1)) deallocate(self%doubleProperty (doubleProperty +i)%rank1)
+                   if (size(self%doubleProperty (doubleProperty +i)%rank1,dim=1) /= shape_(1)) deallocate(self%doubleProperty (doubleProperty +i)%rank1 )
                    deallocate(shape_)
                 end if
                 if (.not.allocated(self%doubleProperty(doubleProperty +i)%rank1 )) then
