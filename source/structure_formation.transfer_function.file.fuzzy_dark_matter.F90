@@ -229,7 +229,8 @@ contains
     use :: File_Utilities         , only : File_Name_Expand
     use :: Display                , only : displayMessage
     use :: Galacticus_Error       , only : Galacticus_Error_Report
-    use :: IO_HDF5                , only : hdf5Access                , hdf5Object
+    use :: HDF5_Access            , only : hdf5Access
+    use :: IO_HDF5                , only : hdf5Object
     use :: Numerical_Comparison   , only : Values_Differ
     implicit none
     class           (transferFunctionFileFuzzyDarkMatter), intent(inout) :: self
