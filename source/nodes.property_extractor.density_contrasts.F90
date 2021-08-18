@@ -43,7 +43,7 @@ Contains a module which implements a property extractor class for the mass and r
   !!]
   type, extends(nodePropertyExtractorArray) :: nodePropertyExtractorDensityContrasts
      !!{
-     A property extractor class for the mass and radii of spheres are specified density contrast..
+     A property extractor class for the mass and radii of spheres are specified density contrast.
      !!}
      private
      class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_ => null()
