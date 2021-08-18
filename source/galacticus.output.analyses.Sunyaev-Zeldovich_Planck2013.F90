@@ -189,7 +189,7 @@ contains
     functionValueTarget     =1.0d-6* functionValueTarget
     functionErrorTarget     =1.0d-6* functionErrorTarget
     functionCovarianceTarget=0.0d0
-    do iBin=0_c_size_t,binCount
+    do iBin=1_c_size_t,binCount
        functionCovarianceTarget(iBin,iBin)=functionErrorTarget(iBin)**2
     end do
     ! Create cosmological model in which data were analyzed.

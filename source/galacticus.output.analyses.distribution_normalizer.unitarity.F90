@@ -62,21 +62,23 @@ contains
     !!{
     Implement a unitarity output analysis distribution normalizer.
     !!}
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class           (outputAnalysisDistributionNormalizerUnitarity), intent(inout)                 :: self
-    double precision                                               , intent(inout), dimension(:  ) :: distribution
-    double precision                                               , intent(inout), dimension(:,:) :: covariance
-    double precision                                               , intent(in   ), dimension(:  ) :: propertyValueMinimum, propertyValueMaximum
-    double precision                                                                               :: distributionSum
+    class           (outputAnalysisDistributionNormalizerUnitarity), intent(inout)                           :: self
+    double precision                                               , intent(inout), dimension(:  ), optional :: distribution
+    double precision                                               , intent(inout), dimension(:,:), optional :: covariance
+    double precision                                               , intent(in   ), dimension(:  )           :: propertyValueMinimum, propertyValueMaximum
+    double precision                                                                                         :: distributionSum
     !$GLC attributes unused :: self, propertyValueMinimum, propertyValueMaximum
 
-
+    if (.not.present(distribution)) call Galacticus_Error_Report('"distribution" required for this class'//{introspection:location})
     distributionSum=+sum(distribution   )
     if (distributionSum /= 0.0d0) then
-       distribution   =+    distribution       &
-            &          /    distributionSum
-       covariance     =+    covariance         &
-            &          /    distributionSum**2
+       distribution     =+distribution       &
+            &            /distributionSum
+       if (present(covariance))              &
+            & covariance=+covariance         &
+            &            /distributionSum**2
     end if
     return
   end subroutine unitarityNormalize

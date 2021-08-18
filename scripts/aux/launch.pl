@@ -34,10 +34,10 @@ my %arguments =
 &Galacticus::Options::Parse_Options(\@ARGV,\%arguments);
 
 # Parse the launch script.
-my $launchScript          = &Parse_Launch_Script    ($launchFileName);
+my $launchScript          = &Parse_Launch_Script            ($launchFileName);
 
 # Read in any configuration options.
-$launchScript->{'config'} = &Parse_Galacticus_Config(               );
+$launchScript->{'config'} = &Galacticus::Options::LoadConfig(               );
 
 # Check for an instance number for this launch.
 if ( $arguments{"instance"} =~ m/(\d+):(\d+)/ ) {
@@ -59,7 +59,7 @@ my @jobs = &Construct_Models($launchScript);
 
 # Launch models.
 &{$Galacticus::Launch::Hooks::moduleHooks{$launchScript->{'launchMethod'}}->{'launch'}}
-		      (\@jobs,$launchScript);
+		      (\@jobs,$launchScript,\%arguments);
 
 exit;
 
@@ -343,16 +343,4 @@ sub Parse_Launch_Script {
     }
     # Return the script.
     return $launchScript;
-}
-
-sub Parse_Galacticus_Config {
-    # Parse any local configuration.
-    my $config;
-    if ( -e $ENV{'GALACTICUS_EXEC_PATH'}."/galacticusConfig.xml" ) {
-	# Load XML.
-	my $xml          = new XML::Simple;
-	$config = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/galacticusConfig.xml");
-    }
-    # Return the config.
-    return $config;
 }

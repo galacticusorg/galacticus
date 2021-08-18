@@ -64,7 +64,8 @@ contains
     Initialize a database of emission line properties.
     !!}
     use :: Galacticus_Paths  , only : galacticusPath, pathTypeDataStatic
-    use :: IO_HDF5           , only : hdf5Object    , hdf5Access
+    use :: HDF5_Access       , only : hdf5Access
+    use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : char          , operator(==)
     implicit none
     type   (hdf5Object) :: file   , lines, &

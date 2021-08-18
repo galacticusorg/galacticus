@@ -118,7 +118,8 @@ contains
     !!}
     use :: File_Utilities , only : File_Exists                 , File_Lock     , File_Unlock, lockDescriptor, &
          &                         File_Path                   , Directory_Make
-    use :: IO_HDF5        , only : hdf5Access                  , hdf5Object
+    use :: HDF5_Access    , only : hdf5Access
+    use :: IO_HDF5        , only : hdf5Object
     use :: Interfaces_FSPS, only : Interface_FSPS_SSPs_Tabulate
     use :: Tables         , only : table1D
     implicit none

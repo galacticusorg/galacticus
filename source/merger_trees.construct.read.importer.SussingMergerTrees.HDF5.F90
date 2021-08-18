@@ -100,7 +100,7 @@ contains
     !!{
     Destructor for the {\normalfont \ttfamily sussing} HDF5 format merger tree importer class.
     !!}
-    use :: IO_HDF5, only : hdf5Access
+    use :: HDF5_Access, only : hdf5Access
     implicit none
     type(mergerTreeImporterSussingHDF5), intent(inout) :: self
 
@@ -121,7 +121,7 @@ contains
     use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
     use :: Display                         , only : displayMessage         , verbosityLevelWarn
     use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: IO_HDF5                         , only : hdf5Access
+    use :: HDF5_Access                     , only : hdf5Access
     use :: Memory_Management               , only : allocateArray          , deallocateArray
     use :: Numerical_Comparison            , only : Values_Differ
     use :: Numerical_Constants_Astronomical, only : megaParsec

@@ -32,7 +32,7 @@ Contains a module which implements an intracluster medium X-ray luminosity prope
    <description>An intracluster medium X-ray luminosity property extractor class.</description>
   </nodePropertyExtractor>
   !!]
-  type, extends(nodePropertyExtractorTuple) :: nodePropertyExtractorICMXRayLuminosity
+  type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorICMXRayLuminosity
      !!{
      A icmXRayLuminosity property extractor class.
      !!}
@@ -43,13 +43,12 @@ Contains a module which implements an intracluster medium X-ray luminosity prope
      class(coolingFunctionClass          ), pointer :: coolingFunction_           => null()
      class(cosmologyFunctionsClass       ), pointer :: cosmologyFunctions_        => null()
    contains
-     final     ::                 icmXRayLuminosityDestructor
-     procedure :: elementCount => icmXRayLuminosityElementCount
-     procedure :: extract      => icmXRayLuminosityExtract
-     procedure :: names        => icmXRayLuminosityNames
-     procedure :: descriptions => icmXRayLuminosityDescriptions
-     procedure :: unitsInSI    => icmXRayLuminosityUnitsInSI
-     procedure :: type         => icmXRayLuminosityType
+     final     ::                icmXRayLuminosityDestructor
+     procedure :: extract     => icmXRayLuminosityExtract
+     procedure :: name        => icmXRayLuminosityName
+     procedure :: description => icmXRayLuminosityDescription
+     procedure :: unitsInSI   => icmXRayLuminosityUnitsInSI
+     procedure :: type        => icmXRayLuminosityType
   end type nodePropertyExtractorICMXRayLuminosity
 
   interface nodePropertyExtractorICMXRayLuminosity
@@ -130,20 +129,7 @@ contains
     return
   end subroutine icmXRayLuminosityDestructor
 
-  integer function icmXRayLuminosityElementCount(self,time)
-    !!{
-    Return the number of elements in the lightconeple property extractors.
-    !!}
-    implicit none
-    class           (nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
-    double precision                                        , intent(in   ) :: time
-    !$GLC attributes unused :: self, time
-
-    icmXRayLuminosityElementCount=2
-    return
-  end function icmXRayLuminosityElementCount
-
-  function icmXRayLuminosityExtract(self,node,time,instance)
+  double precision function icmXRayLuminosityExtract(self,node,instance)
     !!{
     Implement an ICM X-ray properties extractor.
     !!}
@@ -154,41 +140,24 @@ contains
     use :: Numerical_Integration       , only : integrator
     use :: Radiation_Fields            , only : radiationFieldCosmicMicrowaveBackground
     implicit none
-    double precision                                         , dimension(:) , allocatable :: icmXRayLuminosityExtract
-    class           (nodePropertyExtractorICMXRayLuminosity ), intent(inout), target      :: self
-    type            (treeNode                               ), intent(inout), target      :: node
-    double precision                                         , intent(in   )              :: time
-    type            (multiCounter                           ), intent(inout), optional    :: instance
-    type            (radiationFieldCosmicMicrowaveBackground), pointer                    :: radiation_
-    type            (integrator                             )                             :: integratorLuminosity    , integratorTemperature
-    double precision                                                                      :: luminosity              , temperature
-    !$GLC attributes unused :: self, time, instance
+    class(nodePropertyExtractorICMXRayLuminosity ), intent(inout)           :: self
+    type (treeNode                               ), intent(inout), target   :: node
+    type (multiCounter                           ), intent(inout), optional :: instance
+    type (radiationFieldCosmicMicrowaveBackground), pointer                 :: radiation_
+    type (integrator                             )                          :: integratorLuminosity
+    !$GLC attributes unused :: self, instance
 
-    allocate(icmXRayLuminosityExtract(2))
     ! Initialize radiation field.
     allocate(radiation_)
     !![
     <referenceConstruct object="radiation_" constructor="radiationFieldCosmicMicrowaveBackground(self%cosmologyFunctions_)"/>
     !!]
     ! Compute luminosity and temperature.
-    integratorLuminosity =integrator                     (integrandLuminosityXray ,toleranceRelative                           =1.0d-3)
-    integratorTemperature=integrator                     (integrandTemperatureXray,toleranceRelative                           =1.0d-3)
-    luminosity           =integratorLuminosity %integrate(0.0d0                   ,self%darkMatterHaloScale_%virialRadius(node)       )
-    temperature          =integratorTemperature%integrate(0.0d0                   ,self%darkMatterHaloScale_%virialRadius(node)       )
-    if (luminosity > 0.0d0) then
-       temperature=+temperature        &
-            &      /luminosity         &
-            &      *boltzmannsConstant &
-            &      /kilo               &
-            &      /electronVolt
-    else
-       luminosity =+0.0d0
-       temperature=+0.0d0
-    end if
+    integratorLuminosity    =integrator                     (integrandLuminosityXray ,toleranceRelative                           =1.0d-3)
+    icmXRayLuminosityExtract=integratorLuminosity %integrate(0.0d0                   ,self%darkMatterHaloScale_%virialRadius(node)       )
     !![
     <objectDestructor name="radiation_"/>
     !!]
-    icmXRayLuminosityExtract=[luminosity,temperature]
     return
 
   contains
@@ -251,70 +220,50 @@ contains
       return
     end function integrandLuminosityXray
 
-    double precision function integrandTemperatureXray(radius)
-      !!{
-      Integrand function used for computing ICM X-ray luminosity-weighted temperatures.
-      !!}
-      implicit none
-      double precision, intent(in   ) :: radius
-
-      integrandTemperatureXray=+integrandLuminosityXray                     (     radius) &
-           &                    *self%hotHaloTemperatureProfile_%temperature(node,radius)
-      return
-    end function integrandTemperatureXray
-
   end function icmXRayLuminosityExtract
 
-  function icmXRayLuminosityNames(self,time)
+  function icmXRayLuminosityName(self)
     !!{
     Return the names of the {\normalfont \ttfamily icmXRayLuminosity} properties.
     !!}
     implicit none
-    type            (varying_string                        ), dimension(:) , allocatable :: icmXRayLuminosityNames
-    class           (nodePropertyExtractorICMXRayLuminosity), intent(inout)              :: self
-    double precision                                        , intent(in   )              :: time
-    !$GLC attributes unused :: self, time
+    type (varying_string                        )                :: icmXRayLuminosityName
+    class(nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
+    !$GLC attributes unused :: self
 
-    allocate(icmXRayLuminosityNames(2))
-    icmXRayLuminosityNames=[var_str('icmXrayLuminosity'),var_str('icmXrayTemperature')]
+    icmXRayLuminosityName=var_str('icmXrayLuminosity')
     return
-  end function icmXRayLuminosityNames
+  end function icmXRayLuminosityName
 
-  function icmXRayLuminosityDescriptions(self,time)
+  function icmXRayLuminosityDescription(self)
     !!{
     Return descriptions of the {\normalfont \ttfamily icmXRayLuminosity} properties.
     !!}
     implicit none
-    type            (varying_string                        ), dimension(:) , allocatable :: icmXRayLuminosityDescriptions
-    class           (nodePropertyExtractorICMXRayLuminosity), intent(inout)              :: self
-    double precision                                        , intent(in   )              :: time
-    !$GLC attributes unused :: self, time
+    type (varying_string                        )                :: icmXRayLuminosityDescription
+    class(nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
+    !$GLC attributes unused :: self
 
-    allocate(icmXRayLuminosityDescriptions(2))
-    icmXRayLuminosityDescriptions=[var_str('X-ray luminosity of the ICM [ergs/s]'),var_str('X-ray luminosity-weighted temperature of the ICM [keV]')]
+    icmXRayLuminosityDescription=var_str('X-ray luminosity of the ICM [ergs/s]')
     return
-  end function icmXRayLuminosityDescriptions
+  end function icmXRayLuminosityDescription
 
-  function icmXRayLuminosityUnitsInSI(self,time)
+  double precision function icmXRayLuminosityUnitsInSI(self)
     !!{
     Return the units of the {\normalfont \ttfamily icmXRayLuminosity} properties in the SI system.
     !!}
-    use :: Numerical_Constants_Prefixes, only : kilo
-    use :: Numerical_Constants_Units   , only : electronVolt, ergs
+    use :: Numerical_Constants_Units, only : ergs
     implicit none
-    double precision                                        , allocatable  , dimension(:) :: icmXRayLuminosityUnitsInSI
-    class           (nodePropertyExtractorICMXRayLuminosity), intent(inout)               :: self
-    double precision                                        , intent(in   )               :: time
-    !$GLC attributes unused :: self, time
+    class(nodePropertyExtractorICMXRayLuminosity), intent(inout) :: self
+    !$GLC attributes unused :: self
 
-    allocate(icmXRayLuminosityUnitsInSI(2))
-    icmXRayLuminosityUnitsInSI=[ergs,kilo*electronVolt]
+    icmXRayLuminosityUnitsInSI=ergs
     return
   end function icmXRayLuminosityUnitsInSI
 
   integer function icmXRayLuminosityType(self)
     !!{
-    Return the type of the {\normalfont \ttfamily icmXRayLuminosity} properties.
+    Return the type of the ICM X-ray luminosity property.
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
@@ -324,4 +273,3 @@ contains
     icmXRayLuminosityType=outputAnalysisPropertyTypeLinear
     return
   end function icmXRayLuminosityType
-

@@ -41,7 +41,8 @@ contains
     !!}
 #ifdef OMPPROFILE
     use :: Galacticus_HDF5      , only : galacticusOutputFile
-    use :: IO_HDF5              , only : hdf5Access             , hdf5Object
+    use :: HDF5_Access          , only : hdf5Access
+    use :: IO_HDF5              , only : hdf5Object
     use :: ISO_Varying_String   , only : varying_string         , var_str
     use :: OpenMP_Utilities_Data, only : criticalSectionWaitTime, criticalSectionCount
 #endif

@@ -177,7 +177,6 @@ contains
           &                                       operator(==)           , var_str
     use            :: Input_Parameters   , only : inputParameters
     use            :: Instruments_Filters, only : Filter_Get_Index
-    use            :: Memory_Management  , only : Memory_Usage_Record    , allocateArray
     use            :: Sorting            , only : sortByIndex            , sortIndex
     use            :: String_Handling    , only : operator(//)
     implicit none
@@ -208,9 +207,9 @@ contains
     </inputParameter>
     !!]
     select case (char(luminosityOutputOptionText))
-    case ("all")
+    case ("all"    )
        luminosityOutputOption=luminosityOutputOptionAll
-    case ("future")
+    case ("future" )
        luminosityOutputOption=luminosityOutputOptionFuture
     case ("present")
        luminosityOutputOption=luminosityOutputOptionPresent
@@ -237,14 +236,20 @@ contains
     end if
 
     if (luminosityCount > 0) then
-       call allocateArray(luminosityMap                     ,[luminosityCount])
-       call allocateArray(luminosityRedshift                ,[luminosityCount])
-       call allocateArray(luminosityBandRedshift            ,[luminosityCount])
+       if (allocated(luminosityMap           )) deallocate(luminosityMap           )
+       if (allocated(luminosityRedshift      )) deallocate(luminosityRedshift      )
+       if (allocated(luminosityBandRedshift  )) deallocate(luminosityBandRedshift  )
+       if (allocated(luminosityFilter        )) deallocate(luminosityFilter        )
+       if (allocated(luminosityType          )) deallocate(luminosityType          )
+       if (allocated(luminosityPostprocessSet)) deallocate(luminosityPostprocessSet)
+       if (allocated(luminosityRedshiftText  )) deallocate(luminosityRedshiftText  )       
+       allocate(luminosityMap           (luminosityCount))
+       allocate(luminosityRedshift      (luminosityCount))
+       allocate(luminosityBandRedshift  (luminosityCount))
        allocate(luminosityFilter        (luminosityCount))
        allocate(luminosityType          (luminosityCount))
        allocate(luminosityPostprocessSet(luminosityCount))
        allocate(luminosityRedshiftText  (luminosityCount))
-       call Memory_Usage_Record(sizeof(luminosityFilter)+sizeof(luminosityType)+sizeof(luminosityPostprocessSet),blockCount=4)
        !![
        <inputParameter>
          <name>luminosityRedshift</name>
@@ -313,12 +318,18 @@ contains
        call Stellar_Luminosities_Special_Cases(luminosityMap,luminosityRedshiftText,luminosityRedshift,luminosityBandRedshift,luminosityFilter,luminosityType,luminosityPostprocessSet,parameters_)
        luminosityCount=size(luminosityRedshift)
        ! Allocate remaining required arrays.
-       allocate          (luminosityName          (luminosityCount))
-       allocate          (luminosityPostprocessor (luminosityCount))
-       call allocateArray(luminosityFilterIndex  ,[luminosityCount])
-       call allocateArray(luminosityIndex        ,[luminosityCount])
-       call allocateArray(luminosityCosmicTime   ,[luminosityCount])
-       call allocateArray(luminosityTimeIndex    ,[luminosityCount])
+       if (allocated(luminosityName         )) deallocate(luminosityName         )
+       if (allocated(luminosityPostprocessor)) deallocate(luminosityPostprocessor)
+       if (allocated(luminosityFilterIndex  )) deallocate(luminosityFilterIndex  )
+       if (allocated(luminosityIndex        )) deallocate(luminosityIndex        )
+       if (allocated(luminosityCosmicTime   )) deallocate(luminosityCosmicTime   )
+       if (allocated(luminosityTimeIndex    )) deallocate(luminosityTimeIndex    )
+       allocate(luminosityName         (luminosityCount))
+       allocate(luminosityPostprocessor(luminosityCount))
+       allocate(luminosityFilterIndex  (luminosityCount))
+       allocate(luminosityIndex        (luminosityCount))
+       allocate(luminosityCosmicTime   (luminosityCount))
+       allocate(luminosityTimeIndex    (luminosityCount))
        ! Process the list of luminosities.
        do iLuminosity=1,luminosityCount
           ! Assign a name to this luminosity.
@@ -373,8 +384,10 @@ contains
        call sortByIndex             (luminosityType          ,luminosityTimeIndex)
        call sortByIndex             (luminosityPostprocessSet,luminosityTimeIndex)
        ! Allocate unit and zero stellar abundance objects.
-       call allocateArray(unitStellarLuminosities%luminosityValue,[luminosityCount])
-       call allocateArray(zeroStellarLuminosities%luminosityValue,[luminosityCount])
+       if (allocated(unitStellarLuminosities%luminosityValue)) deallocate(unitStellarLuminosities%luminosityValue)
+       if (allocated(zeroStellarLuminosities%luminosityValue)) deallocate(zeroStellarLuminosities%luminosityValue)
+       allocate(unitStellarLuminosities%luminosityValue(luminosityCount))
+       allocate(zeroStellarLuminosities%luminosityValue(luminosityCount))
        unitStellarLuminosities%luminosityValue=1.0d0
        zeroStellarLuminosities%luminosityValue=0.0d0
     end if

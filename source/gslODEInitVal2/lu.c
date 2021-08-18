@@ -172,11 +172,11 @@ LU_decomp_L2_active (gsl_matrix * A, gsl_vector_uint * ipiv)
             {
               double Ajj = gsl_matrix_get(A, j, j);
 
-/* AJB - check for failure here */
-if (Ajj == 0.0)
-  {
-    return GSL_FAILURE;
-  }
+	      /* Check for failure here */
+	      if (Ajj == 0.0)
+		{
+		  return GSL_FAILURE;
+		}
 
               if (fabs(Ajj) >= GSL_DBL_MIN)
                 {

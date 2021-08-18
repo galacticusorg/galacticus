@@ -74,6 +74,8 @@ sub Launch {
     # Launch models on local machine.
     my @jobs         = @{shift()};
     my $launchScript =   shift() ;
+    my %options      = %{shift()}
+        if ( scalar(@_) > 0 );
     # Find localized configuration.
     my $pbsConfig = &Galacticus::Options::Config("pbs");
     # Iterate over jobs.
@@ -167,7 +169,9 @@ sub Launch {
 		print $pbsFile "mv ".$launchScript->{'pbs'}->{'scratchPath'}."/model_".$job->{'modelCounter'}."_".$$."/galacticus_".$job->{'modelCounter'}."_".$$.".state* ".$job->{'directory'}."/\n";
 	    }
 	}
-	print $pbsFile "mv core* ".$job->{'directory'}."/\n";
+	print $pbsFile "if compgen -G \"core.*\" > /dev/null; then\n";
+	print $pbsFile " mv core* ".$job->{'directory'}."/\n";
+	print $pbsFile "fi\n";
 	print $pbsFile $job->{'analysis'}
 	    if ( defined($job->{'analysis'}) && $launchScript->{'pbs'}->{'analyze'} eq "yes" );
 	close($pbsFile);
@@ -180,6 +184,17 @@ sub Launch {
 	    }
 	    );	
     }
+    # Determine the maximum number of jobs in the queue.
+    my $jobMaximum = $launchScript->{'pbs'}->{'maxJobsInQueue'};
+    $jobMaximum    = $options{'pbsJobMaximum'}
+        if ( exists($options{'pbsJobMaximum'}) );
+    # Determine sleep durations.
+    my $postSubmitSleepDuration = $launchScript->{'pbs'}->{'postSubmitSleepDuration'};
+    $postSubmitSleepDuration = $options{'submitSleepDuration'}
+        if ( exists($options{'submitSleepDuration'}) );
+    my $jobWaitSleepDuration    = $launchScript->{'pbs'}->{'jobWaitSleepDuration'   };
+    $jobWaitSleepDuration    = $options{'waitSleepDuration'  }
+        if ( exists($options{'waitSleepDuration'  }) );    
     # Submit jobs.
     print " -> waiting for PBS jobs to finish...\n"
 	if ( $launchScript->{'verbosity'} > 0 );
@@ -195,11 +210,48 @@ sub Launch {
 	    if ( $line =~ m/^\s*job_state\s*=\s*[^C]\s*$/ ) {$runningPBSJobs{$jobID} = 1};
 	}
 	close(pHndl);
+	my $jobFinished = 0;
 	foreach my $jobID ( keys(%pbsJobs) ) {
 	    unless ( exists($runningPBSJobs{$jobID}) ) {
 		print " -> PBS job ".$jobID." has finished; post-processing....\n";
+		$jobFinished = 1;
+		# Extract job timing information, and report on it.
+		my $exitStatus = 0;
+		my $startAt    = "unknown";
+		my $stopAt     = "unknown";
+		my $traceJob = &File::Which::which("tracejob");
+		my $sacct    = &File::Which::which("sacct"   );
+		if ( defined($traceJob) ) {
+		    open(my $trace,$traceJob." -q -n 100 ".$jobID." |");
+		    while ( my $line = <$trace> ) {
+			if ( $line =~ m/Exit_status=(\d+)/ ) {
+			    $exitStatus = $1;
+			}
+			if ( $line =~ m/^([0-9\/]+\s[0-9:]+)\s+S\s+Job Run/ ) {
+			    $startAt = $1;
+			}
+			if ( $line =~ m/^([0-9\/]+\s[0-9:]+)\s+S\s+Exit_status/ ) {
+			    $stopAt  = $1;
+			}
+		    }
+		    close($trace);
+		} elsif ( defined($sacct) ) {
+		    open(my $trace,$sacct." -b -j ".$jobID." |");
+		    while ( my $line = <$trace> ) {
+			my @columns = split(" ",$line);
+			if ( $columns[0] eq $jobID ) {
+			    if ( $columns[2] =~ m/(\d+):\d+/ ) {
+				$exitStatus = $1;
+			    }
+			}
+		    }
+		    close($trace);
+		}
+		print "  -> Job metadata: Exit status : Start time : End time = ".$pbsJobs{$jobID}->{'job'}->{'directory'}." : ".$exitStatus." : ".$startAt." : ".$stopAt."\n";
+		# Perform analysis.
 		&Galacticus::Launch::PostProcess::Analyze($pbsJobs{$jobID}->{'job'},$launchScript)
 		    unless ( $launchScript->{'pbs'}->{'analyze'} eq "yes" );
+		# Clean up.
 		&Galacticus::Launch::PostProcess::CleanUp($pbsJobs{$jobID}->{'job'},$launchScript);
 		# Remove the job ID from the list of active PBS jobs.
 		delete($pbsJobs{$jobID});
@@ -210,9 +262,9 @@ sub Launch {
 	    scalar(@modelQueue) > 0 
 	    &&
 	    (
-	     scalar(keys %pbsJobs) < $launchScript->{'pbs'}->{'maxJobsInQueue'} 
+	     scalar(keys %pbsJobs) < $jobMaximum
 	     ||
-	     $launchScript->{'pbs'}->{'maxJobsInQueue'} < 0 
+	     $jobMaximum < 0 
 	    )
 	    ) {
 	    my $pbsJob             = shift(@modelQueue);
@@ -227,9 +279,10 @@ sub Launch {
 	    unless ( $jobID eq "" ) {
 		$pbsJobs{$jobID}->{'job'} = $pbsJob->{'job'};
 	    }
-	    sleep $launchScript->{'pbs'}->{'postSubmitSleepDuration'};
+	    sleep $postSubmitSleepDuration;
 	} else {
-	    sleep $launchScript->{'pbs'}->{'jobWaitSleepDuration'   };
+	    sleep $jobWaitSleepDuration
+		unless ( $jobFinished == 1 );
 	}
     }
 }
@@ -283,6 +336,8 @@ sub SubmitJobs {
 		# Call any "on completion" function.
 		if ( exists($pbsJobs{$jobID}->{'onCompletion'}) ) {
 		    my $exitStatus = 0;
+		    my $startAt;
+		    my $stopAt;
 		    if ( exists($pbsJobs{$jobID}->{'tracejob'}) && $pbsJobs{$jobID}->{'tracejob'} eq "yes" ) {
 			my $traceJob = &File::Which::which("tracejob");
 			my $sacct    = &File::Which::which("sacct"   );
@@ -291,6 +346,12 @@ sub SubmitJobs {
 			    while ( my $line = <$trace> ) {
 				if ( $line =~ m/Exit_status=(\d+)/ ) {
 				    $exitStatus = $1;
+				}
+				if ( $line =~ m/^([0-9\/]+\s[0-9:]+)\s+S\s+Job Run/ ) {
+				    $startAt = $1;
+				}
+				if ( $line =~ m/^([0-9\/]+\s[0-9:]+)\s+S\s+Exit_status/ ) {
+				    $stopAt  = $1;
 				}
 			    }
 			    close($trace);
@@ -307,7 +368,7 @@ sub SubmitJobs {
 			    close($trace);
 			}
 		    }
-		    &{$pbsJobs{$jobID}->{'onCompletion'}->{'function'}}(@{$pbsJobs{$jobID}->{'onCompletion'}->{'arguments'}},$jobID,$exitStatus,\@pbsStack,$pbsJobs{$jobID});
+		    &{$pbsJobs{$jobID}->{'onCompletion'}->{'function'}}(@{$pbsJobs{$jobID}->{'onCompletion'}->{'arguments'}},$jobID,$exitStatus,\@pbsStack,$pbsJobs{$jobID},$startAt,$stopAt);
 		}
 		# Remove the job ID from the list of active PBS jobs.
 		delete($pbsJobs{$jobID});		

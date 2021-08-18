@@ -22,7 +22,7 @@ Contains a module which implements various file-related utilities.
 !!}
 
 ! Specify an explicit dependence on the C interface files.
-!: $(BUILDPATH)/flock.o $(BUILDPATH)/mkdir.o $(BUILDPATH)/unlink.o $(BUILDPATH)/rename.o $(BUILDPATH)/access.o
+!: $(BUILDPATH)/flock.o $(BUILDPATH)/mkdir.o $(BUILDPATH)/unlink.o $(BUILDPATH)/rmdir.o $(BUILDPATH)/rename.o $(BUILDPATH)/access.o
 
 module File_Utilities
   !!{
@@ -35,7 +35,8 @@ module File_Utilities
   private
   public :: Count_Lines_in_File, File_Exists    , File_Rename   , File_Lock       , &
        &    File_Unlock        , Executable_Find, File_Path     , File_Name       , &
-       &    File_Name_Temporary, File_Remove    , Directory_Make, File_Name_Expand
+       &    File_Name_Temporary, File_Remove    , Directory_Make, File_Name_Expand, &
+       &    Directory_Remove
 
   interface Count_Lines_in_File
      !!{
@@ -69,6 +70,14 @@ module File_Utilities
      module procedure File_Remove_VarStr
   end interface File_Remove
 
+  interface Directory_Remove
+     !!{
+     Generic interface for functions that remove a directory.
+     !!}
+     module procedure Directory_Remove_Char
+     module procedure Directory_Remove_VarStr
+  end interface Directory_Remove
+
   interface Directory_Make
      !!{
      Generic interface for functions that create a directory.
@@ -86,6 +95,17 @@ module File_Utilities
        integer  (c_int ) :: mkdir_C
        character(c_char) :: name
      end function mkdir_C
+  end interface
+
+  interface
+     function rmdir_C(name) bind(c,name='rmdir_C')
+       !!{
+       Template for a C function that calls {\normalfont \ttfamily rmdir()} to remove a directory.
+       !!}
+       import
+       integer  (c_int ) :: rmdir_C
+       character(c_char) :: name
+     end function rmdir_C
   end interface
 
   interface
@@ -543,6 +563,35 @@ contains
     return
   end subroutine File_Remove_Char
 
+  subroutine Directory_Remove_VarStr(directoryName)
+    !!{
+    Remove a directory.
+    !!}
+    use :: ISO_Varying_String, only : char
+    implicit none
+    type(varying_string), intent(in   ) :: directoryName
+
+    call Directory_Remove_Char(char(directoryName))
+    return
+  end subroutine Directory_Remove_VarStr
+
+  subroutine Directory_Remove_Char(directoryName)
+    !!{
+    Remove a file.
+    !!}
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: ISO_Varying_String, only : char
+    implicit none
+    character(len=*), intent(in   ) :: directoryName
+    integer  (c_int)                :: status
+
+    if (File_Exists(directoryName)) then
+       status=rmdir_C(trim(directoryName)//char(0))
+       if (status /= 0) call Galacticus_Error_Report('failed to remove directory "'//trim(directoryName)//'"'//{introspection:location})
+    end if
+    return
+  end subroutine Directory_Remove_Char
+  
   subroutine File_Rename(nameOld,nameNew,overwrite)
     !!{
     Remove a file.

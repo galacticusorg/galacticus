@@ -182,7 +182,8 @@ contains
     !!{
     Constructor for the ``massFunctionStellar'' output analysis class which reads bin information from a standard format file.
     !!}
-    use :: IO_HDF5, only : hdf5Access, hdf5Object
+    use :: HDF5_Access, only : hdf5Access
+    use :: IO_HDF5, only : hdf5Object
     implicit none
     type            (outputAnalysisMassFunctionStellar      )                              :: self
     type            (varying_string                         ), intent(in   )               :: label                              , comment
@@ -233,7 +234,7 @@ contains
     use :: Galacticus_Error                        , only : Galacticus_Error_Report
     use :: ISO_Varying_String                      , only : var_str                                    , varying_string
     use :: Memory_Management                       , only : allocateArray
-    use :: Node_Property_Extractors                , only : nodePropertyExtractorMassStellar
+    use :: Node_Property_Extractors                , only : nodePropertyExtractorMassStellar           , nodePropertyExtractorStarFormationRate
     use :: Numerical_Constants_Astronomical        , only : massSolar                                  , megaParsec
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                             , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerLog10ToLog , outputAnalysisDistributionNormalizerSequence

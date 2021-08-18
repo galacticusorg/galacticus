@@ -228,6 +228,9 @@ sub read_file {
     my $fileName = shift;
     (my %options) = @_
 	if ( scalar(@_) > 1 );
+    # Set default set of include files to exclude.
+    @{$options{'includeFilesExcluded'}} = ()
+	unless ( exists($options{'includeFilesExcluded'}) );
     # Determine what to return.
     my $returnType = "raw";
     $returnType = $options{'state'}
@@ -269,20 +272,22 @@ sub read_file {
 	    if ( $followIncludes == 1 && $processedLine =~ m/^\s*include\s*['"]([^'"]+)['"]\s*$/ ) {
 		my $includeFileLeaf  = $1;
 		my $includeFileFound = 0;
-		foreach my $suffix ( ".inc", ".Inc" ) {
-		    foreach my $includeLocation ( @includeLocations ) {
-			(my $includePath = $fileNames[0]) =~ s/\/[^\/]+$/\//;
-			(my $includeFile = $includePath.$includeLocation."/".$includeFileLeaf) =~ s/\.inc$/$suffix/;
-			if ( -e $includeFile ) {
+		unless ( grep {$_ eq $includeFileLeaf} @{$options{'includeFilesExcluded'}} ) {
+		    foreach my $suffix ( ".inc", ".Inc" ) {
+			foreach my $includeLocation ( @includeLocations ) {
+			    (my $includePath = $fileNames[0]) =~ s/\/[^\/]+$/\//;
+			    (my $includeFile = $includePath.$includeLocation."/".$includeFileLeaf) =~ s/\.inc$/$suffix/;
+			    if ( -e $includeFile ) {
 			    $filePositions[0] = tell($fileHandle);
 			    unshift(@fileNames,$includeFile);
 			    unshift(@filePositions,-1);
 			    $includeFileFound = 1;
 			    last;
+			    }
 			}
+			last
+			    if ( $includeFileFound == 1 );
 		    }
-		    last
-			if ( $includeFileFound == 1 );
 		}
 		last
 		    if ( $includeFileFound == 1 );

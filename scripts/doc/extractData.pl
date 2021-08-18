@@ -25,11 +25,11 @@ my $outputRoot = $ARGV[1];
 my $xml = new XML::Simple;
 # Parse all class definition files.
 my $classes;
-opendir(my $directoryClasses,"./work/build/");
+opendir(my $directoryClasses,$ENV{'BUILDPATH'});
 while ( my $fileName = readdir($directoryClasses) ) {
     next
 	unless ( $fileName =~ m/\.classes\.xml$/ );
-    my $classesFile = $xml->XMLin("./work/build/".$fileName);
+    my $classesFile = $xml->XMLin($ENV{'BUILDPATH'}."/".$fileName);
     foreach my $className ( keys(%{$classesFile}) ) {
 	$classes->{$className} = $classesFile->{$className};
     }

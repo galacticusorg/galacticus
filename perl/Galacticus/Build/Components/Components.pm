@@ -53,6 +53,14 @@ sub Build_Node_Component_Class {
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
+	     name        => "addMetaProperty"                                                                                      ,
+	     function    => "Node_Component_Generic_Add_Meta_Property"                                                             ,
+	     description => "Add a meta-property to this class."                                                                   ,
+	     returnType  => "\\intzero"                                                                                            ,
+	     arguments   => "\\textcolor{red}{\\textless type(varying\_string)\\textgreater label, \\textcolor{red}{\\textless character(len=*)\\textgreater name"
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
 	     name        => "serializeCount"                                                                                       ,
 	     function    => "Node_Component_Serialize_Count_Zero"                                                                  ,
 	     description => "Return a count of the number of evolvable quantities to be evolved."                                  ,
@@ -245,6 +253,11 @@ sub Build_Node_Component_Class {
 	     type       =>   "treeNode"            ,
 	     attributes => [ "pointer" , "public" ],
 	     variables  => [ "hostNode => null()" ]
+	 },
+	 {
+	     intrinsic  =>   "double precision",
+	     attributes => [ "allocatable" , "dimension(:)" ],
+	     variables  => [ "metaProperties" ]
 	 }
 	);
     # Create the nodeComponent class.

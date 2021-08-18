@@ -134,11 +134,11 @@ contains
     Perform a sequence normalization on an on-the-fly output distribution.
     !!}
     implicit none
-    class           (outputAnalysisDistributionNormalizerSequence), intent(inout)                 :: self
-    double precision                                              , intent(inout), dimension(:  ) :: distribution
-    double precision                                              , intent(inout), dimension(:,:) :: covariance
-    double precision                                              , intent(in   ), dimension(:  ) :: propertyValueMinimum, propertyValueMaximum
-    type            (normalizerList                              ), pointer                       :: normalizer_
+    class           (outputAnalysisDistributionNormalizerSequence), intent(inout)                           :: self
+    double precision                                              , intent(inout), dimension(:  ), optional :: distribution
+    double precision                                              , intent(inout), dimension(:,:), optional :: covariance
+    double precision                                              , intent(in   ), dimension(:  )           :: propertyValueMinimum, propertyValueMaximum
+    type            (normalizerList                              ), pointer                                 :: normalizer_
 
     normalizer_ => self%normalizers
     do while (associated(normalizer_))

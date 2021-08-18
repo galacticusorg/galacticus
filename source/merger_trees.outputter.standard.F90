@@ -27,6 +27,7 @@
   use :: Kind_Numbers                      , only : kind_int8
   use :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyInteger, outputPropertyDouble
   use :: Node_Property_Extractors          , only : nodePropertyExtractor, nodePropertyExtractorClass
+  use :: Locks                             , only : ompLock
 
   type outputGroup
      !!{
@@ -43,13 +44,17 @@
    <module variables="standardBufferSizeIncrement"/>
   </scoping>
   !!]
-  integer, parameter :: standardOutputGroupsIncrement=10, standardBufferSizeIncrement=1024
+  integer         , parameter :: standardOutputGroupsIncrement=10     , standardBufferSizeIncrement=1024
 
+  ! Lock object used to ensure merger trees are output contiguously.
+  type   (ompLock)            :: treeLock
+  logical                     :: treeLockInitialized          =.false.
+  
   !![
   <mergerTreeOutputter name="mergerTreeOutputterStandard">
    <description>The standard merger tree outputter.</description>
    <stateStorable>
-    <restoreTo variables="outputsGroupOpened" state=".false."/>
+    <restoreTo variables="outputsGroupOpened"                                                                                            state=".false."                    />
     <restoreTo variables="outputGroupsCount  , doublePropertiesWritten, integerPropertiesWritten, doubleBufferCount, integerBufferCount" state="0"                          />
     <restoreTo variables="doublePropertyCount, integerPropertyCount"                                                                     state="-1"                         />
     <restoreTo variables="integerBufferSize  , doubleBufferSize"                                                                         state="standardBufferSizeIncrement"/>
@@ -187,6 +192,12 @@ contains
     self%integerBufferCount      = 0
     self%integerBufferSize       =standardBufferSizeIncrement
     self%doubleBufferSize        =standardBufferSizeIncrement
+    !$omp critical(mergerTreeOutputterStandardInitialize)
+    if (.not.treeLockInitialized) then
+       treeLock           =ompLock()
+       treeLockInitialized=.true.
+    end if
+    !$omp end critical(mergerTreeOutputterStandardInitialize)
     return
   end function standardConstructorInternal
 
@@ -212,7 +223,8 @@ contains
     !!}
     use            :: Galacticus_Error   , only : Galacticus_Error_Report
     use            :: Galacticus_Nodes   , only : mergerTree              , nodeComponentBasic, treeNode
-    use            :: IO_HDF5            , only : hdf5Access              , hdf5Object
+    use            :: HDF5_Access        , only : hdf5Access
+    use            :: IO_HDF5            , only : hdf5Object
     use, intrinsic :: ISO_C_Binding      , only : c_size_t
     use            :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     use omp_lib
@@ -241,8 +253,6 @@ contains
     integer                                                               :: iProperty
     type            (hdf5Object                 )                         :: toDataset
 
-    ! Main output block.
-    !$omp critical(mergerTreeOutputterStandard)
     ! Create an output group.
     call self%outputGroupCreate(indexOutput,time)
     ! Iterate over trees.
@@ -272,29 +282,40 @@ contains
                 ! Perform an extra output tasks.
                 !![
                 <include directive="mergerTreeExtraOutputTask" type="functionCall" functionType="void">
-                 <functionArgs>node,indexOutput,node%hostTree%index,self%galacticFilter_%passes(node)</functionArgs>
+                 <functionArgs>node,indexOutput,node%hostTree%index,self%galacticFilter_%passes(node),treeLock</functionArgs>
                 !!]
 		include 'merger_trees.outputter.tasks.extra.inc'
                 !![
                 </include>
                 <eventHook name="mergerTreeExtraOutput">
-		 <callWith>node,indexOutput,node%hostTree,self%galacticFilter_%passes(node)</callWith>
+		 <callWith>node,indexOutput,node%hostTree,self%galacticFilter_%passes(node),treeLock</callWith>
                 </eventHook>  
                 !!]
              end if
           end do
           ! Finished output.
-          if (self%integerPropertyCount > 0 .and. self%integerBufferCount > 0) call self%dumpIntegerBuffer(indexOutput)
-          if (self% doublePropertyCount > 0 .and. self% doubleBufferCount > 0) call self%dumpDoubleBuffer (indexOutput)
+          if     (                                                                     &
+               &   (                                                                   &
+               &     (self%integerPropertyCount > 0 .and. self%integerBufferCount > 0) &
+               &    .or.                                                               &
+               &     (self% doublePropertyCount > 0 .and. self% doubleBufferCount > 0) &
+               &   )                                                                   &
+               &  .and.                                                                &
+               &   .not.treeLock%ownedByThread()                                       &
+               & ) call treeLock%set()
+          if         (self%integerPropertyCount > 0 .and. self%integerBufferCount > 0) call self%dumpIntegerBuffer(indexOutput)
+          if         (self% doublePropertyCount > 0 .and. self% doubleBufferCount > 0) call self%dumpDoubleBuffer (indexOutput)
           ! Perform an extra output tasks.
           !![
           <include directive="mergerTreeExtraOutputFlush" type="functionCall" functionType="void">
+            <functionArgs>treeLock</functionArgs>
           !!]
 	  include 'merger_trees.outputter.tasks.extra.flush.inc'
           !![
           </include>
           !!]
           ! Compute the start and length of regions to reference.
+          if (.not.treeLock%ownedByThread()) call treeLock%set()
           !$ call hdf5Access%set()
           referenceLength(1)=max(self%integerPropertiesWritten,self%doublePropertiesWritten)
           if      (allocated(self%integerProperty).and.self%outputGroups(indexOutput)%nodeDataGroup%hasDataset(self%integerProperty(1)%name)) then
@@ -337,11 +358,11 @@ contains
           call self%outputGroups(indexOutput)%hdf5Group%writeDataset(referenceLength           ,"mergerTreeCount"     ,"Number of nodes in nodeData datasets for each merger tree."  ,appendTo=.true.)
           call self%outputGroups(indexOutput)%hdf5Group%writeDataset([currentTree%volumeWeight],"mergerTreeWeight"    ,"Number density of each tree [Mpc⁻³]."                        ,appendTo=.true.)
           !$ call hdf5Access%unset()
+          if (treeLock%ownedByThread()) call treeLock%unset()
        end if
        ! Skip to the next tree.
        currentTree => currentTree%nextTree
     end do
-    !$omp end critical(mergerTreeOutputterStandard)
     return
   end subroutine standardOutputTree
 
@@ -354,9 +375,8 @@ contains
     class  (mergerTreeOutputterStandard), intent(inout) :: self
     type   (treeNode                   ), intent(inout) :: node
     integer(c_size_t                   ), intent(in   ) :: indexOutput
-    class(nodeComponentBasic), pointer :: basic
+    class  (nodeComponentBasic         ), pointer       :: basic
     
-    !$omp critical(mergerTreeOutputterStandard)
     ! Create an output group.
     basic => node%basic()
     call self%outputGroupCreate(indexOutput,basic%time())
@@ -372,9 +392,17 @@ contains
     ! Perform our output.
     call self%output(node,basic%time())
     ! Finished output.
+    if     (                                                                     &
+         &   (                                                                   &
+         &     (self%integerPropertyCount > 0 .and. self%integerBufferCount > 0) &
+         &    .or.                                                               &
+         &     (self% doublePropertyCount > 0 .and. self% doubleBufferCount > 0) &
+         &   )                                                                   &
+         &  .and.                                                                &
+         &   .not.treeLock%ownedByThread()                                       &
+         & ) call treeLock%set()
     if (self%integerPropertyCount > 0 .and. self%integerBufferCount > 0) call self%dumpIntegerBuffer(indexOutput)
     if (self% doublePropertyCount > 0 .and. self% doubleBufferCount > 0) call self%dumpDoubleBuffer (indexOutput)
-    !$omp end critical(mergerTreeOutputterStandard)
     return
   end subroutine standardOutputNode
 
@@ -418,10 +446,10 @@ contains
     if (.not.nodePassesFilter) return
     ! Ensure output buffers are allocated.
     do i=1,self%integerScalarCount
-       if (.not.allocated(self%integerProperty(i)%scalar)) allocate(self%integerProperty(i)%scalar(standardBufferSizeIncrement))
+       if (.not.allocated(self%integerProperty(i)%scalar)) allocate(self%integerProperty(i)%scalar(self%integerBufferSize))
     end do
     do i=1,self%doubleScalarCount
-       if (.not.allocated(self%doubleProperty (i)%scalar)) allocate(self%doubleProperty (i)%scalar(standardBufferSizeIncrement))
+       if (.not.allocated(self%doubleProperty (i)%scalar)) allocate(self%doubleProperty (i)%scalar(self%doubleBufferSize))
     end do
     ! Initialize the instance counter.
     instance=multiCounter([1_c_size_t])
@@ -453,7 +481,7 @@ contains
           ! Null extractor - simply ignore.
        class is (nodePropertyExtractorScalar       )
           ! Scalar property extractor - extract and store the value.
-          if    (.not.allocated(self%doubleProperty (doubleProperty +1)%scalar)) allocate(self%doubleProperty(doubleProperty +1)%scalar(                      standardBufferSizeIncrement))
+          if    (.not.allocated(self%doubleProperty (doubleProperty +1)%scalar)) allocate(self%doubleProperty(doubleProperty +1)%scalar(                      self%doubleBufferSize))
           self   %doubleProperty (doubleProperty +1)%scalar(self%doubleBufferCount )=extractor_      %extract     (                  node     ,instance)
           doubleProperty                                                            =+doubleProperty                                                     &
                &                                                                     +1
@@ -461,7 +489,7 @@ contains
           ! Tuple property extractor - extract and store the values.
           doubleTuple =extractor_%extract       (node,time,instance)
           do i=1,+extractor_%elementCount(                  time)
-             if (.not.allocated(self%doubleProperty (doubleProperty +i)%scalar)) allocate(self%doubleProperty (doubleProperty +i)%scalar(                      standardBufferSizeIncrement))
+             if (.not.allocated(self%doubleProperty (doubleProperty +i)%scalar)) allocate(self%doubleProperty (doubleProperty +i)%scalar(                      self%doubleBufferSize))
              self%doubleProperty (doubleProperty +i)%scalar(self%doubleBufferCount )=doubleTuple (  i)
           end do
           deallocate(doubleTuple )
@@ -469,7 +497,7 @@ contains
                &                                                                     +extractor_     %elementCount(                       time         )
        class is (nodePropertyExtractorIntegerScalar)
           ! Integer scalar property extractor - extract and store the value.
-          if    (.not.allocated(self%integerProperty(integerProperty+1)%scalar)) allocate(self%integerProperty(integerProperty+1)%scalar(                      standardBufferSizeIncrement))
+          if    (.not.allocated(self%integerProperty(integerProperty+1)%scalar)) allocate(self%integerProperty(integerProperty+1)%scalar(                      self%integerBufferSize))
           self   %integerProperty(integerProperty+1)%scalar(self%integerBufferCount)=extractor_      %extract     (                  node,time,instance)
           integerProperty                                                           =+integerProperty                                                    &
                &                                                                     +1
@@ -477,7 +505,7 @@ contains
           ! Integer tuple property extractor - extract and store the values.
           integerTuple=extractor_%extract       (node,time,instance)
           do i=1,extractor_%elementCount(                   time)
-             if (.not.allocated(self%integerProperty(integerProperty+i)%scalar)) allocate(self%integerProperty(integerProperty+i)%scalar(                      standardBufferSizeIncrement))
+             if (.not.allocated(self%integerProperty(integerProperty+i)%scalar)) allocate(self%integerProperty(integerProperty+i)%scalar(                      self%integerBufferSize))
              self%integerProperty(integerProperty+i)%scalar(self%integerBufferCount)=integerTuple(  i)
           end do
           deallocate(integerTuple)
@@ -490,7 +518,7 @@ contains
              if (     allocated(self%doubleProperty (doubleProperty +i)%rank1)) then
                 if (size(self%doubleProperty (doubleProperty +i)%rank1,dim=1) /= size(doubleArray,dim=1)) deallocate(self%doubleProperty (doubleProperty +i)%rank1)
              end if
-             if (.not.allocated(self%doubleProperty (doubleProperty +i)%rank1)) allocate(self%doubleProperty (doubleProperty +i)%rank1(size(doubleArray,dim=1),standardBufferSizeIncrement))
+             if (.not.allocated(self%doubleProperty (doubleProperty +i)%rank1)) allocate(self%doubleProperty (doubleProperty +i)%rank1(size(doubleArray,dim=1),self%doubleBufferSize))
              self%doubleProperty (doubleProperty +i)%rank1(:,self%doubleBufferCount)=doubleArray (:,i)
           end do
           deallocate(doubleArray )
@@ -503,7 +531,7 @@ contains
              select case (doubleProperties(i)%rank())
              case (0)
                 if (.not.allocated(self%doubleProperty (doubleProperty +i)%scalar)) then
-                   allocate(self%doubleProperty(doubleProperty+i)%scalar(          standardBufferSizeIncrement))
+                   allocate(self%doubleProperty(doubleProperty+i)%scalar(          self%doubleBufferSize))
                 end if
                 self%doubleProperty (doubleProperty +i)%scalar(  self%doubleBufferCount )=doubleProperties(i)
              case (1)
@@ -514,7 +542,7 @@ contains
                 end if
                 if (.not.allocated(self%doubleProperty(doubleProperty +i)%rank1 )) then
                    shape_=doubleProperties (i)%shape()
-                   allocate(self%doubleProperty (doubleProperty +i)%rank1(shape_(1),standardBufferSizeIncrement))
+                   allocate(self%doubleProperty (doubleProperty +i)%rank1(shape_(1),self%doubleBufferSize))
                    deallocate(shape_)
                 end if
                 self%doubleProperty (doubleProperty +i)%rank1 (:,self%doubleBufferCount )=doubleProperties(i)
@@ -530,7 +558,7 @@ contains
              select case (integerProperties(i)%rank())
              case (0)
                 if (.not.allocated(self%integerProperty(integerProperty +i)%scalar)) then
-                   allocate(self%integerProperty(integerProperty+i)%scalar(          standardBufferSizeIncrement))
+                   allocate(self%integerProperty(integerProperty+i)%scalar(          self%integerBufferSize))
                 end if
                 self%integerProperty (integerProperty +i)%scalar(self%integerBufferCount  )=integerProperties(i)
              case (1)
@@ -541,7 +569,7 @@ contains
                 end if
                 if (.not.allocated(self%integerProperty(integerProperty +i)%rank1)) then
                    shape_=integerProperties(i)%shape()
-                   allocate(self%integerProperty(integerProperty+i)%rank1(shape_(1),standardBufferSizeIncrement))
+                   allocate(self%integerProperty(integerProperty+i)%rank1(shape_(1),self%integerBufferSize))
                    deallocate(shape_)
                 end if
                 self%integerProperty (integerProperty +i)%rank1 (:,self%integerBufferCount)=integerProperties(i)
@@ -566,7 +594,7 @@ contains
     !!{
     Finalize merger tree output by closing any open groups.
     !!}
-    use :: IO_HDF5, only : hdf5Access
+    use :: HDF5_Access, only : hdf5Access
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self
     integer(c_size_t                   )                :: iGroup
@@ -616,7 +644,8 @@ contains
     !!{
     Dump the contents of the integer properties buffer to the \glc\ output file.
     !!}
-    use :: IO_HDF5, only : hdf5Access, hdf5Object
+    use :: HDF5_Access, only : hdf5Access
+    use :: IO_HDF5, only : hdf5Object
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self
     integer(c_size_t                   ), intent(in   ) :: indexOutput
@@ -651,7 +680,8 @@ contains
     !!{
     Dump the contents of the double precision properties buffer to the \glc\ output file.
     !!}
-    use            :: IO_HDF5      , only : hdf5Access, hdf5Object
+    use            :: HDF5_Access  , only : hdf5Access
+    use            :: IO_HDF5      , only : hdf5Object
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
     class  (mergerTreeOutputterStandard), intent(inout) :: self
@@ -942,7 +972,7 @@ contains
     Create a group in which to store this output.
     !!}
     use            :: Galacticus_HDF5                 , only : galacticusOutputFile
-    use            :: IO_HDF5                         , only : hdf5Access
+    use            :: HDF5_Access                     , only : hdf5Access
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Memory_Management               , only : Memory_Usage_Record
     use            :: Numerical_Constants_Astronomical, only : gigaYear

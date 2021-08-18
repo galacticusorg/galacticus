@@ -28,10 +28,10 @@
   <outputAnalysis name="outputAnalysisMeanFunction1D">
    <description>A generic 1D mean function (i.e. mean value of some property weighted by number density of objects binned by some property) output analysis class.</description>
    <deepCopy>
-    <functionClass variables="volumeFunctionUnweighted, volumeFunctionWeighted, volumeFunctionCross"/>
+    <functionClass variables="volumeFunctionUnweighted, volumeFunctionWeighted, crossCovariance"/>
    </deepCopy>
    <stateStorable>
-    <functionClass variables="volumeFunctionUnweighted, volumeFunctionWeighted, volumeFunctionCross"/>
+    <functionClass variables="volumeFunctionUnweighted, volumeFunctionWeighted, crossCovariance"/>
    </stateStorable>
   </outputAnalysis>
   !!]
@@ -40,25 +40,25 @@
      A generic 1D mean function (i.e. mean value of some property weighted by number density of objects binned by some property) output analysis class.
      !!}
      private
-     type            (varying_string                )                              :: label                             , comment                         , &
-          &                                                                           propertyLabel                     , propertyComment                 , &
-          &                                                                           meanLabel                         , meanComment                     , &
-          &                                                                           propertyUnits                     , meanUnits                       , &
-          &                                                                           xAxisLabel                        , yAxisLabel                      , &
-          &                                                                           targetLabel
-     double precision                                                              :: propertyUnitsInSI                 , meanUnitsInSI
-     type            (outputAnalysisVolumeFunction1D), pointer                     :: volumeFunctionUnweighted => null(), volumeFunctionWeighted => null(), &
-          &                                                                           volumeFunctionCross      => null()
-     double precision                                , allocatable, dimension(:  ) :: binCenter                         , meanValue                       , &
-          &                                                                           meanValueTarget
-     double precision                                , allocatable, dimension(:,:) :: meanCovariance                    , meanCovarianceTarget
-     logical                                                                       :: finalized                         , likelihoodNormalize             , &
-          &                                                                           xAxisIsLog                        , yAxisIsLog
+     type            (varying_string                 )                              :: label                             , comment                         , &
+          &                                                                            propertyLabel                     , propertyComment                 , &
+          &                                                                            meanLabel                         , meanComment                     , &
+          &                                                                            propertyUnits                     , meanUnits                       , &
+          &                                                                            xAxisLabel                        , yAxisLabel                      , &
+          &                                                                            targetLabel
+     double precision                                                               :: propertyUnitsInSI                 , meanUnitsInSI
+     type            (outputAnalysisVolumeFunction1D ), pointer                     :: volumeFunctionUnweighted => null(), volumeFunctionWeighted => null()
+     type            (outputAnalysisCrossCorrelator1D), pointer                     :: crossCovariance          => null()
+     double precision                                 , allocatable, dimension(:  ) :: binCenter                         , meanValue                       , &
+          &                                                                            meanValueTarget
+     double precision                                 , allocatable, dimension(:,:) :: meanCovariance                    , meanCovarianceTarget
+     logical                                                                        :: finalized                         , likelihoodNormalize             , &
+          &                                                                            xAxisIsLog                        , yAxisIsLog
    contains
      !![
      <methods>
-       <method description="Return the results of the mean function operator." method="results" />
-       <method description="Finalize analysis of the mean function operator." method="finalizeAnalysis" />
+       <method description="Return the results of the mean function operator." method="results"         />
+       <method description="Finalize analysis of the mean function operator."  method="finalizeAnalysis"/>
      </methods>
      !!]
      final     ::                     meanFunction1DDestructor
@@ -91,7 +91,7 @@ contains
     implicit none
     type            (outputAnalysisMeanFunction1D           )                              :: self
     type            (inputParameters                        ), intent(inout)               :: parameters
-    class           (nodePropertyExtractorClass   ), pointer                     :: nodePropertyExtractor_     , outputAnalysisWeightPropertyExtractor_
+    class           (nodePropertyExtractorClass             ), pointer                     :: nodePropertyExtractor_               , outputAnalysisWeightPropertyExtractor_
     class           (outputAnalysisPropertyOperatorClass    ), pointer                     :: outputAnalysisPropertyOperator_      , outputAnalysisPropertyUnoperator_     , &
          &                                                                                    outputAnalysisWeightPropertyOperator_
     class           (outputAnalysisWeightOperatorClass      ), pointer                     :: outputAnalysisWeightOperator_
@@ -112,13 +112,14 @@ contains
     type            (inputParameters                        )                              :: unoperatorParameters
     type            (inputParameters                        )                              :: weightParameters
     double precision                                                                       :: propertyUnitsInSI                    , meanUnitsInSI                         , &
-         &                                                                                    covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum
+         &                                                                                    covarianceBinomialMassHaloMinimum    , covarianceBinomialMassHaloMaximum     , &
+         &                                                                                    binWidth
     logical                                                                                :: likelihoodNormalize                  , xAxisIsLog                            , &
          &                                                                                    yAxisIsLog
 
     !![
-    <objectBuilder class="nodePropertyExtractor"      name="nodePropertyExtractor_"       source="parameters"          />
-    <objectBuilder class="nodePropertyExtractor"      name="outputAnalysisWeightPropertyExtractor_" source="weightParameters"    />
+    <objectBuilder class="nodePropertyExtractor"                name="nodePropertyExtractor_"                 source="parameters"          />
+    <objectBuilder class="nodePropertyExtractor"                name="outputAnalysisWeightPropertyExtractor_" source="weightParameters"    />
     <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyOperator_"        source="parameters"          />
     <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisWeightPropertyOperator_"  source="weightParameters"    />
     <objectBuilder class="outputAnalysisPropertyOperator"       name="outputAnalysisPropertyUnoperator_"      source="unoperatorParameters"/>
@@ -214,6 +215,24 @@ contains
       <variable>meanUnitsInSI</variable>
       <description>A units for the mean in the SI system.</description>
     </inputParameter>
+    <inputParameter>
+      <name>binCenter</name>
+      <source>parameters</source>
+      <variable>binCenter</variable>
+      <description>The value of the property at the center of each bin.</description>
+    </inputParameter>
+    !!]
+    if (size(binCenter) == 1) then
+       !![
+       <inputParameter>
+	 <name>binWidth</name>
+	 <source>parameters</source>
+	 <variable>binWidth</variable>
+	 <description>The width of the bins.</description>
+       </inputParameter>
+       !!]
+    end if
+    !![
     <inputParameter>
       <name>binCenter</name>
       <source>parameters</source>
@@ -316,7 +335,7 @@ contains
            &amp;                        binCenter                                                                                    , &amp;
            &amp;                        bufferCount                                                                                  , &amp;
            &amp;                        reshape(outputWeight,[int(parameters%count('binCenter'),kind=c_size_t),outputTimes_%count()]), &amp;
-           &amp;                        nodePropertyExtractor_                                                             , &amp;
+           &amp;                        nodePropertyExtractor_                                                                       , &amp;
            &amp;                        outputAnalysisWeightPropertyExtractor_                                                       , &amp;
            &amp;                        outputAnalysisPropertyOperator_                                                              , &amp;
            &amp;                        outputAnalysisWeightPropertyOperator_                                                        , &amp;
@@ -338,8 +357,9 @@ contains
            &amp;                        {conditions}                                                                                   &amp;
            &amp;                       )
      </call>
-     <argument name="meanValueTarget"      value="meanValueTarget"      parameterPresent="parameters"/>
-     <argument name="meanCovarianceTarget" value="meanCovarianceTarget" parameterPresent="parameters"/>
+     <argument name="meanValueTarget"      value="meanValueTarget"      parameterPresent="parameters"          />
+     <argument name="meanCovarianceTarget" value="meanCovarianceTarget" parameterPresent="parameters"          />
+     <argument name="binWidth"             value="binWidth"                    condition="size(binCenter) == 1"/>
     </conditionalCall>
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="nodePropertyExtractor_"      />
@@ -355,30 +375,30 @@ contains
     return
   end function meanFunction1DConstructorParameters
 
-  function meanFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,meanLabel,meanComment,meanUnits,meanUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperatorIn_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,meanValueTarget,meanCovarianceTarget) result (self)
+  function meanFunction1DConstructorInternal(label,comment,propertyLabel,propertyComment,propertyUnits,propertyUnitsInSI,meanLabel,meanComment,meanUnits,meanUnitsInSI,binCenter,bufferCount,outputWeight,nodePropertyExtractor_,outputAnalysisWeightPropertyExtractor_,outputAnalysisPropertyOperator_,outputAnalysisWeightPropertyOperator_,outputAnalysisPropertyUnoperator_,outputAnalysisWeightOperatorIn_,outputAnalysisDistributionOperator_,galacticFilter_,outputTimes_,covarianceModel,covarianceBinomialBinsPerDecade,covarianceBinomialMassHaloMinimum,covarianceBinomialMassHaloMaximum,likelihoodNormalize,xAxisLabel,yAxisLabel,xAxisIsLog,yAxisIsLog,targetLabel,meanValueTarget,meanCovarianceTarget,binWidth) result (self)
     !!{
     Constructor for the ``meanFunction1D'' output analysis class for internal use.
     !!}
     use :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerIdentity
-    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorBoolean       , outputAnalysisPropertyOperatorClass , outputAnalysisPropertyOperatorSequence, outputAnalysisPropertyOperatorSquareRoot, &
-          &                                                 propertyOperatorList
+    use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorBoolean       , outputAnalysisPropertyOperatorClass , outputAnalysisPropertyOperatorSequence, propertyOperatorList
     use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorClass           , outputAnalysisWeightOperatorProperty, outputAnalysisWeightOperatorSequence  , weightOperatorList
     implicit none
     type            (outputAnalysisMeanFunction1D                )                                          :: self
-    type            (varying_string                              ), intent(in   )                           :: label                                           , comment                                        , &
-         &                                                                                                     propertyLabel                                   , propertyComment                                , &
-         &                                                                                                     meanLabel                                       , meanComment                                    , &
-         &                                                                                                     propertyUnits                                   , meanUnits
-    type            (varying_string                              ), intent(in   ), optional                 :: xAxisLabel                                      , yAxisLabel                                     , &
+    type            (varying_string                              ), intent(in   )                           :: label                                    , comment                                , &
+         &                                                                                                     propertyLabel                            , propertyComment                        , &
+         &                                                                                                     meanLabel                                , meanComment                            , &
+         &                                                                                                     propertyUnits                            , meanUnits
+    type            (varying_string                              ), intent(in   ), optional                 :: xAxisLabel                               , yAxisLabel                             , &
          &                                                                                                     targetLabel
-    double precision                                              , intent(in   )                           :: propertyUnitsInSI                               , meanUnitsInSI
+    double precision                                              , intent(in   )                           :: propertyUnitsInSI                        , meanUnitsInSI
     double precision                                              , intent(in   )          , dimension(:  ) :: binCenter
     integer         (c_size_t                                    ), intent(in   )                           :: bufferCount
     double precision                                              , intent(in   )          , dimension(:,:) :: outputWeight
-    logical                                                       , intent(in   ), optional                 :: xAxisIsLog                                      , yAxisIsLog                                     , &
+    logical                                                       , intent(in   ), optional                 :: xAxisIsLog                               , yAxisIsLog                             , &
          &                                                                                                     likelihoodNormalize
-    class           (nodePropertyExtractorClass                  ), intent(inout), target                   :: nodePropertyExtractor_                          , outputAnalysisWeightPropertyExtractor_
-    class           (outputAnalysisPropertyOperatorClass         ), intent(inout), target                   :: outputAnalysisPropertyOperator_                 , outputAnalysisPropertyUnoperator_              , &
+    double precision                                              , intent(in   ), optional                 :: binWidth
+    class           (nodePropertyExtractorClass                  ), intent(inout), target                   :: nodePropertyExtractor_                   , outputAnalysisWeightPropertyExtractor_
+    class           (outputAnalysisPropertyOperatorClass         ), intent(inout), target                   :: outputAnalysisPropertyOperator_          , outputAnalysisPropertyUnoperator_      , &
          &                                                                                                     outputAnalysisWeightPropertyOperator_
     class           (outputAnalysisWeightOperatorClass           ), intent(inout), target                   :: outputAnalysisWeightOperatorIn_
     class           (outputAnalysisDistributionOperatorClass     ), intent(inout), target                   :: outputAnalysisDistributionOperator_
@@ -386,21 +406,16 @@ contains
     class           (outputTimesClass                            ), intent(inout), target                   :: outputTimes_
     integer                                                       , intent(in   )                           :: covarianceModel
     integer                                                       , intent(in   ), optional                 :: covarianceBinomialBinsPerDecade
-    double precision                                              , intent(in   ), optional                 :: covarianceBinomialMassHaloMinimum               , covarianceBinomialMassHaloMaximum
+    double precision                                              , intent(in   ), optional                 :: covarianceBinomialMassHaloMinimum        , covarianceBinomialMassHaloMaximum
     double precision                                              , intent(in   ), optional, dimension(:  ) :: meanValueTarget
     double precision                                              , intent(in   ), optional, dimension(:,:) :: meanCovarianceTarget
-    type            (outputAnalysisDistributionNormalizerIdentity), pointer                                 :: outputAnalysisDistributionNormalizerWeighted_   , outputAnalysisDistributionNormalizerUnweighted_, &
-         &                                                                                                     outputAnalysisDistributionNormalizerCross_
-    type            (outputAnalysisWeightOperatorSequence        ), pointer                                 :: outputAnalysisWeightOperatorWeighted_           , outputAnalysisWeightOperatorCross_             , &
-         &                                                                                                     outputAnalysisWeightOperatorUnweighted_
-    type            (weightOperatorList                          ), pointer                                 :: weightOperatorWeight_                           , weightOperatorCross_                           , &
-         &                                                                                                     weightOperatorUnweighted_
-    type            (outputAnalysisPropertyOperatorSequence      ), pointer                                 :: weightOperatorCrossPropertyOperator_            , weightOperatorUnweightedPropertyOperator_
-    type            (propertyOperatorList                        ), pointer                                 :: propertyOperator_                               , propertyOperatorUnweighted_
-    type            (outputAnalysisWeightOperatorProperty        ), pointer                                 :: weightOperatorUnweightedProperty_               , weightOperatorWeightProperty_                  , &
-         &                                                                                                     weightOperatorCrossProperty_
+    type            (outputAnalysisDistributionNormalizerIdentity), pointer                                 :: outputAnalysisDistributionNormalizer_
+    type            (outputAnalysisWeightOperatorSequence        ), pointer                                 :: outputAnalysisWeightOperatorWeighted_    , outputAnalysisWeightOperatorUnweighted_
+    type            (weightOperatorList                          ), pointer                                 :: weightOperatorWeight_                    , weightOperatorUnweighted_
+    type            (outputAnalysisPropertyOperatorSequence      ), pointer                                 :: weightOperatorUnweightedPropertyOperator_
+    type            (propertyOperatorList                        ), pointer                                 :: propertyOperator_                        , propertyOperatorUnweighted_
+    type            (outputAnalysisWeightOperatorProperty        ), pointer                                 :: weightOperatorUnweightedProperty_        , weightOperatorWeightProperty_
     type            (outputAnalysisPropertyOperatorBoolean       ), pointer                                 :: propertyOperatorUnweightedBoolean_
-    type            (outputAnalysisPropertyOperatorSquareRoot    ), pointer                                 :: propertyOperatorCrossSquareRoot_
     !![
     <constructorAssign variables="label, comment, propertyLabel, propertyComment, propertyUnits, propertyUnitsInSI, meanLabel, meanComment, meanUnits, meanUnitsInSI, xAxisLabel, yAxisLabel, xAxisIsLog, yAxisIsLog, targetLabel, meanValueTarget, meanCovarianceTarget"/>
     !!]
@@ -411,13 +426,9 @@ contains
     self%likelihoodNormalize=.true.
     if (present(likelihoodNormalize)) self%likelihoodNormalize=likelihoodNormalize
     ! Build an identity distribution normalizer.
-    allocate(outputAnalysisDistributionNormalizerWeighted_  )
-    allocate(outputAnalysisDistributionNormalizerUnweighted_)
-    allocate(outputAnalysisDistributionNormalizerCross_     )
+    allocate(outputAnalysisDistributionNormalizer_)
     !![
-    <referenceConstruct object="outputAnalysisDistributionNormalizerWeighted_"   constructor="outputAnalysisDistributionNormalizerIdentity()"/>
-    <referenceConstruct object="outputAnalysisDistributionNormalizerUnweighted_" constructor="outputAnalysisDistributionNormalizerIdentity()"/>
-    <referenceConstruct object="outputAnalysisDistributionNormalizerCross_"      constructor="outputAnalysisDistributionNormalizerIdentity()"/>
+    <referenceConstruct object="outputAnalysisDistributionNormalizer_" constructor="outputAnalysisDistributionNormalizerIdentity()"/>
     !!]
     ! Build weight operator that includes the weight property.
     allocate(outputAnalysisWeightOperatorWeighted_     )
@@ -432,50 +443,9 @@ contains
     !![
     <referenceConstruct object="outputAnalysisWeightOperatorWeighted_" constructor="outputAnalysisWeightOperatorSequence(weightOperatorWeight_)"/>
     !!]
-    ! Build weight operator that includes square-root of the weight property. We use this to effectively compute the covariance
-    ! between numerator and denominator in our ratio of volume functions. If we define:
-    !
-    ! 〈W〉  = ∑ wᵢ  ; Var(W ) = ∑  wᵢ²
-    ! 〈WX〉 = ∑ wᵢ xᵢ; Var(WX) = ∑ (wᵢ xᵢ)²
-    !
-    ! where wᵢ is the weight, and xᵢ is the property for which we wish to compute the mean, then the above quantities are those
-    ! compute (mean and variance) for the unweighted and weighted volume functions (assuming Poisson statistics, but the approach
-    ! applies generally). The covariance of the weighted vs. unweighted functions is then:
-    !
-    ! Cov(WX,W) = ∑ wᵢ wᵢ xᵢ
-    !
-    ! which is the covariance computed by the volume function class for a property √x, providing x∈[0,∞).
-    allocate(outputAnalysisWeightOperatorCross_       )
-    allocate(weightOperatorCross_                     )
-    allocate(weightOperatorCross_                %next)
-    allocate(weightOperatorCrossProperty_             )
-    allocate(weightOperatorCrossPropertyOperator_     )
-    allocate(propertyOperator_                        )
-    allocate(propertyOperator_                   %next)
-    allocate(propertyOperatorCrossSquareRoot_         )
-    ! Build a sequence property operator for the cross-correlation weight property. This includes any property operator passed to
-    ! this constructor, plus the square-root operator.
-    !![
-    <referenceConstruct object="propertyOperatorCrossSquareRoot_" constructor="outputAnalysisPropertyOperatorSquareRoot()"/>
-    !!]
-    propertyOperator_     %operator_ => outputAnalysisWeightPropertyOperator_ ! First operator in the sequence is whatever operator was passed to this constructor.
-    propertyOperator_%next%operator_ => propertyOperatorCrossSquareRoot_
-    !![
-    <referenceConstruct object="weightOperatorCrossPropertyOperator_" constructor="outputAnalysisPropertyOperatorSequence(propertyOperator_)"/>
-    !!]
-    ! Build a weight operator sequence - the first operator is whatever weight operator was passed to this constructor, the second
-    ! is the operator which weights by the property value.
-    !![
-    <referenceConstruct object="weightOperatorCrossProperty_" constructor="outputAnalysisWeightOperatorProperty(outputAnalysisWeightPropertyExtractor_,weightOperatorCrossPropertyOperator_)"/>
-    !!]
-    weightOperatorCross_     %operator_ => outputAnalysisWeightOperatorIn_
-    weightOperatorCross_%next%operator_ => weightOperatorCrossProperty_
-    !![
-    <referenceConstruct object="outputAnalysisWeightOperatorCross_" constructor="outputAnalysisWeightOperatorSequence(weightOperatorCross_)"/>
-    !!]
     ! Build weight operator that includes a final boolean operator. We use this in the unweighted case to allow filters to be
-    ! applied to the weight property. If any filter sets the property value to zero, this boolean operator will return zero,
-    ! otherwise it will return unity.
+    ! applied to the weight property. If any filter-type property operator sets the property value to zero, this boolean operator
+    ! will return zero, otherwise it will return unity.
     allocate(outputAnalysisWeightOperatorUnweighted_       )
     allocate(weightOperatorUnweighted_                     )
     allocate(weightOperatorUnweighted_                %next)
@@ -507,117 +477,104 @@ contains
     ! Build weighted, unweighted, and cross volume function objects.
     allocate(self%volumeFunctionUnweighted)
     allocate(self%volumeFunctionWeighted  )
-    allocate(self%volumeFunctionCross     )
+    allocate(self%crossCovariance         )
     !![
     <referenceConstruct isResult="yes" owner="self" object="volumeFunctionUnweighted">
      <constructor>
-      outputAnalysisVolumeFunction1D(                                                 &amp;
-       &amp;                         label                                          , &amp;
-       &amp;                         comment                                        , &amp;
-       &amp;                         propertyLabel                                  , &amp;
-       &amp;                         propertyComment                                , &amp;
-       &amp;                         propertyUnits                                  , &amp;
-       &amp;                         propertyUnitsInSI                              , &amp;
-       &amp;                         meanLabel                                      , &amp;
-       &amp;                         meanComment                                    , &amp;
-       &amp;                         meanUnits                                      , &amp;
-       &amp;                         meanUnitsInSI                                  , &amp;
-       &amp;                         binCenter                                      , &amp;
-       &amp;                         bufferCount                                    , &amp;
-       &amp;                         outputWeight                                   , &amp;
-       &amp;                         nodePropertyExtractor_                         , &amp;
-       &amp;                         outputAnalysisPropertyOperator_                , &amp;
-       &amp;                         outputAnalysisPropertyUnoperator_              , &amp;
-       &amp;                         outputAnalysisWeightOperatorUnweighted_        , &amp;
-       &amp;                         outputAnalysisDistributionOperator_            , &amp;
-       &amp;                         outputAnalysisDistributionNormalizerUnweighted_, &amp;
-       &amp;                         galacticFilter_                                , &amp;
-       &amp;                         outputTimes_                                   , &amp;
-       &amp;                         covarianceModel                                , &amp;
-       &amp;                         covarianceBinomialBinsPerDecade                , &amp;
-       &amp;                         covarianceBinomialMassHaloMinimum              , &amp;
-       &amp;                         covarianceBinomialMassHaloMaximum                &amp;
-       &amp;                        )
+      outputAnalysisVolumeFunction1D (                                                  &amp;
+       &amp;                                   label                                  , &amp;
+       &amp;                                   comment                                , &amp;
+       &amp;                                   propertyLabel                          , &amp;
+       &amp;                                   propertyComment                        , &amp;
+       &amp;                                   propertyUnits                          , &amp;
+       &amp;                                   propertyUnitsInSI                      , &amp;
+       &amp;                                   meanLabel                              , &amp;
+       &amp;                                   meanComment                            , &amp;
+       &amp;                                   meanUnits                              , &amp;
+       &amp;                                   meanUnitsInSI                          , &amp;
+       &amp;                                   binCenter                              , &amp;
+       &amp;                                   bufferCount                            , &amp;
+       &amp;                                   outputWeight                           , &amp;
+       &amp;                                   nodePropertyExtractor_                 , &amp;
+       &amp;                                   outputAnalysisPropertyOperator_        , &amp;
+       &amp;                                   outputAnalysisPropertyUnoperator_      , &amp;
+       &amp;                                   outputAnalysisWeightOperatorUnweighted_, &amp;
+       &amp;                                   outputAnalysisDistributionOperator_    , &amp;
+       &amp;                                   outputAnalysisDistributionNormalizer_  , &amp;
+       &amp;                                   galacticFilter_                        , &amp;
+       &amp;                                   outputTimes_                           , &amp;
+       &amp;                                   covarianceModel                        , &amp;
+       &amp;                                   covarianceBinomialBinsPerDecade        , &amp;
+       &amp;                                   covarianceBinomialMassHaloMinimum      , &amp;
+       &amp;                                   covarianceBinomialMassHaloMaximum      , &amp;
+       &amp;                          binWidth=binWidth                                 &amp;
+       &amp;                         )
      </constructor>
     </referenceConstruct>
     <referenceConstruct isResult="yes" owner="self" object="volumeFunctionWeighted">
      <constructor>
-      outputAnalysisVolumeFunction1D(                                                 &amp;
-       &amp;                         label                                          , &amp;
-       &amp;                         comment                                        , &amp;
-       &amp;                         propertyLabel                                  , &amp;
-       &amp;                         propertyComment                                , &amp;
-       &amp;                         propertyUnits                                  , &amp;
-       &amp;                         propertyUnitsInSI                              , &amp;
-       &amp;                         meanLabel                                      , &amp;
-       &amp;                         meanComment                                    , &amp;
-       &amp;                         meanUnits                                      , &amp;
-       &amp;                         meanUnitsInSI                                  , &amp;
-       &amp;                         binCenter                                      , &amp;
-       &amp;                         bufferCount                                    , &amp;
-       &amp;                         outputWeight                                   , &amp;
-       &amp;                         nodePropertyExtractor_                         , &amp;
-       &amp;                         outputAnalysisPropertyOperator_                , &amp;
-       &amp;                         outputAnalysisPropertyUnoperator_              , &amp;
-       &amp;                         outputAnalysisWeightOperatorWeighted_          , &amp;
-       &amp;                         outputAnalysisDistributionOperator_            , &amp;
-       &amp;                         outputAnalysisDistributionNormalizerWeighted_  , &amp;
-       &amp;                         galacticFilter_                                , &amp;
-       &amp;                         outputTimes_                                   , &amp;
-       &amp;                         covarianceModel                                , &amp;
-       &amp;                         covarianceBinomialBinsPerDecade                , &amp;
-       &amp;                         covarianceBinomialMassHaloMinimum              , &amp;
-       &amp;                         covarianceBinomialMassHaloMaximum                &amp;
-       &amp;                        )
+      outputAnalysisVolumeFunction1D (                                                  &amp;
+       &amp;                                   label                                  , &amp;
+       &amp;                                   comment                                , &amp;
+       &amp;                                   propertyLabel                          , &amp;
+       &amp;                                   propertyComment                        , &amp;
+       &amp;                                   propertyUnits                          , &amp;
+       &amp;                                   propertyUnitsInSI                      , &amp;
+       &amp;                                   meanLabel                              , &amp;
+       &amp;                                   meanComment                            , &amp;
+       &amp;                                   meanUnits                              , &amp;
+       &amp;                                   meanUnitsInSI                          , &amp;
+       &amp;                                   binCenter                              , &amp;
+       &amp;                                   bufferCount                            , &amp;
+       &amp;                                   outputWeight                           , &amp;
+       &amp;                                   nodePropertyExtractor_                 , &amp;
+       &amp;                                   outputAnalysisPropertyOperator_        , &amp;
+       &amp;                                   outputAnalysisPropertyUnoperator_      , &amp;
+       &amp;                                   outputAnalysisWeightOperatorWeighted_  , &amp;
+       &amp;                                   outputAnalysisDistributionOperator_    , &amp;
+       &amp;                                   outputAnalysisDistributionNormalizer_  , &amp;
+       &amp;                                   galacticFilter_                        , &amp;
+       &amp;                                   outputTimes_                           , &amp;
+       &amp;                                   covarianceModel                        , &amp;
+       &amp;                                   covarianceBinomialBinsPerDecade        , &amp;
+       &amp;                                   covarianceBinomialMassHaloMinimum      , &amp;
+       &amp;                                   covarianceBinomialMassHaloMaximum      , &amp;
+       &amp;                          binWidth=binWidth                                 &amp;
+       &amp;                         )
      </constructor>
     </referenceConstruct>
-    <referenceConstruct isResult="yes" owner="self" object="volumeFunctionCross">
+    <referenceConstruct isResult="yes" owner="self" object="crossCovariance">
      <constructor>
-      outputAnalysisVolumeFunction1D(                                                 &amp;
-       &amp;                         label                                          , &amp;
-       &amp;                         comment                                        , &amp;
-       &amp;                         propertyLabel                                  , &amp;
-       &amp;                         propertyComment                                , &amp;
-       &amp;                         propertyUnits                                  , &amp;
-       &amp;                         propertyUnitsInSI                              , &amp;
-       &amp;                         meanLabel                                      , &amp;
-       &amp;                         meanComment                                    , &amp;
-       &amp;                         meanUnits                                      , &amp;
-       &amp;                         meanUnitsInSI                                  , &amp;
-       &amp;                         binCenter                                      , &amp;
-       &amp;                         bufferCount                                    , &amp;
-       &amp;                         outputWeight                                   , &amp;
-       &amp;                         nodePropertyExtractor_                         , &amp;
-       &amp;                         outputAnalysisPropertyOperator_                , &amp;
-       &amp;                         outputAnalysisPropertyUnoperator_              , &amp;
-       &amp;                         outputAnalysisWeightOperatorCross_             , &amp;
-       &amp;                         outputAnalysisDistributionOperator_            , &amp;
-       &amp;                         outputAnalysisDistributionNormalizerCross_     , &amp;
-       &amp;                         galacticFilter_                                , &amp;
-       &amp;                         outputTimes_                                   , &amp;
-       &amp;                         covarianceModel                                , &amp;
-       &amp;                         covarianceBinomialBinsPerDecade                , &amp;
-       &amp;                         covarianceBinomialMassHaloMinimum              , &amp;
-       &amp;                         covarianceBinomialMassHaloMaximum                &amp;
-       &amp;                        )
+      outputAnalysisCrossCorrelator1D(                                                  &amp;
+       &amp;                                   binCenter                              , &amp;
+       &amp;                                   bufferCount                            , &amp;
+       &amp;                                   outputWeight                           , &amp;
+       &amp;                                   nodePropertyExtractor_                 , &amp;
+       &amp;                                   outputAnalysisPropertyOperator_        , &amp;
+       &amp;                                   outputAnalysisPropertyUnoperator_      , &amp;
+       &amp;                                   outputAnalysisWeightOperatorUnweighted_, &amp;
+       &amp;                                   outputAnalysisWeightOperatorWeighted_  , &amp;
+       &amp;                                   outputAnalysisDistributionOperator_    , &amp;
+       &amp;                                   outputAnalysisDistributionNormalizer_  , &amp;
+       &amp;                                   galacticFilter_                        , &amp;
+       &amp;                                   outputTimes_                           , &amp;
+       &amp;                                   covarianceModel                        , &amp;
+       &amp;                                   covarianceBinomialBinsPerDecade        , &amp;
+       &amp;                                   covarianceBinomialMassHaloMinimum      , &amp;
+       &amp;                                   covarianceBinomialMassHaloMaximum      , &amp;
+       &amp;                                   binWidth                                 &amp;
+       &amp;                         )
      </constructor>
     </referenceConstruct>
-    <objectDestructor name="outputAnalysisDistributionNormalizerWeighted_"   />
-    <objectDestructor name="outputAnalysisDistributionNormalizerUnweighted_" />
-    <objectDestructor name="outputAnalysisDistributionNormalizerCross_"      />
-    <objectDestructor name="outputAnalysisWeightOperatorWeighted_"           />
-    <objectDestructor name="outputAnalysisWeightOperatorCross_"              />
-    <objectDestructor name="outputAnalysisWeightOperatorUnweighted_"         />
-    <objectDestructor name="weightOperatorCrossPropertyOperator_"            />
-    <objectDestructor name="weightOperatorUnweightedPropertyOperator_"       />
-    <objectDestructor name="propertyOperatorCrossSquareRoot_"                />
-    <objectDestructor name="propertyOperatorUnweightedBoolean_"              />
-    <objectDestructor name="weightOperatorWeightProperty_"                   />
-    <objectDestructor name="weightOperatorCrossProperty_"                    />
-    <objectDestructor name="weightOperatorUnweightedProperty_"               />
+    <objectDestructor name="outputAnalysisDistributionNormalizer_"    />
+    <objectDestructor name="outputAnalysisWeightOperatorWeighted_"    />
+    <objectDestructor name="outputAnalysisWeightOperatorUnweighted_"  />
+    <objectDestructor name="weightOperatorUnweightedPropertyOperator_"/>
+    <objectDestructor name="propertyOperatorUnweightedBoolean_"       />
+    <objectDestructor name="weightOperatorWeightProperty_"            />
+    <objectDestructor name="weightOperatorUnweightedProperty_"        />
     !!]
     nullify(weightOperatorWeight_      )
-    nullify(weightOperatorCross_       )
     nullify(weightOperatorUnweighted_  )
     nullify(propertyOperator_          )
     nullify(propertyOperatorUnweighted_)
@@ -634,7 +591,7 @@ contains
     !![
     <objectDestructor name="self%volumeFunctionUnweighted"/>
     <objectDestructor name="self%volumeFunctionWeighted"  />
-    <objectDestructor name="self%volumeFunctionCross"     />
+    <objectDestructor name="self%crossCovariance"         />
     !!]
     return
   end subroutine meanFunction1DDestructor
@@ -651,7 +608,7 @@ contains
     ! Analyze for all three volume functions.
     call self%volumeFunctionUnweighted%analyze(node,iOutput)
     call self%volumeFunctionWeighted  %analyze(node,iOutput)
-    call self%volumeFunctionCross     %analyze(node,iOutput)
+    call self%crossCovariance         %analyze(node,iOutput)
     return
   end subroutine meanFunction1DAnalyze
 
@@ -668,7 +625,7 @@ contains
     class is (outputAnalysisMeanFunction1D)
        call self%volumeFunctionUnweighted%reduce(reduced%volumeFunctionUnweighted)
        call self%volumeFunctionWeighted  %reduce(reduced%volumeFunctionWeighted  )
-       call self%volumeFunctionCross     %reduce(reduced%volumeFunctionCross     )
+       call self%crossCovariance         %reduce(reduced%crossCovariance         )
     class default
        call Galacticus_Error_Report('incorrect class'//{introspection:location})
     end select
@@ -692,7 +649,7 @@ contains
     ! Retrieve results from our 1-D volume functions.
     call self%volumeFunctionUnweighted%results(binCenter=self%binCenter,functionValue=unweightedValue,functionCovariance=unweightedCovariance)
     call self%volumeFunctionWeighted  %results(                         functionValue=weightedValue  ,functionCovariance=weightedCovariance  )
-    call self%volumeFunctionCross     %results(                                                       functionCovariance=crossCovariance     )
+    call self%crossCovariance         %results(                                                       functionCovariance=crossCovariance     )
     ! Estimate covariance of ratio using Taylor series expansion approach
     ! (e.g. http://math.stackexchange.com/questions/40713/calculating-the-variance-of-the-ratio-of-random-variables).
     allocate(self%meanValue     (size(self%binCenter)                     ))
@@ -725,7 +682,8 @@ contains
     Implement a {\normalfont \ttfamily meanFunction1D} output analysis finalization.
     !!}
     use :: Galacticus_HDF5, only : galacticusOutputFile
-    use :: IO_HDF5        , only : hdf5Access          , hdf5Object
+    use :: HDF5_Access    , only : hdf5Access
+    use :: IO_HDF5        , only : hdf5Object
     implicit none
     class(outputAnalysisMeanFunction1D), intent(inout) :: self
     type (hdf5Object                  )                :: analysesGroup, analysisGroup, &
@@ -746,9 +704,11 @@ contains
     call    analysisGroup%writeAttribute(          self%   yAxisIsLog                     ,'yAxisIsLog'                                                                                                    )
     call    analysisGroup%writeAttribute(     char(self%propertyLabel)                    ,'xDataset'                                                                                                      )
     call    analysisGroup%writeAttribute(     char(self%    meanLabel)                    ,'yDataset'                                                                                                      )
-    call    analysisGroup%writeAttribute(     char(self%    meanLabel)//"Target"          ,'yDatasetTarget'                                                                                                )
     call    analysisGroup%writeAttribute(     char(self%    meanLabel)//"Covariance"      ,'yCovariance'                                                                                                   )
-    call    analysisGroup%writeAttribute(     char(self%    meanLabel)//"CovarianceTarget",'yCovarianceTarget'                                                                                             )
+    if (allocated(self%meanValueTarget)) then
+       call analysisGroup%writeAttribute(     char(self%    meanLabel)//"Target"          ,'yDatasetTarget'                                                                                                )
+       call analysisGroup%writeAttribute(     char(self%    meanLabel)//"CovarianceTarget",'yCovarianceTarget'                                                                                             )
+    end if
     ! Write computed datasets.
     call    analysisGroup%writeDataset  (          self%binCenter                         ,char(self%propertyLabel)                    ,char(self%propertyComment)                 ,datasetReturned=dataset)
     call    dataset      %writeAttribute(     char(self%propertyUnits    )                ,'units'                                                                                                         )

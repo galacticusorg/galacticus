@@ -218,20 +218,22 @@ contains
    <unitName>Node_Component_Inter_Output_Standard_Reset</unitName>
   </mergerTreeExtraOutputTask>
   !!]
-  subroutine Node_Component_Inter_Output_Standard_Reset(node,iOutput,treeIndex,nodePassesFilter)
+  subroutine Node_Component_Inter_Output_Standard_Reset(node,iOutput,treeIndex,nodePassesFilter,treeLock)
     !!{
     Reset interoutput accumulated quantities.
     !!}
     use            :: Galacticus_Nodes, only : nodeComponentInterOutput, nodeComponentInterOutputStandard, treeNode, defaultInterOutputComponent
     use, intrinsic :: ISO_C_Binding   , only : c_size_t
     use            :: Kind_Numbers    , only : kind_int8
+    use            :: Locks           , only : ompLock
     implicit none
     type   (treeNode                ), intent(inout), pointer :: node
     integer(c_size_t                ), intent(in   )          :: iOutput
     integer(kind=kind_int8          ), intent(in   )          :: treeIndex
     logical                          , intent(in   )          :: nodePassesFilter
+    type   (ompLock                 ), intent(inout)          :: treeLock
     class  (nodeComponentInterOutput)               , pointer :: interOutput
-    !$GLC attributes unused :: iOutput, nodePassesFilter, treeIndex
+    !$GLC attributes unused :: iOutput, nodePassesFilter, treeIndex, treeLock
     
     ! Check if we are the default method.
     if (.not.defaultInterOutputComponent%standardIsActive()) return

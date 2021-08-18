@@ -33,7 +33,6 @@
     </diskMassDistribution>
     <componentSpin value="scalar"/>
     <componentPosition value="null"/>
-    <componentAgeStatistics value="null"/>
     <componentIndices value="null"/>
 
     <!-- Cosmological parameters and options -->

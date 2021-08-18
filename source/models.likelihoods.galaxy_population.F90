@@ -281,6 +281,20 @@ contains
     do iRank=0,mpiSelf%count()-1
        ! If prior probability is impossible, then no need to waste time evaluating the likelihood.
        if (logPriorsProposed(iRank) <= logImpossible) cycle
+       ! If the likelihood was evaluated for the previous rank, and the current state vector is identical to that of the previous rank, the proposed likelihood must be unchanged.
+       if (iRank > 0) then
+          if (logPriorsProposed(iRank-1) > logImpossible .and. all(stateVector(:,iRank) == stateVector(:,iRank-1))) then
+             if (iRank == mpiSelf%rank()) then
+                galaxyPopulationEvaluate=logLikelihoodProposed
+                if (verbosityLevel >= verbosityLevelStandard) then
+                   write (valueText,'(e12.4)') logLikelihoodProposed
+                   message=var_str("Chain ")//simulationState%chainIndex()//" has logℒ="//trim(valueText)
+                   call displayMessage(message,verbosityLevelSilent)
+                end if
+             end if
+             cycle
+          end if
+       end if
        ! Update parameter values.
        do i=1,size(modelParametersActive_)
           if (self%modelParametersActive_(i)%indexElement == 0) then

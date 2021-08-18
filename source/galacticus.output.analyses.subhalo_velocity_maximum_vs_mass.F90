@@ -132,7 +132,8 @@ contains
     !!{
     Constructor for the ``subhaloVMaxVsMass'' output analysis class for internal use.
     !!}
-    use :: IO_HDF5                 , only : hdf5Object                , hdf5Access
+    use :: HDF5_Access             , only : hdf5Access
+    use :: IO_HDF5                 , only : hdf5Object
     use :: Output_Times            , only : outputTimesClass
     use :: Cosmology_Functions     , only : cosmologyFunctionsClass
     use :: File_Utilities          , only : File_Name_Expand

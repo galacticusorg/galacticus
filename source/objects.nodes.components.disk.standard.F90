@@ -1136,7 +1136,7 @@ contains
    <unitName>Node_Component_Disk_Standard_Star_Formation_History_Output</unitName>
   </mergerTreeExtraOutputTask>
   !!]
-  subroutine Node_Component_Disk_Standard_Star_Formation_History_Output(node,iOutput,treeIndex,nodePassesFilter)
+  subroutine Node_Component_Disk_Standard_Star_Formation_History_Output(node,iOutput,treeIndex,nodePassesFilter,treeLock)
     !!{
     Store the star formation history in the output file.
     !!}
@@ -1145,11 +1145,13 @@ contains
     use            :: Histories                 , only : history
     use, intrinsic :: ISO_C_Binding             , only : c_size_t
     use            :: Kind_Numbers              , only : kind_int8
+    use            :: Locks                     , only : ompLock
     implicit none
     type   (treeNode         ), intent(inout), pointer :: node
     integer(c_size_t         ), intent(in   )          :: iOutput
     integer(kind=kind_int8   ), intent(in   )          :: treeIndex
     logical                   , intent(in   )          :: nodePassesFilter
+    type   (ompLock          ), intent(inout)          :: treeLock
     class  (nodeComponentDisk)               , pointer :: disk
     type   (history          )                         :: historyStarFormation
 
@@ -1158,7 +1160,7 @@ contains
     ! Output the star formation history if a disk exists for this component.
     disk                 => node%disk                ()
     historyStarFormation =  disk%starFormationHistory()
-    call starFormationHistory_%output(node,nodePassesFilter,historyStarFormation,iOutput,treeIndex,componentTypeDisk)
+    call starFormationHistory_%output(node,nodePassesFilter,historyStarFormation,iOutput,treeIndex,componentTypeDisk,treeLock)
     ! Update the star formation history only if a disk exists.
     select type (disk)
     class is (nodeComponentDiskStandard)
@@ -1172,18 +1174,20 @@ contains
    <unitName>Node_Component_Disk_Standard_Star_Formation_History_Flush</unitName>
   </mergerTreeExtraOutputFlush>
   !!]
-  subroutine Node_Component_Disk_Standard_Star_Formation_History_Flush()
+  subroutine Node_Component_Disk_Standard_Star_Formation_History_Flush(treeLock)
     !!{
     Flush star formation history data.
     !!}
     use :: Galacticus_Nodes          , only : defaultDiskComponent
     use :: Galactic_Structure_Options, only : componentTypeDisk
+    use :: Locks                     , only : ompLock
     implicit none
+    type(ompLock), intent(inout) :: treeLock
 
     ! Check if we are the default method.
     if (.not.defaultDiskComponent%standardIsActive()) return
     ! Flush the star formation history.
-    call starFormationHistory_%outputFlush(componentTypeDisk)
+    call starFormationHistory_%outputFlush(componentTypeDisk,treeLock)
     return
   end subroutine Node_Component_Disk_Standard_Star_Formation_History_Flush
 

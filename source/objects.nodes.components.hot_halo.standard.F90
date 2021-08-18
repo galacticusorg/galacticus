@@ -64,12 +64,6 @@ module Node_Component_Hot_Halo_Standard
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
     </property>
     <property>
-      <name>energyRadiated</name>
-      <type>double</type>
-      <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-    </property>
-    <property>
       <name>mass</name>
       <type>double</type>
       <rank>0</rank>
@@ -842,8 +836,6 @@ contains
           ! Pipe the mass rate to whichever component claimed it.
           if (hotHalo%hotHaloCoolingMassRateIsAttached()) &
                & call hotHalo%hotHaloCoolingMassRate(+massRate,interrupt,interruptProcedure)
-          ! Reduce the energy radiated.
-          call hotHalo%energyRadiatedRate(-massRate*hotHalo%energyRadiated()/hotHalo%mass())
           ! Find the node to use for cooling calculations.
           select case (hotHaloCoolingFromNode)
           case (currentNode  )
@@ -900,8 +892,7 @@ contains
     type            (abundances                  ), save          :: abundancesRates
     type            (chemicalAbundances          ), save          :: chemicalsRates
     !$omp threadprivate(abundancesRates,chemicalsRates)
-    double precision                                              :: angularMomentumRate, massRateLimited, &
-         &                                                           energyRadiatedRate
+    double precision                                              :: angularMomentumRate, massRateLimited
 
     ! Ignore zero rates.
     if (massRate /= 0.0d0 .and. hotHalo%mass() > 0.0d0) then
@@ -912,18 +903,29 @@ contains
        abundancesRates    =hotHalo%abundances     ()*massRateLimited/hotHalo%mass()
        angularMomentumRate=hotHalo%angularMomentum()*massRateLimited/hotHalo%mass()
        chemicalsRates     =hotHalo%chemicals      ()*massRateLimited/hotHalo%mass()
-       energyRadiatedRate =hotHalo%energyRadiated ()*massRateLimited/hotHalo%mass()
        call hotHalo%    massRemovalRate(+    massRateLimited)
        call hotHalo%           massRate(-    massRateLimited)
        call hotHalo%     abundancesRate(-    abundancesRates)
        call hotHalo%angularMomentumRate(-angularMomentumRate)
        call hotHalo%      chemicalsRate(-     chemicalsRates)
-       call hotHalo% energyRadiatedRate(- energyRadiatedRate)
        ! If this node is a satellite and stripped gas is being tracked, move mass and abundances to the stripped reservoir.
        if (node%isSatellite().and.hotHaloTrackStrippedGas) then
           call hotHalo%      strippedMassRate(+massRateLimited)
           call hotHalo%strippedAbundancesRate(+abundancesRates)
        end if
+      ! Trigger an event to allow other processes to respond to this action.
+      !![
+      <eventHook name="hotHaloMassEjection">
+	<import>
+	  <module name="Galacticus_Nodes" symbols="nodeComponentHotHalo"/>
+	</import>
+	<interface>
+	  class           (nodeComponentHotHalo), intent(inout) :: hotHalo
+	  double precision                      , intent(in   ) :: massRateLimited
+	</interface>
+	<callWith>hotHalo,massRateLimited</callWith>
+      </eventHook>
+      !!]
     end if
     return
   end subroutine Node_Component_Hot_Halo_Standard_Push_From_Halo
@@ -1412,8 +1414,6 @@ contains
        call self%     abundancesRate(self%abundances     ()*gasMassRate/gasMass,interrupt,interruptProcedure)
        ! Chemical abundances.
        call self%      chemicalsRate(self%chemicals      ()*gasMassRate/gasMass,interrupt,interruptProcedure)
-       ! Energy radiated.
-       call self%energyRadiatedRate (self%energyRadiated ()*gasMassRate/gasMass,interrupt,interruptProcedure)      
     end if
     return
   end subroutine Node_Component_Hot_Halo_Standard_Hot_Gas_All_Rate
@@ -1427,24 +1427,15 @@ contains
     !!{
     Set scales for properties of {\normalfont \ttfamily node}.
     !!}
-    use :: Abundances_Structure            , only : unitAbundances
-    use :: Chemical_Abundances_Structure   , only : unitChemicalAbundances
-    use :: Galacticus_Nodes                , only : nodeComponentBasic     , nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode, &
-         &                                          defaultHotHaloComponent
-    use :: Numerical_Constants_Prefixes    , only : kilo
-    use :: Numerical_Constants_Astronomical, only : gigaYear               , massSolar
-    use :: Numerical_Constants_Units       , only : ergs
+    use :: Abundances_Structure         , only : unitAbundances
+    use :: Chemical_Abundances_Structure, only : unitChemicalAbundances
+    use :: Galacticus_Nodes             , only : nodeComponentBasic     , nodeComponentHotHalo, nodeComponentHotHaloStandard, treeNode, &
+         &                                       defaultHotHaloComponent
     implicit none
     type            (treeNode            ), intent(inout), pointer :: node
     class           (nodeComponentHotHalo)               , pointer :: hotHalo
     class           (nodeComponentBasic  )               , pointer :: basic
-    ! The radiated energy is ∫ Λ n N dt, with (Λ n) in units of ergs s⁻¹ and t in units of Gyr. A suitable scale for the thermal
-    ! energy of the halo is mv². The following provides the unit conversion needed to put mv² in units of ergs s⁻¹ Gyr.
-    double precision                      , parameter              :: unitEnergyRadiated=+massSolar                   &
-       &                                                                                 *kilo     **2                &
-       &                                                                                 /ergs                        &
-       &                                                                                 *gigaYear
-    double precision                                               :: massVirial                      , radiusVirial, &
+    double precision                                               :: massVirial    , radiusVirial, &
          &                                                            velocityVirial
 
     ! Check if we are the default method.
@@ -1460,7 +1451,6 @@ contains
        massVirial    =basic%mass()
        radiusVirial  =darkMatterHaloScale_%virialRadius  (node)
        velocityVirial=darkMatterHaloScale_%virialVelocity(node)
-       call    hotHalo%          energyRadiatedScale(unitEnergyRadiated    *massVirial             *velocityVirial**2*scaleMassRelative  )
        call    hotHalo%                    massScale(                       massVirial                               *scaleMassRelative  )
        call    hotHalo%           outflowedMassScale(                       massVirial                               *scaleMassRelative  )
        call    hotHalo%          unaccretedMassScale(                       massVirial                               *scaleMassRelative  )
@@ -1554,18 +1544,19 @@ contains
     !!{
     Starve {\normalfont \ttfamily node} by transferring its hot halo to its parent.
     !!}
-    use :: Abundances_Structure                 , only : abundances                          , operator(*)            , zeroAbundances
+    use :: Abundances_Structure                 , only : abundances                          , operator(*)            , zeroAbundances              , operator(>)
     use :: Accretion_Halos                      , only : accretionModeHot                    , accretionModeTotal
-    use :: Chemical_Abundances_Structure        , only : chemicalAbundances                  , operator(*)            , zeroChemicalAbundances
+    use :: Chemical_Abundances_Structure        , only : chemicalAbundances                  , operator(*)            , zeroChemicalAbundances      , operator(>)
     use :: Galactic_Structure_Enclosed_Masses   , only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options           , only : componentTypeAll                    , massTypeBaryonic       , radiusLarge
     use :: Galacticus_Nodes                     , only : nodeComponentBasic                  , nodeComponentHotHalo   , nodeComponentHotHaloStandard, nodeComponentSpin, &
           &                                              treeNode                            , defaultHotHaloComponent
+    use :: Galacticus_Error                     , only : Galacticus_Error_Report 
     use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloNodeMergerLimitBaryonFraction, starveSatellites       , starveSatellitesOutflowed
     implicit none
     type            (treeNode            ), intent(inout) :: node
     type            (treeNode            ), pointer       :: nodeParent
-    class           (nodeComponentHotHalo), pointer       :: hotHaloParent , hotHalo
+    class           (nodeComponentHotHalo), pointer       :: hotHaloParent          , hotHalo
     class           (nodeComponentSpin   ), pointer       :: spinParent
     class           (nodeComponentBasic  ), pointer       :: parentBasic            , basic
     double precision                                      :: baryonicMassCurrent    , baryonicMassMaximum      , &
@@ -1573,6 +1564,7 @@ contains
          &                                                   massUnaccreted         , massReaccreted           , &
          &                                                   fractionAccreted       , angularMomentumAccreted  , &
          &                                                   massAccretedHot
+    logical                                               :: massTotalNonZero
     type            (abundances          ), save          :: massMetalsAccreted     , fractionMetalsAccreted   , &
          &                                                   massMetalsReaccreted
     !$omp threadprivate(massMetalsAccreted,fractionMetalsAccreted,massMetalsReaccreted)
@@ -1605,62 +1597,71 @@ contains
        ! Since the parent node is undergoing mass growth through this merger we potentially return some of the unaccreted gas to
        ! the hot phase.
        !! First, find the masses of hot and failed mass the node would have if it formed instantaneously.
-       massAccretedHot=accretionHalo_%      accretedMass(nodeParent,accretionModeHot  )
-       massAccreted   =accretionHalo_%      accretedMass(nodeParent,accretionModeTotal)
-       massUnaccreted =accretionHalo_%failedAccretedMass(nodeParent,accretionModeTotal)
+       massAccretedHot =accretionHalo_%      accretedMass(nodeParent,accretionModeHot  )
+       massAccreted    =accretionHalo_%      accretedMass(nodeParent,accretionModeTotal)
+       massUnaccreted  =accretionHalo_%failedAccretedMass(nodeParent,accretionModeTotal)
+       massTotalNonZero=+massAccreted+massUnaccreted > 0.0d0
        !! Find the fraction of mass that would be successfully accreted.
-       fractionAccreted=+  massAccretedHot &
-            &           /(                 &
-            &             +massAccreted    &
-            &             +massUnaccreted  &
-            &            )
-       !! Find the change in the unaccreted mass.
-       massReaccreted=+hotHaloParent   %unaccretedMass() &
-            &         *fractionAccreted                  &
-            &         *basic           %          mass() &
-            &         /parentBasic     %          mass()
-
-       !! Reaccrete the gas.
-       call hotHaloParent%unaccretedMassSet(hotHaloParent%unaccretedMass()-massReaccreted)
-       call hotHaloParent%          massSet(hotHaloParent%          mass()+massReaccreted)
-       ! Compute the reaccreted angular momentum.
-       angularMomentumAccreted=+massreaccreted                                  &
-            &                  *spinParent          %spin          (          ) &
-            &                  *darkMatterHaloScale_%virialRadius  (nodeParent) &
-            &                  *darkMatterHaloScale_%virialVelocity(nodeParent)
-       call hotHaloParent%angularMomentumSet(hotHaloParent%angularMomentum()+angularMomentumAccreted)
+       if (massAccretedHot > 0.0d0) then
+          if (.not.massTotalNonZero) call Galacticus_Error_Report('mass of hot-mode gas accreted is non-zero, but total mass is zero'//{introspection:location})
+          fractionAccreted=+  massAccretedHot &
+               &           /(                 &
+               &             +massAccreted    & 
+               &             +massUnaccreted  &
+               &            )
+          !! Find the change in the unaccreted mass.
+          massReaccreted=+hotHaloParent   %unaccretedMass() &
+               &         *fractionAccreted                  &
+               &         *basic           %          mass() &
+               &         /parentBasic     %          mass() 
+          !! Reaccrete the gas.
+          call hotHaloParent%unaccretedMassSet(hotHaloParent%unaccretedMass()-massReaccreted)
+          call hotHaloParent%          massSet(hotHaloParent%          mass()+massReaccreted)
+          ! Compute the reaccreted angular momentum.
+          angularMomentumAccreted=+massreaccreted                                  &
+               &                  *spinParent          %spin          (          ) &
+               &                  *darkMatterHaloScale_%virialRadius  (nodeParent) &
+               &                  *darkMatterHaloScale_%virialVelocity(nodeParent)
+          call hotHaloParent%angularMomentumSet(hotHaloParent%angularMomentum()+angularMomentumAccreted)
+       end if
        ! Compute the reaccreted metals.
        !! First, find the metal mass the node would have if it formed instantaneously.
        massMetalsAccreted=accretionHalo_%accretedMassMetals(nodeParent,accretionModeHot)
        !! Find the mass fraction of metals that would be successfully accreted.
-       fractionMetalsAccreted=+  massMetalsAccreted &
-            &                 /(                    &
-            &                   +massAccreted       &
-            &                   +massUnaccreted     &
-            &                  )
-       !! Find the change in the unaccreted mass.
-       massMetalsReaccreted=+hotHaloParent   %unaccretedMass() &
-            &               *fractionMetalsAccreted            &
-            &               *basic           %          mass() &
-            &               /parentBasic     %          mass()
-       !! Reaccrete the metals.
-       call hotHaloParent%abundancesSet(hotHaloParent%abundances()+massMetalsReaccreted)
+       if (massMetalsAccreted > zeroAbundances) then
+          if (.not.massTotalNonZero) call Galacticus_Error_Report('mass of hot-mode metals accreted is non-zero, but total mass is zero'//{introspection:location})
+          fractionMetalsAccreted=+  massMetalsAccreted &
+               &                 /(                    &
+               &                   +massAccreted       &
+               &                   +massUnaccreted     &
+               &                  )
+          !! Find the change in the unaccreted mass.
+          massMetalsReaccreted=+hotHaloParent   %unaccretedMass() &
+               &               *fractionMetalsAccreted            &
+               &               *basic           %          mass() &
+               &               /parentBasic     %          mass()
+          !! Reaccrete the metals.
+          call hotHaloParent%abundancesSet(hotHaloParent%abundances()+massMetalsReaccreted)
+       end if
        ! Compute the reaccreted chemicals.
        !! First, find the chemicals mass that would be successfully accreted.
        massChemicalsAccreted=accretionHalo_%accretedMassChemicals(nodeParent,accretionModeHot)
        !! Find the mass fraction of chemicals that would be successfully accreted.
-       fractionChemicalsAccreted=+  massChemicalsAccreted &
-            &                    /(                       &
-            &                      +massAccreted          &
-            &                      +massUnaccreted        &
-            &                     )
-       !! Find the change in the unaccreted mass.
-       massChemicalsReaccreted=+hotHaloParent   %unaccretedMass() &
-            &                  *fractionChemicalsAccreted         &
-            &                  *basic           %          mass() &
-            &                  /parentBasic     %          mass()
-       !! Reaccrete the metals.
-       call hotHaloParent%chemicalsSet(hotHaloParent%chemicals()+massChemicalsReaccreted)
+       if (massChemicalsAccreted > zeroChemicalAbundances) then
+          if (.not.massTotalNonZero) call Galacticus_Error_Report('mass of hot-mode chemicals accreted is non-zero, but total mass is zero'//{introspection:location})
+          fractionChemicalsAccreted=+  massChemicalsAccreted &
+               &                    /(                       &
+               &                      +massAccreted          &
+               &                      +massUnaccreted        &
+               &                     )
+          !! Find the change in the unaccreted mass.
+          massChemicalsReaccreted=+hotHaloParent   %unaccretedMass() &
+               &                  *fractionChemicalsAccreted         &
+               &                  *basic           %          mass() &
+               &                  /parentBasic     %          mass()
+          !! Reaccrete the metals.
+          call hotHaloParent%chemicalsSet(hotHaloParent%chemicals()+massChemicalsReaccreted)
+       end if
        ! Determine if starvation is to be applied.
        if (starveSatellites.or.starveSatellitesOutflowed) then
           ! Move the hot halo to the parent. We leave the hot halo in place even if it is starved, since outflows will accumulate to
@@ -1915,10 +1916,6 @@ contains
           call    hotHalo%          unaccretedMassSet(                                          &
                &                                       hotHalo      %unaccretedMass          () &
                &                                      +hotHaloParent%unaccretedMass          () &
-               &                                     )
-          call    hotHalo%          energyRadiatedSet(                                          &
-               &                                       hotHalo      %energyRadiated          () &
-               &                                      +hotHaloParent%energyRadiated          () &
                &                                     )
        end select
     end select

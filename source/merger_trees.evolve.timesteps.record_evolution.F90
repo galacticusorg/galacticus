@@ -270,26 +270,30 @@ contains
     return
   end subroutine recordEvolutionStore
 
-  subroutine recordEvolutionOutput(self,node,iOutput,treeIndex,nodePassesFilter)
+  subroutine recordEvolutionOutput(self,node,iOutput,treeIndex,nodePassesFilter,treeLock)
     !!{
     Store main branch evolution to the output file.
     !!}
     use            :: Galacticus_Error                , only : Galacticus_Error_Report
     use            :: Galacticus_HDF5                 , only : galacticusOutputFile
-    use            :: IO_HDF5                         , only : hdf5Access             , hdf5Object
+    use            :: HDF5_Access                     , only : hdf5Access
+    use            :: IO_HDF5                         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: ISO_Varying_String              , only : var_str                , varying_string
     use            :: Kind_Numbers                    , only : kind_int8
     use            :: Numerical_Constants_Astronomical, only : gigaYear               , massSolar
     use            :: String_Handling                 , only : operator(//)
+    use            :: Locks                           , only : ompLock
     implicit none
     class  (*             ), intent(inout) :: self
     type   (treeNode      ), intent(inout) :: node
     integer(c_size_t      ), intent(in   ) :: iOutput
     integer(kind=kind_int8), intent(in   ) :: treeIndex
     logical                , intent(in   ) :: nodePassesFilter
+    type   (ompLock       ), intent(inout) :: treeLock
     type   (varying_string)                :: datasetName
     type   (hdf5Object    )                :: outputGroup     , dataset
+    !$GLC attributes unused :: treeLock
 
     select type (self)
     class is (mergerTreeEvolveTimestepRecordEvolution)

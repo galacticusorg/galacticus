@@ -523,6 +523,7 @@ contains
              !![
              </include>
              !!]
+             call self%nodeOperator_%differentialEvolutionInactives(node)
           end if
           ! Compute offsets into serialization arrays for rates and scales.
           call node%serializationOffsets(self%propertyTypeODE       )
@@ -545,6 +546,7 @@ contains
           !![
           </include>
           !!]
+          call self%nodeOperator_%differentialEvolutionScales(node)
           call node%serializeScales(self%propertyScalesActive  ,self%propertyTypeODE       )
           call node%serializeScales(self%propertyScalesInactive,self%propertyTypeIntegrator)
           ! Check for zero property scales which will cause floating point overflow in the ODE solver.

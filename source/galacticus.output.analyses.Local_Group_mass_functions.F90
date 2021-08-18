@@ -190,7 +190,7 @@ contains
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                         , randomErrorMaximum
     double precision                                                     , intent(in   ), dimension(:  ) :: randomErrorPolynomialCoefficient                           , systematicErrorPolynomialCoefficient
     class           (outputTimesClass                                   ), intent(inout)                 :: outputTimes_
-    type            (nodePropertyExtractorMassStellar         )               , pointer        :: nodePropertyExtractor_
+    type            (nodePropertyExtractorMassStellar                   )               , pointer        :: nodePropertyExtractor_
     type            (outputAnalysisPropertyOperatorSystmtcPolynomial    )               , pointer        :: outputAnalysisPropertyOperatorSystmtcPolynomial_
     type            (outputAnalysisPropertyOperatorLog10                )               , pointer        :: outputAnalysisPropertyOperatorLog10_
     type            (outputAnalysisPropertyOperatorSequence             )               , pointer        :: outputAnalysisPropertyOperator_
@@ -256,7 +256,7 @@ contains
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_                )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassStellar     (                                                   )"/>
+    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorMassStellar               (                                                   )"/>
     !!]
     ! Create property operators and unoperators to perform conversion to/from logarithmic mass.
     allocate(outputAnalysisPropertyOperatorLog10_            )
@@ -550,17 +550,19 @@ contains
     ! Normalize the mass function.
     weight           = sum(massFunctionCentrals)
     weightVariance   = sum(covarianceCentrals  )
-    self%massFunction=+self%massFunction/weight
-    self%covariance  =+self%covariance  /weight**2
-    do    i=1_c_size_t,size(self%massFunction)
-       do j=1_c_size_t,size(self%massFunction)
-          self%covariance(i,j)=+self%covariance  (i,j)    &
-               &               +self%massFunction(i  )    &
-               &               *self%massFunction(  j)    &
-               &               *weightVariance            &
-               &               /weight                **2
+    if (weight > 0.0d0) then
+       self%massFunction=+self%massFunction/weight
+       self%covariance  =+self%covariance  /weight**2
+       do    i=1_c_size_t,size(self%massFunction)
+          do j=1_c_size_t,size(self%massFunction)
+             self%covariance(i,j)=+self%covariance  (i,j)    &
+                  &               +self%massFunction(i  )    &
+                  &               *self%massFunction(  j)    &
+                  &               *weightVariance            &
+                  &               /weight                **2
+          end do
        end do
-    end do
+    end if
     return
   end subroutine localGroupMassFunctionFinalizeAnalysis
 
@@ -569,7 +571,8 @@ contains
     Implement a {\normalfont \ttfamily localGroupMassFunction} output analysis finalization.
     !!}
     use :: Galacticus_HDF5                 , only : galacticusOutputFile
-    use :: IO_HDF5                         , only : hdf5Access          , hdf5Object
+    use :: HDF5_Access                     , only : hdf5Access
+    use :: IO_HDF5                         , only : hdf5Object
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none
     class(outputAnalysisLocalGroupMassFunction), intent(inout) :: self
@@ -614,7 +617,7 @@ contains
     \protect\citealt{lu_connection_2016}]{boylan-kolchin_theres_2010}. This has been confirmed by examining the results of many
     tree realizations, although it in principal could be model-dependent.
     !!}
-    use :: Models_Likelihoods_Constants     , only : logImpossible
+    use :: Models_Likelihoods_Constants     , only : logImprobable
     use :: Statistics_Distributions_Discrete, only : distributionFunctionDiscrete1DNegativeBinomial
     implicit none
     class           (outputAnalysisLocalGroupMassFunction          ), intent(inout) :: self
@@ -627,7 +630,7 @@ contains
     do i=1,size(self%masses)
        if (self%massFunction(i) <= 0.0d0) then
           if (nint(self%massFunctionTarget(i)) > 0) then
-             localGroupMassFunctionLogLikelihood=logImpossible
+             localGroupMassFunctionLogLikelihood=logImprobable
              return
           end if
        else
@@ -636,9 +639,16 @@ contains
                &                                +1.0d0                                                          &
                &                                +self%negativeBinomialScatterFractional**2*self%massFunction(i) &
                &                               )
-          distribution                       = distributionFunctionDiscrete1DNegativeBinomial                (negativeBinomialProbabilitySuccess,     self%countFailures         )
-          localGroupMassFunctionLogLikelihood=+localGroupMassFunctionLogLikelihood                                                                                                 &
-               &                              +distribution                                  %massLogarithmic(                                   nint(self%massFunctionTarget(i)))
+          if (negativeBinomialProbabilitySuccess >= 1.0d0) then
+             if (nint(self%massFunctionTarget(i)) > 0) then
+                localGroupMassFunctionLogLikelihood=logImprobable
+                return
+             end if
+          else
+             distribution                       = distributionFunctionDiscrete1DNegativeBinomial                (negativeBinomialProbabilitySuccess,     self%countFailures         )
+             localGroupMassFunctionLogLikelihood=+localGroupMassFunctionLogLikelihood                                                                                                 &
+                  &                              +distribution                                  %massLogarithmic(                                   nint(self%massFunctionTarget(i)))
+          end if
        end if
     end do
     return

@@ -240,7 +240,8 @@ contains
     use :: Galacticus_Nodes              , only : treeNode                     , nodeComponentBasic  , mergerTree
     use :: Galacticus_HDF5               , only : galacticusOutputFile
     use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
-    use :: IO_HDF5                       , only : hdf5Access                   , hdf5Object
+    use :: HDF5_Access                   , only : hdf5Access
+    use :: IO_HDF5                       , only : hdf5Object
     use :: Numerical_Ranges              , only : Make_Range                   , rangeTypeLogarithmic, rangeTypeLinear
     implicit none
     class           (taskMergingHaloOrbitDistribution), intent(inout)     , target      :: self

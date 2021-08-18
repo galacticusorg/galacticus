@@ -134,9 +134,10 @@ contains
     !$GLC attributes unused :: time, instance
 
     basic => node%basic()
-    criticalOverdensityLastIsolated=self%criticalOverdensity_     %value       (mass=basic%mass(),time=basic%timeLastIsolated())
-    densityFieldRootVariance       =self%cosmologicalMassVariance_%rootVariance(mass=basic%mass(),time=basic%timeLastIsolated())
-    peakHeightNu                   =criticalOverdensityLastIsolated/densityFieldRootVariance
+    criticalOverdensityLastIsolated= self%criticalOverdensity_     %value       (mass=basic%mass(),time=basic%timeLastIsolated(),node=node)
+    densityFieldRootVariance       = self%cosmologicalMassVariance_%rootVariance(mass=basic%mass(),time=basic%timeLastIsolated()          )
+    peakHeightNu                   =+criticalOverdensityLastIsolated                                                                        &
+         &                          /densityFieldRootVariance
     allocate(peakHeightExtract(3))
     peakHeightExtract=[                                 &
          &             criticalOverdensityLastIsolated, &

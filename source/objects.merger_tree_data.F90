@@ -1545,7 +1545,8 @@ contains
     use :: File_Utilities    , only : File_Exists
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: HDF5              , only : HSIZE_T                , hsize_t
-    use :: IO_HDF5           , only : hdf5Access             , hdf5Object
+    use :: HDF5_Access       , only : hdf5Access
+    use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : assignment(=)          , char
     use :: Memory_Management , only : deallocateArray
     use :: String_Handling   , only : operator(//)
@@ -1576,9 +1577,8 @@ contains
     fileExists=appendActual.and.File_Exists(outputFileName)
 
     ! Open the output file.
-    call hdf5Access%set()
-    call outputFile%openFile(outputFileName,overWrite=.not.appendActual,objectsOverwritable=.true.,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
-
+    !$ call hdf5Access%set     (                                                                                                                                 )
+    call    outputFile%openFile(outputFileName,overWrite=.not.appendActual,objectsOverwritable=.true.,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
 
     ! Write a format version attribute.
     if (.not.fileExists) call outputFile%writeAttribute(2,"formatVersion")
@@ -1812,8 +1812,8 @@ contains
     call outputFile%writeAttribute(completeCount,"fileCompleteFlag")
 
     ! Close the output file.
-    call outputFile%close()
-    call hdf5Access%unset()
+    call    outputFile%close()
+    !$ call hdf5Access%unset()
 
     return
   end subroutine Merger_Tree_Data_Structure_Export_Galacticus
@@ -1826,7 +1826,8 @@ contains
     use :: File_Utilities    , only : File_Exists
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: HDF5              , only : hsize_t
-    use :: IO_HDF5           , only : hdf5Access             , hdf5Object
+    use :: HDF5_Access       , only : hdf5Access
+    use :: IO_HDF5           , only : hdf5Object
     use :: ISO_Varying_String, only : assignment(=)          , char
     use :: Memory_Management , only : allocateArray          , deallocateArray
     implicit none
@@ -1866,8 +1867,8 @@ contains
     if (.not.mergerTrees%hasDescendentIndex) call Galacticus_Error_Report('descendent indices are required for this format'//{introspection:location})
 
     ! Open the output file.
-    call hdf5Access%set()
-    call outputFile%openFile(outputFileName,overWrite=.not.appendActual,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
+    !$ call hdf5Access%set     (                                                                                                      )
+    call    outputFile%openFile(outputFileName,overWrite=.not.appendActual,chunkSize=hdfChunkSize,compressionLevel=hdfCompressionLevel)
 
     ! Write the IRATE version.
     if (.not.fileExists) call outputFile%writeAttribute(0,"IRATEVersion")
@@ -2108,8 +2109,8 @@ contains
     end if
 
     ! Close the output file.
-    call outputFile%close()
-    call hdf5Access%unset()
+    call    outputFile%close()
+    !$ call hdf5Access%unset()
 
     return
   end subroutine Merger_Tree_Data_Structure_Export_IRATE

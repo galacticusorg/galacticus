@@ -240,7 +240,8 @@ contains
     !!}
     use :: File_Utilities  , only : File_Exists
     use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_HDF5         , only : hdf5Access             , hdf5Object
+    use :: HDF5_Access     , only : hdf5Access
+    use :: IO_HDF5         , only : hdf5Object
     use :: Table_Labels    , only : extrapolationTypeAbort , extrapolationTypeExtrapolate
     implicit none
     class  (intergalacticMediumStateFile), intent(inout) :: self
@@ -251,7 +252,7 @@ contains
     ! Check if data has yet to be read.
     if (.not.self%dataRead) then
        if (.not.File_Exists(char(self%fileName))) call Galacticus_Error_Report('Unable to find intergalactic medium state file "' //char(self%fileName)//'"'//{introspection:location})
-       call hdf5Access%set()
+       !$ call hdf5Access%set()
        ! Open the file.
        call file%openFile(char(self%fileName),readOnly=.true.)
        ! Check the file format version of the file.
@@ -271,7 +272,7 @@ contains
        call file%readDataset('heIonizedFraction',self%ionizedHeliumFractionTable  )
        call file%readDataset('matterTemperature',self%temperatureTable            )
        call file%close      (                                                     )
-       call hdf5Access%unset()
+       !$ call hdf5Access%unset()
        self%redshiftCount=size(self%timeTable)
        ! Convert redshifts to times.
        do iRedshift=1,self%redshiftCount

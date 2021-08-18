@@ -26,7 +26,7 @@ $options{'outputDirectory'} = $galacticusFileName =~ m/^(.*)\/[^\/]+$/ ? $1 : ge
 my $galacticusFile = new PDL::IO::HDF5($galacticusFileName);
 # Iterate over all analyses.
 my $analysesGroup = $galacticusFile->group('analyses');
-my @analyses      =  $analysesGroup->groups();
+my @analyses      = $analysesGroup ->groups(         );
 my $logLikelihoodTotal = pdl 0.0;
 foreach my $analysisName ( @analyses ) {
     print " -> ".$analysisName."\n";    # Extract all available attributes from this analysis.
@@ -42,9 +42,11 @@ foreach my $analysisName ( @analyses ) {
     };
     ($attributes->{$_}) = $analysisGroup->attrGet($_)
 	foreach ( @attributeNames );
-    (my $logLikelihood) = $analysisGroup->attrGet('logLikelihood');
-    print "   -> logℒ = ".$logLikelihood."\n";
-    $logLikelihoodTotal += $logLikelihood;
+    if ( grep {$_ eq "logLikelihood"} $analysisGroup->attrs() ) {
+	(my $logLikelihood) = $analysisGroup->attrGet('logLikelihood');
+	print "   -> logℒ = ".$logLikelihood."\n";
+	$logLikelihoodTotal += $logLikelihood;
+    }
     # Skip cases for which we have no "type" specified.
     unless ( exists($attributes->{'type'}) ) {
 	print "Warning: analysis '".$analysisName."' has no 'type' attribute, so it can not be processed.\n";
@@ -134,9 +136,18 @@ sub function1DPlot {
     $data->{'yDatasetTarget'} = $data->{'yDataset'}->copy()
 	unless ( $haveTarget );
     # Determine non-zero entries.
-    my $nonZero       = which( $data->{'yDataset'      } > 0.0)                                     ;
-    my $nonZeroTarget = which(                                     $data->{'yDatasetTarget'} > 0.0) ;
-    my $nonZeroBoth   = which(($data->{'yDataset'      } > 0.0) | ($data->{'yDatasetTarget'} > 0.0));
+    my $nonZero;
+    my $nonZeroTarget;
+    my $nonZeroBoth;
+    if ( ! $attributes->{'yAxisIsLog'} || ($options{'excludeZeros'} && $options{'excludeZeros'} eq "no") ) {
+	$nonZero       = pdl sequence(nelem($data->{'yDataset'}));
+	$nonZeroTarget = pdl sequence(nelem($data->{'yDataset'}));
+	$nonZeroBoth   = pdl sequence(nelem($data->{'yDataset'}));
+    } else {
+	$nonZero       = which( $data->{'yDataset'      } > 0.0)                                     ;
+	$nonZeroTarget = which(                                     $data->{'yDatasetTarget'} > 0.0) ;
+	$nonZeroBoth   = which(($data->{'yDataset'      } > 0.0) | ($data->{'yDatasetTarget'} > 0.0));
+    }
     # Determine plot ranges.
     my $yErrorLower      ;
     my $yErrorUpper      ;
@@ -188,11 +199,11 @@ sub function1DPlot {
 	# Ensure that we span at least one integer.
 	my $xMinimumLog = log10($xMinimum);
 	my $xMaximumLog = log10($xMaximum);
-	if ( int($xMaximumLog) == int($xMinimumLog) ) {
-	    if ( $xMinimumLog-int($xMinimumLog) < int($xMaximumLog)+1-$xMaximumLog ) {
-		$xMinimum = 10.0** int($xMinimumLog)   ;
+	if ( floor($xMaximumLog) == floor($xMinimumLog) ) {
+	    if ( $xMinimumLog-floor($xMinimumLog) < floor($xMaximumLog)+1-$xMaximumLog ) {
+		$xMinimum = 10.0** floor($xMinimumLog)   ;
 	    } else {
-		$xMaximum = 10.0**(int($xMaximumLog)+1);
+		$xMaximum = 10.0**(floor($xMaximumLog)+1);
 	    }
 	}		
     } else {
@@ -208,11 +219,11 @@ sub function1DPlot {
 	# Ensure that we span at least one integer.
 	my $yMinimumLog = log10($yMinimum);
 	my $yMaximumLog = log10($yMaximum);
-	if ( int($yMaximumLog) == int($yMinimumLog) ) {
-	    if ( $yMinimumLog-int($yMinimumLog) < int($yMaximumLog)+1-$yMaximumLog ) {
-		$yMinimum = 10.0** int($yMinimumLog)   ;
+    	if ( floor($yMaximumLog) == floor($yMinimumLog) ) {
+	    if ( $yMinimumLog-floor($yMinimumLog) < floor($yMaximumLog)+1-$yMaximumLog ) {
+		$yMinimum = 10.0** floor($yMinimumLog)   ;
 	    } else {
-		$yMaximum = 10.0**(int($yMaximumLog)+1);
+		$yMaximum = 10.0**(floor($yMaximumLog)+1);
 	    }
 	}		
     } else {

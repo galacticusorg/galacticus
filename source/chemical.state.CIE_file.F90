@@ -618,7 +618,8 @@ contains
     use :: Display                      , only : displayIndent                     , displayUnindent     , verbosityLevelDebug
     use :: File_Utilities               , only : File_Name_Expand
     use :: Galacticus_Error             , only : Galacticus_Error_Report
-    use :: IO_HDF5                      , only : hdf5Access                        , hdf5Object
+    use :: HDF5_Access                  , only : hdf5Access
+    use :: IO_HDF5                      , only : hdf5Object
     use :: ISO_Varying_String           , only : varying_string
     use :: Table_Labels                 , only : enumerationExtrapolationTypeEncode, extrapolationTypeFix, extrapolationTypePowerLaw, extrapolationTypeZero
     implicit none
@@ -630,7 +631,7 @@ contains
     type            (hdf5Object          )                :: chemicalStateFile                  , metallicityDataset, &
          &                                                   temperatureDataset
 
-    call hdf5Access%set()
+    !$ call hdf5Access%set()
     ! Parse the file.
     call displayIndent('Reading file: '//fileName,verbosityLevelDebug)
     call chemicalStateFile%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
@@ -699,7 +700,7 @@ contains
     ! Close the file.
     call chemicalStateFile%close()
     call displayUnindent('done',verbosityLevelDebug)
-    call hdf5Access%unset()
+    !$ call hdf5Access%unset()
     ! Store table ranges for convenience.
     self%metallicityMinimum=self%metallicities(                    1)
     self%metallicityMaximum=self%metallicities(self%metallicityCount)

@@ -10,9 +10,27 @@ use GnuPlot::PrettyPlots;
 use GnuPlot::LaTeX;
 use File::Slurp qw(slurp);
 use List::Util;
+use Galacticus::Options;
 
 # Compare conditional mass functions with a reference set.
 # Andrew Benson (06-August-2019)
+
+# Read in any configuration options.
+my $config = &Galacticus::Options::LoadConfig();
+
+# Parse config options.
+my $queueManager = &Galacticus::Options::Config(                'queueManager' );
+my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     })
+    if ( defined($queueManager) );
+
+# Set default options.
+my %options =
+    (
+     'pbsJobMaximum' => (defined($queueConfig) && exists($queueConfig->{'jobMaximum'})) ? $queueConfig->{'jobMaximum'} : 100,
+    );
+
+# Get any command line options.
+&Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
 # Specify models.
 my @models =
@@ -93,7 +111,7 @@ $document .= "</parameterGrid>\n";
 open(my $launchFile,">outputs/test-merger-tree-builder.xml");
 print $launchFile $document;
 close($launchFile);
-system("cd ..; mkdir -p testSuite/outputs/test-merger-tree-builder; scripts/aux/launch.pl testSuite/outputs/test-merger-tree-builder.xml");
+system("cd ..; mkdir -p testSuite/outputs/test-merger-tree-builder; scripts/aux/launch.pl testSuite/outputs/test-merger-tree-builder.xml ".join(" ",map {"--".$_." ".$options{$_}} keys(%options)));
 
 # Check for failed models.
 system("grep -q -i -e fatal -e \"Galacticus experienced an error in the GSL library\" outputs/test-merger-tree-builder/galacticus_*/galacticus.log");
@@ -106,13 +124,6 @@ if ( $? == 0 ) {
     }
 } else {
     print "SUCCESS: model run\n";
-}
-
-# Rename models.
-foreach my $model ( @models ) {
-    if ( exists($model->{'parameterFile'}) ) {
-	system("mv outputs/test-merger-tree-builder/".$model->{'tmpName'}."/galacticus.hdf5 ".$model->{'fileName'});
-    }
 }
 
 # Read test and reference data.

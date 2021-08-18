@@ -23,7 +23,7 @@ Contains a module which implements a boolean analysis property operator class.
 
   !![
   <outputAnalysisPropertyOperator name="outputAnalysisPropertyOperatorBoolean">
-   <description>A boolean analysis property operator class, specifically $x \rightarrow x/|x|$, that is, the operator maintains the sign of the input while normalizing the magnitude to unity (or zero for zero input).</description>
+   <description>A boolean analysis property operator class, specifically $x \rightarrow 0$ if $x=0$, and $x \rightarrow 1$ otherwise..</description>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorBoolean
@@ -72,9 +72,9 @@ contains
     !$GLC attributes unused :: self, propertyType, outputIndex, node
 
     if (propertyValue == 0.0d0) then
-       booleanOperate=     0.0d0
+       booleanOperate=0.0d0
     else
-       booleanOperate=sign(1.0d0,propertyValue)
+       booleanOperate=1.0d0
     end if
     return
   end function booleanOperate

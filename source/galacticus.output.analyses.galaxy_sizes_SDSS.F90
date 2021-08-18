@@ -118,7 +118,8 @@ contains
     use :: Galacticus_Paths                        , only : galacticusPath                             , pathTypeDataStatic
     use :: Geometry_Surveys                        , only : surveyGeometryLiWhite2009SDSS
     use :: Gravitational_Lensing                   , only : gravitationalLensingClass
-    use :: IO_HDF5                                 , only : hdf5Access                                 , hdf5Object
+    use :: HDF5_Access                             , only : hdf5Access
+    use :: IO_HDF5                                 , only : hdf5Object
     use :: ISO_Varying_String                      , only : var_str                                    , varying_string
     use :: Memory_Management                       , only : allocateArray
     use :: Node_Property_Extractors                , only : nodePropertyExtractorHalfMassRadius        , nodePropertyExtractorMassStellar

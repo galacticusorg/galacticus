@@ -176,27 +176,31 @@ contains
    <unitName>Node_Component_Merging_Statistics_Major_Output</unitName>
   </mergerTreeExtraOutputTask>
   !!]
-  subroutine Node_Component_Merging_Statistics_Major_Output(node,iOutput,treeIndex,nodePassesFilter)
+  subroutine Node_Component_Merging_Statistics_Major_Output(node,iOutput,treeIndex,nodePassesFilter,treeLock)
     !!{
     Output properties for all black holes in {\normalfont \ttfamily node}.
     !!}
     use            :: Galacticus_HDF5   , only : galacticusOutputFile
     use            :: Galacticus_Nodes  , only : defaultMergingStatisticsComponent, mergerTree, nodeComponentMergingStatistics, treeNode
-    use            :: IO_HDF5           , only : hdf5Access                       , hdf5Object
+    use            :: HDF5_Access       , only : hdf5Access
+    use            :: IO_HDF5           , only : hdf5Object
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
     use            :: ISO_Varying_String, only : assignment(=)                    , char      , varying_string
     use            :: Kind_Numbers      , only : kind_int8
     use            :: String_Handling   , only : operator(//)
+    use            :: Locks             , only : ompLock
     implicit none
     type            (treeNode                      ), intent(inout), pointer      :: node
     integer         (kind=kind_int8                ), intent(in   )               :: treeIndex
     integer         (c_size_t                      ), intent(in   )               :: iOutput
     logical                                         , intent(in   )               :: nodePassesFilter
+    type            (ompLock                       ), intent(inout)               :: treeLock
     class           (nodeComponentMergingStatistics)               , pointer      :: mergingStatistics
     double precision                                , allocatable  , dimension(:) :: majorMergerTimes
     type            (hdf5Object                    )                              :: majorMergersGroup, outputGroup, &
          &                                                                           treeGroup
     type            (varying_string                )                              :: groupName
+    !$GLC attributes unused :: treeLock
 
     ! Return immediately if this class is not active or the filter has not passed.
     if (.not.(defaultMergingStatisticsComponent%majorIsActive().and.nodePassesFilter)) return
@@ -206,7 +210,7 @@ contains
     ! Return if no major mergers occurred.
     if (.not.allocated(majorMergerTimes).or.size(majorMergerTimes) == 0) return
     ! Open the output group.
-    call hdf5Access%set()
+    !$ call hdf5Access%set()
     majorMergersGroup=galacticusOutputFile%openGroup("majorMergers","Major merger times.")
     groupName="Output"
     groupName=groupName//iOutput
@@ -216,11 +220,11 @@ contains
     treeGroup=outputGroup%openGroup(char(groupName),"Major merger times for all nodes in this tree")
     groupName="node"
     groupName=groupName//node%index()
-    call treeGroup%writeDataset(majorMergerTimes,char(groupName),"Major merger times.")
-    call treeGroup        %close()
-    call outputGroup      %close()
-    call majorMergersGroup%close()
-    call hdf5Access%unset()
+    call    treeGroup        %writeDataset(majorMergerTimes,char(groupName),"Major merger times.")
+    call    treeGroup        %close       (                                                      )
+    call    outputGroup      %close       (                                                      )
+    call    majorMergersGroup%close       (                                                      )
+    !$ call hdf5Access       %unset       (                                                      )
     return
   end subroutine Node_Component_Merging_Statistics_Major_Output
 

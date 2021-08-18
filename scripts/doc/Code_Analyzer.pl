@@ -34,7 +34,7 @@ my %modules;
 my $currentDirectory = cwd;
 
 # Specify location of include files.
-my $includeFileDirectory = $currentDirectory."/".$sourceDir[0]."/../work/build";
+my $includeFileDirectory = $currentDirectory."/".$sourceDir[0]."/../".$ENV{'BUILDPATH'};
 
 # Specify regex for use statements.
 my $useRegex = "^\\s*use\\s*(,\\s*intrinsic\\s*)*(::)??\\s*([a-z0-9_]+)";

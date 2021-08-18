@@ -64,11 +64,11 @@
     
     Properties to read from the file are specified through multiple {\normalfont \ttfamily property} sub-parameter sections, which take the form:
     \begin{verbatim}
-     <property>
-      <name             value="propertyName"/>
-      <column           value="columnNumber"/>
-      <conversionFactor value="1.0e0"       />
-     </property>
+     &lt;property>
+      &lt;name             value="propertyName"/>
+      &lt;column           value="columnNumber"/>
+      &lt;conversionFactor value="1.0e0"       />
+     &lt;/property>
     \end{verbatim}
     where {\normalfont \ttfamily [name]} is the property name (see below), {\normalfont \ttfamily [column]} is the column number
     (starting from 1) from which to read the property, and the optional {\normalfont \ttfamily [conversionFactor]} specifies an
@@ -126,10 +126,10 @@
     Properties of particles to read from the (optional) particle data file are specified through multiple {\normalfont \ttfamily
       particleProperty} sub-parameter sections, which take the form:
     \begin{verbatim}
-     <particleProperty>
-      <name   value="propertyName"/>
-      <column value="columnNumber"/>
-     </particleProperty>
+     &lt;particleProperty>
+      &lt;name   value="propertyName"/>
+      &lt;column value="columnNumber"/>
+     &lt;/particleProperty>
     \end{verbatim}
     where {\normalfont \ttfamily [name]} is the particle property name (see below), {\normalfont \ttfamily [column]} is the column
     number (starting from 1) from which to read the particle property.
@@ -151,12 +151,12 @@
     The units used in the files are specified via the {\normalfont \ttfamily unitsMass}, {\normalfont \ttfamily unitsLength}, and
     {\normalfont \ttfamily unitsVelocity} sub-parameter sections. These have the following form:
     \begin{verbatim}
-     <unitsMass>
-      <name                value="Solar masses/h"/>
-      <unitsInSI           value="1.99e30"       />
-      <hubbleExponent      value="-1"            />
-      <scaleFactorExponent value=" 0"            />
-     </unitsMass>
+     &lt;unitsMass>
+      &lt;name                value="Solar masses/h"/>
+      &lt;unitsInSI           value="1.99e30"       />
+      &lt;hubbleExponent      value="-1"            />
+      &lt;scaleFactorExponent value=" 0"            />
+     &lt;/unitsMass>
     \end{verbatim}
     where {\normalfont \ttfamily [name]} is a human-readable name for the units, {\normalfont \ttfamily [unitsInSI]} gives the units
     in the SI system, {\normalfont \ttfamily [hubbleExponent]} specifies the power to which $h$ appears in the units and {\normalfont
@@ -167,11 +167,11 @@
     details of the simulation, or halo finder used). Metadata is specified via {\normalfont \ttfamily metaData} sub-parameter
     sections. These have the following form:
     \begin{verbatim}
-     <metaData>
-      <name    value="simulationCode"/>
-      <content value="Gadget2"       />
-      <type    value="simulation"    />
-     </metaData>
+     &lt;metaData>
+      &lt;name    value="simulationCode"/>
+      &lt;content value="Gadget2"       />
+      &lt;type    value="simulation"    />
+     &lt;/metaData>
     \end{verbatim}
     where {\normalfont \ttfamily [name]} is a name for this metadatum, {\normalfont \ttfamily [content]} is the value for the
     metadatum (integer, floating point, and text content is allowed), and {\normalfont \ttfamily [type]} specifies the type of

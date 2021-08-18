@@ -346,7 +346,8 @@ contains
     use    :: Galacticus_Error                  , only : Galacticus_Error_Report
     use    :: Galacticus_Nodes                  , only : mergerTree                       , nodeComponentBasic                      , nodeComponentPosition , nodeComponentSatellite, &
           &                                              treeNode
-    use    :: IO_HDF5                           , only : hdf5Access                       , hdf5Object
+    use    :: HDF5_Access                       , only : hdf5Access
+    use    :: IO_HDF5                           , only : hdf5Object
     use    :: ISO_Varying_String                , only : varying_string                   , var_str
     use    :: Memory_Management                 , only : allocateArray                    , deallocateArray
     use    :: Merger_Tree_Walkers               , only : mergerTreeWalkerAllNodes
@@ -393,8 +394,8 @@ contains
     character       (len= 9                       )                              :: groupName
 
     ! Open the HDF5 file for output.
-    call hdf5Access%set()
-    call outputFile%openFile(char(self%outputFileName),overWrite=.false.,readOnly=.false.)
+    !$ call hdf5Access%set     (                                                            )
+    call    outputFile%openFile(char(self%outputFileName),overWrite=.false.,readOnly=.false.)
     ! Check if the Gadget header has already been created.
     if (.not.outputFile%hasGroup('Header')) then
        header=outputFile%openGroup('Header','Group containing Gadget metadata.')
@@ -427,8 +428,8 @@ contains
        call header%writeAttribute(0    ,'Flag_Entropy_ICs')
        call header%close()
     end if
-    call outputFile%close()
-    call hdf5Access%unset()
+    call    outputFile%close()
+    !$ call hdf5Access%unset()
     ! Iterate over nodes.
     firstNode =.true.
     treeWalker=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
@@ -686,8 +687,8 @@ contains
           particlePosition=particlePosition/unitGadgetLength
           particleVelocity=particleVelocity/unitGadgetVelocity
           ! Accumulate the particle data to file.
-          call hdf5Access%set()
-          call outputFile%openFile(char(self%outputFileName),overWrite=.false.,readOnly=.false.,objectsOverwritable=.true.)
+          !$ call hdf5Access%set     (                                                                                       )
+          call    outputFile%openFile(char(self%outputFileName),overWrite=.false.,readOnly=.false.,objectsOverwritable=.true.)
           ! Get current count of particles in file.
           header=outputFile%openGroup('Header','Group containing Gadget metadata.')
           call header%readAttributeStatic('NumPart_Total',particleCounts)
@@ -723,11 +724,11 @@ contains
           call deallocateArray(particleIDs     )
           ! Update particle counts.
           particleCounts(typeIndex)=particleCounts(typeIndex)+particleCountActual
-          call header%writeAttribute(particleCounts,'NumPart_ThisFile')
-          call header%writeAttribute(particleCounts,'NumPart_Total'   )
-          call header%close()
-          call outputFile%close()
-          call hdf5Access%unset()
+          call    header    %writeAttribute(particleCounts,'NumPart_ThisFile')
+          call    header    %writeAttribute(particleCounts,'NumPart_Total'   )
+          call    header    %close         (                                 )
+          call    outputFile%close         (                                 )
+          !$ call hdf5Access%unset         (                                 )
        end if
     end do
     return

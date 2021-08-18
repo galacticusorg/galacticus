@@ -21,8 +21,11 @@ die("Usage: sourceDigests.pl <sourceDirectory> <executable>")
     unless ( scalar(@ARGV) == 2 );
 my $sourceDirectoryName = $ARGV[0];
 my $executableName      = $ARGV[1];
-# Include files to exclude from parameter search.
-my @includeFilesExcluded = ( "fftw3.f03" );
+# Include files to exclude from MD5 construction:
+#  fftw3.f03 is part of the FFTW3 library, so not relevant to us;
+#  galacticus.output.build.environment.inc - contains compiler information so can change depending on, e.g. MPI vs. non-MPI build
+#  galacticus.output.version.revision.inc - contains revision number and build time
+my @includeFilesExcluded = ( "fftw3.f03", "galacticus.output.build.environment.inc", "galacticus.output.version.revision.inc" );
 # Specify a work directory.
 my $workDirectoryName = $ENV{'BUILDPATH'}."/";
 # Get an XML parser.
@@ -61,7 +64,9 @@ if ( $havePerFile ) {
 my %updatedTypes;
 # Open the source diretory, finding F90 and cpp files.
 opendir(my $sourceDirectory,$sourceDirectoryName."/source");
-while ( my $fileName = readdir($sourceDirectory) ) {
+my @fileNames = sort(readdir($sourceDirectory));
+close($sourceDirectory);
+foreach my $fileName ( @fileNames ) {
     # Skip junk files.
     next
 	if ( $fileName =~ m/^\.\#/ );
@@ -107,7 +112,7 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 	    my @sourceDigests = &Galacticus::Build::Directives::Extract_Directives($fileToProcess,'sourceDigest');
 	    foreach my $sourceDigest ( @sourceDigests ) {
 		my $hashName = $sourceDigest->{'name'};
-		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName]);
+		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName],includeFilesExcluded => \@includeFilesExcluded);
 		@{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = ();
 		$updatedTypes{$hashName} = 1;
 	    }
@@ -117,7 +122,7 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 	    my @functionClassTypes = &Galacticus::Build::Directives::Extract_Directives($fileToProcess,'functionClassType');
 	    foreach my $functionClassType ( @functionClassTypes ) {
 		my $hashName = $functionClassType->{'name'};
-		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName]);
+		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName],includeFilesExcluded => \@includeFilesExcluded);
 		@{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = ( "functionClass" );
 		$updatedTypes{$hashName} = 1;
 	    }
@@ -127,7 +132,7 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 	    my @functionClasses = &Galacticus::Build::Directives::Extract_Directives($fileToProcess,'functionClass');
 	    foreach my $functionClass ( @functionClasses ) {
 		my $hashName = $functionClass->{'name'}."Class";
-		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName]);
+		$digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName],includeFilesExcluded => \@includeFilesExcluded);
 		if ( exists($functionClass->{'extends'}) ) {
 		    @{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = ( $functionClass->{'extends'} );
 		} else {
@@ -150,7 +155,7 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 		    # For self-referencing types, remove the self-reference here.
 		    @classDependencies = map {$_ eq $class->{'type'} ? () : $_} @classDependencies;
 		    # Store hash and dependencies.
-		    $digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName]);
+		    $digestsPerFile->{'types'}->{$hashName}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$fileName],includeFilesExcluded => \@includeFilesExcluded);
 		    @{$digestsPerFile->{'types'}->{$hashName}->{'dependencies'}} = @classDependencies;
 		    $updatedTypes{$hashName} = 1;
 		}
@@ -159,11 +164,10 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 	}
     }
 }
-close($sourceDirectory);
 # Manually add the base "functionClass" type.
 my $functionClassFileName = "objects.function_class.F90";
 if ( ! $updateTime || ( -M "source/".$functionClassFileName < $updateTime ) ) {
-    $digestsPerFile->{'types'}->{'functionClass'}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$functionClassFileName]);
+    $digestsPerFile->{'types'}->{'functionClass'}->{'sourceMD5'} = &Galacticus::Build::SourceTree::Process::SourceDigest::Find_Hash([$functionClassFileName],includeFilesExcluded => \@includeFilesExcluded);
     @{$digestsPerFile->{'types'}->{'functionClass'}->{'dependencies'}} = ();
     delete($digestsPerFile->{'types'}->{'functionClass'}->{'compositeMD5'});
     $updatedTypes{'functionClass'} = 1;

@@ -153,6 +153,16 @@ CODE
 	    }
 	}
     }
+    # Allocate and initialize meta-properties.
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated({$class->{'name'}}MetaPropertyNames).and..not.allocated(self%metaProperties)) then
+ allocate(self%metaProperties(size({$class->{'name'}}MetaPropertyNames)))
+ self%metaProperties=0.0d0
+end if
+CODE
+    }
+    # Add required modules to function.
     push(@{$function->{'modules'}},keys(%modules))
 	if ( %modules );
     # Insert a type-binding for this function.
@@ -260,7 +270,8 @@ sub Implementation_Builder {
 	    [
 	     "Galacticus_Error",
 	     "FoX_DOM",
-	     "Memory_Management"
+	     "Memory_Management",
+	     "ISO_Varying_String"
 	    ],
 	variables   =>
 	    [
@@ -275,41 +286,29 @@ sub Implementation_Builder {
 		 type       => "node",
 		 attributes => [ "intent(in   )", "pointer" ],
 		 variables  => [ "componentDefinition" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "node",
+		 attributes => [ "pointer" ],
+		 variables  => [ "property" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "nodeList",
+		 attributes => [ "pointer" ],
+		 variables  => [ "propertyList" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "i" ]
 	     }
 	    ]
 	};
-    # Add variables needed for non-null implementations.
-    push(
-	@{$function->{'variables'}},
-	{
-	    intrinsic  => "type",
-	    type       => "node",
-	    attributes => [ "pointer" ],
-	    variables  => [ "property" ]
-	},
-	{
-	    intrinsic  => "type",
-	    type       => "nodeList",
-	    attributes => [ "pointer" ],
-	    variables  => [ "propertyList" ]
-	}
-	) unless ( $code::member->{'name'} eq "null" );
-    # Add a counter variable if needed.
-    push(
-	@{$function->{'variables'}},
-	{
-	    intrinsic  => "integer",
-	    variables  => [ "i" ]
-	}
-	) if (
-	      grep
-	       {$_->{'data'}->{'rank'} == 1 && ! $_->{'attributes'}->{'isVirtual'}}
-	       &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) 
-	     );
     # Build the function code.
     if ( $code::member->{'name'} eq "null" ) {
 	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
-!$GLC attributes unused :: self, componentDefinition
+!$GLC attributes unused :: componentDefinition
 CODE
     } else {
 	# Initialize the component.
@@ -398,6 +397,23 @@ CODE
 	}
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 !$omp end critical (FoX_DOM_Access)
+CODE
+    }
+    # Build any meta-properties.
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated({$class->{'name'}}MetaPropertyNames)) then
+ !$omp critical (FoX_DOM_Access)
+ do i=1,size(({$class->{'name'}}MetaPropertyNames))
+  propertyList => getElementsByTagName(componentDefinition,char({$class->{'name'}}MetaPropertyNames(i)))
+  if (getLength(propertyList) > 1) call Galacticus_Error_Report('meta-property must have precisely one value'//\{introspection:location\})
+  if (getLength(propertyList) == 1) then
+    property => item(propertyList,0)
+    call extractDataContent(property,self%metaProperties(i))
+  end if
+ end do
+ !$omp end critical (FoX_DOM_Access)
+end if
 CODE
     }
     # Insert a type-binding for this function.

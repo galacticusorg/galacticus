@@ -147,7 +147,8 @@ contains
     use    :: Dates_and_Times   , only : Formatted_Date_and_Time
     use    :: Display           , only : displayCounter         , displayCounterClear   , displayIndent, displayMessage, &
           &                              displayUnindent        , verbosityLevelStandard
-    use    :: IO_HDF5           , only : hdf5Access             , hdf5Object
+    use    :: HDF5_Access       , only : hdf5Access
+    use    :: IO_HDF5           , only : hdf5Object
     use    :: ISO_Varying_String, only : var_str
 #ifdef USEMPI
     use    :: MPI_Utilities     , only : mpiSelf

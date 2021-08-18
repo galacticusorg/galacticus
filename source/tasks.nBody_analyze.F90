@@ -141,7 +141,7 @@ contains
     use :: Display              , only : displayIndent                    , displayUnindent
     use :: Galacticus_Error     , only : errorStatusSuccess
     use :: Galacticus_HDF5      , only : galacticusOutputFile
-    use :: IO_HDF5              , only : hdf5Access
+    use :: HDF5_Access          , only : hdf5Access
     use :: NBody_Simulation_Data, only : nBodyData
     use :: Node_Components      , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     implicit none

@@ -112,7 +112,7 @@ contains
     Internal constructor for the conditional mass function merger tree operator class.
     !!}
     use :: File_Utilities, only : File_Exists, File_Remove
-    use :: IO_HDF5       , only : hdf5Access
+    use :: HDF5_Access   , only : hdf5Access
     implicit none
     type            (mergerTreeOperatorOutputRootMasses)                :: self
     double precision                                    , intent(in   ) :: time
@@ -125,9 +125,9 @@ contains
     ! Initialize.
     self%treeCount=0
     ! Remove any pre-existing file.
-    call hdf5Access%set()
+    !$ call hdf5Access%set()
     if (File_Exists(fileName)) call File_Remove(fileName)
-    call hdf5Access%unset()
+    !$ call hdf5Access%unset()
     return
   end function outputRootMassesConstructorInternal
 
@@ -228,7 +228,8 @@ contains
     !!{
     Outputs conditional mass function.
     !!}
-    use :: IO_HDF5, only : hdf5Access, hdf5Object
+    use :: HDF5_Access, only : hdf5Access
+    use :: IO_HDF5, only : hdf5Object
     implicit none
     class(mergerTreeOperatorOutputRootMasses), intent(inout) :: self
     type (hdf5Object                        ), target        :: outputFile
@@ -236,14 +237,14 @@ contains
     ! If the buffers are empty, we have nothing to do.
     if (self%treeCount == 0) return
     ! Open the output file.
-    call hdf5Access%set()
-    call outputFile%openFile(char(self%fileName),overWrite=.false.)
+    !$ call hdf5Access%set         (                                                                                       )
+    call    outputFile%openFile    (char(self%fileName)                                                  ,overWrite=.false.)
     ! Write the data.
-    call outputFile%writeDataset(self%mass  (1:self%treeCount),"treeRootMass","Tree root node masses.",appendTo=.true.)
-    call outputFile%writeDataset(self%weight(1:self%treeCount),"treeWeight"  ,"Tree weights."         ,appendTo=.true.)
+    call    outputFile%writeDataset(self%mass  (1:self%treeCount),"treeRootMass","Tree root node masses.",appendTo =.true. )
+    call    outputFile%writeDataset(self%weight(1:self%treeCount),"treeWeight"  ,"Tree weights."         ,appendTo =.true. )
     ! Close the output file.
-    call outputFile%close()
-    call hdf5Access%unset()
+    call    outputFile%close       (                                                                                       )
+    !$ call hdf5Access%unset       (                                                                                       )
     ! Reset the buffer counter.
     self%treeCount=0
     return

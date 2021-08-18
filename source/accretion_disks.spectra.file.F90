@@ -144,7 +144,8 @@ contains
     Load a file of AGN spectra.
     !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_HDF5         , only : hdf5Access             , hdf5Object
+    use :: HDF5_Access     , only : hdf5Access
+    use :: IO_HDF5         , only : hdf5Object
     implicit none
     class    (accretionDiskSpectraFile), intent(inout) :: self
     character(len=*                   ), intent(in   ) :: fileName

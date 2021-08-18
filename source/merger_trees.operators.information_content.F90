@@ -178,7 +178,8 @@ contains
     !!}
     use :: Galacticus_HDF5, only : galacticusOutputFile
     use :: HDF5           , only : hsize_t
-    use :: IO_HDF5        , only : hdf5Access          , hdf5Object
+    use :: HDF5_Access    , only : hdf5Access
+    use :: IO_HDF5        , only : hdf5Object
     implicit none
     class  (mergerTreeOperatorInformationContent), intent(inout) :: self
     integer(hsize_t                             ), parameter     :: chunkSize              =1024_hsize_t

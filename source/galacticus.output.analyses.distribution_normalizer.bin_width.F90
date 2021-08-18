@@ -64,28 +64,31 @@ contains
     !!}
     use, intrinsic :: ISO_C_Binding, only : c_size_t
     implicit none
-    class           (outputAnalysisDistributionNormalizerBinWidth), intent(inout)                 :: self
-    double precision                                              , intent(inout), dimension(:  ) :: distribution
-    double precision                                              , intent(inout), dimension(:,:) :: covariance
-    double precision                                              , intent(in   ), dimension(:  ) :: propertyValueMinimum, propertyValueMaximum
-    integer         (c_size_t                                    )                                :: i
+    class           (outputAnalysisDistributionNormalizerBinWidth), intent(inout)                           :: self
+    double precision                                              , intent(inout), dimension(:  ), optional :: distribution
+    double precision                                              , intent(inout), dimension(:,:), optional :: covariance
+    double precision                                              , intent(in   ), dimension(:  )           :: propertyValueMinimum, propertyValueMaximum
+    integer         (c_size_t                                    )                                          :: i
     !$GLC attributes unused :: self
 
-    distribution=+distribution            &
-         &        /(                      &
-         &          +propertyValueMaximum &
-         &          -propertyValueMinimum &
-         &        )
-    forall(i=1:size(propertyValueMinimum))
-       covariance(:,i)=+covariance(:,i)           &
-         &             /(                         &
-         &               +propertyValueMaximum(i) &
-         &               -propertyValueMinimum(i) &
-         &              )                         &
-         &             /(                         &
-         &               +propertyValueMaximum    &
-         &               -propertyValueMinimum    &
-         &              )
-    end forall
+    if (present(distribution))                  &
+         & distribution=+distribution           &
+         &              /(                      &
+         &                +propertyValueMaximum &
+         &                -propertyValueMinimum &
+         &               )
+    if (present(covariance)) then
+       forall(i=1:size(propertyValueMinimum))
+          covariance(:,i)=+covariance(:,i)           &
+               &             /(                         &
+               &               +propertyValueMaximum(i) &
+               &               -propertyValueMinimum(i) &
+               &              )                         &
+               &             /(                         &
+               &               +propertyValueMaximum    &
+               &               -propertyValueMinimum    &
+               &              )
+       end forall
+    end if
     return
   end subroutine binWidthNormalize

@@ -55,7 +55,7 @@ sub Implementation_Serialize_ASCII {
 	    ],
 	content     => ""
     };
-    # Add character variables for non-null members.
+    # Add character variables.
     push
 	(
 	 @{$function->{'variables'}},
@@ -69,9 +69,8 @@ sub Implementation_Serialize_ASCII {
 	     type       => "len=22",
 	     variables  => [ "label" ]
 	 }
-	)
-	unless ( $code::member->{'name'} eq "null" );
-    # Add a counter variable if there are any rank-1 properties.
+	);
+    # Add a counter variable for any rank-1 and meta-properties.
     push
 	(
 	 @{$function->{'variables'}},
@@ -79,8 +78,7 @@ sub Implementation_Serialize_ASCII {
 	     intrinsic  => "integer",
 	     variables  => [ "i" ]
 	 }
-	)
-	if ( grep {! $_->{'attributes'}->{'isVirtual'} && $_->{'data'}->{'rank'} == 1} &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) );
+	);
     # Define format labels for different data types.
     %code::formatLabel = 
 	(
@@ -89,12 +87,8 @@ sub Implementation_Serialize_ASCII {
 	 "longInteger" => "'(i16)'"   ,
 	 "logical"     => "'(l1)'"
 	);
-    # Handle null components separately.
-    if ( $code::member->{'name'} eq "null" ) {
-	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-!$GLC attributes unused :: self
-CODE
-    } else {
+    # Skip null components.
+    unless ( $code::member->{'name'} eq "null" ) {
 	# Serialize the parent type if necessary.
 	if ( exists($code::member->{'extends'}) ) {
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -106,12 +100,12 @@ CODE
 call displayIndent('{$class->{'name'}}: {$padding.$member->{'name'}}')
 CODE
 	foreach $code::property ( map {! $_->{'attributes'}->{'isVirtual'} ? $_ : ()} &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) ) {
-	    $code::padding = " " x ($implementationPropertyNameLengthMax-length($code::property->{'name'}));
+	    $code::nameLength = length($code::property->{'name'});
 	    if ( $code::property->{'data'}->{'rank'} == 0 ) {
 		if ( &isIntrinsic($code::property->{'data'}->{'type'}) ) {
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 write (label,{$formatLabel{$property->{'data'}->{'type'}}}) self%{$property->{'name'}}Data
-message='{$property->{'name'}}: {$padding}'//label
+message='{$property->{'name'}}: '//repeat(' ',implementationNameLengthMax-{$nameLength})//label
 call displayMessage(message)
 CODE
 		} else {
@@ -127,7 +121,7 @@ CODE
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 do i=1,size(self%{$property->{'name'}}Data)
    write (label,'(i3)') i
-   message='{$property->{'name'}}: {$padding} '//trim(label)
+   message='{$property->{'name'}}: '//repeat(' ',implementationNameLengthMax-{$nameLength})//trim(label)
    write (label,{$formatLabel{$property->{'data'}->{'type'}}}) self%{$property->{'name'}}Data(i)
    message=message//': '//label
    call displayMessage(message)
@@ -137,7 +131,7 @@ CODE
 		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 do i=1,size(self%{$property->{'name'}}Data)
    write (label,'(i3)') i
-   message='{$property->{'name'}}: {$padding} '//trim(label)
+   message='{$property->{'name'}}: '//repeat(' ',implementationNameLengthMax-{$nameLength})//trim(label)
    call displayIndent(message)
    call self%{$property->{'name'}}Data(i)%dump()
    call displayUnindent('end')
@@ -146,6 +140,18 @@ CODE
 		}
 	    }
 	}
+    }
+    # Serialize meta-properties.
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated({$class->{'name'}}MetaPropertyNames)) then
+ do i=1,size(({$class->{'name'}}MetaPropertyNames))
+  write (label,{$formatLabel{'double'}}) self%metaProperties(i)
+  message=trim({$class->{'name'}}MetaPropertyNames(i))//': '//repeat(' ',implementationNameLengthMax-len_trim({$class->{'name'}}MetaPropertyNames(i)))//label
+  call displayMessage(message)
+ end do
+end if
+CODE
     }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 call displayUnindent('done')
@@ -172,6 +178,10 @@ sub Implementation_Serialize_XML {
 	type        => "void",
 	name        => $implementationTypeName."SerializeXML",
 	description => "Serialize the contents of a ".$code::member->{'name'}." implementation of the ".$code::class->{'name'}." component to XML.",
+	modules     =>
+	    [
+	     "ISO_Varying_String"
+	    ],
 	variables   =>
 	    [
 	     {
@@ -188,7 +198,7 @@ sub Implementation_Serialize_XML {
 	    ],
 	content     => ""
     };
-    # Add a counter variable if there are any rank-1 properties.
+    # Add a counter variable for any rank-1 and meta-properties.
     push
 	(
 	 @{$function->{'variables'}},
@@ -196,32 +206,6 @@ sub Implementation_Serialize_XML {
 	     intrinsic  => "integer",
 	     variables  => [ "i" ]
 	 }
-	)
-	if ( grep {! $_->{'attributes'}->{'isVirtual'} && $_->{'data'}->{'rank'} == 1} &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) );
-    # Determine if arguments are unused.
-    @code::unused = ();
-    push
-	(
-	 @code::unused,
-	 "fileHandle"
-	)
-	unless ( $code::member->{'name'} eq "null" );
-    push
-	(
-	 @code::unused,
-	 "self"
-	)
-	unless 
-	(
-	 exists($code::member->{'extends'})
-	 ||
-	 grep
-	 {
-	   ! $_->{'attributes'}->{'isVirtual'}
-	  ||
-	     $_->{'data'      }->{'rank'     } == 0
-	 }
-	 &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'})
 	);
     # Define format labels for different data types.
     %code::formatLabel = 
@@ -281,6 +265,16 @@ write (fileHandle,'(a,{$formatLabel{$property->{'data'}->{'type'}}},a)') '   <{$
 CODE
 	}
     }
+    # Serialize meta-properties.
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated({$class->{'name'}}MetaPropertyNames)) then
+ do i=1,size(({$class->{'name'}}MetaPropertyNames))
+  write (fileHandle,'(a,a,a,{$formatLabel{'double'}},a,a,a)') '   <'//char({$class->{'name'}}MetaPropertyNames(i))//'>',self%metaProperties(i),'</'//char({$class->{'name'}}MetaPropertyNames(i))//'>'
+ end do
+end if
+CODE
+    }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 write (fileHandle,'(a)') '  </{$class->{'name'}}>'
 CODE
@@ -331,18 +325,7 @@ sub Implementation_Serialize_Raw {
 	     variables  => [ "i" ]
 	 }
 	)
-	if ( grep {! $_->{'attributes'}->{'isVirtual'} && ! &isIntrinsic($_->{'data'}->{'type'}) && $_->{'data'}->{'rank'} == 1} &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) );
-    # Determine if arguments are unused.
-    @code::unused = 
-	(
-	 exists($code::member->{'extends'})
-	 ||
-	 grep {! $_->{'attributes'}->{'isVirtual'}} &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'})
-	)
-	?
-	() 
-	: 
-	( "fileHandle", "self" );    
+	if ( grep {! $_->{'attributes'}->{'isVirtual'} && ! &isIntrinsic($_->{'data'}->{'type'}) && $_->{'data'}->{'rank'} == 1} &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) );  
     # Generate the code.
     if ( scalar(@code::unused) > 0 ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -387,6 +370,12 @@ CODE
 end if
 CODE
 	}
+    }
+    # Serialize meta-properties.
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated({$class->{'name'}}MetaPropertyNames)) write (fileHandle) self%metaProperties
+CODE
     }
     # Insert a type-binding for this function.
     push(
@@ -454,17 +443,6 @@ sub Implementation_Deserialize_Raw {
 	 }
 	)
 	if ( grep {! $_->{'attributes'}->{'isVirtual'} && $_->{'data'}->{'rank'} == 1} &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) );
-    # Determine if arguments are unused.
-    @code::unused = 
-	(
-	 exists($code::member->{'extends'})
-	 ||
-	 grep {! $_->{'attributes'}->{'isVirtual'}} &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'})
-	)
-	?
-	() 
-	: 
-	( "fileHandle", "self" );    
     # Generate the code.
     if ( scalar(@code::unused) > 0 ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -511,6 +489,12 @@ CODE
 end if
 CODE
 	}
+    }
+    # Deserialize meta-properties.
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated({$class->{'name'}}MetaPropertyNames)) read (fileHandle) self%metaProperties
+CODE
     }
     # Insert a type-binding for this function.
     push(

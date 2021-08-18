@@ -47,11 +47,13 @@ Contains a module which implements a sequence output analysis property operator 
      !![
      <methods>
        <method description="Prepend an operator to a sequence of property operators." method="prepend" />
+       <method description="Apppend an operator to a sequence of property operators." method="apppend" />
      </methods>
      !!]
      final     ::            sequenceDestructor
      procedure :: operate => sequenceOperate
      procedure :: prepend => sequencePrepend
+     procedure :: apppend => sequenceApppend
   end type outputAnalysisPropertyOperatorSequence
 
   interface outputAnalysisPropertyOperatorSequence
@@ -170,3 +172,23 @@ contains
     self       %operators => operatorNew
     return
   end subroutine sequencePrepend
+
+  subroutine sequenceApppend(self,operator_)
+    !!{
+    Append an operator to the sequence.
+    !!}
+    implicit none
+    class(outputAnalysisPropertyOperatorSequence), intent(inout)          :: self
+    class(outputAnalysisPropertyOperatorClass   ), intent(in   ), target  :: operator_
+    type (propertyOperatorList                  )               , pointer :: operatorNew, operatorCurrent
+
+    allocate(operatorNew)
+    operatorNew    %operator_ => operator_
+    operatorNew    %next      => null()
+    operatorCurrent           => self     %operators
+    do while (associated(operatorCurrent%next))
+       operatorCurrent => operatorCurrent%next
+    end do
+    operatorCurrent%next => operatorNew
+    return
+  end subroutine sequenceApppend

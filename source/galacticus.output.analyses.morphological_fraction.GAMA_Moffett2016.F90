@@ -130,7 +130,8 @@ contains
     use :: Galactic_Filters                      , only : galacticFilterStellarMass
     use :: Galacticus_Paths                      , only : galacticusPath                                     , pathTypeDataStatic
     use :: Geometry_Surveys                      , only : surveyGeometryBaldry2012GAMA
-    use :: IO_HDF5                               , only : hdf5Access                                         , hdf5Object
+    use :: HDF5_Access                           , only : hdf5Access
+    use :: IO_HDF5                               , only : hdf5Object
     use :: Memory_Management                     , only : allocateArray
     use :: Node_Property_Extractors              , only : nodePropertyExtractorMassStellar                   , nodePropertyExtractorMassStellarMorphology
     use :: Numerical_Constants_Astronomical      , only : massSolar
@@ -337,12 +338,12 @@ contains
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_                     )
     !![
-    <referenceConstruct object="outputAnalysisPropertyUnoperator_"                constructor="outputAnalysisPropertyOperatorAntiLog10             (                                                                          )"/>
+    <referenceConstruct object="outputAnalysisPropertyUnoperator_"                constructor="outputAnalysisPropertyOperatorAntiLog10   (                                                                          )"/>
     !!]
     ! Create a stellar mass property extractor.
     allocate(nodePropertyExtractor_                      )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassStellar          (                                                                          )"/>
+    <referenceConstruct object="nodePropertyExtractor_"                           constructor="nodePropertyExtractorMassStellar          (                                                                          )"/>
     !!]
     ! Create a morpology weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
@@ -364,7 +365,7 @@ contains
          &                                                         log10(masses)                                  , &
          &                                                         bufferCount                                    , &
          &                                                         outputWeight                                   , &
-         &                                                         nodePropertyExtractor_               , &
+         &                                                         nodePropertyExtractor_                         , &
          &                                                         outputAnalysisWeightPropertyExtractor_         , &
          &                                                         outputAnalysisPropertyOperator_                , &
          &                                                         outputAnalysisWeightPropertyOperator_          , &
@@ -454,7 +455,8 @@ contains
     Implement a {\normalfont \ttfamily morphologicalFractionGAMAMoffett2016} output analysis finalization.
     !!}
     use :: Galacticus_HDF5, only : galacticusOutputFile
-    use :: IO_HDF5        , only : hdf5Access          , hdf5Object
+    use :: HDF5_Access    , only : hdf5Access
+    use :: IO_HDF5        , only : hdf5Object
     implicit none
     class(outputAnalysisMorphologicalFractionGAMAMoffett2016), intent(inout) :: self
     type (hdf5Object                                        )                :: analysesGroup, analysisGroup, &

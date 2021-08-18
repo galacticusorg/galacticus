@@ -205,14 +205,15 @@ contains
     return
   end subroutine inSituRate
 
-  subroutine inSituOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,componentType)
+  subroutine inSituOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,componentType,treeLock)
     !!{
     Output the star formation history for {\normalfont \ttfamily node}.
     !!}
     use :: Galacticus_HDF5           , only : galacticusOutputFile
     use :: Galacticus_Nodes          , only : mergerTree                    , nodeComponentBasic, treeNode
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
-    use :: IO_HDF5                   , only : hdf5Access                    , hdf5Object
+    use :: HDF5_Access               , only : hdf5Access
+    use :: IO_HDF5                   , only : hdf5Object
     use :: String_Handling           , only : operator(//)
     implicit none
     class           (starFormationHistoryInSitu), intent(inout)         :: self
@@ -222,6 +223,7 @@ contains
     integer         (c_size_t                  ), intent(in   )         :: indexOutput
     integer         (kind=kind_int8            ), intent(in   )         :: indexTree
     integer                                     , intent(in   )         :: componentType
+    type            (ompLock                   ), intent(inout)         :: treeLock
     class           (nodeComponentBasic        ), pointer               :: basicParent
     type            (treeNode                  ), pointer               :: nodeParent
     double precision                                                    :: timeBegin           , timeEnd
@@ -229,6 +231,7 @@ contains
     type            (hdf5Object                )                        :: historyGroup        , outputGroup, &
          &                                                                 treeGroup
     type            (history                   )                        :: newHistory
+    !$GLC attributes unused :: treeLock
 
     if (.not.historyStarFormation%exists()) return
     if (nodePassesFilter) then

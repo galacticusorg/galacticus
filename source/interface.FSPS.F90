@@ -32,6 +32,9 @@ module Interfaces_FSPS
   ! Lock object to prevent multiple threads/processes attempting to build the code simultaneously.
   type(lockDescriptor) :: fspsLock
 
+  ! Lock object to prevent multiple threads/processes attempting to build the same IMF simultaneously.
+  type(lockDescriptor) :: imfLock
+
 contains
 
   subroutine Interface_FSPS_Initialize(fspsPath,fspsVersion,static)
@@ -46,50 +49,45 @@ contains
     use :: String_Handling   , only : operator(//)
     use :: System_Command    , only : System_Command_Do
     implicit none
-    type     (varying_string), intent(  out)           :: fspsPath       , fspsVersion
+    type     (varying_string), intent(  out)           :: fspsPath, fspsVersion
     logical                  , intent(in   ), optional :: static
-    integer                                            :: status         , inputFile
-    logical                                            :: upToDate
-    character(len=40        )                          :: currentRevision
+    integer                                            :: status
     type     (varying_string)                          :: lockPath
     !![
     <optionalArgument name="static" defaultsTo=".false." />
     !!]
 
     ! Specify source code path.
-    fspsPath=galacticusPath(pathTypeDataDynamic)//"FSPS_v2.5"
-    lockPath=galacticusPath(pathTypeDataDynamic)//"fsps2.5"
+    fspsVersion="3.2"
+    fspsPath=galacticusPath(pathTypeDataDynamic)//"fsps-"//fspsVersion
+    lockPath=galacticusPath(pathTypeDataDynamic)//"fsps" //fspsVersion
     call File_Lock(char(lockPath),fspsLock)
     !  Build the code if the executable does not exist.
     if (.not.File_Exists(fspsPath//"/src/autosps.exe")) then
-       ! Check out the code if not already done.
+       ! Download the code if not already done.
        if (.not.File_Exists(fspsPath)) then
-          call displayMessage("downloading FSPS source code....",verbosityLevelWorking)
-          call System_Command_Do("git clone git://github.com/cconroy20/fsps.git/ "//fspsPath,status)
-          if (.not.File_Exists(fspsPath) .or. status /= 0) call Galacticus_Error_Report("failed to clone FSPS git repository"//{introspection:location})
-       end if
-       ! Check for updates to the code.
-       call System_Command_Do("cd "//fspsPath//"; git fetch; [[ $(git rev-parse HEAD) == $(git rev-parse @{u}) ]]",status)
-       upToDate=(status == 0)
-       if (.not.upToDate) then
-          call displayMessage("updating FSPS source code",verbosityLevelWorking)
-          ! Update and remove the galacticus_IMF.f90 file to trigger re-patching of the code.
-          call System_Command_Do("cd "//fspsPath//"; git checkout -- .; git pull")
-          call File_Remove(fspsPath//"src/galacticus_IMF.f90")
+          if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"FSPS_"//char(fspsVersion)//".tar.gz")) then
+             call displayMessage("downloading FSPS source code....",verbosityLevelWorking)
+             call System_Command_Do("wget https://github.com/cconroy20/fsps/archive/refs/tags/v"//char(fspsVersion)//".tar.gz -O "//galacticusPath(pathTypeDataDynamic)//"FSPS_"//char(fspsVersion)//".tar.gz",status)
+             if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"FSPS_"//char(fspsVersion)//".tar.gz") .or. status /= 0) call Galacticus_Error_Report("failed to download FSPS"//{introspection:location})
+          end if
+          call displayMessage("unpacking FSPS code....",verbosityLevelWorking)
+          call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//" -f "//galacticusPath(pathTypeDataDynamic)//"FSPS_"//char(fspsVersion)//".tar.gz",status)          
+          if (status /= 0 .or. .not.File_Exists(fspsPath)) call Galacticus_Error_Report('failed to unpack FSPS code'//{introspection:location})
        end if
        ! Patch the code if not already patched.
        if (.not.File_Exists(fspsPath//"/src/galacticus_IMF.f90")) then
-          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_v2.5_Galacticus_Modifications/galacticus_IMF.f90 "//fspsPath//"/src/"                                                    ,status)
+          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_Galacticus_Modifications/galacticus_IMF.f90 "//fspsPath//"/src/"                                                    ,status)
           if (status /= 0) call Galacticus_Error_Report("failed to copy FSPS patch 'galacticus_IMF.f90'"//{introspection:location})
-          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_v2.5_Galacticus_Modifications/imf.f90.patch "     //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < imf.f90.patch"     ,status)
+          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_Galacticus_Modifications/imf.f90.patch "     //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < imf.f90.patch"     ,status)
           if (status /= 0) call Galacticus_Error_Report("failed to patch FSPS file 'imf.f90'"           //{introspection:location})
-          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_v2.5_Galacticus_Modifications/ssp_gen.f90.patch " //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < ssp_gen.f90.patch" ,status)
+          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_Galacticus_Modifications/ssp_gen.f90.patch " //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < ssp_gen.f90.patch" ,status)
           if (status /= 0) call Galacticus_Error_Report("failed to patch FSPS file 'ssp_gen.f90'"       //{introspection:location})
-          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_v2.5_Galacticus_Modifications/sps_vars.f90.patch "//fspsPath//"/src/; cd "//fspsPath//"/src/; patch < sps_vars.f90.patch",status)
+          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_Galacticus_Modifications/sps_vars.f90.patch "//fspsPath//"/src/; cd "//fspsPath//"/src/; patch < sps_vars.f90.patch",status)
           if (status /= 0) call Galacticus_Error_Report("failed to patch FSPS file 'sps_vars.f90'"      //{introspection:location})
-          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_v2.5_Galacticus_Modifications/autosps.f90.patch " //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < autosps.f90.patch" ,status)
+          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_Galacticus_Modifications/autosps.f90.patch " //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < autosps.f90.patch" ,status)
           if (status /= 0) call Galacticus_Error_Report("failed to patch FSPS file 'autosps.f90'"       //{introspection:location})
-          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_v2.5_Galacticus_Modifications/Makefile.patch "    //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < Makefile.patch"    ,status)
+          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_Galacticus_Modifications/Makefile.patch "    //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < Makefile.patch"    ,status)
           if (status /= 0) call Galacticus_Error_Report("failed to patch FSPS file 'Makefile'"          //{introspection:location})
           call File_Remove(fspsPath//"/src/autosps.exe")
        end if
@@ -102,15 +100,6 @@ contains
        call System_Command_Do("cd "//fspsPath//"/src; export SPS_HOME="//fspsPath//"; export F90FLAGS=-mcmodel=medium; make clean; make -j 1",status)
        if (.not.File_Exists(fspsPath//"/src/autosps.exe") .or. status /= 0) call Galacticus_Error_Report("failed to build autosps.exe code"//{introspection:location})
     end if
-    ! Get the code revision number.
-    if (.not.File_Exists(fspsPath//"/currentRevision.txt")) then
-       call System_Command_Do("cd "//fspsPath//"; git rev-parse HEAD > currentRevision.txt",status)
-       if (status /= 0) call Galacticus_Error_Report("unable to find FSPS revision"//{introspection:location})
-    end if
-    open(newUnit=inputFile,file=char(fspsPath)//"/currentRevision.txt",status='old',form='formatted')
-    read (inputFile,'(a)') currentRevision
-    close(inputFile)
-    fspsVersion="v2.5; "//currentRevision
     call File_Unlock(fspsLock)
     return
   end subroutine Interface_FSPS_Initialize
@@ -121,9 +110,10 @@ contains
     !!}
     use :: Dates_and_Times                 , only : Formatted_Date_and_Time
     use :: File_Utilities                  , only : Directory_Make         , File_Exists    , File_Name_Temporary, File_Path, &
-          &                                         File_Remove
+          &                                         File_Remove            , File_Lock      , File_Unlock
     use :: Galacticus_Error                , only : Galacticus_Error_Report
-    use :: IO_HDF5                         , only : hdf5Access             , hdf5Object
+    use :: HDF5_Access                     , only : hdf5Access
+    use :: IO_HDF5                         , only : hdf5Object
     use :: ISO_Varying_String              , only : char                   , operator(//)   , trim               , var_str  , &
           &                                         varying_string
     use :: Numerical_Constants_Astronomical, only : gigaYear               , luminositySolar, massSolar
@@ -141,7 +131,8 @@ contains
     double precision                , allocatable  , dimension(:,:,:           ) :: spectrum
     integer                         , parameter                                  :: fileFormatCurrent= 1
     type            (varying_string)                                             :: fspsVersion         , fspsPath         , &
-         &                                                                          outputFileName      , fspsInputFileName
+         &                                                                          outputFileName      , fspsInputFileName, &
+         &                                                                          imfFileName
     integer                                                                      :: iIMF                , outputFile       , &
          &                                                                          iMetallicity        , inputFile        , &
          &                                                                          iAge                , ageCount         , &
@@ -155,7 +146,8 @@ contains
     ! Ensure FSPS is available.
     call Interface_FSPS_Initialize(fspsPath,fspsVersion)
     ! Output the IMF file.
-    open(newUnit=outputFile,file="galacticus.imf",status='unknown',form='formatted')
+    imfFileName=File_Name_Temporary("galacticus.imf")
+    open(newUnit=outputFile,file=char(imfFileName),status='unknown',form='formatted')
     do iIMF=1,imf%size()
        write (outputFile,'(2(1x,e12.6))') imf%x(iIMF),imf%y(iIMF)
     end do
@@ -166,17 +158,22 @@ contains
        outputFileName="imf"//trim(imfName)//".iZ"//iMetallicity
        ! Generate output file if necessary.
        if (.not.File_Exists(fspsPath//"/OUTPUTS/"//outputFileName//".spec")) then
-          ! Create parameter file for FSPS.
-          fspsInputFileName=File_Name_Temporary("fsps.inp")
-          open(newUnit=outputFile,file=char(fspsInputFileName),status='unknown',form='formatted')
-          write (outputFile,'(i1)') 6                    ! IMF.
-          write (outputFile,'(i1)') 0                    ! Generate SSP.
-          write (outputFile,'(i2)') iMetallicity         ! Specify metallicity.
-          write (outputFile,'(a)' ) "no"                 ! Do not include dust.
-          write (outputFile,'(a)' ) char(outputFileName) ! Specify filename.
-          close(outputFile)
-          call System_Command_Do("export SPS_HOME="//fspsPath//"; "//fspsPath//"/src/autosps.exe < "//fspsInputFileName)
-          call File_Remove(char(fspsInputFileName))
+          call File_Lock(char(fspsPath//"/OUTPUTS/"//outputFileName),imfLock)
+          if (.not.File_Exists(fspsPath//"/OUTPUTS/"//outputFileName//".spec")) then
+             ! Create parameter file for FSPS.
+             fspsInputFileName=File_Name_Temporary("fsps.inp")
+             open(newUnit=outputFile,file=char(fspsInputFileName),status='unknown',form='formatted')
+             write (outputFile,'(i1)') 6                    ! IMF.
+             write (outputFile,'(a)' ) char(   imfFileName) ! Specify IMF filename.
+             write (outputFile,'(i1)') 0                    ! Generate SSP.
+             write (outputFile,'(i2)') iMetallicity         ! Specify metallicity.
+             write (outputFile,'(a)' ) "no"                 ! Do not include dust.
+             write (outputFile,'(a)' ) char(outputFileName) ! Specify filename.
+             close(outputFile)
+             call System_Command_Do("export SPS_HOME="//fspsPath//"; "//fspsPath//"/src/autosps.exe < "//fspsInputFileName)
+             call File_Remove(char(fspsInputFileName))
+          end if
+          call File_Unlock(imfLock)
        end if
        ! Parse the output file.
        open(newUnit=inputFile,file=char(fspsPath//"/OUTPUTS/"//outputFileName//".spec"),status='old',form='formatted')
@@ -196,12 +193,19 @@ contains
        do iAge=1,ageCount
           read (inputFile,*) age     (  iAge             )
           read (inputFile,*) spectrum(:,iAge,iMetallicity)
+
+
+
+
+
+if (any(isnan(spectrum(:,iAge,iMetallicity)))) write (0,*) "TEST WTF ",iage,imetallicity,spectrum(:,iAge,iMetallicity)
+
        end do
        close(inputFile)
     end do
     ! Clean up.
-    call File_Remove("galacticus.imf")
-    ! Convert ages from loagrithmic form.
+    call File_Remove(imfFileName)
+    ! Convert ages from logarithmic form.
     age=10.0d0**(age-9.0d0)
     ! Write output file.
     call Directory_Make(char(File_Path(char(spectraFileName))))

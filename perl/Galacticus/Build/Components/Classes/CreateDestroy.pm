@@ -8,7 +8,7 @@ use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Text::Template 'fill_in_string';
 use List::ExtraUtils;
-use Galacticus::Build::Components::Utils;
+use Galacticus::Build::Components::Utils qw(offsetName);
 use Galacticus::Build::Components::DataTypes;
 
 # Insert hooks for our functions.
@@ -22,7 +22,8 @@ use Galacticus::Build::Components::DataTypes;
 	      \&Class_Initialization     ,
 	      \&Class_Builder            ,
 	      \&Class_Finalization       ,
-	      \&Class_Create_By_Interrupt
+	      \&Class_Create_By_Interrupt,
+	      \&Class_Add_Meta_Property
 	     ]
      }
     );
@@ -79,7 +80,7 @@ sub Class_Finalization {
 	    [
 	     {
 		 intrinsic  => "class",
-		     type       => "nodeComponent".ucfirst($code::class->{'name'}),
+		 type       => "nodeComponent".ucfirst($code::class->{'name'}),
 		 attributes => [ "intent(inout)" ],
 		 variables  => [ "self" ]
 	     }
@@ -213,6 +214,120 @@ CODE
     }
     # Insert into the functions list.
     push(@{$build->{'functions'}},$function);    
+}
+
+sub Class_Add_Meta_Property {
+    # Generate a function to add meta-properties to component classes.
+    my $build    = shift();
+    $code::class = shift();
+    my $function =
+    {
+	type        => "integer",
+	name        => "nodeComponent".ucfirst($code::class->{'name'})."AddMetaProperty",
+	description => "Add a meta-property to the generic {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	modules     =>
+	    [
+	     "ISO_Varying_String"
+	    ],
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => "nodeComponent".ucfirst($code::class->{'name'}),
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "varying_string",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "label" ]
+	     },
+	     {
+		 intrinsic  => "character",
+		 type       => "len=*",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "name" ]
+	     },
+	     {
+		 intrinsic  => "logical",
+		 attributes => [ "intent(in   )", "optional" ],
+		 variables  => [ "isEvolvable" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "varying_string",
+		 attributes => [ "allocatable", "dimension(:)" ],
+		 variables  => [ "labelsTmp", "namesTmp" ]
+	     },
+	     {
+		 intrinsic  => "logical",
+		 attributes => [ "allocatable", "dimension(:)" ],
+		 variables  => [ "evolvableTmp" ]
+	     },
+	     {
+		 intrinsic  => "logical",
+		 variables  => [ "found" ]
+	     }
+	    ]
+    };
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
+!$GLC attributes unused :: self
+
+!$omp critical ({class->{'name'}}MetaPropertyUpdate)
+found=.false.
+if (allocated({$class->{'name'}}MetaPropertyLabels)) then
+ do nodeComponent{ucfirst($class->{'name'})}AddMetaProperty=1,size({$class->{'name'}}MetaPropertyLabels)
+  if ({$class->{'name'}}MetaPropertyLabels(nodeComponent{ucfirst($class->{'name'})}AddMetaProperty) == label) then
+   found=.true.
+   exit
+  end if
+ end do
+ if (.not.found) then
+  call move_alloc({$class->{'name'}}MetaPropertyLabels   ,   labelsTmp)
+  call move_alloc({$class->{'name'}}MetaPropertyNames    ,    namesTmp)
+  call move_alloc({$class->{'name'}}MetaPropertyEvolvable,evolvableTmp)
+  allocate({$class->{'name'}}MetaPropertyLabels   (size(   labelsTmp)+1))
+  allocate({$class->{'name'}}MetaPropertyNames    (size(    namesTmp)+1))
+  allocate({$class->{'name'}}MetaPropertyEvolvable(size(evolvableTmp)+1))
+  {$class->{'name'}}MetaPropertyLabels   (1:size(   labelsTmp))=   labelsTmp
+  {$class->{'name'}}MetaPropertyNames    (1:size(    namesTmp))=    namesTmp
+  {$class->{'name'}}MetaPropertyEvolvable(1:size(evolvableTmp))=evolvableTmp
+  deallocate(   labelsTmp)
+  deallocate(    namesTmp)
+  deallocate(evolvableTmp)
+ end if
+else
+ allocate({$class->{'name'}}MetaPropertyLabels   (                1))
+ allocate({$class->{'name'}}MetaPropertyNames    (                1))
+ allocate({$class->{'name'}}MetaPropertyEvolvable(                1))
+end if
+if (.not.found) then
+ nodeComponent{ucfirst($class->{'name'})}AddMetaProperty=size({$class->{'name'}}MetaPropertyLabels)
+ {$class->{'name'}}MetaPropertyLabels   (nodeComponent{ucfirst($class->{'name'})}AddMetaProperty)=label
+ {$class->{'name'}}MetaPropertyNames    (nodeComponent{ucfirst($class->{'name'})}AddMetaProperty)=name
+ if (present(isEvolvable)) then
+  {$class->{'name'}}MetaPropertyEvolvable(nodeComponent{ucfirst($class->{'name'})}AddMetaProperty)=isEvolvable
+ else
+  {$class->{'name'}}MetaPropertyEvolvable(nodeComponent{ucfirst($class->{'name'})}AddMetaProperty)=.false.
+ end if
+ {$class->{'name'}}MetaPropertyCount={$class->{'name'}}MetaPropertyCount+1
+ if ({$class->{'name'}}MetaPropertyEvolvable(nodeComponent{ucfirst($class->{'name'})}AddMetaProperty)) {$class->{'name'}}MetaPropertyEvolvableCount={$class->{'name'}}MetaPropertyEvolvableCount+1
+ implementationNameLengthMax=max(len(name),implementationNameLengthMax) 
+end if
+!$omp end critical ({class->{'name'}}MetaPropertyUpdate)
+CODE
+    }
+    # Insert a type-binding for this function.
+    push(
+	@{$build->{'types'}->{"nodeComponent".ucfirst($code::class->{'name'})}->{'boundFunctions'}},
+	{
+	    type        => "procedure",
+	    descriptor  => $function,
+	    name        => "addMetaProperty", 
+	}
+	);
 }
 
 1;

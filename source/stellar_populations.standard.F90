@@ -355,7 +355,8 @@ contains
           &                                                    File_Unlock                      , lockDescriptor
     use            :: Galacticus_Error                , only : Galacticus_Error_Report
     use            :: Galacticus_Paths                , only : galacticusPath                   , pathTypeDataDynamic
-    use            :: IO_HDF5                         , only : hdf5Access                       , hdf5Object
+    use            :: HDF5_Access                     , only : hdf5Access
+    use            :: IO_HDF5                         , only : hdf5Object
     use, intrinsic :: ISO_C_Binding                   , only : c_size_t
     use            :: Input_Parameters                , only : inputParameters
     use            :: Memory_Management               , only : allocateArray
@@ -370,6 +371,8 @@ contains
     type            (populationTable                  ), intent(inout)         :: property
     double precision                                   , dimension(2)          :: metallicityFactors, rate            , &
          &                                                                        propertyCumulative, age
+    type            (inputParameters                  ), save                  :: descriptor
+    !$omp threadprivate(descriptor)
     integer         (c_size_t                         )                        :: metallicityIndex
     type            (integratorCompositeGaussKronrod1D)                        :: integrator_
     integer                                                                    :: fileFormat        , iAge            , &
@@ -381,7 +384,6 @@ contains
     character       (len=20                           )                        :: progressMessage
     type            (varying_string                   )                        :: fileName          , descriptorString
     logical                                                                    :: makeFile
-    type            (inputParameters                  )                        :: descriptor
     type            (lockDescriptor                   )                        :: lock
 
     ! Compute the property if not already done.
@@ -395,9 +397,9 @@ contains
        if (File_Exists(fileName)) then
           ! Open the file containing cumulative property data.
           call displayIndent('Reading file: '//fileName,verbosityLevelWorking)
-          !$ call hdf5Access%set()
-          call file%openFile(char(fileName))
-          call file%readAttribute('fileFormat',fileFormat)
+          !$ call hdf5Access%set          (                         )
+          call    file      %openFile     (char(fileName)           )
+          call    file      %readAttribute('fileFormat'  ,fileFormat)
           if (fileFormat /= standardFileFormatCurrent) then
              makeFile=.true.
              call file%close()
@@ -409,12 +411,12 @@ contains
        end if
        if (.not.makeFile) then
           ! Read the cumulative property data from file.
-          call hdf5Access%set()
-          call file%readDataset("age"               ,property%age        )
-          call file%readDataset("metallicity"       ,property%metallicity)
-          call file%readDataset(char(property%label),property%property   )
-          call file%close      (                                         )
-          call hdf5Access%unset()
+          !$ call hdf5Access%set        (                                         )
+          call    file      %readDataset("age"               ,property%age        )
+          call    file      %readDataset("metallicity"       ,property%metallicity)
+          call    file      %readDataset(char(property%label),property%property   )
+          call    file      %close      (                                         )
+          !$ call hdf5Access%unset      (                                         )
           call displayUnindent('done',verbosityLevelWorking)
        else
           call allocateArray(property%age        ,[standardTableAgeCount                              ])
@@ -427,20 +429,21 @@ contains
           descriptor=inputParameters()
           call self%descriptor(descriptor,includeClass=.true.)
           descriptorString=descriptor%serializeToString()
-          call hdf5Access%set()
-          call file%openFile(char(fileName))
-          call file%writeAttribute(standardFileFormatCurrent,'fileFormat')
-          call file%writeAttribute(char(property%label),'description')
-          call file%writeAttribute('Computed by Galacticus','source')
-          call file%writeAttribute(char(Formatted_Date_and_Time()),'date')
-          call file%writeAttribute(char(descriptorString),'parameters')
-          call file%writeDataset(property%age,"age",datasetReturned=dataset)
-          call dataset%writeAttribute('Age of the stellar population in Gyr','description')
-          call dataset%close()
-          call file%writeDataset(property%metallicity,"metallicity",datasetReturned=dataset)
-          call dataset%writeAttribute('Metallicity (fractional mass of total metals) of the stellar population','description')
-          call dataset%close()
-          call hdf5Access%unset()
+          call descriptor%destroy()
+          !$ call hdf5Access%set           (                                                                                                               )
+          call    file      %openFile      (char(fileName                 )                                                                                )
+          call    file      %writeAttribute(standardFileFormatCurrent                                                ,'fileFormat'                         )
+          call    file      %writeAttribute(char(property%label           )                                          ,'description'                        )
+          call    file      %writeAttribute('Computed by Galacticus'                                                 ,'source'                             )
+          call    file      %writeAttribute(char(Formatted_Date_and_Time())                                          ,'date'                               )
+          call    file      %writeAttribute(char(descriptorString         )                                          ,'parameters'                         )
+          call    file      %writeDataset  (property%age                                                             ,'age'        ,datasetReturned=dataset)
+          call    dataset   %writeAttribute('Age of the stellar population in Gyr'                                   ,'description'                        )
+          call    dataset   %close         (                                                                                                               )
+          call    file      %writeDataset  (property%metallicity                                                     ,'metallicity',datasetReturned=dataset)
+          call    dataset   %writeAttribute('Metallicity (fractional mass of total metals) of the stellar population','description'                        )
+          call    dataset   %close         (                                                                                                               )
+          !$ call hdf5Access%unset         (                                                                                                               )
           ! Loop over ages and metallicities and compute the property.
           call displayIndent('Tabulating property: '//char(property%label),verbosityLevelWorking)
           call displayCounter(0,.true.,verbosityLevelWorking)
@@ -511,10 +514,10 @@ contains
           end do
           call displayCounterClear(           verbosityLevelWorking)
           call displayUnindent     ('finished',verbosityLevelWorking)
-          call hdf5Access%set()
-          call file%writeDataset(property%property,char(property%label))
-          call file%close()
-          call hdf5Access%unset()
+          !$ call hdf5Access%set         (                                      )
+          call    file      %writeDataset(property%property,char(property%label))
+          call    file      %close       (                                      )
+          !$ call hdf5Access%unset       (                                      )
        end if
        call File_Unlock(lock)
        ! Build interpolators.

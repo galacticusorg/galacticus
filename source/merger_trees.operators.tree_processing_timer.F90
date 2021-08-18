@@ -306,7 +306,8 @@ contains
     Outputs collected meta-data on tree processing times.
     !!}
     use :: Galacticus_HDF5                 , only : galacticusOutputFile
-    use :: IO_HDF5                         , only : hdf5Access          , hdf5Object
+    use :: HDF5_Access                     , only : hdf5Access
+    use :: IO_HDF5                         , only : hdf5Object
     use :: HDF5                            , only : hsize_t
     use :: Numerical_Constants_Astronomical, only : massSolar
     implicit none

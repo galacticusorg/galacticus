@@ -63,13 +63,13 @@ contains
     Implement a bin width output analysis distribution normalizer.
     !!}
     implicit none
-    class           (outputAnalysisDistributionNormalizerLog10ToLog), intent(inout)                 :: self
-    double precision                                                , intent(inout), dimension(:  ) :: distribution
-    double precision                                                , intent(inout), dimension(:,:) :: covariance
-    double precision                                                , intent(in   ), dimension(:  ) :: propertyValueMinimum, propertyValueMaximum
+    class           (outputAnalysisDistributionNormalizerLog10ToLog), intent(inout)                           :: self
+    double precision                                                , intent(inout), dimension(:  ), optional :: distribution
+    double precision                                                , intent(inout), dimension(:,:), optional :: covariance
+    double precision                                                , intent(in   ), dimension(:  )           :: propertyValueMinimum, propertyValueMaximum
     !$GLC attributes unused :: self, propertyValueMinimum, propertyValueMaximum
 
-    distribution=distribution/log(10.0d0)
-    covariance  =covariance  /log(10.0d0)**2
+    if (present(distribution)) distribution=distribution/log(10.0d0)
+    if (present(covariance  )) covariance  =covariance  /log(10.0d0)**2
     return
   end subroutine log10ToLogNormalize

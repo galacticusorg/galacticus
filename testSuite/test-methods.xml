@@ -326,6 +326,12 @@
  	<toleranceTopHat value="3.0e-4"/>
       </cosmologicalMassVariance>
     </transferFunction>
+    <transferFunction value="CLASSCDM">
+      <cosmologicalMassVariance value="filteredPower" parameterLevel="top">
+ 	<tolerance value="3.0e-4"/>
+ 	<toleranceTopHat value="3.0e-4"/>
+      </cosmologicalMassVariance>
+    </transferFunction>
     <transferFunction value="eisensteinHu1999"/>
   </parameters>
   <parameters>
@@ -608,6 +614,16 @@
     </hotHaloMassDistribution>
   </parameters>
   
+  <!-- Output bar instability properties -->
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <nodePropertyExtractor value="multi">
+      <nodePropertyExtractor value="adiabaticRatioOrbitalDisk" iterable="no"/>
+      <nodePropertyExtractor value="timescaleBarInstability"   iterable="no"/>
+    </nodePropertyExtractor>
+  </parameters>
+
   <!-- Output density contrasts -->
   <parameters>
     <formatVersion>2</formatVersion>
@@ -1130,23 +1146,6 @@
     <hotHaloMassDistribution value="null"/>
     <satelliteOrbitStoreOrbitalParameters value="true"/>
     <mergerRemnantSize value="null"/>
-  </parameters>
-
-  <!-- Statistics and tracking components -->
-  <parameters>
-    <formatVersion>2</formatVersion>
-    <version>0.9.4</version>
-    <componentHostHistory value="standard"/>
-  </parameters>
-  <parameters>
-    <formatVersion>2</formatVersion>
-    <version>0.9.4</version>
-    <componentMassFlowStatistics value="standard"/>
-  </parameters>
-  <parameters>
-    <formatVersion>2</formatVersion>
-    <version>0.9.4</version>
-    <componentDynamicsStatistics value="bars"/>
   </parameters>
 
   <!-- Parallel processing of individual trees -->
@@ -1763,8 +1762,8 @@
   
   <!-- WDM model -->
   <parameters>
-  <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <componentBasic value="standard"/>
     <componentHotHalo value="null"/>
@@ -1829,7 +1828,7 @@
     </excursionSetBarrier>
     <excursionSetFirstCrossing value="farahi">
       <timeStepFractional value="0.01"/>
-      <fileName value="%DATADYNAMICPATH%/largeScaleStructure/excursionSets/excursionSetsWdmMx2.0Gx1.5.hdf5"/>
+      <fileName value="auto"/>
     </excursionSetFirstCrossing>
     <darkMatterProfileConcentration value="schneider2015">
       <reference value="">
@@ -1879,9 +1878,9 @@
       <gamma2 value="-0.01"/>
     </mergerTreeBranchingProbabilityModifier>
     <mergerTreeBuildMasses value="sampledDistributionUniform">
-    <massTreeMinimum value="1.0e12"/>
-    <massTreeMaximum value="2.0e12"/>
-    <treesPerDecade value="20"/>
+      <massTreeMinimum value="1.0e12"/>
+      <massTreeMaximum value="2.0e12"/>
+      <treesPerDecade value="20"/>
     </mergerTreeBuildMasses>
     <mergerTreeMassResolution value="fixed">
       <massResolution value="1.0e9"/>
@@ -1892,28 +1891,27 @@
     <hotHaloMassDistribution value="null"/>
     <mergerRemnantSize value="null"/>
     <mergerTreeNodeEvolver value="standard">
-    <odeToleranceAbsolute value="0.01"/>
-    <odeToleranceRelative value="0.01"/>
-  </mergerTreeNodeEvolver>
+      <odeToleranceAbsolute value="0.01"/>
+      <odeToleranceRelative value="0.01"/>
+    </mergerTreeNodeEvolver>
 
-  <mergerTreeEvolver value="standard">
-    <timestepHostAbsolute value="1.00"/>
-    <timestepHostRelative value="0.10"/>
-  </mergerTreeEvolver>
+    <mergerTreeEvolver value="standard">
+      <timestepHostAbsolute value="1.00"/>
+      <timestepHostRelative value="0.10"/>
+    </mergerTreeEvolver>
 
-  <mergerTreeEvolveTimestep value="multi">
-    <mergerTreeEvolveTimestep value="simple"    iterable="no" >
-      <timeStepAbsolute value="10.00"/>
-      <timeStepRelative value="10.00"/>
+    <mergerTreeEvolveTimestep value="multi">
+      <mergerTreeEvolveTimestep value="simple"    iterable="no" >
+	<timeStepAbsolute value="10.00"/>
+	<timeStepRelative value="10.00"/>
+      </mergerTreeEvolveTimestep>
+      <mergerTreeEvolveTimestep value="satellite" iterable="no"/>
     </mergerTreeEvolveTimestep>
-    <mergerTreeEvolveTimestep value="satellite" iterable="no"/>
-  </mergerTreeEvolveTimestep>
-  <outputTimestepHistory value="false"/>
-  <outputTimes value="list">
-    <redshifts value="0.0"/>
-  </outputTimes>
-  
-  <verbosityLevel value="standard"/>
+    <outputTimestepHistory value="false"/>
+    <outputTimes value="list">
+      <redshifts value="0.0"/>
+    </outputTimes>  
+    <verbosityLevel value="standard"/>
   </parameters>
 
   <!-- Power spectrum calculation -->
@@ -1934,9 +1932,21 @@
       <temperatureCMB value="2.72548"/>
     </cosmologyParameters>
     <outputTimes value="list">
-    <redshifts value="0.0 1.0"/>
-  </outputTimes>
-
+      <redshifts value="0.0 1.0"/>
+    </outputTimes>
   </parameters>
 
+  <!-- Broadband luminosity tabulation -->
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <task value="buildBroadbandLuminosityTabulations"/>
+    <outputTimes value="list">
+      <redshifts value="0.0 1.0"/>
+    </outputTimes>
+    <luminosityFilter   value="LSST_g   LSST_i   LSST_r   LSST_u   LSST_y   LSST_z   LSST_g   LSST_i   LSST_r   LSST_u   LSST_y   LSST_z"/>
+    <luminosityType     value="observed observed observed observed observed observed rest     rest     rest     rest     rest     rest  "/>
+    <luminosityRedshift value="all      all      all      all      all      all      all      all      all      all      all      all   "/>
+  </parameters>
+  
 </parameterGrid>

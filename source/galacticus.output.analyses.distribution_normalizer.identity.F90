@@ -63,10 +63,10 @@ contains
     Implement a bin width output analysis distribution normalizer.
     !!}
     implicit none
-    class           (outputAnalysisDistributionNormalizerIdentity), intent(inout)                 :: self
-    double precision                                              , intent(inout), dimension(:  ) :: distribution
-    double precision                                              , intent(inout), dimension(:,:) :: covariance
-    double precision                                              , intent(in   ), dimension(:  ) :: propertyValueMinimum, propertyValueMaximum
+    class           (outputAnalysisDistributionNormalizerIdentity), intent(inout)                           :: self
+    double precision                                              , intent(inout), dimension(:  ), optional :: distribution
+    double precision                                              , intent(inout), dimension(:,:), optional :: covariance
+    double precision                                              , intent(in   ), dimension(:  )           :: propertyValueMinimum, propertyValueMaximum
     !$GLC attributes unused :: self, propertyValueMinimum, propertyValueMaximum, distribution, covariance
 
     ! Leave everything unchanged.
