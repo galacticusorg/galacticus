@@ -1,7 +1,8 @@
 # Galacticus Docker image
 # Uses Docker multi-stage build to build Galacticus.
 
-FROM galacticusorg/buildenv:latest as build
+ARG tag=latest
+FROM galacticusorg/buildenv:$tag as build
 
 # Set build options.
 ## * The flags are also set in galacticus/buildenv:latest so we don't really need to reset them here.
