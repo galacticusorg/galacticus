@@ -255,7 +255,7 @@ contains
     !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
     implicit none
-    class  (transferFunctionBBKS), intent(inout)           :: self
+    class  (transferFunctionBBKS), intent(inout), target   :: self
     integer                      , intent(  out), optional :: status
     !$GLC attributes unused :: self
 
@@ -275,7 +275,7 @@ contains
     !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
     implicit none
-    class  (transferFunctionBBKS), intent(inout)           :: self
+    class  (transferFunctionBBKS), intent(inout), target   :: self
     integer                      , intent(  out), optional :: status
     !$GLC attributes unused :: self
 

@@ -163,7 +163,7 @@ contains
     suppressed by a factor of two relative to a \gls{cdm} transfer function
     !!}
     implicit none
-    class  (transferFunctionAccelerator), intent(inout)           :: self
+    class  (transferFunctionAccelerator), intent(inout), target   :: self
     integer                             , intent(  out), optional :: status
 
     acceleratorHalfModeMass=self%transferFunction_%halfModeMass(status)
