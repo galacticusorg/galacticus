@@ -61,7 +61,9 @@
           &                                                          a0                                        , a1          , &
           &                                                          b0                                        , b1          , &
           &                                                          cAlpha                                    , timePrevious, &
-          &                                                          concentrationMeanPrevious                 , massPrevious
+          &                                                          concentrationMeanPrevious                 , massPrevious, &
+          &                                                          GTildePrevious
+     logical                                                      :: truncateConcentration
    contains
      final     ::                                   diemerJoyce2019Destructor
      procedure :: concentration                  => diemerJoyce2019Concentration
@@ -101,6 +103,7 @@ contains
          &                                                                               a1                       , b0     , &
          &                                                                               b1                       , cAlpha , &
          &                                                                               scatter
+    logical                                                                           :: truncateConcentration
 
     ! Check and read parameters.
     !![
@@ -153,13 +156,20 @@ contains
       <defaultValue>0.0d0</defaultValue>
       <description>The scatter (in dex) to assume in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
     </inputParameter>
+    <inputParameter>
+      <name>truncateConcentration</name>
+      <source>parameters</source>
+      <variable>truncateConcentration</variable>
+      <defaultValue>.false.</defaultValue>
+      <description>If false, solutions to equation~(30) of \cite{diemer_accurate_2019} requring $x&lt;1$ will cause a fatal error. If true, such cases are simply truncated to $x=1$.</description>
+    </inputParameter>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
     !!]
-     self=darkMatterProfileConcentrationDiemerJoyce2019(kappa,a0,a1,b0,b1,cAlpha,scatter,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_)
+     self=darkMatterProfileConcentrationDiemerJoyce2019(kappa,a0,a1,b0,b1,cAlpha,scatter,truncateConcentration,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"      />
@@ -171,7 +181,7 @@ contains
     return
   end function diemerJoyce2019ConstructorParameters
 
-  function diemerJoyce2019ConstructorInternal(kappa,a0,a1,b0,b1,cAlpha,scatter,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_) result(self)
+  function diemerJoyce2019ConstructorInternal(kappa,a0,a1,b0,b1,cAlpha,scatter,truncateConcentration,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily diemerJoyce2019} dark matter halo profile
     concentration class.
@@ -186,6 +196,7 @@ contains
          &                                                                                          a1                             , b0     , &
          &                                                                                          b1                             , cAlpha , &
          &                                                                                          scatter
+    logical                                                             , intent(in   )          :: truncateConcentration
     class           (cosmologyFunctionsClass                           ), intent(in   ), target  :: cosmologyFunctions_
     class           (cosmologyParametersClass                          ), intent(in   ), target  :: cosmologyParameters_
     class           (criticalOverdensityClass                          ), intent(in   ), target  :: criticalOverdensity_
@@ -193,12 +204,13 @@ contains
     class           (linearGrowthClass                                 ), intent(in   ), target  :: linearGrowth_
     type            (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
     !![
-    <constructorAssign variables="kappa, a0, a1, b0, b1, cAlpha, scatter, *cosmologyFunctions_, *cosmologyParameters_, *criticalOverdensity_, *cosmologicalMassVariance_, *linearGrowth_"/>
+    <constructorAssign variables="kappa, a0, a1, b0, b1, cAlpha, scatter, truncateConcentration, *cosmologyFunctions_, *cosmologyParameters_, *criticalOverdensity_, *cosmologicalMassVariance_, *linearGrowth_"/>
     !!]
 
     self%timePrevious             =-1.0d0
     self%massPrevious             =-1.0d0
     self%concentrationMeanPrevious=-1.0d0
+    self%GTildePrevious           =-1.0d0
     self%finder                   =rootFinder(                                                             &
          &                                    rootFunction=GRoot                                         , &
          &                                    rangeExpandDownward          =0.5d0                        , &
@@ -338,9 +350,14 @@ contains
             &                             +peakHeight**2/B                                                                                              &
             &                             )
        ! Initial guess of the concentration.
-       if (self%concentrationMeanPrevious < 0.0d0) self%concentrationMeanPrevious=5.0d0
+       if (self%GTildePrevious < 0.0d0) self%GTildePrevious=5.0d0
        ! Solve for the concentration.
-       GTilde                           = self%finder%find(rootGuess=self%concentrationMeanPrevious)
+       if (self%truncateConcentration .and. GRoot(1.0d0) <= 0.0d0) then
+          GTilde=1.0d0
+       else
+          GTilde                           = self%finder%find(rootGuess=self%GTildePrevious)
+       end if
+       self%GTildePrevious              =   GTilde
        self%concentrationMeanPrevious   = C*GTilde
        self%massPrevious                = basic%mass()
        self%timePrevious                = basic%time()
