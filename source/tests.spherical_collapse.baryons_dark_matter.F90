@@ -132,7 +132,8 @@ program Tests_Spherical_Collapse_Baryons_Dark_Matter
           &                                                                                                                      index_                             =-1.0d0                                     , &
           &                                                                                                                      running                            =+0.0d0                                     , &
           &                                                                                                                      runningRunning                     =+0.0d0                                     , &
-          &                                                                                                                      wavenumberReference                =+1.0d0                                       &
+          &                                                                                                                      wavenumberReference                =+1.0d0                                     , &
+          &                                                                                                                      runningSmallScalesOnly             =.false.                                      &
           &                                                                                                                     )
      transferFunctionIdentity_                                  =transferFunctionIdentity                                       (                                                                                 &
           &                                                                                                                      time                               =13.8d0                                       &

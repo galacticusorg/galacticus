@@ -118,7 +118,8 @@ program Tests_Power_Spectrum
       &amp;                                  index_                             =1.000d0                                              , &amp;
       &amp;                                  running                            =0.000d0                                              , &amp;
       &amp;                                  runningRunning                     =0.000d0                                              , &amp;
-      &amp;                                  wavenumberReference                =1.000d0                                                &amp;
+      &amp;                                  wavenumberReference                =1.000d0                                              , &amp;
+      &amp;                                  runningSmallScalesOnly             =.false.                                                &amp;
       &amp;                                 )
    </constructor>
   </referenceConstruct>
@@ -148,7 +149,8 @@ program Tests_Power_Spectrum
       &amp;                                  index_                             =-1.000d0                                             , &amp;
       &amp;                                  running                            =+0.000d0                                             , &amp;
       &amp;                                  runningRunning                     =+0.000d0                                             , &amp;
-      &amp;                                  wavenumberReference                =+1.000d0                                               &amp;
+      &amp;                                  wavenumberReference                =+1.000d0                                             , &amp;
+      &amp;                                  runningSmallScalesOnly             =.false.                                                &amp;
       &amp;                                 )
    </constructor>
   </referenceConstruct>
