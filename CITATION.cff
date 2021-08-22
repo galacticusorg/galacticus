@@ -1,0 +1,18 @@
+# YAML 1.2
+---
+authors: 
+  -
+    affiliation: "Carnegie Institution for Science"
+    family-names: Benson
+    given-names: Andrew
+    orcid: "https://orcid.org/0000-0001-5501-6008"
+cff-version: "1.1.0"
+doi: "10.1016/j.newast.2011.07.004"
+keywords: 
+  - astrophysics
+  - galaxies
+  - "dark matter"
+license: "GPL-3.0"
+message: "If you use this software, please cite it using these metadata."
+title: Galacticus
+...
