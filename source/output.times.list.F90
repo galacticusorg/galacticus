@@ -246,10 +246,10 @@ contains
     class           (outputTimesList), intent(inout) :: self
     double precision                 , intent(in   ) :: timeCurrent
 
-    if      (timeCurrent > self%times(size(self%times))) then
+    if      (timeCurrent >  self%times(size(self%times))) then
        ! If the current time exceeds the last output, return the last output.
        listTimePrevious=self%times(size(self%times))
-    else if (timeCurrent < self%times(          1)) then
+    else if (timeCurrent <= self%times(               1)) then
        ! If the current time preceeds the first output, return an unphysical value.
        listTimePrevious=-1.0d0
     else
