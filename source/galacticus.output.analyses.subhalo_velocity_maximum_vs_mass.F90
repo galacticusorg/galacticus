@@ -199,7 +199,7 @@ contains
     use :: Output_Analyses_Options               , only : outputAnalysisCovarianceModelPoisson
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorIdentity
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorAntiLog10   , outputAnalysisPropertyOperatorLog10, outputAnalysisPropertyOperatorIdentity
-    use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
+    use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorSubsampling
     use :: Output_Times                          , only : outputTimesClass
     use :: Virial_Density_Contrast               , only : virialDensityContrastClass
     use :: Dark_Matter_Profiles_DMO              , only : darkMatterProfileDMOClass
@@ -223,7 +223,7 @@ contains
     type            (outputAnalysisPropertyOperatorIdentity    )               , pointer                  :: outputAnalysisWeightPropertyOperator_
     type            (outputAnalysisPropertyOperatorLog10       )               , pointer                  :: outputAnalysisPropertyOperator_
     type            (outputAnalysisPropertyOperatorAntiLog10   )               , pointer                  :: outputAnalysisPropertyUnoperator_
-    type            (outputAnalysisWeightOperatorIdentity      )               , pointer                  :: outputAnalysisWeightOperator_
+    type            (outputAnalysisWeightOperatorSubsampling   )               , pointer                  :: outputAnalysisWeightOperator_
     type            (outputAnalysisDistributionOperatorIdentity)               , pointer                  :: outputAnalysisDistributionOperator_
     type            (galacticFilterHaloNotIsolated             )               , pointer                  :: galacticFilterIsSubhalo_
     type            (galacticFilterLowPass                     ), pointer                                 :: galacticFilterVirialRadius_
@@ -267,7 +267,7 @@ contains
     ! Create an identity weight operator.
     allocate(outputAnalysisWeightOperator_)
     !![
-    <referenceConstruct object="outputAnalysisWeightOperator_"         constructor="outputAnalysisWeightOperatorIdentity      (                                            )"/>
+    <referenceConstruct object="outputAnalysisWeightOperator_"         constructor="outputAnalysisWeightOperatorSubsampling   (                                            )"/>
     !!]
     ! Build filters which select subhalos/hosts.
     allocate(galacticFilterIsSubhalo_)
