@@ -23,7 +23,7 @@ Contains a module implementing a
 
 module Node_Component_Scale_Virial_Theorem
   !!{
-  Implements a
+  Implements a dark matter profile method that computes scale radii based on an energy conservation approach.
   !!}
   use Galacticus_Nodes                  , only : treeNode                         , nodeComponentDarkMatterProfile  
   use Dark_Matter_Profile_Scales        , only : darkMatterProfileScaleRadiusClass
@@ -230,7 +230,14 @@ contains
     ! Ensure that it is of the scale class.
     select type (darkMatterProfile)
     class is (nodeComponentDarkMatterProfileVirialTheorem)
-       if (darkMatterProfile%scale() <= 0.0d0) node%isPhysicallyPlausible=.false.
+       if     (                                                                      &
+            &   darkMatterProfile%scale() <= 0.0d0                                   &
+            &  .or.                                                                  &
+            &   darkMatterProfile%scale() >  darkMatterHaloScale_%virialRadius(node) &
+            & ) then
+          node%isPhysicallyPlausible=.false.
+          node%isSolvable           =.false.
+       end if
     end select
     return
   end subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Plausibility
@@ -537,8 +544,9 @@ contains
     !!}
     use Galacticus_Nodes, only : treeNode, nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileVirialTheorem
     implicit none
-    type (treeNode                      ), intent(inout), pointer :: node
-    class(nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
+    type            (treeNode                      ), intent(inout), pointer :: node
+    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
+    double precision                                , parameter              :: radiusScaleMinimum=1.0d-6
 
     ! Get the dark matter profile component.
     darkMatterProfile => node%darkMatterProfile()
@@ -546,7 +554,7 @@ contains
     select type (darkMatterProfile)
        class is (nodeComponentDarkMatterProfileVirialTheorem)
        ! Set scale for the scale radius.
-       call darkMatterProfile%scaleScale(darkMatterProfile%scale())
+       call darkMatterProfile%scaleScale(max(darkMatterProfile%scale(),radiusScaleMinimum))
     end select
     return
   end subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Scale_Set
