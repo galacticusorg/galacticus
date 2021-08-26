@@ -31,14 +31,19 @@ Contains a module which implements a merger tree build controller class which pe
      A merger tree build controller class which performs subsampling of branches. A branch of mass $M$ will be retained with
      probability
      \begin{equation}
-       P(M) = \left\{ \begin{array}{ll} 1 & \hbox{if } M \ge M_0 \\ P_0 (M/M_0)^\alpha & \hbox{if } M &lt; M_0, \end{array} \right.
+       P(M) = \left\{ \begin{array}{ll} 1 &amp; \hbox{if } M \ge M_0 \\ P_0 (M/M_0)^\alpha &amp; \hbox{if } M &lt; M_0, \end{array} \right.
      \end{equation}
      where $M_0=${\normalfont \ttfamily [massThreshold]}, $P_0=${\normalfont \ttfamily [subsamplingRateAtThreshold]} and
-     $\alpha=${\normalfont \ttfamily [exponent]}, otherwise being pruned. Node weights are adjusted to account for this pruning.     
+     $\alpha=${\normalfont \ttfamily [exponent]}, otherwise being pruned. Node weights are adjusted to account for this pruning.
+
+     If, after pruning, a section of tree is branchless, the nodes along that branch can be consolidated into fewer nodes with the
+     constraint that the mass of the node increases by a fractional amount {\normalfont \ttfamily [factorMassGrowthConsolidate]}
+     relative to its child node. This avoids having very long, non-branching runs of nodes with only tiny mass differences between
+     each parent and child. If {\normalfont \ttfamily [factorMassGrowthConsolidate]}$\le 0$ no consolidation will be performed.     
      !!}
      private
      double precision :: massThreshold, subsamplingRateAtThreshold, &
-          &              exponent
+          &              exponent     , factorMassGrowthConsolidate
   contains
      procedure :: control => controlSubsample
   end type mergerTreeBuildControllerSubsample
@@ -62,7 +67,7 @@ contains
     type            (mergerTreeBuildControllerSubsample)                :: self
     type            (inputParameters                   ), intent(inout) :: parameters
     double precision                                                    :: massThreshold, subsamplingRateAtThreshold, &
-         &                                                                 exponent
+         &                                                                 exponent     , factorMassGrowthConsolidate
     
     !![
     <inputParameter>
@@ -80,24 +85,29 @@ contains
       <source>parameters</source>
       <description>The exponent, $\alpha$, of mass in the subsampling probability, i.e. $P(M) = (M/M_0)^\alpha$ for $M &lt; M_0$.</description>
     </inputParameter>
+    <inputParameter>
+      <name>factorMassGrowthConsolidate</name>
+      <source>parameters</source>
+      <description>The maximum factor by which the mass is allowed to grow between child and parent when consolidating nodes. A non-positive value prevents consolidation.</description>
+    </inputParameter>
     !!]
-    self=mergerTreeBuildControllerSubsample(massThreshold,subsamplingRateAtThreshold,exponent)
+    self=mergerTreeBuildControllerSubsample(massThreshold,subsamplingRateAtThreshold,exponent,factorMassGrowthConsolidate)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
     return
   end function subsampleConstructorParameters
 
-  function subsampleConstructorInternal(massThreshold,subsamplingRateAtThreshold,exponent) result(self)
+  function subsampleConstructorInternal(massThreshold,subsamplingRateAtThreshold,exponent,factorMassGrowthConsolidate) result(self)
     !!{
     Internal constructor for the ``subsample'' merger tree build controller class.
     !!}
     implicit none
     type            (mergerTreeBuildControllerSubsample)                :: self
     double precision                                    , intent(in   ) :: massThreshold, subsamplingRateAtThreshold, &
-         &                                                                 exponent
+         &                                                                 exponent     , factorMassGrowthConsolidate
     !![
-    <constructorAssign variables="massThreshold, subsamplingRateAtThreshold, exponent"/>
+    <constructorAssign variables="massThreshold, subsamplingRateAtThreshold, exponent, factorMassGrowthConsolidate"/>
     !!]
     
     return
@@ -112,44 +122,96 @@ contains
     class           (mergerTreeBuildControllerSubsample), intent(inout)          :: self    
     type            (treeNode                          ), intent(inout), pointer :: node
     class           (mergerTreeWalkerClass             ), intent(inout)          :: treeWalker_
-    type            (treeNode                          )               , pointer :: nodeNext       , nodeChild
-    class           (nodeComponentBasic                )               , pointer :: basic
+    type            (treeNode                          )               , pointer :: nodeNext       , nodeChild, &
+         &                                                                          nodeParent
+    class           (nodeComponentBasic                )               , pointer :: basic          , basicParent
     double precision                                                             :: rateSubsampling
+    integer         (c_size_t                          )                         :: countNodes
+    logical                                                                      :: finished
 
-    controlSubsample=.true.
-    ! Root node is not eligible for pruning.
-    if (.not.associated(node%parent)) return
-    ! Set the subsampling weight for this node to equal that of its parent.
-    call node%subsamplingWeightSet(node%parent%subsamplingWeight())
-    ! Primary progenitors are not eligible for pruning.
-    if (node%isPrimaryProgenitor()) return
-    ! Nodes above the mass threshold are not eligible for pruning.
-    basic => node%basic()
-    if (basic%mass() >= self%massThreshold) return
-    ! Compute subsampling rate, perform sampling.
-    rateSubsampling=+self%subsamplingRateAtThreshold &
-         &          *(                               &
-         &            +basic%mass         ()         &
-         &            /self %massThreshold           &
-         &           )**self%exponent
-    if (node%hostTree%randomNumberGenerator_%uniformSample() < rateSubsampling) then
-       ! Node is to be kept - increase its weight to account for corresponding branches which will have been lost.
-       call node%subsamplingWeightSet(node%subsamplingWeight()/rateSubsampling)
-    else
-       ! Prune the node.
-       !! Get the next node to walk to in the tree.
-       controlSubsample=treeWalker_%next(nodeNext)
-       !! Decouple the node from the tree.
-       nodeChild => node%parent%firstChild
-       do while (.not.associated(nodeChild%sibling,node))
-          nodeChild => nodeChild%sibling
-       end do
-       nodeChild%sibling => node%sibling
-       ! Destroy and deallocate the node.
-       call node%destroy()
-       deallocate(node)
-       ! Set the current node to the next node in the tree walk.
-       node => nodeNext
-    end if
+    ! The node which we return to the tree builder must be one that we have determined will not be pruned, since this node will be
+    ! fully-processed by the tree builder. Therefore, if we prune a node which must check for pruning of the next node, and so on
+    ! until we reach a node that is not pruned.
+    finished=.false.
+    do while (.not.finished)
+       finished        =.true.
+       controlSubsample=.true.
+       ! Root node is not eligible for pruning.
+       if (.not.associated(node%parent)) return
+       ! Set the subsampling weight for this node to equal that of its parent.
+       call node%subsamplingWeightSet(node%parent%subsamplingWeight())
+       ! Primary progenitors are not eligible for pruning.
+       if (node%isPrimaryProgenitor()) return
+       ! Nodes above the mass threshold are not eligible for pruning.
+       basic => node%basic()
+       if (basic%mass() >= self%massThreshold) return
+       ! Compute subsampling rate, perform sampling.
+       rateSubsampling=+self%subsamplingRateAtThreshold &
+            &          *(                               &
+            &            +basic%mass         ()         &
+            &            /self %massThreshold           &
+            &           )**self%exponent
+       if (node%hostTree%randomNumberGenerator_%uniformSample() < rateSubsampling) then
+          ! Node is to be kept - increase its weight to account for corresponding branches which will have been lost.
+          call node%subsamplingWeightSet(node%subsamplingWeight()/rateSubsampling)
+       else
+          ! Prune the node.
+          !! Get the next node to walk to in the tree.
+          controlSubsample=treeWalker_%next(nodeNext)
+          !! Decouple the node from the tree.
+          nodeParent => node      %parent
+          nodeChild  => nodeParent%firstChild
+          do while (.not.associated(nodeChild%sibling,node))
+             nodeChild => nodeChild%sibling
+          end do
+          nodeChild%sibling => node%sibling
+          ! Destroy and deallocate the node.
+          call node%destroy()
+          deallocate(node)
+          ! Set the current node to the next node in the tree walk.
+          node => nodeNext
+          ! Determine if we can consolidate any nodes down the parent branch.
+          if (self%factorMassGrowthConsolidate > 0.0d0) then
+             ! Seek down through the branch until which find a node which either has a sibling (so can't be consolidated), or
+             ! which has a mass sufficiently different from that of the starting node. Count how many such nodes we find.
+             nodeChild   => nodeParent%firstChild
+             basic       => nodeChild %basic     ()
+             basicParent => nodeParent%basic     ()
+             countNodes  =  0_c_size_t          
+             do while (                                                              &
+                  &         associated(nodeChild%firstChild)                         &
+                  &    .and.                                                         &
+                  &    .not.associated(nodeChild%sibling   )                         &
+                  &    .and.                                                         &
+                  &      basic      %mass()*(1.0d0+self%factorMassGrowthConsolidate) &
+                  &     >                                                            &
+                  &      basicParent%mass()                                          &
+                  &   )
+                nodeChild => nodeChild%firstChild
+                basic => nodeChild%basic()
+                countNodes=countNodes+1_c_size_t
+             end do
+             ! If we have found nodes that can be consolidated, remove the intervening nodes.
+             if (countNodes > 0_c_size_t) then
+                nodeChild => nodeParent%firstChild
+                do while (countNodes > 0_c_size_t)
+                   nodeNext => nodeChild%firstChild
+                   call nodeChild%destroy()
+                   deallocate(nodeChild)
+                   countNodes = countNodes-1_c_size_t
+                   nodeChild => nodeNext
+                end do
+                nodeParent%firstChild => nodeChild
+                nodeChild %parent     => nodeParent
+                do while (associated(nodeChild%sibling))
+                   nodeChild        => nodeChild %sibling
+                   nodeChild%parent => nodeParent
+                end do
+             end if
+          end if
+          ! We pruned a node. Therefore, if a next node was found we must now check whether we want to prune it too.
+          finished=.not.controlSubsample
+       end if
+    end do
     return
   end function controlSubsample
