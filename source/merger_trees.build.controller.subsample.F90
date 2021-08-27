@@ -89,6 +89,7 @@ contains
       <name>factorMassGrowthConsolidate</name>
       <source>parameters</source>
       <description>The maximum factor by which the mass is allowed to grow between child and parent when consolidating nodes. A non-positive value prevents consolidation.</description>
+      <defaultValue>0.0d0</defaultValue>
     </inputParameter>
     !!]
     self=mergerTreeBuildControllerSubsample(massThreshold,subsamplingRateAtThreshold,exponent,factorMassGrowthConsolidate)
