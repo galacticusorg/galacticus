@@ -140,7 +140,8 @@ contains
     type is (nodeComponentDisk)
        ! Disk does not yet exist.
     class default
-       self%fractionMassRetainedFinal=1.0d0
+       self%fractionMassRetainedInitial=1.0d0
+       self%fractionMassRetainedFinal  =1.0d0
        if (disk%fractionMassRetainedIsSettable()) call disk%fractionMassRetainedSet(1.0d0)
     end select
     return
