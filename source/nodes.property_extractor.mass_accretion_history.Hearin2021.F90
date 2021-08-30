@@ -130,11 +130,9 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(massAccretionHistoryHearin2021Names(3))
-    massAccretionHistoryHearin2021Names=[                                                &
-         &                               var_str('treeMAHHearin2021PowerLawIndexEarly'), &
-         &                               var_str('treeMAHHearin2021PowerLawIndexLate' ), &
-         &                               var_str('treeMAHHearin2021Log10TimeZero'     )  &
-         &                              ]
+    massAccretionHistoryHearin2021Names(1)='treeMAHHearin2021PowerLawIndexEarly'
+    massAccretionHistoryHearin2021Names(2)='treeMAHHearin2021PowerLawIndexLate'
+    massAccretionHistoryHearin2021Names(3)='treeMAHHearin2021Log10TimeZero'
     return
   end function massAccretionHistoryHearin2021Names
 
@@ -149,11 +147,9 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(massAccretionHistoryHearin2021Descriptions(3))
-    massAccretionHistoryHearin2021Descriptions=[                                                                                                         &
-         &                                      var_str('Early-time power-law index in the Hearin et al. (2021) mass accretion hsitory for this tree.'), &
-         &                                      var_str('Late-time power-law index in the Hearin et al. (2021) mass accretion hsitory for this tree.' ), &
-         &                                      var_str('Parameter log₁₀t₀ in the Hearin et al. (2021) mass accretion hsitory for this tree.'         )  &
-         &                                     ]
+    massAccretionHistoryHearin2021Descriptions(1)='Early-time power-law index in the Hearin et al. (2021) mass accretion history for this tree.'
+    massAccretionHistoryHearin2021Descriptions(2)='Late-time power-law index in the Hearin et al. (2021) mass accretion history for this tree.'
+    massAccretionHistoryHearin2021Descriptions(3)='Parameter log₁₀t₀ in the Hearin et al. (2021) mass accretion history for this tree.'
     return
   end function massAccretionHistoryHearin2021Descriptions
 
