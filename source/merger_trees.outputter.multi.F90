@@ -86,6 +86,9 @@ contains
        <objectBuilder class="mergerTreeOutputter" name="outputter_%outputter_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="mergerTreeOutputter"/>
+    !!]
     return
   end function multiConstructorParameters
 

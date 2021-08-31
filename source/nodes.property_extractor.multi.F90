@@ -115,6 +115,9 @@ contains
        <objectBuilder class="nodePropertyExtractor" name="extractor_%extractor_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="nodePropertyExtractor"/>
+    !!]
     return
   end function multiConstructorParameters
 

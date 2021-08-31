@@ -83,6 +83,9 @@ contains
        <objectBuilder class="nbodyOperator" name="operator_%operator_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="nbodyOperator"/>
+    !!]
     return
   end function sequenceConstructorParameters
 

@@ -84,6 +84,9 @@ contains
        <objectBuilder class="outputAnalysisDistributionNormalizer" name="normalizer_%normalizer_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="outputAnalysisDistributionNormalizer"/>
+    !!]
     return
   end function sequenceConstructorParameters
 

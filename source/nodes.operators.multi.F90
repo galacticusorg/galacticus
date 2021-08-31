@@ -93,6 +93,9 @@ contains
        <objectBuilder class="nodeOperator" name="process_%process_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="nodeOperator"/>
+    !!]
     return
   end function multiConstructorParameters
 

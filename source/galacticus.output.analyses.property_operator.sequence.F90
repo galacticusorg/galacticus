@@ -91,6 +91,9 @@ contains
        <objectBuilder class="outputAnalysisPropertyOperator" name="operator_%operator_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="outputAnalysisPropertyOperator"/>
+    !!]
     return
   end function sequenceConstructorParameters
 

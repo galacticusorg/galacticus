@@ -89,6 +89,9 @@ contains
        <objectBuilder class="outputAnalysisWeightOperator" name="operator_%operator_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="outputAnalysisWeightOperator"/>
+    !!]
     return
   end function sequenceConstructorParameters
 

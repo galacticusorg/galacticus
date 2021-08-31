@@ -78,6 +78,9 @@ contains
        <objectBuilder class="mergerTreeFilter" name="filter_%filter_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="mergerTreeFilter"/>
+    !!]
     return
   end function anyConstructorParameters
 

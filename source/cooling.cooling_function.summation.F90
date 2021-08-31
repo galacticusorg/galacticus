@@ -87,6 +87,9 @@ contains
        <objectBuilder class="coolingFunction" name="coolant%coolingFunction" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="coolingFunction"/>
+    !!]
     return
   end function summationConstructorParameters
 

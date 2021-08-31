@@ -85,6 +85,9 @@ contains
        <objectBuilder class="darkMatterProfileHeating" name="heatSource%heatSource" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="darkMatterProfileHeating"/>
+    !!]
     return
   end function summationConstructorParameters
 

@@ -85,6 +85,9 @@ contains
        <objectBuilder class="mergerTreeOperator" name="operator_%operator_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="mergerTreeOperator"/>
+    !!]
     return
   end function sequenceConstructorParameters
 

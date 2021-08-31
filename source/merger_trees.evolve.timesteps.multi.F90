@@ -83,6 +83,9 @@ contains
        <objectBuilder class="mergerTreeEvolveTimestep" name="mergerTreeEvolveTimestep_%mergerTreeEvolveTimestep_" source="parameters" copy="i"/>
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="mergerTreeEvolveTimestep"/>
+    !!]
     return
   end function multiConstructorParameters
 

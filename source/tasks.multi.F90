@@ -80,6 +80,9 @@ contains
        <objectBuilder class="task" name="task_%task_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="task"/>
+    !!]
     return
   end function multiConstructorParameters
 

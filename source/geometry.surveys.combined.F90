@@ -82,6 +82,9 @@ contains
        <objectBuilder class="surveyGeometry" name="surveyGeometry_%surveyGeometry_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="surveyGeometry"/>
+    !!]
     return
   end function combinedConstructorParameters
 

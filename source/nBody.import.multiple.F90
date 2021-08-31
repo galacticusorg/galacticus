@@ -79,6 +79,9 @@ contains
        <objectBuilder class="nbodyImporter" name="importer_%importer_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="nbodyImporter"/>
+    !!]
     return
   end function multipleConstructorParameters
 

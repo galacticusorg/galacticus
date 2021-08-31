@@ -86,6 +86,8 @@ program Galacticus
   call System_Limits_Set                        (parameters)
   ! Show the Galacticus banner.
   call Galacticus_Banner_Show()
+  ! Validate parameter file.
+  call parameters%checkParameters()
   ! Perform task.
   !![
   <objectBuilder class="task" name="task_" source="parameters"/>
