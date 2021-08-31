@@ -158,11 +158,9 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(peakHeightNames(3))
-    peakHeightNames=[                                              &
-         &           var_str('criticalOverdensityLastIsolated'  ), &
-         &           var_str('haloSigma'                        ), &
-         &           var_str('haloPeakHeightNu'                 )  &
-         &          ]
+    peakHeightNames(1)=var_str('criticalOverdensityLastIsolated'  )
+    peakHeightNames(2)=var_str('haloSigma'                        )
+    peakHeightNames(3)=var_str('haloPeakHeightNu'                 )
     return
   end function peakHeightNames
 
@@ -177,11 +175,9 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(peakHeightDescriptions(3))
-    peakHeightDescriptions=[                                                                              &
-         &                  var_str('Critical overdensity at the time when the halo was last isolated.'), &
-         &                  var_str('The mass fluctuation on the scale of the halo.'                   ), &
-         &                  var_str('The peak height, ν, of the halo.'                                 )  &
-         &                 ]
+    peakHeightDescriptions(1)=var_str('Critical overdensity at the time when the halo was last isolated.')
+    peakHeightDescriptions(2)=var_str('The mass fluctuation on the scale of the halo.'                   )
+    peakHeightDescriptions(3)=var_str('The peak height, ν, of the halo.'                                 )
     return
   end function peakHeightDescriptions
 

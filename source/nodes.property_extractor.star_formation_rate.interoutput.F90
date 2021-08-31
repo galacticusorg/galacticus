@@ -144,10 +144,8 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(starFormationRateInterOutputNames(2))
-    starFormationRateInterOutputNames=[                                                     &
-         &                             var_str(    'diskStarFormationRateInterOutputMean'), &
-         &                             var_str('spheroidStarFormationRateInterOutputMean')  &
-         &                            ]
+    starFormationRateInterOutputNames(1)=var_str(    'diskStarFormationRateInterOutputMean')
+    starFormationRateInterOutputNames(2)=var_str('spheroidStarFormationRateInterOutputMean')
     return
   end function starFormationRateInterOutputNames
 
@@ -162,10 +160,8 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(starFormationRateInterOutputDescriptions(2))
-    starFormationRateInterOutputDescriptions=[                                                                                                  &
-         &                                    var_str('Mean star formation rate in the disk between this output and the previous output.'    ), &
-         &                                    var_str('Mean star formation rate in the spheroid between this output and the previous output.')  &
-         &                                   ]
+    starFormationRateInterOutputDescriptions(1)=var_str('Mean star formation rate in the disk between this output and the previous output.'    )
+    starFormationRateInterOutputDescriptions(2)=var_str('Mean star formation rate in the spheroid between this output and the previous output.')
     return
   end function starFormationRateInterOutputDescriptions
 

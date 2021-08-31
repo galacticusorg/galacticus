@@ -146,10 +146,8 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(haloEnvironmentNames(2))
-    haloEnvironmentNames=[                                                &
-         &                var_str('haloEnvironmentOverdensityLinear'   ), &
-         &                var_str('haloEnvironmentOverdensityNonLinear')  &
-         &               ]
+    haloEnvironmentNames(1)=var_str('haloEnvironmentOverdensityLinear'   )
+    haloEnvironmentNames(2)=var_str('haloEnvironmentOverdensityNonLinear')
     return
   end function haloEnvironmentNames
 
@@ -164,10 +162,8 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(haloEnvironmentDescriptions(2))
-    haloEnvironmentDescriptions=[                                                                 &
-         &                       var_str('Environmental linear overdensity of the halo [].'    ), &
-         &                       var_str('Environmental non-linear overdensity of the halo [].')  &
-         &                      ]
+    haloEnvironmentDescriptions(1)=var_str('Environmental linear overdensity of the halo [].'    )
+    haloEnvironmentDescriptions(2)=var_str('Environmental non-linear overdensity of the halo [].')
     return
   end function haloEnvironmentDescriptions
 

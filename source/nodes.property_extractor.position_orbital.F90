@@ -141,11 +141,9 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(positionOrbitalNames(3))
-    positionOrbitalNames=[                             &
-         &                var_str('positionOrbitalX'), &
-         &                var_str('positionOrbitalY'), &
-         &                var_str('positionOrbitalZ')  &
-         &               ]
+    positionOrbitalNames(1)=var_str('positionOrbitalX')
+    positionOrbitalNames(2)=var_str('positionOrbitalY')
+    positionOrbitalNames(3)=var_str('positionOrbitalZ')
     return
   end function positionOrbitalNames
 
@@ -160,11 +158,9 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(positionOrbitalDescriptions(3))
-    positionOrbitalDescriptions=[                                                                                                                                              &
-         &                       var_str('The orbital x-position of the halo relative to the top-level host halo (i.e. the host which is not a sub-halo of any other halo).'), &
-         &                       var_str('The orbital y-position of the halo relative to the top-level host halo (i.e. the host which is not a sub-halo of any other halo).'), &
-         &                       var_str('The orbital z-position of the halo relative to the top-level host halo (i.e. the host which is not a sub-halo of any other halo).')  &
-         &                      ]
+    positionOrbitalDescriptions(1)=var_str('The orbital x-position of the halo relative to the top-level host halo (i.e. the host which is not a sub-halo of any other halo).')
+    positionOrbitalDescriptions(2)=var_str('The orbital y-position of the halo relative to the top-level host halo (i.e. the host which is not a sub-halo of any other halo).')
+    positionOrbitalDescriptions(3)=var_str('The orbital z-position of the halo relative to the top-level host halo (i.e. the host which is not a sub-halo of any other halo).')
     return
   end function positionOrbitalDescriptions
 

@@ -183,8 +183,14 @@ contains
     !$GLC attributes unused :: time
 
     allocate(satelliteOrbitalExtremaNames(self%elementCount_))
-    if (self%extractPericenter) satelliteOrbitalExtremaNames(self%offsetPericenter:self%offsetPericenter+1)=[var_str('satellitePericenterRadius'),var_str('satellitePericenterVelocity')]
-    if (self%extractApocenter ) satelliteOrbitalExtremaNames(self%offsetApocenter :self%offsetApocenter +1)=[var_str('satelliteApocenterRadius'),var_str('satelliteApocenterVelocity')]
+    if (self%extractPericenter) then
+       satelliteOrbitalExtremaNames(self%offsetPericenter:self%offsetPericenter+0)=var_str('satellitePericenterRadius'  )
+       satelliteOrbitalExtremaNames(self%offsetPericenter:self%offsetPericenter+1)=var_str('satellitePericenterVelocity')
+    end if
+    if (self%extractApocenter ) then
+       satelliteOrbitalExtremaNames(self%offsetApocenter :self%offsetApocenter +0)=var_str('satelliteApocenterRadius'   )
+       satelliteOrbitalExtremaNames(self%offsetApocenter :self%offsetApocenter +1)=var_str('satelliteApocenterVelocity' )
+    end if
     return
   end function satelliteOrbitalExtremaNames
 
@@ -199,8 +205,14 @@ contains
     !$GLC attributes unused :: time
 
     allocate(satelliteOrbitalExtremaDescriptions(self%elementCount_))
-    if (self%extractPericenter) satelliteOrbitalExtremaDescriptions(self%offsetPericenter:self%offsetPericenter+1)=[var_str('Pericenteric radius of satellite orbit [Mpc].'),var_str('Pericenteric velocity of satellite orbit [km/s].')]
-    if (self%extractApocenter ) satelliteOrbitalExtremaDescriptions(self%offsetApocenter :self%offsetApocenter +1)=[var_str('Apocenteric radius of satellite orbit [Mpc].' ),var_str('Apocenteric velocity of satellite orbit [km/s].' )]
+    if (self%extractPericenter) then
+       satelliteOrbitalExtremaDescriptions(self%offsetPericenter:self%offsetPericenter+0)=var_str('Pericenteric radius of satellite orbit [Mpc].'   )
+       satelliteOrbitalExtremaDescriptions(self%offsetPericenter:self%offsetPericenter+1)=var_str('Pericenteric velocity of satellite orbit [km/s].')
+    end if
+    if (self%extractApocenter ) then
+       satelliteOrbitalExtremaDescriptions(self%offsetApocenter :self%offsetApocenter +0)=var_str('Apocenteric radius of satellite orbit [Mpc].'    )
+       satelliteOrbitalExtremaDescriptions(self%offsetApocenter :self%offsetApocenter +1)=var_str('Apocenteric velocity of satellite orbit [km/s].' )
+    end if
     return
   end function satelliteOrbitalExtremaDescriptions
 

@@ -129,10 +129,8 @@ contains
     do i=1,unitStellarLuminosities%luminosityCount()
        if (unitStellarLuminosities%isOutput(i,time)) then
           j=j+1
-          radiiHalfLightPropertiesNames(2*j+1:2*j+2)=[                                                             &
-               &                                      var_str('halfLightRadius')//unitStellarLuminosities%name(i), &
-               &                                      var_str('halfLightMass'  )//unitStellarLuminosities%name(i)  &
-               &                                     ]
+          radiiHalfLightPropertiesNames(2*j+1)=var_str('halfLightRadius')//unitStellarLuminosities%name(i)
+          radiiHalfLightPropertiesNames(2*j+2)=var_str('halfLightMass'  )//unitStellarLuminosities%name(i)
        end if
     end do
     return
@@ -152,10 +150,8 @@ contains
 
     allocate(radiiHalfLightPropertiesDescriptions(2*unitStellarLuminosities%luminosityOutputCount(time)))
     do i=0,unitStellarLuminosities%luminosityOutputCount(time)-1
-       radiiHalfLightPropertiesDescriptions(2*i+1:2*i+2)=[                                                                   &
-            &                                             var_str('Radius enclosing half the galaxy light [Mpc]'          ), &
-            &                                             var_str('Mass enclosed within the galaxy half-light radius [M☉]')  &
-            &                                            ]
+       radiiHalfLightPropertiesDescriptions(2*i+1)=var_str('Radius enclosing half the galaxy light [Mpc]'          )
+       radiiHalfLightPropertiesDescriptions(2*i+2)=var_str('Mass enclosed within the galaxy half-light radius [M☉]')
     end do
     return
   end function radiiHalfLightPropertiesDescriptions

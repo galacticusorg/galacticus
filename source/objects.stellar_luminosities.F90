@@ -1300,8 +1300,12 @@ contains
              luminosityRedshift       (i:i+2)=luminosityRedshiftTmp      (i)
              luminosityBandRedshift   (i:i+2)=luminosityBandRedshiftTmp  (i)
              luminosityPostprocessSet (i:i+2)=luminosityPostprocessSetTmp(i)
-             luminosityFilter         (i:i+2)=[var_str("Lyc" ),var_str("HeliumContinuum"),var_str("OxygenContinuum")]
-             luminosityType           (i:i+2)=[        "rest" ,        "rest"            ,        "rest"            ]
+             luminosityFilter         (  i+0)=var_str("Lyc"            )
+             luminosityFilter         (  i+1)=var_str("HeliumContinuum")
+             luminosityFilter         (  i+2)=var_str("OxygenContinuum")
+             luminosityType           (  i+0)=var_str("rest"           )
+             luminosityType           (  i+1)=var_str("rest"           )
+             luminosityType           (  i+2)=var_str("rest"           )
        end if
        ! Arrays of top-hat filters.
        if (extract(luminosityFilter(i),1,27) == "fixedResolutionTopHatArray_") then

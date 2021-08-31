@@ -178,9 +178,12 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(spinBullockNames(self%elementCount_))
-    spinBullockNames(1)         = var_str('spinBullock' )
-    if (self%vectorSpinAvailable)                                                                          &
-         & spinBullockNames(2:4)=[var_str('spinBullockX'),var_str('spinBullockY'),var_str('spinBullockZ')]
+    spinBullockNames    (1)=var_str('spinBullock' )
+    if (self%vectorSpinAvailable) then
+        spinBullockNames(2)=var_str('spinBullockX')
+        spinBullockNames(3)=var_str('spinBullockY')
+        spinBullockNames(4)=var_str('spinBullockZ')
+     end if
     return
   end function spinBullockNames
 
@@ -195,13 +198,12 @@ contains
     !$GLC attributes unused :: time
 
     allocate(spinBullockDescriptions(self%elementCount_))
-    spinBullockDescriptions       (1  )= var_str('Spin parameter of the halo under the Bullock et al. (2001) definition [].'                   )
-    if (self%vectorSpinAvailable)                                                                                                                 &
-         & spinBullockDescriptions(2:4)=[                                                                                                         &
-         &                               var_str('x-component of the spin parameter of the halo under the Bullock et al. (2001) definition [].'), &
-         &                               var_str('y-component of the spin parameter of the halo under the Bullock et al. (2001) definition [].'), &
-         &                               var_str('z-component of the spin parameter of the halo under the Bullock et al. (2001) definition [].')  &
-         &                              ]
+    spinBullockDescriptions    (1)=var_str('Spin parameter of the halo under the Bullock et al. (2001) definition [].'                   )
+    if (self%vectorSpinAvailable) then
+        spinBullockDescriptions(2)=var_str('x-component of the spin parameter of the halo under the Bullock et al. (2001) definition [].')
+        spinBullockDescriptions(3)=var_str('y-component of the spin parameter of the halo under the Bullock et al. (2001) definition [].')
+        spinBullockDescriptions(4)=var_str('z-component of the spin parameter of the halo under the Bullock et al. (2001) definition [].')
+     end if
     return
   end function spinBullockDescriptions
 

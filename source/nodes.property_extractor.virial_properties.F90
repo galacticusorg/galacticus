@@ -149,10 +149,8 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(virialPropertiesNames(2))
-    virialPropertiesNames=[                                         &
-         &                 var_str('darkMatterOnlyRadiusVirial'  ), &
-         &                 var_str('darkMatterOnlyVelocityVirial')  &
-         &                 ]
+    virialPropertiesNames(1)=var_str('darkMatterOnlyRadiusVirial'  )
+    virialPropertiesNames(2)=var_str('darkMatterOnlyVelocityVirial')
     return
   end function virialPropertiesNames
 
@@ -167,10 +165,8 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(virialPropertiesDescriptions(2))
-    virialPropertiesDescriptions=[                                                                 &
-         &                        var_str('Virial radius of the dark matter only node [Mpc].'   ), &
-         &                        var_str('Virial velocity of the dark matter only node [km/s].')  &
-         &                       ]
+    virialPropertiesDescriptions(1)=var_str('Virial radius of the dark matter only node [Mpc].'   )
+    virialPropertiesDescriptions(2)=var_str('Virial velocity of the dark matter only node [km/s].')
     return
   end function virialPropertiesDescriptions
 

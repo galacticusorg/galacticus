@@ -177,10 +177,8 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(agesStellarMassWeightedNames(2))
-    agesStellarMassWeightedNames=[                                           &
-         &                        var_str('diskAgeStellarMassWeighted'    ), &
-         &                        var_str('spheroidAgeStellarMassWeighted')  &
-         &                       ]
+    agesStellarMassWeightedNames(1)=var_str('diskAgeStellarMassWeighted'    )
+    agesStellarMassWeightedNames(2)=var_str('spheroidAgeStellarMassWeighted')
     return
   end function agesStellarMassWeightedNames
 
@@ -195,10 +193,8 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(agesStellarMassWeightedDescriptions(2))
-    agesStellarMassWeightedDescriptions=[                                                             &
-         &                               var_str('Stellar mass-weighted age of the disk [Gyr].'    ), &
-         &                               var_str('Stellar mass-weighted age of the spehroid [Mpc].')  &
-         &                              ]
+    agesStellarMassWeightedDescriptions(1)=var_str('Stellar mass-weighted age of the disk [Gyr].'    )
+    agesStellarMassWeightedDescriptions(2)=var_str('Stellar mass-weighted age of the spehroid [Mpc].')
     return
   end function agesStellarMassWeightedDescriptions
 

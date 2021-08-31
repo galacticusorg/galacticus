@@ -148,13 +148,11 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(nodeIndicesNames(5))
-    nodeIndicesNames=[                           &
-         &            var_str('nodeIndex'     ), &
-         &            var_str('parentIndex'   ), &
-         &            var_str('siblingIndex'  ), &
-         &            var_str('satelliteIndex'), &
-         &            var_str('nodeIsIsolated')  &
-         &           ]
+    nodeIndicesNames(1)=var_str('nodeIndex'     )
+    nodeIndicesNames(2)=var_str('parentIndex'   )
+    nodeIndicesNames(3)=var_str('siblingIndex'  )
+    nodeIndicesNames(4)=var_str('satelliteIndex')
+    nodeIndicesNames(5)=var_str('nodeIsIsolated')
     return
   end function nodeIndicesNames
 
@@ -169,13 +167,11 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(nodeIndicesDescriptions(5))
-    nodeIndicesDescriptions=[                                          &
-         &                   var_str('Tree-unique ID for this node.'), &
-         &                   var_str('ID of parent node.'           ), &
-         &                   var_str('ID of sibling node.'          ), &
-         &                   var_str('ID of first satellite node.'  ), &
-         &                   var_str('Is the node isolated (0|1)?'  )  &
-         &                  ]
+    nodeIndicesDescriptions(1)=var_str('Tree-unique ID for this node.')
+    nodeIndicesDescriptions(2)=var_str('ID of parent node.'           )
+    nodeIndicesDescriptions(3)=var_str('ID of sibling node.'          )
+    nodeIndicesDescriptions(4)=var_str('ID of first satellite node.'  )
+    nodeIndicesDescriptions(5)=var_str('Is the node isolated (0|1)?'  )
     return
   end function nodeIndicesDescriptions
 
