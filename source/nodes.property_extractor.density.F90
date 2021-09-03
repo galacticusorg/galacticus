@@ -277,20 +277,20 @@ contains
     return
   end function densityProfileDescriptions
 
-  function densityProfileColumnDescriptions(self,time)
+  subroutine densityProfileColumnDescriptions(self,time,descriptions)
     !!{
     Return column descriptions of the {\normalfont \ttfamily densityProfile} property.
     !!}
     implicit none
-    type            (varying_string                     ), dimension(:) , allocatable :: densityProfileColumnDescriptions
-    class           (nodePropertyExtractorDensityProfile), intent(inout)              :: self
-    double precision                                     , intent(in   )              :: time
+    class           (nodePropertyExtractorDensityProfile), intent(inout)                             :: self
+    double precision                                     , intent(in   )                             :: time
+    type            (varying_string                     ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
-    allocate(densityProfileColumnDescriptions(self%radiiCount))
-    densityProfileColumnDescriptions=self%radii%name
+    allocate(descriptions(self%radiiCount))
+    descriptions=self%radii%name
     return
-  end function densityProfileColumnDescriptions
+  end subroutine densityProfileColumnDescriptions
 
   function densityProfileUnitsInSI(self,time)
     !!{

@@ -450,21 +450,21 @@ contains
     return
   end function sedWavelengths
 
-  function sedColumnDescriptions(self,time)
+  subroutine sedColumnDescriptions(self,time,descriptions)
     !!{
     Return column descriptions of the {\normalfont \ttfamily sed} property.
     !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    type            (varying_string          ), dimension(:) , allocatable :: sedColumnDescriptions
-    class           (nodePropertyExtractorSED), intent(inout)              :: self
-    double precision                          , intent(in   )              :: time
-    double precision                          , dimension(:) , allocatable :: wavelengths
-    integer         (c_size_t                )                             :: i
-    character       (len=18                  )                             :: label
+    class           (nodePropertyExtractorSED), intent(inout)                            :: self
+    double precision                          , intent(in   )                            :: time
+    type            (varying_string          ), intent(inout), dimension(:), allocatable :: descriptions
+    double precision                          , dimension(:) , allocatable               :: wavelengths
+    integer         (c_size_t                )                                           :: i
+    character       (len=18                  )                                           :: label
     
-    allocate(sedColumnDescriptions(self%size(time)))
-    allocate(          wavelengths(self%size(time)))
+    allocate(descriptions(self%size(time)))
+    allocate(wavelengths (self%size(time)))
     wavelengths=self%wavelengths(time)
     !![
     <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
@@ -474,15 +474,15 @@ contains
 #ifdef THREADSAFEIO
     !$omp critical(gfortranInternalIO)
 #endif
-    do i=1,size(sedColumnDescriptions)      
+    do i=1,size(descriptions)      
        write (label,'(a2,1x,e12.6,1x,a1)') "λ=",wavelengths(i),"Å"
-       sedColumnDescriptions(i)=trim(label)
+       descriptions(i)=trim(label)
     end do
 #ifdef THREADSAFEIO
     !$omp end critical(gfortranInternalIO)
 #endif
     return
-  end function sedColumnDescriptions
+  end subroutine sedColumnDescriptions
 
   function sedUnitsInSI(self,time)
     !!{

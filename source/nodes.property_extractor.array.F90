@@ -39,7 +39,7 @@
        <method method="unitsInSI"          description="Return the units of the properties extracted in the SI system."     />
      </methods>
      !!]
-     procedure(arrayNames       ), deferred :: columnDescriptions
+     procedure(arrayColumns     ), deferred :: columnDescriptions
      procedure(arraySize        ), deferred :: size
      procedure(arrayElementCount), deferred :: elementCount
      procedure(arrayExtract     ), deferred :: extract
@@ -72,6 +72,18 @@
        class           (nodePropertyExtractorArray), intent(inout)               :: self
        double precision                            , intent(in   )               :: time
      end function arrayNames
+  end interface
+
+  abstract interface
+     subroutine arrayColumns(self,time,descriptions)
+       !!{
+       Interface for array column descriptions.
+       !!}
+       import varying_string, nodePropertyExtractorArray
+       class           (nodePropertyExtractorArray), intent(inout)                            :: self
+       double precision                            , intent(in   )                            :: time
+       type            (varying_string            ), intent(inout), allocatable, dimension(:) :: descriptions
+    end subroutine arrayColumns
   end interface
 
   abstract interface

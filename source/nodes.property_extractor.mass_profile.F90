@@ -178,25 +178,25 @@ contains
     return
   end function massProfileDescriptions
 
-  function massProfileColumnDescriptions(self,time)
+  subroutine massProfileColumnDescriptions(self,time,descriptions)
     !!{
     Return column descriptions of the {\normalfont \ttfamily massProfile} property.
     !!}
     implicit none
-    type            (varying_string                  ), dimension(:) , allocatable :: massProfileColumnDescriptions
-    class           (nodePropertyExtractorMassProfile), intent(inout)              :: self
-    double precision                                  , intent(in   )              :: time
-    integer         (c_size_t                        )                             :: i
-    character       (len=22                          )                             :: name
+    class           (nodePropertyExtractorMassProfile), intent(inout)                             :: self
+    double precision                                  , intent(in   )                             :: time
+    type            (varying_string                  ), intent(inout), dimension(:) , allocatable :: descriptions
+    integer         (c_size_t                        )                                            :: i
+    character       (len=22                          )                                            :: name
     !$GLC attributes unused :: time
     
-    allocate(massProfileColumnDescriptions(self%radiiCount))
+    allocate(descriptions(self%radiiCount))
     do i=1,self%radiiCount
        write (name,'(a,e9.3,a)') 'r = ',self%radii(i),' Mpc'       
-       massProfileColumnDescriptions(i)=trim(adjustl(name))
+       descriptions(i)=trim(adjustl(name))
     end do
     return
-  end function massProfileColumnDescriptions
+  end subroutine massProfileColumnDescriptions
   
   function massProfileUnitsInSI(self,time)
     !!{

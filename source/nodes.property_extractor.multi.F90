@@ -426,8 +426,7 @@ contains
           if (elementType == elementTypeDouble ) then
              elementCount=extractor_%elementCount(time)
              if (offset+elementCount >= i) then
-                allocate(descriptions(extractor_%size(time)))
-                descriptions=extractor_%columnDescriptions(time)
+                call extractor_%columnDescriptions(time,descriptions)
                 return
              end if
           end if

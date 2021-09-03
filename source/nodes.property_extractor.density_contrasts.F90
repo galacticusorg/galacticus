@@ -300,25 +300,25 @@ contains
     return
   end function densityContrastsDescriptions
 
-  function densityContrastsColumnDescriptions(self,time)
+  subroutine densityContrastsColumnDescriptions(self,time,descriptions)
     !!{
     Return column descriptions of the {\normalfont \ttfamily densityContrasts} property.
     !!}
     implicit none
-    type            (varying_string                       ), dimension(:) , allocatable :: densityContrastsColumnDescriptions
-    class           (nodePropertyExtractorDensityContrasts), intent(inout)              :: self
-    double precision                                       , intent(in   )              :: time
-    character       (len=32                               )                             :: label
-    integer         (c_size_t                             )                             :: i
+    class           (nodePropertyExtractorDensityContrasts), intent(inout)                             :: self
+    double precision                                       , intent(in   )                             :: time
+    type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: descriptions
+    character       (len=32                               )                                            :: label
+    integer         (c_size_t                             )                                            :: i
     !$GLC attributes unused :: time
 
-    allocate(densityContrastsColumnDescriptions(self%countDensityContrasts))
+    allocate(descriptions(self%countDensityContrasts))
     do i=1,self%countDensityContrasts
        write (label,'(a2,f9.4)') 'Δ=',self%densityContrasts(i)
-       densityContrastsColumnDescriptions(i)=trim(label)
+       descriptions(i)=trim(label)
     end do
     return
-  end function densityContrastsColumnDescriptions
+  end subroutine densityContrastsColumnDescriptions
 
   function densityContrastsUnitsInSI(self,time)
     !!{

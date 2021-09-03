@@ -317,20 +317,20 @@ contains
     return
   end function projectedDensityDescriptions
 
-  function projectedDensityColumnDescriptions(self,time)
+  subroutine projectedDensityColumnDescriptions(self,time,descriptions)
     !!{
     Return column descriptions of the {\normalfont \ttfamily projectedDensity} property.
     !!}
     implicit none
-    type            (varying_string                       ), dimension(:) , allocatable :: projectedDensityColumnDescriptions
-    class           (nodePropertyExtractorProjectedDensity), intent(inout)              :: self
-    double precision                                       , intent(in   )              :: time
+    class           (nodePropertyExtractorProjectedDensity), intent(inout)                             :: self
+    double precision                                       , intent(in   )                             :: time
+    type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
-    allocate(projectedDensityColumnDescriptions(self%radiiCount))
-    projectedDensityColumnDescriptions=self%radii%name
+    allocate(descriptions(self%radiiCount))
+    descriptions=self%radii%name
     return
-  end function projectedDensityColumnDescriptions
+  end subroutine projectedDensityColumnDescriptions
 
   function projectedDensityUnitsInSI(self,time)
     !!{
