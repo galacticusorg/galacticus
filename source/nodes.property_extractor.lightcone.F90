@@ -312,35 +312,35 @@ contains
     return
   end subroutine lightconeAddInstances
 
-  function lightconeNames(self,time)
+  subroutine lightconeNames(self,time,names)
     !!{
     Return the names of the lightconeple properties.
     !!}
     implicit none
-    type            (varying_string                ), dimension(:) , allocatable :: lightconeNames
-    class           (nodePropertyExtractorLightcone), intent(inout)              :: self
-    double precision                                , intent(in   )              :: time
+    class           (nodePropertyExtractorLightcone), intent(inout)                             :: self
+    double precision                                , intent(in   )                             :: time
+    type            (varying_string                ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
 
-    allocate(lightconeNames(self%elementCount_))
-    lightconeNames=self%names_
+    allocate(names(self%elementCount_))
+    names=self%names_
     return
-  end function lightconeNames
+  end subroutine lightconeNames
 
-  function lightconeDescriptions(self,time)
+  subroutine lightconeDescriptions(self,time,descriptions)
     !!{
     Return the descriptions of the lightconeple properties.
     !!}
     implicit none
-    type            (varying_string                ), dimension(:) , allocatable :: lightconeDescriptions
-    class           (nodePropertyExtractorLightcone), intent(inout)              :: self
-    double precision                                , intent(in   )              :: time
+    class           (nodePropertyExtractorLightcone), intent(inout)                             :: self
+    double precision                                , intent(in   )                             :: time
+    type            (varying_string                ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
-    allocate(lightconeDescriptions(self%elementCount_))
-    lightconeDescriptions=self%descriptions_
+    allocate(descriptions(self%elementCount_))
+    descriptions=self%descriptions_
     return
-  end function lightconeDescriptions
+  end subroutine lightconeDescriptions
 
   function lightconeUnitsInSI(self,time)
     !!{

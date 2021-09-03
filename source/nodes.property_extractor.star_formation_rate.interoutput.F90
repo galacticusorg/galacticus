@@ -133,37 +133,37 @@ contains
     return
   end function starFormationRateInterOutputExtract
 
-  function starFormationRateInterOutputNames(self,time)
+  subroutine starFormationRateInterOutputNames(self,time,names)
     !!{
     Return the names of the {\normalfont \ttfamily starFormationRateInterOutput} properties.
     !!}
     implicit none
-    type            (varying_string                                   ), dimension(:) , allocatable :: starFormationRateInterOutputNames
-    class           (nodePropertyExtractorStarFormationRateInterOutput), intent(inout)              :: self
-    double precision                                                   , intent(in   )              :: time
+    class           (nodePropertyExtractorStarFormationRateInterOutput), intent(inout)                            :: self
+    double precision                                                   , intent(in   )                            :: time
+    type            (varying_string                                   ), intent(inout), dimension(:), allocatable :: names
     !$GLC attributes unused :: self, time
 
-    allocate(starFormationRateInterOutputNames(2))
-    starFormationRateInterOutputNames(1)=var_str(    'diskStarFormationRateInterOutputMean')
-    starFormationRateInterOutputNames(2)=var_str('spheroidStarFormationRateInterOutputMean')
+    allocate(names(2))
+    names(1)=var_str(    'diskStarFormationRateInterOutputMean')
+    names(2)=var_str('spheroidStarFormationRateInterOutputMean')
     return
-  end function starFormationRateInterOutputNames
+  end subroutine starFormationRateInterOutputNames
 
-  function starFormationRateInterOutputDescriptions(self,time)
+  subroutine starFormationRateInterOutputDescriptions(self,time,descriptions)
     !!{
     Return the descriptions of the {\normalfont \ttfamily starFormationRateInterOutput} properties.
     !!}
     implicit none
-    type            (varying_string                       ), dimension(:) , allocatable :: starFormationRateInterOutputDescriptions
-    class           (nodePropertyExtractorStarFormationRateInterOutput), intent(inout)              :: self
-    double precision                                       , intent(in   )              :: time
+    class           (nodePropertyExtractorStarFormationRateInterOutput), intent(inout)                             :: self
+    double precision                                                   , intent(in   )                             :: time
+    type            (varying_string                                   ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: self, time
 
-    allocate(starFormationRateInterOutputDescriptions(2))
-    starFormationRateInterOutputDescriptions(1)=var_str('Mean star formation rate in the disk between this output and the previous output.'    )
-    starFormationRateInterOutputDescriptions(2)=var_str('Mean star formation rate in the spheroid between this output and the previous output.')
+    allocate(descriptions(2))
+    descriptions(1)=var_str('Mean star formation rate in the disk between this output and the previous output.'    )
+    descriptions(2)=var_str('Mean star formation rate in the spheroid between this output and the previous output.')
     return
-  end function starFormationRateInterOutputDescriptions
+  end subroutine starFormationRateInterOutputDescriptions
 
   function starFormationRateInterOutputUnitsInSI(self,time)
     !!{

@@ -39,12 +39,12 @@
        <method method="unitsInSI"          description="Return the units of the properties extracted in the SI system."     />
      </methods>
      !!]
-     procedure(arrayColumns     ), deferred :: columnDescriptions
+     procedure(arrayDescriptions), deferred :: columnDescriptions
      procedure(arraySize        ), deferred :: size
      procedure(arrayElementCount), deferred :: elementCount
      procedure(arrayExtract     ), deferred :: extract
      procedure(arrayNames       ), deferred :: names
-     procedure(arrayNames       ), deferred :: descriptions
+     procedure(arrayDescriptions), deferred :: descriptions
      procedure(arrayUnitsInSI   ), deferred :: unitsInSI
   end type nodePropertyExtractorArray
 
@@ -63,27 +63,27 @@
   end interface
 
   abstract interface
-     function arrayNames(self,time)
+     subroutine arrayNames(self,time,names)
        !!{
-       Interface for array property names.
+       Interface for array names.
        !!}
        import varying_string, nodePropertyExtractorArray
-       type            (varying_string            ), allocatable  , dimension(:) :: arrayNames
-       class           (nodePropertyExtractorArray), intent(inout)               :: self
-       double precision                            , intent(in   )               :: time
-     end function arrayNames
+       class           (nodePropertyExtractorArray), intent(inout)                            :: self
+       double precision                            , intent(in   )                            :: time
+       type            (varying_string            ), intent(inout), allocatable, dimension(:) :: names
+    end subroutine arrayNames
   end interface
 
   abstract interface
-     subroutine arrayColumns(self,time,descriptions)
+     subroutine arrayDescriptions(self,time,descriptions)
        !!{
-       Interface for array column descriptions.
+       Interface for array descriptions.
        !!}
        import varying_string, nodePropertyExtractorArray
        class           (nodePropertyExtractorArray), intent(inout)                            :: self
        double precision                            , intent(in   )                            :: time
        type            (varying_string            ), intent(inout), allocatable, dimension(:) :: descriptions
-    end subroutine arrayColumns
+    end subroutine arrayDescriptions
   end interface
 
   abstract interface

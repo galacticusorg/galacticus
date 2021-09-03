@@ -283,39 +283,39 @@ contains
 
   end function projectedDensityExtract
 
-  function projectedDensityNames(self,time)
+  subroutine projectedDensityNames(self,time,names)
     !!{
     Return the names of the {\normalfont \ttfamily projectedDensity} properties.
     !!}
     implicit none
-    type            (varying_string                       ), dimension(:) , allocatable :: projectedDensityNames
-    class           (nodePropertyExtractorProjectedDensity), intent(inout)              :: self
-    double precision                                       , intent(in   )              :: time
+    class           (nodePropertyExtractorProjectedDensity), intent(inout)                             :: self
+    double precision                                       , intent(in   )                             :: time
+    type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
 
-    allocate(projectedDensityNames(self%elementCount_))
-    projectedDensityNames       (1)="projectedDensity"
+    allocate(names(self%elementCount_))
+    names       (1)="projectedDensity"
     if (self%includeRadii)                                   &
-         & projectedDensityNames(2)="projectedDensityRadius"
+         & names(2)="projectedDensityRadius"
     return
-  end function projectedDensityNames
+  end subroutine projectedDensityNames
 
-  function projectedDensityDescriptions(self,time)
+  subroutine projectedDensityDescriptions(self,time,descriptions)
     !!{
     Return descriptions of the {\normalfont \ttfamily projectedDensity} property.
     !!}
     implicit none
-    type            (varying_string                       ), dimension(:) , allocatable :: projectedDensityDescriptions
-    class           (nodePropertyExtractorProjectedDensity), intent(inout)              :: self
-    double precision                                       , intent(in   )              :: time
+    class           (nodePropertyExtractorProjectedDensity), intent(inout)                             :: self
+    double precision                                       , intent(in   )                             :: time
+    type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
-    allocate(projectedDensityDescriptions(self%elementCount_))
-    projectedDensityDescriptions       (1)="Projected density at a given radius [M☉/Mpc⁻²]."
+    allocate(descriptions(self%elementCount_))
+    descriptions       (1)="Projected density at a given radius [M☉/Mpc⁻²]."
     if (self%includeRadii)                                                                      &
-         & projectedDensityDescriptions(2)="Radius at which projected density is output [Mpc]."
+         & descriptions(2)="Radius at which projected density is output [Mpc]."
     return
-  end function projectedDensityDescriptions
+  end subroutine projectedDensityDescriptions
 
   subroutine projectedDensityColumnDescriptions(self,time,descriptions)
     !!{

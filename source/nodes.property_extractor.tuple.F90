@@ -40,7 +40,7 @@
      procedure(tupleElementCount), deferred :: elementCount
      procedure(tupleExtract     ), deferred :: extract
      procedure(tupleNames       ), deferred :: names
-     procedure(tupleNames       ), deferred :: descriptions
+     procedure(tupleDescriptions), deferred :: descriptions
      procedure(tupleUnitsInSI   ), deferred :: unitsInSI
   end type nodePropertyExtractorTuple
 
@@ -59,15 +59,27 @@
   end interface
 
   abstract interface
-     function tupleNames(self,time)
+     subroutine tupleNames(self,time,names)
        !!{
        Interface for tuple property names.
        !!}
        import varying_string, nodePropertyExtractorTuple
-       type            (varying_string            ), dimension(:) , allocatable :: tupleNames
-       class           (nodePropertyExtractorTuple), intent(inout)              :: self
-       double precision                            , intent(in   )              :: time
-     end function tupleNames
+       class           (nodePropertyExtractorTuple), intent(inout)                             :: self
+       double precision                            , intent(in   )                             :: time
+       type            (varying_string            ), intent(inout), dimension(:) , allocatable :: names
+     end subroutine tupleNames
+  end interface
+
+  abstract interface
+     subroutine tupleDescriptions(self,time,descriptions)
+       !!{
+       Interface for tuple property names.
+       !!}
+       import varying_string, nodePropertyExtractorTuple
+       class           (nodePropertyExtractorTuple), intent(inout)                             :: self
+       double precision                            , intent(in   )                             :: time
+       type            (varying_string            ), intent(inout), dimension(:) , allocatable :: descriptions
+     end subroutine tupleDescriptions
   end interface
 
   abstract interface

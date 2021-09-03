@@ -130,39 +130,39 @@ contains
     return
   end function positionOrbitalType
   
-  function positionOrbitalNames(self,time)
+  subroutine positionOrbitalNames(self,time,names)
     !!{
     Return the name of the positionOrbital property.
     !!}
     implicit none
-    type (varying_string                      ), dimension(:) , allocatable :: positionOrbitalNames
-    class(nodePropertyExtractorPositionOrbital), intent(inout)              :: self
-    double precision                           , intent(in   )              :: time
+    class(nodePropertyExtractorPositionOrbital), intent(inout)                             :: self
+    double precision                           , intent(in   )                             :: time
+    type (varying_string                      ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: self, time
 
-    allocate(positionOrbitalNames(3))
-    positionOrbitalNames(1)=var_str('positionOrbitalX')
-    positionOrbitalNames(2)=var_str('positionOrbitalY')
-    positionOrbitalNames(3)=var_str('positionOrbitalZ')
+    allocate(names(3))
+    names(1)=var_str('positionOrbitalX')
+    names(2)=var_str('positionOrbitalY')
+    names(3)=var_str('positionOrbitalZ')
     return
-  end function positionOrbitalNames
+  end subroutine positionOrbitalNames
 
-  function positionOrbitalDescriptions(self,time)
+  subroutine positionOrbitalDescriptions(self,time,descriptions)
     !!{
     Return a description of the positionOrbital property.
     !!}
     implicit none
-    type (varying_string                      ), dimension(:) , allocatable :: positionOrbitalDescriptions
-    class(nodePropertyExtractorPositionOrbital), intent(inout)              :: self
-    double precision                           , intent(in   )              :: time
+    class(nodePropertyExtractorPositionOrbital), intent(inout)                            :: self
+    double precision                           , intent(in   )                            :: time
+    type (varying_string                      ), intent(inout), dimension(:), allocatable :: descriptions
     !$GLC attributes unused :: self, time
 
-    allocate(positionOrbitalDescriptions(3))
-    positionOrbitalDescriptions(1)=var_str('The orbital x-position of the halo relative to the top-level host halo (i.e. the host which is not a sub-halo of any other halo).')
-    positionOrbitalDescriptions(2)=var_str('The orbital y-position of the halo relative to the top-level host halo (i.e. the host which is not a sub-halo of any other halo).')
-    positionOrbitalDescriptions(3)=var_str('The orbital z-position of the halo relative to the top-level host halo (i.e. the host which is not a sub-halo of any other halo).')
+    allocate(descriptions(3))
+    descriptions(1)=var_str('The orbital x-position of the halo relative to the top-level host halo (i.e. the host which is not a sub-halo of any other halo).')
+    descriptions(2)=var_str('The orbital y-position of the halo relative to the top-level host halo (i.e. the host which is not a sub-halo of any other halo).')
+    descriptions(3)=var_str('The orbital z-position of the halo relative to the top-level host halo (i.e. the host which is not a sub-halo of any other halo).')
     return
-  end function positionOrbitalDescriptions
+  end subroutine positionOrbitalDescriptions
 
   function positionOrbitalUnitsInSI(self,time)
     !!{

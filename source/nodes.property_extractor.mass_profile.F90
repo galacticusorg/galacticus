@@ -148,35 +148,35 @@ contains
     return
   end function massProfileExtract
 
-  function massProfileNames(self,time)
+  subroutine massProfileNames(self,time,names)
     !!{
     Return the names of the {\normalfont \ttfamily massProfile} properties.
     !!}
     implicit none
-    type            (varying_string                  ), dimension(:) , allocatable :: massProfileNames
-    class           (nodePropertyExtractorMassProfile), intent(inout)              :: self
-    double precision                                  , intent(in   )              :: time
+    class           (nodePropertyExtractorMassProfile), intent(inout)                             :: self
+    double precision                                  , intent(in   )                             :: time
+    type            (varying_string                  ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
 
-    allocate(massProfileNames(1))
-    massProfileNames(1)='massProfile'
+    allocate(names(1))
+    names(1)='massProfile'
     return
-  end function massProfileNames
+  end subroutine massProfileNames
 
-  function massProfileDescriptions(self,time)
+  subroutine massProfileDescriptions(self,time,descriptions)
     !!{
     Return descriptions of the {\normalfont \ttfamily massProfile} property.
     !!}
     implicit none
-    type            (varying_string                  ), dimension(:) , allocatable :: massProfileDescriptions
-    class           (nodePropertyExtractorMassProfile), intent(inout)              :: self
-    double precision                                  , intent(in   )              :: time
+    class           (nodePropertyExtractorMassProfile), intent(inout)                             :: self
+    double precision                                  , intent(in   )                             :: time
+    type            (varying_string                  ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
-    allocate(massProfileDescriptions(1))
-    massProfileDescriptions(1)='Mass enclosed within each radius'
+    allocate(descriptions(1))
+    descriptions(1)='Mass enclosed within each radius'
     return
-  end function massProfileDescriptions
+  end subroutine massProfileDescriptions
 
   subroutine massProfileColumnDescriptions(self,time,descriptions)
     !!{

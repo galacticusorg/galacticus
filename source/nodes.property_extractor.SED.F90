@@ -367,37 +367,37 @@ contains
     return
   end function sedExtract
 
-  function sedNames(self,time)
+  subroutine sedNames(self,time,names)
     !!{
     Return the names of the {\normalfont \ttfamily sed} properties.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
-    type            (varying_string          ), dimension(:) , allocatable :: sedNames
-    class           (nodePropertyExtractorSED), intent(inout)              :: self
-    double precision                          , intent(in   )              :: time
+    class           (nodePropertyExtractorSED), intent(inout)                             :: self
+    double precision                          , intent(in   )                             :: time
+    type            (varying_string          ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
 
-    allocate(sedNames(1))
-    sedNames(1)=enumerationComponentTypeDecode(self%component,includePrefix=.false.)//"StellarSED"
+    allocate(names(1))
+    names(1)=enumerationComponentTypeDecode(self%component,includePrefix=.false.)//"StellarSED"
     return
-  end function sedNames
+  end subroutine sedNames
 
-  function sedDescriptions(self,time)
+  subroutine sedDescriptions(self,time,descriptions)
     !!{
     Return descriptions of the {\normalfont \ttfamily sed} property.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
-    type            (varying_string          ), dimension(:) , allocatable :: sedDescriptions
-    class           (nodePropertyExtractorSED), intent(inout)              :: self
-    double precision                          , intent(in   )              :: time
+    class           (nodePropertyExtractorSED), intent(inout)                             :: self
+    double precision                          , intent(in   )                             :: time
+    type            (varying_string          ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
-    allocate(sedDescriptions(1))
-    sedDescriptions(1)="Spectral energy density (SED) for the "//enumerationComponentTypeDecode(self%component,includePrefix=.false.)//" [L☉/Hz⁻¹]."
+    allocate(descriptions(1))
+    descriptions(1)="Spectral energy density (SED) for the "//enumerationComponentTypeDecode(self%component,includePrefix=.false.)//" [L☉/Hz⁻¹]."
     return
-  end function sedDescriptions
+  end subroutine sedDescriptions
 
   function sedWavelengths(self,time)
     !!{

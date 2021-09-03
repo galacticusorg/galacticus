@@ -268,37 +268,37 @@ contains
     return
   end function densityContrastsExtract
 
-  function densityContrastsNames(self,time)
+  subroutine densityContrastsNames(self,time,names)
     !!{
     Return the names of the {\normalfont \ttfamily densityContrasts} properties.
     !!}
     implicit none
-    type            (varying_string                       ), dimension(:) , allocatable :: densityContrastsNames
-    class           (nodePropertyExtractorDensityContrasts), intent(inout)              :: self
-    double precision                                       , intent(in   )              :: time
+    class           (nodePropertyExtractorDensityContrasts), intent(inout)                             :: self
+    double precision                                       , intent(in   )                             :: time
+    type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
 
-    allocate(densityContrastsNames(self%elementCount_))
-    densityContrastsNames(1)='nodeRadius'
-    densityContrastsNames(2)='nodeMass'
+    allocate(names(self%elementCount_))
+    names(1)='nodeRadius'
+    names(2)='nodeMass'
     return
-  end function densityContrastsNames
+  end subroutine densityContrastsNames
 
-  function densityContrastsDescriptions(self,time)
+  subroutine densityContrastsDescriptions(self,time,descriptions)
     !!{
     Return descriptions of the {\normalfont \ttfamily densityContrasts} property.
     !!}
     implicit none
-    type            (varying_string                       ), dimension(:) , allocatable :: densityContrastsDescriptions
-    class           (nodePropertyExtractorDensityContrasts), intent(inout)              :: self
-    double precision                                       , intent(in   )              :: time
+    class           (nodePropertyExtractorDensityContrasts), intent(inout)                             :: self
+    double precision                                       , intent(in   )                             :: time
+    type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
-    allocate(densityContrastsDescriptions(self%elementCount_))
-       densityContrastsDescriptions(1)='Radius enclosing a given density contrast [Mpc].'
-       densityContrastsDescriptions(2)='Mass within a given density contrast [M☉].'
+    allocate(descriptions(self%elementCount_))
+       descriptions(1)='Radius enclosing a given density contrast [Mpc].'
+       descriptions(2)='Mass within a given density contrast [M☉].'
     return
-  end function densityContrastsDescriptions
+  end subroutine densityContrastsDescriptions
 
   subroutine densityContrastsColumnDescriptions(self,time,descriptions)
     !!{

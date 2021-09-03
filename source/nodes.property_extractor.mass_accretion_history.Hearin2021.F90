@@ -119,39 +119,39 @@ contains
     return
   end function massAccretionHistoryHearin2021Extract
 
-  function massAccretionHistoryHearin2021Names(self,time)
+  subroutine massAccretionHistoryHearin2021Names(self,time,names)
     !!{
     Return the name of the {\normalfont \ttfamily massAccretionHistoryHearin2021} property.
     !!}
     implicit none
-    type            (varying_string                                     ), dimension(:) , allocatable :: massAccretionHistoryHearin2021Names
-    class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout)              :: self
-    double precision                                                     , intent(in   )              :: time
+    class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout)                             :: self
+    double precision                                                     , intent(in   )                             :: time
+    type            (varying_string                                     ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: self, time
 
-    allocate(massAccretionHistoryHearin2021Names(3))
-    massAccretionHistoryHearin2021Names(1)='treeMAHHearin2021PowerLawIndexEarly'
-    massAccretionHistoryHearin2021Names(2)='treeMAHHearin2021PowerLawIndexLate'
-    massAccretionHistoryHearin2021Names(3)='treeMAHHearin2021Log10TimeZero'
+    allocate(names(3))
+    names(1)='treeMAHHearin2021PowerLawIndexEarly'
+    names(2)='treeMAHHearin2021PowerLawIndexLate'
+    names(3)='treeMAHHearin2021Log10TimeZero'
     return
-  end function massAccretionHistoryHearin2021Names
+  end subroutine massAccretionHistoryHearin2021Names
 
-  function massAccretionHistoryHearin2021Descriptions(self,time)
+  subroutine massAccretionHistoryHearin2021Descriptions(self,time,descriptions)
     !!{
     Return a description of the {\normalfont \ttfamily massAccretionHistoryHearin2021} property.
     !!}
     implicit none
-    type            (varying_string                                     ), dimension(:) , allocatable :: massAccretionHistoryHearin2021Descriptions
-    class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout)              :: self
-    double precision                                                     , intent(in   )              :: time
+    class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout)                             :: self
+    double precision                                                     , intent(in   )                             :: time
+    type            (varying_string                                     ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: self, time
 
-    allocate(massAccretionHistoryHearin2021Descriptions(3))
-    massAccretionHistoryHearin2021Descriptions(1)='Early-time power-law index in the Hearin et al. (2021) mass accretion history for this tree.'
-    massAccretionHistoryHearin2021Descriptions(2)='Late-time power-law index in the Hearin et al. (2021) mass accretion history for this tree.'
-    massAccretionHistoryHearin2021Descriptions(3)='Parameter log₁₀t₀ in the Hearin et al. (2021) mass accretion history for this tree.'
+    allocate(descriptions(3))
+    descriptions(1)='Early-time power-law index in the Hearin et al. (2021) mass accretion history for this tree.'
+    descriptions(2)='Late-time power-law index in the Hearin et al. (2021) mass accretion history for this tree.'
+    descriptions(3)='Parameter log₁₀t₀ in the Hearin et al. (2021) mass accretion history for this tree.'
     return
-  end function massAccretionHistoryHearin2021Descriptions
+  end subroutine massAccretionHistoryHearin2021Descriptions
 
   function massAccretionHistoryHearin2021UnitsInSI(self,time)
     !!{

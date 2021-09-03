@@ -42,7 +42,7 @@
      procedure(integerTupleElementCount), deferred :: elementCount
      procedure(integerTupleExtract     ), deferred :: extract
      procedure(integerTupleNames       ), deferred :: names
-     procedure(integerTupleNames       ), deferred :: descriptions
+     procedure(integerTupleDescriptions), deferred :: descriptions
      procedure(integerTupleUnitsInSI   ), deferred :: unitsInSI
   end type nodePropertyExtractorIntegerTuple
 
@@ -61,15 +61,27 @@
   end interface
 
   abstract interface
-     function integerTupleNames(self,time)
+     subroutine integerTupleNames(self,time,names)
        !!{
        Interface for {\normalfont \ttfamily integerTuple} property names.
        !!}
        import varying_string, nodePropertyExtractorIntegerTuple
-       type            (varying_string                   ), dimension(:) , allocatable :: integerTupleNames
-       class           (nodePropertyExtractorIntegerTuple), intent(inout)              :: self
-       double precision                                   , intent(in   )              :: time
-     end function integerTupleNames
+       class           (nodePropertyExtractorIntegerTuple), intent(inout)                             :: self
+       double precision                                   , intent(in   )                             :: time
+       type            (varying_string                   ), intent(inout), dimension(:) , allocatable :: names
+     end subroutine integerTupleNames
+  end interface
+
+  abstract interface
+     subroutine integerTupleDescriptions(self,time,descriptions)
+       !!{
+       Interface for {\normalfont \ttfamily integerTuple} property descriptions.
+       !!}
+       import varying_string, nodePropertyExtractorIntegerTuple
+       class           (nodePropertyExtractorIntegerTuple), intent(inout)                             :: self
+       double precision                                   , intent(in   )                             :: time
+       type            (varying_string                   ), intent(inout), dimension(:) , allocatable :: descriptions
+     end subroutine integerTupleDescriptions
   end interface
 
   abstract interface

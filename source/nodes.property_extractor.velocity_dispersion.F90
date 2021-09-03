@@ -362,39 +362,39 @@ contains
     return
   end function velocityDispersionExtract
 
-  function velocityDispersionNames(self,time)
+  subroutine velocityDispersionNames(self,time,names)
     !!{
     Return the names of the {\normalfont \ttfamily velocityDispersion} properties.
     !!}
     implicit none
-    type            (varying_string                         ), dimension(:) , allocatable :: velocityDispersionNames
-    class           (nodePropertyExtractorVelocityDispersion), intent(inout)              :: self
-    double precision                                         , intent(in   )              :: time
+    class           (nodePropertyExtractorVelocityDispersion), intent(inout)                             :: self
+    double precision                                         , intent(in   )                             :: time
+    type            (varying_string                         ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
     
-    allocate(velocityDispersionNames(self%elementCount_))
-    velocityDispersionNames       (1)="velocityDispersion"
+    allocate(names(self%elementCount_))
+    names       (1)="velocityDispersion"
     if (self%includeRadii)                                       &
-         & velocityDispersionNames(2)="velocityDispersionRadius"
+         & names(2)="velocityDispersionRadius"
     return
-  end function velocityDispersionNames
+  end subroutine velocityDispersionNames
 
-  function velocityDispersionDescriptions(self,time)
+  subroutine velocityDispersionDescriptions(self,time,descriptions)
     !!{
     Return descriptions of the {\normalfont \ttfamily velocityDispersion} property.
     !!}
     implicit none
-    type            (varying_string                         ), dimension(:) , allocatable :: velocityDispersionDescriptions
-    class           (nodePropertyExtractorVelocityDispersion), intent(inout)              :: self
-    double precision                                         , intent(in   )              :: time
+    class           (nodePropertyExtractorVelocityDispersion), intent(inout)                             :: self
+    double precision                                         , intent(in   )                             :: time
+    type            (varying_string                         ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
-    allocate(velocityDispersionDescriptions(self%elementCount_))
-    velocityDispersionDescriptions       (1)="Velocity dispersion at a given radius [km s⁻¹]."
+    allocate(descriptions(self%elementCount_))
+    descriptions       (1)="Velocity dispersion at a given radius [km s⁻¹]."
     if (self%includeRadii)                                                                          &
-         & velocityDispersionDescriptions(2)="Radius at which velocity dispersion is output [Mpc]."
+         & descriptions(2)="Radius at which velocity dispersion is output [Mpc]."
     return
-  end function velocityDispersionDescriptions
+  end subroutine velocityDispersionDescriptions
 
   subroutine velocityDispersionColumnDescriptions(self,time,descriptions)
     !!{

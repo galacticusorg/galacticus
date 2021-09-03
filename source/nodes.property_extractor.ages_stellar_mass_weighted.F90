@@ -166,37 +166,37 @@ contains
     return
   end function agesStellarMassWeightedExtract
 
-  function agesStellarMassWeightedNames(self,time)
+  subroutine agesStellarMassWeightedNames(self,time,names)
     !!{
     Return the names of the {\normalfont \ttfamily agesStellarMassWeighted} properties.
     !!}
     implicit none
-    type            (varying_string                              ), dimension(:) , allocatable :: agesStellarMassWeightedNames
-    class           (nodePropertyExtractorAgesStellarMassWeighted), intent(inout)              :: self
-    double precision                                              , intent(in   )              :: time
+    class           (nodePropertyExtractorAgesStellarMassWeighted), intent(inout)                             :: self
+    double precision                                              , intent(in   )                             :: time
+    type            (varying_string                              ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: self, time
 
-    allocate(agesStellarMassWeightedNames(2))
-    agesStellarMassWeightedNames(1)=var_str('diskAgeStellarMassWeighted'    )
-    agesStellarMassWeightedNames(2)=var_str('spheroidAgeStellarMassWeighted')
+    allocate(names(2))
+    names(1)=var_str('diskAgeStellarMassWeighted'    )
+    names(2)=var_str('spheroidAgeStellarMassWeighted')
     return
-  end function agesStellarMassWeightedNames
+  end subroutine agesStellarMassWeightedNames
 
-  function agesStellarMassWeightedDescriptions(self,time)
+  subroutine agesStellarMassWeightedDescriptions(self,time,descriptions)
     !!{
     Return the descriptions of the {\normalfont \ttfamily agesStellarMassWeighted} properties.
     !!}
     implicit none
-    type            (varying_string                              ), dimension(:) , allocatable :: agesStellarMassWeightedDescriptions
-    class           (nodePropertyExtractorAgesStellarMassWeighted), intent(inout)              :: self
-    double precision                                              , intent(in   )              :: time
+    class           (nodePropertyExtractorAgesStellarMassWeighted), intent(inout)                             :: self
+    double precision                                              , intent(in   )                             :: time
+    type            (varying_string                              ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: self, time
 
-    allocate(agesStellarMassWeightedDescriptions(2))
-    agesStellarMassWeightedDescriptions(1)=var_str('Stellar mass-weighted age of the disk [Gyr].'    )
-    agesStellarMassWeightedDescriptions(2)=var_str('Stellar mass-weighted age of the spehroid [Mpc].')
+    allocate(descriptions(2))
+    descriptions(1)=var_str('Stellar mass-weighted age of the disk [Gyr].'    )
+    descriptions(2)=var_str('Stellar mass-weighted age of the spehroid [Mpc].')
     return
-  end function agesStellarMassWeightedDescriptions
+  end subroutine agesStellarMassWeightedDescriptions
 
   function agesStellarMassWeightedUnitsInSI(self,time)
     !!{

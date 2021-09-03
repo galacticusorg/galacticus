@@ -138,37 +138,37 @@ contains
     return
   end function virialPropertiesExtract
 
-  function virialPropertiesNames(self,time)
+  subroutine virialPropertiesNames(self,time,names)
     !!{
     Return the names of the {\normalfont \ttfamily virialProperties} properties.
     !!}
     implicit none
-    type            (varying_string                       ), dimension(:) , allocatable :: virialPropertiesNames
-    class           (nodePropertyExtractorVirialProperties), intent(inout)              :: self
-    double precision                                       , intent(in   )              :: time
+    class           (nodePropertyExtractorVirialProperties), intent(inout)                             :: self
+    double precision                                       , intent(in   )                             :: time
+    type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: self, time
 
-    allocate(virialPropertiesNames(2))
-    virialPropertiesNames(1)=var_str('darkMatterOnlyRadiusVirial'  )
-    virialPropertiesNames(2)=var_str('darkMatterOnlyVelocityVirial')
+    allocate(names(2))
+    names(1)=var_str('darkMatterOnlyRadiusVirial'  )
+    names(2)=var_str('darkMatterOnlyVelocityVirial')
     return
-  end function virialPropertiesNames
+  end subroutine virialPropertiesNames
 
-  function virialPropertiesDescriptions(self,time)
+  subroutine virialPropertiesDescriptions(self,time,descriptions)
     !!{
     Return the descriptions of the {\normalfont \ttfamily virialProperties} properties.
     !!}
     implicit none
-    type            (varying_string                       ), dimension(:) , allocatable :: virialPropertiesDescriptions
-    class           (nodePropertyExtractorVirialProperties), intent(inout)              :: self
-    double precision                                       , intent(in   )              :: time
+    class           (nodePropertyExtractorVirialProperties), intent(inout)                             :: self
+    double precision                                       , intent(in   )                             :: time
+    type            (varying_string                       ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: self, time
 
-    allocate(virialPropertiesDescriptions(2))
-    virialPropertiesDescriptions(1)=var_str('Virial radius of the dark matter only node [Mpc].'   )
-    virialPropertiesDescriptions(2)=var_str('Virial velocity of the dark matter only node [km/s].')
+    allocate(descriptions(2))
+    descriptions(1)=var_str('Virial radius of the dark matter only node [Mpc].'   )
+    descriptions(2)=var_str('Virial velocity of the dark matter only node [km/s].')
     return
-  end function virialPropertiesDescriptions
+  end subroutine virialPropertiesDescriptions
 
   function virialPropertiesUnitsInSI(self,time)
     !!{
