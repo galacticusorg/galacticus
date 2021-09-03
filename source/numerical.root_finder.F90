@@ -663,6 +663,7 @@ contains
              if (present(status)) then
                 call displayMessage(message,verbosityLevelWarn)
                 status=errorStatusOutOfRange
+                currentFinderIndex=currentFinderIndex-1
                 return
              else
                 rootFinderFind=0.0d0
