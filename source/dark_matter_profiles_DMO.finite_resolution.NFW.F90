@@ -103,8 +103,8 @@
        <method method="restoreDensityTable"              description="Attempt to restore the tabulated radius-enclosing-density from file, returning true if successful."/>
        <method method="storeMassTable"                   description="Store the tabulated radius-enclosing-mass to file."                                                />
        <method method="restoreMassTable"                 description="Attempt to restore the tabulated radius-enclosing-mass from file, returning true if successful."   />
-       <method method="storeConcentrationTable"          description="Store the tabulated energy to file."                                                               />
-       <method method="restoreConcentrationTable"        description="Attempt to restore the tabulated energy from file, returning true if successful."                  />
+       <method method="storeEnergyTable"                 description="Store the tabulated energy to file."                                                               />
+       <method method="restoreEnergyTable"               description="Attempt to restore the tabulated energy from file, returning true if successful."                  />
      </methods>
      !!]
      procedure :: autoHook                         => finiteResolutionNFWAutoHook
