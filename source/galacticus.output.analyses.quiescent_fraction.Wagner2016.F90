@@ -18,73 +18,65 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements an output analysis class for the star forming main sequence measurements of \cite{wagner_evolution_2017}.
+  Contains a module which implements an output analysis class for the quiescent fraction measurements of \cite{wagner_evolution_2016}.
   !!}
 
   !![
-  <outputAnalysis name="outputAnalysisStarFormingMainSequenceWagner2017">
-    <description>An output analysis class for the star forming main sequence measurements of \cite{wagner_evolution_2017}.</description>
+  <outputAnalysis name="outputAnalysisQuiescentFractionWagner2016">
+    <description>An output analysis class for the quiescent fraction measurements of \cite{wagner_evolution_2016}.</description>
   </outputAnalysis>
   !!]
-  type, extends(outputAnalysisStarFormingMainSequence) :: outputAnalysisStarFormingMainSequenceWagner2017
+  type, extends(outputAnalysisQuiescentFraction) :: outputAnalysisQuiescentFractionWagner2016
      !!{
-     An output analysis class for the star forming main sequence measurements of \cite{wagner_evolution_2017}.
+     An output analysis class for the quiescent fraction measurements of \cite{wagner_evolution_2016}.
      !!}
      private
    contains
-  end type outputAnalysisStarFormingMainSequenceWagner2017
+  end type outputAnalysisQuiescentFractionWagner2016
 
-  interface outputAnalysisStarFormingMainSequenceWagner2017
+  interface outputAnalysisQuiescentFractionWagner2016
      !!{
-     Constructors for the ``starFormingMainSequenceWagner2017'' output analysis class.
+     Constructors for the ``quiescentFractionWagner2016'' output analysis class.
      !!}
-     module procedure starFormingMainSequenceWagner2017ConstructorParameters
-     module procedure starFormingMainSequenceWagner2017ConstructorInternal
-  end interface outputAnalysisStarFormingMainSequenceWagner2017
+     module procedure quiescentFractionWagner2016ConstructorParameters
+     module procedure quiescentFractionWagner2016ConstructorInternal
+  end interface outputAnalysisQuiescentFractionWagner2016
 
   ! Enumerations of analyses.
   !![
   <enumeration>
-   <name>wagner2017SSFRRedshiftRange</name>
-   <description>Specifies the redshift range for the \cite{wagner_evolution_2017} analysis</description>
+   <name>wagner2016QuiescentRedshiftRange</name>
+   <description>Specifies the redshift range for the \cite{wagner_evolution_2016} analysis.</description>
    <validator>yes</validator>
    <visibility>public</visibility>
    <encodeFunction>yes</encodeFunction>
    <entry label="low" />
+   <entry label="mid" />
    <entry label="high"/>
-  </enumeration>
-  <enumeration>
-   <name>wagner2017SSFRGalaxyType</name>
-   <description>Specifies the galaxy type for the \cite{wagner_evolution_2017} analysis</description>
-   <validator>yes</validator>
-   <visibility>public</visibility>
-   <encodeFunction>yes</encodeFunction>
-   <entry label="quiescent"  />
-   <entry label="starForming"/>
   </enumeration>
   !!]
   
 contains
 
-  function starFormingMainSequenceWagner2017ConstructorParameters(parameters) result (self)
+  function quiescentFractionWagner2016ConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``starFormingMainSequenceWagner2017'' output analysis class which takes a parameter set as input.
+    Constructor for the ``quiescentFractionWagner2016'' output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
     use :: Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
     use :: Input_Parameters    , only : inputParameter     , inputParameters
     implicit none
-    type            (outputAnalysisStarFormingMainSequenceWagner2017)                              :: self
-    type            (inputParameters                                ), intent(inout)               :: parameters
-    class           (cosmologyParametersClass                       ), pointer                     :: cosmologyParameters_
-    class           (cosmologyFunctionsClass                        ), pointer                     :: cosmologyFunctions_
-    class           (outputTimesClass                               ), pointer                     :: outputTimes_
-    class           (starFormationRateDisksClass                    ), pointer                     :: starFormationRateDisks_
-    class           (starFormationRateSpheroidsClass                ), pointer                     :: starFormationRateSpheroids_
-    double precision                                                 , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient          , systematicErrorPolynomialCoefficient, &
-         &                                                                                            weightSystematicErrorPolynomialCoefficient
-    double precision                                                                               :: randomErrorMinimum                        , randomErrorMaximum
-    type            (varying_string                                 )                              :: redshiftRange                             , galaxyType
+    type            (outputAnalysisQuiescentFractionWagner2016)                              :: self
+    type            (inputParameters                          ), intent(inout)               :: parameters
+    class           (cosmologyParametersClass                 ), pointer                     :: cosmologyParameters_
+    class           (cosmologyFunctionsClass                  ), pointer                     :: cosmologyFunctions_
+    class           (outputTimesClass                         ), pointer                     :: outputTimes_
+    class           (starFormationRateDisksClass              ), pointer                     :: starFormationRateDisks_
+    class           (starFormationRateSpheroidsClass          ), pointer                     :: starFormationRateSpheroids_
+    double precision                                           , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient          , systematicErrorPolynomialCoefficient, &
+         &                                                                                      weightSystematicErrorPolynomialCoefficient
+    double precision                                                                         :: randomErrorMinimum                        , randomErrorMaximum
+    type            (varying_string                           )                              :: redshiftRange
     
     if (parameters%isPresent(    'randomErrorPolynomialCoefficient'      )) then
        allocate(          randomErrorPolynomialCoefficient(parameters%count(          'randomErrorPolynomialCoefficient')))
@@ -135,18 +127,13 @@ contains
       <source>parameters</source>
       <description>The redshift range (``{\normalfont \ttfamily low}'' or ``{\normalfont \ttfamily high}'') for this analysis.</description>
     </inputParameter>
-    <inputParameter>
-      <name>galaxyType</name>
-      <source>parameters</source>
-      <description>The galaxy type (``{\normalfont \ttfamily quiescent}'' or ``{\normalfont \ttfamily starForming}'') for this analysis.</description>
-    </inputParameter>
     <objectBuilder class="cosmologyParameters"        name="cosmologyParameters_"        source="parameters"/>
     <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>
     <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters"/>
     <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
     <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
     !!]
-    self=outputAnalysisStarFormingMainSequenceWagner2017(enumerationWagner2017SSFRRedshiftRangeEncode(char(redshiftRange),includesPrefix=.false.),enumerationWagner2017SSFRGalaxyTypeEncode(char(galaxyType),includesPrefix=.false.),randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_)
+    self=outputAnalysisQuiescentFractionWagner2016(enumerationWagner2016QuiescentRedshiftRangeEncode(char(redshiftRange),includesPrefix=.false.),randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_)
     !![
     <inputParametersValidate source="parameters" />
     <objectDestructor name="cosmologyParameters_"       />
@@ -156,11 +143,11 @@ contains
     <objectDestructor name="starFormationRateSpheroids_"/>
     !!]
     return
-  end function starFormingMainSequenceWagner2017ConstructorParameters
+  end function quiescentFractionWagner2016ConstructorParameters
 
-  function starFormingMainSequenceWagner2017ConstructorInternal(redshiftRange,galaxyType,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_) result(self)
+  function quiescentFractionWagner2016ConstructorInternal(redshiftRange,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_) result(self)
     !!{
-    Internal constructor for the ``starFormingMainSequenceWagner2017'' output analysis class.
+    Internal constructor for the ``quiescentFractionWagner2016'' output analysis class.
     !!}
     use :: Galacticus_Error                      , only : Galacticus_Error_Report
     use :: Cosmology_Functions                   , only : cosmologyFunctionsMatterLambda
@@ -173,15 +160,14 @@ contains
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystmtcPolynomial
     use :: Geometry_Surveys                      , only : surveyGeometryFullSky
     use :: Galactic_Filters                      , only : galacticFilterAll                                  , galacticFilterHaloNotIsolated, galacticFilterStellarMass, galacticFilterStarFormationRate, &
-         &                                                galacticFilterHighPass                             , galacticFilterNull           , galacticFilterNot        , galacticFilterClass            , &
-         &                                                filterList
+         &                                                galacticFilterHighPass                             , filterList
     use :: Node_Property_Extractors              , only : nodePropertyExtractorHostNode                      , nodePropertyExtractorMassHalo
     use :: Virial_Density_Contrast               , only : virialDensityContrastFixed                         , fixedDensityTypeCritical
     implicit none
-    type            (outputAnalysisStarFormingMainSequenceWagner2017    )                              :: self
-    integer                                                              , intent(in   )               :: redshiftRange                                    , galaxyType
-    double precision                                                     , intent(in   )               :: randomErrorMinimum                               , randomErrorMaximum
-    double precision                                                     , intent(in   ), dimension(:) :: randomErrorPolynomialCoefficient                 , systematicErrorPolynomialCoefficient  , &
+    type            (outputAnalysisQuiescentFractionWagner2016          )                              :: self
+    integer                                                              , intent(in   )               :: redshiftRange
+    double precision                                                     , intent(in   )               :: randomErrorMinimum                                    , randomErrorMaximum
+    double precision                                                     , intent(in   ), dimension(:) :: randomErrorPolynomialCoefficient                      , systematicErrorPolynomialCoefficient, &
          &                                                                                                weightSystematicErrorPolynomialCoefficient
     class           (cosmologyParametersClass                           ), intent(inout), target       :: cosmologyParameters_
     class           (cosmologyFunctionsClass                            ), intent(inout), target       :: cosmologyFunctions_
@@ -191,9 +177,8 @@ contains
     type            (galacticFilterHaloNotIsolated                      )               , pointer      :: galacticFilterIsSubhalo_
     type            (galacticFilterHighPass                             )               , pointer      :: galacticFilterHostHaloMass_
     type            (galacticFilterStellarMass                          )               , pointer      :: galacticFilterStellarMass_
-    type            (galacticFilterStarFormationRate                    )               , pointer      :: galacticFilterStarFormationRate_                 , galacticFilterStarFormationRateNonZero_
+    type            (galacticFilterStarFormationRate                    )               , pointer      :: galacticFilterStarFormationRate_
     type            (galacticFilterAll                                  )               , pointer      :: galacticFilter_
-    class           (galacticFilterClass                                )               , pointer      :: galacticFilterGalaxyType_
     type            (virialDensityContrastFixed                         )               , pointer      :: virialDensityContrast_
     type            (nodePropertyExtractorHostNode                      )               , pointer      :: nodePropertyExtractorHost_
     type            (nodePropertyExtractorMassHalo                      )               , pointer      :: nodePropertyExtractorHostMass_
@@ -201,45 +186,38 @@ contains
     type            (surveyGeometryFullSky                              )               , pointer      :: surveyGeometry_
     type            (cosmologyParametersSimple                          )               , pointer      :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                     )               , pointer      :: cosmologyFunctionsData
-    type            (outputAnalysisPropertyOperatorSystmtcPolynomial    )               , pointer      :: outputAnalysisPropertyOperator_                  , outputAnalysisWeightPropertyOperator_
+    type            (outputAnalysisPropertyOperatorSystmtcPolynomial    )               , pointer      :: outputAnalysisPropertyOperator_                       , outputAnalysisWeightPropertyOperator_
     type            (outputAnalysisDistributionOperatorRandomErrorPlynml)               , pointer      :: outputAnalysisDistributionOperator_
-    double precision                                                     , parameter                   :: errorPolynomialZeroPoint                  =11.0d0
-    double precision                                                     , parameter                   :: errorPolynomialZeroPointWeight            = 0.0d0
-    double precision                                                                                   :: redshiftMinimum                                  , redshiftMaximum                        , &
+    double precision                                                     , parameter                   :: errorPolynomialZeroPoint                     =+11.00d0
+    double precision                                                     , parameter                   :: errorPolynomialZeroPointWeight               = +0.00d0
+    double precision                                                     , parameter                   :: starFormationRateSpecificQuiescentLogarithmic= -1.00d0
+    double precision                                                     , parameter                   :: starFormationRateSpecificLogarithmicError    = +0.15d0
+    double precision                                                                                   :: redshiftMinimum                                       , redshiftMaximum                      , &
          &                                                                                                massHostThreshold
-    type            (varying_string                                     )                              :: fileName                                         , label                                  , &
+    type            (varying_string                                     )                              :: fileName                                              , label                                , &
          &                                                                                                description
 
     ! Construct file name and label for the analysis.
-    fileName   =galacticusPath(pathTypeDataStatic)//'observations/starFormationRate/'
-    label      ='Wagner2017'
-    description='Mean sSFR sequence from Wagner et al. (2017) for '
-    !! Determine galaxy type.
-    select case (galaxyType)
-    case (wagner2017SSFRGalaxyTypeQuiescent  )
-       fileName   =fileName   //'quiescent'
-       label      =label      //'Quiescent'
-       description=description//'quiescent'
-    case (wagner2017SSFRGalaxyTypeStarForming)
-       fileName   =fileName   //'starForming'
-       label      =label      //'StarForming'
-       description=description//'star forming'
-   case default
-       call Galacticus_Error_Report('unrecognized galaxy type'   //{introspection:location})
-    end select
-    !! Add middle part of file name and description.
-    fileName   =fileName   //'MainSequenceWagner2017_z'
-    description=description//' galaxies with '
-    !! Determine redshift range properties. Host halo mass threshold is judged approximately from Figure 1 of Wagner et al. (2017).
+    fileName   =galacticusPath(pathTypeDataStatic)//'observations/starFormationRate/quiescentFractionWagner2016_z'
+    label      ='Wagner2016'
+    description='Quiescent fraction from Wagner et al. (2016) for galaxies with '
+    !! Determine redshift range properties. Host halo mass threshold is judged approximately from Figure 1 of Wagner et al. (2016).
     select case (redshiftRange)
-    case (wagner2017SSFRRedshiftRangeLow )
+    case (wagner2016QuiescentRedshiftRangeLow )
        redshiftMinimum  =0.15d0
+       redshiftMaximum  =0.41d0
+       massHostThreshold=10.0d0**14.8d0
+       fileName         =fileName   // '0.15_0.41'
+       label            =label      //'Z0.15_0.41'
+       description      =description//'$0.15 < z < 0.41$'
+    case (wagner2016QuiescentRedshiftRangeMid )
+       redshiftMinimum  =0.41d0
        redshiftMaximum  =0.80d0
        massHostThreshold=10.0d0**14.8d0
-       fileName         =fileName   // '0.15_0.80'
-       label            =label      //'Z0.15_0.80'
-       description      =description//'$0.15 < z < 0.80$'
-    case (wagner2017SSFRRedshiftRangeHigh)
+       fileName         =fileName   // '0.41_0.80'
+       label            =label      //'Z0.41_0.80'
+       description      =description//'$0.41 < z < 0.80$'
+    case (wagner2016QuiescentRedshiftRangeHigh)
        redshiftMinimum  =0.80d0
        redshiftMaximum  =1.50d0
        massHostThreshold=10.0d0**14.3d0
@@ -254,40 +232,16 @@ contains
     ! Build a filter which selects satellite galaxies in hosts of the relevant mass, above a stellar mass threshold, and either quiescent or star-forming.
     allocate(galacticFilterIsSubhalo_)
     !![
-    <referenceConstruct object="galacticFilterIsSubhalo_"                constructor="galacticFilterHaloNotIsolated  (                                                                                                                                                                                    )"/>
+    <referenceConstruct object="galacticFilterIsSubhalo_"         constructor="galacticFilterHaloNotIsolated  (                                                                                                                                                                                    )"/>
     !!]
     allocate(galacticFilterStellarMass_)
     !![
-    <referenceConstruct object="galacticFilterStellarMass_"              constructor="galacticFilterStellarMass      (massThreshold=1.0d9                                                                                                                                                                 )"/>
-    !!]
-    allocate(galacticFilterStarFormationRateNonZero_)
-    !![
-    <referenceConstruct object="galacticFilterStarFormationRateNonZero_" constructor="galacticFilterStarFormationRate(logSFR0=-1.0d1,logSFR1=0.0d0,logM0=0.0d0,starFormationRateDisks_=starFormationRateDisks_,starFormationRateSpheroids_=starFormationRateSpheroids_                                     )"/>
+    <referenceConstruct object="galacticFilterStellarMass_"       constructor="galacticFilterStellarMass      (massThreshold=1.0d9                                                                                                                                                                 )"/>
     !!]
     allocate(galacticFilterStarFormationRate_)
     !![
-    <referenceConstruct object="galacticFilterStarFormationRate_"        constructor="galacticFilterStarFormationRate(logSFR0=-1.0d0,logSFR1=1.0d0,logM0=0.0d0,starFormationRateDisks_=starFormationRateDisks_,starFormationRateSpheroids_=starFormationRateSpheroids_                                     )"/>
+    <referenceConstruct object="galacticFilterStarFormationRate_" constructor="galacticFilterStarFormationRate(logSFR0=-1.0d0,logSFR1=1.0d0,logM0=0.0d0,starFormationRateDisks_=starFormationRateDisks_,starFormationRateSpheroids_=starFormationRateSpheroids_                                     )"/>
     !!]
-    select case (galaxyType)
-    case (wagner2017SSFRGalaxyTypeQuiescent  )
-       allocate(galacticFilterNot  :: galacticFilterGalaxyType_)
-       select type (galacticFilterGalaxyType_)
-       type is (galacticFilterNot )
-          !![
-          <referenceConstruct object="galacticFilterGalaxyType_" constructor="galacticFilterNot (galacticFilterStarFormationRate_)" />
-          !!]
-       end select
-    case (wagner2017SSFRGalaxyTypeStarForming)
-       allocate(galacticFilterNull :: galacticFilterGalaxyType_)
-       select type (galacticFilterGalaxyType_)
-       type is (galacticFilterNull)
-          !![
-          <referenceConstruct object="galacticFilterGalaxyType_" constructor="galacticFilterNull(galacticFilterStarFormationRate_)"/>
-          !!]
-       end select
-    case default
-       call Galacticus_Error_Report('unrecognized galaxy type'   //{introspection:location})
-    end select    
     allocate(virialDensityContrast_)
     !![
     <referenceConstruct object="virialDensityContrast_"           constructor="virialDensityContrastFixed     (densityContrastValue=200.0d0,densityType=fixedDensityTypeCritical,turnAroundOverVirialRadius=2.0d0,cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_)"/>
@@ -304,17 +258,13 @@ contains
     !![
     <referenceConstruct object="galacticFilterHostHaloMass_"      constructor="galacticFilterHighPass         (threshold=massHostThreshold,nodePropertyExtractor_=nodePropertyExtractorHost_                                                                                                       )"/>
     !!]
-    allocate(galacticFilter_                    )
-    allocate(filters_                           )
-    allocate(filters_       %next               )
-    allocate(filters_       %next%next          )
-    allocate(filters_       %next%next%next     )
-    allocate(filters_       %next%next%next%next)
-    filters_                    %filter_ => galacticFilterIsSubhalo_
-    filters_%next               %filter_ => galacticFilterStellarMass_
-    filters_%next%next          %filter_ => galacticFilterStarFormationRateNonZero_
-    filters_%next%next%next     %filter_ => galacticFilterGalaxyType_
-    filters_%next%next%next%next%filter_ => galacticFilterHostHaloMass_
+    allocate(galacticFilter_          )
+    allocate(filters_                 )
+    allocate(filters_       %next     )
+    allocate(filters_       %next%next)
+    filters_          %filter_ => galacticFilterIsSubhalo_
+    filters_%next     %filter_ => galacticFilterStellarMass_
+    filters_%next%next%filter_ => galacticFilterHostHaloMass_
     !![
     <referenceConstruct object="galacticFilter_"                  constructor="galacticFilterAll              (filters_                                                                                                                                                                       )"/>
     !!]
@@ -371,36 +321,36 @@ contains
      </constructor>
     </referenceConstruct>
     !!]
-    self%outputAnalysisStarFormingMainSequence=                                         &
-         & outputAnalysisStarFormingMainSequence(                                       &
-         &                                       char(fileName)                       , &
-         &                                       label                                , &
-         &                                       description                          , &
-         &                                       galacticFilter_                      , &
-         &                                       surveyGeometry_                      , &
-         &                                       cosmologyFunctions_                  , &
-         &                                       cosmologyFunctionsData               , &
-         &                                       outputTimes_                         , &
-         &                                       outputAnalysisPropertyOperator_      , &
-         &                                       outputAnalysisDistributionOperator_  , &
-         &                                       outputAnalysisWeightPropertyOperator_, &
-         &                                       starFormationRateDisks_              , &
-         &                                       starFormationRateSpheroids_            &
-         &                                      )
+    self%outputAnalysisQuiescentFraction=                                                 &
+         & outputAnalysisQuiescentFraction(                                               &
+         &                                 char(fileName)                               , &
+         &                                 label                                        , &
+         &                                 description                                  , &
+         &                                 starFormationRateSpecificQuiescentLogarithmic, &
+         &                                 starFormationRateSpecificLogarithmicError    , &
+         &                                 galacticFilter_                              , &
+         &                                 surveyGeometry_                              , &
+         &                                 cosmologyFunctions_                          , &
+         &                                 cosmologyFunctionsData                       , &
+         &                                 outputTimes_                                 , &
+         &                                 outputAnalysisPropertyOperator_              , &
+         &                                 outputAnalysisDistributionOperator_          , &
+         &                                 outputAnalysisWeightPropertyOperator_        , &
+         &                                 starFormationRateDisks_                      , &
+         &                                 starFormationRateSpheroids_                    &
+         &                                )
     !![
-    <objectDestructor name="galacticFilterIsSubhalo_"               />
-    <objectDestructor name="galacticFilterStellarMass_"             />
-    <objectDestructor name="galacticFilterStarFormationRate_"       />
-    <objectDestructor name="galacticFilterStarFormationRateNonZero_"/>
-    <objectDestructor name="galacticFilterGalaxyType_"              />
-    <objectDestructor name="galacticFilter_"                        />
-    <objectDestructor name="cosmologyParametersData"                />
-    <objectDestructor name="cosmologyFunctionsData"                 />
-    <objectDestructor name="surveyGeometry_"                        />
-    <objectDestructor name="outputAnalysisPropertyOperator_"        />
-    <objectDestructor name="outputAnalysisWeightPropertyOperator_"  />
-    <objectDestructor name="outputAnalysisDistributionOperator_"    />
+    <objectDestructor name="galacticFilterIsSubhalo_"             />
+    <objectDestructor name="galacticFilterStellarMass_"           />
+    <objectDestructor name="galacticFilterStarFormationRate_"     />
+    <objectDestructor name="galacticFilter_"                      />
+    <objectDestructor name="cosmologyParametersData"              />
+    <objectDestructor name="cosmologyFunctionsData"               />
+    <objectDestructor name="surveyGeometry_"                      />
+    <objectDestructor name="outputAnalysisPropertyOperator_"      />
+    <objectDestructor name="outputAnalysisWeightPropertyOperator_"/>
+    <objectDestructor name="outputAnalysisDistributionOperator_"  />
     !!]
     nullify(filters_)    
     return
-  end function starFormingMainSequenceWagner2017ConstructorInternal
+  end function quiescentFractionWagner2016ConstructorInternal
