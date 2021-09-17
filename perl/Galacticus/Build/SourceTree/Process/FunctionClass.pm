@@ -498,7 +498,7 @@ sub Process_FunctionClass {
 						$descriptorCode .= "parameterValues=''\n";
 						for(my $i=1;$i<=$rank;++$i) {
 						    $descriptorCode .= " parameterValues=parameterValues//'['\n";
-						    $descriptorCode .= "do i".$i."=1,size(self%".$parameter->{'name'}.",dim=".$i.")\n";
+						    $descriptorCode .= "do i".$i."=lbound(self%".$parameter->{'name'}.",dim=".$i."),ubound(self%".$parameter->{'name'}.",dim=".$i.")\n";
 						}
 						if ( $function ) {
 						    $descriptorCode .= " parameterValues=parameterValues//".$function."(self%".$parameter->{'name'}."(".join(",",map {"i".$_} 1..$rank)."))\n";
@@ -925,7 +925,7 @@ CODE
 					    $assignments .= "if (allocated(self%".$variableName.")) then\n"
 						if ( grep {$_ eq "allocatable"} @{$declaration->{'attributes'}} );
 					    for(my $i=1;$i<=$rank;++$i) {
-						$assignments .= (" " x $i)."do i".$i."=1,size(self%".$variableName.",dim=".$i.")\n";
+						$assignments .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
 					    }
 					    my $arrayElement = $rank > 0 ? "(".join(",",map {"i".$_} 1..$rank).")" : "";
 					    $assignments .= (" " x $rank)."call destination%".$variableName.$arrayElement."%deepCopyActions()\n";
@@ -1153,7 +1153,7 @@ CODE
 			    }
 			    foreach my $variableName ( @{$declaration->{'variables'}} ) {
 				for(my $i=1;$i<=$rank;++$i) {
-				    $assignments .= (" " x $i)."do i".$i."=1,size(self%".$variableName.",dim=".$i.")\n";
+				    $assignments .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
 				}
 				my $arrayElement = $rank > 0 ? "(".join(",",map {"i".$_} 1..$rank).")" : "";
 				$assignments .= (" " x $rank)."call destination%".$variableName.$arrayElement."%deepCopyActions()\n";
@@ -1613,8 +1613,8 @@ CODE
 						}
 					    }
 					    for(my $i=1;$i<=$rank;++$i) {
-						$outputCode .= (" " x $i)."do i".$i."=1,size(self%".$variableName.",dim=".$i.")\n";
-						$inputCode  .= (" " x $i)."do i".$i."=1,size(self%".$variableName.",dim=".$i.")\n";
+						$outputCode .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
+						$inputCode  .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
 					    }
 					    my $arrayElement = $rank > 0 ? "(".join(",",map {"i".$_} 1..$rank).")" : "";
 					    $labelUsed   = 1;
@@ -1855,8 +1855,8 @@ CODE
 				    }
 				}
 				for(my $i=1;$i<=$rank;++$i) {
-				    $outputCode .= (" " x $i)."do i".$i."=1,size(self%".$variableName.",dim=".$i.")\n";
-				    $inputCode  .= (" " x $i)."do i".$i."=1,size(self%".$variableName.",dim=".$i.")\n";
+				    $outputCode .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
+				    $inputCode  .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
 				}
 				my $arrayElement = $rank > 0 ? "(".join(",",map {"i".$_} 1..$rank).")" : "";
 				$labelUsed   = 1;
@@ -2058,8 +2058,8 @@ CODE
 						}
 					    }
 					    for(my $i=1;$i<=$rank;++$i) {
-						$outputCode .= (" " x $i)."do i".$i."=1,size(self%".$variableName.",dim=".$i.")\n";
-						$inputCode  .= (" " x $i)."do i".$i."=1,size(self%".$variableName.",dim=".$i.")\n";
+						$outputCode .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
+						$inputCode  .= (" " x $i)."do i".$i."=lbound(self%".$variableName.",dim=".$i."),ubound(self%".$variableName.",dim=".$i.")\n";
 					    }
 					    my $arrayElement = $rank > 0 ? "(".join(",",map {"i".$_} 1..$rank).")" : "";
 					    $labelUsed   = 1;
