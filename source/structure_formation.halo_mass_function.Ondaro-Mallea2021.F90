@@ -17,170 +17,171 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-!!{ Contains a module which implements a dark matter halo mass function class for non-universal primordial power spectra.
+!!{
+Contains a module which implements the dark matter halo mass function class of \cite{2021arXiv210208958O} for non-universal
+primordial power spectra and structure growth rates.
 !!}
-  use :: Cosmological_Density_Field    , only : cosmologicalMassVarianceClass
-  use :: Excursion_Sets_First_Crossings, only : excursionSetFirstCrossingClass
-  use :: Linear_Growth                 , only: linearGrowthClass
-
-!![
- <haloMassFunction name="haloMassFunctionOndaroMallea2021">
+  use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass
+  use :: Linear_Growth             , only : linearGrowthClass
+  
+  !![
+  <haloMassFunction name="haloMassFunctionOndaroMallea2021">
     <description>
-     A dark matter halo mass function class using the function given by \cite{press_formation_1974}. Specifically,
-     \begin{equation}
-     n(M,t) = 2 {\Omega_\mathrm{M} \rho_\mathrm{crit} \over M^2} \alpha \sigma^2(M) f[S(M,t)],
-     \end{equation}
-     where $\alpha = \mathrm{d}\ln\sigma/\mathrm{d}\ln M$ and $f[S]$ is the excursion set barrier first crossing distribution
-     for variance $S(M)=\sigma^2(M)$, computed using the selected \refClass{excursionSetFirstCrossingClass}.
+      The dark matter halo mass function class of \cite{2021arXiv210208958O} for non-universal
+      primordial power spectra and structure growth rates. The mass function is given by
+      \begin{equation}
+      n(M) = n^\prime(M) f_2(n_\mathrm{eff}) f_3(\alpha_\mathrm{eff}),
+      \end{equation}
+      where $n^\prime(M)$ is some other mass function,
+      \begin{equation}
+      f_2(n_\mathrm{eff})=n_0 n_\mathrm{eff}^2 + n_1 n_\mathrm{eff} + n_0,
+      \end{equation}
+      and
+      \begin{equation}
+      f_3(\alpha_\mathrm{eff})=a_0 \alpha_\mathrm{eff}^2 + a_1.
+      \end{equation}
+      Here
+      \begin{equation}
+      n_\mathrm{eff} = -3 -2 \frac{\mathrm{d} \log \sigma(R)}{\mathrm{d} \log R} = -3 -6 \frac{\mathrm{d} \log \sigma(M)}{\mathrm{d} \log M},
+      \end{equation}
+      where $M$ is halo mass, and $\sigma(M)$ is the fractional root-variance in the linear theory cosmological density field on that scale, and
+      \begin{equation}
+      \alpha_\mathrm{eff}(a) = \frac{\mathrm{d} \log D}{\mathrm{d} \log a},
+      \end{equation}
+      where $D(a)$ is the linear growth factor and $a$ is the expansion factor.
     </description>
-   </haloMassFunction>
-!!]
+  </haloMassFunction>
+  !!]
   type, extends(haloMassFunctionClass) :: haloMassFunctionOndaroMallea2021
      !!{
-      A halo mass function class modifying the primordial power spectrum.
+     The halo mass function class of \cite{2021arXiv210208958O} for non-universal
+     primordial power spectra and structure growth rates.
      !!}
      private
-     double precision                                    :: n_0, n_1, n_2, a_0, a_1
-     class(cosmologicalMassVarianceClass ), pointer :: cosmologicalMassVariance_  => null()
-     class(excursionSetFirstCrossingClass), pointer :: excursionSetFirstCrossing_ => null()
-     class(linearGrowthClass             ), pointer :: linearGrowth_ => null()
-     class           (haloMassFunctionClass   ), pointer :: haloMassFunctionShethTormen  => null()
+     double precision                               , dimension(0:2) :: coefficientsN
+     double precision                               , dimension(0:1) :: coefficientsA
+     class           (cosmologicalMassVarianceClass), pointer        :: cosmologicalMassVariance_ => null()
+     class           (linearGrowthClass            ), pointer        :: linearGrowth_             => null()
+     class           (haloMassFunctionClass        ), pointer        :: haloMassFunction_         => null()
     contains
-     final     ::                 OndaroMallea2021Destructor
-     procedure :: differential => OndaroMallea2021Differential
+     final     ::                 ondaroMallea2021Destructor
+     procedure :: differential => ondaroMallea2021Differential
   end type haloMassFunctionOndaroMallea2021
 
   interface haloMassFunctionOndaroMallea2021
      !!{
- Constructors for the primordial power spectrum halo mass function class.
+     Constructors for the {\normalfont \ttfamily ondaroMallea2021} halo mass function class.
      !!}
-     module procedure OndaroMallea2021ConstructorParameters
-     module procedure OndaroMallea2021ConstructorInternal
+     module procedure ondaroMallea2021ConstructorParameters
+     module procedure ondaroMallea2021ConstructorInternal
   end interface haloMassFunctionOndaroMallea2021
 
 contains
 
-  function OndaroMallea2021ConstructorParameters(parameters) result(self)
+  function ondaroMallea2021ConstructorParameters(parameters) result(self)
     !!{
- Constructor for the primordial power halo mass function class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily ondaroMallea2021} halo mass function class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (haloMassFunctionOndaroMallea2021)               :: self
-    type (inputParameters               ), intent(inout) :: parameters
-    class           (haloMassFunctionClass   ), pointer  :: haloMassFunctionShethTormen
-    class(cosmologicalMassVarianceClass ), pointer       :: cosmologicalMassVariance_
-    class(excursionSetFirstCrossingClass), pointer       :: excursionSetFirstCrossing_
-    class(cosmologyParametersClass      ), pointer       :: cosmologyParameters_
-    class(linearGrowthClass             ), pointer       :: linearGrowth_
-    double precision                                     :: n_0, n_1, n_2, a_0, a_1
+    type            (haloMassFunctionOndaroMallea2021)                 :: self
+    type            (inputParameters                 ), intent(inout)  :: parameters
+    class           (haloMassFunctionClass           ), pointer        :: haloMassFunction_
+    class           (cosmologicalMassVarianceClass   ), pointer        :: cosmologicalMassVariance_
+    class           (cosmologyParametersClass        ), pointer        :: cosmologyParameters_
+    class           (linearGrowthClass               ), pointer        :: linearGrowth_
+    double precision                                  , dimension(0:2) :: coefficientsN
+    double precision                                  , dimension(0:1) :: coefficientsA
 
-!![
- <objectBuilder class="cosmologyParameters"       name="cosmologyParameters_"       source="parameters"/>
-     <objectBuilder class="cosmologicalMassVariance"  name="cosmologicalMassVariance_"  source="parameters"/>
-     <objectBuilder class="excursionSetFirstCrossing" name="excursionSetFirstCrossing_" source="parameters"/>
-     <objectBuilder class="linearGrowth"              name="linearGrowth_"              source="parameters"/>
-     <objectBuilder class="haloMassFunction"    name="haloMassFunctionShethTormen"  source="parameters"/>
-  <inputParameter>
-       <name>n_0</name>
-       <source>parameters</source>
-       <defaultValue>0.707d0</defaultValue>
-       <description>The parameter $a$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
-     </inputParameter>
-     <inputParameter>
-       <name>n_1</name>
-       <source>parameters</source>
-       <defaultValue>0.3d0</defaultValue>
-       <description>The parameter $p$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
-     </inputParameter>
-     <inputParameter>
-       <name>n_2</name>
-       <source>parameters</source>
-       <defaultValue>0.3221836349d0</defaultValue>
-       <description>The normalization parameter $A$ in the halo mass function fit.</description>
-     </inputParameter>
-     <inputParameter>
-       <name>a_0</name>
-       <source>parameters</source>
-       <defaultValue>0.707d0</defaultValue>
-       <description>The parameter $a$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
-     </inputParameter>
-     <inputParameter>
-       <name>a_1</name>
-       <source>parameters</source>
-       <defaultValue>0.3d0</defaultValue>
-       <description>The parameter $p$ in the \cite{sheth_ellipsoidal_2001} halo mass function fit.</description>
-     </inputParameter>
-!!]
-    self=haloMassFunctionOndaroMallea2021(haloMassFunctionShethTormen,n_0,n_1,n_2,a_0,a_1,cosmologyParameters_,cosmologicalMassVariance_,excursionSetFirstCrossing_,linearGrowth_)
-    !# <inputParametersValidate source="parameters"/>
-    !# <objectDestructor name="cosmologyParameters_"      />
-    !# <objectDestructor name="cosmologicalMassVariance_" />
-    !# <objectDestructor name="excursionSetFirstCrossing_"/>
-    !# <objectDestructor name="linearGrowth_"             />
-    !# <objectDestructor name="haloMassFunctionShethTormen"/>
+    !![
+    <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
+    <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
+    <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
+    <objectBuilder class="haloMassFunction"         name="haloMassFunction_"         source="parameters"/>
+    <inputParameter>
+      <name>coefficientsN</name>
+      <source>parameters</source>
+      <defaultValue>[-0.1178d0,-0.3389d0,0.3022d0]</defaultValue>
+      <defaultSource>\cite[][Table~3, row 4]{2021arXiv210208958O}</defaultSource>
+      <description>The coefficients, $n_{0\ldots2}$, appearing in equation~(7) of the \cite{2021arXiv210208958O} halo mass function model.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>coefficientsA</name>
+      <source>parameters</source>
+      <defaultValue>[-1.0785d0,2.9700d0]</defaultValue>
+      <defaultSource>\cite[][Table~3, row 4]{2021arXiv210208958O}</defaultSource>
+      <description>The coefficients, $a_{0\ldots1}$, appearing in equation~(8) of the \cite{2021arXiv210208958O} halo mass function model.</description>
+    </inputParameter>
+    !!]
+    self=haloMassFunctionOndaroMallea2021(coefficientsN,coefficientsA,cosmologyParameters_,cosmologicalMassVariance_,linearGrowth_,haloMassFunction_)
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"     />
+    <objectDestructor name="cosmologicalMassVariance_"/>
+    <objectDestructor name="linearGrowth_"            />
+    <objectDestructor name="haloMassFunction_"        />
+    !!]
     return
-  end function OndaroMallea2021ConstructorParameters
+  end function ondaroMallea2021ConstructorParameters
 
-  function OndaroMallea2021ConstructorInternal(haloMassFunctionShethTormen,n_0,n_1,n_2,a_0,a_1,cosmologyParameters_,cosmologicalMassVariance_,excursionSetFirstCrossing_,linearGrowth_) result(self)
+  function ondaroMallea2021ConstructorInternal(coefficientsN,coefficientsA,cosmologyParameters_,cosmologicalMassVariance_,linearGrowth_,haloMassFunction_) result(self)
     !!{
- Internal constructor for the primordial power halo mass function class.
+    Internal constructor for the {\normalfont \ttfamily ondaroMallea2021} halo mass function class.
     !!}
     implicit none
-    type (haloMassFunctionOndaroMallea2021)                       :: self
-    class(cosmologyParametersClass      ), target, intent(in   ) :: cosmologyParameters_
-    class(cosmologicalMassVarianceClass ), target, intent(in   ) :: cosmologicalMassVariance_
-    class(excursionSetFirstCrossingClass), target, intent(in   ) :: excursionSetFirstCrossing_
-    class(linearGrowthClass             ), target, intent(in   ) :: linearGrowth_
-    class(haloMassFunctionClass   ), target, intent(in   )       :: haloMassFunctionShethTormen
-    double precision               , intent(in   )               :: n_0, n_1, n_2, a_0, a_1
-!![
- <constructorAssign variables="*haloMassFunctionShethTormen,n_0,n_1,n_2,a_0,a_1,*cosmologyParameters_, *cosmologicalMassVariance_, *excursionSetFirstCrossing_,*linearGrowth_"/>
-!!]
+    type            (haloMassFunctionOndaroMallea2021)                                :: self
+    class           (cosmologyParametersClass        ), target        , intent(in   ) :: cosmologyParameters_
+    class           (cosmologicalMassVarianceClass   ), target        , intent(in   ) :: cosmologicalMassVariance_
+    class           (linearGrowthClass               ), target        , intent(in   ) :: linearGrowth_
+    class           (haloMassFunctionClass           ), target        , intent(in   ) :: haloMassFunction_
+    double precision                                  , dimension(0:2), intent(in   ) :: coefficientsN
+    double precision                                  , dimension(0:1), intent(in   ) :: coefficientsA
+    !![
+    <constructorAssign variables="coefficientsN, coefficientsA, *cosmologyParameters_, *cosmologicalMassVariance_, *linearGrowth_, *haloMassFunction_"/>
+    !!]
 
     return
-  end function OndaroMallea2021ConstructorInternal
+  end function ondaroMallea2021ConstructorInternal
 
-  subroutine OndaroMallea2021Destructor(self)
+  subroutine ondaroMallea2021Destructor(self)
     !!{
- Destructor for the primordial power halo mass function class.
+    Destructor for the {\normalfont \ttfamily ondaroMallea2021} halo mass function class.
     !!}
     implicit none
     type(haloMassFunctionOndaroMallea2021), intent(inout) :: self
-
+    
     !![
-     <objectDestructor name="self%cosmologyParameters_"       />
-     <objectDestructor name="self%cosmologicalMassVariance_"  />
-     <objectDestructor name="self%excursionSetFirstCrossing_" />
-     <objectDestructor name="self%haloMassFunctionShethTormen" />
-     <objectDestructor name="self%linearGrowth_" />
+    <objectDestructor name="self%cosmologyParameters_"     />
+    <objectDestructor name="self%cosmologicalMassVariance_"/>
+    <objectDestructor name="self%haloMassFunction_"        />
+    <objectDestructor name="self%linearGrowth_"            />
     !!]
     return
-  end subroutine OndaroMallea2021Destructor
+  end subroutine ondaroMallea2021Destructor
 
-  double precision function OndaroMallea2021Differential(self,time,mass,node)
+  double precision function ondaroMallea2021Differential(self,time,mass,node)
     !!{
- Return the differential halo mass function at the given time and mass.
+    Return the differential halo mass function at the given time and mass.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class           (haloMassFunctionOndaroMallea2021), intent(inout)          :: self
-    double precision                                , intent(in   )           :: time , mass
-    type            (treeNode                      ), intent(inout), optional :: node
-    double precision                                                          :: alpha, variance, neff, aeff, f_2, f_3
+    class           (haloMassFunctionOndaroMallea2021), intent(inout)           :: self
+    double precision                                  , intent(in   )           :: time                       , mass
+    type            (treeNode                        ), intent(inout), optional :: node
+    double precision                                                            :: slopeEffectivePowerSpectrum, rateGrowthLinear, &
+         &                                                                         factorPowerSpectrum        , factorGrowth
 
-    if (.not.present(node)) call Galacticus_Error_Report('"node" must be present'//{introspection:location})
-    alpha                     =abs(self%cosmologicalMassVariance_ %rootVarianceLogarithmicGradient(mass,time))
-    variance                  =    self%cosmologicalMassVariance_ %rootVariance                   (mass,time) **2
-    OndaroMallea2021Differential=+self%haloMassFunctionShethTormen%Differential(time,mass,node)
-    aeff = self%linearGrowth_%logarithmicDerivativeExpansionFactor(time)
-    neff = -3 - 6 * self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass, time)
-    f_2 = self%n_0 * neff**2 + self%n_1 * neff + self%n_2
-    f_3 = self%a_0 * aeff + self%a_1
-    if (variance > 0.0d0) then
-      OndaroMallea2021Differential = OndaroMallea2021Differential * f_2 * f_3     
-    else
-       OndaroMallea2021Differential=+0.0d0
-    end if
+    ondaroMallea2021Differential=+self%haloMassFunction_        %differential                        (time,mass,node)
+    rateGrowthLinear            =+self%linearGrowth_            %logarithmicDerivativeExpansionFactor(time          )
+    slopeEffectivePowerSpectrum =-3.0d0                                                                                                              &
+         &                       -6.0d0                                                                                                              &
+         &                       *self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient     (mass,time     )
+    factorPowerSpectrum         =+self                          %coefficientsN                       (0             )*slopeEffectivePowerSpectrum**2 &
+    &                            +self                          %coefficientsN                       (1             )*slopeEffectivePowerSpectrum    &
+    &                            +self                          %coefficientsN                       (2             )
+    factorGrowth                =+self                          %coefficientsA                       (0             )*rateGrowthLinear               &
+         &                       +self                          %coefficientsA                       (1             )
+    ondaroMallea2021Differential=+ondaroMallea2021Differential                                                                                       &
+            &                    *factorPowerSpectrum                                                                                                &
+            &                    *factorGrowth     
     return
-  end function OndaroMallea2021Differential
+  end function ondaroMallea2021Differential
