@@ -176,7 +176,7 @@ contains
    <unitName>Node_Component_Merging_Statistics_Major_Output</unitName>
   </mergerTreeExtraOutputTask>
   !!]
-  subroutine Node_Component_Merging_Statistics_Major_Output(node,iOutput,treeIndex,nodePassesFilter)
+  subroutine Node_Component_Merging_Statistics_Major_Output(node,iOutput,treeIndex,nodePassesFilter,treeLock)
     !!{
     Output properties for all black holes in {\normalfont \ttfamily node}.
     !!}
@@ -188,16 +188,19 @@ contains
     use            :: ISO_Varying_String, only : assignment(=)                    , char      , varying_string
     use            :: Kind_Numbers      , only : kind_int8
     use            :: String_Handling   , only : operator(//)
+    use            :: Locks             , only : ompLock
     implicit none
     type            (treeNode                      ), intent(inout), pointer      :: node
     integer         (kind=kind_int8                ), intent(in   )               :: treeIndex
     integer         (c_size_t                      ), intent(in   )               :: iOutput
     logical                                         , intent(in   )               :: nodePassesFilter
+    type            (ompLock                       ), intent(inout)               :: treeLock
     class           (nodeComponentMergingStatistics)               , pointer      :: mergingStatistics
     double precision                                , allocatable  , dimension(:) :: majorMergerTimes
     type            (hdf5Object                    )                              :: majorMergersGroup, outputGroup, &
          &                                                                           treeGroup
     type            (varying_string                )                              :: groupName
+    !$GLC attributes unused :: treeLock
 
     ! Return immediately if this class is not active or the filter has not passed.
     if (.not.(defaultMergingStatisticsComponent%majorIsActive().and.nodePassesFilter)) return

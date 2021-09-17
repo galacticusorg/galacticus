@@ -127,11 +127,12 @@ contains
 #ifdef UNCLEANEXIT
     call Exit(1)
 #else
-    !$ call hdf5Access%set  (     )
-    call    H5Close_F       (error)
-    call    H5Close_C       (     )
-    !$ call hdf5Access%unset(     )
-    call    Abort           (     )
+    !$ if (.not.hdf5Access%ownedByThread()) &
+    !$      & call hdf5Access%set  (     )
+    call           H5Close_F       (error)
+    call           H5Close_C       (     )
+    !$ call        hdf5Access%unset(     )
+    call           Abort           (     )
 #endif
     return
   end subroutine Galacticus_Error_Report_Char
@@ -259,10 +260,11 @@ contains
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
 #ifndef UNCLEANEXIT
-    !$ call hdf5Access%set  (     )
-    call    H5Close_F       (error)
-    call    H5Close_C       (     )
-    !$ call hdf5Access%unset(     )
+    !$ if (.not.hdf5Access%ownedByThread()) &
+    !$      & call hdf5Access%set  (     )
+    call           H5Close_F       (error)
+    call           H5Close_C       (     )
+    !$ call        hdf5Access%unset(     )
 #endif
     call Galacticus_Warn_Review( )
     call BackTrace             ( )
@@ -319,10 +321,11 @@ contains
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
 #ifndef UNCLEANEXIT
-    !$ call hdf5Access%set  (     )
-    call    H5Close_F       (error)
-    call    H5Close_C       (     )
-    !$ call hdf5Access%unset(     )
+    !$ if (.not.hdf5Access%ownedByThread()) &
+    !$      & call hdf5Access%set  (     )
+    call           H5Close_F       (error)
+    call           H5Close_C       (     )
+    !$ call        hdf5Access%unset(     )
 #endif
     call Galacticus_Warn_Review( )
     call BackTrace             ( )
@@ -379,10 +382,11 @@ contains
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
 #ifndef UNCLEANEXIT
-    !$ call hdf5Access%set  (     )
-    call    H5Close_F       (error)
-    call    H5Close_C       (     )
-    !$ call hdf5Access%unset(     )
+    !$ if (.not.hdf5Access%ownedByThread()) &
+    !$      & call hdf5Access%set  (     )
+    call           H5Close_F       (error)
+    call           H5Close_C       (     )
+    !$ call        hdf5Access%unset(     )
 #endif
     call Galacticus_Warn_Review( )
     call BackTrace             ( )
@@ -439,10 +443,11 @@ contains
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
 #ifndef UNCLEANEXIT
-    !$ call hdf5Access%set  (     )
-    call    H5Close_F       (error)
-    call    H5Close_C       (     )
-    !$ call hdf5Access%unset(     )
+    !$ if (.not.hdf5Access%ownedByThread()) &
+    !$      & call hdf5Access%set  (     )
+    call           H5Close_F       (error)
+    call           H5Close_C       (     )
+    !$ call        hdf5Access%unset(     )
 #endif
     call Galacticus_Warn_Review( )
     call BackTrace             ( )
@@ -499,10 +504,11 @@ contains
     !$    write (0,*) " => Error occurred in master thread"
     !$ end if
 #ifndef UNCLEANEXIT
-    !$ call hdf5Access%set  (     )
-    call    H5Close_F       (error)
-    call    H5Close_C       (     )
-    !$ call hdf5Access%unset(     )
+    !$ if (.not.hdf5Access%ownedByThread()) &
+    !$      & call hdf5Access%set  (     )
+    call           H5Close_F       (error)
+    call           H5Close_C       (     )
+    !$ call        hdf5Access%unset(     )
 #endif
     call Galacticus_Warn_Review( )
     call BackTrace             ( )
@@ -546,10 +552,11 @@ contains
     end if
     call Flush(0)
 #ifndef UNCLEANEXIT
-    !$ call hdf5Access%set  (     )
-    call    H5Close_F       (error)
-    call    H5Close_C       (     )
-    !$ call hdf5Access%unset(     )
+    !$ if (.not.hdf5Access%ownedByThread()) &
+    !$      & call hdf5Access%set  (     )
+    call           H5Close_F       (error)
+    call           H5Close_C       (     )
+    !$ call        hdf5Access%unset(     )
 #endif
     call Exit(errorStatusXCPU)
     return
@@ -595,10 +602,11 @@ contains
        !$    write (0,*) " => Error occurred in master thread"
        !$ end if
 #ifndef UNCLEANEXIT
-    !$ call hdf5Access%set  (     )
-    call    H5Close_F       (error)
-    call    H5Close_C       (     )
-    !$ call hdf5Access%unset(     )
+    !$ if (.not.hdf5Access%ownedByThread()) &
+    !$      & call hdf5Access%set  (     )
+    call           H5Close_F       (error)
+    call           H5Close_C       (     )
+    !$ call        hdf5Access%unset(     )
 #endif
        call Galacticus_Warn_Review( )
        call BackTrace             ( )

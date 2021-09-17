@@ -176,7 +176,7 @@ contains
     !!{
     Write properties of nodes in {\normalfont \ttfamily tree} to the \glc\ output file.
     !!}
-    !$ use :: IO_HDF5, only : hdf5Access
+    !$ use :: HDF5_Access, only : hdf5Access
     implicit none
     class(mergerTreeOutputterHaloFourierProfiles), intent(inout) :: self
 
@@ -192,7 +192,7 @@ contains
     !!}
     use    :: Galacticus_HDF5                 , only : galacticusOutputFile
     use    :: Galacticus_Nodes                , only : treeNode                , nodeComponentBasic
-    !$ use :: IO_HDF5                         , only : hdf5Access
+    !$ use :: HDF5_Access                     , only : hdf5Access
     use    :: ISO_Varying_String              , only : var_str
     use    :: Merger_Tree_Walkers             , only : mergerTreeWalkerAllNodes
     use    :: Numerical_Constants_Astronomical, only : megaParsec

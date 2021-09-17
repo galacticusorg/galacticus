@@ -249,7 +249,7 @@ contains
    <unitName>Node_Component_Dynamics_Statistics_Bars_Output</unitName>
   </mergerTreeExtraOutputTask>
   !!]
-  subroutine Node_Component_Dynamics_Statistics_Bars_Output(node,iOutput,treeIndex,nodePassesFilter)
+  subroutine Node_Component_Dynamics_Statistics_Bars_Output(node,iOutput,treeIndex,nodePassesFilter,treeLock)
     !!{
     Store the dynamical histories of galaxies to \glc\ output file.
     !!}
@@ -261,11 +261,13 @@ contains
     use            :: Kind_Numbers                    , only : kind_int8
     use            :: Numerical_Constants_Astronomical, only : gigaYear
     use            :: String_Handling                 , only : operator(//)
+    use            :: Locks                           , only : ompLock
     implicit none
     type            (treeNode                       ), intent(inout), pointer      :: node
     integer         (kind=c_size_t                  ), intent(in   )               :: iOutput
     integer         (kind=kind_int8                 ), intent(in   )               :: treeIndex
     logical                                          , intent(in   )               :: nodePassesFilter
+    type            (ompLock                        ), intent(inout)               :: treeLock
     class           (nodeComponentDynamicsStatistics)               , pointer      :: dynamicsStatistics
     double precision                                 , allocatable  , dimension(:) :: dataValues
     type            (varying_string                 )                              :: outputGroupName          , treeGroupName       , &
@@ -274,7 +276,7 @@ contains
     type            (hdf5Object                     )                              :: outputs                  , output              , &
          &                                                                            dynamics                 , tree                , &
          &                                                                            dataset
-    !$GLC attributes unused :: nodePassesFilter
+    !$GLC attributes unused :: nodePassesFilter, treeLock
 
     ! Output the history data if and only if any has been collated.
     if (dynamicsStatisticsBarsInitialized) then

@@ -205,7 +205,7 @@ contains
     return
   end subroutine inSituRate
 
-  subroutine inSituOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,componentType)
+  subroutine inSituOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,componentType,treeLock)
     !!{
     Output the star formation history for {\normalfont \ttfamily node}.
     !!}
@@ -223,6 +223,7 @@ contains
     integer         (c_size_t                  ), intent(in   )         :: indexOutput
     integer         (kind=kind_int8            ), intent(in   )         :: indexTree
     integer                                     , intent(in   )         :: componentType
+    type            (ompLock                   ), intent(inout)         :: treeLock
     class           (nodeComponentBasic        ), pointer               :: basicParent
     type            (treeNode                  ), pointer               :: nodeParent
     double precision                                                    :: timeBegin           , timeEnd
@@ -230,6 +231,7 @@ contains
     type            (hdf5Object                )                        :: historyGroup        , outputGroup, &
          &                                                                 treeGroup
     type            (history                   )                        :: newHistory
+    !$GLC attributes unused :: treeLock
 
     if (.not.historyStarFormation%exists()) return
     if (nodePassesFilter) then

@@ -1006,7 +1006,7 @@ contains
    <unitName>Node_Component_Black_Hole_Standard_Output_Properties</unitName>
   </mergerTreeExtraOutputTask>
   !!]
-  subroutine Node_Component_Black_Hole_Standard_Output_Properties(node,iOutput,treeIndex,nodePassesFilter)
+  subroutine Node_Component_Black_Hole_Standard_Output_Properties(node,iOutput,treeIndex,nodePassesFilter,treeLock)
     !!{
     Output properties for all black holes in {\normalfont \ttfamily node}.
     !!}
@@ -1019,11 +1019,13 @@ contains
     use            :: Kind_Numbers      , only : kind_int8
     use            :: Memory_Management , only : allocateArray         , deallocateArray
     use            :: String_Handling   , only : operator(//)
+    use            :: Locks             , only : ompLock
     implicit none
     type            (treeNode              ), intent(inout), pointer      :: node
     integer         (kind=kind_int8        ), intent(in   )               :: treeIndex
     integer         (c_size_t              ), intent(in   )               :: iOutput
     logical                                 , intent(in   )               :: nodePassesFilter
+    type            (ompLock               ), intent(inout)               :: treeLock
     class           (nodeComponentBlackHole)               , pointer      :: blackHole
     integer         (kind=kind_int8        ), allocatable  , dimension(:) :: mergerTreeIndex     , nodeIndex
     double precision                        , allocatable  , dimension(:) :: mass                , massAccretionRate    , radiativeEfficiency, &
@@ -1032,6 +1034,7 @@ contains
     integer                                                               :: blackHoleCount      , instance
     type            (hdf5Object            )                              :: blackHolesGroup     , outputGroup
     type            (varying_string        )                              :: groupName
+    !$GLC attributes unused :: treeLock
 
     ! If black hole output was requested , output their properties.
     if (nodePassesFilter .and. blackHoleOutputData) then

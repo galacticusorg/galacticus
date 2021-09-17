@@ -94,7 +94,7 @@ contains
     return
   end subroutine nullRate
 
-  subroutine nullOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,componentType)
+  subroutine nullOutput(self,node,nodePassesFilter,historyStarFormation,indexOutput,indexTree,componentType,treeLock)
     !!{
     Output the star formation history for {\normalfont \ttfamily node}.
     !!}
@@ -106,7 +106,8 @@ contains
     integer(c_size_t                ), intent(in   )         :: indexOutput
     integer(kind=kind_int8          ), intent(in   )         :: indexTree
     integer                            intent(in   )         :: componentType
-    !$GLC attributes unused :: self, node, nodePassesFilter, historyStarFormation, indexOutput, indexTree, componentType
+    type   (ompLock                 ), intent(inout)         :: treeLock
+    !$GLC attributes unused :: self, node, nodePassesFilter, historyStarFormation, indexOutput, indexTree, componentType, treeLock
 
     ! Do nothing.
     return

@@ -155,6 +155,7 @@ contains
     class  (ompLock), intent(inout) :: self
 
     ! Initialize the lock.
+    self%ownerThread=-1
     !$ call OMP_Init_Lock(self%lock)
     return
   end subroutine ompLockInitialize
@@ -168,6 +169,7 @@ contains
     class(ompLock), intent(inout) :: self
 
     !$ call OMP_Set_Lock(self%lock)
+    self%ownerThread=0
     !$ self%ownerThread=OMP_Get_Thread_Num()
     return
   end subroutine ompLockSet
@@ -193,7 +195,7 @@ contains
     implicit none
     class(ompLock), intent(inout) :: self
 
-    ompLockOwnedByThread=.true.
+    ompLockOwnedByThread   =self%ownerThread == 0
     !$ ompLockOwnedByThread=self%ownerThread == OMP_Get_Thread_Num()
     return
   end function ompLockOwnedByThread

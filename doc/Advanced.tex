@@ -492,7 +492,9 @@ If present, the file {\normalfont \ttfamily galacticusConfig.xml}, described in 
 
 \section{Configuration File}\label{sec:ConfigFile}\hyperdef{sec}{ConfigFile}{}\index{galacticusConfig.xml@{\normalfont \ttfamily galacticusConfig.xml}}\index{configuration}
 
-The file {\normalfont \ttfamily galacticusConfig.xml}, is present, is used to configure \glc\ and provide useful information. It should have the following structure:
+The file {\normalfont \ttfamily galacticusConfig.xml}, if present in the current {\normalfont \ttfamily GALACTICUS\_EXEC\_PATH}, is used to configure \glc\ and provide useful information. If no such file is present in {\normalfont \ttfamily GALACTICUS\_EXEC\_PATH} then the existance of {\normalfont \ttfamily \$HOME/.galacticusConfig.xml} is checked and that file used for configuration if it is present.
+
+This configuration file should have the following structure:
 \begin{verbatim}
 <config>
   <contact>

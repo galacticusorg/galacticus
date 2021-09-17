@@ -11,22 +11,24 @@ use Galacticus::Options;
 # Andrew Benson (15-Jun-2018)
 
 # Read in any configuration options.
-my $config;
-if ( -e $ENV{'GALACTICUS_EXEC_PATH'}."/galacticusConfig.xml" ) {
-    my $xml = new XML::Simple;
-    $config = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/galacticusConfig.xml");
-}
+my $config = &Galacticus::Options::LoadConfig();
 
 # Parse config options.
 my $queueManager = &Galacticus::Options::Config(                'queueManager' );
-my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     });
+my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     })
+    if ( defined($queueManager) );
 
 # Get any command line options.
 my %options =
     (
-     'processesPerNode' => exists($queueConfig->{'ppn'}) ? $queueConfig->{'ppn'} : 1,
+     'processesPerNode' => (defined($queueConfig) && exists($queueConfig->{'ppn'})) ? $queueConfig->{'ppn'} : 1,
     );
+print "TEST COMMAND LINE: ".$options{'processesPerNode'}."\t".join(" ",@ARGV)."\n";
 &Galacticus::Options::Parse_Options(\@ARGV,\%options);
+
+
+print "TEST COMMAND LINE: ".$options{'processesPerNode'}."\n";
+exit;
 
 # We need at least 8 processes to run this test.
 if ( $options{'processesPerNode'} < 8 ) {

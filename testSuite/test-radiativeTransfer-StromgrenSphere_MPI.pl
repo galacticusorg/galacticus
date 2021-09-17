@@ -12,20 +12,17 @@ use Galacticus::Options;
 # Andrew Benson (04-December-2019)
 
 # Read in any configuration options.
-my $config;
-if ( -e $ENV{'GALACTICUS_EXEC_PATH'}."/galacticusConfig.xml" ) {
-    my $xml = new XML::Simple;
-    $config = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/galacticusConfig.xml");
-}
+my $config = &Galacticus::Options::LoadConfig();
 
 # Parse config options.
 my $queueManager = &Galacticus::Options::Config(                'queueManager' );
-my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     });
+my $queueConfig  = &Galacticus::Options::Config($queueManager->{'manager'     })
+    if ( defined($queueManager) );
 
 # Get any command line options.
 my %options =
     (
-     'processesPerNode' => exists($queueConfig->{'ppn'}) ? $queueConfig->{'ppn'} : 1,
+     'processesPerNode' => (defined($queueConfig) && exists($queueConfig->{'ppn'})) ? $queueConfig->{'ppn'} : 1,
     );
 &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 

@@ -685,7 +685,7 @@ contains
     !!{
     Output the computational domain.
     !!}
-    !$ use :: IO_HDF5                         , only : hdf5Access
+    !$ use :: HDF5_Access                     , only : hdf5Access
     use    :: ISO_Varying_String              , only : char
     use    :: Numerical_Constants_Astronomical, only : megaparsec
     implicit none

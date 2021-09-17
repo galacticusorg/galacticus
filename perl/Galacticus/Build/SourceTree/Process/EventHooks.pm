@@ -284,7 +284,8 @@ CODE
 subroutine eventsHooksWaitTimes()
 #ifdef OMPPROFILE
     use :: Galacticus_HDF5   , only : galacticusOutputFile
-    use :: IO_HDF5           , only : hdf5Access          , hdf5Object
+    use :: IO_HDF5           , only : hdf5Object
+    use :: HDF5_Access       , only : hdf5Access
     use :: ISO_Varying_String, only : varying_string      , var_str
 #endif
     implicit none

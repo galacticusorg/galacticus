@@ -31,9 +31,8 @@ $sqlPassword = $arguments{"password"}
     if ( exists($arguments{'password'}) );
 
 # Parse the Galacticus config file if it is present.
-if ( -e $ENV{'GALACTICUS_EXEC_PATH'}."/galacticusConfig.xml" ) {
-    my $xml    = new XML::Simple;
-    my $config = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/galacticusConfig.xml");
+my $config = &Galacticus::Options::LoadConfig();
+if ( defined($config) ) {
     if ( exists($config->{'millenniumDB'}->{'host'}) ) {
 	foreach ( keys(%{$config->{'millenniumDB'}->{'host'}}) ) {
 	    if ( $_ eq $ENV{'HOSTNAME'} || $_ eq "default" ) {

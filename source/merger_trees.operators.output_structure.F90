@@ -115,7 +115,7 @@ contains
     use    :: Galacticus_Error                  , only : Galacticus_Error_Report
     use    :: Galacticus_HDF5                   , only : galacticusOutputFile
     use    :: Galacticus_Nodes                  , only : nodeComponentBasic
-    !$ use :: IO_HDF5                           , only : hdf5Access
+    !$ use :: HDF5_Access                       , only : hdf5Access
     use    :: Kind_Numbers                      , only : kind_int8
     use    :: Merger_Tree_Walkers               , only : mergerTreeWalkerIsolatedNodes
     use    :: Merger_Tree_Outputter_Buffer_Types, only : outputPropertyDouble
@@ -304,7 +304,7 @@ contains
     !!{
     Close the merger tree structure group.
     !!}
-    !$ use :: IO_HDF5, only : hdf5Access
+    !$ use :: HDF5_Access, only : hdf5Access
     implicit none
     class(mergerTreeOperatorOutputStructure), intent(inout) :: self
 
