@@ -71,7 +71,7 @@ program Test_Interpolation
 
   ! Test linear extrapolation.
   allocate(interpolator_)
-  interpolator_=interpolator(xArray,yArray,extrapolationType=extrapolationTypeExtrapolate)
+  interpolator_=interpolator(xArray,yArray,extrapolationType=[extrapolationTypeExtrapolate,extrapolationTypeExtrapolate])
   x=15.0d0
   y=interpolator_%interpolate(x)
   deallocate(interpolator_)

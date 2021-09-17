@@ -29,12 +29,17 @@ module Chemical_Abundances_Structure
   implicit none
   private
   public :: chemicalAbundances      , Chemical_Abundances_Initialize, Chemicals_Names, Chemicals_Index, &
-       &    Chemicals_Property_Count, operator(*)
+       &    Chemicals_Property_Count, operator(*)                   , operator(>)
 
   ! Interface to multiplication operators with chemical abundances objects as their second argument.
   interface operator(*)
      module procedure Chemical_Abundances_Multiply_Switched
   end interface operator(*)
+
+  ! Interface to greater than operators.
+  interface operator(>)
+     module procedure Chemical_Abundances_Greater_Than
+  end interface operator(>)
 
   type :: chemicalAbundances
      !!{
@@ -345,6 +350,21 @@ contains
     end if
     return
   end function Chemical_Abundances_Divide
+
+  logical function Chemical_Abundances_Greater_Than(abundances1,abundances2)
+    !!{
+    Multiply a chemical abundances object by a scalar.
+    !!}
+    implicit none
+    class(chemicalAbundances), intent(in   ) :: abundances1, abundances2
+
+    if (chemicalsCount == 0) then
+       Chemical_Abundances_Greater_Than=.false.
+    else
+       Chemical_Abundances_Greater_Than=all(abundances1%chemicalValue > abundances2%chemicalValue)
+    end if
+    return
+  end function Chemical_Abundances_Greater_Than
 
   double precision function Chemicals_Abundances(chemicals,moleculeIndex)
     !!{

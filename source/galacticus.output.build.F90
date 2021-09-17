@@ -58,7 +58,7 @@ contains
     implicit none
     type     (varying_string   )                        :: Galacticus_Build_String
     character(kind=c_char,len=1), dimension(:), pointer :: charVersionString
-    integer                     , parameter             :: versionStringlengthMaximum=10
+    integer                     , parameter             :: versionStringLengthMaximum=10
     integer                                             :: hdfError                     , hdfVersionMajor   , &
          &                                                 hdfVersionMinor              , hdfVersionRelease , &
          &                                                 iChr
@@ -77,10 +77,10 @@ contains
     Galacticus_Build_String=""
     ! Write GSL library version string.
     charVersionPointer=GSL_Get_Version()
-    call c_f_pointer(charVersionPointer,charVersionString,[versionStringlengthMaximum])
+    call c_f_pointer(charVersionPointer,charVersionString,[versionStringLengthMaximum])
     versionString=""
     iChr=0
-    do while (iChr < versionStringlengthMaximum)
+    do while (iChr < versionStringLengthMaximum)
       iChr=iChr+1
       if (charVersionString(iChr) == c_null_char) exit
       versionString=versionString//charVersionString(iChr)
@@ -135,7 +135,7 @@ contains
     implicit none
     character(kind=c_char,len=1), dimension(:), pointer :: charVersionString
     type     (varying_string   ), dimension(1)          :: changeSet
-    integer                     , parameter             :: versionStringlengthMaximum=10
+    integer                     , parameter             :: versionStringLengthMaximum=10
     type     (hdf5Object       )                        :: buildGroup
     integer                                             :: hdfError                     , hdfVersionMajor   , &
          &                                                 hdfVersionMinor              , hdfVersionRelease , &
@@ -153,15 +153,15 @@ contains
     include 'galacticus.output.build.environment.inc' ! NO_USES
 
     ! Create a group for build information.
-    call hdf5Access%set()
+    !$ call hdf5Access%set()
     buildGroup=galacticusOutputFile%openGroup('Build','Build information for this model.')
 
     ! Write GSL library version string.
     charVersionPointer=GSL_Get_Version()
-    call c_f_pointer(charVersionPointer,charVersionString,[versionStringlengthMaximum])
+    call c_f_pointer(charVersionPointer,charVersionString,[versionStringLengthMaximum])
     versionString=""
     iChr=0
-    do while (iChr < versionStringlengthMaximum)
+    do while (iChr < versionStringLengthMaximum)
       iChr=iChr+1
       if (charVersionString(iChr) == c_null_char) exit
       versionString=versionString//charVersionString(iChr)
@@ -206,8 +206,8 @@ contains
     end if
 
     ! Close the build group.
-    call buildGroup%close()
-    call hdf5Access%unset()
+    call    buildGroup%close()
+    !$ call hdf5Access%unset()
    return
   end subroutine Galacticus_Build_Output
 

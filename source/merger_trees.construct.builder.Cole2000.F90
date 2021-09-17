@@ -316,9 +316,9 @@ contains
     ! critical overdensity classes which rely on tabulation and which have to retabulate themselves should ensure that they simply
     ! expand their range without changing any of the previous computed values (as we do for expansion factor vs. time in the
     ! cosmology function class).
-    deltaCriticalEarliest=+self%criticalOverdensity_     %value       (time=self%timeEarliest,mass=basic%mass(),node=node) &
-         &                *self%cosmologicalMassVariance_%rootVariance(time=self%timeNow     ,mass=basic%mass()          ) &
-         &                /self%cosmologicalMassVariance_%rootVariance(time=self%timeEarliest,mass=basic%mass()          )
+    deltaCriticalEarliest=+self%criticalOverdensity_     %value       (time=self%timeEarliest/2.0d0,mass=basic%mass(),node=node) &
+         &                *self%cosmologicalMassVariance_%rootVariance(time=self%timeNow           ,mass=basic%mass()          ) &
+         &                /self%cosmologicalMassVariance_%rootVariance(time=self%timeEarliest/2.0d0,mass=basic%mass()          )
     ! Convert time for base node to critical overdensity (which we use as a time coordinate in this class).
     baseNodeTime            =                                                  basic%time        ()
     rootVarianceGrowthFactor=+self%cosmologicalMassVariance_%rootVariance(time=      baseNodeTime  ,mass=basic%mass()          ) &

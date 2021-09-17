@@ -597,7 +597,7 @@ contains
     if (interpolationType_ == GSL_Interp_Linear) then
        allocate(self%interpolator_          (1))
        allocate(self%interpolatorInitialized(1))
-       self%interpolator_          (1)=interpolator(self%xv,extrapolationType=self%extrapolationType(1),interpolationType=self%interpolationType)
+       self%interpolator_          (1)=interpolator(self%xv,extrapolationType=self%extrapolationType,interpolationType=self%interpolationType)
        self%interpolatorInitialized(1)=.true.
     else
        allocate(self%interpolator_          (tableCount_))
@@ -674,7 +674,7 @@ contains
 
     if (self%interpolationType == GSL_Interp_Linear) return
     if (.not.self%interpolatorInitialized(table)) then
-       self%interpolator_          (table)=interpolator(self%xv,self%yv(:,table),extrapolationType=self%extrapolationType(1),interpolationType=self%interpolationType)
+       self%interpolator_          (table)=interpolator(self%xv,self%yv(:,table),extrapolationType=self%extrapolationType,interpolationType=self%interpolationType)
        self%interpolatorInitialized(table)=.true.
     end if
     return

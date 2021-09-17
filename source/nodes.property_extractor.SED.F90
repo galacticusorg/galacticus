@@ -367,37 +367,37 @@ contains
     return
   end function sedExtract
 
-  function sedNames(self,time)
+  subroutine sedNames(self,time,names)
     !!{
     Return the names of the {\normalfont \ttfamily sed} properties.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
-    type            (varying_string          ), dimension(:) , allocatable :: sedNames
-    class           (nodePropertyExtractorSED), intent(inout)              :: self
-    double precision                          , intent(in   )              :: time
+    class           (nodePropertyExtractorSED), intent(inout)                             :: self
+    double precision                          , intent(in   )                             :: time
+    type            (varying_string          ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
 
-    allocate(sedNames(1))
-    sedNames(1)=enumerationComponentTypeDecode(self%component,includePrefix=.false.)//"StellarSED"
+    allocate(names(1))
+    names(1)=enumerationComponentTypeDecode(self%component,includePrefix=.false.)//"StellarSED"
     return
-  end function sedNames
+  end subroutine sedNames
 
-  function sedDescriptions(self,time)
+  subroutine sedDescriptions(self,time,descriptions)
     !!{
     Return descriptions of the {\normalfont \ttfamily sed} property.
     !!}
     use :: Galactic_Structure_Options, only : enumerationComponentTypeDecode
     implicit none
-    type            (varying_string          ), dimension(:) , allocatable :: sedDescriptions
-    class           (nodePropertyExtractorSED), intent(inout)              :: self
-    double precision                          , intent(in   )              :: time
+    class           (nodePropertyExtractorSED), intent(inout)                             :: self
+    double precision                          , intent(in   )                             :: time
+    type            (varying_string          ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
-    allocate(sedDescriptions(1))
-    sedDescriptions(1)="Spectral energy density (SED) for the "//enumerationComponentTypeDecode(self%component,includePrefix=.false.)//" [L☉/Hz⁻¹]."
+    allocate(descriptions(1))
+    descriptions(1)="Spectral energy density (SED) for the "//enumerationComponentTypeDecode(self%component,includePrefix=.false.)//" [L☉/Hz⁻¹]."
     return
-  end function sedDescriptions
+  end subroutine sedDescriptions
 
   function sedWavelengths(self,time)
     !!{
@@ -450,28 +450,39 @@ contains
     return
   end function sedWavelengths
 
-  function sedColumnDescriptions(self,time)
+  subroutine sedColumnDescriptions(self,time,descriptions)
     !!{
     Return column descriptions of the {\normalfont \ttfamily sed} property.
     !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    type            (varying_string          ), dimension(:) , allocatable :: sedColumnDescriptions
-    class           (nodePropertyExtractorSED), intent(inout)              :: self
-    double precision                          , intent(in   )              :: time
-    double precision                          , dimension(:) , allocatable :: wavelengths
-    integer         (c_size_t                )                             :: i
-    character       (len=18                  )                             :: label
+    class           (nodePropertyExtractorSED), intent(inout)                            :: self
+    double precision                          , intent(in   )                            :: time
+    type            (varying_string          ), intent(inout), dimension(:), allocatable :: descriptions
+    double precision                          , dimension(:) , allocatable               :: wavelengths
+    integer         (c_size_t                )                                           :: i
+    character       (len=18                  )                                           :: label
     
-    allocate(sedColumnDescriptions(self%size(time)))
-    allocate(          wavelengths(self%size(time)))
+    allocate(descriptions(self%size(time)))
+    allocate(wavelengths (self%size(time)))
     wavelengths=self%wavelengths(time)
-    do i=1,size(sedColumnDescriptions)      
+    !![
+    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
+     <description>Internal file I/O in gfortran can be non-thread safe.</description>
+    </workaround>
+    !!]
+#ifdef THREADSAFEIO
+    !$omp critical(gfortranInternalIO)
+#endif
+    do i=1,size(descriptions)      
        write (label,'(a2,1x,e12.6,1x,a1)') "λ=",wavelengths(i),"Å"
-       sedColumnDescriptions(i)=trim(label)
+       descriptions(i)=trim(label)
     end do
+#ifdef THREADSAFEIO
+    !$omp end critical(gfortranInternalIO)
+#endif
     return
-  end function sedColumnDescriptions
+  end subroutine sedColumnDescriptions
 
   function sedUnitsInSI(self,time)
     !!{
@@ -573,7 +584,9 @@ contains
           !$ call hdf5Access%set()
           call file%openFile(char(fileName))
           if (file%hasDataset('sedTemplate')) then
+             !$omp critical(gfortranInternalIO)
              write (label,'(f12.8)') self%outputTimes_%time(indexOutput)
+             !$omp end critical(gfortranInternalIO)
              call displayMessage("reading SED tabulation for time "//trim(adjustl(label))//" Gyr from file '"//fileName//"'",verbosityLevelWorking)
              call file%readDataset('sedTemplate',self%templates(sedIndexTemplateNode)%sed)
           end if
@@ -582,7 +595,9 @@ contains
        end if
        if (.not.allocated(self%templates(sedIndexTemplateNode)%sed)) then
           self%templates(sedIndexTemplateNode)%sed=self%luminosityMean(self%outputTimes_%time(indexOutput),starFormationHistory,parallelize=.true.)
+          !$omp critical(gfortranInternalIO)
           write (label,'(f12.8)') self%outputTimes_%time(indexOutput)
+          !$omp end critical(gfortranInternalIO)
           call displayMessage("storing SED tabulation for time "//trim(adjustl(label))//" Gyr to file '"//fileName//"'",verbosityLevelWorking)
           !$ call hdf5Access%set()
           call file%openFile(char(fileName),overWrite=.false.,readOnly=.false.)
@@ -696,7 +711,9 @@ contains
     end if
     !$omp master
     if (parallelize_) then
+       !$omp critical(gfortranInternalIO)
        write (label,'(f12.8)') time
+       !$omp end critical(gfortranInternalIO)
        call displayIndent("computing template SEDs for time "//trim(adjustl(label))//" Gyr",verbosityLevelWorking)
     end if
     !$omp end master
@@ -874,13 +891,21 @@ contains
     
     descriptor=inputParameters()
     call setLiveNodeLists(descriptor%document,.false.)
+    !$omp critical(gfortranInternalIO)
     write (parameterLabel,'(i17)'   ) self%frame
+    !$omp end critical(gfortranInternalIO)
     call descriptor%addParameter('frame'            ,trim(adjustl(parameterLabel)))
+    !$omp critical(gfortranInternalIO)
     write (parameterLabel,'(e17.10)') self%wavelengthMinimum
+    !$omp end critical(gfortranInternalIO)
     call descriptor%addParameter('wavelengthMinimum',trim(adjustl(parameterLabel)))
+    !$omp critical(gfortranInternalIO)
     write (parameterLabel,'(e17.10)') self%wavelengthMaximum
+    !$omp end critical(gfortranInternalIO)
     call descriptor%addParameter('wavelengthMaximum',trim(adjustl(parameterLabel)))
+    !$omp critical(gfortranInternalIO)
     write (parameterLabel,'(e17.10)') self%resolution
+    !$omp end critical(gfortranInternalIO)
     call descriptor%addParameter('resolution'       ,trim(adjustl(parameterLabel)))
     call self%stellarPopulationSpectra_%descriptor(descriptor)
     call self%starFormationHistory_    %descriptor(descriptor)
@@ -888,14 +913,18 @@ contains
     call self%cosmologyFunctions_      %descriptor(descriptor)
     values=""
     do i=1,size(self%metallicityBoundaries)
+       !$omp critical(gfortranInternalIO)
        write (parameterLabel,'(e17.10)') self                %metallicityBoundaries(i)
+       !$omp end critical(gfortranInternalIO)
        values=values//trim(adjustl(parameterLabel))
        if (i < size(self%metallicityBoundaries)) values=values//":"
     end do
     call descriptor%addParameter('metallicity',char(values))
     values=""
     do i=1,size(starFormationHistory%time)
+       !$omp critical(gfortranInternalIO)
        write (parameterLabel,'(e17.10)') starFormationHistory%time                 (i)
+       !$omp end critical(gfortranInternalIO)
        values=values//trim(adjustl(parameterLabel))
        if (i < size(starFormationHistory%time)) values=values//":"
     end do

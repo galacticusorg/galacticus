@@ -28,13 +28,18 @@ sub Process_DebugHDF5 {
     my $depth = 0;
     while ( $node ) {
 	if ( $node->{'type'} eq "code" ) {
+	    my $useAdded = 0;
 	    my $newContent;
 	    open(my $content,"<",\$node->{'content'});
 	    while ( my $line = <$content> ) {
-		$line .= "call IO_HDF5_Start_Critical()\n"
-		    if ( $line =~ m /^\s*\!\$\s+call\s+hdf5Access\s*\%\s*set\s*\(\s*\)\s*$/   );
-		$line  = "call IO_HDF5_End_Critical()\n".$line
-		    if ( $line =~ m /^\s*\!\$\s+call\s+hdf5Access\s*\%\s*unset\s*\(\s*\)\s*$/ );
+		if ( $line =~ m /^\s*\!\$\s+call\s+hdf5Access\s*\%\s*set\s*\(\s*\)\s*$/   ) {
+		    $line .= "call IO_HDF5_Start_Critical()\n"
+			if ( &addUse($node,$useAdded) );
+		}
+		if ( $line =~ m /^\s*\!\$\s+call\s+hdf5Access\s*\%\s*unset\s*\(\s*\)\s*$/ ) {
+		    $line  = "call IO_HDF5_End_Critical()\n".$line
+			if ( &addUse($node,$useAdded) );
+		}
 		$newContent .= $line;
 	    }
 	    close($content);
@@ -42,6 +47,50 @@ sub Process_DebugHDF5 {
 	}
 	$node = &Galacticus::Build::SourceTree::Walk_Tree($node,\$depth);
     }
+}
+
+sub addUse {
+    # Add required module uses.
+    my $node = shift();
+    # Find the parent function/subroutine/program.
+    while ( $node->{'type'} ne "function" && $node->{'type'} ne "subroutine" && $node->{'type'} ne "program" ) {
+	$node = $node->{'parent'};
+    }
+    # Check if we are in a module.
+    my $moduleNode = $node;
+    my $skipUse    = 0;
+    my $moduleName = "";
+    while ( $moduleNode ) {
+	if ( $moduleNode->{'type'} eq "module" ) {
+	    $moduleName = $moduleNode->{'name'};
+	    $skipUse    = $moduleNode->{'name'} eq "IO_HDF5" || $moduleNode->{'name'} eq "Galacticus_Error";
+	    last;
+	}
+	$moduleNode = $moduleNode->{'parent'};
+    }
+    my $addCall = $moduleName ne "Galacticus_Error";
+    # No need to add a module use statement if this is the IO_HDF5 or Galacticus_Error module.
+    unless ( $skipUse ) {
+	&Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses(
+	     $node,
+	     {
+		 moduleUse =>
+		 {
+		     IO_HDF5 =>
+		     {
+			 openMP => 0,
+			 only =>
+			 {
+			     IO_HDF5_Start_Critical => 1,
+			     IO_HDF5_End_Critical   => 1
+			 }
+		     }
+		 }
+	     }
+	    );
+    }
+    $_[0] = 1;
+    return $addCall;
 }
 
 1;

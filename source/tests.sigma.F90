@@ -100,7 +100,8 @@ program Tests_Sigma
      &amp;                                    index_                             =+0.9649d0                             , &amp;
      &amp;                                    running                            =+0.0000d0                             , &amp;
      &amp;                                    runningRunning                     =+0.0000d0                             , &amp;
-     &amp;                                    wavenumberReference                =+1.0000d0                               &amp;
+     &amp;                                    wavenumberReference                =+1.0000d0                             , &amp;
+     &amp;                                    runningSmallScalesOnly             =.false.                                 &amp;
      &amp;                                   )
    </constructor>
   </referenceConstruct>
@@ -173,7 +174,8 @@ program Tests_Sigma
        &                                                                             index_                             =-1.0d0                                   , &
        &                                                                             running                            =+0.0d0                                   , &
        &                                                                             runningRunning                     =+0.0d0                                   , &
-       &                                                                             wavenumberReference                =+1.0d0                                     &
+       &                                                                             wavenumberReference                =+1.0d0                                   , &
+       &                                                                             runningSmallScalesOnly             =.false.                                    &
        &                                                                            )
   transferFunctionIdentity_                =transferFunctionIdentity                (                                                                               &
        &                                                                             time                               =13.8d0                                     &

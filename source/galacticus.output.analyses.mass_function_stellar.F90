@@ -234,7 +234,7 @@ contains
     use :: Galacticus_Error                        , only : Galacticus_Error_Report
     use :: ISO_Varying_String                      , only : var_str                                    , varying_string
     use :: Memory_Management                       , only : allocateArray
-    use :: Node_Property_Extractors                , only : nodePropertyExtractorMassStellar
+    use :: Node_Property_Extractors                , only : nodePropertyExtractorMassStellar           , nodePropertyExtractorStarFormationRate
     use :: Numerical_Constants_Astronomical        , only : massSolar                                  , megaParsec
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelBinomial
     use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                             , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerLog10ToLog , outputAnalysisDistributionNormalizerSequence

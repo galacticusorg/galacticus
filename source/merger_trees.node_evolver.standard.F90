@@ -523,6 +523,7 @@ contains
              !![
              </include>
              !!]
+             call self%nodeOperator_%differentialEvolutionInactives(node)
           end if
           ! Compute offsets into serialization arrays for rates and scales.
           call node%serializationOffsets(self%propertyTypeODE       )

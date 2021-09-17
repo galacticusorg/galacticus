@@ -277,7 +277,7 @@ contains
     use :: Galacticus_Error        , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (transferFunctionBode2001), intent(inout)           :: self
+    class           (transferFunctionBode2001), intent(inout), target   :: self
     integer                                   , intent(  out), optional :: status
     double precision                                                    :: matterDensity
 
@@ -303,7 +303,7 @@ contains
     use :: Galacticus_Error        , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (transferFunctionBode2001), intent(inout)           :: self
+    class           (transferFunctionBode2001), intent(inout), target   :: self
     integer                                   , intent(  out), optional :: status
     double precision                                                    :: matterDensity
 

@@ -20,7 +20,7 @@
 program Tests_Linear_Growth_Cosmological_Constant
   !!{
   Tests linear growth calculations for a cosmological constant Universe. Growth rates are compared to calculations taken from
-  Andrew Hamilton's "growl" code available at: http://casa.colorado.edu/~ajsh/growl/
+  Andrew Hamilton's \href{https://jila.colorado.edu/~ajsh/growl/index.html}{growl}.
   !!}
   use :: Cosmology_Parameters, only : cosmologyParametersSimple
   use :: Cosmology_Functions , only : cosmologyFunctionsMatterLambda

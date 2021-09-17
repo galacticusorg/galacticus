@@ -79,6 +79,9 @@ contains
        <objectBuilder class="galacticFilter" name="filter_%filter_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="galacticFilter"/>
+    !!]
     return
   end function anyConstructorParameters
 

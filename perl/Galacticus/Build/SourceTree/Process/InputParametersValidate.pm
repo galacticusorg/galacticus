@@ -51,7 +51,7 @@ sub Process_InputParametersValidate {
 		}
 		$sibling = $sibling->{'sibling'};
 	    }
-	    # Generate the variable declaration.
+	    # Generate the variable declarations.
 	    my $variableName = "allowedParameterNames_";
 	    unless ( &Galacticus::Build::SourceTree::Parse::Declarations::DeclarationExists($node->{'parent'},$variableName) ) {
 		my $declaration =
@@ -63,10 +63,31 @@ sub Process_InputParametersValidate {
 		};
 		&Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},[$declaration]);
 	    }
+	    # Initialize new code.
+	    my $code;
+	    # Generate allowed multi-parameter names.
+	    my $multiNames = "allowedMultiParameterNames_";
+	    if ( exists($node->{'directive'}->{'multiParameters'}) ) {
+		my @multiParameterNames = split(/\s*,\s*/,$node->{'directive'}->{'multiParameters'});
+		unless ( &Galacticus::Build::SourceTree::Parse::Declarations::DeclarationExists($node->{'parent'},$multiNames) ) {
+		    my $declaration =
+		    {
+			intrinsic  => "type",
+			type       => "varying_string",
+			attributes => [ "dimension(".scalar(@multiParameterNames).")" ],
+			variables  => [ $multiNames ]
+		    };
+		    &Galacticus::Build::SourceTree::Parse::Declarations::AddDeclarations($node->{'parent'},[$declaration]);
+		}
+		my $i = 0;
+		foreach my $multiParameterName ( @multiParameterNames ) {
+		    ++$i;
+		    $code .= $multiNames."(".$i.")='".$multiParameterName."'\n";
+		}
+	    }
 	    # Add module usage.
 	    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},{moduleUse => {ISO_Varying_String => {all => 1}}});
 	    # Generate the validation code.
-	    my $code;
 	    my $result;
 	    if ( $node->{'parent'}->{'type'} eq "function" ) {
 		if ( $node->{'parent'}->{'opener'} =~ m/result\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*$/ ) {
@@ -77,7 +98,7 @@ sub Process_InputParametersValidate {
 	    } else {
 		die('Galacticus::Build::SourceTree::Process::InputParametersValidate::Process_InputParametersValidate: parent is not a function');
 	    }
-	    $code .= "   call ".$result."%allowedParameters(".$variableName.",'".$source."')\n";
+	    $code .= "   call ".$result."%allowedParameters(".$variableName.",'".$source."')\n";	    
 	    foreach ( @objectBuilders) {
 		# Handle multiple copies.
 		my $copyInstance  = "";
@@ -94,7 +115,7 @@ sub Process_InputParametersValidate {
 		}
 		$code .= $copyLoopOpen."   if (associated(".$_->{'name'}.")) call ".$_->{'name'}."%allowedParameters(".$variableName.",'parameters')\n".$copyLoopClose;
 	    }
-	    $code .= "   call ".$source."%checkParameters(".$variableName.")\n";
+	    $code .= "   call ".$source."%checkParameters(".$variableName.(exists($node->{'directive'}->{'multiParameters'}) ? ",".$multiNames : "").")\n";
 	    $code .= "   if (allocated(".$variableName.")) deallocate(".$variableName.")\n";
 	    # Insert new code.
 	    my $codeNode =

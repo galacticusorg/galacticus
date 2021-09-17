@@ -551,7 +551,7 @@ contains
     !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
     implicit none
-    class  (transferFunctionEisensteinHu1999), intent(inout)           :: self
+    class  (transferFunctionEisensteinHu1999), intent(inout), target   :: self
     integer                                  , intent(  out), optional :: status
     !$GLC attributes unused :: self
 
@@ -571,7 +571,7 @@ contains
     !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
     implicit none
-    class  (transferFunctionEisensteinHu1999), intent(inout)           :: self
+    class  (transferFunctionEisensteinHu1999), intent(inout), target   :: self
     integer                                  , intent(  out), optional :: status
     !$GLC attributes unused :: self
 

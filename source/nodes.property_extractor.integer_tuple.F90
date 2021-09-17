@@ -32,17 +32,17 @@
    contains
      !![
      <methods>
-       <method description="Return the number of properties in the tuple." method="elementCount" pass="yes" />
-       <method description="Extract the properties from the given {\normalfont \ttfamily node}." method="extract" pass="yes" />
-       <method description="Return the names of the properties extracted." method="names" pass="yes" />
-       <method description="Return descriptions of the properties extracted." method="descriptions" pass="yes" />
-       <method description="Return the units of the properties extracted in the SI system." method="unitsInSI" pass="yes" />
+       <method method="elementCount" description="Return the number of properties in the tuple."                      />
+       <method method="extract"      description="Extract the properties from the given {\normalfont \ttfamily node}."/>
+       <method method="names"        description="Return the names of the properties extracted."                      />
+       <method method="descriptions" description="Return descriptions of the properties extracted."                   />
+       <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."     />
      </methods>
      !!]
      procedure(integerTupleElementCount), deferred :: elementCount
      procedure(integerTupleExtract     ), deferred :: extract
      procedure(integerTupleNames       ), deferred :: names
-     procedure(integerTupleNames       ), deferred :: descriptions
+     procedure(integerTupleDescriptions), deferred :: descriptions
      procedure(integerTupleUnitsInSI   ), deferred :: unitsInSI
   end type nodePropertyExtractorIntegerTuple
 
@@ -61,15 +61,27 @@
   end interface
 
   abstract interface
-     function integerTupleNames(self,time)
+     subroutine integerTupleNames(self,time,names)
        !!{
        Interface for {\normalfont \ttfamily integerTuple} property names.
        !!}
        import varying_string, nodePropertyExtractorIntegerTuple
-       type            (varying_string                   ), dimension(:) , allocatable :: integerTupleNames
-       class           (nodePropertyExtractorIntegerTuple), intent(inout)              :: self
-       double precision                                   , intent(in   )              :: time
-     end function integerTupleNames
+       class           (nodePropertyExtractorIntegerTuple), intent(inout)                             :: self
+       double precision                                   , intent(in   )                             :: time
+       type            (varying_string                   ), intent(inout), dimension(:) , allocatable :: names
+     end subroutine integerTupleNames
+  end interface
+
+  abstract interface
+     subroutine integerTupleDescriptions(self,time,descriptions)
+       !!{
+       Interface for {\normalfont \ttfamily integerTuple} property descriptions.
+       !!}
+       import varying_string, nodePropertyExtractorIntegerTuple
+       class           (nodePropertyExtractorIntegerTuple), intent(inout)                             :: self
+       double precision                                   , intent(in   )                             :: time
+       type            (varying_string                   ), intent(inout), dimension(:) , allocatable :: descriptions
+     end subroutine integerTupleDescriptions
   end interface
 
   abstract interface

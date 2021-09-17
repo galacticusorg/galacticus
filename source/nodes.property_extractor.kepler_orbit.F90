@@ -83,7 +83,7 @@ contains
        self%propertyIDs(i)=enumerationKeplerOrbitEncode(char(properties(i)),includesPrefix=.false.)
        select case (self%propertyIDs(i))
        case (keplerOrbitMasses             )
-          call Galacticus_Error_Report('"masses" property if unsupported'//{introspection:location})
+          call Galacticus_Error_Report('"masses" property is unsupported'//{introspection:location})
        case (keplerOrbitHostMass           )
           self%names_       (i)=prefix//'HostMass'
           self%descriptions_(i)='The mass of the host system [M☉].'
@@ -216,35 +216,35 @@ contains
     return
   end function keplerOrbitExtractFromOrbit
 
-  function keplerOrbitNames(self,time)
+  subroutine keplerOrbitNames(self,time,names)
     !!{
     Return the names of the {\normalfont \ttfamily keplerOrbit} properties.
     !!}
     implicit none
-    type            (varying_string                  ), dimension(:) , allocatable :: keplerOrbitNames
-    class           (nodePropertyExtractorKeplerOrbit), intent(inout)              :: self
-    double precision                                  , intent(in   )              :: time
+    class           (nodePropertyExtractorKeplerOrbit), intent(inout)                             :: self
+    double precision                                  , intent(in   )                             :: time
+    type            (varying_string                  ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
 
-    allocate(keplerOrbitNames(self%count_))
-    keplerOrbitNames=self%names_
+    allocate(names(self%count_))
+    names=self%names_
     return
-  end function keplerOrbitNames
+  end subroutine keplerOrbitNames
 
-  function keplerOrbitDescriptions(self,time)
+  subroutine keplerOrbitDescriptions(self,time,descriptions)
     !!{
     Return the descriptions of the {\normalfont \ttfamily virialProperies} properties.
     !!}
     implicit none
-    type            (varying_string                  ), dimension(:) , allocatable :: keplerOrbitDescriptions
-    class           (nodePropertyExtractorKeplerOrbit), intent(inout)              :: self
-    double precision                                  , intent(in   )              :: time
+    class           (nodePropertyExtractorKeplerOrbit), intent(inout)                             :: self
+    double precision                                  , intent(in   )                             :: time
+    type            (varying_string                  ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
-    allocate(keplerOrbitDescriptions(self%count_))
-    keplerOrbitDescriptions=self%descriptions_
+    allocate(descriptions(self%count_))
+    descriptions=self%descriptions_
     return
-  end function keplerOrbitDescriptions
+  end subroutine keplerOrbitDescriptions
 
   function keplerOrbitUnitsInSI(self,time)
     !!{

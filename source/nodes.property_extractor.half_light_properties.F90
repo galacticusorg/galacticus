@@ -112,53 +112,49 @@ contains
     return
   end function radiiHalfLightPropertiesExtract
 
-  function radiiHalfLightPropertiesNames(self,time)
+  subroutine radiiHalfLightPropertiesNames(self,time,names)
     !!{
     Return the names of the {\normalfont \ttfamily radiiHalfLightProperties} properties.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
-    type            (varying_string                               ), dimension(:) , allocatable :: radiiHalfLightPropertiesNames
-    class           (nodePropertyExtractorRadiiHalfLightProperties), intent(inout)              :: self
-    double precision                                               , intent(in   )              :: time
-    integer                                                                                     :: i                            , j
+    class           (nodePropertyExtractorRadiiHalfLightProperties), intent(inout)                             :: self
+    double precision                                               , intent(in   )                             :: time
+    type            (varying_string                               ), intent(inout), dimension(:) , allocatable :: names
+    integer                                                                                                    :: i                            , j
     !$GLC attributes unused :: self
 
-    allocate(radiiHalfLightPropertiesNames(2*unitStellarLuminosities%luminosityOutputCount(time)))
+    allocate(names(2*unitStellarLuminosities%luminosityOutputCount(time)))
     j=-1
     do i=1,unitStellarLuminosities%luminosityCount()
        if (unitStellarLuminosities%isOutput(i,time)) then
           j=j+1
-          radiiHalfLightPropertiesNames(2*j+1:2*j+2)=[                                                             &
-               &                                      var_str('halfLightRadius')//unitStellarLuminosities%name(i), &
-               &                                      var_str('halfLightMass'  )//unitStellarLuminosities%name(i)  &
-               &                                     ]
+          names(2*j+1)=var_str('halfLightRadius')//unitStellarLuminosities%name(i)
+          names(2*j+2)=var_str('halfLightMass'  )//unitStellarLuminosities%name(i)
        end if
     end do
     return
-  end function radiiHalfLightPropertiesNames
+  end subroutine radiiHalfLightPropertiesNames
 
-  function radiiHalfLightPropertiesDescriptions(self,time)
+  subroutine radiiHalfLightPropertiesDescriptions(self,time,descriptions)
     !!{
     Return descriptions of the {\normalfont \ttfamily radiiHalfLightProperties} property extractor class.
     !!}
     use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
-    type            (varying_string                               ), dimension(:) , allocatable :: radiiHalfLightPropertiesDescriptions
-    class           (nodePropertyExtractorRadiiHalfLightProperties), intent(inout)              :: self
-    double precision                                               , intent(in   )              :: time
-    integer                                                                                     :: i
+    class           (nodePropertyExtractorRadiiHalfLightProperties), intent(inout)                             :: self
+    double precision                                               , intent(in   )                             :: time
+    type            (varying_string                               ), intent(inout), dimension(:) , allocatable :: descriptions
+    integer                                                                                                    :: i
     !$GLC attributes unused :: self
 
-    allocate(radiiHalfLightPropertiesDescriptions(2*unitStellarLuminosities%luminosityOutputCount(time)))
+    allocate(descriptions(2*unitStellarLuminosities%luminosityOutputCount(time)))
     do i=0,unitStellarLuminosities%luminosityOutputCount(time)-1
-       radiiHalfLightPropertiesDescriptions(2*i+1:2*i+2)=[                                                                   &
-            &                                             var_str('Radius enclosing half the galaxy light [Mpc]'          ), &
-            &                                             var_str('Mass enclosed within the galaxy half-light radius [M☉]')  &
-            &                                            ]
+       descriptions(2*i+1)=var_str('Radius enclosing half the galaxy light [Mpc]'          )
+       descriptions(2*i+2)=var_str('Mass enclosed within the galaxy half-light radius [M☉]')
     end do
     return
-  end function radiiHalfLightPropertiesDescriptions
+  end subroutine radiiHalfLightPropertiesDescriptions
 
   function radiiHalfLightPropertiesUnitsInSI(self,time)
     !!{

@@ -64,7 +64,9 @@ if ( $havePerFile ) {
 my %updatedTypes;
 # Open the source diretory, finding F90 and cpp files.
 opendir(my $sourceDirectory,$sourceDirectoryName."/source");
-while ( my $fileName = readdir($sourceDirectory) ) {
+my @fileNames = sort(readdir($sourceDirectory));
+close($sourceDirectory);
+foreach my $fileName ( @fileNames ) {
     # Skip junk files.
     next
 	if ( $fileName =~ m/^\.\#/ );
@@ -162,7 +164,6 @@ while ( my $fileName = readdir($sourceDirectory) ) {
 	}
     }
 }
-close($sourceDirectory);
 # Manually add the base "functionClass" type.
 my $functionClassFileName = "objects.function_class.F90";
 if ( ! $updateTime || ( -M "source/".$functionClassFileName < $updateTime ) ) {

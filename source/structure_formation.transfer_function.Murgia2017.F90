@@ -208,7 +208,7 @@ function murgia2017ConstructorParameters(parameters) result(self)
     use :: Galacticus_Error        , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (transferFunctionMurgia2017), intent(inout)           :: self
+    class           (transferFunctionMurgia2017), intent(inout), target   :: self
     integer                                     , intent(  out), optional :: status
     double precision                                                      :: matterDensity, wavenumberHalfMode
 

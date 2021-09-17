@@ -304,7 +304,7 @@ module IO_HDF5
   interface
      function H5T_C_S1_Get() bind(c,name='H5T_C_S1_Get')
        !!{
-       Template for a C function that returns the H5T_C_S1 datatype ID.
+       Template for a C function that returns the {\normalfont \ttfamily H5T\_C\_S1} datatype ID.
        !!}
        import
        integer(kind=hid_t) :: H5T_C_S1_Get
@@ -3983,8 +3983,7 @@ contains
     return
   end function IO_HDF5_Dataset_Rank
 
-  function IO_HDF5_Open_Dataset(inObject,datasetName,commentText,datasetDataType,datasetDimensions,isOverwritable,appendTo&
-       &,useDataType,chunkSize,compressionLevel) result(datasetObject)
+  function IO_HDF5_Open_Dataset(inObject,datasetName,commentText,datasetDataType,datasetDimensions,isOverwritable,appendTo,appendDimension,useDataType,chunkSize,compressionLevel) result(datasetObject)
     !!{
     Open an dataset in {\normalfont \ttfamily inObject}.
     !!}
@@ -4001,7 +4000,8 @@ contains
     character(len=*         )              , intent(in   )           :: datasetName
     character(len=*         )              , intent(in   ), optional :: commentText
     integer  (hsize_t       )              , intent(in   ), optional :: chunkSize
-    integer                                , intent(in   ), optional :: compressionLevel        , datasetDataType
+    integer                                , intent(in   ), optional :: compressionLevel        , datasetDataType, &
+         &                                                              appendDimension
     integer  (kind=HSIZE_T  ), dimension(:), intent(in   ), optional :: datasetDimensions
     logical                                , intent(in   ), optional :: appendTo                , isOverwritable
     integer  (kind=HID_T    )              , intent(in   ), optional :: useDataType
@@ -4010,7 +4010,7 @@ contains
          &                                                              datasetDimensionsMaximum
     integer  (kind=HSIZE_T  )                                        :: chunkSizeActual
     integer                                                          :: compressionLevelActual  , datasetRank            , &
-         &                                                              errorCode
+         &                                                              errorCode               , appendDimensionActual
     integer  (kind=HID_T    )                                        :: dataSpaceID             , dataTypeID             , &
          &                                                              locationID              , propertyList
     logical                                                          :: appendToActual
@@ -4051,6 +4051,11 @@ contains
        appendToActual=appendTo
     else
        appendToActual=.false.
+    end if
+    if (present(appendDimension)) then
+       appendDimensionActual=appendDimension
+    else
+       appendDimensionActual=1
     end if
 
     ! Check if the dataset exists.
@@ -4147,8 +4152,8 @@ contains
           ! It does - determine a suitable chunk size.
           if (appendToActual) then
              ! Extensible dataset, use selected chunk size.
-             chunkDimensions   =1
-             chunkDimensions(1)=chunkSizeActual
+             chunkDimensions(1:datasetRank          )=datasetDimensions
+             chunkDimensions(  appendDimensionActual)=chunkSizeActual
           else
              ! Fixed dimension array, use smaller of chunk size and actual size.
              chunkDimensions(1:datasetRank)=min(datasetDimensionsActual(1:datasetRank),chunkSizeActual)
@@ -9568,7 +9573,7 @@ contains
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&
-            &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
+            &=appendTo,appendDimension=appendDimension,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 2D double.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,2)
        ! If this dataset if not overwritable, report an error.
@@ -10505,7 +10510,7 @@ contains
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&
-            &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
+            &=appendTo,appendDimension=appendDimension,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 3D double.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,3)
        ! If this dataset if not overwritable, report an error.
@@ -11280,7 +11285,7 @@ contains
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&
-            &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
+            &=appendTo,appendDimension=appendDimension,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 4D double.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,4)
        ! If this dataset if not overwritable, report an error.
@@ -12055,7 +12060,7 @@ contains
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&
-            &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
+            &=appendTo,appendDimension=appendDimension,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 5D double.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,5)
        ! If this dataset if not overwritable, report an error.
@@ -12829,7 +12834,7 @@ contains
        preExisted=self%hasDataset(datasetName)
        ! Open the dataset.
        datasetObject=IO_HDF5_Open_Dataset(self,datasetName,commentText,hdf5DataTypeDouble,datasetDimensions,appendTo&
-            &=appendTo,chunkSize=chunkSize,compressionLevel=compressionLevel)
+            &=appendTo,appendDimension=appendDimension,chunkSize=chunkSize,compressionLevel=compressionLevel)
        ! Check that pre-existing object is a 6D double.
        if (preExisted) call datasetObject%assertDatasetType(H5T_NATIVE_DOUBLES,6)
        ! If this dataset if not overwritable, report an error.

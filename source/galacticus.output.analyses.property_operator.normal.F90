@@ -126,15 +126,56 @@ contains
     type            (treeNode                            ), intent(inout), optional :: node
     integer                                               , intent(inout), optional :: propertyType
     integer         (c_size_t                            ), intent(in   ), optional :: outputIndex
+    double precision                                                                :: integralLower  , integralUpper  , &
+         &                                                                             normalizerLower, normalizerUpper
     !$GLC attributes unused :: propertyType, outputIndex, node
 
-    normalOperate=+(                                                                               &
-         &          +Error_Function((self% rangeUpper-propertyValue)/sqrt(2.0d0)/self%rootVariance) &
-         &          -Error_Function((self% rangeLower-propertyValue)/sqrt(2.0d0)/self%rootVariance) &
-         &         )                                                                               &
-         &        /(                                                                               &
-         &          +Error_Function((self%extentUpper-propertyValue)/sqrt(2.0d0)/self%rootVariance) &
-         &          -Error_Function((self%extentLower-propertyValue)/sqrt(2.0d0)/self%rootVariance) &
-         &         )
+    ! Handle special cases.
+    if      (propertyValue == -huge(0.0d0)) then
+       ! The property value is -∞ - so our result is 0 or 1 depending on whether the lower range exceeds -∞.
+       if (self%rangeLower > propertyValue) then
+          normalOperate=0.0d0
+       else
+          normalOperate=1.0d0
+       end if
+    else if (propertyValue == +huge(0.0d0)) then
+       ! The property value is +∞ - so our result is 0 or 1 depending on whether the upper range is less than +∞.
+       if (self%rangeUpper < propertyValue) then
+          normalOperate=0.0d0
+       else
+          normalOperate=1.0d0
+       end if
+    else
+       ! Handle cases where the range or extent are infinite.
+       if (self% rangeLower > -huge(0.0d0)) then
+          integralLower  =Error_Function((self% rangeLower-propertyValue)/sqrt(2.0d0)/self%rootVariance)
+       else
+          integralLower  =-1.0d0
+       end if
+       if (self% rangeUpper < +huge(0.0d0)) then
+          integralUpper  =Error_Function((self% rangeUpper-propertyValue)/sqrt(2.0d0)/self%rootVariance)
+       else
+          integralUpper  =+1.0d0
+       end if
+       if (self%extentLower > -huge(0.0d0)) then
+          normalizerLower=Error_Function((self% extentLower-propertyValue)/sqrt(2.0d0)/self%rootVariance)
+       else
+          normalizerLower=-1.0d0
+       end if
+       if (self%extentUpper < +huge(0.0d0)) then
+          normalizerUpper=Error_Function((self% extentUpper-propertyValue)/sqrt(2.0d0)/self%rootVariance)
+       else
+          normalizerUpper=+1.0d0
+       end if
+       ! Evaluate the integral.
+       normalOperate=+(                 &
+            &          +integralUpper   &
+            &          -integralLower   &
+            &         )                 &
+            &        /(                 &
+            &          +normalizerUpper &
+            &          -normalizerLower &
+            &         )
+    end if
     return
   end function normalOperate

@@ -326,6 +326,12 @@
  	<toleranceTopHat value="3.0e-4"/>
       </cosmologicalMassVariance>
     </transferFunction>
+    <transferFunction value="CLASSCDM">
+      <cosmologicalMassVariance value="filteredPower" parameterLevel="top">
+ 	<tolerance value="3.0e-4"/>
+ 	<toleranceTopHat value="3.0e-4"/>
+      </cosmologicalMassVariance>
+    </transferFunction>
     <transferFunction value="eisensteinHu1999"/>
   </parameters>
   <parameters>
@@ -608,6 +614,16 @@
     </hotHaloMassDistribution>
   </parameters>
   
+  <!-- Output bar instability properties -->
+  <parameters>
+    <formatVersion>2</formatVersion>
+    <version>0.9.4</version>
+    <nodePropertyExtractor value="multi">
+      <nodePropertyExtractor value="adiabaticRatioOrbitalDisk" iterable="no"/>
+      <nodePropertyExtractor value="timescaleBarInstability"   iterable="no"/>
+    </nodePropertyExtractor>
+  </parameters>
+
   <!-- Output density contrasts -->
   <parameters>
     <formatVersion>2</formatVersion>
@@ -1130,23 +1146,6 @@
     <hotHaloMassDistribution value="null"/>
     <satelliteOrbitStoreOrbitalParameters value="true"/>
     <mergerRemnantSize value="null"/>
-  </parameters>
-
-  <!-- Statistics and tracking components -->
-  <parameters>
-    <formatVersion>2</formatVersion>
-    <version>0.9.4</version>
-    <componentHostHistory value="standard"/>
-  </parameters>
-  <parameters>
-    <formatVersion>2</formatVersion>
-    <version>0.9.4</version>
-    <componentMassFlowStatistics value="standard"/>
-  </parameters>
-  <parameters>
-    <formatVersion>2</formatVersion>
-    <version>0.9.4</version>
-    <componentDynamicsStatistics value="bars"/>
   </parameters>
 
   <!-- Parallel processing of individual trees -->

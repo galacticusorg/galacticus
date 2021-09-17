@@ -139,7 +139,7 @@ contains
     !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
     implicit none
-    class  (transferFunctionIdentity), intent(inout)           :: self
+    class  (transferFunctionIdentity), intent(inout), target   :: self
     integer                          , intent(  out), optional :: status
     !$GLC attributes unused :: self
 

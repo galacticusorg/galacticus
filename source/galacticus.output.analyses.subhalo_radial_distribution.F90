@@ -184,7 +184,7 @@ contains
     class           (cosmologyFunctionsClass                ), intent(inout)                 :: cosmologyFunctions_
     double precision                                         , intent(in   ), optional       :: redshift
     double precision                                         , allocatable  , dimension(:  ) :: radiiFractionalTarget             , radialDistributionTarget         , &
-         &                                                                                    radialDistributionErrorTarget
+         &                                                                                      radialDistributionErrorTarget
     double precision                                         , allocatable  , dimension(:,:) :: radialDistributionCovarianceTarget
     double precision                                                                         :: radiusFractionMinimum             , radiusFractionMaximum            , &
          &                                                                                      time                              , redshift_                        , &
@@ -236,7 +236,7 @@ contains
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorIdentity
     use :: Output_Analysis_Distribution_Normalizers, only : outputAnalysisDistributionNormalizerIdentity
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10     , outputAnalysisPropertyOperatorLog10
-    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorIdentity
+    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorSubsampling
     use :: Output_Times                            , only : outputTimesClass
     use :: Virial_Density_Contrast                 , only : virialDensityContrastClass
     implicit none
@@ -258,7 +258,7 @@ contains
     type            (nodePropertyExtractorRatio                  )               , pointer                  :: nodePropertyExtractor_                         , nodePropertyExtractorMassRatio_
     type            (outputAnalysisPropertyOperatorLog10         )               , pointer                  :: outputAnalysisPropertyOperator_
     type            (outputAnalysisPropertyOperatorAntiLog10     )               , pointer                  :: outputAnalysisPropertyUnoperator_
-    type            (outputAnalysisWeightOperatorIdentity        )               , pointer                  :: outputAnalysisWeightOperator_
+    type            (outputAnalysisWeightOperatorSubsampling     )               , pointer                  :: outputAnalysisWeightOperator_
     type            (outputAnalysisDistributionNormalizerIdentity)               , pointer                  :: outputAnalysisDistributionNormalizer_
     type            (outputAnalysisDistributionOperatorIdentity  )               , pointer                  :: outputAnalysisDistributionOperator_
     type            (galacticFilterHaloIsolated                  )               , pointer                  :: galacticFilterHosts_
@@ -315,7 +315,7 @@ contains
     ! Create an identity weight operator.
     allocate(outputAnalysisWeightOperator_)
     !![
-    <referenceConstruct object="outputAnalysisWeightOperator_" constructor="outputAnalysisWeightOperatorIdentity()"/>
+    <referenceConstruct object="outputAnalysisWeightOperator_" constructor="outputAnalysisWeightOperatorSubsampling    ()"/>
     !!]
     ! Build filters which select subhalos/hosts.
     allocate(galacticFilterHosts_    )

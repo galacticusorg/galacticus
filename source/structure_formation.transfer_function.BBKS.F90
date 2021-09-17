@@ -48,6 +48,7 @@
      procedure :: value                 => bbksValue
      procedure :: logarithmicDerivative => bbksLogarithmicDerivative
      procedure :: halfModeMass          => bbksHalfModeMass
+     procedure :: quarterModeMass       => bbksQuarterModeMass
      procedure :: epochTime             => bbksEpochTime
   end type transferFunctionBBKS
 
@@ -254,7 +255,7 @@ contains
     !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
     implicit none
-    class  (transferFunctionBBKS), intent(inout)           :: self
+    class  (transferFunctionBBKS), intent(inout), target   :: self
     integer                      , intent(  out), optional :: status
     !$GLC attributes unused :: self
 
@@ -266,6 +267,26 @@ contains
     end if
     return
   end function bbksHalfModeMass
+
+  double precision function bbksQuarterModeMass(self,status)
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is suppressed by a factor of four relative
+    to a \gls{cdm} transfer function. Not supported in this implementation.
+    !!}
+    use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
+    implicit none
+    class  (transferFunctionBBKS), intent(inout), target   :: self
+    integer                      , intent(  out), optional :: status
+    !$GLC attributes unused :: self
+
+    bbksQuarterModeMass=0.0d0
+    if (present(status)) then
+       status=errorStatusFail
+    else
+       call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+    end if
+    return
+  end function bbksQuarterModeMass
 
   double precision function bbksEpochTime(self)
     !!{

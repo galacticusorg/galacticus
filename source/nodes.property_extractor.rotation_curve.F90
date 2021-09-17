@@ -246,54 +246,54 @@ contains
     return
   end function rotationCurveExtract
 
-  function rotationCurveNames(self,time)
+  subroutine rotationCurveNames(self,time,names)
     !!{
     Return the names of the {\normalfont \ttfamily rotationCurve} properties.
     !!}
     implicit none
-    type            (varying_string                    ), dimension(:) , allocatable :: rotationCurveNames
-    class           (nodePropertyExtractorRotationCurve), intent(inout)              :: self
-    double precision                                    , intent(in   )              :: time
+    class           (nodePropertyExtractorRotationCurve), intent(inout)                             :: self
+    double precision                                    , intent(in   )                             :: time
+    type            (varying_string                    ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
 
-    allocate(rotationCurveNames(self%elementCount_))
-    rotationCurveNames       (1)="rotationCurve"
+    allocate(names(self%elementCount_))
+    names       (1)="rotationCurve"
     if (self%includeRadii)                             &
-         & rotationCurveNames(2)="rotationCurveRadius"
+         & names(2)="rotationCurveRadius"
     return
-  end function rotationCurveNames
+  end subroutine rotationCurveNames
 
-  function rotationCurveDescriptions(self,time)
+  subroutine rotationCurveDescriptions(self,time,descriptions)
     !!{
     Return descriptions of the {\normalfont \ttfamily rotationCurve} property.
     !!}
     implicit none
-    type            (varying_string                    ), dimension(:) , allocatable :: rotationCurveDescriptions
-    class           (nodePropertyExtractorRotationCurve), intent(inout)              :: self
-    double precision                                    , intent(in   )              :: time
+    class           (nodePropertyExtractorRotationCurve), intent(inout)                             :: self
+    double precision                                    , intent(in   )                             :: time
+    type            (varying_string                    ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
     
-    allocate(rotationCurveDescriptions(self%elementCount_))
-    rotationCurveDescriptions       (1)="Rotation curve at a given radius [km s⁻¹]."
+    allocate(descriptions(self%elementCount_))
+    descriptions       (1)="Rotation curve at a given radius [km s⁻¹]."
     if (self%includeRadii)                                                                &
-         & rotationCurveDescriptions(2)="Radius at which rotation curve is output [Mpc]."
+         & descriptions(2)="Radius at which rotation curve is output [Mpc]."
     return
-  end function rotationCurveDescriptions
+  end subroutine rotationCurveDescriptions
 
-  function rotationCurveColumnDescriptions(self,time)
+  subroutine rotationCurveColumnDescriptions(self,time,descriptions)
     !!{
     Return column descriptions of the {\normalfont \ttfamily rotationCurve} property.
     !!}
     implicit none
-    type            (varying_string                    ), dimension(:) , allocatable :: rotationCurveColumnDescriptions
-    class           (nodePropertyExtractorRotationCurve), intent(inout)              :: self
-    double precision                                    , intent(in   )              :: time
+    class           (nodePropertyExtractorRotationCurve), intent(inout)                             :: self
+    double precision                                    , intent(in   )                             :: time
+    type            (varying_string                    ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
-    allocate(rotationCurveColumnDescriptions(self%radiiCount))
-    rotationCurveColumnDescriptions=self%radii%name
+    allocate(descriptions(self%radiiCount))
+    descriptions=self%radii%name
     return
-  end function rotationCurveColumnDescriptions
+  end subroutine rotationCurveColumnDescriptions
 
   function rotationCurveUnitsInSI(self,time)
     !!{

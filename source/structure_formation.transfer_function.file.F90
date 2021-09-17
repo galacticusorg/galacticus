@@ -339,7 +339,7 @@ contains
          &                                                                   darkMatterGroup
 
     ! Open and read the HDF5 data file.
-    call hdf5Access%set()
+    !$ call hdf5Access%set()
     call fileObject%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
     ! Check that the file has the correct format version number.
     call fileObject%readAttribute('fileFormat',versionNumber,allowPseudoScalar=.true.)
@@ -385,7 +385,7 @@ contains
     call darkMatterGroup%close      (                                                          )
     ! Close the file.
     call fileObject%close()
-    call hdf5Access%unset()
+    !$ call hdf5Access%unset()
     ! Construct the tabulated transfer function.
     call self%transfer%destroy()
     wavenumberLogarithmic=log(wavenumber)
@@ -459,7 +459,7 @@ contains
     !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail, errorStatusSuccess
     implicit none
-    class  (transferFunctionFile), intent(inout)           :: self
+    class  (transferFunctionFile), intent(inout), target   :: self
     integer                      , intent(  out), optional :: status
     !$GLC attributes unused :: self
 
@@ -485,7 +485,7 @@ contains
     !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
     implicit none
-    class  (transferFunctionFile), intent(inout)           :: self
+    class  (transferFunctionFile), intent(inout), target   :: self
     integer                      , intent(  out), optional :: status
     !$GLC attributes unused :: self
     

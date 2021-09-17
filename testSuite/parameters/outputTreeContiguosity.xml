@@ -283,7 +283,6 @@
   <diskLuminositiesStellarInactive value="true"/>
   <spheroidLuminositiesStellarInactive value="true"/>
   <satelliteBoundMassIsInactive value="true"/>
-  <ageStatisticsStandardIsInactive value="true"/>
   <diskMassToleranceAbsolute value="1.0e-6"/>
   <spheroidMassToleranceAbsolute value="1.0e-6"/>
 

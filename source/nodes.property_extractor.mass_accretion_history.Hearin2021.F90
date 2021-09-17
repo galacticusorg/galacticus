@@ -88,54 +88,70 @@ contains
     type            (treeNode                                           ), intent(inout), target      :: node
     double precision                                                     , intent(in   )              :: time
     type            (multiCounter                                       ), intent(inout), optional    :: instance
+    double precision                                                                                  :: powerLawIndexEarly                   , powerLawIndexLate, &
+         &                                                                                               log10TimeZero
     !$GLC attributes unused :: time, instance
 
+    if (node%hostTree%properties%exists('treeMAHHearin2021PowerLawIndexEarly')) then
+       powerLawIndexEarly=node%hostTree%properties%value('treeMAHHearin2021PowerLawIndexEarly')
+    else
+       ! Set an unphysical value if the property does not exist.
+       powerLawIndexEarly=-huge(0.0d0)
+    end if
+    if (node%hostTree%properties%exists('treeMAHHearin2021PowerLawIndexLate' )) then
+       powerLawIndexLate =node%hostTree%properties%value('treeMAHHearin2021PowerLawIndexLate' )
+    else
+       ! Set an unphysical value if the property does not exist.
+       powerLawIndexLate =-huge(0.0d0)
+    end if
+    if (node%hostTree%properties%exists('treeMAHHearin2021Log10TimeZero'     )) then
+       log10TimeZero     =node%hostTree%properties%value('treeMAHHearin2021Log10TimeZero'     )
+    else
+       ! Set an unphysical value if the property does not exist.
+       log10TimeZero     =-huge(0.0d0)
+    end if
     allocate(massAccretionHistoryHearin2021Extract(3))
-    massAccretionHistoryHearin2021Extract=[                                                                       &
-         &                                 node%hostTree%properties%value('treeMAHHearin2021PowerLawIndexEarly'), &
-         &                                 node%hostTree%properties%value('treeMAHHearin2021PowerLawIndexLate' ), &
-         &                                 node%hostTree%properties%value('treeMAHHearin2021Log10TimeZero'     )  &
+    massAccretionHistoryHearin2021Extract=[                    &
+         &                                 powerLawIndexEarly, &
+         &                                 powerLawIndexLate , &
+         &                                 log10TimeZero       &
          &                                ]
     return
   end function massAccretionHistoryHearin2021Extract
 
-  function massAccretionHistoryHearin2021Names(self,time)
+  subroutine massAccretionHistoryHearin2021Names(self,time,names)
     !!{
     Return the name of the {\normalfont \ttfamily massAccretionHistoryHearin2021} property.
     !!}
     implicit none
-    type            (varying_string                                     ), dimension(:) , allocatable :: massAccretionHistoryHearin2021Names
-    class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout)              :: self
-    double precision                                                     , intent(in   )              :: time
+    class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout)                             :: self
+    double precision                                                     , intent(in   )                             :: time
+    type            (varying_string                                     ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: self, time
 
-    allocate(massAccretionHistoryHearin2021Names(3))
-    massAccretionHistoryHearin2021Names=[                                                &
-         &                               var_str('treeMAHHearin2021PowerLawIndexEarly'), &
-         &                               var_str('treeMAHHearin2021PowerLawIndexLate' ), &
-         &                               var_str('treeMAHHearin2021Log10TimeZero'     )  &
-         &                              ]
+    allocate(names(3))
+    names(1)='treeMAHHearin2021PowerLawIndexEarly'
+    names(2)='treeMAHHearin2021PowerLawIndexLate'
+    names(3)='treeMAHHearin2021Log10TimeZero'
     return
-  end function massAccretionHistoryHearin2021Names
+  end subroutine massAccretionHistoryHearin2021Names
 
-  function massAccretionHistoryHearin2021Descriptions(self,time)
+  subroutine massAccretionHistoryHearin2021Descriptions(self,time,descriptions)
     !!{
     Return a description of the {\normalfont \ttfamily massAccretionHistoryHearin2021} property.
     !!}
     implicit none
-    type            (varying_string                                     ), dimension(:) , allocatable :: massAccretionHistoryHearin2021Descriptions
-    class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout)              :: self
-    double precision                                                     , intent(in   )              :: time
+    class           (nodePropertyExtractorMassAccretionHistoryHearin2021), intent(inout)                             :: self
+    double precision                                                     , intent(in   )                             :: time
+    type            (varying_string                                     ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: self, time
 
-    allocate(massAccretionHistoryHearin2021Descriptions(3))
-    massAccretionHistoryHearin2021Descriptions=[                                                                                                         &
-         &                                      var_str('Early-time power-law index in the Hearin et al. (2021) mass accretion hsitory for this tree.'), &
-         &                                      var_str('Late-time power-law index in the Hearin et al. (2021) mass accretion hsitory for this tree.' ), &
-         &                                      var_str('Parameter log₁₀t₀ in the Hearin et al. (2021) mass accretion hsitory for this tree.'         )  &
-         &                                     ]
+    allocate(descriptions(3))
+    descriptions(1)='Early-time power-law index in the Hearin et al. (2021) mass accretion history for this tree.'
+    descriptions(2)='Late-time power-law index in the Hearin et al. (2021) mass accretion history for this tree.'
+    descriptions(3)='Parameter log₁₀t₀ in the Hearin et al. (2021) mass accretion history for this tree.'
     return
-  end function massAccretionHistoryHearin2021Descriptions
+  end subroutine massAccretionHistoryHearin2021Descriptions
 
   function massAccretionHistoryHearin2021UnitsInSI(self,time)
     !!{

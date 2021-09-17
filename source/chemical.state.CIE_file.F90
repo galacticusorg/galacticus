@@ -631,7 +631,7 @@ contains
     type            (hdf5Object          )                :: chemicalStateFile                  , metallicityDataset, &
          &                                                   temperatureDataset
 
-    call hdf5Access%set()
+    !$ call hdf5Access%set()
     ! Parse the file.
     call displayIndent('Reading file: '//fileName,verbosityLevelDebug)
     call chemicalStateFile%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
@@ -700,7 +700,7 @@ contains
     ! Close the file.
     call chemicalStateFile%close()
     call displayUnindent('done',verbosityLevelDebug)
-    call hdf5Access%unset()
+    !$ call hdf5Access%unset()
     ! Store table ranges for convenience.
     self%metallicityMinimum=self%metallicities(                    1)
     self%metallicityMaximum=self%metallicities(self%metallicityCount)

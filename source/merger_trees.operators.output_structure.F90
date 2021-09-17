@@ -160,7 +160,7 @@ contains
        countPropertiesDouble  =  0
        countPropertiesInteger =  0
        select type (extractor_ => self%nodePropertyExtractor_)
-       type is (nodePropertyExtractorNull)
+       type  is (nodePropertyExtractorNull         )
           ! Null extractor - pointless.
           call Galacticus_Error_Report('null extractor is pointless'//{introspection:location})
        class is (nodePropertyExtractorScalar       )
@@ -183,44 +183,40 @@ contains
           call Galacticus_Error_Report('unsupported property extractor class'//{introspection:location})
        end select
        ! Allocate storage for the properties.
-       allocate(propertiesDouble   (countNodes,countPropertiesDouble ))
-       allocate(propertiesInteger  (countNodes,countPropertiesInteger))
-       allocate(namesDouble        (           countPropertiesDouble ))
-       allocate(namesInteger       (           countPropertiesInteger))
-       allocate(descriptionsDouble (           countPropertiesDouble ))
-       allocate(descriptionsInteger(           countPropertiesInteger))
-       allocate(unitsInSIDouble    (           countPropertiesDouble ))
-       allocate(unitsInSIInteger   (           countPropertiesInteger))
+       allocate(propertiesDouble (countNodes,countPropertiesDouble ))
+       allocate(propertiesInteger(countNodes,countPropertiesInteger))
+       allocate(unitsInSIDouble  (           countPropertiesDouble ))
+       allocate(unitsInSIInteger (           countPropertiesInteger))
        ! Retrieve property names, descriptions, and units.
        select type (extractor_ => self%nodePropertyExtractor_)
        class is (nodePropertyExtractorScalar       )
           ! Scalar property extractor.
-          namesDouble        (1)=extractor_%name        (                               )
-          descriptionsDouble (1)=extractor_%description (                               )
-          unitsInSIDouble    (1)=extractor_%unitsInSI   (                               )
+          namesDouble        (1)=extractor_%name        (                                                   )
+          descriptionsDouble (1)=extractor_%description (                                                   )
+          unitsInSIDouble    (1)=extractor_%unitsInSI   (                                                   )
        class is (nodePropertyExtractorTuple        )
           ! Tuple property extractor.
-          namesDouble        (:)=extractor_%names       (                   basic%time())
-          descriptionsDouble (:)=extractor_%descriptions(                   basic%time())
-          unitsInSIDouble    (:)=extractor_%unitsInSI   (                   basic%time())
+          call extractor_%names                         (                   basic%time(),namesDouble        )
+          call extractor_%descriptions                  (                   basic%time(),descriptionsDouble )
+          unitsInSIDouble    (:)=extractor_%unitsInSI   (                   basic%time()                    )
        class is (nodePropertyExtractorIntegerScalar)
           ! Integer scalar property extractor.
-          namesInteger       (1)=extractor_%name        (                               )
-          descriptionsInteger(1)=extractor_%description (                               )
-          unitsInSIInteger   (1)=extractor_%unitsInSI   (                               )          
+          namesInteger       (1)=extractor_%name        (                                                   )
+          descriptionsInteger(1)=extractor_%description (                                                   )
+          unitsInSIInteger   (1)=extractor_%unitsInSI   (                                                   )
        class is (nodePropertyExtractorIntegerTuple )
           ! Integer tuple property extractor.
-          namesInteger       (:)=extractor_%names       (                   basic%time())
-          descriptionsInteger(:)=extractor_%descriptions(                   basic%time())
-          unitsInSIInteger   (:)=extractor_%unitsInSI   (                   basic%time())
+          call extractor_%names                         (                   basic%time(),namesInteger       )
+          call extractor_%descriptions                  (                   basic%time(),descriptionsInteger)
+          unitsInSIInteger   (:)=extractor_%unitsInSI   (                   basic%time()                    )
        class is (nodePropertyExtractorMulti        )
           ! Multi property extractor.
-          namesDouble        (:)=extractor_%names       (elementTypeDouble ,basic%time())
-          descriptionsDouble (:)=extractor_%descriptions(elementTypeDouble ,basic%time())
-          unitsInSIDouble    (:)=extractor_%unitsInSI   (elementTypeDouble ,basic%time())
-          namesInteger       (:)=extractor_%names       (elementTypeInteger,basic%time())
-          descriptionsInteger(:)=extractor_%descriptions(elementTypeInteger,basic%time())
-          unitsInSIInteger   (:)=extractor_%unitsInSI   (elementTypeInteger,basic%time())
+          call extractor_%names                         (elementTypeDouble ,basic%time(),namesDouble        )
+          call extractor_%descriptions                  (elementTypeDouble ,basic%time(),descriptionsDouble )
+          unitsInSIDouble    (:)=extractor_%unitsInSI   (elementTypeDouble ,basic%time()                    )
+          call extractor_%names                         (elementTypeInteger,basic%time(),namesInteger       )
+          call extractor_%descriptions                  (elementTypeInteger,basic%time(),descriptionsInteger)
+          unitsInSIInteger   (:)=extractor_%unitsInSI   (elementTypeInteger,basic%time()                    )
        end select
        ! Walk the tree again accumulating properties for output to arrays.
        countNodes =0
@@ -283,8 +279,8 @@ contains
           call dataset  %writeAttribute(unitsInSIInteger (  i),'unitsInSI'                                                               )
           call dataset  %close         (                                                                                                 )
        end do
+       call    treeGroup %close()
        !$ call hdf5Access%unset()
-       call treeGroup%close()
        ! Free workspace.
        deallocate(propertiesDouble   )
        deallocate(propertiesInteger  )

@@ -142,7 +142,8 @@ CODE
 	}
     }
     # Serialize meta-properties.
-    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated({$class->{'name'}}MetaPropertyNames)) then
  do i=1,size(({$class->{'name'}}MetaPropertyNames))
   write (label,{$formatLabel{'double'}}) self%metaProperties(i)
@@ -151,6 +152,7 @@ if (allocated({$class->{'name'}}MetaPropertyNames)) then
  end do
 end if
 CODE
+    }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 call displayUnindent('done')
 CODE
@@ -264,13 +266,15 @@ CODE
 	}
     }
     # Serialize meta-properties.
-    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated({$class->{'name'}}MetaPropertyNames)) then
  do i=1,size(({$class->{'name'}}MetaPropertyNames))
   write (fileHandle,'(a,a,a,{$formatLabel{'double'}},a,a,a)') '   <'//char({$class->{'name'}}MetaPropertyNames(i))//'>',self%metaProperties(i),'</'//char({$class->{'name'}}MetaPropertyNames(i))//'>'
  end do
 end if
 CODE
+    }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 write (fileHandle,'(a)') '  </{$class->{'name'}}>'
 CODE
@@ -368,9 +372,11 @@ CODE
 	}
     }
     # Serialize meta-properties.
-    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated({$class->{'name'}}MetaPropertyNames)) write (fileHandle) self%metaProperties
 CODE
+    }
     # Insert a type-binding for this function.
     push(
 	@{$build->{'types'}->{$implementationTypeName}->{'boundFunctions'}},
@@ -485,9 +491,11 @@ CODE
 	}
     }
     # Deserialize meta-properties.
-    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated({$class->{'name'}}MetaPropertyNames)) read (fileHandle) self%metaProperties
 CODE
+    }
     # Insert a type-binding for this function.
     push(
 	@{$build->{'types'}->{$implementationTypeName}->{'boundFunctions'}},

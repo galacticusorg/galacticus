@@ -135,6 +135,7 @@ contains
     !!{
     Return the critical overdensity for collapse at the given time and mass.
     !!}
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class           (criticalOverdensityEnvironmental), intent(inout)           :: self
@@ -144,6 +145,7 @@ contains
     type            (treeNode                        ), intent(inout), optional :: node
     class           (nodeComponentBasic              ), pointer                 :: basic
 
+    if (.not.present(node)) call Galacticus_Error_Report('"node" must be provided to give access to environment'//{introspection:location})
     ! Get the critical overdensity at zero environmental overdensity and scale by some power of the linear growth factor.
     environmentalValue   =  +  self%criticalOverdensity_         %value            (time,expansionFactor,collapsing,mass,node                  )
     basic                =>    node%hostTree            %baseNode%basic            (                                                           )
@@ -163,6 +165,7 @@ contains
     Return the gradient with respect to time of critical overdensity at the given time and mass.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (criticalOverdensityEnvironmental), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: time      , expansionFactor
@@ -174,6 +177,7 @@ contains
     <optionalArgument name="expansionFactor" defaultsTo="self%cosmologyFunctions_%expansionFactor(time)" />
     !!]
 
+    if (.not.present(node)) call Galacticus_Error_Report('"node" must be provided to give access to environment'//{introspection:location})
     basic => node%hostTree%baseNode%basic()
     if (basic%mass() < self%massEnvironment) then
        environmentalGradientTime=+   self%criticalOverdensity_%gradientTime                        (time,expansionFactor ,collapsing,mass,node                  ) &
@@ -203,6 +207,7 @@ contains
     Return the gradient with respect to mass of critical overdensity at the given time and mass.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (criticalOverdensityEnvironmental), intent(inout)           :: self
     double precision                                  , intent(in   ), optional :: time      , expansionFactor
@@ -211,6 +216,7 @@ contains
     type            (treeNode                        ), intent(inout), optional :: node
     class           (nodeComponentBasic              ), pointer                 :: basic
 
+    if (.not.present(node)) call Galacticus_Error_Report('"node" must be provided to give access to environment'//{introspection:location})
     basic => node%hostTree%baseNode%basic()
     if (basic%mass() < self%massEnvironment) then
        environmentalGradientMass=  +self%criticalOverdensity_%gradientMass     (time,expansionFactor,collapsing,mass,node                  ) &

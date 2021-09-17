@@ -79,6 +79,9 @@ contains
        <objectBuilder class="stellarFeedbackOutflows" name="stellarFeedbackOutflows_%stellarFeedbackOutflows" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="stellarFeedbackOutflows"/>
+    !!]
     return
   end function summationConstructorParameters
 

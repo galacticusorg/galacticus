@@ -578,10 +578,10 @@ contains
           self%lengthResolutionPrevious    =  +self%lengthResolutionPrevious                           &
                &                              *self%cosmologyFunctions_%expansionFactor(basic%time ())
        end if
-       if (self%massResolution > 0.0d0)                                                                                         &
-            & self%lengthResolutionPrevious=max(                                                                                &
-            &                                   self                      %lengthResolutionPrevious                           , &
-            &                                   self%darkMatterProfileDMO_%radiusEnclosingMass     (node,self%massResolution)   &
+       if (self%massResolution > 0.0d0)                                                                                        &
+            & self%lengthResolutionPrevious=max(                                                                               &
+            &                                   self                      %lengthResolutionPrevious                          , &
+            &                                   self%darkMatterProfileDMO_%radiusEnclosingMass     (node,self%massResolution)  &
             &                                  )
     end if
     finiteResolutionLengthResolutionPhysical=self%lengthResolutionPrevious

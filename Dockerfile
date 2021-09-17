@@ -1,7 +1,8 @@
 # Galacticus Docker image
 # Uses Docker multi-stage build to build Galacticus.
 
-FROM galacticusorg/buildenv:latest as build
+ARG tag=latest
+FROM galacticusorg/buildenv:$tag as build
 
 # Set build options.
 ## * The flags are also set in galacticus/buildenv:latest so we don't really need to reset them here.
@@ -27,5 +28,5 @@ RUN     cd /opt/galacticus &&\
 # Build external tools.
 RUN     cd /opt/galacticus &&\
 	./Galacticus.exe parameters/buildTools.xml &&\
-	rm /opt/datasets/dynamic/c17.02.tar.gz /opt/datasets/dynamic/CAMB.tar.gz
+	rm /opt/datasets/dynamic/c17.02.tar.gz /opt/datasets/dynamic/CAMB_1.3.2.tar.gz /opt/datasets/dynamic/class_public-3.0.1.tar.gz /opt/datasets/dynamic/FSPS_3.2.tar.gz
 	

@@ -533,6 +533,7 @@ contains
                 end if
              end do
              if (status /= errorStatusSuccess) call Galacticus_Error_Report('integration of Jeans equation failed'//{introspection:location})
+             call integrator_%toleranceSet(toleranceRelative=self%toleranceRelativeVelocityDispersion)
           end if
           if (density <= 0.0d0) then
              ! Density is zero - the velocity dispersion is undefined. If the Jeans integral is also zero this is acceptable - we've
@@ -575,17 +576,17 @@ contains
   
   double precision function genericJeansEquationIntegrand(radius)
     !!{
-    Integrand for generic drak matter profile Jeans equation.
+    Integrand for generic dark matter profile Jeans equation.
     !!}
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     double precision, intent(in   ) :: radius
     
     if (radius > 0.0d0) then
-       genericJeansEquationIntegrand=+gravitationalConstantGalacticus                                            &
-            &                        *solvers(solversCount)%self%enclosedMass(solvers(solversCount)%node,radius) &
-            &                        *solvers(solversCount)%self%density     (solvers(solversCount)%node,radius) &
-            &                        /radius**2
+       genericJeansEquationIntegrand=+gravitationalConstantGalacticus                                               &
+            &                        *solvers(solversCount)%self%enclosedMass(solvers(solversCount)%node,radius)    &
+            &                        *solvers(solversCount)%self%density     (solvers(solversCount)%node,radius)    &
+            &                        /                           radius                                         **2
     else
        genericJeansEquationIntegrand=0.0d0
     end if

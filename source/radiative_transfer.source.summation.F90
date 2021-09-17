@@ -95,6 +95,7 @@ contains
     end do
     !![
     <objectBuilder class="randomNumberGenerator" name="self%randomNumberGenerator_" source="parameters"/>
+    <inputParametersValidate source="parameters" multiParameters="radiativeTransferSource"/>
     !!]
     return
   end function summationConstructorParameters

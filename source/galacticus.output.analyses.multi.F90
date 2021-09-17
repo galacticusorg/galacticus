@@ -87,6 +87,9 @@ contains
        <objectBuilder class="outputAnalysis" name="analysis_%analysis_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="outputAnalysis"/>
+    !!]
     return
   end function multiConstructorParameters
 

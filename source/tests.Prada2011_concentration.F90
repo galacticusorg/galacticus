@@ -121,7 +121,8 @@ program Test_Prada2011_Concentration
      &amp;                                   index_                             =+0.95d0                            , &amp;
      &amp;                                   running                            =+0.00d0                            , &amp;
      &amp;                                   runningRunning                     =+0.00d0                            , &amp;
-     &amp;                                   wavenumberReference                =+1.00d0                              &amp;
+     &amp;                                   wavenumberReference                =+1.00d0                            , &amp;
+     &amp;                                   runningSmallScalesOnly             =.false.                              &amp;
      &amp;                                  )
    </constructor>
   </referenceConstruct>

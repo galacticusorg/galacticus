@@ -271,7 +271,8 @@ sub Class_Add_Meta_Property {
 	     }
 	    ]
     };
-    $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self
 
 !$omp critical ({class->{'name'}}MetaPropertyUpdate)
@@ -317,6 +318,7 @@ if (.not.found) then
 end if
 !$omp end critical ({class->{'name'}}MetaPropertyUpdate)
 CODE
+    }
     # Insert a type-binding for this function.
     push(
 	@{$build->{'types'}->{"nodeComponent".ucfirst($code::class->{'name'})}->{'boundFunctions'}},

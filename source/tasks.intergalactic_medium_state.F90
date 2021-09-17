@@ -175,7 +175,7 @@ contains
        massJeans      (i)=self%intergalacticMediumState_        %massJeans                  (time    (i))
        massFiltering  (i)=self%intergalacticMediumFilteringMass_%massFiltering              (time    (i))
     end do
-    call hdf5Access%set()
+    !$ call hdf5Access%set()
     ! Open the group for output time information.
     if (self%outputGroup == ".") then
        outputsGroup  =galacticusOutputFile%openGroup(     'Outputs'        ,'Group containing datasets relating to output times.')
@@ -199,7 +199,7 @@ contains
     end do
     call outputsGroup%close()
     if (containerGroup%isOpen()) call containerGroup%close()
-    call hdf5Access%unset()
+    !$ call hdf5Access%unset()
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: intergalactic medium state' )
     return

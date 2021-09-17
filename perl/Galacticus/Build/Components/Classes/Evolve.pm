@@ -73,13 +73,14 @@ sub Build_Rate_Functions {
 	    ]
     };
     # Build the function.
-    $function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
+    if ( grep {$class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: interrupt, interruptProcedure, self
 CODE
-    $code::offsetNameAll      = &offsetName('all'     ,$class->{'name'},'metaProperties');
-    $code::offsetNameActive   = &offsetName('active'  ,$class->{'name'},'metaProperties');
-    $code::offsetNameInactive = &offsetName('inactive',$class->{'name'},'metaProperties');
-    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+	$code::offsetNameAll      = &offsetName('all'     ,$class->{'name'},'metaProperties');
+	$code::offsetNameActive   = &offsetName('active'  ,$class->{'name'},'metaProperties');
+	$code::offsetNameInactive = &offsetName('inactive',$class->{'name'},'metaProperties');
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (rateComputeState == propertyTypeAll          ) then
  offset={$offsetNameAll}(metaPropertyID)
 else if (rateComputeState == propertyTypeActive  ) then
@@ -93,6 +94,7 @@ else
 end if
 nodeRates(offset)=nodeRates(offset)+setValue
 CODE
+    }
     # Insert a type-binding for this function into the relevant type.
     push(
 	@{$build->{'types'}->{$classTypeName}->{'boundFunctions'}},
@@ -101,7 +103,7 @@ CODE
 	    descriptor  => $function,
 	    name        => "metaPropertyRate"
 	}
-	);  
+	);
 }
 
 sub Build_Scale_Functions {
@@ -136,11 +138,13 @@ sub Build_Scale_Functions {
 	    ]
     };
     # Build the function.
-    $code::offsetName = &offsetName('all',$class->{'name'},'metaProperties');
-    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+    if ( grep {$class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$code::offsetName = &offsetName('all',$class->{'name'},'metaProperties');
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self
 nodeScales({$offsetName}(metaPropertyID))=setValue
 CODE
+	}
     # Insert a type-binding for this function into the relevant type.
     push(
 	@{$build->{'types'}->{$classTypeName}->{'boundFunctions'}},
@@ -179,11 +183,13 @@ sub Build_Inactive_Functions {
 	    ]
     };
     # Build the function.
-    $code::offsetName = &offsetName('all',$class->{'name'},'metaProperties');
-    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+    if ( grep {$class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$code::offsetName = &offsetName('all',$class->{'name'},'metaProperties');
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self
 nodeInactives({$offsetName}(metaPropertyID))=.true.
 CODE
+    }
     # Insert a type-binding for this function into the relevant type.
     push(
 	@{$build->{'types'}->{$classTypeName}->{'boundFunctions'}},

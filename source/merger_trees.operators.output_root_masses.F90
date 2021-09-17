@@ -125,9 +125,9 @@ contains
     ! Initialize.
     self%treeCount=0
     ! Remove any pre-existing file.
-    call hdf5Access%set()
+    !$ call hdf5Access%set()
     if (File_Exists(fileName)) call File_Remove(fileName)
-    call hdf5Access%unset()
+    !$ call hdf5Access%unset()
     return
   end function outputRootMassesConstructorInternal
 
@@ -237,14 +237,14 @@ contains
     ! If the buffers are empty, we have nothing to do.
     if (self%treeCount == 0) return
     ! Open the output file.
-    call hdf5Access%set()
-    call outputFile%openFile(char(self%fileName),overWrite=.false.)
+    !$ call hdf5Access%set         (                                                                                       )
+    call    outputFile%openFile    (char(self%fileName)                                                  ,overWrite=.false.)
     ! Write the data.
-    call outputFile%writeDataset(self%mass  (1:self%treeCount),"treeRootMass","Tree root node masses.",appendTo=.true.)
-    call outputFile%writeDataset(self%weight(1:self%treeCount),"treeWeight"  ,"Tree weights."         ,appendTo=.true.)
+    call    outputFile%writeDataset(self%mass  (1:self%treeCount),"treeRootMass","Tree root node masses.",appendTo =.true. )
+    call    outputFile%writeDataset(self%weight(1:self%treeCount),"treeWeight"  ,"Tree weights."         ,appendTo =.true. )
     ! Close the output file.
-    call outputFile%close()
-    call hdf5Access%unset()
+    call    outputFile%close       (                                                                                       )
+    !$ call hdf5Access%unset       (                                                                                       )
     ! Reset the buffer counter.
     self%treeCount=0
     return

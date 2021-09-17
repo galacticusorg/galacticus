@@ -244,53 +244,53 @@ contains
     return
   end function densityProfileExtract
 
-  function densityProfileNames(self,time)
+  subroutine densityProfileNames(self,time,names)
     !!{
     Return the names of the {\normalfont \ttfamily densityProfile} properties.
     !!}
     implicit none
-    type            (varying_string                     ), dimension(:) , allocatable :: densityProfileNames
-    class           (nodePropertyExtractorDensityProfile), intent(inout)              :: self
-    double precision                                     , intent(in   )              :: time
+    class           (nodePropertyExtractorDensityProfile), intent(inout)                             :: self
+    double precision                                     , intent(in   )                             :: time
+    type            (varying_string                     ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
 
-    allocate(densityProfileNames(self%elementCount_))
-    densityProfileNames(1)="densityProfile"
-    if (self%includeRadii) densityProfileNames(2)="densityProfileRadius"
+    allocate(names(self%elementCount_))
+    names(1)="densityProfile"
+    if (self%includeRadii) names(2)="densityProfileRadius"
     return
-  end function densityProfileNames
+  end subroutine densityProfileNames
 
-  function densityProfileDescriptions(self,time)
+  subroutine densityProfileDescriptions(self,time,descriptions)
     !!{
     Return descriptions of the {\normalfont \ttfamily densityProfile} property.
     !!}
     implicit none
-    type            (varying_string                     ), dimension(:) , allocatable :: densityProfileDescriptions
-    class           (nodePropertyExtractorDensityProfile), intent(inout)              :: self
-    double precision                                     , intent(in   )              :: time
+    class           (nodePropertyExtractorDensityProfile), intent(inout)                             :: self
+    double precision                                     , intent(in   )                             :: time
+    type            (varying_string                     ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
-    allocate(densityProfileDescriptions(self%elementCount_))
-    densityProfileDescriptions       (1)="Density at a given radius [M☉/Mpc⁻³]."
+    allocate(descriptions(self%elementCount_))
+    descriptions       (1)="Density at a given radius [M☉/Mpc⁻³]."
     if (self%includeRadii)                                                          &
-         & densityProfileDescriptions(2)="Radius at which density is output [Mpc]."
+         & descriptions(2)="Radius at which density is output [Mpc]."
     return
-  end function densityProfileDescriptions
+  end subroutine densityProfileDescriptions
 
-  function densityProfileColumnDescriptions(self,time)
+  subroutine densityProfileColumnDescriptions(self,time,descriptions)
     !!{
     Return column descriptions of the {\normalfont \ttfamily densityProfile} property.
     !!}
     implicit none
-    type            (varying_string                     ), dimension(:) , allocatable :: densityProfileColumnDescriptions
-    class           (nodePropertyExtractorDensityProfile), intent(inout)              :: self
-    double precision                                     , intent(in   )              :: time
+    class           (nodePropertyExtractorDensityProfile), intent(inout)                             :: self
+    double precision                                     , intent(in   )                             :: time
+    type            (varying_string                     ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
-    allocate(densityProfileColumnDescriptions(self%radiiCount))
-    densityProfileColumnDescriptions=self%radii%name
+    allocate(descriptions(self%radiiCount))
+    descriptions=self%radii%name
     return
-  end function densityProfileColumnDescriptions
+  end subroutine densityProfileColumnDescriptions
 
   function densityProfileUnitsInSI(self,time)
     !!{

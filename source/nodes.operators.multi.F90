@@ -53,6 +53,7 @@
      procedure :: differentialEvolutionPre            => multiDifferentialEvolutionPre
      procedure :: differentialEvolution               => multiDifferentialEvolution
      procedure :: differentialEvolutionScales         => multiDifferentialEvolutionScales
+     procedure :: differentialEvolutionInactives      => multiDifferentialEvolutionInactives
      procedure :: differentialEvolutionStepFinalState => multiDifferentialEvolutionStepFinalState
      procedure :: differentialEvolutionPost           => multiDifferentialEvolutionPost
   end type nodeOperatorMulti
@@ -92,6 +93,9 @@ contains
        <objectBuilder class="nodeOperator" name="process_%process_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="nodeOperator"/>
+    !!]
     return
   end function multiConstructorParameters
 
@@ -255,6 +259,23 @@ contains
     end do
     return
   end subroutine multiDifferentialEvolutionScales
+
+  subroutine multiDifferentialEvolutionInactives(self,node)
+    !!{
+    Mark meta-properties as inactive for the ODE solver prior to differential evolution.
+    !!}
+    implicit none
+    class(nodeOperatorMulti), intent(inout) :: self
+    type (treeNode         ), intent(inout) :: node
+    type (multiProcessList ), pointer       :: process_
+
+    process_ => self%processes
+    do while (associated(process_))
+       call process_%process_%differentialEvolutionInactives(node)
+       process_ => process_%next
+    end do
+    return
+  end subroutine multiDifferentialEvolutionInactives
 
   subroutine multiDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{

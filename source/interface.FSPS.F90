@@ -49,50 +49,45 @@ contains
     use :: String_Handling   , only : operator(//)
     use :: System_Command    , only : System_Command_Do
     implicit none
-    type     (varying_string), intent(  out)           :: fspsPath       , fspsVersion
+    type     (varying_string), intent(  out)           :: fspsPath, fspsVersion
     logical                  , intent(in   ), optional :: static
-    integer                                            :: status         , inputFile
-    logical                                            :: upToDate
-    character(len=40        )                          :: currentRevision
+    integer                                            :: status
     type     (varying_string)                          :: lockPath
     !![
     <optionalArgument name="static" defaultsTo=".false." />
     !!]
 
     ! Specify source code path.
-    fspsPath=galacticusPath(pathTypeDataDynamic)//"FSPS_v2.5"
-    lockPath=galacticusPath(pathTypeDataDynamic)//"fsps2.5"
+    fspsVersion="3.2"
+    fspsPath=galacticusPath(pathTypeDataDynamic)//"fsps-"//fspsVersion
+    lockPath=galacticusPath(pathTypeDataDynamic)//"fsps" //fspsVersion
     call File_Lock(char(lockPath),fspsLock)
     !  Build the code if the executable does not exist.
     if (.not.File_Exists(fspsPath//"/src/autosps.exe")) then
-       ! Check out the code if not already done.
+       ! Download the code if not already done.
        if (.not.File_Exists(fspsPath)) then
-          call displayMessage("downloading FSPS source code....",verbosityLevelWorking)
-          call System_Command_Do("git clone git://github.com/cconroy20/fsps.git/ "//fspsPath,status)
-          if (.not.File_Exists(fspsPath) .or. status /= 0) call Galacticus_Error_Report("failed to clone FSPS git repository"//{introspection:location})
-       end if
-       ! Check for updates to the code.
-       call System_Command_Do("cd "//fspsPath//"; git fetch; [[ $(git rev-parse HEAD) == $(git rev-parse @{u}) ]]",status)
-       upToDate=(status == 0)
-       if (.not.upToDate) then
-          call displayMessage("updating FSPS source code",verbosityLevelWorking)
-          ! Update and remove the galacticus_IMF.f90 file to trigger re-patching of the code.
-          call System_Command_Do("cd "//fspsPath//"; git checkout -- .; git pull")
-          call File_Remove(fspsPath//"src/galacticus_IMF.f90")
+          if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"FSPS_"//char(fspsVersion)//".tar.gz")) then
+             call displayMessage("downloading FSPS source code....",verbosityLevelWorking)
+             call System_Command_Do("wget https://github.com/cconroy20/fsps/archive/refs/tags/v"//char(fspsVersion)//".tar.gz -O "//galacticusPath(pathTypeDataDynamic)//"FSPS_"//char(fspsVersion)//".tar.gz",status)
+             if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"FSPS_"//char(fspsVersion)//".tar.gz") .or. status /= 0) call Galacticus_Error_Report("failed to download FSPS"//{introspection:location})
+          end if
+          call displayMessage("unpacking FSPS code....",verbosityLevelWorking)
+          call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//" -f "//galacticusPath(pathTypeDataDynamic)//"FSPS_"//char(fspsVersion)//".tar.gz",status)          
+          if (status /= 0 .or. .not.File_Exists(fspsPath)) call Galacticus_Error_Report('failed to unpack FSPS code'//{introspection:location})
        end if
        ! Patch the code if not already patched.
        if (.not.File_Exists(fspsPath//"/src/galacticus_IMF.f90")) then
-          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_v2.5_Galacticus_Modifications/galacticus_IMF.f90 "//fspsPath//"/src/"                                                    ,status)
+          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_Galacticus_Modifications/galacticus_IMF.f90 "//fspsPath//"/src/"                                                    ,status)
           if (status /= 0) call Galacticus_Error_Report("failed to copy FSPS patch 'galacticus_IMF.f90'"//{introspection:location})
-          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_v2.5_Galacticus_Modifications/imf.f90.patch "     //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < imf.f90.patch"     ,status)
+          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_Galacticus_Modifications/imf.f90.patch "     //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < imf.f90.patch"     ,status)
           if (status /= 0) call Galacticus_Error_Report("failed to patch FSPS file 'imf.f90'"           //{introspection:location})
-          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_v2.5_Galacticus_Modifications/ssp_gen.f90.patch " //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < ssp_gen.f90.patch" ,status)
+          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_Galacticus_Modifications/ssp_gen.f90.patch " //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < ssp_gen.f90.patch" ,status)
           if (status /= 0) call Galacticus_Error_Report("failed to patch FSPS file 'ssp_gen.f90'"       //{introspection:location})
-          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_v2.5_Galacticus_Modifications/sps_vars.f90.patch "//fspsPath//"/src/; cd "//fspsPath//"/src/; patch < sps_vars.f90.patch",status)
+          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_Galacticus_Modifications/sps_vars.f90.patch "//fspsPath//"/src/; cd "//fspsPath//"/src/; patch < sps_vars.f90.patch",status)
           if (status /= 0) call Galacticus_Error_Report("failed to patch FSPS file 'sps_vars.f90'"      //{introspection:location})
-          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_v2.5_Galacticus_Modifications/autosps.f90.patch " //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < autosps.f90.patch" ,status)
+          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_Galacticus_Modifications/autosps.f90.patch " //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < autosps.f90.patch" ,status)
           if (status /= 0) call Galacticus_Error_Report("failed to patch FSPS file 'autosps.f90'"       //{introspection:location})
-          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_v2.5_Galacticus_Modifications/Makefile.patch "    //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < Makefile.patch"    ,status)
+          call System_Command_Do("cp "//galacticusPath(pathTypeExec)//"aux/FSPS_Galacticus_Modifications/Makefile.patch "    //fspsPath//"/src/; cd "//fspsPath//"/src/; patch < Makefile.patch"    ,status)
           if (status /= 0) call Galacticus_Error_Report("failed to patch FSPS file 'Makefile'"          //{introspection:location})
           call File_Remove(fspsPath//"/src/autosps.exe")
        end if
@@ -105,15 +100,6 @@ contains
        call System_Command_Do("cd "//fspsPath//"/src; export SPS_HOME="//fspsPath//"; export F90FLAGS=-mcmodel=medium; make clean; make -j 1",status)
        if (.not.File_Exists(fspsPath//"/src/autosps.exe") .or. status /= 0) call Galacticus_Error_Report("failed to build autosps.exe code"//{introspection:location})
     end if
-    ! Get the code revision number.
-    if (.not.File_Exists(fspsPath//"/currentRevision.txt")) then
-       call System_Command_Do("cd "//fspsPath//"; git rev-parse HEAD > currentRevision.txt",status)
-       if (status /= 0) call Galacticus_Error_Report("unable to find FSPS revision"//{introspection:location})
-    end if
-    open(newUnit=inputFile,file=char(fspsPath)//"/currentRevision.txt",status='old',form='formatted')
-    read (inputFile,'(a)') currentRevision
-    close(inputFile)
-    fspsVersion="v2.5; "//currentRevision
     call File_Unlock(fspsLock)
     return
   end subroutine Interface_FSPS_Initialize
@@ -207,6 +193,13 @@ contains
        do iAge=1,ageCount
           read (inputFile,*) age     (  iAge             )
           read (inputFile,*) spectrum(:,iAge,iMetallicity)
+
+
+
+
+
+if (any(isnan(spectrum(:,iAge,iMetallicity)))) write (0,*) "TEST WTF ",iage,imetallicity,spectrum(:,iAge,iMetallicity)
+
        end do
        close(inputFile)
     end do

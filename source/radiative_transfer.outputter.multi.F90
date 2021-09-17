@@ -87,6 +87,9 @@ contains
        <objectBuilder class="radiativeTransferOutputter" name="outputter_%outputter_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="radiativeTransferOutputter"/>
+    !!]
     return
   end function multiConstructorParameters
 

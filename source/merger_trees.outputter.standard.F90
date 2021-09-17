@@ -446,10 +446,10 @@ contains
     if (.not.nodePassesFilter) return
     ! Ensure output buffers are allocated.
     do i=1,self%integerScalarCount
-       if (.not.allocated(self%integerProperty(i)%scalar)) allocate(self%integerProperty(i)%scalar(standardBufferSizeIncrement))
+       if (.not.allocated(self%integerProperty(i)%scalar)) allocate(self%integerProperty(i)%scalar(self%integerBufferSize))
     end do
     do i=1,self%doubleScalarCount
-       if (.not.allocated(self%doubleProperty (i)%scalar)) allocate(self%doubleProperty (i)%scalar(standardBufferSizeIncrement))
+       if (.not.allocated(self%doubleProperty (i)%scalar)) allocate(self%doubleProperty (i)%scalar(self%doubleBufferSize))
     end do
     ! Initialize the instance counter.
     instance=multiCounter([1_c_size_t])
@@ -481,7 +481,7 @@ contains
           ! Null extractor - simply ignore.
        class is (nodePropertyExtractorScalar       )
           ! Scalar property extractor - extract and store the value.
-          if    (.not.allocated(self%doubleProperty (doubleProperty +1)%scalar)) allocate(self%doubleProperty(doubleProperty +1)%scalar(                      standardBufferSizeIncrement))
+          if    (.not.allocated(self%doubleProperty (doubleProperty +1)%scalar)) allocate(self%doubleProperty(doubleProperty +1)%scalar(                      self%doubleBufferSize))
           self   %doubleProperty (doubleProperty +1)%scalar(self%doubleBufferCount )=extractor_      %extract     (                  node     ,instance)
           doubleProperty                                                            =+doubleProperty                                                     &
                &                                                                     +1
@@ -489,7 +489,7 @@ contains
           ! Tuple property extractor - extract and store the values.
           doubleTuple =extractor_%extract       (node,time,instance)
           do i=1,+extractor_%elementCount(                  time)
-             if (.not.allocated(self%doubleProperty (doubleProperty +i)%scalar)) allocate(self%doubleProperty (doubleProperty +i)%scalar(                      standardBufferSizeIncrement))
+             if (.not.allocated(self%doubleProperty (doubleProperty +i)%scalar)) allocate(self%doubleProperty (doubleProperty +i)%scalar(                      self%doubleBufferSize))
              self%doubleProperty (doubleProperty +i)%scalar(self%doubleBufferCount )=doubleTuple (  i)
           end do
           deallocate(doubleTuple )
@@ -497,7 +497,7 @@ contains
                &                                                                     +extractor_     %elementCount(                       time         )
        class is (nodePropertyExtractorIntegerScalar)
           ! Integer scalar property extractor - extract and store the value.
-          if    (.not.allocated(self%integerProperty(integerProperty+1)%scalar)) allocate(self%integerProperty(integerProperty+1)%scalar(                      standardBufferSizeIncrement))
+          if    (.not.allocated(self%integerProperty(integerProperty+1)%scalar)) allocate(self%integerProperty(integerProperty+1)%scalar(                      self%integerBufferSize))
           self   %integerProperty(integerProperty+1)%scalar(self%integerBufferCount)=extractor_      %extract     (                  node,time,instance)
           integerProperty                                                           =+integerProperty                                                    &
                &                                                                     +1
@@ -505,7 +505,7 @@ contains
           ! Integer tuple property extractor - extract and store the values.
           integerTuple=extractor_%extract       (node,time,instance)
           do i=1,extractor_%elementCount(                   time)
-             if (.not.allocated(self%integerProperty(integerProperty+i)%scalar)) allocate(self%integerProperty(integerProperty+i)%scalar(                      standardBufferSizeIncrement))
+             if (.not.allocated(self%integerProperty(integerProperty+i)%scalar)) allocate(self%integerProperty(integerProperty+i)%scalar(                      self%integerBufferSize))
              self%integerProperty(integerProperty+i)%scalar(self%integerBufferCount)=integerTuple(  i)
           end do
           deallocate(integerTuple)
@@ -515,10 +515,11 @@ contains
           ! Array property extractor - extract and store the values.
           doubleArray =extractor_%extract       (node,time,instance)
           do i=1,+extractor_%elementCount(                  time)
-             if (     allocated(self%doubleProperty (doubleProperty +i)%rank1)) then
-                if (size(self%doubleProperty (doubleProperty +i)%rank1,dim=1) /= size(doubleArray,dim=1)) deallocate(self%doubleProperty (doubleProperty +i)%rank1)
+             if (     allocated(self%doubleProperty (doubleProperty +i)%scalar))                          deallocate(self%doubleProperty (doubleProperty +i)%scalar)
+             if (     allocated(self%doubleProperty (doubleProperty +i)%rank1 )) then
+                if (size(self%doubleProperty (doubleProperty +i)%rank1,dim=1) /= size(doubleArray,dim=1)) deallocate(self%doubleProperty (doubleProperty +i)%rank1 )
              end if
-             if (.not.allocated(self%doubleProperty (doubleProperty +i)%rank1)) allocate(self%doubleProperty (doubleProperty +i)%rank1(size(doubleArray,dim=1),standardBufferSizeIncrement))
+             if (.not.allocated(self%doubleProperty (doubleProperty +i)%rank1)) allocate(self%doubleProperty (doubleProperty +i)%rank1(size(doubleArray,dim=1),self%doubleBufferSize))
              self%doubleProperty (doubleProperty +i)%rank1(:,self%doubleBufferCount)=doubleArray (:,i)
           end do
           deallocate(doubleArray )
@@ -530,19 +531,21 @@ contains
           do i=1,extractor_%elementCount(elementTypeDouble ,time)
              select case (doubleProperties(i)%rank())
              case (0)
+                if (     allocated(self%doubleProperty (doubleProperty +i)%rank1 ))            deallocate(self%doubleProperty (doubleProperty +i)%rank1 )
                 if (.not.allocated(self%doubleProperty (doubleProperty +i)%scalar)) then
-                   allocate(self%doubleProperty(doubleProperty+i)%scalar(          standardBufferSizeIncrement))
+                   allocate(self%doubleProperty(doubleProperty+i)%scalar(          self%doubleBufferSize))
                 end if
                 self%doubleProperty (doubleProperty +i)%scalar(  self%doubleBufferCount )=doubleProperties(i)
              case (1)
-                if (     allocated(self%doubleProperty(doubleProperty +i)%rank1)) then
+                if (     allocated(self%doubleProperty(doubleProperty +i)%scalar))             deallocate(self%doubleProperty (doubleProperty +i)%scalar)
+                if (     allocated(self%doubleProperty(doubleProperty +i)%rank1 )) then
                    shape_=doubleProperties(i)%shape()
-                   if (size(self%doubleProperty (doubleProperty +i)%rank1,dim=1) /= shape_(1)) deallocate(self%doubleProperty (doubleProperty +i)%rank1)
+                   if (size(self%doubleProperty (doubleProperty +i)%rank1,dim=1) /= shape_(1)) deallocate(self%doubleProperty (doubleProperty +i)%rank1 )
                    deallocate(shape_)
                 end if
                 if (.not.allocated(self%doubleProperty(doubleProperty +i)%rank1 )) then
                    shape_=doubleProperties (i)%shape()
-                   allocate(self%doubleProperty (doubleProperty +i)%rank1(shape_(1),standardBufferSizeIncrement))
+                   allocate(self%doubleProperty (doubleProperty +i)%rank1(shape_(1),self%doubleBufferSize))
                    deallocate(shape_)
                 end if
                 self%doubleProperty (doubleProperty +i)%rank1 (:,self%doubleBufferCount )=doubleProperties(i)
@@ -558,7 +561,7 @@ contains
              select case (integerProperties(i)%rank())
              case (0)
                 if (.not.allocated(self%integerProperty(integerProperty +i)%scalar)) then
-                   allocate(self%integerProperty(integerProperty+i)%scalar(          standardBufferSizeIncrement))
+                   allocate(self%integerProperty(integerProperty+i)%scalar(          self%integerBufferSize))
                 end if
                 self%integerProperty (integerProperty +i)%scalar(self%integerBufferCount  )=integerProperties(i)
              case (1)
@@ -569,7 +572,7 @@ contains
                 end if
                 if (.not.allocated(self%integerProperty(integerProperty +i)%rank1)) then
                    shape_=integerProperties(i)%shape()
-                   allocate(self%integerProperty(integerProperty+i)%rank1(shape_(1),standardBufferSizeIncrement))
+                   allocate(self%integerProperty(integerProperty+i)%rank1(shape_(1),self%integerBufferSize))
                    deallocate(shape_)
                 end if
                 self%integerProperty (integerProperty +i)%rank1 (:,self%integerBufferCount)=integerProperties(i)
@@ -887,11 +890,12 @@ contains
     </include>
     !!]
     implicit none
-    class           (mergerTreeOutputterStandard), intent(inout) :: self
-    double precision                             , intent(in   ) :: time
-    type            (treeNode                   ), intent(inout) :: node
-    integer                                                      :: doubleProperty, integerProperty, &
-         &                                                          i
+    class           (mergerTreeOutputterStandard), intent(inout)               :: self
+    double precision                             , intent(in   )               :: time
+    type            (treeNode                   ), intent(inout)               :: node
+    integer                                                                    :: doubleProperty, integerProperty, &
+         &                                                                        i
+    type            (varying_string             ), allocatable  , dimension(:) :: namesTmp      , descriptionsTmp
 
     integerProperty=0
     doubleProperty =0
@@ -916,21 +920,29 @@ contains
        doubleProperty =doubleProperty +1
     class is (nodePropertyExtractorTuple        )
        ! Tuple property extractor - get the names, descriptions, and units.
-       self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%name      =extractor_%names       (                   time)
-       self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%comment   =extractor_%descriptions(                   time)
+       call extractor_%names       (time,namesTmp       )
+       call extractor_%descriptions(time,descriptionsTmp)
+       self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%name      =namesTmp
+       self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%comment   =descriptionsTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%unitsInSI =extractor_%unitsInSI   (                   time)
        doubleProperty =doubleProperty +extractor_%elementCount(time)
+       deallocate(namesTmp       )
+       deallocate(descriptionsTmp)
     class is (nodePropertyExtractorArray        )
        ! Array property extractor - get the names, descriptions, and units.
-       self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%name      =extractor_%names       (                   time)
-       self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%comment   =extractor_%descriptions(                   time)
+       call extractor_%names       (time,namesTmp       )
+       call extractor_%descriptions(time,descriptionsTmp)
+       self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%name      =namesTmp
+       self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%comment   =descriptionsTmp
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%unitsInSI =extractor_%unitsInSI   (                   time)
        do i=1,extractor_%elementCount(time)
           if (allocated(self%doubleProperty(doubleProperty+i)%rank1Descriptors)) deallocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors)
           allocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors(extractor_%size(time)))
-          self%doubleProperty(doubleProperty+i)%rank1Descriptors=extractor_%columnDescriptions(time)
+          call extractor_%columnDescriptions(time,self%doubleProperty(doubleProperty+i)%rank1Descriptors)
        end do
        doubleProperty =doubleProperty +extractor_%elementCount(time)
+       deallocate(namesTmp       )
+       deallocate(descriptionsTmp)
     class is (nodePropertyExtractorIntegerScalar)
        ! Integer scalar property extractor - get the name, description, and units.
        self%integerProperty(integerProperty+1                                                                 )%name     =extractor_%name        (                       )
@@ -939,27 +951,39 @@ contains
        integerProperty=integerProperty+1
     class is (nodePropertyExtractorIntegerTuple )
        ! Integer tuple property extractor - get the names, descriptions, and units.
-       self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(                   time))%name     =extractor_%names       (                   time)
-       self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(                   time))%comment  =extractor_%descriptions(                   time)
+       call extractor_%names       (time,namesTmp       )
+       call extractor_%descriptions(time,descriptionsTmp)
+       self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(                   time))%name     =namesTmp
+       self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(                   time))%comment  =descriptionsTmp
        self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(                   time))%unitsInSI=extractor_%unitsInSI   (                   time)
        integerProperty=integerProperty+extractor_%elementCount(time)
+       deallocate(namesTmp       )
+       deallocate(descriptionsTmp)
     class is (nodePropertyExtractorMulti        )
        ! Multi proprty extractor - get the names, descriptions, and units.
        if (extractor_%elementCount(elementTypeDouble ,time) > 0) then
-          self%doubleProperty(doubleProperty +1:doubleProperty +extractor_%elementCount(elementTypeDouble ,time))%name      =extractor_%names       (elementTypeDouble ,time)
-          self%doubleProperty(doubleProperty +1:doubleProperty +extractor_%elementCount(elementTypeDouble ,time))%comment   =extractor_%descriptions(elementTypeDouble ,time)
+          call extractor_%names       (elementTypeDouble ,time,namesTmp       )
+          call extractor_%descriptions(elementTypeDouble ,time,descriptionsTmp)
+          self%doubleProperty(doubleProperty +1:doubleProperty +extractor_%elementCount(elementTypeDouble ,time))%name      =namesTmp
+          self%doubleProperty(doubleProperty +1:doubleProperty +extractor_%elementCount(elementTypeDouble ,time))%comment   =descriptionsTmp
           self%doubleProperty(doubleProperty +1:doubleProperty +extractor_%elementCount(elementTypeDouble ,time))%unitsInSI =extractor_%unitsInSI   (elementTypeDouble ,time)
           do i=1,extractor_%elementCount(elementTypeDouble,time)
              if (allocated(self%doubleProperty(doubleProperty+i)%rank1Descriptors)) deallocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors)
              call extractor_%columnDescriptions(elementTypeDouble,i,time,self%doubleProperty(doubleProperty+i)%rank1Descriptors)
           end do
           doubleProperty =doubleProperty +extractor_%elementCount(elementTypeDouble ,time)
+          deallocate(namesTmp       )
+          deallocate(descriptionsTmp)
        end if
        if (extractor_%elementCount(elementTypeInteger,time) > 0) then
-          self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(elementTypeInteger,time))%name     =extractor_%names       (elementTypeInteger,time)
-          self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(elementTypeInteger,time))%comment  =extractor_%descriptions(elementTypeInteger,time)
+          call extractor_%names       (elementTypeInteger,time,namesTmp       )
+          call extractor_%descriptions(elementTypeInteger,time,descriptionsTmp)
+          self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(elementTypeInteger,time))%name     =namesTmp
+          self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(elementTypeInteger,time))%comment  =descriptionsTmp
           self%integerProperty(integerProperty+1:integerProperty+extractor_%elementCount(elementTypeInteger,time))%unitsInSI=extractor_%unitsInSI   (elementTypeInteger,time)
           integerProperty=integerProperty+extractor_%elementCount(elementTypeInteger,time)
+          deallocate(namesTmp       )
+          deallocate(descriptionsTmp)
        end if
     class default
        call Galacticus_Error_Report('unsupported property extractor class'//{introspection:location})

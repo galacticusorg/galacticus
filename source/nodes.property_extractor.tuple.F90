@@ -30,17 +30,17 @@
    contains
      !![
      <methods>
-       <method description="Return the number of properties in the tuple." method="elementCount" pass="yes" />
-       <method description="Extract the properties from the given {\normalfont \ttfamily node}." method="extract" pass="yes" />
-       <method description="Return the names of the properties extracted." method="names" pass="yes" />
-       <method description="Return descriptions of the properties extracted." method="descriptions" pass="yes" />
-       <method description="Return the units of the properties extracted in the SI system." method="unitsInSI" pass="yes" />
+       <method method="elementCount" description="Return the number of properties in the tuple."                      />
+       <method method="extract"      description="Extract the properties from the given {\normalfont \ttfamily node}."/>
+       <method method="names"        description="Return the names of the properties extracted."                      />
+       <method method="descriptions" description="Return descriptions of the properties extracted."                   />
+       <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."     />
      </methods>
      !!]
      procedure(tupleElementCount), deferred :: elementCount
      procedure(tupleExtract     ), deferred :: extract
      procedure(tupleNames       ), deferred :: names
-     procedure(tupleNames       ), deferred :: descriptions
+     procedure(tupleDescriptions), deferred :: descriptions
      procedure(tupleUnitsInSI   ), deferred :: unitsInSI
   end type nodePropertyExtractorTuple
 
@@ -59,15 +59,27 @@
   end interface
 
   abstract interface
-     function tupleNames(self,time)
+     subroutine tupleNames(self,time,names)
        !!{
        Interface for tuple property names.
        !!}
        import varying_string, nodePropertyExtractorTuple
-       type            (varying_string            ), dimension(:) , allocatable :: tupleNames
-       class           (nodePropertyExtractorTuple), intent(inout)              :: self
-       double precision                            , intent(in   )              :: time
-     end function tupleNames
+       class           (nodePropertyExtractorTuple), intent(inout)                             :: self
+       double precision                            , intent(in   )                             :: time
+       type            (varying_string            ), intent(inout), dimension(:) , allocatable :: names
+     end subroutine tupleNames
+  end interface
+
+  abstract interface
+     subroutine tupleDescriptions(self,time,descriptions)
+       !!{
+       Interface for tuple property names.
+       !!}
+       import varying_string, nodePropertyExtractorTuple
+       class           (nodePropertyExtractorTuple), intent(inout)                             :: self
+       double precision                            , intent(in   )                             :: time
+       type            (varying_string            ), intent(inout), dimension(:) , allocatable :: descriptions
+     end subroutine tupleDescriptions
   end interface
 
   abstract interface

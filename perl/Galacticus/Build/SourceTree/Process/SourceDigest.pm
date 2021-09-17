@@ -93,9 +93,6 @@ sub Find_Hash {
 	} else {
 	    # Process all source files upon which this file depends, plus the file itself.
 	    my $compositeHasher = Digest::MD5->new();
-	    open(my $sourceFile,"source/".$fileName);
-	    $compositeHasher->addfile($sourceFile);
-	    close($sourceFile);
 	    (my $hashFileName       = $ENV{'BUILDPATH'}."/".$fileName) =~ s/\.F90$/.md5c/;
 	    (my $dependencyFileName = $ENV{'BUILDPATH'}."/".$fileName) =~ s/\.F90$/.d/;
 	    if ( -e $dependencyFileName ) {

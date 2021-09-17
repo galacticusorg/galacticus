@@ -84,6 +84,9 @@ contains
        <objectBuilder class="stellarPopulationSpectraPostprocessor" name="postprocessor_%postprocessor_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="stellarPopulationSpectraPostprocessor"/>
+    !!]
     return
   end function sequenceConstructorParameters
 

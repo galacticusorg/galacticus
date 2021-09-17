@@ -205,7 +205,7 @@ contains
     use :: Galacticus_Error        , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (transferFunctionBBKSWDM), intent(inout)           :: self
+    class           (transferFunctionBBKSWDM), intent(inout), target   :: self
     integer                                  , intent(  out), optional :: status
     double precision                         , parameter               :: wavenumberHalfModeScaleFree=sqrt(0.25d0+2.0d0*log(2.0d0))-0.5d0
     double precision                                                   :: matterDensity                                                  , wavenumberHalfMode

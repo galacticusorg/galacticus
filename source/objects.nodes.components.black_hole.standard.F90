@@ -377,7 +377,7 @@ contains
          &                                                                restMassAccretionRate                                                                                                                             , spheroidDensityOverCriticalDensity                             , &
          &                                                                spheroidDensityRadius2                                                                                                                            , spheroidGasMass                                                , &
          &                                                                spheroidRadius                                                                                                                                    , windEfficiencyNet                                              , &
-         &                                                                windFraction                                                                                                                                      , hotModeFraction
+         &                                                                windFraction
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -428,13 +428,6 @@ contains
           if (restMassAccretionRate > 0.0d0) call blackHole%spinRate(accretionDisks_%rateSpinUp(blackHole,restMassAccretionRate))
           ! Add heating to the hot halo component.
           if (blackHoleHeatsHotHalo) then
-             ! Compute jet coupling efficiency based on whether halo is cooling quasistatically. Reduce this efficiency as the gas
-             ! content in the halo drops below the cosmological mean.
-             if (coldModeTracked) then
-                hotModeFraction=1.0d0
-             else
-                hotModeFraction=Hot_Mode_Fraction(node)
-             end if
              ! Get jet power.
              heatingRate=blackHoleRadioModeFeedbackEfficiency*jetEfficiency*restMassAccretionRate*(speedLight/kilo)**2
              ! Pipe this power to the hot halo.
@@ -991,13 +984,12 @@ contains
     !$ call hdf5Access%set()
     mergersGroup=galacticusOutputFile%openGroup("blackHoleMergers","Black hole mergers data.")
     ! Append to the datasets.
-    call mergersGroup%writeDataset([massBlackHole1            ],"massBlackHole1","Mass of the first merging black hole." ,appendTo=.true.)
-    call mergersGroup%writeDataset([massBlackHole2            ],"massBlackHole2","Mass of the second merging black hole.",appendTo=.true.)
-    call mergersGroup%writeDataset([basic%time()              ],"timeOfMerger"  ,"The time of the black hole merger."    ,appendTo=.true.)
-    call mergersGroup%writeDataset([node%hostTree%volumeWeight],"volumeWeight"  ,"The weight for the black hole merger." ,appendTo=.true.)
-    ! Close the group.
-    call mergersGroup%close()
-    !$ call hdf5Access%unset()
+    call    mergersGroup%writeDataset([massBlackHole1            ],"massBlackHole1","Mass of the first merging black hole." ,appendTo=.true.)
+    call    mergersGroup%writeDataset([massBlackHole2            ],"massBlackHole2","Mass of the second merging black hole.",appendTo=.true.)
+    call    mergersGroup%writeDataset([basic%time()              ],"timeOfMerger"  ,"The time of the black hole merger."    ,appendTo=.true.)
+    call    mergersGroup%writeDataset([node%hostTree%volumeWeight],"volumeWeight"  ,"The weight for the black hole merger." ,appendTo=.true.)
+    call    mergersGroup%close       (                                                                                                      )
+    !$ call hdf5Access  %unset       (                                                                                                      )
     return
   end subroutine Node_Component_Black_Hole_Standard_Output_Merger
 
@@ -1041,12 +1033,12 @@ contains
        ! Get a count of the number of black holes present.
        blackHoleCount=node%blackHoleCount()
        ! Open the output group.
-       call hdf5Access%set()
+       !$ call hdf5Access%set()
        blackHolesGroup=galacticusOutputFile%openGroup("blackHole","Black hole data.")
        groupName="Output"
        groupName=groupName//iOutput
        outputGroup=blackHolesGroup%openGroup(char(groupName),"Properties of black holes for all trees at each output.")
-       call hdf5Access%unset()
+       !$ call hdf5Access%unset()
        ! Allocate array to store profile.
        call allocateArray(radius             ,[blackHoleCount])
        call allocateArray(spin               ,[blackHoleCount])
@@ -1080,16 +1072,18 @@ contains
           end if
        end do
        ! Write dataset to the group, first the arrays containing all data.
-       call hdf5Access%set()
-       call outputGroup%writeDataset(mass,               "mass"               ,"The black hole masses.",                appendTo=.true.)
-       call outputGroup%writeDataset(spin,               "spin"               ,"The black hole spins.",                 appendTo=.true.)
-       call outputGroup%writeDataset(radius,             "radius"             ,"The black hole radial positions.",      appendTo=.true.)
-       call outputGroup%writeDataset(timescale,          "timescale"          ,"The black hole timescales for merger.", appendTo=.true.)
-       call outputGroup%writeDataset(radiativeEfficiency,"radiativeEfficiency","The black hole radiative efficiencies.",appendTo=.true.)
-       call outputGroup%writeDataset(massAccretionRate,  "accretionRate"      ,"The black hole accretion rates.",       appendTo=.true.)
-       call outputGroup%writeDataset(nodeIndex,          "nodeIndex"          ,"The black hole host galaxy inices.",    appendTo=.true.)
-       call outputGroup%writeDataset(mergerTreeIndex,    "mergerTreeIndex"    ,"The black hole merger tree indices.",   appendTo=.true.)
-
+       !$ call hdf5Access     %set         (                                                                                                  )
+       call    outputGroup    %writeDataset(mass               ,"mass"               ,"The black hole masses."                ,appendTo=.true.)
+       call    outputGroup    %writeDataset(spin               ,"spin"               ,"The black hole spins."                 ,appendTo=.true.)
+       call    outputGroup    %writeDataset(radius             ,"radius"             ,"The black hole radial positions."      ,appendTo=.true.)
+       call    outputGroup    %writeDataset(timescale          ,"timescale"          ,"The black hole timescales for merger." ,appendTo=.true.)
+       call    outputGroup    %writeDataset(radiativeEfficiency,"radiativeEfficiency","The black hole radiative efficiencies.",appendTo=.true.)
+       call    outputGroup    %writeDataset(massAccretionRate  ,"accretionRate"      ,"The black hole accretion rates."       ,appendTo=.true.)
+       call    outputGroup    %writeDataset(nodeIndex          ,"nodeIndex"          ,"The black hole host galaxy inices."    ,appendTo=.true.)
+       call    outputGroup    %writeDataset(mergerTreeIndex    ,"mergerTreeIndex"    ,"The black hole merger tree indices."   ,appendTo=.true.)
+       call    outputGroup    %close       (                                                                                                  )
+       call    blackHolesGroup%close       (                                                                                                  )
+       !$ call hdf5Access%unset()
        ! Deallocatate profile arrays.
        call deallocateArray(mass               )
        call deallocateArray(spin               )
@@ -1099,9 +1093,6 @@ contains
        call deallocateArray(massAccretionRate  )
        call deallocateArray(nodeIndex          )
        call deallocateArray(mergerTreeIndex    )
-       call outputGroup    %close()
-       call blackHolesGroup%close()
-       call hdf5Access%unset()
     end if
     return
   end subroutine Node_Component_Black_Hole_Standard_Output_Properties

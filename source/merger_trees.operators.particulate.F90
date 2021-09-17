@@ -51,7 +51,8 @@
      type            (varying_string           )          :: outputFileName
      double precision                                     :: massParticle                   , radiusTruncateOverRadiusVirial   , &
           &                                                  timeSnapshot                   , energyDistributionPointsPerDecade, &
-          &                                                  lengthSoftening                , toleranceRelativeSmoothing
+          &                                                  lengthSoftening                , toleranceRelativeSmoothing       , &
+          &                                                  toleranceMass
      logical                                              :: satelliteOffset                , nonCosmological                  , &
           &                                                  positionOffset                 , addHubbleFlow                    , &
           &                                                  haloIdToParticleType           , sampleParticleNumber             , &
@@ -133,7 +134,8 @@ contains
     integer         (kind_int8                    )                :: idMultiplier
     double precision                                               :: massParticle         , radiusTruncateOverRadiusVirial   , &
          &                                                            timeSnapshot         , energyDistributionPointsPerDecade, &
-         &                                                            lengthSoftening      , toleranceRelativeSmoothing
+         &                                                            lengthSoftening      , toleranceRelativeSmoothing       , &
+         &                                                            toleranceMass
     logical                                                        :: satelliteOffset      , nonCosmological                  , &
          &                                                            positionOffset       , addHubbleFlow                    , &
          &                                                            haloIdToParticleType , sampleParticleNumber             , &
@@ -205,6 +207,12 @@ contains
       <description>The relative tolerance to use in the integrals used in finding the smoothed density profile defined by \cite{barnes_gravitational_2012} to account for gravitational softening.</description>
     </inputParameter>
     <inputParameter>
+      <name>toleranceMass</name>
+      <source>parameters</source>
+      <defaultValue>1.0d-8</defaultValue>
+      <description>The relative tolerance to use in the integrals over the mass distribution used in finding the smoothed density profile defined by \cite{barnes_gravitational_2012} to account for gravitational softening.</description>
+    </inputParameter>
+    <inputParameter>
       <name>selection</name>
       <source>parameters</source>
       <defaultValue>var_str('all')</defaultValue>
@@ -269,9 +277,9 @@ contains
        do while (associated(parametersRoot%parent))
           parametersRoot => parametersRoot%parent
        end do
-       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,parametersRoot)
+       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,parametersRoot)
     else
-       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,parameters    )
+       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,parameters    )
     end if
     !![
     <inputParametersValidate source="parameters"/>
@@ -283,7 +291,7 @@ contains
     return
   end function particulateConstructorParameters
 
-  function particulateConstructorInternal(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,parameters) result(self)
+  function particulateConstructorInternal(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,parameters) result(self)
     !!{
     Internal constructor for the particulate merger tree operator class.
     !!}
@@ -294,7 +302,8 @@ contains
     integer         (kind_int8                    ), intent(in   )         :: idMultiplier
     double precision                               , intent(in   )         :: massParticle         , radiusTruncateOverRadiusVirial   , &
          &                                                                    timeSnapshot         , energyDistributionPointsPerDecade, &
-         &                                                                    lengthSoftening      , toleranceRelativeSmoothing
+         &                                                                    lengthSoftening      , toleranceRelativeSmoothing       , &
+         &                                                                    toleranceMass
     logical                                        , intent(in   )         :: satelliteOffset      , nonCosmological                  , &
          &                                                                    positionOffset       , addHubbleFlow                    , &
          &                                                                    haloIdToParticleType , sampleParticleNumber             , &
@@ -307,7 +316,7 @@ contains
     class           (darkMatterProfileDMOClass    ), intent(in   ), target :: darkMatterProfileDMO_
     type            (inputParameters              ), intent(in   ), target :: parameters
     !![
-    <constructorAssign variables="outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,chunkSize,*cosmologyParameters_,*cosmologyFunctions_,*darkMatterHaloScale_,*darkMatterProfileDMO_"/>
+    <constructorAssign variables="outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,chunkSize,*cosmologyParameters_,*cosmologyFunctions_,*darkMatterHaloScale_,*darkMatterProfileDMO_"/>
     !!]
 
     self%parameters=inputParameters(parameters)
@@ -394,8 +403,8 @@ contains
     character       (len= 9                       )                              :: groupName
 
     ! Open the HDF5 file for output.
-    call hdf5Access%set()
-    call outputFile%openFile(char(self%outputFileName),overWrite=.false.,readOnly=.false.)
+    !$ call hdf5Access%set     (                                                            )
+    call    outputFile%openFile(char(self%outputFileName),overWrite=.false.,readOnly=.false.)
     ! Check if the Gadget header has already been created.
     if (.not.outputFile%hasGroup('Header')) then
        header=outputFile%openGroup('Header','Group containing Gadget metadata.')
@@ -428,8 +437,8 @@ contains
        call header%writeAttribute(0    ,'Flag_Entropy_ICs')
        call header%close()
     end if
-    call outputFile%close()
-    call hdf5Access%unset()
+    call    outputFile%close()
+    !$ call hdf5Access%unset()
     ! Iterate over nodes.
     firstNode =.true.
     treeWalker=mergerTreeWalkerAllNodes(tree,spanForest=.true.)
@@ -515,9 +524,17 @@ contains
              counter=counter+1
              ! Sample particle positions from the halo density distribution. Currently, we assume that halos are spherically
              ! symmetric.
+             randomDeviates=-1.0d0
              !$omp critical (mergerTreeOperatorParticulateSample)
              do j=1,3
-                randomDeviates(j)=tree%randomNumberGenerator_%uniformSample()
+                ! Ensure that the third random deviate (the enclosed mass fraction) is never precisely zero.
+                do while (                                           &
+                     &     (j == 3 .and. randomDeviates(j) <= 0.0d0) &
+                     &    .or.                                       &
+                     &     (j /= 3 .and. randomDeviates(j) <  0.0d0) &
+                     &   )
+                   randomDeviates(j)=tree%randomNumberGenerator_%uniformSample()
+                end do
              end do
              !$omp end critical (mergerTreeOperatorParticulateSample)
              call positionSpherical%  phiSet(     2.0d0*Pi*randomDeviates(1)       )
@@ -687,8 +704,8 @@ contains
           particlePosition=particlePosition/unitGadgetLength
           particleVelocity=particleVelocity/unitGadgetVelocity
           ! Accumulate the particle data to file.
-          call hdf5Access%set()
-          call outputFile%openFile(char(self%outputFileName),overWrite=.false.,readOnly=.false.,objectsOverwritable=.true.)
+          !$ call hdf5Access%set     (                                                                                       )
+          call    outputFile%openFile(char(self%outputFileName),overWrite=.false.,readOnly=.false.,objectsOverwritable=.true.)
           ! Get current count of particles in file.
           header=outputFile%openGroup('Header','Group containing Gadget metadata.')
           call header%readAttributeStatic('NumPart_Total',particleCounts)
@@ -724,11 +741,11 @@ contains
           call deallocateArray(particleIDs     )
           ! Update particle counts.
           particleCounts(typeIndex)=particleCounts(typeIndex)+particleCountActual
-          call header%writeAttribute(particleCounts,'NumPart_ThisFile')
-          call header%writeAttribute(particleCounts,'NumPart_Total'   )
-          call header%close()
-          call outputFile%close()
-          call hdf5Access%unset()
+          call    header    %writeAttribute(particleCounts,'NumPart_ThisFile')
+          call    header    %writeAttribute(particleCounts,'NumPart_Total'   )
+          call    header    %close         (                                 )
+          call    outputFile%close         (                                 )
+          !$ call hdf5Access%unset         (                                 )
        end if
     end do
     return
@@ -884,7 +901,7 @@ contains
        end do
        ! If necessary, compute the potential from the smoothed density profile.
        if (particulateSofteningKernel /= particulateKernelDelta) then
-          integratorMass=integrator(particulateMassIntegrand,toleranceRelative=1.0d-8)
+          integratorMass=integrator(particulateMassIntegrand,toleranceRelative=particulateSelf%toleranceMass)
           do i=1,radiusCount
              particulateRadius=particulateEnergyDistribution%x(i)
              if     (                                                                                    &
@@ -923,7 +940,7 @@ contains
        ! Evaluate the integral in Eddington's formula. Ignore the normalization as we will simply use rejection sampling to draw
        ! from this distribution.
        call particulateEnergyDistribution%populate(0.0d0,radiusCount,table=energyDistributionTableDistribution,computeSpline=.false.)
-       integratorEddington=integrator(particulateEddingtonIntegrand,toleranceRelative=5.0d-4)!1.0d-5)
+       integratorEddington=integrator(particulateEddingtonIntegrand,toleranceRelative=1.0d-5)
        do i=1,radiusCount-1
           particulateRadius=particulateEnergyDistribution%x(i)
           particulateEnergy=particulateEnergyDistribution%y(i,table=energyDistributionTablePotential)

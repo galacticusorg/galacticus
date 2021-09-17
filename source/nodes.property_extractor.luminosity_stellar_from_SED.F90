@@ -255,45 +255,45 @@ contains
     return
   end function luminosityStellarFromSEDQuantity
 
-  function luminosityStellarFromSEDNames(self,time) result(names)
+  subroutine luminosityStellarFromSEDNames(self,time,names)
     !!{
     Return the name of the luminosityStellarFromSED property.
     !!}
     implicit none
-    type            (varying_string                               ), dimension(:) , allocatable :: names
-    class           (nodePropertyExtractorLuminosityStellarFromSED), intent(inout)              :: self
-    double precision                                               , intent(in   )              :: time
-    type            (varying_string                               ), dimension(1)               :: name
-    integer                                                                                     :: i
+    class           (nodePropertyExtractorLuminosityStellarFromSED), intent(inout)                            :: self
+    double precision                                               , intent(in   )                            :: time
+    type            (varying_string                               ), intent(inout), dimension(:), allocatable :: names
+    type            (varying_string                               )               , dimension(:), allocatable :: name
+    integer                                                                                                   :: i
     
     allocate(names(size(self%filterNames)))
-    name=self%nodePropertyExtractor_%names(time)
+    call self%nodePropertyExtractor_%names(time,name)
     do i=1,size(names)
        names(i)=name(1)//":"//self%filterNames(i)
     end do
     return
-  end function luminosityStellarFromSEDNames
+  end subroutine luminosityStellarFromSEDNames
 
-  function luminosityStellarFromSEDDescriptions(self,time) result(descriptions)
+  subroutine luminosityStellarFromSEDDescriptions(self,time,descriptions)
     !!{
     Return a description of the luminosityStellarFromSED property.
     !!}
     implicit none
-    type            (varying_string                               ), dimension(:) , allocatable :: descriptions
-    class           (nodePropertyExtractorLuminosityStellarFromSED), intent(inout)              :: self
-    double precision                                               , intent(in   )              :: time
-    type            (varying_string                               ), dimension(1)               :: description
-    integer                                                                                     :: i
+    class           (nodePropertyExtractorLuminosityStellarFromSED), intent(inout)                            :: self
+    double precision                                               , intent(in   )                            :: time
+    type            (varying_string                               ), intent(inout), dimension(:), allocatable :: descriptions
+    type            (varying_string                               )               , dimension(:), allocatable :: description
+    integer                                                                                                   :: i
 
     allocate(descriptions(size(self%filterNames)))
-    description=self%nodePropertyExtractor_%descriptions(time)
+    call self%nodePropertyExtractor_%descriptions(time,description)
     do i=1,size(descriptions)
        descriptions(i)="Luminosity in "//self%filterNames(i)//" filter in units of the AB-magnitude system zero-point; derived from: "//description(1)
     end do
     return
-  end function luminosityStellarFromSEDDescriptions
+  end subroutine luminosityStellarFromSEDDescriptions
 
-   function luminosityStellarFromSEDUnitsInSI(self,time) result(unitsInSI)
+  function luminosityStellarFromSEDUnitsInSI(self,time) result(unitsInSI)
     !!{
     Return the units of the luminosityStellarFromSED property in the SI system.
     !!}

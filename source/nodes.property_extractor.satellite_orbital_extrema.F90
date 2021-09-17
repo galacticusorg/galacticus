@@ -172,37 +172,49 @@ contains
     return
   end function satelliteOrbitalExtremaExtract
 
-  function satelliteOrbitalExtremaNames(self,time)
+  subroutine satelliteOrbitalExtremaNames(self,time,names)
     !!{
     Return the name of the {\normalfont \ttfamily satelliteOrbitalExtrema} property.
     !!}
     implicit none
-    type            (varying_string                              ), dimension(:) , allocatable :: satelliteOrbitalExtremaNames
-    class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout)              :: self
-    double precision                                              , intent(in   )              :: time
+    class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout)                             :: self
+    double precision                                              , intent(in   )                             :: time
+    type            (varying_string                              ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: time
 
-    allocate(satelliteOrbitalExtremaNames(self%elementCount_))
-    if (self%extractPericenter) satelliteOrbitalExtremaNames(self%offsetPericenter:self%offsetPericenter+1)=[var_str('satellitePericenterRadius'),var_str('satellitePericenterVelocity')]
-    if (self%extractApocenter ) satelliteOrbitalExtremaNames(self%offsetApocenter :self%offsetApocenter +1)=[var_str('satelliteApocenterRadius'),var_str('satelliteApocenterVelocity')]
+    allocate(names(self%elementCount_))
+    if (self%extractPericenter) then
+       names(self%offsetPericenter:self%offsetPericenter+0)=var_str('satellitePericenterRadius'  )
+       names(self%offsetPericenter:self%offsetPericenter+1)=var_str('satellitePericenterVelocity')
+    end if
+    if (self%extractApocenter ) then
+       names(self%offsetApocenter :self%offsetApocenter +0)=var_str('satelliteApocenterRadius'   )
+       names(self%offsetApocenter :self%offsetApocenter +1)=var_str('satelliteApocenterVelocity' )
+    end if
     return
-  end function satelliteOrbitalExtremaNames
+  end subroutine satelliteOrbitalExtremaNames
 
-  function satelliteOrbitalExtremaDescriptions(self,time)
+  subroutine satelliteOrbitalExtremaDescriptions(self,time,descriptions)
     !!{
     Return a description of the satelliteOrbitalExtrema property.
     !!}
     implicit none
-    type            (varying_string                              ), dimension(:) , allocatable :: satelliteOrbitalExtremaDescriptions
-    class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout)              :: self
-    double precision                                              , intent(in   )              :: time
+    class           (nodePropertyExtractorSatelliteOrbitalExtrema), intent(inout)                             :: self
+    double precision                                              , intent(in   )                             :: time
+    type            (varying_string                              ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
-    allocate(satelliteOrbitalExtremaDescriptions(self%elementCount_))
-    if (self%extractPericenter) satelliteOrbitalExtremaDescriptions(self%offsetPericenter:self%offsetPericenter+1)=[var_str('Pericenteric radius of satellite orbit [Mpc].'),var_str('Pericenteric velocity of satellite orbit [km/s].')]
-    if (self%extractApocenter ) satelliteOrbitalExtremaDescriptions(self%offsetApocenter :self%offsetApocenter +1)=[var_str('Apocenteric radius of satellite orbit [Mpc].' ),var_str('Apocenteric velocity of satellite orbit [km/s].' )]
+    allocate(descriptions(self%elementCount_))
+    if (self%extractPericenter) then
+       descriptions(self%offsetPericenter:self%offsetPericenter+0)=var_str('Pericenteric radius of satellite orbit [Mpc].'   )
+       descriptions(self%offsetPericenter:self%offsetPericenter+1)=var_str('Pericenteric velocity of satellite orbit [km/s].')
+    end if
+    if (self%extractApocenter ) then
+       descriptions(self%offsetApocenter :self%offsetApocenter +0)=var_str('Apocenteric radius of satellite orbit [Mpc].'    )
+       descriptions(self%offsetApocenter :self%offsetApocenter +1)=var_str('Apocenteric velocity of satellite orbit [km/s].' )
+    end if
     return
-  end function satelliteOrbitalExtremaDescriptions
+  end subroutine satelliteOrbitalExtremaDescriptions
 
   function satelliteOrbitalExtremaUnitsInSI(self,time)
     !!{

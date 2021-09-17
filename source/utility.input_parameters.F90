@@ -390,6 +390,7 @@ contains
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)    , operator(/=)
     use :: String_Handling   , only : String_Strip
+    use :: HDF5_Access       , only : hdf5Access
     implicit none
     type     (inputParameters)                                        :: inputParametersConstructorNode
     type     (node           ), pointer     , intent(in   )           :: parametersNode
@@ -425,6 +426,7 @@ contains
     end if
     !$omp end critical (FoX_DOM_Access)
     ! Set a pointer to HDF5 object to which to write parameters.
+    !$ call hdf5Access%  set()
     if (present(outputParametersGroup)) then
        inputParametersConstructorNode%outputParameters         =outputParametersGroup%openGroup('Parameters')
        inputParametersConstructorNode%outputParametersCopied   =.false.
@@ -435,6 +437,7 @@ contains
        inputParametersConstructorNode%outputParametersCopied   =.false.
        inputParametersConstructorNode%outputParametersTemporary=.true.
     end if
+    !$ call hdf5Access%unset()
     ! Get allowed parameter names.
     call knownParameterNames(allowedParameterNamesCombined)
     allowedParameterFromFileCount=size(allowedParameterNamesCombined)
@@ -897,29 +900,32 @@ contains
     return
   end function inputParameterGet
 
-  subroutine inputParametersCheckParameters(self,allowedParameterNames)
+  subroutine inputParametersCheckParameters(self,allowedParameterNames,allowedMultiParameterNames)
     use :: Display            , only : displayIndent                  , displayMessage      , displayUnindent, displayVerbosity, &
           &                            enumerationVerbosityLevelEncode, verbosityLevelSilent, displayMagenta , displayReset
     use :: FoX_dom            , only : destroy                        , getNodeName         , node
-    use :: ISO_Varying_String , only : assignment(=)                  , operator(//)        , char
+    use :: ISO_Varying_String , only : assignment(=)                  , operator(//)        , char           , operator(==)
     use :: Regular_Expressions, only : regEx
+    use :: Hashes             , only : integerHash
     use :: String_Handling    , only : String_Levenshtein_Distance
     implicit none
     class    (inputParameters)              , intent(inout)           :: self
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames
+    type     (varying_string ), dimension(:), intent(in   ), optional :: allowedMultiParameterNames
     type     (node           ), pointer                               :: node_
     type     (inputParameter ), pointer                               :: currentParameter
     type     (regEx          ), save                                  :: regEx_
     !$omp threadprivate(regEx_)
-    logical                                                           :: warningsFound         , parameterMatched    , &
+    logical                                                           :: warningsFound             , parameterMatched    , &
          &                                                               verbose
-    integer                                                           :: allowedParametersCount, errorStatus         , &
-         &                                                               distance              , distanceMinimum     , &
+    integer                                                           :: allowedParametersCount    , errorStatus         , &
+         &                                                               distance                  , distanceMinimum     , &
          &                                                               j
     character(len=1024       )                                        :: parameterValue
-    character(len=1024       )                                        :: unknownName           , allowedParameterName, &
+    character(len=1024       )                                        :: unknownName               , allowedParameterName, &
          &                                                               parameterNameGuess
-    type     (varying_string )                                        :: message               , verbosityLevel
+    type     (varying_string )                                        :: message                   , verbosityLevel
+    type     (integerHash    )                                        :: parameterNamesSeen
 
     ! Determine whether we should be verbose.
     verbose=displayVerbosity() > verbosityLevelSilent
@@ -928,7 +934,8 @@ contains
        verbose=enumerationVerbosityLevelEncode(char(verbosityLevel),includesPrefix=.false.) > verbosityLevelSilent
     end if
     ! Validate parameters.
-    warningsFound=.false.
+    warningsFound     =.false.
+    parameterNamesSeen=integerHash()
     if (associated(self%parameters)) then
        currentParameter => self%parameters%firstChild
        do while (associated(currentParameter))
@@ -1000,6 +1007,24 @@ contains
                    call displayMessage(message)
                 end if
              end if
+             ! Check for duplicated parameters.
+             !$omp critical (FoX_DOM_Access)
+             if (parameterNamesSeen%exists(getNodeName(node_))) then
+                parameterMatched=.false.
+                if (present(allowedMultiParameterNames)) &
+                     & parameterMatched=any(getNodeName(node_) == allowedMultiParameterNames)
+                if (.not.parameterMatched) then
+                   if (.not.warningsFound.and.verbose) call displayIndent(displayMagenta()//'WARNING:'//displayReset()//' problems found with input parameters:')
+                   warningsFound=.true.
+                   if (verbose) then
+                      message='multiple copies of parameter ['//getNodeName(node_)//'] present - only the first will be utilized'
+                      call displayMessage(message)
+                   end if
+                end if
+             else
+                call parameterNamesSeen%set(getNodeName(node_),1)
+             end if
+             !$omp end critical (FoX_DOM_Access)
           end if
           currentParameter => currentParameter%sibling
        end do
@@ -1385,7 +1410,6 @@ contains
     use :: FoX_dom           , only : DOMException                     , getAttributeNode  , getNodeName , hasAttribute, &
           &                           inException                      , node
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: HDF5_Access       , only : hdf5Access
     use :: IO_XML            , only : XML_Get_First_Element_By_Tag_Name, XML_Path_Exists
     use :: ISO_Varying_String, only : assignment(=)                    , char              , operator(//), operator(==), &
           &                           trim

@@ -204,7 +204,7 @@ contains
     use :: Galacticus_Error        , only : errorStatusSuccess
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (transferFunctionHu2008Fuzzy), intent(inout)           :: self
+    class           (transferFunctionHu2008Fuzzy), intent(inout), target   :: self
     integer                                      , intent(  out), optional :: status
     double precision                                                       :: matterDensity, wavenumberHalfMode
 

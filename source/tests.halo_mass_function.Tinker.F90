@@ -109,7 +109,8 @@ program Tests_Halo_Mass_Function_Tinker
      &amp;                                                        index_                             =+1.0d0                             , &amp;
      &amp;                                                        running                            =+0.0d0                             , &amp;
      &amp;                                                        runningRunning                     =+0.0d0                             , &amp;
-     &amp;                                                        wavenumberReference                =+1.0d0                               &amp;
+     &amp;                                                        wavenumberReference                =+1.0d0                             , &amp;
+     &amp;                                                        runningSmallScalesOnly             =.false.                              &amp;
      &amp;                                                       )
    </constructor>
   </referenceConstruct>

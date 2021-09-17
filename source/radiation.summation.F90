@@ -89,6 +89,9 @@ contains
        <objectBuilder class="radiationField" name="radiationField_%radiationField_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="radiationField"/>
+    !!]
     return
   end function summationConstructorParameters
 

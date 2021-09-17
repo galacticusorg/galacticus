@@ -167,43 +167,45 @@ contains
     return
   end function spinBullockExtract
 
-  function spinBullockNames(self,time)
+  subroutine spinBullockNames(self,time,names)
     !!{
     Return the name of the {\normalfont \ttfamily spinBullock} property.
     !!}
     implicit none
-    type            (varying_string                  ), dimension(:) , allocatable :: spinBullockNames
-    class           (nodePropertyExtractorSpinBullock), intent(inout)              :: self
-    double precision                                  , intent(in   )              :: time
+    class           (nodePropertyExtractorSpinBullock), intent(inout)                             :: self
+    double precision                                  , intent(in   )                             :: time
+    type            (varying_string                  ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: self, time
 
-    allocate(spinBullockNames(self%elementCount_))
-    spinBullockNames(1)         = var_str('spinBullock' )
-    if (self%vectorSpinAvailable)                                                                          &
-         & spinBullockNames(2:4)=[var_str('spinBullockX'),var_str('spinBullockY'),var_str('spinBullockZ')]
+    allocate(names(self%elementCount_))
+    names    (1)=var_str('spinBullock' )
+    if (self%vectorSpinAvailable) then
+        names(2)=var_str('spinBullockX')
+        names(3)=var_str('spinBullockY')
+        names(4)=var_str('spinBullockZ')
+     end if
     return
-  end function spinBullockNames
+  end subroutine spinBullockNames
 
-  function spinBullockDescriptions(self,time)
+  subroutine spinBullockDescriptions(self,time,descriptions)
     !!{
     Return a description of the {\normalfont \ttfamily spinBullock} property.
     !!}
     implicit none
-    type            (varying_string                  ), dimension(:) , allocatable :: spinBullockDescriptions
-    class           (nodePropertyExtractorSpinBullock), intent(inout)              :: self
-    double precision                                  , intent(in   )              :: time
+    class           (nodePropertyExtractorSpinBullock), intent(inout)                             :: self
+    double precision                                  , intent(in   )                             :: time
+    type            (varying_string                  ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: time
 
-    allocate(spinBullockDescriptions(self%elementCount_))
-    spinBullockDescriptions       (1  )= var_str('Spin parameter of the halo under the Bullock et al. (2001) definition [].'                   )
-    if (self%vectorSpinAvailable)                                                                                                                 &
-         & spinBullockDescriptions(2:4)=[                                                                                                         &
-         &                               var_str('x-component of the spin parameter of the halo under the Bullock et al. (2001) definition [].'), &
-         &                               var_str('y-component of the spin parameter of the halo under the Bullock et al. (2001) definition [].'), &
-         &                               var_str('z-component of the spin parameter of the halo under the Bullock et al. (2001) definition [].')  &
-         &                              ]
+    allocate(descriptions(self%elementCount_))
+    descriptions    (1)=var_str('Spin parameter of the halo under the Bullock et al. (2001) definition [].'                   )
+    if (self%vectorSpinAvailable) then
+        descriptions(2)=var_str('x-component of the spin parameter of the halo under the Bullock et al. (2001) definition [].')
+        descriptions(3)=var_str('y-component of the spin parameter of the halo under the Bullock et al. (2001) definition [].')
+        descriptions(4)=var_str('z-component of the spin parameter of the halo under the Bullock et al. (2001) definition [].')
+     end if
     return
-  end function spinBullockDescriptions
+  end subroutine spinBullockDescriptions
 
   function spinBullockUnitsInSI(self,time)
     !!{

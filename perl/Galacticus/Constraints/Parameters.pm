@@ -33,12 +33,19 @@ sub parseConfig {
     return $config;
 }
 
+sub logFileRoot {
+    # Return the root of the log (chain) file names.
+    my $config  =   shift() ;
+    my %options = %{shift()};
+    return exists($options{'chainRoot'}) ? $options{'chainRoot'} : $config->{'posteriorSampleSimulation'}->{'logFileRoot'}->{'value'};
+}
+
 sub stepCount {
     # Return a count of the number of steps taken.
     my $config  =   shift() ;
     my %options = %{shift()};
     # Read the first chain.
-    my $logFileRoot   = $config->{'posteriorSampleSimulation'}->{'logFileRoot'}->{'value'};
+    my $logFileRoot   = &logFileRoot($config,\%options);
     my $chainFileName = sprintf("%s_%4.4i.log",$logFileRoot,0);
     my $stepCount;
     open(my $chainFile,$chainFileName);
@@ -58,7 +65,7 @@ sub chainCount {
     my $config  =   shift() ;
     my %options = %{shift()};
     # Determine number of chains.
-    my $logFileRoot = $config->{'posteriorSampleSimulation'}->{'logFileRoot'}->{'value'};
+    my $logFileRoot = &logFileRoot($config,\%options);
     my $chainCount  = 0;
     while () {
 	++$chainCount;
@@ -74,7 +81,7 @@ sub parameterCount {
     my $config  =   shift() ;
     my %options = %{shift()};
     # Read the first chain.
-    my $logFileRoot   = $config->{'posteriorSampleSimulation'}->{'logFileRoot'}->{'value'};
+    my $logFileRoot   = &logFileRoot($config,\%options);
     my $chainFileName = sprintf("%s_%4.4i.log",$logFileRoot,0);
     my $parameterCount;
     open(my $chainFile,$chainFileName);
@@ -95,7 +102,7 @@ sub maximumPosteriorParameterVector {
     my $config  =   shift() ;
     my %options = %{shift()};
     # Determine the MCMC directory.
-    my $logFileRoot = $config->{'posteriorSampleSimulation'}->{'logFileRoot'}->{'value'};
+    my $logFileRoot = &logFileRoot($config,\%options);
     (my $mcmcDirectory  = $logFileRoot) =~ s/\/[^\/]+$//;    
     # Determine number of chains.
     my $chainCount = &chainCount($config,\%options);
@@ -159,8 +166,8 @@ sub parameterVector {
     my $state   =   shift() ;
     my %options = %{shift()};
     # Determine the MCMC directory.
-    my $logFileRoot = $config->{'posteriorSampleSimulation'}->{'logFileRoot'}->{'value'};
-    (my $mcmcDirectory  = $logFileRoot) =~ s/\/[^\/]+$//;    
+    my $logFileRoot    = &logFileRoot($config,\%options);
+    (my $mcmcDirectory = $logFileRoot) =~ s/\/[^\/]+$//;    
     # Determine number of chains.
     my $chainCount = &chainCount($config,\%options);
     die('Galacticus::Constraints::Parameters::parameterVector(): chain index out of range')
@@ -206,8 +213,8 @@ sub parameterMatrix {
     my $chain   =   shift() ;
     my %options = %{shift()};
     # Determine the MCMC directory.
-    my $logFileRoot = $config->{'posteriorSampleSimulation'}->{'logFileRoot'}->{'value'};
-    (my $mcmcDirectory  = $logFileRoot) =~ s/\/[^\/]+$//;    
+    my $logFileRoot    = &logFileRoot($config,\%options);
+    (my $mcmcDirectory = $logFileRoot) =~ s/\/[^\/]+$//;    
     # Determine number of chains.
     my $chainCount = &chainCount($config,\%options);
     die('Galacticus::Constraints::Parameters::parameterMatrix(): chain index out of range')

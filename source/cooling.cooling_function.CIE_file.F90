@@ -555,7 +555,7 @@ contains
     type            (hdf5Object            )                :: coolingFunctionFile                , metallicityDataset, &
          &                                                     temperatureDataset
 
-    call hdf5Access%set()
+    !$ call hdf5Access%set()
     ! Read the file.
     call displayIndent('Reading file: '//char(fileName),verbosityLevelWorking)
     call coolingFunctionFile%openFile(char(File_Name_Expand(char(fileName))),readOnly=.true.)
@@ -624,7 +624,7 @@ contains
     ! Close the file.
     call coolingFunctionFile%close()
     call displayUnindent('done',verbosityLevelWorking)
-    call hdf5Access%unset()
+    !$ call hdf5Access%unset()
     ! Store table ranges for convenience.
     self%metallicityMinimum=self%metallicities(                    1)
     self%metallicityMaximum=self%metallicities(self%metallicityCount)

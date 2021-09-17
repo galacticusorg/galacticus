@@ -47,14 +47,14 @@
    contains
      !![
      <methods>
-       <method description="Return a description of the columns."                                        method="columnDescriptions" pass="yes"/>
-       <method description="Return the number of properties in the tuple."                               method="elementCount"       pass="yes"/>
-       <method description="Extract the double properties from the given {\normalfont \ttfamily node}."  method="extractDouble"      pass="yes"/>
-       <method description="Extract the integer properties from the given {\normalfont \ttfamily node}." method="extractInteger"     pass="yes"/>
-       <method description="Return the names of the properties extracted."                               method="names"              pass="yes"/>
-       <method description="Return descriptions of the properties extracted."                            method="descriptions"       pass="yes"/>
-       <method description="Return the units of the properties extracted in the SI system."              method="unitsInSI"          pass="yes"/>
-       <method description="Return the ranks of the properties extracted."                               method="ranks"              pass="yes"/>
+       <method description="Return a description of the columns."                                        method="columnDescriptions"/>
+       <method description="Return the number of properties in the tuple."                               method="elementCount"      />
+       <method description="Extract the double properties from the given {\normalfont \ttfamily node}."  method="extractDouble"     />
+       <method description="Extract the integer properties from the given {\normalfont \ttfamily node}." method="extractInteger"    />
+       <method description="Return the names of the properties extracted."                               method="names"             />
+       <method description="Return descriptions of the properties extracted."                            method="descriptions"      />
+       <method description="Return the units of the properties extracted in the SI system."              method="unitsInSI"         />
+       <method description="Return the ranks of the properties extracted."                               method="ranks"             />
      </methods>
      !!]
      final     ::                       multiDestructor
@@ -115,6 +115,9 @@ contains
        <objectBuilder class="nodePropertyExtractor" name="extractor_%extractor_" source="parameters" copy="i" />
        !!]
     end do
+    !![
+    <inputParametersValidate source="parameters" multiParameters="nodePropertyExtractor"/>
+    !!]
     return
   end function multiConstructorParameters
 
@@ -313,20 +316,21 @@ contains
     return
   end subroutine multiAddInstances
 
-  function multiNames(self,elementType,time)
+  subroutine multiNames(self,elementType,time,names)
     !!{
     Return the names of the multiple properties.
     !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    type            (varying_string            ), dimension(:) , allocatable :: multiNames
-    class           (nodePropertyExtractorMulti), intent(inout)              :: self
-    integer                                     , intent(in   )              :: elementType
-    double precision                            , intent(in   )              :: time
-    type            (multiExtractorList        ), pointer                    :: extractor_
-    integer                                                                  :: offset    , elementCount
-
-    allocate(multiNames(self%elementCount(elementType,time)))
+    class           (nodePropertyExtractorMulti), intent(inout)                             :: self
+    integer                                     , intent(in   )                             :: elementType
+    double precision                            , intent(in   )                             :: time
+    type            (varying_string            ), intent(inout), dimension(:) , allocatable :: names
+    type            (varying_string            )               , dimension(:) , allocatable :: namesTmp
+    type            (multiExtractorList        ), pointer                                   :: extractor_
+    integer                                                                                 :: offset    , elementCount
+    
+    allocate(names(self%elementCount(elementType,time)))
     offset     =  0
     extractor_ => self%extractors
     do while (associated(extractor_))
@@ -335,30 +339,39 @@ contains
        class is (nodePropertyExtractorScalar       )
           if (elementType == elementTypeDouble ) then
              elementCount=1
-             multiNames       (offset+1:offset+elementCount)=extractor_%name (    )
+             names       (offset+1:offset+elementCount)=extractor_%name (    )
           end if
        class is (nodePropertyExtractorTuple        )
           if (elementType == elementTypeDouble ) then
              elementCount=extractor_%elementCount(time)
-             if (elementCount > 0)                                                  &
-                  & multiNames(offset+1:offset+elementCount)=extractor_%names(time)
+             if (elementCount > 0) then
+                call extractor_%names(time,namesTmp)
+                names(offset+1:offset+elementCount)=namesTmp
+                deallocate(namesTmp)
+             end if
           end if
        class is (nodePropertyExtractorIntegerScalar)
           if (elementType == elementTypeInteger) then
              elementCount=1
-             multiNames       (offset+1:offset+elementCount)=extractor_%name (    )
+             names       (offset+1:offset+elementCount)=extractor_%name (    )
           end if
        class is (nodePropertyExtractorIntegerTuple )
           if (elementType == elementTypeInteger) then
              elementCount=extractor_%elementCount(time)
-             if (elementCount > 0)                                                  &
-                  & multiNames(offset+1:offset+elementCount)=extractor_%names(time)
+             if (elementCount > 0) then
+                call extractor_%names(time,namesTmp)
+                names(offset+1:offset+elementCount)=namesTmp
+                deallocate(namesTmp)
+             end if
           end if
        class is (nodePropertyExtractorArray        )
           if (elementType == elementTypeDouble ) then
-             elementCount=extractor_%elementCount(time)
-             if (elementCount > 0)                                                  &
-                  & multiNames(offset+1:offset+elementCount)=extractor_%names(time)
+             elementCount=extractor_%elementCount(time) 
+             if (elementCount > 0) then
+                call extractor_%names(time,namesTmp)
+                names(offset+1:offset+elementCount)=namesTmp
+                deallocate(namesTmp)
+             end if
           end if
        class default
           call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
@@ -367,7 +380,7 @@ contains
        extractor_ => extractor_%next
     end do
     return
-  end function multiNames
+  end subroutine multiNames
 
   subroutine multiColumnDescriptions(self,elementType,i,time,descriptions)
     !!{
@@ -423,8 +436,7 @@ contains
           if (elementType == elementTypeDouble ) then
              elementCount=extractor_%elementCount(time)
              if (offset+elementCount >= i) then
-                allocate(descriptions(extractor_%size(time)))
-                descriptions=extractor_%columnDescriptions(time)
+                call extractor_%columnDescriptions(time,descriptions)
                 return
              end if
           end if
@@ -437,20 +449,21 @@ contains
     return
   end subroutine multiColumnDescriptions
 
-  function multiDescriptions(self,elementType,time)
+  subroutine multiDescriptions(self,elementType,time,descriptions)
     !!{
     Return the descriptions of the multiple properties.
     !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    type            (varying_string            ), dimension(:) , allocatable :: multiDescriptions
-    class           (nodePropertyExtractorMulti), intent(inout)              :: self
-    integer                                     , intent(in   )              :: elementType
-    double precision                            , intent(in   )              :: time
-    type            (multiExtractorList        ), pointer                    :: extractor_
-    integer                                                                  :: offset           , elementCount
+    class           (nodePropertyExtractorMulti), intent(inout)                             :: self
+    integer                                     , intent(in   )                             :: elementType
+    double precision                            , intent(in   )                             :: time
+    type            (varying_string            ), intent(inout), dimension(:) , allocatable :: descriptions
+    type            (varying_string            )               , dimension(:) , allocatable :: descriptionsTmp
+    type            (multiExtractorList        ), pointer                                   :: extractor_
+    integer                                                                                 :: offset         , elementCount
 
-    allocate(multiDescriptions(self%elementCount(elementType,time)))
+    allocate(descriptions(self%elementCount(elementType,time)))
     offset     =  0
     extractor_ => self%extractors
     do while (associated(extractor_))
@@ -459,30 +472,39 @@ contains
        class is (nodePropertyExtractorScalar       )
           if (elementType == elementTypeDouble ) then
              elementCount=1
-             multiDescriptions       (offset+1:offset+elementCount)=extractor_%description (    )
+             descriptions       (offset+1:offset+elementCount)=extractor_%description (    )
           end if
        class is (nodePropertyExtractorTuple        )
           if (elementType == elementTypeDouble ) then
              elementCount=extractor_%elementCount(time)
-             if (elementCount > 0) &
-                  & multiDescriptions(offset+1:offset+elementCount)=extractor_%descriptions(time)
+             if (elementCount > 0) then
+                call extractor_%descriptions(time,descriptionsTmp)
+                descriptions(offset+1:offset+elementCount)=descriptionsTmp
+                deallocate(descriptionsTmp)
+             end if
           end if
        class is (nodePropertyExtractorIntegerScalar)
           if (elementType == elementTypeInteger) then
              elementCount=1
-             multiDescriptions       (offset+1:offset+elementCount)=extractor_%description (    )
+             descriptions       (offset+1:offset+elementCount)=extractor_%description (    )
           end if
        class is (nodePropertyExtractorIntegerTuple )
           if (elementType == elementTypeInteger) then
              elementCount=extractor_%elementCount(time)
-             if (elementCount > 0) &
-                  & multiDescriptions(offset+1:offset+elementCount)=extractor_%descriptions(time)
+             if (elementCount > 0) then
+                call extractor_%descriptions(time,descriptionsTmp)
+                descriptions(offset+1:offset+elementCount)=descriptionsTmp
+                deallocate(descriptionsTmp)
+             end if
           end if
        class is (nodePropertyExtractorArray        )
           if (elementType == elementTypeDouble) then
              elementCount=extractor_%elementCount(time)
-             if (elementCount > 0) &
-                  & multiDescriptions(offset+1:offset+elementCount)=extractor_%descriptions(time)
+             if (elementCount > 0) then
+                call extractor_%descriptions(time,descriptionsTmp)
+                descriptions(offset+1:offset+elementCount)=descriptionsTmp
+                deallocate(descriptionsTmp)
+             end if
           end if
        class default
           call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
@@ -491,7 +513,7 @@ contains
        extractor_ => extractor_%next
     end do
     return
-  end function multiDescriptions
+  end subroutine multiDescriptions
 
   function multiUnitsInSI(self,elementType,time)
     !!{

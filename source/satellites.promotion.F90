@@ -98,8 +98,10 @@ contains
     include 'satellites.structures.host_change.inc'
     !![
     </include>
+    <eventHook name="satelliteHostChange">
+     <callWith>satelliteNode</callWith>
+    </eventHook>
     !!]
-
     return
   end subroutine Satellite_Move_To_New_Host
 

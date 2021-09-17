@@ -89,7 +89,7 @@ contains
           read (recFastUnit,'(a)',ioStat=status) line
           if (line(1:2) == "CV" .and. line(4:11) == "Version:") then
              read (line(13:),'(a)') versionLabel
-             recFastVersion=versionLabel
+             recFastVersion=trim(versionLabel)
           end if
        end do
        close(recFastUnit)
@@ -100,7 +100,7 @@ contains
        open(newUnit=recFastUnit,file=char(recfastPath)//"currentVersion",status='old',form='formatted')
        read (recfastUnit,'(a)') versionLabel
        close(recFastUnit)
-       recFastVersion=versionLabel
+       recFastVersion=trim(versionLabel)
     end if
     call File_Unlock(fileLock)
     return

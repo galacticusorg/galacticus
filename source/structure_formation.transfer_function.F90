@@ -54,12 +54,14 @@ module Transfer_Functions
     <description>Return the mass (in $M_\odot$) corresponding to the wavenumber at which the transfer function is suppressed by a factor of two due to small-scale dark matter particle physics.</description>
     <type>double precision</type>
     <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
     <argument>integer, intent(  out), optional :: status</argument>
    </method>
    <method name="quarterModeMass" >
     <description>Return the mass (in $M_\odot$) corresponding to the wavenumber at which the transfer function is suppressed by a factor of four due to small-scale dark matter particle physics.</description>
     <type>double precision</type>
     <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
     <argument>integer, intent(  out), optional :: status</argument>
    </method>
   </functionClass>

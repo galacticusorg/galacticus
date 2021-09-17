@@ -81,13 +81,13 @@ contains
     double precision                                                          :: timeInterval
     logical                                                                   :: spinIsVector
     
+    spin         => node%spin                          ()
+    spinIsVector =  spin%spinVectorGrowthRateIsSettable()
     if (node%isPrimaryProgenitor()) then
        ! For primary progenitors compute and store the spin growth rate.
        basic        =>  node              %basic                         ()
        basicParent  =>  node       %parent%basic                         ()
-       spin         =>  node              %spin                          ()
        spinParent   =>  node       %parent%spin                          ()
-       spinIsVector =   spin              %spinVectorGrowthRateIsSettable()
        timeInterval =  +basicParent       %time                          () &
             &          -basic             %time                          ()
        if (timeInterval > 0.0d0) then
@@ -117,7 +117,13 @@ contains
        end if
     else
        ! For non-primary progenitors, assume no growth.
-       call spin%spinGrowthRateSet(0.0d0)
+          call        spin%spinGrowthRateSet      (                           &
+               &                                    +0.0d0                    &
+               &                                  )
+          if (spinIsVector)                                                   &
+               & call spin%spinVectorGrowthRateSet(                           &
+               &                                   [+0.0d0,+0.0d0,+0.0d0]     &
+               &                                  )
     end if
     return
   end subroutine haloSpinInterpolateNodeInitialize

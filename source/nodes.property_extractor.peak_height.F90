@@ -134,9 +134,10 @@ contains
     !$GLC attributes unused :: time, instance
 
     basic => node%basic()
-    criticalOverdensityLastIsolated=self%criticalOverdensity_     %value       (mass=basic%mass(),time=basic%timeLastIsolated())
-    densityFieldRootVariance       =self%cosmologicalMassVariance_%rootVariance(mass=basic%mass(),time=basic%timeLastIsolated())
-    peakHeightNu                   =criticalOverdensityLastIsolated/densityFieldRootVariance
+    criticalOverdensityLastIsolated= self%criticalOverdensity_     %value       (mass=basic%mass(),time=basic%timeLastIsolated(),node=node)
+    densityFieldRootVariance       = self%cosmologicalMassVariance_%rootVariance(mass=basic%mass(),time=basic%timeLastIsolated()          )
+    peakHeightNu                   =+criticalOverdensityLastIsolated                                                                        &
+         &                          /densityFieldRootVariance
     allocate(peakHeightExtract(3))
     peakHeightExtract=[                                 &
          &             criticalOverdensityLastIsolated, &
@@ -146,43 +147,39 @@ contains
     return
   end function peakHeightExtract
 
-  function peakHeightNames(self,time)
+  subroutine peakHeightNames(self,time,names)
     !!{
     Return the names of the {\normalfont \ttfamily peakHeight} properties.
     !!}
     implicit none
-    type            (varying_string                 ), dimension(:) , allocatable :: peakHeightNames
-    class           (nodePropertyExtractorPeakHeight), intent(inout)              :: self
-    double precision                                 , intent(in   )              :: time
+    class           (nodePropertyExtractorPeakHeight), intent(inout)                             :: self
+    double precision                                 , intent(in   )                             :: time
+    type            (varying_string                 ), intent(inout), dimension(:) , allocatable :: names
     !$GLC attributes unused :: self, time
 
-    allocate(peakHeightNames(3))
-    peakHeightNames=[                                              &
-         &           var_str('criticalOverdensityLastIsolated'  ), &
-         &           var_str('haloSigma'                        ), &
-         &           var_str('haloPeakHeightNu'                 )  &
-         &          ]
+    allocate(names(3))
+    names(1)=var_str('criticalOverdensityLastIsolated'  )
+    names(2)=var_str('haloSigma'                        )
+    names(3)=var_str('haloPeakHeightNu'                 )
     return
-  end function peakHeightNames
+  end subroutine peakHeightNames
 
-  function peakHeightDescriptions(self,time)
+  subroutine peakHeightDescriptions(self,time,descriptions)
     !!{
     Return the descriptions of the {\normalfont \ttfamily peakHeight} properties.
     !!}
     implicit none
-    type            (varying_string                 ), dimension(:) , allocatable :: peakHeightDescriptions
-    class           (nodePropertyExtractorPeakHeight), intent(inout)              :: self
-    double precision                                 , intent(in   )              :: time
+    class           (nodePropertyExtractorPeakHeight), intent(inout)                             :: self
+    double precision                                 , intent(in   )                             :: time
+    type            (varying_string                 ), intent(inout), dimension(:) , allocatable :: descriptions
     !$GLC attributes unused :: self, time
 
-    allocate(peakHeightDescriptions(3))
-    peakHeightDescriptions=[                                                                              &
-         &                  var_str('Critical overdensity at the time when the halo was last isolated.'), &
-         &                  var_str('The mass fluctuation on the scale of the halo.'                   ), &
-         &                  var_str('The peak height, ν, of the halo.'                                 )  &
-         &                 ]
+    allocate(descriptions(3))
+    descriptions(1)=var_str('Critical overdensity at the time when the halo was last isolated.')
+    descriptions(2)=var_str('The mass fluctuation on the scale of the halo.'                   )
+    descriptions(3)=var_str('The peak height, ν, of the halo.'                                 )
     return
-  end function peakHeightDescriptions
+  end subroutine peakHeightDescriptions
 
   function peakHeightUnitsInSI(self,time)
     !!{

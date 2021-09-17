@@ -652,23 +652,18 @@
   </randomNumberGenerator>
   
   <!-- Tree node component selection -->
-  <componentBasic              value="standard"       />
-  <componentBlackHole          value="simple"         />
-  <componentDarkMatterProfile  value="scale"          />
-  <componentDisk               value="standard"       />
-  <componentHotHalo            value="standard"       />
-  <componentPosition           value="traceDarkMatter"/>
-  <componentSatellite          value="standard"       />
-  <componentSpheroid           value="standard"       />
-  <componentSpin               value="scalar"         />
-  <componentAgeStatistics      value="null"           />
-  <componentDynamicsStatistics value="null"           />
-  <componentFormationTime      value="null"           />
-  <componentHostHistory        value="null"           />
-  <componentIndices            value="null"           />
-  <componentInterOutput        value="null"           />
-  <componentMassFlowStatistics value="null"           />
-  <componentMergingStatistics  value="null"           />
-  <componentNBody              value="null"           />
+  <componentBasic             value="standard"       />
+  <componentBlackHole         value="simple"         />
+  <componentDarkMatterProfile value="scale"          />
+  <componentDisk              value="standard"       />
+  <componentHotHalo           value="standard"       />
+  <componentPosition          value="traceDarkMatter"/>
+  <componentSatellite         value="standard"       />
+  <componentSpheroid          value="standard"       />
+  <componentSpin              value="scalar"         />
+  <componentFormationTime     value="null"           />
+  <componentIndices           value="null"           />
+  <componentMergingStatistics value="null"           />
+  <componentNBody             value="null"           />
 
 </parameters>
