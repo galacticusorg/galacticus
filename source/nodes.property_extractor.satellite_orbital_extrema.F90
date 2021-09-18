@@ -184,12 +184,12 @@ contains
 
     allocate(names(self%elementCount_))
     if (self%extractPericenter) then
-       names(self%offsetPericenter:self%offsetPericenter+0)=var_str('satellitePericenterRadius'  )
-       names(self%offsetPericenter:self%offsetPericenter+1)=var_str('satellitePericenterVelocity')
+       names(self%offsetPericenter+0)=var_str('satellitePericenterRadius'  )
+       names(self%offsetPericenter+1)=var_str('satellitePericenterVelocity')
     end if
     if (self%extractApocenter ) then
-       names(self%offsetApocenter :self%offsetApocenter +0)=var_str('satelliteApocenterRadius'   )
-       names(self%offsetApocenter :self%offsetApocenter +1)=var_str('satelliteApocenterVelocity' )
+       names(self%offsetApocenter +0)=var_str('satelliteApocenterRadius'   )
+       names(self%offsetApocenter +1)=var_str('satelliteApocenterVelocity' )
     end if
     return
   end subroutine satelliteOrbitalExtremaNames
@@ -206,12 +206,12 @@ contains
 
     allocate(descriptions(self%elementCount_))
     if (self%extractPericenter) then
-       descriptions(self%offsetPericenter:self%offsetPericenter+0)=var_str('Pericenteric radius of satellite orbit [Mpc].'   )
-       descriptions(self%offsetPericenter:self%offsetPericenter+1)=var_str('Pericenteric velocity of satellite orbit [km/s].')
+       descriptions(self%offsetPericenter+0)=var_str('Pericenteric radius of satellite orbit [Mpc].'   )
+       descriptions(self%offsetPericenter+1)=var_str('Pericenteric velocity of satellite orbit [km/s].')
     end if
     if (self%extractApocenter ) then
-       descriptions(self%offsetApocenter :self%offsetApocenter +0)=var_str('Apocenteric radius of satellite orbit [Mpc].'    )
-       descriptions(self%offsetApocenter :self%offsetApocenter +1)=var_str('Apocenteric velocity of satellite orbit [km/s].' )
+       descriptions(self%offsetApocenter +0)=var_str('Apocenteric radius of satellite orbit [Mpc].'    )
+       descriptions(self%offsetApocenter +1)=var_str('Apocenteric velocity of satellite orbit [km/s].' )
     end if
     return
   end subroutine satelliteOrbitalExtremaDescriptions
