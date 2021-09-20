@@ -209,7 +209,7 @@ contains
     ! Override the redshift if one is provided.
     if (present(redshift)) redshift_=redshift
     ! Construct the radial distribution.
-     time                 =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift_))
+    time                 =cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift_))
     countRadiiFractional =size(radiiFractionalTarget)
     radiusFractionMinimum=radiiFractionalTarget(                   1)
     radiusFractionMaximum=radiiFractionalTarget(countRadiiFractional)
@@ -330,9 +330,9 @@ contains
     !![
     <referenceConstruct object="galacticFilterMassRatio_" constructor="galacticFilterHighPass       (massRatioThreshold,nodePropertyExtractorMassRatio_)"/>
     !!]
-    allocate(galacticFilterSubhalos_)
-    allocate(filters_                         )
-    allocate(filters_                    %next)
+    allocate(galacticFilterSubhalos_     )
+    allocate(filters_                    )
+    allocate(filters_               %next)
     filters_     %filter_ => galacticFilterIsSubhalo_
     filters_%next%filter_ => galacticFilterMassRatio_
     !![
