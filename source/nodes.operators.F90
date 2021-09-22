@@ -47,6 +47,7 @@ module Nodes_Operators
       <description>Act on the initialization of a tree.</description>
       <type>void</type>
       <pass>yes</pass>
+      <selfTarget>yes</selfTarget>
       <argument>type(treeNode), intent(inout), target :: node</argument>
       <code>
 	!$GLC attributes unused :: self, node
