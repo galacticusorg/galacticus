@@ -176,6 +176,20 @@ $(BUILDPATH)/hdf5FCInterop.exe  : source/hdf5FCInterop.F90
 $(BUILDPATH)/hdf5FCInteropC.exe : source/hdf5FCInteropC.c
 	$(CCOMPILER) source/hdf5FCInteropC.c -o $(BUILDPATH)/hdf5FCInteropC.exe $(CFLAGS)
 
+# Configuration of proc filesystem.
+-include $(BUILDPATH)/Makefile_Config_Proc
+$(BUILDPATH)/Makefile_Config_Proc: source/proc_config.c
+	@mkdir -p $(BUILDPATH)
+	$(CCOMPILER) source/proc_config.c -o $(BUILDPATH)/proc_config $(CFLAGS) > /dev/null 2>&1 ; \
+	if [ $$? -eq 0 ] ; then \
+	 $(BUILDPATH)/proc_config > /dev/null 2>&1 ; \
+	 if [ $$? -eq 0 ] ; then \
+	  echo "FCFLAGS  += -DPROCPS"   >  $(BUILDPATH)/Makefile_Config_Proc ; \
+	  echo "CFLAGS   += -DPROCPS"   >> $(BUILDPATH)/Makefile_Config_Proc ; \
+	  echo "CPPFLAGS += -DPROCPS"   >> $(BUILDPATH)/Makefile_Config_Proc ; \
+	 fi \
+	fi
+
 # Configuration of file locking implementation.
 -include $(BUILDPATH)/Makefile_Config_OFD
 $(BUILDPATH)/Makefile_Config_OFD: source/flock_config.c

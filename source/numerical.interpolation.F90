@@ -164,7 +164,8 @@ module Numerical_Interpolation
      private
      type            (c_ptr   ), allocatable               :: gsl_interp       , gsl_interp_accel , &
           &                                                   gsl_interp_type
-     integer                                               :: extrapolationType, interpolationType
+     integer                                               :: interpolationType
+     integer                                , dimension(2) :: extrapolationType
      integer         (c_size_t)                            :: countArray
      logical                                               :: initialized      , interpolatable
      double precision          , allocatable, dimension(:) :: x                , y 
@@ -218,13 +219,13 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Table_Labels    , only : extrapolationTypeAbort
     implicit none
-    type            (interpolator)                                        :: self
-    double precision              , intent(in   ), dimension(:)           :: x
-    double precision              , intent(in   ), dimension(:), optional :: y
-    integer                       , intent(in   )              , optional :: interpolationType, extrapolationType
+    type            (interpolator)                                         :: self
+    double precision              , intent(in   ), dimension(: )           :: x
+    double precision              , intent(in   ), dimension(: ), optional :: y
+    integer                       , intent(in   )               , optional :: interpolationType
+    integer                       , intent(in   ), dimension(..), optional :: extrapolationType
     !![
     <optionalArgument name="interpolationType" defaultsTo="gsl_interp_linear"     />
-    <optionalArgument name="extrapolationType" defaultsTo="extrapolationTypeAbort"/>
     !!]
     
     ! Validate data.
@@ -234,7 +235,18 @@ contains
        if (size(x) /= size(y)) call Galacticus_Error_Report('"x" and "y" arrays must be of same size'//{introspection:location})
     end if
     ! Store extrapolation.
-    self%extrapolationType=extrapolationType_
+    if (present(extrapolationType)) then
+       select rank (extrapolationType)
+       rank (0)
+          self%extrapolationType=extrapolationType
+       rank (1)
+          self%extrapolationType=extrapolationType
+       rank default
+          call Galacticus_Error_Report('"extrapolationType must be a scalar or rank-1"'//{introspection:location})
+       end select
+    else
+       self%extrapolationType=extrapolationTypeAbort
+    end if
     ! Get the interpolator type.
     self%interpolationType=interpolationType_
     self%gsl_interp_type=gsl_interp_type_get(interpolationType_)
@@ -459,25 +471,31 @@ contains
     class           (interpolator  ), intent(inout)               :: self
     double precision                , intent(in   )               :: x
     double precision                , intent(in   ), dimension(:) :: ya
-    double precision                , parameter                   :: rangeTolerance=1.0d-6
+    double precision                , parameter                   :: rangeTolerance   =1.0d-6
+    integer                                                       :: extrapolationType
     integer         (c_size_t      )                              :: basePoint
     type            (varying_string)                              :: message
     integer         (c_int         )                              :: statusGSL
-    double precision                                              :: gradient             , x_
-    character       (len=12        )                              :: labelX               , labelX_      , &
-         &                                                           labelXMaximum        , labelXMinimum
+    double precision                                              :: gradient                , x_
+    character       (len=12        )                              :: labelX                  , labelX_      , &
+         &                                                           labelXMaximum           , labelXMinimum
 
     call self%assertInterpolatable()
     if (.not.self%initialized) call self%GSLInitialize(ya)
     ! If extrapolation is allowed, check if this is necessary.
-    if     (                                                        &
-         &   self%extrapolationType == extrapolationTypeExtrapolate &
-         &  .and.                                                   &
-         &   (                                                      &
-         &     x < self%x(1              )                          &
-         &    .or.                                                  &
-         &     x > self%x(self%countArray)                          &
-         &   )                                                      &
+    if (x > self%x(self%countArray)) then
+       extrapolationType=self%extrapolationType(2)
+    else
+       extrapolationType=self%extrapolationType(1)
+    end if
+    if     (                                                   &
+         &   extrapolationType == extrapolationTypeExtrapolate &
+         &  .and.                                              &
+         &   (                                                 &
+         &     x < self%x(1              )                     &
+         &    .or.                                             &
+         &     x > self%x(self%countArray)                     &
+         &   )                                                 &
          & ) then
        if (x < self%x(1)) then
           basePoint=1_c_size_t
@@ -498,7 +516,7 @@ contains
     else
        ! Allow for rounding errors.
        x_=x
-       select case (self%extrapolationType)
+       select case (extrapolationType)
        case (extrapolationTypeFix)
           if (x < self%x(1              )                                                                              ) x_=self%x(1              )
           if (x > self%x(self%countArray)                                                                              ) x_=self%x(self%countArray)
@@ -511,7 +529,7 @@ contains
        if (statusGSL /= GSL_Success) then
           select case (statusGSL)
           case (GSL_EDom)
-             if (self%extrapolationType == extrapolationTypeZero) then
+             if (extrapolationType == extrapolationTypeZero) then
                 ! Return zero outside of the tabulated range.
                 interpolatorInterpolate=0.0d0
                 return
@@ -562,14 +580,20 @@ contains
     double precision                , intent(in   )               :: x
     double precision                , intent(in   ), dimension(:) :: ya
     type            (varying_string)                              :: message
+    integer                                                       :: extrapolationType
     integer         (c_int         )                              :: statusGSL
     double precision                                              :: x_
 
     call self%assertInterpolatable()
     if (.not.self%initialized) call self%GSLInitialize(ya)
     ! If extrapolation is allowed, check if this is necessary.
+    if (x > self%x(self%countArray)) then
+       extrapolationType=self%extrapolationType(2)
+    else
+       extrapolationType=self%extrapolationType(1)
+    end if
     x_=x
-    select case (self%extrapolationType)
+    select case (extrapolationType)
     case (extrapolationTypeExtrapolate,extrapolationTypeFix)
        if (x < self%x(1              )) x_=self%x(1              )
        if (x > self%x(self%countArray)) x_=self%x(self%countArray)
@@ -579,7 +603,7 @@ contains
     if (statusGSL /= 0) then
        select case (statusGSL)
        case (GSL_EDom)
-          if (self%extrapolationType == extrapolationTypeZero) then
+          if (extrapolationType == extrapolationTypeZero) then
              ! Return zero outside of the tabulated range.
              interpolatorDerivative=0.0d0
              return

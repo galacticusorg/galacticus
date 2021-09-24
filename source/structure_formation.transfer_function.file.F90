@@ -109,9 +109,11 @@
            DATASPACE  SCALAR
         }
      }
-     DATASET "transferFunction" {
-        DATATYPE  H5T_IEEE_F64LE
-        DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
+     GROUP "darkMatter" {
+        DATASET "transferFunctionZ0.0000" {
+           DATATYPE  H5T_IEEE_F64LE
+           DATASPACE  SIMPLE { ( 1000 ) / ( 1000 ) }
+        }
      }
      DATASET "wavenumber" {
         DATATYPE  H5T_IEEE_F64LE

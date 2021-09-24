@@ -696,7 +696,7 @@ contains
     implicit none
     double precision, intent(in   ) :: radius
 
-    if (radius == 0.0d0) then
+    if (radius <= velocityDispersionRadiusImpact) then
        velocityDispersionDensityIntegrand=+0.0d0
     else
        velocityDispersionDensityIntegrand=+Galactic_Structure_Density(                                               &

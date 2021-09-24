@@ -78,7 +78,7 @@ contains
     !!]
 
     ! Set path and version
-    classVersion    ="3.0.1"
+    classVersion    ="3.0.2"
     classPath       =galacticusPath(pathTypeDataDynamic)//"class_public-"//classVersion//"/"
     ! Build the CLASS code.
     if (.not.File_Exists(classPath//"class")) then
@@ -89,7 +89,7 @@ contains
           ! Download CLASS if necessary.
           if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"class_public-"//char(classVersion)//".tar.gz")) then
              call displayMessage("downloading CLASS code....",verbosityLevelWorking)
-             call System_Command_Do("wget https://lesgourg.github.io/class_public/class_public-"//char(classVersion)//".tar.gz -O "//galacticusPath(pathTypeDataDynamic)//"class_public-"//char(classVersion)//".tar.gz",status)
+             call System_Command_Do("wget https://github.com/lesgourg/class_public/archive/refs/tags/v"//char(classVersion)//".tar.gz -O "//galacticusPath(pathTypeDataDynamic)//"class_public-"//char(classVersion)//".tar.gz",status)
              if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"class_public-"//char(classVersion)//".tar.gz")) call Galacticus_Error_Report("unable to download CLASS"//{introspection:location})
           end if
           call displayMessage("unpacking CLASS code....",verbosityLevelWorking)

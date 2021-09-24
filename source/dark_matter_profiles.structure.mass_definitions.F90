@@ -97,8 +97,14 @@ contains
             &                  /3.0d0
     end if
     ! If necesary, return the radius and circular velocity also.
-    if (present(radius  )) radius  =radiusHalo
-    if (present(velocity)) velocity=sqrt(gravitationalConstantGalacticus*massHalo/radiusHalo)
+    if (present(radius  )) radius=radiusHalo
+    if (present(velocity)) then
+       if (radiusHalo > 0.0d0) then
+          velocity=sqrt(gravitationalConstantGalacticus*massHalo/radiusHalo)
+       else
+          velocity=0.0d0
+       end if
+    end if
     return
   end function Dark_Matter_Profile_Mass_Definition
 

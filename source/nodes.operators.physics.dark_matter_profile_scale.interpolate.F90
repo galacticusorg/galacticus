@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implements a node operator class that causes halo spin be interpolated linearly between child and parent nodes.
+  Implements a node operator class that causes dark matter profile scale radius to be interpolated linearly between child and parent nodes.
   !!}
 
   use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadiusClass
@@ -113,7 +113,7 @@ contains
     use :: Galacticus_Nodes   , only : nodeComponentDarkMatterProfile
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     implicit none
-    class(nodeOperatorDarkMatterProfileScaleInterpolate), intent(inout)          :: self
+    class(nodeOperatorDarkMatterProfileScaleInterpolate), intent(inout), target  :: self
     type (treeNode                                     ), intent(inout), target  :: node
     type (treeNode                                     )               , pointer :: nodeWork
     class(nodeComponentDarkMatterProfile               )               , pointer :: darkMatterProfile, darkMatterProfileWork
@@ -182,18 +182,29 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, propertyTypeInactive
     implicit none
-    class    (nodeOperatorDarkMatterProfileScaleInterpolate), intent(inout), target  :: self
-    type     (treeNode                                     ), intent(inout)          :: node
-    logical                                                 , intent(inout)          :: interrupt
-    procedure(interruptTask                                ), intent(inout), pointer :: functionInterrupt
-    integer                                                 , intent(in   )          :: propertyType
-    class    (nodeComponentDarkMatterProfile               )               , pointer :: darkMatterProfile
+    class           (nodeOperatorDarkMatterProfileScaleInterpolate), intent(inout), target  :: self
+    type            (treeNode                                     ), intent(inout)          :: node
+    logical                                                        , intent(inout)          :: interrupt
+    procedure       (interruptTask                                ), intent(inout), pointer :: functionInterrupt
+    integer                                                        , intent(in   )          :: propertyType
+    class           (nodeComponentDarkMatterProfile               )               , pointer :: darkMatterProfile, darkMatterProfileParent
+    double precision                                                                        :: rateScaleRadius
     !$GLC attributes unused :: interrupt, functionInterrupt
     
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
     ! Get the dark matter profile component.
-    darkMatterProfile => node%darkMatterProfile()
-    call darkMatterProfile%scaleRate(darkMatterProfile%scaleGrowthRate())
+    darkMatterProfile => node             %darkMatterProfile()
+    rateScaleRadius   =  darkMatterProfile%scaleGrowthRate  ()
+    if (node%isPrimaryProgenitor()) then
+       ! If necessary, limit the growth rate so that we do not exceed the scale radius of the parent halo.
+       darkMatterProfileParent => node%parent%darkmatterProfile()
+       if     (                                                                                              &
+            &   (rateScaleRadius > 0.0d0 .and. darkMatterProfile%scale() >= darkMatterProfileParent%scale()) &
+            &  .or.                                                                                          &
+            &   (rateScaleRadius < 0.0d0 .and. darkMatterProfile%scale() <= darkMatterProfileParent%scale()) &
+            & ) rateScaleRadius=0.0d0
+    end if
+    call darkMatterProfile%scaleRate(rateScaleRadius)
     return
   end subroutine darkMatterProfileScaleInterpolateDifferentialEvolution

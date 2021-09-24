@@ -541,16 +541,20 @@ contains
     double precision                                    :: massHost    , radiusHost, &
          &                                                 velocityHost
 
-    basic                              =>  node%basic()
-    hostBasic                          =>  host%basic()
-    massHost                           =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
-    li2020AngularMomentumMagnitudeMean =  +self%velocityTangentialMagnitudeMean(node,host) &
-         &                                *radiusHost                                      &
-         &                                /(                                               & ! Account for reduced mass.
-         &                                  +1.0d0                                         &
-         &                                  +basic    %mass()                              &
-         &                                  /hostBasic%mass()                              &
-         &                                 )
+    basic                                 =>  node%basic()
+    hostBasic                             =>  host%basic()
+    massHost                              =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    if (massHost > 0.0d0) then
+       li2020AngularMomentumMagnitudeMean =  +self%velocityTangentialMagnitudeMean(node,host) &
+            &                                *radiusHost                                      &
+            &                                /(                                               & ! Account for reduced mass.
+            &                                  +1.0d0                                         &
+            &                                  +basic    %mass()                              &
+            &                                  /hostBasic%mass()                              &
+            &                                 )
+    else
+       li2020AngularMomentumMagnitudeMean =  +0.0d0
+    end if
     return
   end function li2020AngularMomentumMagnitudeMean
 
