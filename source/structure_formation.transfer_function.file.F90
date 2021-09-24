@@ -153,6 +153,7 @@
      procedure :: logarithmicDerivative => fileLogarithmicDerivative
      procedure :: halfModeMass          => fileHalfModeMass
      procedure :: quarterModeMass       => fileQuarterModeMass
+     procedure :: fractionModeMass      => fileFractionModeMass
      procedure :: epochTime             => fileEpochTime
   end type transferFunctionFile
 
@@ -227,7 +228,6 @@ contains
     !!{
     Internal constructor for the file transfer function class.
     !!}
-    use :: Numerical_Constants_Math, only : Pi
     implicit none
     type            (transferFunctionFile    )                                  :: self
     character       (len=*                   ), intent(in   )                   :: fileName
@@ -235,10 +235,7 @@ contains
     class           (cosmologyParametersClass), intent(in   ), target           :: cosmologyParameters_
     class           (cosmologyFunctionsClass ), intent(in   ), target           :: cosmologyFunctions_
     class           (transferFunctionClass   ), intent(in   ), target, optional :: transferFunctionReference
-    double precision                                                            :: matterDensity            , ratio     , &
-         &                                                                         ratioTarget              , wavenumber, &
-         &                                                                         ratioPrevious
-    integer                                                                     :: i                        , j
+    integer                                                                     :: status
     !![
     <constructorAssign variables="fileName, redshift, *cosmologyParameters_, *cosmologyFunctions_, *transferFunctionReference"/>
     !!]
@@ -250,59 +247,10 @@ contains
     self%massHalfModeAvailable             =.false.
     self%massQuarterModeAvailable          =.false.
     if (self%transferFunctionReferenceAvailable) then
-       matterDensity          =+self%cosmologyParameters_%OmegaMatter    () &
-            &                  *self%cosmologyParameters_%densityCritical()
-       do i=1,2
-          ! Set the ratio to seek.
-          select case (i)
-          case (1)
-             ratioTarget=0.50d0
-          case (2)
-             ratioTarget=0.25d0
-          end select
-          ! Step from large to small scales until the target ratio is reached.
-          ratio        =0.0d0
-          ratioPrevious=0.0d0
-          do j=1,self%transfer%size()
-             ratioPrevious=+ratio
-             ratio        =+exp(self%transfer%y(j))
-             if (ratio < ratioTarget) then
-                if (j > 1) then            
-                   ! Interpolate to find the exact wavenumber.
-                   wavenumber=+exp(                                                                  &
-                        &          +(+              ratioTarget   -              ratioPrevious     ) &
-                        &          /(+              ratio         -              ratioPrevious     ) &
-                        &          *(+self%transfer%x          (j)-self%transfer%x            (j-1)) &
-                        &          +                               self%transfer%x            (j-1)  &
-                        &         )
-                   ! Compute the mode mass and mark it as available.                   
-                   select case (i)
-                   case (1)
-                      self%massHalfModeAvailable   =.true.
-                      self%massHalfMode            =+4.0d0         &
-                           &                        *Pi            &
-                           &                        /3.0d0         &
-                           &                        *matterDensity &
-                           &                        *(             &
-                           &                          +Pi          &
-                           &                          /wavenumber  &
-                           &                        )**3
-                   case (2)
-                      self%massQuarterModeAvailable=.true.
-                      self%massQuarterMode         =+4.0d0         &
-                           &                        *Pi            &
-                           &                        /3.0d0         &
-                           &                        *matterDensity &
-                           &                        *(             &
-                           &                          +Pi          &
-                           &                          /wavenumber  &
-                           &                        )**3
-                   end select
-                end if
-                exit
-             end if
-          end do
-       end do
+       self%massHalfMode            =self%fractionModeMass(fraction=0.50d0,status=status)
+       self%massHalfModeAvailable   =status == errorStatusSuccess
+       self%massQuarterMode         =self%fractionModeMass(fraction=0.25d0,status=status)
+       self%massQuarterModeAvailable=status == errorStatusSuccess
     end if
     return
   end function fileConstructorInternal
@@ -454,14 +402,12 @@ contains
   double precision function fileHalfModeMass(self,status)
     !!{
     Compute the mass corresponding to the wavenumber at which the transfer function is
-    suppressed by a factor of two relative to a \gls{cdm} transfer function. Not supported in
-    this implementation.
+    suppressed by a factor of two relative to a \gls{cdm} transfer function.
     !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail, errorStatusSuccess
     implicit none
     class  (transferFunctionFile), intent(inout), target   :: self
     integer                      , intent(  out), optional :: status
-    !$GLC attributes unused :: self
 
     if (self%massHalfModeAvailable) then
        fileHalfModeMass=self%massHalfMode
@@ -480,14 +426,12 @@ contains
   double precision function fileQuarterModeMass(self,status)
     !!{
     Compute the mass corresponding to the wavenumber at which the transfer function is
-    suppressed by a factor of two relative to a \gls{cdm} transfer function. Not supported in
-    this implementation.
+    suppressed by a factor of four relative to a \gls{cdm} transfer function.
     !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusFail
     implicit none
     class  (transferFunctionFile), intent(inout), target   :: self
     integer                      , intent(  out), optional :: status
-    !$GLC attributes unused :: self
     
     if (self%massQuarterModeAvailable) then
        fileQuarterModeMass=self%massQuarterMode
@@ -502,6 +446,75 @@ contains
     end if
     return
   end function fileQuarterModeMass
+
+  double precision function fileFractionModeMass(self,fraction,status)
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is
+    reduced by {\normalfont \ttfamily fraction} relative to a \gls{cdm} transfer function.
+    !!}
+    use :: Numerical_Constants_Math, only : Pi
+    use :: Galacticus_Error        , only : Galacticus_Error_Report, errorStatusFail
+    implicit none
+    class           (transferFunctionFile), intent(inout), target   :: self
+    double precision                      , intent(in   )           :: fraction
+    integer                               , intent(  out), optional :: status
+    double precision                                                :: fractionCurrent, fractionPrevious, &
+         &                                                             wavenumber     , matterDensity
+    integer                                                         :: j
+    logical                                                         :: modeFound
+    
+    if (present(status)) status=errorStatusSuccess
+    if (self%transferFunctionReferenceAvailable) then
+       matterDensity          =+self%cosmologyParameters_%OmegaMatter    () &
+            &                  *self%cosmologyParameters_%densityCritical()
+       ! Step from large to small scales until the target fraction is reached.
+       fractionCurrent =0.0d0
+       fractionPrevious=0.0d0
+       modeFound       =.false.
+       do j=1,self%transfer%size()
+          fractionPrevious=+fractionCurrent
+          fractionCurrent =+exp(self%transfer%y(j))
+          if (fractionCurrent < fraction) then
+             if (j > 1) then            
+                ! Interpolate to find the exact wavenumber.
+                wavenumber=+exp(                                                                      &
+                     &          +(+              fraction          -              fractionPrevious  ) &
+                     &          /(+              fractionCurrent   -              fractionPrevious  ) &
+                     &          *(+self%transfer%x              (j)-self%transfer%x            (j-1)) &
+                     &          +                                   self%transfer%x            (j-1)  &
+                     &         )
+                ! Compute the mode mass.
+                modeFound           =.true.
+                fileFractionModeMass=+4.0d0         &
+                     &               *Pi            &
+                     &               /3.0d0         &
+                     &               *matterDensity &
+                     &               *(             &
+                     &                 +Pi          &
+                     &                 /wavenumber  &
+                     &                )**3
+             end if
+             exit
+          end if
+       end do
+       if (.not.modeFound) then
+          fileFractionModeMass=0.0d0
+          if (present(status)) then
+             status=errorStatusFail
+          else
+             call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+          end if
+       end if
+    else
+       fileFractionModeMass=0.0d0
+       if (present(status)) then
+          status=errorStatusFail
+       else
+          call Galacticus_Error_Report('not supported by this implementation'//{introspection:location})
+       end if
+    end if
+    return
+  end function fileFractionModeMass
 
   double precision function fileEpochTime(self)
     !!{

@@ -62,6 +62,7 @@ Contains a module which implements a transfer function class based on the therma
      procedure :: logarithmicDerivative   => bode2001LogarithmicDerivative
      procedure :: halfModeMass            => bode2001HalfModeMass
      procedure :: quarterModeMass         => bode2001QuarterModeMass
+     procedure :: fractionModeMass        => bode2001FractionModeMass
      procedure :: epochTime               => bode2001EpochTime
      procedure :: wavenumberAtSuppression => bode2001WavenumberAtSupression
   end type transferFunctionBode2001
@@ -320,6 +321,33 @@ contains
     if (present(status)) status=errorStatusSuccess
     return
   end function bode2001QuarterModeMass
+
+  double precision function bode2001FractionModeMass(self,fraction,status)
+    !!{
+    Compute the mass corresponding to the wavenumber at which the transfer function is reduced by {\normalfont \ttfamily fraction} relative
+    to a \gls{cdm} transfer function.
+    !!}
+    use :: Galacticus_Error        , only : errorStatusSuccess
+    use :: Numerical_Constants_Math, only : Pi
+    implicit none
+    class           (transferFunctionBode2001), intent(inout), target   :: self
+    double precision                          , intent(in   )           :: fraction
+    integer                                   , intent(  out), optional :: status
+    double precision                                                    :: matterDensity
+
+    matterDensity           =+self%cosmologyParameters_%OmegaMatter    ()    &
+         &                   *self%cosmologyParameters_%densityCritical()
+    bode2001FractionModeMass=+4.0d0                                          &
+         &                   *Pi                                             &
+         &                   /3.0d0                                          &
+         &                   *matterDensity                                  &
+         &                   *(                                              &
+         &                     +Pi                                           &
+         &                     /self%wavenumberAtSuppression(1.0d0/fraction) &
+         &                   )**3
+    if (present(status)) status=errorStatusSuccess
+    return
+  end function bode2001FractionModeMass
 
   double precision function bode2001EpochTime(self)
     !!{
