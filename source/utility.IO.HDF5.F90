@@ -33,7 +33,7 @@ module IO_HDF5
   use            :: ISO_Varying_String, only : varying_string
   implicit none
   private
-  public :: hdf5Object, IO_HDF5_Set_Defaults, IO_HDF5_Is_HDF5
+  public :: hdf5Object, ioHDF5AccessInitialize, IO_HDF5_Set_Defaults, IO_HDF5_Is_HDF5
 #ifdef DEBUGHDF5
   public :: IO_HDF5_Start_Critical, IO_HDF5_End_Critical
 
@@ -365,6 +365,20 @@ contains
 
   !! Initialization routines.
 
+  subroutine ioHDF5AccessInitialize()
+    !!{
+    Initialize the HDF5 access lock.
+    !!}
+    use :: HDF5_Access, only : hdf5Access, hdf5AccessInitialized
+    use :: Locks      , only : ompLock
+    implicit none
+
+    if (hdf5AccessInitialized) return
+    hdf5Access           =ompLock()
+    hdf5AccessInitialized=.true.
+    return
+  end subroutine ioHDF5AccessInitialize
+  
   subroutine IO_HDF5_Initialize
     !!{
     Initialize the HDF5 subsystem.
@@ -374,8 +388,6 @@ contains
           &                         H5T_NATIVE_DOUBLE      , H5T_NATIVE_INTEGER, H5T_NATIVE_INTEGER_8, H5T_STD_I32BE , &
           &                         H5T_STD_I32LE          , H5T_STD_I64BE     , H5T_STD_I64LE       , H5T_STD_U32BE , &
           &                         H5T_STD_U32LE          , h5open_f
-    use :: HDF5_Access     , only : hdf5Access
-    use :: Locks           , only : ompLock
     implicit none
     integer :: errorCode
 
@@ -397,7 +409,7 @@ contains
        H5T_NATIVE_INTEGER_8AS(6:8) =H5T_NATIVE_INTEGER_8S
 
        ! Initialize our OpenMP lock.
-       hdf5Access=ompLock()
+       call ioHDF5AccessInitialize()
        
        ! Flag that the hdf5 system is now initialized.
        hdf5IsInitalized=.true.
