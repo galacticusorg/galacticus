@@ -75,8 +75,8 @@ contains
        call allocateArray(massMinimum,shape(mass))
        call allocateArray(massMaximum,shape(mass))
        do i=1,size(mass)
-          massMinimum(i)=+mass(i)/sqrt(self%massIntervalFractional)
-          massMaximum(i)=+mass(i)*sqrt(self%massIntervalFractional)
+          massMinimum(i)=+mass(i)/sqrt(1.0d0+self%massIntervalFractional)
+          massMaximum(i)=+mass(i)*sqrt(1.0d0+self%massIntervalFractional)
           if (i > 1 .and. massMinimum(i) < massMaximum(i-1)) then
              massMinimum(i  )=sqrt(           &
                   &                +mass(i-1) &
