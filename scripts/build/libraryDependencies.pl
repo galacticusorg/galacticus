@@ -2,8 +2,10 @@
 use strict;
 use warnings;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
+use Config;
 use Sort::Topo;
 use Data::Dumper;
+use File::Which qw(which);
 
 # Output linker options to link required libraries for building an executable.
 # Andrew Benson (24-May-2012)
@@ -73,7 +75,7 @@ foreach my $objectFileName ( map {$_ =~ s/\.o$/\.fl/; -e $_ ? $_ : ()} @objectFi
 my $libraryCount = 0;
 while ( scalar(keys(%libraries)) != $libraryCount) {
     $libraryCount = scalar(keys(%libraries));
-    foreach my $library ( keys(%libraries) ) {
+    foreach my $library ( sort(keys(%libraries)) ) {
 	if ( exists($dependencies{$library}) ) {
 	    foreach ( @{$dependencies{$library}} ) {$libraries{$_} +=1};
 	}
@@ -86,24 +88,33 @@ delete($libraries{'ANN'})
 delete($libraries{'matheval'})
     if ( exists($libraries{'matheval'}) && ! grep {$_ eq "-DMATHEVALAVAIL"} @compilerOptions );
 # Perform a topological sort on libraries to ensure they are in the correct order for static linking.
-my @libraryNames = keys(%libraries);
+my @libraryNames = sort(keys(%libraries));
 my @sortedLibraries = &Sort::Topo::sort(\@libraryNames,\%staticLinkDependencies);
 # Add static link options.
 my $staticOptions = ( $isStatic && ! $pthreadIncluded ) ? " -Wl,--whole-archive -lpthread -Wl,--no-whole-archive" : "";
+# Add OS specific options.
+my $osOptions = ($Config{osname} eq "darwin") ? " -Wl,-commons,use_dylibs" : "";
 # Determine glibc version.
+my $ldd = which("ldd");
 my $linkLibRT = 1;
-open(my $lddPipe,"ldd --version|");
-while ( my $line = <$lddPipe> ) {
-    if ( $line =~ m/^ldd \(GNU libc\) (\d+)\.(\d+)/ ) {
-	$linkLibRT = $1 < 2 || ( $1 == 2 && $2 <= 16 );
+if ( defined($ldd) ) {
+    open(my $lddPipe,"ldd --version|");
+    while ( my $line = <$lddPipe> ) {
+	if ( $line =~ m/^ldd \(GNU libc\) (\d+)\.(\d+)/ ) {
+	    $linkLibRT = $1 < 2 || ( $1 == 2 && $2 <= 16 );
+	}
     }
+    close($lddPipe);
+} else {
+    $linkLibRT = 0;
 }
-close($lddPipe);
+
 # Write the linker options to standard output. If we are linking BLAS, cause GFortran to use the external BLAS library. Also link
 # the realtime library for sufficiently early glibc's.
 print 
     join(" ",map {"-l".$_} @sortedLibraries).
     $staticOptions.
+    $osOptions.
     ((grep {$_ eq "blas"} @sortedLibraries) ? " -fexternal-blas" : "").
     ($linkLibRT                             ? " -lrt"            : "").
     "\n";
