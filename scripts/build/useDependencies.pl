@@ -220,7 +220,7 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 	    if ( $line =~ m/^\s*\#include\s+<([a-zA-Z0-9_]+)\.h>/ ) {
 		my $includeFile = $1;
 		$usesPerFile->{$fileIdentifier}->{'libraryDependencies'}->{$includeLibararies{lc($includeFile)}} = 1
-		    if ( exists($includeLibararies{lc($includeFile)}) );
+		    if ( exists($includeLibararies{lc($includeFile)}) && $conditionallyCompile );
 	    }
 	    # Detect preprocessor lines.
 	    if ( $line =~ m/^\#/ ) {
@@ -368,9 +368,11 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
     unless ( $objectFileName =~ m/\.Inc$/ ) {
 	(my $libraryFileName = $objectFileName) =~ s/.o$/.fl/;
 	print $dependenciesFile $workSubDirectoryName.$libraryFileName,":\n";
-	print $dependenciesFile "\t\@echo -n      > ".$workSubDirectoryName.$libraryFileName."\n";
-	print $dependenciesFile "\t\@echo ".$_." >> ".$workSubDirectoryName.$libraryFileName."\n"
-	    foreach ( sort(keys(%{$usesPerFile->{$fileIdentifier}->{'libraryDependencies'}})) );
+	my $redirect = ">";
+	foreach ( sort(keys(%{$usesPerFile->{$fileIdentifier}->{'libraryDependencies'}})) ) {
+	    print $dependenciesFile "\t\@echo ".$_." ".$redirect." ".$workSubDirectoryName.$libraryFileName."\n";
+	    $redirect = ">>";
+	}
     }    
     # For files which used any modules, generate dependency rules.
     if ( scalar(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}}) > 0 || scalar(@{$usesPerFile->{$fileIdentifier}->{'dependenciesExplicit'}}) > 0 ) {
