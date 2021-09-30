@@ -263,7 +263,7 @@ source/FFTlog/cdgamma.f source/FFTlog/drfftb.f source/FFTlog/drffti.f source/FFT
 source/FFTlog/fftlog.f:
 	mkdir -p source/FFTlog
 	mkdir -p $(BUILDPATH)/FFTlog
-	if [ which -s wget ]; then \
+	if command -v wget &> /dev/null; then \
 	 wget --no-check-certificate http://jila.colorado.edu/~ajsh/FFTLog/fftlog.tgz -O - | tar xvz -C source/FFTlog -f -; \
 	else \
 	 curl --insecure -L http://jila.colorado.edu/~ajsh/FFTLog/fftlog.tgz --output - | tar xvz -C source/FFTlog -f -;\
