@@ -68,7 +68,7 @@ module Halo_Mass_Functions
      self%time_ =  time
      logMassLow =log(massLow )
      logMassHigh=log(massHigh)
-     integrator_=integrator(integratedIntegrand,toleranceRelative=1.0d-3,integrationRule=GSL_Integ_Gauss15)
+     integrator_=integrator(integratedIntegrand,toleranceRelative=1.0d-3,toleranceAbsolute=1.0d-100,integrationRule=GSL_Integ_Gauss15)
      haloMassFunctionIntegrated=integrator_%integrate(logMassLow,logMassHigh)
      return
     </code>
@@ -93,7 +93,7 @@ module Halo_Mass_Functions
      self%time_ =  time
      logMassLow =log(massLow )
      logMassHigh=log(massHigh)
-     integrator_=integrator(massFractionIntegrand,toleranceRelative=1.0d-3,integrationRule=GSL_Integ_Gauss15)
+     integrator_=integrator(massFractionIntegrand,toleranceRelative=1.0d-3,toleranceAbsolute=1.0d-100,integrationRule=GSL_Integ_Gauss15)
      haloMassFunctionMassFraction=integrator_%integrate(logMassLow,logMassHigh)
      ! Convert to a mass fraction.
      haloMassFunctionMassFraction=+haloMassFunctionMassFraction                &amp;
