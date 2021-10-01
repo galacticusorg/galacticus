@@ -28,7 +28,7 @@ my $locations               = -e $workDirectoryName."directiveLocations.xml" ? $
 my @externalModules = ( "omp_lib", "hdf5", "h5tb", "h5lt", "h5global", "h5fortran_types", "fox_common", "fox_dom", "fox_wxml", "fox_utils", "mpi", "mpi_f08" );
 # Modules that require a library to be linked. These are key-value pairs with the key being the module name, and the value the
 # name of the required library.
-my %moduleLibararies = (
+my %moduleLibraries = (
     nearest_neighbors   => "ANN"           ,
     fftw3               => "fftw3"         ,
     fox_common          => "FoX_common"    ,
@@ -44,7 +44,7 @@ my %moduleLibararies = (
     );
 # C includes that require a library to be linked. These are key-value pairs with the key being the include name, and the value the
 # name of the required library.
-my %includeLibararies = (
+my %includeLibraries = (
     crypt             => "crypt"
     );
 # Parse the Makefile to find preprocessor macros that are set.
@@ -219,8 +219,8 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 	    }
 	    if ( $line =~ m/^\s*\#include\s+<([a-zA-Z0-9_]+)\.h>/ ) {
 		my $includeFile = $1;
-		$usesPerFile->{$fileIdentifier}->{'libraryDependencies'}->{$includeLibararies{lc($includeFile)}} = 1
-		    if ( exists($includeLibararies{lc($includeFile)}) && $conditionallyCompile );
+		$usesPerFile->{$fileIdentifier}->{'libraryDependencies'}->{$includeLibraries{lc($includeFile)}} = 1
+		    if ( exists($includeLibraries{lc($includeFile)}) && $conditionallyCompile );
 	    }
 	    # Detect preprocessor lines.
 	    if ( $line =~ m/^\#/ ) {
@@ -257,8 +257,8 @@ foreach my $sourceFile ( @sourceFilesToProcess ) {
 		if ( $line =~ m/^\s*(!\$\s)??\s*use\s*(::|\s)\s*([a-zA-Z0-9_]+)/i ) {
 		    my $usedModule = $3;
 		    # Add any library dependency for this module.
-		    $usesPerFile->{$fileIdentifier}->{'libraryDependencies'}->{$moduleLibararies{lc($usedModule)}} = 1
-			if ( exists($moduleLibararies{lc($usedModule)}) );
+		    $usesPerFile->{$fileIdentifier}->{'libraryDependencies'}->{$moduleLibraries{lc($usedModule)}} = 1
+			if ( exists($moduleLibraries{lc($usedModule)}) );
 		    push(@{$usesPerFile->{$fileIdentifier}->{'modulesUsed'}},$workDirectoryName.lc($usedModule).".mod")
 			unless ( grep {$_ eq lc($usedModule)} @externalModules );
 		}
