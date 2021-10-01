@@ -68,6 +68,12 @@ close($makefile);
 # Extract any preprocessor directives specified via the GALACTICUS_FCFLAGS environment variable.
 push(@preprocessorDirectives,map {$_ =~ m/\-D([0-9A-Z]+)/ ? $1 : ()} split(" ",$ENV{"GALACTICUS_FCFLAGS"}))
     if ( exists($ENV{"GALACTICUS_FCFLAGS"}) );
+my $compiler = exists($ENV{'CCOMPILER'}) ? $ENV{'CCOMPILER'} : "gcc";
+open(my $compilerDefs,$compiler." -dM -E - < /dev/null |");
+while ( my $line = <$compilerDefs> ) {
+    my @columns = split(" ",$line);
+    push(@preprocessorDirectives,$columns[1]);
+}
 # Initialize structure to hold record of directives from each source file.
 my $usesPerFile;
 my $havePerFile = -e $workDirectoryName."Makefile_Use_Dependencies.blob";
