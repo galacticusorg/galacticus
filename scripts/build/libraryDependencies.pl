@@ -42,6 +42,16 @@ my %staticLinkDependencies =
      FoX_wxml       => [ "FoX_utils"                                    ],
      FoX_common     => [ "FoX_fsys"                                     ]
     );
+# Find default preprocessor directives.
+my @preprocessorDirectives;
+my $compiler = exists($ENV{'CCOMPILER'}) ? $ENV{'CCOMPILER'} : "gcc";
+open(my $compilerDefs,$compiler." -dM -E - < /dev/null |");
+while ( my $line = <$compilerDefs> ) {
+    my @columns = split(" ",$line);
+    push(@preprocessorDirectives,$columns[1]);
+}
+# Detect MacOS.
+my $isMacOS = grep {$_ eq "__APPLE__"} @preprocessorDirectives;
 # Detect static linking.
 my $isStatic = grep {$_ eq "-static"} @compilerOptions;
 # Add explicit dependency on libdl (for dynamic linking support) for the HDF5 library when linking statically. This appears to be
@@ -50,7 +60,7 @@ push(@{$dependencies{'hdf5'}},"dl")
     if ( $isStatic );
 # Add explicit dependency on libfl (flex lexer). This appears to be necessary when static linking is used.
 push(@{$dependencies{'matheval'}},"fl")
-    if ( $isStatic );
+    if ( $isStatic || $isMacOS );
 # Detect if libpthread is already included.
 my $pthreadIncluded = grep {$_ eq "-lpthread"} @compilerOptions;
 # Initialize a hash of required libraries.
