@@ -742,11 +742,12 @@ contains
     Return datatypes for character data of a given length. Types are for Fortran native and C native types.
     !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: HDF5              , only : H5T_NATIVE_CHARACTER   , HID_T            , h5tcopy_f         , h5tset_size_f, &
-          &                           H5Tset_strpad_f        , H5T_STR_NULLPAD_F, H5T_STR_SPACEPAD_F, size_t
+    use :: HDF5              , only : H5T_NATIVE_CHARACTER   , HID_T            , h5tcopy_f         , h5tset_size_f     , &
+         &                            H5Tset_strpad_f        , H5T_STR_NULLPAD_F, H5T_STR_SPACEPAD_F, H5T_STR_NULLTERM_F, &
+         &                            size_t
     use :: ISO_Varying_String, only : assignment(=)          , operator(//)
     implicit none
-    integer(kind=HID_T    ), dimension(4)  :: IO_HDF5_Character_Types
+    integer(kind=HID_T    ), dimension(6)  :: IO_HDF5_Character_Types
     integer                , intent(in   ) :: stringLength
     integer                                :: errorCode
     type   (varying_string)                :: message
@@ -807,6 +808,36 @@ contains
        call Galacticus_Error_Report(message//{introspection:location})
     end if
     call h5tset_strpad_f(IO_HDF5_Character_Types(4),H5T_STR_NULLPAD_F,errorCode)
+    if (errorCode < 0) then
+       message="unable to set padding"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    call h5tcopy_f(H5T_NATIVE_CHARACTER,IO_HDF5_Character_Types(5),errorCode)
+    if (errorCode < 0) then
+       message="unable to make custom datatype"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    call h5tset_size_f(IO_HDF5_Character_Types(5),int(stringLength,size_t),errorCode)
+    if (errorCode < 0) then
+       message="unable to set datatype size"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    call h5tset_strpad_f(IO_HDF5_Character_Types(5),H5T_STR_NULLTERM_F,errorCode)
+    if (errorCode < 0) then
+       message="unable to set padding"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    call h5tcopy_f(H5T_C_S1_Get(),IO_HDF5_Character_Types(6),errorCode)
+    if (errorCode < 0) then
+       message="unable to make custom datatype"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    call h5tset_size_f(IO_HDF5_Character_Types(6),int(stringLength,size_t),errorCode)
+    if (errorCode < 0) then
+       message="unable to set datatype size"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    call h5tset_strpad_f(IO_HDF5_Character_Types(6),H5T_STR_NULLTERM_F,errorCode)
     if (errorCode < 0) then
        message="unable to set padding"
        call Galacticus_Error_Report(message//{introspection:location})
@@ -3101,7 +3132,7 @@ contains
     integer  (kind=HSIZE_T           ), dimension(1)                          :: attributeDimensions       , attributeMaximumDimensions
     character(len=len(attributeValue)), dimension(1)                          :: pseudoScalarValue
     integer  (kind=HID_T             )                                        :: attributeDataspaceID
-    integer  (kind=HID_T             )                                        :: dataTypeID             (4)
+    integer  (kind=HID_T             )                                        :: dataTypeID             (6)
     integer                                                                   :: errorCode
     type     (hdf5Object             )                                        :: attributeObject
     type     (varying_string         )                                        :: attributeNameActual       , message
@@ -3235,7 +3266,7 @@ contains
     character(len=*         )                           , intent(in   ), optional :: attributeName
     integer  (kind=HSIZE_T  )             , dimension(1)                          :: attributeDimensions , attributeMaximumDimensions
     integer                                                                       :: errorCode
-    integer  (kind=HID_T    )                                                     :: attributeDataspaceID, dataTypeID                (4)
+    integer  (kind=HID_T    )                                                     :: attributeDataspaceID, dataTypeID                (6)
     type     (hdf5Object    )                                                     :: attributeObject
     type     (varying_string)                                                     :: attributeNameActual , message
 
@@ -3349,7 +3380,7 @@ contains
     character(len=*         )              , intent(in   ), optional :: attributeName
     integer  (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions , attributeMaximumDimensions
     integer                                                          :: errorCode
-    integer  (kind=HID_T    )                                        :: attributeDataspaceID, dataTypeID                (4)
+    integer  (kind=HID_T    )                                        :: attributeDataspaceID, dataTypeID                (6)
     type     (hdf5Object    )                                        :: attributeObject
     type     (varying_string)                                        :: attributeNameActual , message
 
@@ -13810,7 +13841,7 @@ contains
     ! deallocated. This isn't an elegant solution, but it works.
     type     (hdset_reg_ref_t_f), save        , target                  :: referencedRegion
     integer                                                             :: errorCode
-    integer  (kind=HID_T       )                                        :: dataTypeID          (4), datasetDataspaceID      , &
+    integer  (kind=HID_T       )                                        :: dataTypeID          (6), datasetDataspaceID      , &
          &                                                                 dereferencedObjectID   , memorySpaceID           , &
          &                                                                 storedDatasetID
     logical                                                             :: isReference            , readSubsection
@@ -14122,7 +14153,7 @@ contains
     ! deallocated. This isn't an elegant solution, but it works.
     type     (hdset_reg_ref_t_f), save       , target                                :: referencedRegion
     integer                                                                          :: errorCode
-    integer  (kind=HID_T       )                                                     :: dataTypeID          (4), datasetDataspaceID      , &
+    integer  (kind=HID_T       )                                                     :: dataTypeID          (6), datasetDataspaceID      , &
          &                                                                              dereferencedObjectID   , memorySpaceID           , &
          &                                                                              storedDatasetID
     logical                                                                          :: isReference            , readSubsection
