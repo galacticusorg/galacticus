@@ -42,12 +42,14 @@ contains
     Initialize the interface with FSPS, including downloading and compiling FSPS if necessary.
     !!}
     use :: Display           , only : displayMessage         , verbosityLevelWorking
-    use :: File_Utilities    , only : File_Exists            , File_Lock            , File_Remove , File_Unlock
+    use :: File_Utilities    , only : File_Exists            , File_Lock            , File_Remove    , File_Unlock
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic  , pathTypeExec
-    use :: ISO_Varying_String, only : assignment(=)          , char                 , operator(//), varying_string
+    use :: ISO_Varying_String, only : assignment(=)          , char                 , operator(//)   , varying_string
     use :: String_Handling   , only : operator(//)
     use :: System_Command    , only : System_Command_Do
+    use :: System_Download   , only : download
+    use :: System_Compilers  , only : compiler               , compilerOptions      , languageFortran
     implicit none
     type     (varying_string), intent(  out)           :: fspsPath, fspsVersion
     logical                  , intent(in   ), optional :: static
@@ -68,7 +70,7 @@ contains
        if (.not.File_Exists(fspsPath)) then
           if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"FSPS_"//char(fspsVersion)//".tar.gz")) then
              call displayMessage("downloading FSPS source code....",verbosityLevelWorking)
-             call System_Command_Do("wget https://github.com/cconroy20/fsps/archive/refs/tags/v"//char(fspsVersion)//".tar.gz -O "//galacticusPath(pathTypeDataDynamic)//"FSPS_"//char(fspsVersion)//".tar.gz",status)
+             call download("https://github.com/cconroy20/fsps/archive/refs/tags/v"//char(fspsVersion)//".tar.gz",char(galacticusPath(pathTypeDataDynamic))//"FSPS_"//char(fspsVersion)//".tar.gz",status)
              if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"FSPS_"//char(fspsVersion)//".tar.gz") .or. status /= 0) call Galacticus_Error_Report("failed to download FSPS"//{introspection:location})
           end if
           call displayMessage("unpacking FSPS code....",verbosityLevelWorking)
@@ -93,11 +95,11 @@ contains
        end if
        call displayMessage("compiling autosps.exe code",verbosityLevelWorking)
        if (static_) then
-          call System_Command_Do("cd "//fspsPath//"/src; sed -i~ -r s/'^(F90FLAGS = .*)'/'\1 \-static'/g Makefile")
+          call System_Command_Do("cd "//fspsPath//"/src; sed -i~ -E s/'^(F90FLAGS = .*)'/'\1 \-static'/g Makefile")
        else
-          call System_Command_Do("cd "//fspsPath//"/src; sed -i~ -r s/'^(F90FLAGS = .*)\s*\-static(.*)'/'\1 \2'/g Makefile")
+          call System_Command_Do("cd "//fspsPath//"/src; sed -i~ -E s/'^(F90FLAGS = .*)[[:space:]]*\-static(.*)'/'\1 \2'/g Makefile")
        end if
-       call System_Command_Do("cd "//fspsPath//"/src; export SPS_HOME="//fspsPath//"; export F90FLAGS=-mcmodel=medium; make clean; make -j 1",status)
+       call System_Command_Do("cd "//fspsPath//"/src; export SPS_HOME="//fspsPath//'; export F90FLAGS=-mcmodel=medium '//char(compilerOptions(languageFortran))//'; sed -i~ -E s/"gfortran"/"'//char(compiler(languageFortran))//'"/ Makefile; make clean; make -j 1',status)
        if (.not.File_Exists(fspsPath//"/src/autosps.exe") .or. status /= 0) call Galacticus_Error_Report("failed to build autosps.exe code"//{introspection:location})
     end if
     call File_Unlock(fspsLock)
