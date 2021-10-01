@@ -67,9 +67,18 @@ contains
     integer                    , intent(  out), optional :: status
     type   (varying_string    )                          :: classPath, classVersion
     !$GLC attributes unused :: self
+#include "os.inc"
 
     call displayIndent  ('Begin task: CLASS tool build')
-    call Interface_CLASS_Initialize(classPath,classVersion,static=.true.)
+    call Interface_CLASS_Initialize(                     &
+         &                                 classPath   , &
+         &                                 classVersion, &
+#ifdef __APPLE__
+         &                          static=.false.       &
+#else
+         &                          static=.true.        &
+#endif
+         &                         )
     call displayMessage('CLASS version '//classVersion//' successfully built in: '//classPath)
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: CLASS tool build')
