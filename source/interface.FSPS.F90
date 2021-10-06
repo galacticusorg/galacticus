@@ -195,13 +195,6 @@ contains
        do iAge=1,ageCount
           read (inputFile,*) age     (  iAge             )
           read (inputFile,*) spectrum(:,iAge,iMetallicity)
-
-
-
-
-
-if (any(isnan(spectrum(:,iAge,iMetallicity)))) write (0,*) "TEST WTF ",iage,imetallicity,spectrum(:,iAge,iMetallicity)
-
        end do
        close(inputFile)
     end do
