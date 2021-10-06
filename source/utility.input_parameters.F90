@@ -33,7 +33,7 @@ module Input_Parameters
   use :: String_Handling   , only : char
   private
   public :: inputParameters, inputParameter, inputParameterList, globalParameters
-
+  
   !![
   <generic identifier="Type">
    <instance label="Logical"        intrinsic="logical"                                          outputConverter="regEx¦(.*)¦char($1)¦"/>
@@ -390,6 +390,7 @@ contains
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)    , operator(/=)
     use :: String_Handling   , only : String_Strip
+    use :: IO_HDF5           , only : ioHDF5AccessInitialize
     use :: HDF5_Access       , only : hdf5Access
     implicit none
     type     (inputParameters)                                        :: inputParametersConstructorNode
@@ -406,7 +407,8 @@ contains
     <optionalArgument name="noOutput" defaultsTo=".false." />
     <optionalArgument name="noBuild"  defaultsTo=".false." />
     !!]
-
+#include "os.inc"
+    
     inputParametersConstructorNode%global   =  .false.
     inputParametersConstructorNode%isNull   =  .false.
     inputParametersConstructorNode%document => getOwnerDocument(parametersNode)
@@ -426,18 +428,33 @@ contains
     end if
     !$omp end critical (FoX_DOM_Access)
     ! Set a pointer to HDF5 object to which to write parameters.
-    !$ call hdf5Access%  set()
     if (present(outputParametersGroup)) then
+       !$ call hdf5Access%  set()
        inputParametersConstructorNode%outputParameters         =outputParametersGroup%openGroup('Parameters')
        inputParametersConstructorNode%outputParametersCopied   =.false.
        inputParametersConstructorNode%outputParametersTemporary=.false.
+       !$ call hdf5Access%unset()
     else if (.not.noOutput_) then
-       call inputParametersConstructorNode%outputParametersContainer%openFile(char(File_Name_Temporary('glcTmpPar','/dev/shm')))
+       ! The HDF5 access lock may not yet have been initialized. Ensure it is before using it.
+       call ioHDF5AccessInitialize()
+       !$ call hdf5Access%  set()
+       call inputParametersConstructorNode%outputParametersContainer%openFile(                                      &
+            &                                                                 char(                                 &
+            &                                                                      File_Name_Temporary(             &
+            &                                                                                          'glcTmpPar', &
+#ifdef __APPLE__
+            &                                                                                          '/tmp'       &
+#else
+            &                                                                                          '/dev/shm'   &
+#endif
+            &                                                                                         )             &
+            &                                                                      )                                &
+            &                                                                )
        inputParametersConstructorNode%outputParameters         =inputParametersConstructorNode%outputParametersContainer%openGroup('Parameters')
        inputParametersConstructorNode%outputParametersCopied   =.false.
        inputParametersConstructorNode%outputParametersTemporary=.true.
+       !$ call hdf5Access%unset()
     end if
-    !$ call hdf5Access%unset()
     ! Get allowed parameter names.
     call knownParameterNames(allowedParameterNamesCombined)
     allowedParameterFromFileCount=size(allowedParameterNamesCombined)

@@ -30,6 +30,7 @@ module HDF5_Access
   public
 
   ! Lock object to coordinate access to HDF5.
-  type(ompLock) :: hdf5Access
+  type   (ompLock) :: hdf5Access
+  logical          :: hdf5AccessInitialized=.false.
   
 end module HDF5_Access

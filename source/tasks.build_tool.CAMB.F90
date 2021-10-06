@@ -67,9 +67,18 @@ contains
     integer                   , intent(  out), optional :: status
     type   (varying_string   )                          :: cambPath, cambVersion
     !$GLC attributes unused :: self
-
+#include "os.inc"
+    
     call displayIndent  ('Begin task: CAMB tool build')
-    call Interface_CAMB_Initialize(cambPath,cambVersion,static=.true.)
+    call Interface_CAMB_Initialize(                    &
+         &                                cambPath   , &
+         &                                cambVersion, &
+#ifdef __APPLE__
+         &                         static=.false.      &
+#else
+         &                         static=.true.       &
+#endif
+         &                        )
     call displayMessage('CAMB version '//cambVersion//' successfully built in: '//cambPath)
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: CAMB tool build')

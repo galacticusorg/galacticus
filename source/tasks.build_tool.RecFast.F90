@@ -67,9 +67,18 @@ contains
     integer                      , intent(  out), optional :: status
     type   (varying_string      )                          :: recfastPath, recfastVersion
     !$GLC attributes unused :: self
+#include "os.inc"
 
     call displayIndent ('Begin task: RecFast tool build')
-    call Interface_RecFast_Initialize(recfastPath,recfastVersion,static=.true.)
+    call Interface_RecFast_Initialize(                       &
+         &                                   recfastPath   , &
+         &                                   recfastVersion, &
+#ifdef __APPLE__
+         &                            static=.false.         &
+#else
+         &                            static=.true.          &
+#endif
+         &                           )
     call displayMessage('RecFast version '//recfastVersion//' successfully built in: '//recfastPath)
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: RecFast tool build')
