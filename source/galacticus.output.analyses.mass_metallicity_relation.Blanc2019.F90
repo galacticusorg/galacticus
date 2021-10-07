@@ -18,41 +18,41 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Contains a module which implements a mass-metallicity relation analysis class.
+  Contains a module which implements a gas-phase mass-metallicity relation analysis class using the observational results of \cite{blanc_characteristic_2019}.
   !!}
 
   !![
-  <outputAnalysis name="outputAnalysisMassMetallicityBlanc2017">
-   <description>A mass-metallicity relation output analysis class.</description>
+  <outputAnalysis name="outputAnalysisMassMetallicityBlanc2019">
+   <description>A gas-phase mass-metallicity relation analysis class using the observational results of \cite{blanc_characteristic_2019}.</description>
   </outputAnalysis>
   !!]
-  type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisMassMetallicityBlanc2017
+  type, extends(outputAnalysisMeanFunction1D) :: outputAnalysisMassMetallicityBlanc2019
      !!{
-     A mass-metallicity relation output analysis class.
+     A gas-phase mass-metallicity relation analysis class using the observational results of \cite{blanc_characteristic_2019}.
      !!}
      private
-  end type outputAnalysisMassMetallicityBlanc2017
+  end type outputAnalysisMassMetallicityBlanc2019
 
-  interface outputAnalysisMassMetallicityBlanc2017
+  interface outputAnalysisMassMetallicityBlanc2019
      !!{
-     Constructors for the ``massMetallicityBlanc2017'' output analysis class.
+     Constructors for the ``massMetallicityBlanc2019'' output analysis class.
      !!}
-     module procedure massMetallicityBlanc2017ConstructorParameters
-     module procedure massMetallicityBlanc2017ConstructorInternal
-  end interface outputAnalysisMassMetallicityBlanc2017
+     module procedure massMetallicityBlanc2019ConstructorParameters
+     module procedure massMetallicityBlanc2019ConstructorInternal
+  end interface outputAnalysisMassMetallicityBlanc2019
 
 contains
 
-  function massMetallicityBlanc2017ConstructorParameters(parameters) result (self)
+  function massMetallicityBlanc2019ConstructorParameters(parameters) result (self)
     !!{
-    Constructor for the ``massMetallicityBlanc2017'' output analysis class which takes a parameter set as input.
+    Constructor for the ``massMetallicityBlanc2019'' output analysis class which takes a parameter set as input.
     !!}
     use :: Cosmology_Functions           , only : cosmologyFunctions             , cosmologyFunctionsClass
     use :: Input_Parameters              , only : inputParameter                 , inputParameters
     use :: Star_Formation_Rates_Disks    , only : starFormationRateDisksClass
     use :: Star_Formation_Rates_Spheroids, only : starFormationRateSpheroidsClass
     implicit none
-    type            (outputAnalysisMassMetallicityBlanc2017)                              :: self
+    type            (outputAnalysisMassMetallicityBlanc2019)                              :: self
     type            (inputParameters                       ), intent(inout)               :: parameters
     double precision                                        , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient           , randomErrorPolynomialCoefficient, &
          &                                                                                   metallicitySystematicErrorPolynomialCoefficient
@@ -115,7 +115,7 @@ contains
     <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisMassMetallicityBlanc2017(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,fractionGasThreshold,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_)
+    self=outputAnalysisMassMetallicityBlanc2019(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,fractionGasThreshold,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"        />
@@ -124,11 +124,11 @@ contains
     <objectDestructor name="starFormationRateSpheroids_"/>
     !!]
     return
-  end function massMetallicityBlanc2017ConstructorParameters
+  end function massMetallicityBlanc2019ConstructorParameters
 
-  function massMetallicityBlanc2017ConstructorInternal(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,fractionGasThreshold,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_) result (self)
+  function massMetallicityBlanc2019ConstructorInternal(metallicitySystematicErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,randomErrorPolynomialCoefficient,randomErrorMinimum,randomErrorMaximum,fractionGasThreshold,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_) result (self)
     !!{
-    Constructor for the ``massMetallicityBlanc2017'' output analysis class for internal use.
+    Constructor for the ``massMetallicityBlanc2019'' output analysis class for internal use.
     !!}
     use :: Abundances_Structure                  , only : Abundances_Index_From_Name                         , abundances
     use :: Atomic_Data                           , only : Atomic_Mass
@@ -155,7 +155,7 @@ contains
     use :: Star_Formation_Rates_Disks            , only : starFormationRateDisksClass
     use :: Star_Formation_Rates_Spheroids        , only : starFormationRateSpheroidsClass
     implicit none
-    type            (outputAnalysisMassMetallicityBlanc2017             )                                :: self
+    type            (outputAnalysisMassMetallicityBlanc2019             )                                :: self
     double precision                                                     , intent(in   )                 :: randomErrorMinimum                                      , randomErrorMaximum                                            , &
          &                                                                                                  fractionGasThreshold
     double precision                                                     , intent(in   ), dimension(:  ) :: metallicitySystematicErrorPolynomialCoefficient         , systematicErrorPolynomialCoefficient                          , &
@@ -199,7 +199,7 @@ contains
 
     ! Read masses at which fraction was measured.
     !$ call hdf5Access%set()
-    call dataFile%openFile   (char(galacticusPath(pathTypeDataStatic))//"observations/abundances/massMetallicityRelationBlanc2017.hdf5",readOnly=.true.             )
+    call dataFile%openFile   (char(galacticusPath(pathTypeDataStatic))//"observations/abundances/massMetallicityRelationBlanc2019.hdf5",readOnly=.true.             )
     call dataFile%readDataset("massStellar"                                                                                            ,         masses             )
     call dataFile%readDataset("abundanceOxygenMean"                                                                                    ,         functionValueTarget)
     call dataFile%readDataset("abundanceOxygen16PercentCI"                                                                             ,         function16Target   )
@@ -382,7 +382,7 @@ contains
     !!]
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                         &
-         &                                                         var_str('massMetallicityBlanc2017'                    ), &
+         &                                                         var_str('massMetallicityBlanc2019'                    ), &
          &                                                         var_str('Mass-metallicity relation'                   ), &
          &                                                         var_str('massStellar'                                 ), &
          &                                                         var_str('Stellar mass'                                ), &
@@ -445,5 +445,5 @@ contains
     nullify(filter_                 )
     nullify(filters_                )
     return
-  end function massMetallicityBlanc2017ConstructorInternal
+  end function massMetallicityBlanc2019ConstructorInternal
 

@@ -425,7 +425,7 @@
     </outputAnalysis>
 
     <!-- Mass-metallicity relations -->
-    <outputAnalysis value="massMetallicityBlanc2017"> <!-- Analysis #16 -->
+    <outputAnalysis value="massMetallicityBlanc2019"> <!-- Analysis #16 -->
       <fractionGasThreshold value="0.10"/>
       <systematicErrorPolynomialCoefficient value="0.0582454381888318 -0.058115287792454"/>
       <metallicitySystematicErrorPolynomialCoefficient value="-0.0432432683189376"/>
