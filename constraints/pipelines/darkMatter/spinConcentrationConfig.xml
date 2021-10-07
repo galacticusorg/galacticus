@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <!-- Posterior sampling simulation parameter file for constraining parameters of the spin and concentration random walk models to MDPL simulations -->
+  <!-- Andrew Benson (17-May-2021)                                                                                                               -->
+
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <verbosityLevel value="standard"/>
+  <errorWaitTime  value="0"/>
+
+  <task value="posteriorSample">
+    <initializeNodeClassHierarchy value="false"/>
+  </task>
+
+  <galacticusOutputFileName value="galacticus.hdf5"/>
+  
+  <posteriorSampleLikelihood value="independentLikelihoods">
+
+    <!-- HugeMDPL -->
+    <parameterMap         value="spinVitvitskaMassExponent virialOrbit::alpha outputAnalysis::outputAnalysis[0]::logNormalRange darkMatterProfileScaleVirialTheoremMassExponent darkMatterProfileScaleVirialTheoremEnergyBoost"/>
+    <parameterInactiveMap value=""                                                                                                                                                    />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/spinConcentrationBaseHugeMDPL.xml"/>
+      <randomize              value="false"                                                                       />
+      <evolveForestsVerbosity value="0"                                                                           />
+    </posteriorSampleLikelihood>
+
+    <!-- BigMDPL -->
+    <parameterMap         value="spinVitvitskaMassExponent virialOrbit::alpha outputAnalysis::outputAnalysis[0]::logNormalRange darkMatterProfileScaleVirialTheoremMassExponent darkMatterProfileScaleVirialTheoremEnergyBoost"/>
+    <parameterInactiveMap value=""                                                                                                                                                    />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/spinConcentrationBaseBigMDPL.xml"/>
+      <randomize              value="false"                                                                      />
+      <evolveForestsVerbosity value="0"                                                                          />
+    </posteriorSampleLikelihood>
+
+    <!-- MDPL2 -->
+    <parameterMap         value="spinVitvitskaMassExponent virialOrbit::alpha outputAnalysis::outputAnalysis[0]::logNormalRange darkMatterProfileScaleVirialTheoremMassExponent darkMatterProfileScaleVirialTheoremEnergyBoost"/>
+    <parameterInactiveMap value=""                                                                                                                                                    />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/spinConcentrationBaseMDPL2.xml"/>
+      <randomize              value="false"                                                                    />
+      <evolveForestsVerbosity value="0"                                                                        />
+    </posteriorSampleLikelihood>
+
+    <!-- SMDPL -->
+    <parameterMap         value="spinVitvitskaMassExponent virialOrbit::alpha outputAnalysis::outputAnalysis[0]::logNormalRange darkMatterProfileScaleVirialTheoremMassExponent darkMatterProfileScaleVirialTheoremEnergyBoost"/>
+    <parameterInactiveMap value=""                                                                                                                                                    />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/spinConcentrationBaseSMDPL.xml"/>
+      <randomize              value="false"                                                                    />
+      <evolveForestsVerbosity value="0"                                                                        />
+    </posteriorSampleLikelihood>
+
+    <!-- VSMDPL -->
+    <parameterMap         value="spinVitvitskaMassExponent virialOrbit::alpha outputAnalysis::outputAnalysis[0]::logNormalRange darkMatterProfileScaleVirialTheoremMassExponent darkMatterProfileScaleVirialTheoremEnergyBoost"/>
+    <parameterInactiveMap value=""                                                                                                                                                    />
+    <posteriorSampleLikelihood value="galaxyPopulation">
+      <baseParametersFileName value="%EXECPATH%/constraints/pipeline/darkMatter/spinConcentrationBaseVSMDPL.xml"/>
+      <randomize              value="false"                                                                     />
+      <evolveForestsVerbosity value="0"                                                                         />
+    </posteriorSampleLikelihood>
+
+  </posteriorSampleLikelihood>
+
+  <!-- Particle swarm optimization -->
+  <posteriorSampleSimulation value="particleSwarm">
+    <stepsMaximum                    value="50"    />
+    <logFlushCount                   value=" 1"    />
+    <reportCount                     value="10"    />
+    <logFileRoot                     value="chains"/>
+    <inertiaWeight                   value="0.720" />
+    <accelerationCoefficientPersonal value="1.193" />
+    <accelerationCoefficientGlobal   value="1.193" />
+    <velocityCoefficient             value="0.500" />
+    <velocityCoefficientInitial      value="0.000" />
+
+    <posteriorSampleStateInitialize value="latinHypercube">
+      <maximinTrialCount value="100"/>
+    </posteriorSampleStateInitialize>
+    
+    <posteriorSampleConvergence value="never"/>
+    
+    <posteriorSampleStoppingCriterion value="never">
+    </posteriorSampleStoppingCriterion>
+    
+    <!-- Spin random walk model parameters -->
+    <modelParameter value="active">
+      <name value="spinVitvitskaMassExponent"/>
+      <distributionFunction1DPrior value="uniform">
+	<limitLower value="0.60"/>
+	<limitUpper value="1.20"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity"/>
+      <distributionFunction1DPerturber value="cauchy">
+	<median value="0.0e+0"/>
+	<scale  value="1.0e-9"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+    <modelParameter value="active">
+      <name value="virialOrbit::alpha"/>
+      <distributionFunction1DPrior value="uniform">
+	<limitLower value="0.1"/>
+	<limitUpper value="1.0"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity"/>
+      <distributionFunction1DPerturber value="cauchy">
+	<median value="0.0e+0"/>
+	<scale  value="1.0e-9"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+    <modelParameter value="active">
+      <name value="outputAnalysis::outputAnalysis[0]::logNormalRange"/>
+      <distributionFunction1DPrior value="uniform">
+	<limitLower value="1.2"/>
+	<limitUpper value="1.7"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity"/>
+      <distributionFunction1DPerturber value="cauchy">
+	<median value="0.0e+0"/>
+	<scale  value="1.0e-9"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+
+    <!-- Concentration random walk model parameters -->
+    <modelParameter value="active">
+      <name value="darkMatterProfileScaleVirialTheoremMassExponent"/>
+      <distributionFunction1DPrior value="uniform">
+	<limitLower value="1.25"/>
+	<limitUpper value="2.25"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity"/>
+      <distributionFunction1DPerturber value="cauchy">
+	<median value="0.0e+0"/>
+	<scale  value="1.0e-9"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+    <modelParameter value="active">
+      <name value="darkMatterProfileScaleVirialTheoremEnergyBoost"/>
+      <distributionFunction1DPrior value="uniform">
+	<limitLower value="0.40"/>
+	<limitUpper value="0.90"/>
+      </distributionFunction1DPrior>
+      <operatorUnaryMapper value="identity"/>
+      <distributionFunction1DPerturber value="cauchy">
+	<median value="0.0e+0"/>
+	<scale  value="1.0e-9"/>
+      </distributionFunction1DPerturber>
+    </modelParameter>
+
+  </posteriorSampleSimulation>
+
+  <!-- Random number generator with seed offset for each MPI process -->
+  <randomNumberGenerator value="GSL">
+    <seed          value="9372"/>
+    <mpiRankOffset value="true"/>
+  </randomNumberGenerator>
+
+  <!-- The following are matched to the base parameters file - this is necessary due to the legacy use of "globalParameters" -->
+  <!-- meaning that these are set from this parameter file, not from the base parameter file -->
+  <!-- Component selection -->
+  <componentBasic             value="standard"/>
+  <componentBlackHole         value="null"    />
+  <componentDarkMatterProfile value="null"    />
+  <componentDisk              value="null"    />
+  <componentHotHalo           value="null"    />
+  <componentSatellite         value="standard"/>
+  <componentSpheroid          value="null"    />
+  <componentMergingStatistics value="standard"/>
+  <componentSpin              value="null"    />
+  <satelliteMergingTimescales value="zero"    />
+
+</parameters>
