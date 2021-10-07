@@ -104,8 +104,8 @@ foreach my $simulation ( @simulations ) {
 		next
 		    if ( -e $simulation->{'path'}."alwaysIsolated_z0.000_subVolume".$i."_".$j."_".$k.".hdf5" );
 		# Modify file names.
-		$parameters->{'nbodyImporterMethod'}                              ->{'fileName'}->{'value'} = $simulation->{'path'}."tree_"                          .$i."_".$j."_".$k.".dat" ;
-		$parameters->{'nbodyOperatorMethod'}->{'nbodyOperatorMethod'}->[3]->{'fileName'}->{'value'} = $simulation->{'path'}."alwaysIsolated_z0.000_subVolume".$i."_".$j."_".$k.".hdf5";
+		$parameters->{'nbodyImporter'}                              ->{'fileName'}->{'value'} = $simulation->{'path'}."tree_"                          .$i."_".$j."_".$k.".dat" ;
+		$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[3]->{'fileName'}->{'value'} = $simulation->{'path'}."alwaysIsolated_z0.000_subVolume".$i."_".$j."_".$k.".hdf5";
 		# Write parmeter file.
 		my $parameterFileName = $simulation->{'path'}."identifyAlwaysIsolated_".$i."_".$j."_".$k.".xml";
 		open(my $outputFile,">",$parameterFileName);
@@ -135,13 +135,13 @@ foreach my $simulation ( @simulations ) {
     ## Parse the base parameters.
     my $massFunctionParameters = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/haloMassFunctionCompute.xml");
     ## Iterate over subvolumes.
-    my @nbodyImporterMethods;
+    my @nbodyImporters;
     for(my $i=0;$i<10;++$i) {
 	for(my $j=0;$j<10;++$j) {
 	    for(my $k=0;$k<10;++$k) {
 		# Add an importer for this subvolume.
 		push(
-		    @nbodyImporterMethods,
+		    @nbodyImporters,
 		    {
 			value    => "IRATE"                                                                              ,
 			fileName => {value => $simulation->{'path'}."alwaysIsolated_z0.000_subVolume".$i."_".$j."_".$k.".hdf5"},
@@ -154,14 +154,14 @@ foreach my $simulation ( @simulations ) {
     ## Compute the mass function.
     unless ( -e $simulation->{'path'}."haloMassFunction_z0.000.hdf5" ) {
 	## Modify parameters.
-	@{$massFunctionParameters->{'nbodyImporterMethod'     }->{'nbodyImporterMethod'}} = @nbodyImporterMethods;
+	@{$massFunctionParameters->{'nbodyImporter'     }->{'nbodyImporter'}} = @nbodyImporters;
 	$massFunctionParameters  ->{'galacticusOutputFileName'}->{'value'}  = $simulation->{'path'}."haloMassFunction_z0.000.hdf5";
-$massFunctionParameters  ->{'nbodyOperatorMethod'}->{'nbodyOperatorMethod'}->[0]->{'values'             }->{'value'} = $simulation->{'massParticle'       };
-	$massFunctionParameters  ->{'nbodyOperatorMethod'}->{'nbodyOperatorMethod'}->[1]->{'description'        }->{'value'} = $simulation->{'description'        };
-	$massFunctionParameters  ->{'nbodyOperatorMethod'}->{'nbodyOperatorMethod'}->[1]->{'simulationReference'}->{'value'} = $simulation->{'simulationReference'};
-	$massFunctionParameters  ->{'nbodyOperatorMethod'}->{'nbodyOperatorMethod'}->[1]->{'simulationURL'      }->{'value'} = $simulation->{'simulationURL'      };
-	$massFunctionParameters  ->{'nbodyOperatorMethod'}->{'nbodyOperatorMethod'}->[1]->{'massMinimum'        }->{'value'} = $simulation->{'massMinimum'        };
-	$massFunctionParameters  ->{'nbodyOperatorMethod'}->{'nbodyOperatorMethod'}->[1]->{'massMaximum'        }->{'value'} = $simulation->{'massMaximum'        };
+$massFunctionParameters  ->{'nbodyOperator'}->{'nbodyOperator'}->[0]->{'values'             }->{'value'} = $simulation->{'massParticle'       };
+	$massFunctionParameters  ->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'description'        }->{'value'} = $simulation->{'description'        };
+	$massFunctionParameters  ->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'simulationReference'}->{'value'} = $simulation->{'simulationReference'};
+	$massFunctionParameters  ->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'simulationURL'      }->{'value'} = $simulation->{'simulationURL'      };
+	$massFunctionParameters  ->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'massMinimum'        }->{'value'} = $simulation->{'massMinimum'        };
+	$massFunctionParameters  ->{'nbodyOperator'}->{'nbodyOperator'}->[1]->{'massMaximum'        }->{'value'} = $simulation->{'massMaximum'        };
 	## Write the parameter file.
 	my $parameterFileName = $simulation->{'path'}."haloMassFunction_z0.000.xml";
 	open(my $outputFile,">",$parameterFileName);
