@@ -17,12 +17,15 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v2
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Build the code
         run: |
-          echo $GITHUB_WORKSPACE
-          pwd
-          ls
-          which gfortran
+          echo $GALACTICUS_EXEC_PATH
+          cd $GALACTICUS_EXEC_PATH
           gfortran -v
+          make -j2 Galacticus.exe
+          file Galacticus.exe
           echo done
       - run: echo "This job's status is ${{ job.status }}."
