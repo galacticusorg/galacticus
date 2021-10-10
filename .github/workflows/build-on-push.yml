@@ -20,4 +20,5 @@ jobs:
       - name: Build the code
         run: |
           echo $GITHUB_WORKSPACE
+          pwd
       - run: echo "This job's status is ${{ job.status }}."
