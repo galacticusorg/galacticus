@@ -19,10 +19,5 @@ jobs:
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: Build the code
         run: |
-          export GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE
-          cd $GALACTICUS_EXEC_PATH
-          ls
-          env
-          which gfortran
-          gfortran -v
+          echo $GITHUB_WORKSPACE
       - run: echo "This job's status is ${{ job.status }}."
