@@ -21,7 +21,7 @@ jobs:
         run: |
           pwd
           ls ${{ github.workspace }}
-	  env
-	  which gfortran
-	  gfortran -v
+          env
+          which gfortran
+          gfortran -v
       - run: echo "This job's status is ${{ job.status }}."
