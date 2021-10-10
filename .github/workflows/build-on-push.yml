@@ -21,4 +21,8 @@ jobs:
         run: |
           echo $GITHUB_WORKSPACE
           pwd
+          ls
+          which gfortran
+          gfortran -v
+          echo done
       - run: echo "This job's status is ${{ job.status }}."
