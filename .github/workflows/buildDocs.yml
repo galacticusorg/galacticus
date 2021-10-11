@@ -1,0 +1,36 @@
+name: Documentation
+on:
+  push:
+    branches:
+      - master
+jobs:
+  Build-Documentation:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    concurrency:
+      group: doc-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Build the docs
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          ./scripts/doc/Build_Documentation.sh -f yes -p 2
+      - name: Update release
+        uses: johnwbyrd/update-release@v1.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: ./docs/Galacticus_Usage.pdf ./docs/Galacticus_Physics.pdf ./docs/Galacticus_Development.pdf ./docs/Galacticus_Source.pdf
+	  release: bleeding-edge
+	  prerelease: true
+          message: Bleeding edge release
+          body: This release is updated to match the latest revision to Galacticus (${{ github.sha }}).
+      - run: echo "This job's status is ${{ job.status }}."
