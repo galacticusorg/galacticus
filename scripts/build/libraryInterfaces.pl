@@ -278,6 +278,13 @@ sub interfacesConstructors {
 		$cType                               = "real(c_double)";
 		$ext::isoCBindingSymbols{'c_double'} = 1;
 		push(@clibArgTypes,"c_double");
+	    } elsif ( $argument->{'intrinsic'} eq "logical" ) {
+		$cType                               = "logical(c_bool)";
+		$ext::isoCBindingSymbols{'c_bool'} = 1;
+		push(@clibArgTypes,"c_bool");
+		$ext::dereference          .= $argument->{'name'}."_=logical(".$argument->{'name'}.")\n";
+		$argument->{'passName'}    .= "_";
+		$ext::declarations         .= "  logical :: ".$argument->{'name'}."_\n";
 	    } elsif ( $argument->{'intrinsic'} eq "class" ) {
 		$cType                            = "type(c_ptr)";
 		$ext::isoCBindingSymbols{'c_ptr'} = 1;
@@ -447,6 +454,8 @@ sub interfacesMethods {
 	undef(@ext::methodArguments         );
 	undef(@ext::pythonMethodArguments   );
 	undef(%ext::isoCBindingSymbols      );
+	undef($ext::resultConversionOpen    );
+	undef($ext::resultConversionClose   );
 	my $clibResType;
 	my @clibArgTypes;
 	# Initialize the hash of ISO_C_Binding symbols that we must import. "c_ptr" and "c_int" are always needed.
@@ -460,12 +469,20 @@ sub interfacesMethods {
 	    }
 	}
 	# Add function declaration.
-	$ext::procedure = "function";
+	$ext::procedure             = "function";
+	$ext::resultConversionOpen  = "";
+	$ext::resultConversionClose = "";
 	my $functionCType;
 	if ( $ext::method->{'type'} eq "double precision" ) {
 	    $functionCType                       = "real(c_double)";
 	    $clibResType                         = "c_double";
 	    $ext::isoCBindingSymbols{'c_double'} = 1;
+	} elsif ( $ext::method->{'type'} eq "logical" ) {
+	    $functionCType                       = "logical(c_bool)";
+	    $clibResType                         = "c_bool";
+	    $ext::isoCBindingSymbols{'c_bool'}   = 1;
+	    $ext::resultConversionOpen           = "logical(";
+	    $ext::resultConversionClose          = ",kind=c_bool)";
 	} elsif ( $ext::method->{'type'} eq "void" ) {
 	    	$ext::procedure = "subroutine";
 	} else {
@@ -495,7 +512,7 @@ sub interfacesMethods {
 		push(@ext::methodArguments,@{$argument->{'variableNames'}});
 		my $suffix = $isOptional ? "=None" : "";
 		push(@ext::pythonMethodArguments,map {$_.$suffix} @{$argument->{'variableNames'}});
-		push(@clibArgTypes,"c_double");
+		push(@clibArgTypes,("c_double") x scalar(@{$argument->{'variableNames'}}));
 	    } elsif ( $argument->{'intrinsic'} eq "integer" ) {
 		if ( defined($argument->{'type'}) ) {
 		    die("unsupported integer type '".$argument->{'type'}."'");
@@ -506,7 +523,7 @@ sub interfacesMethods {
 		    push(@ext::methodArguments,@{$argument->{'variableNames'}});   
 		    my $suffix = $isOptional ? "=None" : "";
 		    push(@ext::pythonMethodArguments,map {$_.$suffix} @{$argument->{'variableNames'}});
-		    push(@clibArgTypes,"c_int");
+		    push(@clibArgTypes,("c_int") x scalar(@{$argument->{'variableNames'}}));
 		}
 	    } elsif ( $argument->{'intrinsic'} eq "logical" ) {
 		$cType                                = "logical(c_bool)";
@@ -515,7 +532,7 @@ sub interfacesMethods {
 		push(@ext::methodArguments,map {$_."_"} @{$argument->{'variableNames'}});
 		my $suffix = $isOptional ? "=None" : "";
 		push(@ext::pythonMethodArguments,map {$_.$suffix} @{$argument->{'variableNames'}});
-		push(@clibArgTypes,"c_bool");
+		push(@clibArgTypes,("c_bool") x scalar(@{$argument->{'variableNames'}}));
 		foreach my $variableName ( @{$argument->{'variableNames'}} ) {
 		    $ext::reassignments              .=  $variableName."_=".$variableName."\n";
 		}
@@ -542,7 +559,7 @@ sub interfacesMethods {
 {$declarations}
 
 {$reassignments}
-  {$method->{'type'} eq "void" ? "call " : $functionClass->{'name'}.ucfirst($method->{'name'})."PY="}self_%{$method->{'name'}}({join(",",@methodArguments)})
+  {$method->{'type'} eq "void" ? "call " : $functionClass->{'name'}.ucfirst($method->{'name'})."PY="}{$resultConversionOpen}self_%{$method->{'name'}}({join(",",@methodArguments)}){$resultConversionClose}
   return
 end {$procedure} {$functionClass->{'name'}}{ucfirst($method->{'name'})}PY
 CODE
