@@ -9,6 +9,7 @@ use XML::Simple;
 use Data::Dumper;
 use Sort::Topo;
 use Text::Template 'fill_in_string';
+use Scalar::Util qw(reftype);
 
 # Build interfaces for libgalacticus.
 # Andrew Benson (28-September-2021)
@@ -53,7 +54,12 @@ foreach my $fileName ( @{$directiveLocations->{'functionClass'}->{'file'}} ) {
 	    unless ( grep {$node->{'directive'}->{'name'} eq $_} keys(%{$libraryFunctionClasses->{'classes'}}) );
 	# Get the corresponding functionClass.
 	my $functionClass = $libraryFunctionClasses->{'classes'}->{$node->{'directive'}->{'name'}};
-	$functionClass->{'methods'} = $node->{'directive'}->{'method'};	
+	if ( exists($node->{'directive'}->{'method'}->{'name'}) && ! reftype($node->{'directive'}->{'method'}->{'name'}) ) {
+	    # Only a single method is defined for this class. Turn it back into a hash reference.
+	    $functionClass->{'methods'}->{$node->{'directive'}->{'method'}->{'name'}} = $node->{'directive'}->{'method'};	
+	} else {
+	    $functionClass->{'methods'}                                               = $node->{'directive'}->{'method'};	
+	}
 	# Find all implementations of this class.
 	my $classID = 0;
 	foreach my $fileNameImplementation ( &List::ExtraUtils::as_array($directiveLocations->{$functionClass->{'name'}}->{'file'}) ) {
@@ -105,18 +111,17 @@ foreach my $fileName ( @{$directiveLocations->{'functionClass'}->{'file'}} ) {
 		}
 	    }
 	    die("Unable to find implementation of '".$functionClass->{'name'}."' in '".$fileNameImplementation."'")
-		unless ( defined($nameImplementation  ) );
-	    die("Unable to find internal constructor of '".$nameImplementation."' in '".$fileNameImplementation."'")
-		unless ( defined($nameConstructor     ) );
-	    die("Unable to find internal constructor arguments for '".$nameConstructor."' in '".$fileNameImplementation."'")
-		unless (         @argumentsConstructor  );
+		unless ( defined($nameImplementation) );
+	    # If no internal constructor was found, use the default constructor.
+	    $nameConstructor      = $nameImplementation
+		unless ( defined($nameConstructor   ) );
 	    ++$classID;
 	    my $implementation =
 	    {
 		name      => $nameImplementation    ,
 		classID   => $classID               ,
 		fileName  => $fileNameImplementation,
-		arguments => \@argumentsConstructor
+		arguments => @argumentsConstructor ? \@argumentsConstructor : []
 	    };
 	    push(
 		@{$functionClass->{'implementations'}},
@@ -300,10 +305,10 @@ sub interfacesConstructors {
 		die "unsupported type '".$argument->{'intrinsic'}."'";
 	    }
 	    # Determine intent.
-	    if ( grep {$_ =~ m/intent\s*\(\s*in\s*\)/} @{$argument->{'attributes'}} ) {
+	    if ( $cType eq "type(c_ptr)" || grep {$_ =~ m/intent\s*\(\s*in\s*\)/} @{$argument->{'attributes'}} ) {
 		push(@cAttributes,"value");
 	    } else {
-		die("unsupported intent");
+		die("unsupported intent '".join(", ",@{$argument->{'attributes'}})."'");
 	    }
 	    # Add this argument to the Python constructor.
 	    my $pythonConstructorArgument = $argument->{'name'};
