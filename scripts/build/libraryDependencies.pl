@@ -54,7 +54,7 @@ my $pthreadIncluded = grep {$_ eq "-lpthread"} @compilerOptions;
 # Initialize a hash of required libraries.
 my %libraries;
 # Open the file of dependencies for the executable.
-(my $dependencyFileName = $ENV{'BUILDPATH'}."/".$executable) =~ s/\.exe$/\.d/;
+(my $dependencyFileName = $ENV{'BUILDPATH'}."/".$executable) =~ s/\.(exe|o)$/\.d/;
 die("libraryDependencies.pl: dependency file is missing")
     unless ( -e $dependencyFileName );
 open(my $dependencyFile,$dependencyFileName);
