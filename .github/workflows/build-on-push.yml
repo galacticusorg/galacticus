@@ -23,19 +23,17 @@ jobs:
           echo "GALACTICUS_FCFLAGS+=\ -static" >> $GITHUB_ENV
       - name: Build the code
         run: |
-          echo $GALACTICUS_FCFLAGS
           cd $GALACTICUS_EXEC_PATH
-          gfortran -v
           make -j2 Galacticus.exe
-          file Galacticus.exe
           mv Galacticus.exe galacticus.exe
           md5sum galacticus.exe
-          echo done
       - name: Update release
         uses: johnwbyrd/update-release@v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           files: ./galacticus.exe
+	  release: bleeding-edge
+	  prerelease: true
           message: Bleeding edge release
           body: This release is updated to match the latest revision to Galacticus (${{ github.sha }}).
       - run: echo "This job's status is ${{ job.status }}."
