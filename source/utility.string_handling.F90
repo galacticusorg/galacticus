@@ -368,9 +368,9 @@ contains
     use, intrinsic :: ISO_C_Binding     , only : c_char, c_null_char
     use            :: ISO_Varying_String, only : varying_string, assignment(=), operator(//)
     implicit none
-    type     (varying_string)                :: String_C_to_Fortran
+    type     (varying_string)                              :: String_C_to_Fortran
     character(kind=c_char   ), intent(in   ), dimension(*) :: charArray
-    integer                                  :: i
+    integer                                                :: i
 
     String_C_to_Fortran=""
     i=1
