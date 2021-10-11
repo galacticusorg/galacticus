@@ -25,13 +25,12 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           make -j2 Galacticus.exe
-          mv Galacticus.exe galacticus.exe
-          md5sum galacticus.exe
+          md5sum Galacticus.exe
       - name: Update release
         uses: johnwbyrd/update-release@v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          files: ./galacticus.exe
+          files: ./Galacticus.exe
 	  release: bleeding-edge
 	  prerelease: true
           message: Bleeding edge release
