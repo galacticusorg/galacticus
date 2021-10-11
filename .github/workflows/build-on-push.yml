@@ -27,5 +27,14 @@ jobs:
           gfortran -v
           make -j2 Galacticus.exe
           file Galacticus.exe
+          mv Galacticus.exe galacticus.exe
+          md5sum galacticus.exe
           echo done
+      - name: Update release
+        uses: johnwbyrd/update-release@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: $GALACTICUS_EXEC_PATH/galacticus.exe
+          message: Bleeding edge release
+          body: This release is updated to match the latest revision to Galacticus (${{ github.sha }}).
       - run: echo "This job's status is ${{ job.status }}."
