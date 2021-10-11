@@ -29,8 +29,8 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           files: ./docs/Galacticus_Usage.pdf ./docs/Galacticus_Physics.pdf ./docs/Galacticus_Development.pdf ./docs/Galacticus_Source.pdf
-	  release: bleeding-edge
-	  prerelease: true
+          release: bleeding-edge
+          prerelease: true
           message: Bleeding edge release
           body: This release is updated to match the latest revision to Galacticus (${{ github.sha }}).
       - run: echo "This job's status is ${{ job.status }}."
