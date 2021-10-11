@@ -274,17 +274,32 @@ sub interfacesConstructors {
 	    # By default the argument name to pass to the constructor is just the argument name passed to this interface function.
 	    $argument->{'passName'} = $argument->{'name'};
 	    # Map types.
+	    my $declarations = "";
 	    if ( $argument->{'intrinsic'} eq "double precision" ) {
 		$cType                               = "real(c_double)";
 		$ext::isoCBindingSymbols{'c_double'} = 1;
 		push(@clibArgTypes,"c_double");
+	    } elsif ( $argument->{'intrinsic'} eq "integer" ) {
+		unless ( defined($argument->{'type'}) ) {
+		    $cType                            = "integer(c_int)";
+		    $ext::isoCBindingSymbols{'c_int'} = 1;
+		    push(@clibArgTypes,"c_int");
+		}
 	    } elsif ( $argument->{'intrinsic'} eq "logical" ) {
 		$cType                               = "logical(c_bool)";
 		$ext::isoCBindingSymbols{'c_bool'} = 1;
 		push(@clibArgTypes,"c_bool");
 		$ext::dereference          .= $argument->{'name'}."_=logical(".$argument->{'name'}.")\n";
 		$argument->{'passName'}    .= "_";
-		$ext::declarations         .= "  logical :: ".$argument->{'name'}."_\n";
+		$declarations              .= "  logical :: ".$argument->{'name'}."_\n";
+	    } elsif ( $argument->{'intrinsic'} eq "character" ) {
+		$cType                               = "character(c_char)";
+		$ext::isoCBindingSymbols{'c_char'} = 1;
+		push(@clibArgTypes,"c_char_p");
+		push(@cAttributes,"dimension(*)");
+		$argument->{'passName'}     = "char(String_C_to_Fortran(".$argument->{'name'}."))";
+		$ext::moduleUses->{'String_Handling'}->{'String_C_to_Fortran'} = 1;
+		$ext::moduleUses->{'ISO_Varying_String'}->{'char'} = 1;
 	    } elsif ( $argument->{'intrinsic'} eq "class" ) {
 		$cType                            = "type(c_ptr)";
 		$ext::isoCBindingSymbols{'c_ptr'} = 1;
@@ -293,15 +308,16 @@ sub interfacesConstructors {
 		if ( my @matchedClass = grep {$argument->{'type'} eq $_."Class"} keys(%{$libraryFunctionClasses->{'classes'}}) ) {
 		    # Add a classID argument for this functionClass argument, and send the object pointer and ID separately to the Python interface.
 		    push(@ext::functionArguments,$argument->{'name'}."_ID");
+		    push(@clibArgTypes,"c_int");
 		    $ext::pythonFunctionArguments[-1] .= "._glcObj";
 		    push(@ext::pythonFunctionArguments,$argument->{'name'}."._classID");
-		    $ext::declarations                .= "  integer(c_int), value :: ".$argument->{'name'}."_ID\n";
+		    $declarations                     .= "  integer(c_int), value :: ".$argument->{'name'}."_ID\n";
 		    $ext::isoCBindingSymbols{'c_int'}  = 1;
 		    # Add code to deference this to a pointer.
 		    (my $className = $argument->{'type'}) =~ s/Class$//;
-		    $ext::declarations         .= "  class(".$argument->{'type'}."), pointer :: ".$className."GetPtr\n"
+		    $declarations              .= "  class(".$argument->{'type'}."), pointer :: ".$className."GetPtr\n"
 			unless ( exists($getPtrClasses{$className}) );
-		    $ext::declarations         .= "  class(".$argument->{'type'}."), pointer :: ".$argument->{'name'}."_\n";
+		    $declarations              .= "  class(".$argument->{'type'}."), pointer :: ".$argument->{'name'}."_\n";
 		    $getPtrClasses{$className}  = 1;
 		    $ext::dereference          .= $argument->{'name'}."_ => ".$className."GetPtr(".$argument->{'name'}.",".$argument->{'name'}."_ID)\n";
 		    $argument->{'passName'}    .= "_";
@@ -309,11 +325,13 @@ sub interfacesConstructors {
 		    $ext::moduleUses->{$moduleName}->{$argument->{'type'}} = 1;
 		}
 	    } else {
-		die "unsupported type '".$argument->{'intrinsic'}."'";
+		die "unsupported type '".$argument->{'intrinsic'}."' in constructor arguemnt '".$argument->{'name'}."' for class '".$ext::implementation->{'name'}."'";
 	    }
 	    # Determine intent.
-	    if ( $cType eq "type(c_ptr)" || grep {$_ =~ m/intent\s*\(\s*in\s*\)/} @{$argument->{'attributes'}} ) {
+	    if ( ( $cType eq "type(c_ptr)" || grep {$_ =~ m/intent\s*\(\s*in\s*\)/} @{$argument->{'attributes'}} ) && ! grep {$_ =~ m/^dimension/} @cAttributes ) {
 		push(@cAttributes,"value");
+	    } elsif ( grep {$_ =~ m/^dimension/} @cAttributes ) {
+		# Array object - no need to add "value" attribute.
 	    } else {
 		die("unsupported intent '".join(", ",@{$argument->{'attributes'}})."'");
 	    }
@@ -323,10 +341,11 @@ sub interfacesConstructors {
 		if ( grep {$_ eq "optional"} @{$argument->{'attributes'}} );
 	    push(@ext::pythonConstructorArguments,$pythonConstructorArgument);
 	    # Add a declaration for this argument, and add it into the call to the constructor function.
-	    $ext::declarations         .= "  ".$cType.(@cAttributes ? ", " : "").join(", ",@cAttributes)." :: ".$argument->{'name'}."\n";
+	    $ext::declarations         .= "  ".$cType.(@cAttributes ? ", " : "").join(", ",@cAttributes)." :: ".$argument->{'name'}."\n".$declarations;
 	    $ext::constructorArguments .= "  &amp; ".$argument->{'name'}."=".$argument->{'passName'}.($isLast ? " &amp;" : ", &amp;\n");
 	}
 	# Build code for module uses.
+	$ext::moduleUseCode = "";
 	foreach my $moduleName ( sort(keys(%{$ext::moduleUses})) ) {
 	    $ext::moduleUseCode .= "use :: ".$moduleName.", only : ".join(", ",sort(keys(%{$ext::moduleUses->{$moduleName}})))."\n";
 	}
