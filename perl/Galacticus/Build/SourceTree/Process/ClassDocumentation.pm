@@ -245,7 +245,7 @@ sub processFunction {
 			my $kind      = $matches[$Fortran::Utils::unitOpeners{'function'}->{'kind'     }];
 			delete($method->{'type'});
 			$method->{'type'}->{'intrinsic'} =                  $intrinsic     ;
-			$method->{'type'}->{'type'     } = defimed($kind) ? $kind      : "";
+			$method->{'type'}->{'type'     } = defined($kind) ? $kind      : "";
 		    } else {
 			die(" Galacticus::Build::SourceTree::Process::ClassDocumentation::processFunction(): can not determine return type for function");
 		    }
