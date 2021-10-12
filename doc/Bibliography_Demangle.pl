@@ -15,6 +15,9 @@ while ( my $line = <iHndl> ) {
     # zwaan_hipass_2005 title
     $line =~ s/\{\\\$\{\\textbackslash\}Omega\\\$\\_\{\{\\textbackslash\}rm\} \{HI\}\}/\$\\Omega_{\\rm HI}\$/;
 
+    # Obsoleted commands.
+    $line =~ s/\{\\rm\s/\\mathrm\{/g;
+    
     # Unknown symbols.
     $line =~ s/�/ /g;
     $line =~ s/�/ /g;
