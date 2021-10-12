@@ -217,6 +217,8 @@ sub processFunction {
 			    }
 			    if ( @matchedNames ) {
 				my $declarationCopy = dclone($declaration);
+				$declarationCopy->{'type'} = ""
+				    unless ( defined($declarationCopy->{'type'}) );
 				@{$declarationCopy->{'variableNames'}} = @matchedNames;
 				@{$declarationCopy->{'variables'    }} = @matchedNames;
 				push(@argumentDeclarations,$declarationCopy);
@@ -224,6 +226,8 @@ sub processFunction {
 			    # Look for a match to the function return type.
 			    if ( $functionReturnName && grep {lc($_) eq lc($functionReturnName)} @{$declaration->{'variableNames'}} ) {
 				$method->{'type'} = dclone($declaration);
+				$method->{'type'}->{'type'} = ""
+				    unless ( defined($method->{'type'}->{'type'}) );
 				$method->{'type'}->{'variableNames'} = [ $functionReturnName ];
 				$method->{'type'}->{'variables'    } = [ $functionReturnName ];
 			    }
@@ -240,8 +244,8 @@ sub processFunction {
 			my $intrinsic = $matches[$Fortran::Utils::unitOpeners{'function'}->{'intrinsic'}];
 			my $kind      = $matches[$Fortran::Utils::unitOpeners{'function'}->{'kind'     }];
 			delete($method->{'type'});
-			$method->{'type'}->{'intrinsic'} = $intrinsic;
-			$method->{'type'}->{'type'     } = $kind     ;
+			$method->{'type'}->{'intrinsic'} =                  $intrinsic     ;
+			$method->{'type'}->{'type'     } = defined($kind) ? $kind      : "";
 		    } else {
 			die(" Galacticus::Build::SourceTree::Process::ClassDocumentation::processFunction(): can not determine return type for function");
 		    }

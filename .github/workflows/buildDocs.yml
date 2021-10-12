@@ -23,9 +23,7 @@ jobs:
       - name: Build the docs
         run: |
           cd $GALACTICUS_EXEC_PATH
-          #./scripts/doc/Build_Documentation.sh -f yes -p 2
-          make -j2 GALACTICUS_BUILD_DOCS=yes SUFFIX= BUILDPATH=./work/build work/build/utility.unit_tests.p.F90
-          cat work/build/utility.unit_tests.p.F90
+          ./scripts/doc/Build_Documentation.sh -f yes -p 2
       - name: Update release
         uses: johnwbyrd/update-release@v1.0.0
         with:

@@ -42,21 +42,21 @@ if [ $? -ne 0 ]; then
 fi
 
 # Extract source code data.
-scripts/doc/extractData.pl source doc/data
+./scripts/doc/extractData.pl source doc/data
 if [ $? -ne 0 ]; then
  echo Failed to extract source code data
  exit 1
 fi
 
 # Extract contributor data.
-scripts/doc/Extract_Contributors.pl . doc/contributions.tex
+./scripts/doc/Extract_Contributors.pl . doc/contributions.tex
 if [ $? -ne 0 ]; then
  echo Failed to extract contributor data
  exit 1
 fi
 
 # Analyze source code.
-scripts/doc/Code_Analyzer.pl source doc/source_documentation.tex
+./scripts/doc/Code_Analyzer.pl source doc/source_documentation.tex
 if [ $? -ne 0 ]; then
  echo Failed to analyze source code
  exit 1
@@ -66,7 +66,7 @@ fi
 cd doc
 
 # Demangle the bibliography.
-Bibliography_Demangle.pl
+./Bibliography_Demangle.pl
 if [ $? -ne 0 ]; then
  echo Failed to demangle bibliography
  exit 1
