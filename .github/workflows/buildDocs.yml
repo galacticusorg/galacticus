@@ -28,7 +28,7 @@ jobs:
         uses: johnwbyrd/update-release@v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          files: ./docs/Galacticus_Usage.pdf ./docs/Galacticus_Physics.pdf ./docs/Galacticus_Development.pdf ./docs/Galacticus_Source.pdf
+          files: ./galacticus/docs/Galacticus_Usage.pdf ./galacticus/docs/Galacticus_Physics.pdf ./galacticus/docs/Galacticus_Development.pdf ./galacticus/docs/Galacticus_Source.pdf
           release: bleeding-edge
           prerelease: true
           message: Bleeding edge release
