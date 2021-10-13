@@ -141,8 +141,16 @@ foreach my $fileName ( @{$directiveLocations->{'functionClass'}->{'file'}} ) {
     }
 }
 
-# Append the initialization code. This is necessary to cause libgfortran to be initialized at run time.
+# Append the initialization code. This consists of a function that will be called on module import to initialize various things in
+# Galacticus, plus a Fortran "program" unit. This latter is necessary to cause libgfortran to be initialized at run time.
 my $libraryInitializer = fill_in_string(<<'CODE', PACKAGE => 'code');
+subroutine libGalacticusInitPY() bind(c,name='libGalacticusInitPY')
+  use:: Events_Hooks, only : eventsHooksInitialize
+
+  ! Initialize event hooks.
+  call eventsHooksInitialize()
+end subroutine libGalacticusInitPY
+
 program libGalacticusInit
 end program libGalacticusInit
 CODE
@@ -162,6 +170,7 @@ from ctypes import *
 # Load the shared library into ctypes.
 libname = "./libgalacticus.so"
 c_lib = CDLL(libname)
+c_lib.libGalacticusInitPY()
 CODE
 foreach my $clibFunction ( @{$python->{'c_lib'}} ) {
     $python->{'units'}->{'init'}->{'content'} .= "c_lib.".$clibFunction->{'name'}.".restype  = "  .            $clibFunction->{'restype' }  ."\n"
@@ -268,6 +277,7 @@ sub interfacesConstructors {
 	# Iterate over each argument, building the argument list, declarations, pointer dereferencings, and constructor arguments.
 	$ext::countOptional       = 0;
 	$ext::countUniqueOptional = 0;
+	my $pythonDefaultArg      = 0;
 	foreach my $argument ( @{$ext::implementation->{'arguments'}} ) {
 	    # Flag if this is the last argument.
 	    my $isLast = $argument == ${$ext::implementation->{'arguments'}}[-1];
@@ -395,8 +405,10 @@ CODE
 		if ( $isOptional );
 	    # Add this argument to the Python constructor.
 	    my $pythonConstructorArgument = $argument->{'name'};
-	    $pythonConstructorArgument .= "=None"
+	    $pythonDefaultArg = 1
 		if ( $isOptional );
+	    $pythonConstructorArgument .= "=None"
+		if ( $pythonDefaultArg );
 	    push(@ext::pythonConstructorArguments,$pythonConstructorArgument);
 	    # Add a declaration for this argument, and add it into the call to the constructor function.
 	    $ext::declarations         .= "  ".$cType.(@cAttributes ? ", " : "").join(", ",@cAttributes)." :: ".$argument->{'name'}."\n".$declarations;
@@ -485,12 +497,11 @@ CODE
 	    $constructor
 	);
 	# Add library interface descriptors.
-	my $firstOptional;
-	for($firstOptional=0;$firstOptional<scalar(@ext::clibArgTypes);++$firstOptional) {
+	for($ext::firstOptional=0;$ext::firstOptional<scalar(@ext::clibArgTypes);++$ext::firstOptional) {
 	    last
-		if ( $ext::argsOptional[$firstOptional] >= 0 );
+		if ( $ext::argsOptional[$ext::firstOptional] >= 0 );
 	}
-	my @clibArgTypesNonOptional = $firstOptional > 0 ? @ext::clibArgTypes[0..$firstOptional-1] : ();
+	my @clibArgTypesNonOptional = $ext::firstOptional > 0 ? @ext::clibArgTypes[0..$ext::firstOptional-1] : ();
 	push(
 	    @{$python->{'c_lib'}},
 	    {
@@ -518,7 +529,7 @@ CODE
 		$ext::condition = "    ".($i > 0 ? "el" : "")."if ".join(" and ",map {$ext::argsOptional[$_] < 0 ? () : ($ext::state[$ext::argsOptional[$_]] == 0 ? "not " : "")."".$ext::pythonFunctionArguments[$_]} 0..scalar(@ext::pythonFunctionArguments)-1).":";
 		$pythonConstructor .= fill_in_string(<<'CODE', PACKAGE => 'ext');
 {$condition}
-        self._glcObj = c_lib.{$implementation->{'name'}}PY({join(",",map {$ext::argsOptional[$_] < 0 ? $pythonFunctionArguments[$_] : ($state[$ext::argsOptional[$_]] == 1 ? "byref(".$clibArgTypes[$_]."(".$pythonFunctionArguments[$_]."))" : "None")} 0..scalar(@pythonFunctionArguments)-1)})
+        self._glcObj = c_lib.{$implementation->{'name'}}PY({join(",",map {$argsOptional[$_] < 0 ? ($_ >= $firstOptional ? $clibArgTypes[$_]."(" : "").$pythonFunctionArguments[$_].($_ >= $firstOptional ? ")" : "") : ($state[$argsOptional[$_]] == 1 ? "byref(".$clibArgTypes[$_]."(".$pythonFunctionArguments[$_]."))" : "None")} 0..scalar(@pythonFunctionArguments)-1)})
 CODE
 	    }
         }
@@ -600,6 +611,7 @@ sub interfacesMethods {
 	undef(@ext::clibArgTypes            );
 	undef(@ext::argsOptional            );
 	my $clibResType;
+	my $moduleUses;
 	# Initialize the hash of ISO_C_Binding symbols that we must import. "c_ptr" and "c_int" are always needed.
 	$ext::isoCBindingSymbols{'c_ptr'} = 1;
 	$ext::isoCBindingSymbols{'c_int'} = 1;
@@ -652,9 +664,15 @@ sub interfacesMethods {
 	    # Determine pass by. Scalar arguments that are 'intent(in   )' and not optional can be passed by value, others must be passed by reference.
 	    my $passBy =
 		(
-		 (  grep {$_ =~ m/intent\s*\(\s*in\s*\)/} @{$argument->{'attributes'}})
-		 &&
-		 (! grep {$_ =~ m/dimension/            } @{$argument->{'attributes'}})
+		 (
+		  (
+		   (  grep {$_ =~ m/intent\s*\(\s*in\s*\)/} @{$argument->{'attributes'}})
+		   &&
+		   (! grep {$_ =~ m/dimension/            } @{$argument->{'attributes'}})
+		  )
+		  ||
+		  ($argument->{'intrinsic'} eq "type" && $argument->{'type'} eq "treeNode")
+		 )
 		 &&
 		 (! grep {$_ eq "optional"              } @{$argument->{'attributes'}})
 		)
@@ -708,8 +726,26 @@ sub interfacesMethods {
 		foreach my $variableName ( @{$argument->{'variableNames'}} ) {
 		    $ext::reassignments              .=  ($isOptional ? "if (present(".$variableName.")) " : "").$variableName."_=".$variableName."\n";
 		}
+	    } elsif ( $argument->{'intrinsic'} eq "type" ) {
+		if ( $argument->{'type'} eq "treeNode" ) {
+		    $moduleUses->{'Galacticus_Nodes'}->{'treeNode'} = 1;
+		    $cType                                = "type(c_ptr)";
+		    $ext::isoCBindingSymbols{'c_ptr'      }  = 1;
+		    $ext::isoCBindingSymbols{'c_f_pointer'}  = 1;
+		    $ext::declarations                   .= "type(treeNode), pointer :: ".join(", ",map {$_."_"} @{$argument->{'variableNames'}})."\n";
+		    push(@ext::methodArguments,map {$_."_"} @{$argument->{'variableNames'}});
+		    push(@ext::methodNames    ,             @{$argument->{'variableNames'}});
+		    my $suffix = $isOptional ? "=None" : "";
+		    push(@ext::pythonMethodArguments,map {$_.$suffix} @{$argument->{'variableNames'}});
+		    push(@ext::clibArgTypes,("c_void_p") x scalar(@{$argument->{'variableNames'}}));
+		    foreach my $variableName ( @{$argument->{'variableNames'}} ) {
+			$ext::reassignments              .=  ($isOptional ? "if (present(".$variableName.")) then\n" : "")."call c_f_pointer(".$variableName.",".$variableName."_)\n".($isOptional ? "else\n ".$variableName."_=> null()\nend if\n" : "");
+		    }
+		} else {
+		    die("unsupported type 'type(".$argument->{'type'}.")'");
+		}
 	    } else {
-		print "unsupported type '".$argument->{'intrinsic'}."'\n";
+		die("unsupported type '".$argument->{'intrinsic'}."'");
 	    }
 	    # Add attributes for arguments.
 	    push(@cAttributes,"value")
@@ -719,11 +755,17 @@ sub interfacesMethods {
 	    $ext::declarations .= $cType.(@cAttributes ? ", " : "").join(", ",@cAttributes)." :: ".join(", ",@{$argument->{'variableNames'}})."\n";
 	    
 	}
+	# Generate module usage.
+	$ext::moduleUseCode = "";
+	foreach my $module ( &List::ExtraUtils::hashList($moduleUses,keyAs => "_name") ) {
+	    $ext::moduleUseCode .= "use :: ".$module->{'_name'}.", only : ".join(", ",grep {$_ ne "_name"} keys(%{$module}))."\n";
+	}
 	# Generate the function.
 	my $function = fill_in_string(<<'CODE', PACKAGE => 'ext');
 {$procedure} {$functionClass->{'name'}}{ucfirst($method->{'name'})}PY({join(",",@interfaceArguments)}) bind(c,name='{$functionClass->{'name'}}{ucfirst($method->{'name'})}PY')
   use, intrinsic :: ISO_C_Binding               , only : {join(", ",keys(%isoCBindingSymbols))}
   use            :: {$functionClass->{'module'}}, only : {$functionClass->{'name'}}Class
+{$moduleUseCode}
   implicit none
 {$declarations}
 
