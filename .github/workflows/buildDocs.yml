@@ -32,5 +32,5 @@ jobs:
           release: bleeding-edge
           prerelease: true
           message: Bleeding edge release
-          body: This release is updated to match the latest revision to Galacticus (${{ github.sha }}).
+          body: This release is updated to match the [latest revision](https://github.com/galacticusorg/galacticus/commit/HEAD) to Galacticus.
       - run: echo "This job's status is ${{ job.status }}."
