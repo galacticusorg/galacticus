@@ -86,7 +86,7 @@ for type in "Usage" "Physics" "Development" "Source"; do
     while [ $iPass -le 6 ]; do
 	# Run pdflatex.
 	if [ $iPass -le 5 ]; then
-	    pdflatex Galacticus_$type | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d /dev/null 2>&1
+	    pdflatex Galacticus_$type | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d > /dev/null 2>&1
 	else
 	    pdflatex Galacticus_$type | grep -v -i -e overfull -e underfull | sed -r /'^$'/d | sed -r /'\[[0-9]*\]'/d
 	fi
@@ -97,7 +97,7 @@ for type in "Usage" "Physics" "Development" "Source"; do
 
 	# Run bibtex.
 	if [ $iPass -le 5 ]; then
-	    bibtex Galacticus_$type /dev/null 2>&1
+	    bibtex Galacticus_$type > /dev/null 2>&1
 	else
 	    bibtex Galacticus_$type
 	fi
@@ -108,7 +108,7 @@ for type in "Usage" "Physics" "Development" "Source"; do
 
 	# Run makeindex.
 	if [ $iPass -le 5 ]; then
-	    makeindex Galacticus_$type /dev/null 2>&1
+	    makeindex Galacticus_$type > /dev/null 2>&1
 	else
 	    makeindex Galacticus_$type
 	fi
@@ -119,7 +119,7 @@ for type in "Usage" "Physics" "Development" "Source"; do
 
 	# Run makeglossaries.
 	if [ $iPass -le 5 ]; then
-	    makeglossaries Galacticus_$type /dev/null 2>&1
+	    makeglossaries Galacticus_$type > /dev/null 2>&1
 	else
 	    makeglossaries Galacticus_$type
 	fi
