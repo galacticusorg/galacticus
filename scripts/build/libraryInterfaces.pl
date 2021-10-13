@@ -246,14 +246,16 @@ sub interfacesConstructors {
     foreach $ext::implementation ( @{$ext::functionClass->{'implementations'}} ) {
 	# Reset all generated code fragments.
 	undef($ext::declarations              );
-	undef($ext::constructorArguments      );
+	undef(@ext::constructorArguments      );
+	undef(@ext::constructorArgumentNames  );
 	undef(@ext::pythonConstructorArguments);
 	undef($ext::dereference               );
 	undef(@ext::functionArguments         );
 	undef(@ext::pythonFunctionArguments   );
+	undef($ext::pythonReassignments       );
 	undef(%ext::isoCBindingSymbols        );
 	undef($ext::moduleUses                );
-	my @clibArgTypes;
+	undef(@ext::clibArgTypes              );
 	# Initialize the hash of ISO_C_Binding symbols that we must import. "c_ptr" and "c_loc" are always needed.
 	$ext::isoCBindingSymbols{'c_ptr'} = 1;
 	$ext::isoCBindingSymbols{'c_loc'} = 1;
@@ -262,9 +264,17 @@ sub interfacesConstructors {
 	# Add the "self" argument to the Python constructor arguments.
 	push(@ext::pythonConstructorArguments,"self");
 	# Iterate over each argument, building the argument list, declarations, pointer dereferencings, and constructor arguments.
+	$ext::countOptional       = 0;
+	$ext::countUniqueOptional = 0;
 	foreach my $argument ( @{$ext::implementation->{'arguments'}} ) {
 	    # Flag if this is the last argument.
 	    my $isLast = $argument == ${$ext::implementation->{'arguments'}}[-1];
+	    # Determine if argument is optional.
+	    my $isOptional = grep {$_ eq "optional"} @{$argument->{'attributes'}};
+	    if ( $isOptional ) {
+		++$ext::countOptional;
+		++$ext::countUniqueOptional;
+	    }
 	    # Push onto the function argument list.
 	    push(@ext::functionArguments      ,$argument->{'name'});
 	    push(@ext::pythonFunctionArguments,$argument->{'name'});
@@ -278,40 +288,66 @@ sub interfacesConstructors {
 	    if ( $argument->{'intrinsic'} eq "double precision" ) {
 		$cType                               = "real(c_double)";
 		$ext::isoCBindingSymbols{'c_double'} = 1;
-		push(@clibArgTypes,"c_double");
+		push(@ext::clibArgTypes,"c_double");
 	    } elsif ( $argument->{'intrinsic'} eq "integer" ) {
 		unless ( defined($argument->{'type'}) ) {
 		    $cType                            = "integer(c_int)";
 		    $ext::isoCBindingSymbols{'c_int'} = 1;
-		    push(@clibArgTypes,"c_int");
+		    push(@ext::clibArgTypes,"c_int");
 		}
 	    } elsif ( $argument->{'intrinsic'} eq "logical" ) {
 		$cType                               = "logical(c_bool)";
 		$ext::isoCBindingSymbols{'c_bool'} = 1;
-		push(@clibArgTypes,"c_bool");
-		$ext::dereference          .= $argument->{'name'}."_=logical(".$argument->{'name'}.")\n";
+		push(@ext::clibArgTypes,"c_bool");
+		$ext::dereference          .= ($isOptional ? "if (present(".$argument->{'name'}."))" : "").$argument->{'name'}."_=logical(".$argument->{'name'}.")\n";
 		$argument->{'passName'}    .= "_";
 		$declarations              .= "  logical :: ".$argument->{'name'}."_\n";
 	    } elsif ( $argument->{'intrinsic'} eq "character" ) {
 		$cType                               = "character(c_char)";
 		$ext::isoCBindingSymbols{'c_char'} = 1;
-		push(@clibArgTypes,"c_char_p");
+		push(@ext::clibArgTypes,"c_char_p");
 		push(@cAttributes,"dimension(*)");
 		$argument->{'passName'}     = "char(String_C_to_Fortran(".$argument->{'name'}."))";
 		$ext::moduleUses->{'String_Handling'}->{'String_C_to_Fortran'} = 1;
 		$ext::moduleUses->{'ISO_Varying_String'}->{'char'} = 1;
+	    } elsif ( $argument->{'intrinsic'} eq "type" ) {
+		if ( $argument->{'type'} eq "varying_string" ) {
+		    $cType                               = "character(c_char)";
+		    $ext::isoCBindingSymbols{'c_char'} = 1;
+		    push(@ext::clibArgTypes,"c_char_p");
+		    push(@cAttributes,"dimension(*)");
+		    $argument->{'passName'}     = "String_C_to_Fortran(".$argument->{'name'}.")";
+		    $ext::moduleUses->{'String_Handling'}->{'String_C_to_Fortran'} = 1;
+		} else {
+		    die "unsupported type 'type(".$argument->{'type'}.")' in constructor argument '".$argument->{'name'}."' for class '".$ext::implementation->{'name'}."'";    
+		}
 	    } elsif ( $argument->{'intrinsic'} eq "class" ) {
 		$cType                            = "type(c_ptr)";
 		$ext::isoCBindingSymbols{'c_ptr'} = 1;
-		push(@clibArgTypes,"c_void_p");
+		push(@ext::clibArgTypes,"c_void_p");
 		# Check for a functionClass argument.
 		if ( my @matchedClass = grep {$argument->{'type'} eq $_."Class"} keys(%{$libraryFunctionClasses->{'classes'}}) ) {
 		    # Add a classID argument for this functionClass argument, and send the object pointer and ID separately to the Python interface.
 		    push(@ext::functionArguments,$argument->{'name'}."_ID");
-		    push(@clibArgTypes,"c_int");
-		    $ext::pythonFunctionArguments[-1] .= "._glcObj";
-		    push(@ext::pythonFunctionArguments,$argument->{'name'}."._classID");
-		    $declarations                     .= "  integer(c_int), value :: ".$argument->{'name'}."_ID\n";
+		    push(@ext::clibArgTypes,"c_int");
+		    if ( $isOptional ) {
+			++$ext::countOptional;
+			$ext::pythonFunctionArguments[-1] .= "_glcObj";
+			$ext::argumentName = $argument->{'name'};
+			push(@ext::pythonFunctionArguments,$argument->{'name'}."_classID");
+			$ext::pythonReassignments .= fill_in_string(<<'CODE', PACKAGE => 'ext');
+    if {$argumentName}:
+        {$argumentName}_glcObj={$argumentName}._glcObj
+        {$argumentName}_classID={$argumentName}._classID
+    else:
+        {$argumentName}_glcObj=None
+        {$argumentName}_classID=None
+CODE
+		    } else {
+			$ext::pythonFunctionArguments[-1] .= "._glcObj";
+			push(@ext::pythonFunctionArguments,$argument->{'name'}."._classID");
+		    }
+		    $declarations                     .= "  integer(c_int), ".($isOptional ? "optional" : "value")." :: ".$argument->{'name'}."_ID\n";
 		    $ext::isoCBindingSymbols{'c_int'}  = 1;
 		    # Add code to deference this to a pointer.
 		    (my $className = $argument->{'type'}) =~ s/Class$//;
@@ -319,30 +355,44 @@ sub interfacesConstructors {
 			unless ( exists($getPtrClasses{$className}) );
 		    $declarations              .= "  class(".$argument->{'type'}."), pointer :: ".$argument->{'name'}."_\n";
 		    $getPtrClasses{$className}  = 1;
-		    $ext::dereference          .= $argument->{'name'}."_ => ".$className."GetPtr(".$argument->{'name'}.",".$argument->{'name'}."_ID)\n";
+		    $ext::dereference          .= ($isOptional ? "if (present(".$argument->{'name'}.")) " : "").$argument->{'name'}."_ => ".$className."GetPtr(".$argument->{'name'}.",".$argument->{'name'}."_ID)\n";
 		    $argument->{'passName'}    .= "_";
 		    my $moduleName              = $libraryFunctionClasses->{'classes'}->{$matchedClass[0]}->{'module'};
 		    $ext::moduleUses->{$moduleName}->{$argument->{'type'}} = 1;
 		}
 	    } else {
-		die "unsupported type '".$argument->{'intrinsic'}."' in constructor arguemnt '".$argument->{'name'}."' for class '".$ext::implementation->{'name'}."'";
+		die "unsupported type '".$argument->{'intrinsic'}."' in constructor argument '".$argument->{'name'}."' for class '".$ext::implementation->{'name'}."'";
 	    }
-	    # Determine intent.
-	    if ( ( $cType eq "type(c_ptr)" || grep {$_ =~ m/intent\s*\(\s*in\s*\)/} @{$argument->{'attributes'}} ) && ! grep {$_ =~ m/^dimension/} @cAttributes ) {
-		push(@cAttributes,"value");
-	    } elsif ( grep {$_ =~ m/^dimension/} @cAttributes ) {
-		# Array object - no need to add "value" attribute.
-	    } else {
-		die("unsupported intent '".join(", ",@{$argument->{'attributes'}})."'");
-	    }
+	    # Determine whether to pass by value or by reference.
+	    my $passBy =
+		(
+		 (
+		  $cType eq "type(c_ptr)"
+		  ||
+		  grep {$_ =~ m/intent\s*\(\s*in\s*\)/} @{$argument->{'attributes'}}
+		 )
+		 &&
+		 (! grep {$_ eq "optional"              } @{$argument->{'attributes'}})
+		 &&
+		 (! grep {$_ =~ m/^dimension/} @cAttributes)
+		)
+		?
+		"value"
+		:
+		"reference";
+	    push(@cAttributes,"value")
+		if ( $passBy eq "value" );
+	    push(@cAttributes,"optional")
+		if ( $isOptional );
 	    # Add this argument to the Python constructor.
 	    my $pythonConstructorArgument = $argument->{'name'};
 	    $pythonConstructorArgument .= "=None"
-		if ( grep {$_ eq "optional"} @{$argument->{'attributes'}} );
+		if ( $isOptional );
 	    push(@ext::pythonConstructorArguments,$pythonConstructorArgument);
 	    # Add a declaration for this argument, and add it into the call to the constructor function.
 	    $ext::declarations         .= "  ".$cType.(@cAttributes ? ", " : "").join(", ",@cAttributes)." :: ".$argument->{'name'}."\n".$declarations;
-	    $ext::constructorArguments .= "  &amp; ".$argument->{'name'}."=".$argument->{'passName'}.($isLast ? " &amp;" : ", &amp;\n");
+	    push(@ext::constructorArguments    ,$argument->{'passName'});
+	    push(@ext::constructorArgumentNames,$argument->{'name'    });
 	}
 	# Build code for module uses.
 	$ext::moduleUseCode = "";
@@ -362,15 +412,61 @@ function {$implementation->{'name'}}PY({join(",",@functionArguments)}) bind(c,na
 
 {$dereference}
   allocate(self)
+CODE
+	if ( $ext::countUniqueOptional == 0 ) {
+	    $ext::constructorCall = "";
+	    my $isFirst = 1;
+	    for(my $i=0;$i<scalar(@ext::constructorArguments);++$i) {
+		$ext::constructorCall .= ", &amp;\n"
+		    unless ( $isFirst );
+		$ext::constructorCall .= "&amp; ".$ext::constructorArgumentNames[$i]."=".$ext::constructorArguments[$i];
+		$isFirst = 0;
+	    }
+	    $ext::constructorCall .= " &amp;"
+		if ( scalar(@ext::constructorArguments) > 0 );
+	    $constructor .= fill_in_string(<<'CODE', PACKAGE => 'ext');
   !![
   <referenceConstruct object="self">
    <constructor>
     {$implementation->{'name'}}( &amp;
-{$constructorArguments}
+{$constructorCall}
      &amp;                     )
    </constructor>
   </referenceConstruct>
   !!]
+CODE
+        } else {
+	    my $formatBinary = "%.".$ext::countUniqueOptional."b";
+	    for(my $i=0;$i<2**$ext::countUniqueOptional;++$i) {
+		@ext::state = split(//,sprintf($formatBinary,$i));
+		$ext::condition = ($i > 0 ? "else " : "")."if (".join(" .and. ",map {($ext::state[$_-1] == 0 ? ".not." : "")."present(".$ext::constructorArgumentNames[-$ext::countUniqueOptional-1+$_].")"} 1..$ext::countUniqueOptional).") then";
+		my $isFirst = 1;
+		$ext::constructorCall = "";
+		for(my $i=0;$i<scalar(@ext::constructorArguments);++$i) {
+		    if ( $i < scalar(@ext::constructorArguments)-$ext::countUniqueOptional || $ext::state[$i-scalar(@ext::constructorArguments)+$ext::countUniqueOptional] ) {
+			$ext::constructorCall .= ", &amp;\n"
+			    unless ( $isFirst );
+			$ext::constructorCall .= "&amp; ".$ext::constructorArgumentNames[$i]."=".$ext::constructorArguments[$i];
+			$isFirst = 0;
+		    }
+		}
+		$ext::constructorCall .= " &amp;";
+		$constructor .= fill_in_string(<<'CODE', PACKAGE => 'ext');
+{$condition}
+  !![
+  <referenceConstruct object="self">
+   <constructor>
+    {$implementation->{'name'}}( &amp;
+{$constructorCall}
+     &amp;                     )
+   </constructor>
+  </referenceConstruct>
+  !!]
+CODE
+	    }
+	    $constructor .= "end if\n";
+        }
+	$constructor .= fill_in_string(<<'CODE', PACKAGE => 'ext');
   {$implementation->{'name'}}PY=c_loc(self)
   return
 end function {$implementation->{'name'}}PY
@@ -380,27 +476,43 @@ CODE
 	    $constructor
 	);
 	# Add library interface descriptors.
+	my @clibArgTypesNonOptional = @ext::clibArgTypes[0..scalar(@ext::clibArgTypes)-1-$ext::countOptional];
 	push(
 	    @{$python->{'c_lib'}},
 	    {
 		name     => $ext::implementation->{'name'}."PY",
 		restype  => "c_void_p",
-		argtypes => \@clibArgTypes
+		argtypes => \@clibArgTypesNonOptional
 	    }
 	    );
-    # Add a constructor to the Python class.
-    my $pythonConstructor = fill_in_string(<<'CODE', PACKAGE => 'ext');
+	# Add a constructor to the Python class.
+	my $pythonConstructor = fill_in_string(<<'CODE', PACKAGE => 'ext');
 # Constructor
 def __init__({join(",",@pythonConstructorArguments)}):
     # Assign class ID so relevant pointers can be constructed on the Fortran side.
     self._classID = {$implementation->{'classID'}}
+{$pythonReassignments}
+CODE
+        if ( $ext::countOptional == 0 ) {
+	    $pythonConstructor .= fill_in_string(<<'CODE', PACKAGE => 'ext');
     self._glcObj = c_lib.{$implementation->{'name'}}PY({join(",",@pythonFunctionArguments)})
 CODE
-    push(
-	@{$python->{'units'}->{$ext::implementation->{'name'}}->{'subUnits'}},
-	{
-	    content => $pythonConstructor
-	}
+        } else {
+	    my $formatBinary = "%.".$ext::countOptional."b";
+	    for(my $i=0;$i<2**$ext::countOptional;++$i) {
+		@ext::state = split(//,sprintf($formatBinary,$i));
+		$ext::condition = "    ".($i > 0 ? "el" : "")."if ".join(" and ",map {($ext::state[$_-1] == 0 ? "not " : "")."".$ext::pythonFunctionArguments[-$ext::countOptional-1+$_]} 1..$ext::countOptional).":";
+		$pythonConstructor .= fill_in_string(<<'CODE', PACKAGE => 'ext');
+{$condition}
+        self._glcObj = c_lib.{$implementation->{'name'}}PY({join(",",map {$_ < scalar(@pythonFunctionArguments)-$countOptional ? $pythonFunctionArguments[$_] : ($state[$_-scalar(@pythonFunctionArguments)+$countOptional] == 1 ? "byref(".$clibArgTypes[$_]."(".$pythonFunctionArguments[$_]."))" : "None")} 0..scalar(@pythonFunctionArguments)-1)})
+CODE
+	    }
+        }
+	push(
+	    @{$python->{'units'}->{$ext::implementation->{'name'}}->{'subUnits'}},
+	    {
+		content => $pythonConstructor
+	    }
 	);
     }
 }
