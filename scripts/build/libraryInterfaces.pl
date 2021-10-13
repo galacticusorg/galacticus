@@ -256,6 +256,8 @@ sub interfacesConstructors {
 	undef(%ext::isoCBindingSymbols        );
 	undef($ext::moduleUses                );
 	undef(@ext::clibArgTypes              );
+	undef(@ext::argsOptional              );
+	undef(@ext::argsUniqueOptional        );
 	# Initialize the hash of ISO_C_Binding symbols that we must import. "c_ptr" and "c_loc" are always needed.
 	$ext::isoCBindingSymbols{'c_ptr'} = 1;
 	$ext::isoCBindingSymbols{'c_loc'} = 1;
@@ -274,6 +276,11 @@ sub interfacesConstructors {
 	    if ( $isOptional ) {
 		++$ext::countOptional;
 		++$ext::countUniqueOptional;
+		push(@ext::argsOptional      ,$ext::countOptional      -1);
+		push(@ext::argsUniqueOptional,$ext::countUniqueOptional-1);
+	    } else {
+		push(@ext::argsOptional      ,                         -1);
+		push(@ext::argsUniqueOptional,                         -1);
 	    }
 	    # Push onto the function argument list.
 	    push(@ext::functionArguments      ,$argument->{'name'});
@@ -332,6 +339,7 @@ sub interfacesConstructors {
 		    push(@ext::clibArgTypes,"c_int");
 		    if ( $isOptional ) {
 			++$ext::countOptional;
+			push(@ext::argsOptional,$ext::countOptional-1);
 			$ext::pythonFunctionArguments[-1] .= "_glcObj";
 			$ext::argumentName = $argument->{'name'};
 			push(@ext::pythonFunctionArguments,$argument->{'name'}."_classID");
@@ -344,6 +352,7 @@ sub interfacesConstructors {
         {$argumentName}_classID=None
 CODE
 		    } else {
+			push(@ext::argsOptional,-1);
 			$ext::pythonFunctionArguments[-1] .= "._glcObj";
 			push(@ext::pythonFunctionArguments,$argument->{'name'}."._classID");
 		    }
@@ -439,11 +448,11 @@ CODE
 	    my $formatBinary = "%.".$ext::countUniqueOptional."b";
 	    for(my $i=0;$i<2**$ext::countUniqueOptional;++$i) {
 		@ext::state = split(//,sprintf($formatBinary,$i));
-		$ext::condition = ($i > 0 ? "else " : "")."if (".join(" .and. ",map {($ext::state[$_-1] == 0 ? ".not." : "")."present(".$ext::constructorArgumentNames[-$ext::countUniqueOptional-1+$_].")"} 1..$ext::countUniqueOptional).") then";
+		$ext::condition = ($i > 0 ? "else " : "")."if (".join(" .and. ",map {$ext::argsUniqueOptional[$_] < 0 ? () : ($ext::state[$ext::argsUniqueOptional[$_]] == 0 ? ".not." : "")."present(".$ext::constructorArgumentNames[$_].")"} 0..scalar(@ext::constructorArguments)-1).") then";
 		my $isFirst = 1;
 		$ext::constructorCall = "";
 		for(my $i=0;$i<scalar(@ext::constructorArguments);++$i) {
-		    if ( $i < scalar(@ext::constructorArguments)-$ext::countUniqueOptional || $ext::state[$i-scalar(@ext::constructorArguments)+$ext::countUniqueOptional] ) {
+		    if ( $ext::argsUniqueOptional[$i] < 0 || $ext::state[$ext::argsUniqueOptional[$i]] ) {
 			$ext::constructorCall .= ", &amp;\n"
 			    unless ( $isFirst );
 			$ext::constructorCall .= "&amp; ".$ext::constructorArgumentNames[$i]."=".$ext::constructorArguments[$i];
@@ -476,7 +485,12 @@ CODE
 	    $constructor
 	);
 	# Add library interface descriptors.
-	my @clibArgTypesNonOptional = @ext::clibArgTypes[0..scalar(@ext::clibArgTypes)-1-$ext::countOptional];
+	my $firstOptional;
+	for($firstOptional=0;$firstOptional<scalar(@ext::clibArgTypes);++$firstOptional) {
+	    last
+		if ( $ext::argsOptional[$firstOptional] >= 0 );
+	}
+	my @clibArgTypesNonOptional = $firstOptional > 0 ? @ext::clibArgTypes[0..$firstOptional-1] : ();
 	push(
 	    @{$python->{'c_lib'}},
 	    {
@@ -501,10 +515,10 @@ CODE
 	    my $formatBinary = "%.".$ext::countOptional."b";
 	    for(my $i=0;$i<2**$ext::countOptional;++$i) {
 		@ext::state = split(//,sprintf($formatBinary,$i));
-		$ext::condition = "    ".($i > 0 ? "el" : "")."if ".join(" and ",map {($ext::state[$_-1] == 0 ? "not " : "")."".$ext::pythonFunctionArguments[-$ext::countOptional-1+$_]} 1..$ext::countOptional).":";
+		$ext::condition = "    ".($i > 0 ? "el" : "")."if ".join(" and ",map {$ext::argsOptional[$_] < 0 ? () : ($ext::state[$ext::argsOptional[$_]] == 0 ? "not " : "")."".$ext::pythonFunctionArguments[$_]} 0..scalar(@ext::pythonFunctionArguments)-1).":";
 		$pythonConstructor .= fill_in_string(<<'CODE', PACKAGE => 'ext');
 {$condition}
-        self._glcObj = c_lib.{$implementation->{'name'}}PY({join(",",map {$_ < scalar(@pythonFunctionArguments)-$countOptional ? $pythonFunctionArguments[$_] : ($state[$_-scalar(@pythonFunctionArguments)+$countOptional] == 1 ? "byref(".$clibArgTypes[$_]."(".$pythonFunctionArguments[$_]."))" : "None")} 0..scalar(@pythonFunctionArguments)-1)})
+        self._glcObj = c_lib.{$implementation->{'name'}}PY({join(",",map {$ext::argsOptional[$_] < 0 ? $pythonFunctionArguments[$_] : ($state[$ext::argsOptional[$_]] == 1 ? "byref(".$clibArgTypes[$_]."(".$pythonFunctionArguments[$_]."))" : "None")} 0..scalar(@pythonFunctionArguments)-1)})
 CODE
 	    }
         }
@@ -584,6 +598,7 @@ sub interfacesMethods {
 	undef($ext::resultConversionOpen    );
 	undef($ext::resultConversionClose   );
 	undef(@ext::clibArgTypes            );
+	undef(@ext::argsOptional            );
 	my $clibResType;
 	# Initialize the hash of ISO_C_Binding symbols that we must import. "c_ptr" and "c_int" are always needed.
 	$ext::isoCBindingSymbols{'c_ptr'} = 1;
@@ -624,6 +639,7 @@ sub interfacesMethods {
 	$ext::declarations  .= "type   (c_ptr                                 ), value  , intent(in   ) :: self\n";
 	$ext::declarations  .= "integer(c_int                                 ), value  , intent(in   ) :: selfClassID\n";
 	push(@ext::clibArgTypes,"c_void_p","c_int");
+	push(@ext::argsOptional,-1,-1);
 	$ext::declarations  .= "class  (".$ext::functionClass->{'name'}."Class), pointer                :: self_, ".$ext::functionClass->{'name'}."GetPtr\n";
 	$ext::reassignments .= "self_ => ".$ext::functionClass->{'name'}."GetPtr(self,selfClassID)\n";
 	# Iterate over arguments, adding them to the lists, adding declarations, and any reassignments.
@@ -648,8 +664,16 @@ sub interfacesMethods {
 		"ref";
 	    # Determine if argument is optional.
 	    my $isOptional = grep {$_ eq "optional"} @{$argument->{'attributes'}};
-	    $ext::countOptional += scalar(@{$argument->{'variableNames'}})
-		if ( $isOptional );
+	    if ( $isOptional ) {
+		for(my $i=0;$i<scalar(@{$argument->{'variableNames'}});++$i) {
+		    ++$ext::countOptional;
+		    push(@ext::argsOptional,$ext::countOptional-1);
+		}
+	    } else {
+		for(my $i=0;$i<scalar(@{$argument->{'variableNames'}});++$i) {
+		    push(@ext::argsOptional,-1);
+		}
+	    }
 	    # Generate code for this argument.
 	    if ( $argument->{'intrinsic'} eq "double precision" ) {
 		$cType                                = "real(c_double)";
@@ -709,10 +733,10 @@ CODE
 	    my $formatBinary = "%.".$ext::countOptional."b";
 	    for(my $i=0;$i<2**$ext::countOptional;++$i) {
 		@ext::state = split(//,sprintf($formatBinary,$i));
-		$ext::condition = ($i > 0 ? "else " : "")."if (".join(" .and. ",map {($ext::state[$_-1] == 0 ? ".not." : "")."present(".$ext::methodNames[-$ext::countOptional-1+$_].")"} 1..$ext::countOptional).") then";
+		$ext::condition = ($i > 0 ? "else " : "")."if (".join(" .and. ",map {$ext::argsOptional[$_+2] < 0 ? () : ($ext::state[$ext::argsOptional[$_+2]] == 0 ? ".not." : "")."present(".$ext::methodNames[$_].")"} 0..scalar(@ext::methodArguments)-1).") then";
 		$function .= fill_in_string(<<'CODE', PACKAGE => 'ext');
 {$condition}
-    {$method->{'type'} eq "void" ? "call " : $functionClass->{'name'}.ucfirst($method->{'name'})."PY="}{$resultConversionOpen}self_%{$method->{'name'}}({join(",",map {$_ < scalar(@methodArguments)-$countOptional ? $methodArguments[$_] : ($state[$_-scalar(@methodArguments)+$countOptional] == 1 ? $methodNames[$_]."=".$methodArguments[$_] : ())} 0..scalar(@methodArguments)-1)}){$resultConversionClose}
+    {$method->{'type'} eq "void" ? "call " : $functionClass->{'name'}.ucfirst($method->{'name'})."PY="}{$resultConversionOpen}self_%{$method->{'name'}}({join(",",map {$ext::argsOptional[$_+2] < 0 ? $methodArguments[$_] : ($state[$ext::argsOptional[$_+2]] == 1 ? $methodNames[$_]."=".$methodArguments[$_] : ())} 0..scalar(@methodArguments)-1)}){$resultConversionClose}
 CODE
 	    }
 	    $function .= "else\n";
@@ -732,7 +756,12 @@ CODE
 	    $function
 	    );
 	# Add library interface descriptors.
-	my @clibArgTypesNonOptional = @ext::clibArgTypes[0..scalar(@ext::clibArgTypes)-1-$ext::countOptional];
+	my $firstOptional;
+	for($firstOptional=0;$firstOptional<scalar(@ext::clibArgTypes);++$firstOptional) {
+	    last
+		if ( $ext::argsOptional[$firstOptional] >= 0 );
+	}
+	my @clibArgTypesNonOptional = $firstOptional > 0 ? @ext::clibArgTypes[0..$firstOptional-1] : ();
 	push(
 	    @{$python->{'c_lib'}},
 	    {
@@ -753,10 +782,10 @@ CODE
 	    my $formatBinary = "%.".$ext::countOptional."b";
 	    for(my $i=0;$i<2**$ext::countOptional;++$i) {
 		@ext::state = split(//,sprintf($formatBinary,$i));
-		$ext::condition = "    ".($i > 0 ? "el" : "")."if ".join(" and ",map {($ext::state[$_-1] == 0 ? "not " : "")."".$ext::pythonInterfaceArguments[-$ext::countOptional-1+$_]} 1..$ext::countOptional).":";
+		$ext::condition = "    ".($i > 0 ? "el" : "")."if ".join(" and ",map {$ext::argsOptional[$_] < 0 ? () : ($ext::state[$ext::argsOptional[$_]] == 0 ? "not " : "")."".$ext::pythonInterfaceArguments[$_]} 0..scalar(@ext::pythonInterfaceArguments)-1).":";
 		$pythonMethod .= fill_in_string(<<'CODE', PACKAGE => 'ext');
 {$condition}
-        return c_lib.{$functionClass->{'name'}}{ucfirst($method->{'name'})}PY({join(",",map {$_ < scalar(@pythonInterfaceArguments)-$countOptional ? $pythonInterfaceArguments[$_] : ($state[$_-scalar(@pythonInterfaceArguments)+$countOptional] == 1 ? "byref(".$clibArgTypes[$_]."(".$pythonInterfaceArguments[$_]."))" : "None")} 0..scalar(@pythonInterfaceArguments)-1)})
+        return c_lib.{$functionClass->{'name'}}{ucfirst($method->{'name'})}PY({join(",",map {$ext::argsOptional[$_] < 0 ? $pythonInterfaceArguments[$_] : ($state[$ext::argsOptional[$_]] == 1 ? "byref(".$clibArgTypes[$_]."(".$pythonInterfaceArguments[$_]."))" : "None")} 0..scalar(@pythonInterfaceArguments)-1)})
 CODE
 	    }
 	}
