@@ -33,7 +33,7 @@ module IO_HDF5
   use            :: ISO_Varying_String, only : varying_string
   implicit none
   private
-  public :: hdf5Object, IO_HDF5_Set_Defaults, IO_HDF5_Is_HDF5
+  public :: hdf5Object, ioHDF5AccessInitialize, IO_HDF5_Set_Defaults, IO_HDF5_Is_HDF5
 #ifdef DEBUGHDF5
   public :: IO_HDF5_Start_Critical, IO_HDF5_End_Critical
 
@@ -365,6 +365,20 @@ contains
 
   !! Initialization routines.
 
+  subroutine ioHDF5AccessInitialize()
+    !!{
+    Initialize the HDF5 access lock.
+    !!}
+    use :: HDF5_Access, only : hdf5Access, hdf5AccessInitialized
+    use :: Locks      , only : ompLock
+    implicit none
+
+    if (hdf5AccessInitialized) return
+    hdf5Access           =ompLock()
+    hdf5AccessInitialized=.true.
+    return
+  end subroutine ioHDF5AccessInitialize
+  
   subroutine IO_HDF5_Initialize
     !!{
     Initialize the HDF5 subsystem.
@@ -374,8 +388,6 @@ contains
           &                         H5T_NATIVE_DOUBLE      , H5T_NATIVE_INTEGER, H5T_NATIVE_INTEGER_8, H5T_STD_I32BE , &
           &                         H5T_STD_I32LE          , H5T_STD_I64BE     , H5T_STD_I64LE       , H5T_STD_U32BE , &
           &                         H5T_STD_U32LE          , h5open_f
-    use :: HDF5_Access     , only : hdf5Access
-    use :: Locks           , only : ompLock
     implicit none
     integer :: errorCode
 
@@ -397,7 +409,7 @@ contains
        H5T_NATIVE_INTEGER_8AS(6:8) =H5T_NATIVE_INTEGER_8S
 
        ! Initialize our OpenMP lock.
-       hdf5Access=ompLock()
+       call ioHDF5AccessInitialize()
        
        ! Flag that the hdf5 system is now initialized.
        hdf5IsInitalized=.true.
@@ -742,11 +754,12 @@ contains
     Return datatypes for character data of a given length. Types are for Fortran native and C native types.
     !!}
     use :: Galacticus_Error  , only : Galacticus_Error_Report
-    use :: HDF5              , only : H5T_NATIVE_CHARACTER   , HID_T       , h5tcopy_f, h5tset_size_f, &
-          &                           size_t
+    use :: HDF5              , only : H5T_NATIVE_CHARACTER   , HID_T            , h5tcopy_f         , h5tset_size_f     , &
+         &                            H5Tset_strpad_f        , H5T_STR_NULLPAD_F, H5T_STR_SPACEPAD_F, H5T_STR_NULLTERM_F, &
+         &                            size_t
     use :: ISO_Varying_String, only : assignment(=)          , operator(//)
     implicit none
-    integer(kind=HID_T    ), dimension(2)  :: IO_HDF5_Character_Types
+    integer(kind=HID_T    ), dimension(6)  :: IO_HDF5_Character_Types
     integer                , intent(in   ) :: stringLength
     integer                                :: errorCode
     type   (varying_string)                :: message
@@ -761,6 +774,11 @@ contains
        message="unable to set datatype size"
        call Galacticus_Error_Report(message//{introspection:location})
     end if
+    call h5tset_strpad_f(IO_HDF5_Character_Types(1),H5T_STR_SPACEPAD_F,errorCode)
+    if (errorCode < 0) then
+       message="unable to set padding"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
     call h5tcopy_f(H5T_C_S1_Get(),IO_HDF5_Character_Types(2),errorCode)
     if (errorCode < 0) then
        message="unable to make custom datatype"
@@ -769,6 +787,71 @@ contains
     call h5tset_size_f(IO_HDF5_Character_Types(2),int(stringLength,size_t),errorCode)
     if (errorCode < 0) then
        message="unable to set datatype size"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    call h5tset_strpad_f(IO_HDF5_Character_Types(2),H5T_STR_SPACEPAD_F,errorCode)
+    if (errorCode < 0) then
+       message="unable to set padding"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    call h5tcopy_f(H5T_NATIVE_CHARACTER,IO_HDF5_Character_Types(3),errorCode)
+    if (errorCode < 0) then
+       message="unable to make custom datatype"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    call h5tset_size_f(IO_HDF5_Character_Types(3),int(stringLength,size_t),errorCode)
+    if (errorCode < 0) then
+       message="unable to set datatype size"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    call h5tset_strpad_f(IO_HDF5_Character_Types(3),H5T_STR_NULLPAD_F,errorCode)
+    if (errorCode < 0) then
+       message="unable to set padding"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    call h5tcopy_f(H5T_C_S1_Get(),IO_HDF5_Character_Types(4),errorCode)
+    if (errorCode < 0) then
+       message="unable to make custom datatype"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    call h5tset_size_f(IO_HDF5_Character_Types(4),int(stringLength,size_t),errorCode)
+    if (errorCode < 0) then
+       message="unable to set datatype size"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    call h5tset_strpad_f(IO_HDF5_Character_Types(4),H5T_STR_NULLPAD_F,errorCode)
+    if (errorCode < 0) then
+       message="unable to set padding"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    call h5tcopy_f(H5T_NATIVE_CHARACTER,IO_HDF5_Character_Types(5),errorCode)
+    if (errorCode < 0) then
+       message="unable to make custom datatype"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    call h5tset_size_f(IO_HDF5_Character_Types(5),int(stringLength,size_t),errorCode)
+    if (errorCode < 0) then
+       message="unable to set datatype size"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    call h5tset_strpad_f(IO_HDF5_Character_Types(5),H5T_STR_NULLTERM_F,errorCode)
+    if (errorCode < 0) then
+       message="unable to set padding"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    call h5tcopy_f(H5T_C_S1_Get(),IO_HDF5_Character_Types(6),errorCode)
+    if (errorCode < 0) then
+       message="unable to make custom datatype"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    call h5tset_size_f(IO_HDF5_Character_Types(6),int(stringLength,size_t),errorCode)
+    if (errorCode < 0) then
+       message="unable to set datatype size"
+       call Galacticus_Error_Report(message//{introspection:location})
+    end if
+    call h5tset_strpad_f(IO_HDF5_Character_Types(6),H5T_STR_NULLTERM_F,errorCode)
+    if (errorCode < 0) then
+       message="unable to set padding"
        call Galacticus_Error_Report(message//{introspection:location})
     end if
     return
@@ -3061,7 +3144,7 @@ contains
     integer  (kind=HSIZE_T           ), dimension(1)                          :: attributeDimensions       , attributeMaximumDimensions
     character(len=len(attributeValue)), dimension(1)                          :: pseudoScalarValue
     integer  (kind=HID_T             )                                        :: attributeDataspaceID
-    integer  (kind=HID_T             )                                        :: dataTypeID             (2)
+    integer  (kind=HID_T             )                                        :: dataTypeID             (6)
     integer                                                                   :: errorCode
     type     (hdf5Object             )                                        :: attributeObject
     type     (varying_string         )                                        :: attributeNameActual       , message
@@ -3195,7 +3278,7 @@ contains
     character(len=*         )                           , intent(in   ), optional :: attributeName
     integer  (kind=HSIZE_T  )             , dimension(1)                          :: attributeDimensions , attributeMaximumDimensions
     integer                                                                       :: errorCode
-    integer  (kind=HID_T    )                                                     :: attributeDataspaceID, dataTypeID                (2)
+    integer  (kind=HID_T    )                                                     :: attributeDataspaceID, dataTypeID                (6)
     type     (hdf5Object    )                                                     :: attributeObject
     type     (varying_string)                                                     :: attributeNameActual , message
 
@@ -3309,7 +3392,7 @@ contains
     character(len=*         )              , intent(in   ), optional :: attributeName
     integer  (kind=HSIZE_T  ), dimension(1)                          :: attributeDimensions , attributeMaximumDimensions
     integer                                                          :: errorCode
-    integer  (kind=HID_T    )                                        :: attributeDataspaceID, dataTypeID                (2)
+    integer  (kind=HID_T    )                                        :: attributeDataspaceID, dataTypeID                (6)
     type     (hdf5Object    )                                        :: attributeObject
     type     (varying_string)                                        :: attributeNameActual , message
 
@@ -13770,7 +13853,7 @@ contains
     ! deallocated. This isn't an elegant solution, but it works.
     type     (hdset_reg_ref_t_f), save        , target                  :: referencedRegion
     integer                                                             :: errorCode
-    integer  (kind=HID_T       )                                        :: dataTypeID          (2), datasetDataspaceID      , &
+    integer  (kind=HID_T       )                                        :: dataTypeID          (6), datasetDataspaceID      , &
          &                                                                 dereferencedObjectID   , memorySpaceID           , &
          &                                                                 storedDatasetID
     logical                                                             :: isReference            , readSubsection
@@ -14082,7 +14165,7 @@ contains
     ! deallocated. This isn't an elegant solution, but it works.
     type     (hdset_reg_ref_t_f), save       , target                                :: referencedRegion
     integer                                                                          :: errorCode
-    integer  (kind=HID_T       )                                                     :: dataTypeID          (2), datasetDataspaceID      , &
+    integer  (kind=HID_T       )                                                     :: dataTypeID          (6), datasetDataspaceID      , &
          &                                                                              dereferencedObjectID   , memorySpaceID           , &
          &                                                                              storedDatasetID
     logical                                                                          :: isReference            , readSubsection

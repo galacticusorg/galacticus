@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implements a node operator class that causes halo spin be interpolated linearly between child and parent nodes.
+  Implements a node operator class that causes dark matter profile scale radius to be interpolated linearly between child and parent nodes.
   !!}
 
   use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadiusClass
@@ -113,7 +113,7 @@ contains
     use :: Galacticus_Nodes   , only : nodeComponentDarkMatterProfile
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     implicit none
-    class(nodeOperatorDarkMatterProfileScaleInterpolate), intent(inout)          :: self
+    class(nodeOperatorDarkMatterProfileScaleInterpolate), intent(inout), target  :: self
     type (treeNode                                     ), intent(inout), target  :: node
     type (treeNode                                     )               , pointer :: nodeWork
     class(nodeComponentDarkMatterProfile               )               , pointer :: darkMatterProfile, darkMatterProfileWork

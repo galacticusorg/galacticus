@@ -34,6 +34,8 @@ Contains a module which implements a cooling rate property extractor class.
      !!}
      private
      class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
+     ! Name of the property.
+     type (varying_string           )          :: propertyName
    contains
      final     ::                velocityMaximumDestructor
      procedure :: extract     => velocityMaximumExtract
@@ -62,11 +64,18 @@ contains
     type (nodePropertyExtractorVelocityMaximum)                :: self
     type (inputParameters                     ), intent(inout) :: parameters
     class(darkMatterProfileDMOClass           ), pointer       :: darkMatterProfileDMO_
+    type (varying_string                      )                :: propertyName
 
     !![
+    <inputParameter>
+      <name>propertyName</name>
+      <defaultValue>var_str('VelocityMaximum')</defaultValue>
+      <source>parameters</source>
+      <description>Name of the property.</description>
+    </inputParameter>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     !!]
-    self=nodePropertyExtractorVelocityMaximum(darkMatterProfileDMO_)
+    self=nodePropertyExtractorVelocityMaximum(propertyName,darkMatterProfileDMO_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfileDMO_"/>
@@ -74,15 +83,16 @@ contains
     return
   end function velocityMaximumConstructorParameters
 
-  function velocityMaximumConstructorInternal(darkMatterProfileDMO_) result(self)
+  function velocityMaximumConstructorInternal(propertyName,darkMatterProfileDMO_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily velocityMaximum} property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorVelocityMaximum)                        :: self
     class(darkMatterProfileDMOClass           ), intent(in   ), target :: darkMatterProfileDMO_
+    type (varying_string                      ), intent(in   )         :: propertyName
     !![
-    <constructorAssign variables="*darkMatterProfileDMO_"/>
+    <constructorAssign variables="propertyName,*darkMatterProfileDMO_"/>
     !!]
 
     return
@@ -125,7 +135,7 @@ contains
     class(nodePropertyExtractorVelocityMaximum), intent(inout) :: self
     !$GLC attributes unused :: self
 
-    velocityMaximumName=var_str('darkMatterProfileDMOVelocityMaximum')
+    velocityMaximumName=var_str('darkMatterProfileDMO'//char(self%propertyName))
     return
   end function velocityMaximumName
 

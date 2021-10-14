@@ -74,7 +74,7 @@ FCFLAGS += -O3 -ffinite-math-only -fno-math-errno
 FCFLAGS += -fopenmp
 
 # C compiler flags:
-CFLAGS = -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ -fopenmp ${GALACTICUS_CFLAGS}
+CFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ -fopenmp ${GALACTICUS_CFLAGS}
 export CFLAGS
 
 # C++ compiler flags:
@@ -178,6 +178,10 @@ $(BUILDPATH)/%.o : $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.m $(BUILDPATH)/%.d $(BUIL
          fi \
 	done
 
+# Rule for building include file with preprocessor directives to detect OS. For some reason gfortran does not define these automatically.
+$(BUILDPATH)/os.inc:
+	$(CCOMPILER) -dM -E - < /dev/null | grep -e __APPLE__ -e __linux__ > $(BUILDPATH)/os.inc
+
 # Rules for building HDF5 C interoperability types data file.
 $(BUILDPATH)/hdf5FCInterop.dat  : $(BUILDPATH)/hdf5FCInterop.exe $(BUILDPATH)/hdf5FCInteropC.exe
 	$(BUILDPATH)/hdf5FCInterop.exe  >  $(BUILDPATH)/hdf5FCInterop.dat
@@ -192,6 +196,7 @@ $(BUILDPATH)/hdf5FCInteropC.exe : source/hdf5FCInteropC.c
 -include $(BUILDPATH)/Makefile_Config_Proc
 $(BUILDPATH)/Makefile_Config_Proc: source/proc_config.c
 	@mkdir -p $(BUILDPATH)
+	@touch $(BUILDPATH)/Makefile_Config_Proc
 	$(CCOMPILER) source/proc_config.c -o $(BUILDPATH)/proc_config $(CFLAGS) > /dev/null 2>&1 ; \
 	if [ $$? -eq 0 ] ; then \
 	 $(BUILDPATH)/proc_config > /dev/null 2>&1 ; \
@@ -270,7 +275,11 @@ source/FFTlog/cdgamma.f source/FFTlog/drfftb.f source/FFTlog/drffti.f source/FFT
 source/FFTlog/fftlog.f:
 	mkdir -p source/FFTlog
 	mkdir -p $(BUILDPATH)/FFTlog
-	wget --no-check-certificate http://jila.colorado.edu/~ajsh/FFTLog/fftlog.tgz -O - | tar xvz -C source/FFTlog -f -
+	if command -v wget &> /dev/null; then \
+	 wget --no-check-certificate http://jila.colorado.edu/~ajsh/FFTLog/fftlog.tgz -O - | tar xvz -C source/FFTlog -f -; \
+	else \
+	 curl --insecure -L http://jila.colorado.edu/~ajsh/FFTLog/fftlog.tgz --output - | tar xvz -C source/FFTlog -f -;\
+	fi
 	if [ ! -e source/FFTlog/fftlog.f ]; then \
 	 echo "      subroutine fhti(n,mu,q,dlnr,kr,kropt,wsave,ok)" >  source/FFTlog/fftlog.f; \
 	 echo "      stop 'FFTlog was not downloaded - to try again" >> source/FFTlog/fftlog.f; \

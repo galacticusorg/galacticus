@@ -2,7 +2,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+/* The crypt function is defined in crypt.h under Linux, but in unistd.h under MacOS */
+#ifdef __linux__
 #include <crypt.h>
+#endif
+#ifdef __APPLE__
+#include <unistd.h>
+#endif
 #include <string.h>
 #include <errno.h>
 

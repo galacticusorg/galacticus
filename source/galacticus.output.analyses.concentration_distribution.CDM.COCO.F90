@@ -61,8 +61,15 @@ contains
     class           (outputTimesClass                              ), pointer       :: outputTimes_
     class           (nbodyHaloMassErrorClass                       ), pointer       :: nbodyHaloMassError_
     integer                                                                         :: distributionNumber
-
+    double precision                                                                :: rootVarianceFractionalMinimum
+    
     !![
+    <inputParameter>
+      <name>rootVarianceFractionalMinimum</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The minimum fractional root variance (relative to the target dataset).</description>
+    </inputParameter>
     <inputParameter>
       <name>distributionNumber</name>
       <source>parameters</source>
@@ -73,7 +80,7 @@ contains
     <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
     <objectBuilder class="nbodyHaloMassError"  name="nbodyHaloMassError_"  source="parameters"/>
     !!]
-    self=outputAnalysisConcentrationDistributionCDMCOCO(distributionNumber,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_)
+    self=outputAnalysisConcentrationDistributionCDMCOCO(distributionNumber,rootVarianceFractionalMinimum,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_)
     !![
     <inputParametersValidate source="parameters" />
     <objectDestructor name="cosmologyParameters_"/>
@@ -84,7 +91,7 @@ contains
     return
   end function concentrationDistributionCDMCOCOConstructorParameters
 
-  function concentrationDistributionCDMCOCOConstructorInternal(distributionNumber,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_) result(self)
+  function concentrationDistributionCDMCOCOConstructorInternal(distributionNumber,rootVarianceFractionalMinimum,cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_) result(self)
     !!{
     Internal constructor for the ``concentrationDistributionCDMCOCO'' output analysis class.
     !!}
@@ -103,8 +110,9 @@ contains
     class           (outputTimesClass                              ), target   , intent(inout) :: outputTimes_
     class           (nbodyHaloMassErrorClass                       ), target   , intent(in   ) :: nbodyHaloMassError_
     integer                                                                    , intent(in   ) :: distributionNumber
+    double precision                                                           , intent(in   ) :: rootVarianceFractionalMinimum
     type            (virialDensityContrastFixed                    ), pointer                  :: virialDensityContrast_
-    double precision                                                , parameter                :: haloDensityContrast   =200.0d0
+    double precision                                                , parameter                :: haloDensityContrast          =200.0d0
     !![
     <constructorAssign variables="distributionNumber"/>
     !!]
@@ -126,10 +134,11 @@ contains
      </constructor>
     </referenceConstruct>
     !!]
-    self%outputAnalysisConcentrationDistribution=outputAnalysisConcentrationDistribution(                                                                                                                        &
+    self%outputAnalysisConcentrationDistribution=outputAnalysisConcentrationDistribution(                                                                                                                         &
          &                                                                               char   (galacticusPath(pathTypeDataStatic)//'darkMatter/concentrationDistributionCocoCDM'//distributionNumber//'.hdf5'), &
          &                                                                               var_str(                                    'concentrationDistributionCDMCOCO'                                        ), &
          &                                                                               var_str(                                    'Distribution of halo concentrations'                                     ), &
+         &                                                                               rootVarianceFractionalMinimum                                                                                          , &
          &                                                                               cosmologyFunctions_                                                                                                    , &
          &                                                                               nbodyHaloMassError_                                                                                                    , &
          &                                                                               virialDensityContrast_                                                                                                 , &

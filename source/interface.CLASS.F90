@@ -66,11 +66,14 @@ contains
     use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic
     use :: ISO_Varying_String, only : assignment(=)          , char                 , operator(//), replace    , &
           &                           varying_string
+    use :: String_Handling   , only : stringSubstitute
     use :: System_Command    , only : System_Command_Do
+    use :: System_Download   , only : download
+    use :: System_Compilers  , only : compiler               , compilerOptions      , languageC
     implicit none
     type   (varying_string), intent(  out)           :: classPath, classVersion
     logical                , intent(in   ), optional :: static
-    integer                                          :: status  , flagsLength
+    integer                                          :: status
     type   (varying_string)                          :: command
     type   (lockDescriptor)                          :: fileLock
     !![
@@ -89,23 +92,19 @@ contains
           ! Download CLASS if necessary.
           if (.not.File_Exists(galacticusPath(pathTypeDataDynamic)//"class_public-"//char(classVersion)//".tar.gz")) then
              call displayMessage("downloading CLASS code....",verbosityLevelWorking)
-             call System_Command_Do("wget https://github.com/lesgourg/class_public/archive/refs/tags/v"//char(classVersion)//".tar.gz -O "//galacticusPath(pathTypeDataDynamic)//"class_public-"//char(classVersion)//".tar.gz",status)
+             call download("https://github.com/lesgourg/class_public/archive/refs/tags/v"//char(classVersion)//".tar.gz",char(galacticusPath(pathTypeDataDynamic))//"class_public-"//char(classVersion)//".tar.gz",status)
              if (status /= 0 .or. .not.File_Exists(galacticusPath(pathTypeDataDynamic)//"class_public-"//char(classVersion)//".tar.gz")) call Galacticus_Error_Report("unable to download CLASS"//{introspection:location})
           end if
           call displayMessage("unpacking CLASS code....",verbosityLevelWorking)
-          call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//" -f "//galacticusPath(pathTypeDataDynamic)//"class_public-"//char(classVersion)//".tar.gz")
+          call System_Command_Do("tar -x -v -z -C "//galacticusPath(pathTypeDataDynamic)//" -f "//galacticusPath(pathTypeDataDynamic)//"class_public-"//char(classVersion)//".tar.gz",status)
           if (status /= 0 .or. .not.File_Exists(classPath)) call Galacticus_Error_Report('failed to unpack CLASS code'//{introspection:location})        
        end if
        call displayMessage("compiling CLASS code",verbosityLevelWorking)
        command='cd '//classPath//'; cp Makefile Makefile.tmp; '
-       if (static_) then
-          command=command//' sed -r -i~ s/"^CCFLAG = "/"CCFLAG ='
-          ! Include Galacticus compilation flags here - may be necessary for static linking.
-          call Get_Environment_Variable("GALACTICUS_FCFLAGS",length=flagsLength,status=status)
-          if (status  == 0) command=command//" "//flagsRetrieve(flagsLength)
-          command=command//' -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive"/ Makefile.tmp; '
-       end if
-       command=command//'make -f Makefile.tmp -j1 class'
+       ! Include Galacticus compilation flags here.
+       command=command//'sed -E -i~ s/"^CC[[:space:]]+=[[:space:]]+gcc"/"CC='//char(compiler(languageC))//'"/ Makefile.tmp; sed -E -i~ s/"^CCFLAG = "/"CCFLAG ='//char(stringSubstitute(compilerOptions(languageC),"/","\/"))
+       if (static_) command=command//' -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive'
+       command=command//'"/ Makefile.tmp; make -f Makefile.tmp -j1 class'
        call System_Command_Do(char(command),status);
        if (status /= 0 .or. .not.File_Exists(classPath//"class")) call Galacticus_Error_Report("failed to build CLASS code"//{introspection:location})
        call File_Unlock(fileLock)

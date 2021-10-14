@@ -251,8 +251,9 @@ contains
        call darkMatterProfile_%scaleSet(radiusScalePrevious)
        call Galacticus_Calculations_Reset(node)
        ! Begin iteratively seeking a solution for the scale radius.
-       iterationCount     =0
-       timeFormationLatest=0.0d0
+       iterationCount       =0
+       timeFormationLatest  =0.0d0
+       timeFormationEarliest=0.0d0
        do while (iterationCount < iterationCountMaximum)
           iterationCount=iterationCount+1
           ! Compute the characteristic halo mass, M₋₂.

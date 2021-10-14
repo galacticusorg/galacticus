@@ -146,7 +146,7 @@ contains
     Perform node tree initialization.
     !!}
     implicit none
-    class(nodeOperatorMulti), intent(inout)          :: self
+    class(nodeOperatorMulti), intent(inout), target  :: self
     type (treeNode         ), intent(inout), target  :: node
     type (multiProcessList )               , pointer :: process_
 

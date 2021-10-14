@@ -143,7 +143,7 @@ sub cosmoSimBuilder {
     ## Parse the base parameters.
     my $parameters = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/progenitorMassFunctionIdentifyAlwaysIsolated.xml");
     ## Set the snapshots to select.
-    $parameters->{'nbodyOperatorMethod'}->{'nbodyOperatorMethod'}->[3]->{'selectedValues'}->{'value'} = $simulation->{'snapshots'};
+    $parameters->{'nbodyOperator'}->{'nbodyOperator'}->[3]->{'selectedValues'}->{'value'} = $simulation->{'snapshots'};
     ## Iterate over subvolumes.
     for(my $i=0;$i<10;++$i) {
 	for(my $j=0;$j<10;++$j) {
@@ -152,8 +152,8 @@ sub cosmoSimBuilder {
 		next
 		    if ( -e $simulation->{'path'}."alwaysIsolated_progenitors_subVolume".$i."_".$j."_".$k.".hdf5" );
 		# Modify file names.
-		$parameters->{'nbodyImporterMethod'}                              ->{'fileName'}->{'value'} = $simulation->{'path'}."tree_"                               .$i."_".$j."_".$k.".dat" ;
-		$parameters->{'nbodyOperatorMethod'}->{'nbodyOperatorMethod'}->[5]->{'fileName'}->{'value'} = $simulation->{'path'}."alwaysIsolated_progenitors_subVolume".$i."_".$j."_".$k.".hdf5";
+		$parameters->{'nbodyImporter'}                              ->{'fileName'}->{'value'} = $simulation->{'path'}."tree_"                               .$i."_".$j."_".$k.".dat" ;
+		$parameters->{'nbodyOperator'}->{'nbodyOperator'}->[5]->{'fileName'}->{'value'} = $simulation->{'path'}."alwaysIsolated_progenitors_subVolume".$i."_".$j."_".$k.".hdf5";
 		# Write parmeter file.
 		my $parameterFileName = $simulation->{'path'}."identifyAlwaysIsolated_progenitors_".$i."_".$j."_".$k.".xml";
 		open(my $outputFile,">",$parameterFileName);
@@ -178,13 +178,13 @@ sub cosmoSimBuilder {
 	## Parse the base parameters.
 	my $massFunctionParameters = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/progenitorMassFunctionCompute.xml");
 	## Iterate over subvolumes.
-	my @nbodyImporterMethods;
+	my @nbodyImporters;
 	for(my $i=0;$i<10;++$i) {
 	    for(my $j=0;$j<10;++$j) {
 		for(my $k=0;$k<10;++$k) {
 		    # Add an importer for this subvolume.
 		    push(
-			@nbodyImporterMethods,
+			@nbodyImporters,
 			{
 			    value      => "IRATE"                                                                              ,
 			    fileName   => {value => $simulation->{'path'}."alwaysIsolated_progenitors_subVolume".$i."_".$j."_".$k.".hdf5"},
@@ -198,18 +198,18 @@ sub cosmoSimBuilder {
 	## Compute the mass function.
 	unless ( -e $simulation->{'path'}."progenitorsMassFunctions.hdf5" ) {
 	    ## Modify parameters.
-	    @{$massFunctionParameters->{'nbodyImporterMethod'     }->{'nbodyImporterMethod'}} = @nbodyImporterMethods;
+	    @{$massFunctionParameters->{'nbodyImporter'     }->{'nbodyImporter'}} = @nbodyImporters;
 	    $massFunctionParameters  ->{'galacticusOutputFileName'}                                                              ->{'value'} = $simulation->{'path'                      }."progenitorMassFunctions.hdf5";
-	    $massFunctionParameters  ->{'nbodyOperatorMethod'     }->{'nbodyOperatorMethod'}->[0]->{'values'                    }->{'value'} = $simulation->{'massParticle'              }                               ;
-	    $massFunctionParameters  ->{'nbodyOperatorMethod'     }->{'nbodyOperatorMethod'}->[1]->{'description'               }->{'value'} = $simulation->{'description'               }                               ;
-	    $massFunctionParameters  ->{'nbodyOperatorMethod'     }->{'nbodyOperatorMethod'}->[1]->{'simulationReference'       }->{'value'} = $simulation->{'simulationReference'       }                               ;
-	    $massFunctionParameters  ->{'nbodyOperatorMethod'     }->{'nbodyOperatorMethod'}->[1]->{'simulationURL'             }->{'value'} = $simulation->{'simulationURL'             }                               ;
-	    $massFunctionParameters  ->{'nbodyOperatorMethod'     }->{'nbodyOperatorMethod'}->[1]->{'massParentMinimum'         }->{'value'} = $simulation->{'massParentMinimum'         }                               ;
-	    $massFunctionParameters  ->{'nbodyOperatorMethod'     }->{'nbodyOperatorMethod'}->[1]->{'massParentMaximum'         }->{'value'} = $simulation->{'massParentMaximum'         }                               ;
-	    $massFunctionParameters  ->{'nbodyOperatorMethod'     }->{'nbodyOperatorMethod'}->[1]->{'massRatioProgenitorMinimum'}->{'value'} = $simulation->{'massRatioProgenitorMinimum'}                               ;
-	    $massFunctionParameters  ->{'nbodyOperatorMethod'     }->{'nbodyOperatorMethod'}->[1]->{'massRatioProgenitorMaximum'}->{'value'} = $simulation->{'massRatioProgenitorMaximum'}                               ;
-	    $massFunctionParameters  ->{'nbodyOperatorMethod'     }->{'nbodyOperatorMethod'}->[1]->{'snapshotParents'           }->{'value'} = $simulation->{'snapshotParents'           }                               ;
-	    $massFunctionParameters  ->{'nbodyOperatorMethod'     }->{'nbodyOperatorMethod'}->[1]->{'snapshotsProgenitors'      }->{'value'} = $simulation->{'snapshotsProgenitors'      }                               ;
+	    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[0]->{'values'                    }->{'value'} = $simulation->{'massParticle'              }                               ;
+	    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'description'               }->{'value'} = $simulation->{'description'               }                               ;
+	    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'simulationReference'       }->{'value'} = $simulation->{'simulationReference'       }                               ;
+	    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'simulationURL'             }->{'value'} = $simulation->{'simulationURL'             }                               ;
+	    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'massParentMinimum'         }->{'value'} = $simulation->{'massParentMinimum'         }                               ;
+	    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'massParentMaximum'         }->{'value'} = $simulation->{'massParentMaximum'         }                               ;
+	    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'massRatioProgenitorMinimum'}->{'value'} = $simulation->{'massRatioProgenitorMinimum'}                               ;
+	    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'massRatioProgenitorMaximum'}->{'value'} = $simulation->{'massRatioProgenitorMaximum'}                               ;
+	    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'snapshotParents'           }->{'value'} = $simulation->{'snapshotParents'           }                               ;
+	    $massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'snapshotsProgenitors'      }->{'value'} = $simulation->{'snapshotsProgenitors'      }                               ;
 	    ## Write the parameter file.
 	    my $parameterFileName = $simulation->{'path'}."progenitorMassFunctions.xml";
 	    open(my $outputFile,">",$parameterFileName);
@@ -304,10 +304,10 @@ sub caterpillarBuilder {
     ## Parse the base parameters.
     my $parameters = $xml->XMLin($ENV{'GALACTICUS_EXEC_PATH'}."/constraints/pipelines/darkMatter/progenitorMassFunctionIdentifyAlwaysIsolated.xml");
     ## Adjust comsological model.
-    $parameters->{'cosmologyParametersMethod'}->{'HubbleConstant' }->{'value'} = 67.11;
-    $parameters->{'cosmologyParametersMethod'}->{'OmegaMatter'    }->{'value'} =  0.32;
-    $parameters->{'cosmologyParametersMethod'}->{'OmegaDarkEnergy'}->{'value'} =  0.68;
-    $parameters->{'cosmologyParametersMethod'}->{'OmegaBaryon'    }->{'value'} =  0.05;
+    $parameters->{'cosmologyParameters'}->{'HubbleConstant' }->{'value'} = 67.11;
+    $parameters->{'cosmologyParameters'}->{'OmegaMatter'    }->{'value'} =  0.32;
+    $parameters->{'cosmologyParameters'}->{'OmegaDarkEnergy'}->{'value'} =  0.68;
+    $parameters->{'cosmologyParameters'}->{'OmegaBaryon'    }->{'value'} =  0.05;
     ## Iterate over parents.
     foreach my $parent ( &List::ExtraUtils::hashList($parents) ) {
 	# Construct the file name.
@@ -319,11 +319,11 @@ sub caterpillarBuilder {
 	# Clone parameters.
 	my $parameters_ = dclone($parameters);
 	# Set output file.
-	$parameters_->{'nbodyOperatorMethod'}->{'nbodyOperatorMethod'}->[6]->{'fileName'}->{'value'} = $outputFileName;
+	$parameters_->{'nbodyOperator'}->{'nbodyOperator'}->[6]->{'fileName'}->{'value'} = $outputFileName;
 	# Set the snapshots to select.
-	$parameters_->{'nbodyOperatorMethod'}->{'nbodyOperatorMethod'}->[3]->{'selectedValues'}->{'value'} = $snapshots;
+	$parameters_->{'nbodyOperator'}->{'nbodyOperator'}->[3]->{'selectedValues'}->{'value'} = $snapshots;
 	# Set the hostedRootID to select.
-	$parameters_->{'nbodyOperatorMethod'}->{'nbodyOperatorMethod'}->[4]->{'selectedValues'}->{'value'} = $parent->{$parent->{'levelMax'}}->{'hostedRootId'};
+	$parameters_->{'nbodyOperator'}->{'nbodyOperator'}->[4]->{'selectedValues'}->{'value'} = $parent->{$parent->{'levelMax'}}->{'hostedRootId'};
 	# Add an operator to shift snapshot numbers. All Caterpillar simulations should have 320 snapshots, except for some
 	# early-run simulations which had 256 (64 extra early snapshots were added to later-run simulations). There are fewer
 	# snapshots in the Rockstar trees because Rockstar ignores snapshots with no halos and renumbers. So, here we want to
@@ -335,13 +335,13 @@ sub caterpillarBuilder {
 	    propertyName => {value => "snapshotID"   },
 	    shiftBy      => {value => $snapshotOffset}
 	};
-	unshift(@{$parameters_->{'nbodyOperatorMethod'}->{'nbodyOperatorMethod'}},$shiftOperator);
+	unshift(@{$parameters_->{'nbodyOperator'}->{'nbodyOperator'}},$shiftOperator);
 	# Add all tree files.
-	$parameters_->{'nbodyImporterMethod'} =
+	$parameters_->{'nbodyImporter'} =
 	{
 	    value => "merge"
 	};
-	@{$parameters_->{'nbodyImporterMethod'}->{'nbodyImporterMethod'}} =
+	@{$parameters_->{'nbodyImporter'}->{'nbodyImporter'}} =
 	    map 
 	{
 	    {
@@ -389,7 +389,7 @@ sub caterpillarBuilder {
 	next
 	    if ( -e $outputFileName );
 	# Add an importer for each parent.
-	@{$massFunctionParameters->{'nbodyImporterMethod'}->{'nbodyImporterMethod'}} =
+	@{$massFunctionParameters->{'nbodyImporter'}->{'nbodyImporter'}} =
 	    map
 	    {
 		$_->{'levelMax'} == $resolution
@@ -422,28 +422,28 @@ sub caterpillarBuilder {
 	} else {
 	    die("unknown resolution");
 	}
-	$massFunctionParameters  ->{'nbodyOperatorMethod'     }->{'nbodyOperatorMethod'}->[0]->{'values'                    }->{'value'} = $massParticle;
+	$massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[0]->{'values'                    }->{'value'} = $massParticle;
 	# Determine minimum and maximum parent halo masses for the mass function.
 	my $massParentMinimum = 1.0e11;
 	my $massParentMaximum = 1.0e13;
-	$massFunctionParameters  ->{'nbodyOperatorMethod'     }->{'nbodyOperatorMethod'}->[1]->{'massParentMinimum'         }->{'value'} = $massParentMinimum;
-	$massFunctionParameters  ->{'nbodyOperatorMethod'     }->{'nbodyOperatorMethod'}->[1]->{'massParentMaximum'         }->{'value'} = $massParentMaximum;
+	$massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'massParentMinimum'         }->{'value'} = $massParentMinimum;
+	$massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'massParentMaximum'         }->{'value'} = $massParentMaximum;
 	# Define minimum and maximum mass ratios
 	my $massRatioProgenitorMinimum = 10.0**(int(log($massParticle)/log(10.0))+2-log10($massParentMaximum));
 	my $massRatioProgenitorMaximum = 10.0;
-	$massFunctionParameters  ->{'nbodyOperatorMethod'     }->{'nbodyOperatorMethod'}->[1]->{'massRatioProgenitorMinimum'}->{'value'} = $massRatioProgenitorMinimum;
-	$massFunctionParameters  ->{'nbodyOperatorMethod'     }->{'nbodyOperatorMethod'}->[1]->{'massRatioProgenitorMaximum'}->{'value'} = $massRatioProgenitorMaximum;
+	$massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'massRatioProgenitorMinimum'}->{'value'} = $massRatioProgenitorMinimum;
+	$massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'massRatioProgenitorMaximum'}->{'value'} = $massRatioProgenitorMaximum;
 	# Set snapshots.
 	my @snapshotList         = split(" ",$snapshots);
 	my $snapshotParents      = &List::Util::max (                                           @snapshotList);
 	my $snapshotsProgenitors =              join(" ",map {$_ == $snapshotParents ? () : $_} @snapshotList);
-	$massFunctionParameters  ->{'nbodyOperatorMethod'     }->{'nbodyOperatorMethod'}->[1]->{'snapshotParents'           }->{'value'} = $snapshotParents;
-	$massFunctionParameters  ->{'nbodyOperatorMethod'     }->{'nbodyOperatorMethod'}->[1]->{'snapshotsProgenitors'      }->{'value'} = $snapshotsProgenitors;
+	$massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'snapshotParents'           }->{'value'} = $snapshotParents;
+	$massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'snapshotsProgenitors'      }->{'value'} = $snapshotsProgenitors;
 	# Set other task properties.
 	$massFunctionParameters  ->{'galacticusOutputFileName'}                                                              ->{'value'} = $outputFileName;
-	$massFunctionParameters  ->{'nbodyOperatorMethod'     }->{'nbodyOperatorMethod'}->[1]->{'description'               }->{'value'} = $simulation->{'description'        }                                                 ;
-	$massFunctionParameters  ->{'nbodyOperatorMethod'     }->{'nbodyOperatorMethod'}->[1]->{'simulationReference'       }->{'value'} = $simulation->{'simulationReference'}                                                 ;
-	$massFunctionParameters  ->{'nbodyOperatorMethod'     }->{'nbodyOperatorMethod'}->[1]->{'simulationURL'             }->{'value'} = $simulation->{'simulationURL'      }                                                 ;
+	$massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'description'               }->{'value'} = $simulation->{'description'        }                                                 ;
+	$massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'simulationReference'       }->{'value'} = $simulation->{'simulationReference'}                                                 ;
+	$massFunctionParameters  ->{'nbodyOperator'     }->{'nbodyOperator'}->[1]->{'simulationURL'             }->{'value'} = $simulation->{'simulationURL'      }                                                 ;
 	## Write the parameter file.
 	my $parameterFileName = $simulation->{'path'}."progenitorMassFunctions_LX".$resolution.".xml";
 	open(my $outputFile,">",$parameterFileName);

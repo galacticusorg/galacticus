@@ -31,6 +31,7 @@
      A concentration distribution output analysis class.
      !!}
      private
+     double precision :: rootVarianceFractionalMinimum
    contains
      procedure :: logLikelihood => concentrationDistributionLogLikelihood
   end type outputAnalysisConcentrationDistribution
@@ -62,13 +63,13 @@ contains
     class           (virialDensityContrastClass             ), pointer                     :: virialDensityContrast_
     double precision                                         , dimension(:  ), allocatable :: functionValueTarget         , functionCovarianceTarget1D
     double precision                                         , dimension(:,:), allocatable :: functionCovarianceTarget
-    double precision                                                                       :: time                        , timeRecent                , &
-         &                                                                                    massMinimum                 , massMaximum               , &
-         &                                                                                    concentrationMinimum        , concentrationMaximum      , &
-         &                                                                                    countConcentrationsPerDecade, redshift                  , &
-         &                                                                                    massParticle
+    double precision                                                                       :: time                        , timeRecent                   , &
+         &                                                                                    massMinimum                 , massMaximum                  , &
+         &                                                                                    concentrationMinimum        , concentrationMaximum         , &
+         &                                                                                    countConcentrationsPerDecade, redshift                     , &
+         &                                                                                    massParticle                , rootVarianceFractionalMinimum
     integer         (c_size_t                               )                              :: countConcentrations
-    type            (varying_string                         )                              :: targetLabel                 , fileName                  , &
+    type            (varying_string                         )                              :: targetLabel                 , fileName                     , &
          &                                                                                    label                       , comment
 
     !![
@@ -76,6 +77,12 @@ contains
     <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
     <objectBuilder class="nbodyHaloMassError"    name="nbodyHaloMassError_"    source="parameters"/>
     <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    <inputParameter>
+      <name>rootVarianceFractionalMinimum</name>
+      <source>parameters</source>
+      <defaultValue>0.0d0</defaultValue>
+      <description>The minimum fractional root variance (relative to the target dataset).</description>
+    </inputParameter>
     !!]
     if (parameters%isPresent('fileName')) then
        !![
@@ -95,7 +102,7 @@ contains
          <description>A label for this analysis.</description>
        </inputParameter>
        !!]
-       self=outputAnalysisConcentrationDistribution(char(fileName),label,comment,cosmologyFunctions_,nbodyHaloMassError_,virialDensityContrast_,outputTimes_)
+       self=outputAnalysisConcentrationDistribution(char(fileName),label,comment,rootVarianceFractionalMinimum,cosmologyFunctions_,nbodyHaloMassError_,virialDensityContrast_,outputTimes_)
     else
        !![
        <inputParameter>
@@ -192,22 +199,23 @@ contains
        !![
        <conditionalCall>
         <call>
-         self=outputAnalysisConcentrationDistribution(                        &amp;
-          &amp;                                       label                 , &amp;
-          &amp;                                       comment               , &amp;
-          &amp;                                       time                  , &amp;
-          &amp;                                       massMinimum           , &amp;
-          &amp;                                       massMaximum           , &amp;
-          &amp;                                       concentrationMinimum  , &amp;
-          &amp;                                       concentrationMaximum  , &amp;
-          &amp;                                       countConcentrations   , &amp;
-          &amp;                                       timeRecent            , &amp;
-          &amp;                                       massParticle          , &amp;
-          &amp;                                       cosmologyFunctions_   , &amp;
-          &amp;                                       nbodyHaloMassError_   , &amp;
-          &amp;                                       virialDensityContrast_, &amp;
-          &amp;                                       outputTimes_            &amp;
-          &amp;                                       {conditions}            &amp;
+         self=outputAnalysisConcentrationDistribution(                               &amp;
+          &amp;                                       label                        , &amp;
+          &amp;                                       comment                      , &amp;
+          &amp;                                       time                         , &amp;
+          &amp;                                       massMinimum                  , &amp;
+          &amp;                                       massMaximum                  , &amp;
+          &amp;                                       concentrationMinimum         , &amp;
+          &amp;                                       concentrationMaximum         , &amp;
+          &amp;                                       countConcentrations          , &amp;
+          &amp;                                       timeRecent                   , &amp;
+          &amp;                                       massParticle                 , &amp;
+	  &amp;                                       rootVarianceFractionalMinimum, &amp;
+          &amp;                                       cosmologyFunctions_          , &amp;
+          &amp;                                       nbodyHaloMassError_          , &amp;
+          &amp;                                       virialDensityContrast_       , &amp;
+          &amp;                                       outputTimes_                   &amp;
+          &amp;                                       {conditions}                   &amp;
           &amp;                                      )
         </call>
         <argument name="targetLabel"              value="targetLabel"              parameterPresent="parameters"/>
@@ -226,7 +234,7 @@ contains
     return
   end function concentrationDistributionConstructorParameters
 
-  function concentrationDistributionConstructorFile(fileName,label,comment,cosmologyFunctions_,nbodyHaloMassError_,virialDensityContrast_,outputTimes_) result(self)
+  function concentrationDistributionConstructorFile(fileName,label,comment,rootVarianceFractionalMinimum,cosmologyFunctions_,nbodyHaloMassError_,virialDensityContrast_,outputTimes_) result(self)
     !!{
     Constructor for the ``progenitorMassFunction'' output analysis class which reads all required properties from file.
     !!}
@@ -239,21 +247,22 @@ contains
     implicit none
     type            (outputAnalysisConcentrationDistribution)                                :: self
     character       (len=*                                  ), intent(in   )                 :: fileName
-    type            (varying_string                         ), intent(in   )                 :: label                   , comment
+    type            (varying_string                         ), intent(in   )                 :: label                        , comment
+    double precision                                         , intent(in   )                 :: rootVarianceFractionalMinimum
     class           (outputTimesClass                       ), intent(inout)                 :: outputTimes_
     class           (cosmologyFunctionsClass                ), intent(inout)                 :: cosmologyFunctions_
     class           (nbodyHaloMassErrorClass                ), intent(in   )                 :: nbodyHaloMassError_
     class           (virialDensityContrastClass             ), intent(in   )                 :: virialDensityContrast_
-    double precision                                         , allocatable  , dimension(:  ) :: functionValueTarget     , concentration
+    double precision                                         , allocatable  , dimension(:  ) :: functionValueTarget          , concentration
     integer         (c_size_t                               ), allocatable  , dimension(:  ) :: functionCountTarget
     double precision                                         , allocatable  , dimension(:,:) :: functionCovarianceTarget
     type            (varying_string                         )                                :: targetLabel
-    type            (hdf5Object                             )                                :: dataFile                , simulationGroup    , &
+    type            (hdf5Object                             )                                :: dataFile                     , simulationGroup, &
          &                                                                                      attributesGroup
     integer                                                                                  :: i
-    double precision                                                                         :: time                    , redshift           , &
-         &                                                                                      timeRecent              , massMinimum        , &
-         &                                                                                      massMaximum             , massParticle
+    double precision                                                                         :: time                         , redshift       , &
+         &                                                                                      timeRecent                   , massMinimum    , &
+         &                                                                                      massMaximum                  , massParticle
 
     !$ call hdf5Access%set  ()
     call dataFile%openFile(char(File_Name_Expand(fileName)),readOnly=.true.)
@@ -288,11 +297,11 @@ contains
     ! Convert redshift to time.
     time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift))
     ! Build the object.
-    self=outputAnalysisConcentrationDistribution(label,comment,time,massMinimum,massMaximum,concentration(1),concentration(size(concentration)),size(concentration,kind=c_size_t),timeRecent,massParticle,cosmologyFunctions_,nbodyHaloMassError_,virialDensityContrast_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget)
+    self=outputAnalysisConcentrationDistribution(label,comment,time,massMinimum,massMaximum,concentration(1),concentration(size(concentration)),size(concentration,kind=c_size_t),timeRecent,massParticle,rootVarianceFractionalMinimum,cosmologyFunctions_,nbodyHaloMassError_,virialDensityContrast_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget)
     return
   end function concentrationDistributionConstructorFile
 
-  function concentrationDistributionConstructorInternal(label,comment,time,massMinimum,massMaximum,concentrationMinimum,concentrationMaximum,countConcentrations,timeRecent,massParticle,cosmologyFunctions_,nbodyHaloMassError_,virialDensityContrast_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
+  function concentrationDistributionConstructorInternal(label,comment,time,massMinimum,massMaximum,concentrationMinimum,concentrationMaximum,countConcentrations,timeRecent,massParticle,rootVarianceFractionalMinimum,cosmologyFunctions_,nbodyHaloMassError_,virialDensityContrast_,outputTimes_,targetLabel,functionValueTarget,functionCovarianceTarget) result(self)
     !!{
     Internal constructor for the ``concentrationDistribution'' output analysis class.
     !!}
@@ -324,7 +333,7 @@ contains
     double precision                                                                               , intent(in   ) :: massMinimum                                         , massMaximum                             , &
          &                                                                                                            concentrationMinimum                                , concentrationMaximum                    , &
          &                                                                                                            timeRecent                                          , time                                    , &
-         &                                                                                                            massParticle
+         &                                                                                                            massParticle                                        , rootVarianceFractionalMinimum
     integer         (c_size_t                                        )                             , intent(in   ) :: countConcentrations
     type            (varying_string                                  ), optional                   , intent(in   ) :: targetLabel
     double precision                                                  , optional   , dimension(:  ), intent(in   ) :: functionValueTarget
@@ -356,7 +365,10 @@ contains
     integer                                                           , parameter                                  :: covarianceBinomialBinsPerDecade         =  2
     double precision                                                  , parameter                                  :: covarianceBinomialMassHaloMinimum       = +3.000d+11, covarianceBinomialMassHaloMaximum=1.0d15
     integer         (c_size_t                                        )                                             :: iOutput                                             , bufferCount
-
+    !![
+    <constructorAssign variables="rootVarianceFractionalMinimum"/>
+    !!]
+    
     ! Build grid of concentrations.
     call allocateArray(concentrations,[countConcentrations])
     concentrations=Make_Range(concentrationMinimum,concentrationMaximum,int(countConcentrations),rangeType=rangeTypeLogarithmic)
@@ -591,9 +603,16 @@ contains
                    if (mask(j)) then
                       jj=jj+1
                       ! Compute total covariance.
-                      functionCovarianceCombined(ii,jj)=+self%functionCovarianceTarget(i,j) &
-                           &                            +self%functionCovariance      (i,j)
-                   end if
+                      functionCovarianceCombined       (ii,jj)=    +self%functionCovarianceTarget     (i,j)       &
+                           &                                       +self%functionCovariance           (i,j)
+                      if (ii == jj) &
+                           & functionCovarianceCombined(ii,jj)=max(                                               &
+                           &                                       +functionCovarianceCombined        (ii,jj)   , &
+                           &                                       +self%functionValueTarget          ( i   )     &
+                           &                                       *self%functionValueTarget          (    j)     &
+                           &                                       *self%rootVarianceFractionalMinimum       **2  &
+                           &                                      )
+                    end if
                 end do
              end if
           end do

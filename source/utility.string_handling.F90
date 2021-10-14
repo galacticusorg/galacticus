@@ -31,7 +31,7 @@ module String_Handling
        &    String_Upper_Case         , String_Lower_Case           , String_Upper_Case_First            , Convert_VarString_To_Char  , &
        &    String_C_to_Fortran       , String_Subscript            , String_Superscript                 , String_Levenshtein_Distance, &
        &    String_Join               , String_Strip                , String_Lower_Case_First            , String_Value_Type          , &
-       &    String_Value_Extract_Float, String_Value_Extract_Integer, String_Value_Extract_Integer_Size_T
+       &    String_Value_Extract_Float, String_Value_Extract_Integer, String_Value_Extract_Integer_Size_T, stringSubstitute
 
   interface operator(//)
      module procedure Concatenate_VarStr_Integer
@@ -649,4 +649,25 @@ contains
     return
   end function String_Value_Extract_Integer_Size_T
 
+  function stringSubstitute(string,find,replace)
+    use :: ISO_Varying_String, only : varying_string, assignment(=), len, extract, &
+         &                            operator(//)  , operator(==)
+    implicit none
+    type     (varying_string)                :: stringSubstitute
+    type     (varying_string), intent(in   ) :: string
+    character(len=1         )                :: find
+    character(len=*         )                :: replace
+    integer                                  :: i
+
+    stringSubstitute=""
+    do i=1,len(string)
+       if (extract(string,i,i) == find) then
+          stringSubstitute=stringSubstitute//replace
+       else
+          stringSubstitute=stringSubstitute//extract(string,i,i)
+       end if
+    end do
+    return
+  end function stringSubstitute
+    
 end module String_Handling
