@@ -58,8 +58,8 @@ contains
     recfastPath=galacticusPath(pathTypeDataDynamic)//"RecFast/"
     ! Build the code if the executable does not exist.
     if (.not.File_Exists(recfastPath//"recfast.exe")) then
-       call Directory_Make(recfastPath)
-       call File_Lock(char(recfastPath//"recfast.exe"),fileLock,lockIsShared=.false.)
+       call Directory_Make(     recfastPath                                              )
+       call File_Lock     (char(recfastPath//"recfast.exe"),fileLock,lockIsShared=.false.)
        ! Patch the code if not already patched.
        if (.not.File_Exists(recfastPath//"patched")) then
           ! Download the code if not already downloaded.
