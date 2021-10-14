@@ -84,6 +84,7 @@ CPPFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ -fopenmp ${
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'lib'
 FCFLAGS       += -fPIC
 FCFLAGS_NOOPT += -fPIC
+F77FLAGS      += -fPIC
 CFLAGS        += -fPIC
 CPPFLAGS      += -fPIC
 endif
