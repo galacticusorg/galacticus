@@ -88,12 +88,13 @@ foreach my $fileName ( @{$directiveLocations->{'functionClass'}->{'file'}} ) {
 		    }
 		} elsif ( defined($nameConstructor) && $nodeImplementation->{'type'} eq "function" && $nodeImplementation->{'name'} eq $nameConstructor ) {
 		    # Internal constructor found. Extract declarations.
-		    if ( $nodeImplementation->{'opener'} =~ m/^\s*function\s+$nameConstructor\s*\(([^\)]+)\)/ ) {
-			@argumentsConstructor = map {{name => $_}} split(/\s*,\s*/,$1);
-		    }		    
+		    if ( $nodeImplementation->{'opener'} =~ m/^\s*(recursive\s+)*function\s+$nameConstructor\s*\(([^\)]+)\)/ ) {
+			@argumentsConstructor = map {{name => $_}} split(/\s*,\s*/,$2);
+		    }
 		    my $nodeConstructor = $nodeImplementation->{'firstChild'};
 		    while ( $nodeConstructor ) {
 			if ( $nodeConstructor->{'type'} eq "declaration" ) {
+
 			    foreach my $declaration ( @{$nodeConstructor->{'declarations'}} ) {
 				foreach my $variable ( @{$declaration->{'variables'}} ) {
 				    foreach my $argument ( @argumentsConstructor ) {
@@ -144,12 +145,12 @@ foreach my $fileName ( @{$directiveLocations->{'functionClass'}->{'file'}} ) {
 # Append the initialization code. This consists of a function that will be called on module import to initialize various things in
 # Galacticus, plus a Fortran "program" unit. This latter is necessary to cause libgfortran to be initialized at run time.
 my $libraryInitializer = fill_in_string(<<'CODE', PACKAGE => 'code');
-subroutine libGalacticusInitPY() bind(c,name='libGalacticusInitPY')
+subroutine libGalacticusInitL() bind(c,name='libGalacticusInitL')
   use:: Events_Hooks, only : eventsHooksInitialize
 
   ! Initialize event hooks.
   call eventsHooksInitialize()
-end subroutine libGalacticusInitPY
+end subroutine libGalacticusInitL
 
 program libGalacticusInit
 end program libGalacticusInit
@@ -170,7 +171,7 @@ from ctypes import *
 # Load the shared library into ctypes.
 libname = "./libgalacticus.so"
 c_lib = CDLL(libname)
-c_lib.libGalacticusInitPY()
+c_lib.libGalacticusInitL()
 CODE
 foreach my $clibFunction ( @{$python->{'c_lib'}} ) {
     $python->{'units'}->{'init'}->{'content'} .= "c_lib.".$clibFunction->{'name'}.".restype  = "  .            $clibFunction->{'restype' }  ."\n"
@@ -378,6 +379,24 @@ CODE
 		    $argument->{'passName'}    .= "_";
 		    my $moduleName              = $libraryFunctionClasses->{'classes'}->{$matchedClass[0]}->{'module'};
 		    $ext::moduleUses->{$moduleName}->{$argument->{'type'}} = 1;
+		} elsif ( $argument->{'type'} eq "*" ) {
+
+		    # Unlimited polymorphic argument. We must find the concrete type to use for this argument.
+		    die("no concrete type information provided for argument '".$argument->{'name'}."' of class '".$ext::implementation->{'name'}."'")
+			unless ( exists($libraryFunctionClasses->{'classes'}->{$ext::functionClass->{'name'}}->{$ext::implementation->{'name'}}->{'constructor'}->{'argument'}) );
+		    my @concreteTypes = grep {$_->{'name'} eq $argument->{'name'}} &List::ExtraUtils::as_array($libraryFunctionClasses->{'classes'}->{$ext::functionClass->{'name'}}->{$ext::implementation->{'name'}}->{'constructor'}->{'argument'});
+		    die("no unique concrete type information provided found for argument '".$argument->{'name'}."' of class '".$ext::implementation->{'name'}."'")
+			unless ( scalar(@concreteTypes) == 1 );
+		    $cType                            = "type(c_ptr)";
+		    push(@ext::clibArgTypes,"c_void_p");
+		    $ext::isoCBindingSymbols{'c_ptr'} = 1;
+		    $ext::isoCBindingSymbols{'c_f_pointer'}  = 1;
+		    $ext::moduleUses->{$concreteTypes[0]->{'module'}}->{$concreteTypes[0]->{'type'}} = 1;
+		    $declarations                   .= "type(".$concreteTypes[0]->{'type'}."), pointer :: ".$argument->{'name'}."_\n";
+		    $argument->{'passName'}    .= "_";
+		    $ext::dereference          .= ($isOptional ? "if (present(".$argument->{'name'}."))" : "")."call c_f_pointer(".$argument->{'name'}.",".$argument->{'name'}."_)\n";
+		} else {
+		    die("unsupported type 'class(".$argument->{'type'}.")' in constructor argument '".$argument->{'name'}."' for class '".$ext::implementation->{'name'}."'");
 		}
 	    } else {
 		die "unsupported type '".$argument->{'intrinsic'}."' in constructor argument '".$argument->{'name'}."' for class '".$ext::implementation->{'name'}."'";
@@ -422,12 +441,12 @@ CODE
 	}
 	# Finally, build the interface constructor function.
 	my $constructor .= fill_in_string(<<'CODE', PACKAGE => 'ext');
-function {$implementation->{'name'}}PY({join(",",@functionArguments)}) bind(c,name='{$implementation->{'name'}}PY')
+function {$implementation->{'name'}}L({join(",",@functionArguments)}) bind(c,name='{$implementation->{'name'}}L')
   use, intrinsic :: ISO_C_Binding               , only : {join(", ",keys(%isoCBindingSymbols))}
   use            :: {$functionClass->{'module'}}, only : {$implementation->{'name'}}
 {$moduleUseCode}
   implicit none
-  type(c_ptr                      )          :: {$implementation->{'name'}}PY
+  type(c_ptr                      )          :: {$implementation->{'name'}}L
   type({$implementation->{'name'}}), pointer :: self
 {$declarations}
 
@@ -488,9 +507,9 @@ CODE
 	    $constructor .= "end if\n";
         }
 	$constructor .= fill_in_string(<<'CODE', PACKAGE => 'ext');
-  {$implementation->{'name'}}PY=c_loc(self)
+  {$implementation->{'name'}}L=c_loc(self)
   return
-end function {$implementation->{'name'}}PY
+end function {$implementation->{'name'}}L
 CODE
 	push(
 	    @{$code->{'units'}},
@@ -505,7 +524,7 @@ CODE
 	push(
 	    @{$python->{'c_lib'}},
 	    {
-		name     => $ext::implementation->{'name'}."PY",
+		name     => $ext::implementation->{'name'}."L",
 		restype  => "c_void_p",
 		argtypes => \@clibArgTypesNonOptional
 	    }
@@ -520,7 +539,7 @@ def __init__({join(",",@pythonConstructorArguments)}):
 CODE
         if ( $ext::countOptional == 0 ) {
 	    $pythonConstructor .= fill_in_string(<<'CODE', PACKAGE => 'ext');
-    self._glcObj = c_lib.{$implementation->{'name'}}PY({join(",",@pythonFunctionArguments)})
+    self._glcObj = c_lib.{$implementation->{'name'}}L({join(",",@pythonFunctionArguments)})
 CODE
         } else {
 	    my $formatBinary = "%.".$ext::countOptional."b";
@@ -529,7 +548,7 @@ CODE
 		$ext::condition = "    ".($i > 0 ? "el" : "")."if ".join(" and ",map {$ext::argsOptional[$_] < 0 ? () : ($ext::state[$ext::argsOptional[$_]] == 0 ? "not " : "")."".$ext::pythonFunctionArguments[$_]} 0..scalar(@ext::pythonFunctionArguments)-1).":";
 		$pythonConstructor .= fill_in_string(<<'CODE', PACKAGE => 'ext');
 {$condition}
-        self._glcObj = c_lib.{$implementation->{'name'}}PY({join(",",map {$argsOptional[$_] < 0 ? ($_ >= $firstOptional ? $clibArgTypes[$_]."(" : "").$pythonFunctionArguments[$_].($_ >= $firstOptional ? ")" : "") : ($state[$argsOptional[$_]] == 1 ? "byref(".$clibArgTypes[$_]."(".$pythonFunctionArguments[$_]."))" : "None")} 0..scalar(@pythonFunctionArguments)-1)})
+        self._glcObj = c_lib.{$implementation->{'name'}}L({join(",",map {$argsOptional[$_] < 0 ? ($_ >= $firstOptional ? $clibArgTypes[$_]."(" : "").$pythonFunctionArguments[$_].($_ >= $firstOptional ? ")" : "") : ($state[$argsOptional[$_]] == 1 ? "byref(".$clibArgTypes[$_]."(".$pythonFunctionArguments[$_]."))" : "None")} 0..scalar(@pythonFunctionArguments)-1)})
 CODE
 	    }
         }
@@ -548,7 +567,7 @@ sub interfacesDestructor {
     my $python          = shift();
     $ext::functionClass = shift();
     my $destructor = fill_in_string(<<'CODE', PACKAGE => 'ext');
-subroutine {$functionClass->{'name'}}DestructorPY(self,classID) bind(c,name='{$functionClass->{'name'}}DestructorPY')
+subroutine {$functionClass->{'name'}}DestructorL(self,classID) bind(c,name='{$functionClass->{'name'}}DestructorL')
   use, intrinsic :: ISO_C_Binding               , only : c_ptr                          , c_int
   use            :: {$functionClass->{'module'}}, only : {$functionClass->{'name'}}Class
   implicit none
@@ -561,7 +580,7 @@ subroutine {$functionClass->{'name'}}DestructorPY(self,classID) bind(c,name='{$f
   <objectDestructor name="self_"/>
   !!]
   return
-end subroutine {$functionClass->{'name'}}DestructorPY
+end subroutine {$functionClass->{'name'}}DestructorL
 CODE
     push(
 	@{$code->{'units'}},
@@ -571,7 +590,7 @@ CODE
     push(
 	@{$python->{'c_lib'}},
 	{
-	    name     => $ext::functionClass->{'name'}."DestructorPY",
+	    name     => $ext::functionClass->{'name'}."DestructorL",
 	    restype  => undef(),
 	    argtypes => [ "c_void_p", "c_int" ]
 	}
@@ -580,7 +599,7 @@ CODE
     my $pythonDestructor = fill_in_string(<<'CODE', PACKAGE => 'ext');
 # Destructor
 def __del__(self):
-    c_lib.{$functionClass->{'name'}}DestructorPY(self._glcObj,self._classID)
+    c_lib.{$functionClass->{'name'}}DestructorL(self._glcObj,self._classID)
 CODE
     push(
 	@{$python->{'units'}->{$ext::functionClass->{'name'}}->{'subUnits'}},
@@ -642,7 +661,7 @@ sub interfacesMethods {
 	} else {
 	    die("unsupported type '".$ext::method->{'type'}."'");
 	}
-	$ext::declarations  .= $functionCType." :: ".$ext::functionClass->{'name'}.ucfirst($ext::method->{'name'})."PY\n"
+	$ext::declarations  .= $functionCType." :: ".$ext::functionClass->{'name'}.ucfirst($ext::method->{'name'})."L\n"
 	    unless ( $ext::method->{'type'} eq "void" );
 	# Add self argument, declaration, and dereference.
 	push(@ext::interfaceArguments      ,"self"         ,"selfClassID"  );
@@ -762,7 +781,7 @@ sub interfacesMethods {
 	}
 	# Generate the function.
 	my $function = fill_in_string(<<'CODE', PACKAGE => 'ext');
-{$procedure} {$functionClass->{'name'}}{ucfirst($method->{'name'})}PY({join(",",@interfaceArguments)}) bind(c,name='{$functionClass->{'name'}}{ucfirst($method->{'name'})}PY')
+{$procedure} {$functionClass->{'name'}}{ucfirst($method->{'name'})}L({join(",",@interfaceArguments)}) bind(c,name='{$functionClass->{'name'}}{ucfirst($method->{'name'})}L')
   use, intrinsic :: ISO_C_Binding               , only : {join(", ",keys(%isoCBindingSymbols))}
   use            :: {$functionClass->{'module'}}, only : {$functionClass->{'name'}}Class
 {$moduleUseCode}
@@ -778,20 +797,20 @@ CODE
 		$ext::condition = ($i > 0 ? "else " : "")."if (".join(" .and. ",map {$ext::argsOptional[$_+2] < 0 ? () : ($ext::state[$ext::argsOptional[$_+2]] == 0 ? ".not." : "")."present(".$ext::methodNames[$_].")"} 0..scalar(@ext::methodArguments)-1).") then";
 		$function .= fill_in_string(<<'CODE', PACKAGE => 'ext');
 {$condition}
-    {$method->{'type'} eq "void" ? "call " : $functionClass->{'name'}.ucfirst($method->{'name'})."PY="}{$resultConversionOpen}self_%{$method->{'name'}}({join(",",map {$ext::argsOptional[$_+2] < 0 ? $methodArguments[$_] : ($state[$ext::argsOptional[$_+2]] == 1 ? $methodNames[$_]."=".$methodArguments[$_] : ())} 0..scalar(@methodArguments)-1)}){$resultConversionClose}
+    {$method->{'type'} eq "void" ? "call " : $functionClass->{'name'}.ucfirst($method->{'name'})."L="}{$resultConversionOpen}self_%{$method->{'name'}}({join(",",map {$ext::argsOptional[$_+2] < 0 ? $methodArguments[$_] : ($state[$ext::argsOptional[$_+2]] == 1 ? $methodNames[$_]."=".$methodArguments[$_] : ())} 0..scalar(@methodArguments)-1)}){$resultConversionClose}
 CODE
 	    }
 	    $function .= "else\n";
         }
 	$function .= fill_in_string(<<'CODE', PACKAGE => 'ext');
-    {$method->{'type'} eq "void" ? "call " : $functionClass->{'name'}.ucfirst($method->{'name'})."PY="}{$resultConversionOpen}self_%{$method->{'name'}}({join(",",@methodArguments)}){$resultConversionClose}
+    {$method->{'type'} eq "void" ? "call " : $functionClass->{'name'}.ucfirst($method->{'name'})."L="}{$resultConversionOpen}self_%{$method->{'name'}}({join(",",@methodArguments)}){$resultConversionClose}
 CODE
 	if ( $ext::countOptional > 0 ) {
 	    $function .= "end if\n";
         }
 	$function .= fill_in_string(<<'CODE', PACKAGE => 'ext');
   return
-end {$procedure} {$functionClass->{'name'}}{ucfirst($method->{'name'})}PY
+end {$procedure} {$functionClass->{'name'}}{ucfirst($method->{'name'})}L
 CODE
 	push(
 	    @{$code->{'units'}},
@@ -807,7 +826,7 @@ CODE
 	push(
 	    @{$python->{'c_lib'}},
 	    {
-		name     => $ext::functionClass->{'name'}.ucfirst($ext::method->{'name'})."PY",
+		name     => $ext::functionClass->{'name'}.ucfirst($ext::method->{'name'})."L",
 		restype  => $clibResType,
 		argtypes => \@clibArgTypesNonOptional
 	    }
@@ -818,7 +837,7 @@ def {$method->{'name'}}({join(",",@pythonMethodArguments)}):
 CODE
 	if ( $ext::countOptional == 0 ) {
 	    $pythonMethod .= fill_in_string(<<'CODE', PACKAGE => 'ext');
-    return c_lib.{$functionClass->{'name'}}{ucfirst($method->{'name'})}PY({join(",",@pythonInterfaceArguments)})
+    return c_lib.{$functionClass->{'name'}}{ucfirst($method->{'name'})}L({join(",",@pythonInterfaceArguments)})
 CODE
 	} else {
 	    my $formatBinary = "%.".$ext::countOptional."b";
@@ -827,7 +846,7 @@ CODE
 		$ext::condition = "    ".($i > 0 ? "el" : "")."if ".join(" and ",map {$ext::argsOptional[$_] < 0 ? () : ($ext::state[$ext::argsOptional[$_]] == 0 ? "not " : "")."".$ext::pythonInterfaceArguments[$_]} 0..scalar(@ext::pythonInterfaceArguments)-1).":";
 		$pythonMethod .= fill_in_string(<<'CODE', PACKAGE => 'ext');
 {$condition}
-        return c_lib.{$functionClass->{'name'}}{ucfirst($method->{'name'})}PY({join(",",map {$ext::argsOptional[$_] < 0 ? $pythonInterfaceArguments[$_] : ($state[$ext::argsOptional[$_]] == 1 ? "byref(".$clibArgTypes[$_]."(".$pythonInterfaceArguments[$_]."))" : "None")} 0..scalar(@pythonInterfaceArguments)-1)})
+        return c_lib.{$functionClass->{'name'}}{ucfirst($method->{'name'})}L({join(",",map {$ext::argsOptional[$_] < 0 ? $pythonInterfaceArguments[$_] : ($state[$ext::argsOptional[$_]] == 1 ? "byref(".$clibArgTypes[$_]."(".$pythonInterfaceArguments[$_]."))" : "None")} 0..scalar(@pythonInterfaceArguments)-1)})
 CODE
 	    }
 	}
