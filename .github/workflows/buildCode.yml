@@ -35,4 +35,10 @@ jobs:
           prerelease: true
           message: Bleeding edge release
           body: This release is updated to match the [latest revision](https://github.com/galacticusorg/galacticus/commit/HEAD) to Galacticus.
+      - name: Update release tag
+        uses: richardsimko/update-tag@v1
+        with:
+          tag_name: bleeding-edge
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: echo "This job's status is ${{ job.status }}."
