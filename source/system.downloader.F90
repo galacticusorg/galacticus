@@ -52,9 +52,9 @@ contains
     if (.not.downloadInitialized) then
        !$omp critical(downloadInitialize)
        if (.not.downloadInitialized) then
-          call System_Command_Do("which -s wget",status)
+          call System_Command_Do("which wget > /dev/null 2>&1",status)
           downloadUsingWget=status == errorStatusSuccess
-          call System_Command_Do("which -s curl",status)
+          call System_Command_Do("which curl > /dev/null 2>&1",status)
           downloadUsingCurl=status == errorStatusSuccess
           downloadInitialized=.true.
        end if
