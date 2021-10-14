@@ -194,6 +194,7 @@ foreach my $unitName ( keys(%{$python->{'units'}}) ) {
 my @pythonNamesUnordered = sort(keys(%{$python->{'units'}}));
 my @pythonNamesOrdered   = &Sort::Topo::sort(\@pythonNamesUnordered,\%dependencies);
 my @pythonStackOrdered   = map {$python->{'units'}->{$_}} @pythonNamesOrdered;
+system("mkdir -p python");
 open(my $pythonOutput,">python/galacticus.py");
 while ( scalar(@pythonStackOrdered) > 0 ) {
     my $unit = pop(@pythonStackOrdered);
