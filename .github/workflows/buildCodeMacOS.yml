@@ -104,6 +104,7 @@ jobs:
           sudo perl -MCPAN -e 'force("install","Readonly")'
           sudo perl -MCPAN -e 'force("install","File::Slurp")'
           sudo perl -MCPAN -e 'force("install","XML::Simple")'
+          sudo perl -MCPAN -e 'force("install","List::MoreUtils")'
           sudo perl -MCPAN -e 'install LaTeX::Encode'
           sudo perl -MCPAN -e 'install Sub::Identify'
       - name: Build Galacticus
