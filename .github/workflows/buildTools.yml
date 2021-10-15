@@ -46,7 +46,6 @@ jobs:
             dynamic/RecFast/currentVersion \
             dynamic/c17.02/source/cloudy.exe \
             dynamic/c17.02/data \
-            dynamic/fsps-3.2/currentRevision.txt \
             dynamic/fsps-3.2/src/autosps.exe \
             dynamic/fsps-3.2/dust \
             dynamic/fsps-3.2/data \
