@@ -67,16 +67,16 @@ jobs:
       #     make -j4
       #     sudo make install
       #     rm -rf fftw-3.3.4 fftw-3.3.4.tar.gz
-      - name: Install ANN
-        run: |
-          curl -L http://www.cs.umd.edu/~mount/ANN/Files/1.1.2/ann_1.1.2.tar.gz --output ann_1.1.2.tar.gz
-          tar xvfz ann_1.1.2.tar.gz
-          cd ann_1.1.2
-          sed -E -i~ s/"C\+\+ = g\+\+"/"C\+\+ = g\+\+\-11"/ Make-config
-          make macosx-g++
-          cp bin/* /usr/local/bin/.
-          cp lib/* /usr/local/lib/.
-          cp -R include/* /usr/local/include/.
+      # - name: Install ANN
+      #   run: |
+      #     curl -L http://www.cs.umd.edu/~mount/ANN/Files/1.1.2/ann_1.1.2.tar.gz --output ann_1.1.2.tar.gz
+      #     tar xvfz ann_1.1.2.tar.gz
+      #     cd ann_1.1.2
+      #     sed -E -i~ s/"C\+\+ = g\+\+"/"C\+\+ = g\+\+\-11"/ Make-config
+      #     make macosx-g++
+      #     cp bin/* /usr/local/bin/.
+      #     cp lib/* /usr/local/lib/.
+      #     cp -R include/* /usr/local/include/.
       - name: Install CPAN
         run: |
           sudo perl -MCPAN -e shell
@@ -84,28 +84,27 @@ jobs:
       - name: Install Perl modules
         run: |
           export CFLAGS=-I/Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/System/Library/Perl/5.18/darwin-thread-multi-2level/CORE
-          sudo perl -MCPAN -e 'install Cwd'
-          sudo perl -MCPAN -e 'install Data::Dumper'
-          sudo perl -MCPAN -e 'install File::Copy'
-          sudo perl -MCPAN -e 'install File::Which'
-          sudo perl -MCPAN -e 'force("install","NestedMap")'
-          sudo perl -MCPAN -e 'force("install","Scalar::Util")'
-          sudo perl -MCPAN -e 'force("install","Term::ANSIColor")'
-          sudo perl -MCPAN -e 'force("install","Text::Table")'
-          sudo perl -MCPAN -e 'force("install","ExtUtils::ParseXS")'
-          sudo perl -MCPAN -e 'install Path::Tiny'
-          sudo perl -MCPAN -e 'install PkgConfig'
-          sudo perl -MCPAN -e 'install Alien::Base::Wrapper'
-          sudo perl -MCPAN -e 'force("install","Alien::Libxml2")'
-          sudo perl -MCPAN -e 'install XML::LibXML::SAX'
-          sudo perl -MCPAN -e 'force("install","XML::SAX::ParserFactory")'
-          sudo perl -MCPAN -e 'force("install","Text::Template")'
-          sudo perl -MCPAN -e 'force("install","List::Uniq")'
-          sudo perl -MCPAN -e 'force("install","IO::Util")'
-          sudo perl -MCPAN -e 'force("install","Class::Util")'
-          sudo perl -MCPAN -e 'force("install","CGI::Builder")'
-          sudo perl -MCPAN -e 'force("install","Simple")'
-          sudo perl -MCPAN -e 'force("install","Readonly")'
-          sudo perl -MCPAN -e 'install LaTeX::Encode'
-          sudo perl -MCPAN -e 'install Sub::Identify'
+          sudo perl -MCPAN -e 'install Data::Dumper' || true
+          sudo perl -MCPAN -e 'install File::Copy' || true
+          sudo perl -MCPAN -e 'install File::Which' || true
+          sudo perl -MCPAN -e 'force("install","NestedMap")' || true
+          sudo perl -MCPAN -e 'force("install","Scalar::Util")' || true
+          sudo perl -MCPAN -e 'force("install","Term::ANSIColor")' || true
+          sudo perl -MCPAN -e 'force("install","Text::Table")' || true
+          sudo perl -MCPAN -e 'force("install","ExtUtils::ParseXS")' || true
+          sudo perl -MCPAN -e 'install Path::Tiny' || true
+          sudo perl -MCPAN -e 'install PkgConfig' || true
+          sudo perl -MCPAN -e 'install Alien::Base::Wrapper' || true
+          sudo perl -MCPAN -e 'force("install","Alien::Libxml2")' || true
+          sudo perl -MCPAN -e 'install XML::LibXML::SAX' || true
+          sudo perl -MCPAN -e 'force("install","XML::SAX::ParserFactory")' || true
+          sudo perl -MCPAN -e 'force("install","Text::Template")' || true
+          sudo perl -MCPAN -e 'force("install","List::Uniq")' || true
+          sudo perl -MCPAN -e 'force("install","IO::Util")' || true
+          sudo perl -MCPAN -e 'force("install","Class::Util")' || true
+          sudo perl -MCPAN -e 'force("install","CGI::Builder")' || true
+          sudo perl -MCPAN -e 'force("install","Simple")' || true
+          sudo perl -MCPAN -e 'force("install","Readonly")' || true
+          sudo perl -MCPAN -e 'install LaTeX::Encode' || true
+          sudo perl -MCPAN -e 'install Sub::Identify' || true
       - run: echo "This job's status is ${{ job.status }}."
