@@ -26,6 +26,10 @@ jobs:
           curl -L https://github.com/macports/macports-base/releases/download/v2.7.1/MacPorts-2.7.1-11-BigSur.pkg --output MacPorts-2.7.1-11-BigSur.pkg
           sudo installer -pkg ./MacPorts-2.7.1-11-BigSur.pkg -target /
           rm ./MacPorts-2.7.1-11-BigSur.pkg
+          ls /opt/local
+          ls /opt/local/bin
+          echo $PATH
+          which port
       - name: Install guile
         run: sudo port install guile18
       - name: Install libmatheval
