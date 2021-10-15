@@ -20,7 +20,7 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_FCFLAGS+=' -static'" >> $GITHUB_ENV
+          echo "GALACTICUS_FCFLAGS=\"$GALACTICUS_FCFLAGS -static\"" >> $GITHUB_ENV
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
