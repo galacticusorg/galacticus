@@ -85,8 +85,8 @@ contains
     cambPath       =galacticusPath(pathTypeDataDynamic)//"CAMB-"//cambVersion//"/fortran/"
     ! Build the CAMB code.
     if (.not.File_Exists(cambPath//"camb")) then
-       call Directory_Make(cambPath)
-       call File_Lock(char(cambPath//"camb"),fileLock,lockIsShared=.false.)
+       call Directory_Make(     cambPath                                       )
+       call File_Lock     (char(cambPath//"camb"),fileLock,lockIsShared=.false.)
        ! Unpack the code.
        if (.not.File_Exists(cambPath//"Makefile")) then
           ! Download CAMB if necessary.
