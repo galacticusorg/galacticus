@@ -95,7 +95,7 @@ jobs:
           sudo perl -MCPAN -e 'force("install","Alien::Libxml2")'
           sudo perl -MCPAN -e 'install XML::LibXML::SAX'
           sudo perl -MCPAN -e 'force("install","XML::SAX::ParserFactory")'
-          sudo perl -MCPAN -e 'force("install","XML::Validator::Schema)'
+          sudo perl -MCPAN -e 'force("install","XML::Validator::Schema")'
           sudo perl -MCPAN -e 'force("install","Text::Template")'
           sudo perl -MCPAN -e 'force("install","List::Uniq")'
           sudo perl -MCPAN -e 'force("install","IO::Util")'
