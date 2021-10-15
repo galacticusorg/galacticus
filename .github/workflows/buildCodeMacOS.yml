@@ -22,8 +22,8 @@ jobs:
           echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -static" >> $GITHUB_ENV
       - name: Install MacPorts
         run: |
-          curl https://github.com/macports/macports-base/releases/download/v2.7.1/MacPorts-2.7.1-11-BigSur.pkg --output MacPorts-2.7.1-11-BigSur.pkg
-          sudo installer -pkg /Users/runner/work/galacticus/galacticus/MacPorts-2.7.1-11-BigSur.pkg -target /
+          curl -L https://github.com/macports/macports-base/releases/download/v2.7.1/MacPorts-2.7.1-11-BigSur.pkg --output MacPorts-2.7.1-11-BigSur.pkg
+          sudo installer -pkg ./MacPorts-2.7.1-11-BigSur.pkg -target /
           rm ./MacPorts-2.7.1-11-BigSur.pkg
       - name: Install GSL
         run: |
