@@ -23,6 +23,8 @@ jobs:
       - name: Install MacPorts
         run: |
           curl https://github.com/macports/macports-base/releases/download/v2.7.1/MacPorts-2.7.1-11-BigSur.pkg --output MacPorts-2.7.1-11-BigSur.pkg
+          pwd
+          echo $GITHUB_ENV
           sudo installer -pkg MacPorts-2.7.1-11-BigSur.pkg -target /
           rm ./MacPorts-2.7.1-11-BigSur.pkg
       - name: Install GSL
