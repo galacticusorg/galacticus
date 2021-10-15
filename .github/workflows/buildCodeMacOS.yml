@@ -24,5 +24,5 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           echo Do nothing - yet.....
-	  gcc -E -dM - < /dev/null
+          gcc -E -dM - < /dev/null
       - run: echo "This job's status is ${{ job.status }}."
