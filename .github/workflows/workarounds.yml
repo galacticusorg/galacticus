@@ -19,7 +19,7 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
       - name: Install tools
-        run: apt install -y perl perl-doc curl
+        run: sudo apt install -y perl perl-doc curl
       - name: Check for workaround fixes
         run: |
           cd $GALACTICUS_EXEC_PATH
