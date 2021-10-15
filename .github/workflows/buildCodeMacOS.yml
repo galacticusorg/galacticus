@@ -5,7 +5,7 @@ on:
       - master
 jobs:
   Build-Executable:
-    runs-on: macos-latest
+    runs-on: macos-11
     concurrency:
       group: buildmacos-${{ github.ref }}
       cancel-in-progress: true
