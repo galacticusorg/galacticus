@@ -72,7 +72,7 @@ jobs:
           curl -L http://www.cs.umd.edu/~mount/ANN/Files/1.1.2/ann_1.1.2.tar.gz --output ann_1.1.2.tar.gz
           tar xvfz ann_1.1.2.tar.gz
           cd ann_1.1.2
-          sed -E -i~ s/"C\+\+ = g\+\+"/"C\+\+ = g\+\+\-11\.2"/ Make-config
+          sed -E -i~ s/"C\+\+ = g\+\+"/"C\+\+ = g\+\+\-11"/ Make-config
           make macosx-g++
           cp bin/* /usr/local/bin/.
           cp lib/* /usr/local/lib/.
