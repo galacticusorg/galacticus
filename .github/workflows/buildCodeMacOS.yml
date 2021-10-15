@@ -20,9 +20,18 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS=$GALACTICUS_FCFLAGS -static" >> $GITHUB_ENV
-      - name: Install xcode
+      - name: Install MacPorts
         run: |
-          cd $GALACTICUS_EXEC_PATH
-          echo Do nothing - yet.....
-          gcc -E -dM - < /dev/null
+          curl https://github.com/macports/macports-base/releases/download/v2.7.1/MacPorts-2.7.1-11-BigSur.pkg --output MacPorts-2.7.1-11-BigSur.pkg
+          sudo installer -pkg ./MacPorts-2.7.1-11-BigSur.pkg -target /
+          rm ./MacPorts-2.7.1-11-BigSur.pkg
+      - name: Install GSL
+        run: |
+          curl ftp://ftp.gnu.org/gnu/gsl/gsl-2.6.tar.gz --output gsl-2.6.tar.gz
+          tar xvfz gsl-2.6.tar.gz
+          cd gsl-2.6
+          CC=gcc-11 ./configure --prefix=/usr/local
+          make -j2
+          sudo make install
+          rm -rf gsl-2.6
       - run: echo "This job's status is ${{ job.status }}."
