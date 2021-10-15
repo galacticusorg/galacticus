@@ -85,8 +85,8 @@ contains
     classPath       =galacticusPath(pathTypeDataDynamic)//"class_public-"//classVersion//"/"
     ! Build the CLASS code.
     if (.not.File_Exists(classPath//"class")) then
-       call Directory_Make(classPath)
-       call File_Lock(char(classPath//"class"),fileLock,lockIsShared=.false.)
+       call Directory_Make(     classPath                                        )
+       call File_Lock     (char(classPath//"class"),fileLock,lockIsShared=.false.)
        ! Unpack the code.
        if (.not.File_Exists(classPath//"Makefile")) then
           ! Download CLASS if necessary.
