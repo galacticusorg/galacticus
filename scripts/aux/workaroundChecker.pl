@@ -43,6 +43,7 @@ sub fileMatcher {
     my $fullName = $File::Find::name;
     return
 	unless ( $fullName =~ m/\.(F90|Inc|pm)$/ );
+    print "Scanning ".$fullName."\n";
     open(my $file,$fullName);
     while ( my $line = <$file> ) {
 	if ( $line =~ m/^\s*#??\s*<workaround\s.*PR="(\d+)"/ ) {
