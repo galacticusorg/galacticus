@@ -120,6 +120,7 @@ jobs:
           export GALACTICUS_FCFLAGS="-fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib"
           export GALACTICUS_CFLAGS="-I/usr/local/include -I/opt/local/include"
           export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include"
+          export BUILDPATH=./work/build
           make -j3 Galacticus.exe 2>&1 | tee build.log
           ./scripts/build/staticRelinker.pl `grep '\-o Galacticus.exe' build.log`
           mv Galacticus.exe Galacticus_MacOS.exe
