@@ -7,5 +7,5 @@ def pdf_list_anchors(fh,ofh):
     for name in destinations:
         ofh.write(name+"\n")
 f = open(sys.argv[2],'w')
-pdf_list_anchors(open(sys.argv[1]),f)
+pdf_list_anchors(open(sys.argv[1],'rb'),f)
 

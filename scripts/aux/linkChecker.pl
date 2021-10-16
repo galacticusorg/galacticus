@@ -8,7 +8,7 @@ use warnings;
 # Extract PDF destinations.
 our $pdfDestinations;
 foreach my $suffix ( "Usage", "Physics", "Development", "Source" ) {
-    system("curl --insecure --output Galacticus_".$suffix.".pdf https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_".$suffix.".pdf");
+    system("curl -L --insecure --output Galacticus_".$suffix.".pdf https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_".$suffix.".pdf");
     system("./scripts/aux/pdfDestinationsExtract.py Galacticus_".$suffix.".pdf Galacticus_".$suffix.".dests");
     open(my $destFile,"./Galacticus_".$suffix.".dests");
     while ( my $dest = <$destFile> ) {
