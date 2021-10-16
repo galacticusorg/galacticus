@@ -24,6 +24,7 @@ jobs:
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
+          export BUILDPATH=./work/build
           make -j2 work/build/Galacticus.d work/build/Galacticus.o
           ./scripts/build/libraryDependencies.pl Galacticus.exe -ffree-line-length-none -frecursive -DBUILDPATH=\'./work/build\' -J./work/build/moduleBuild/ -I./work/build/ -fintrinsic-modules-path /usr/local//finclude -fintrinsic-modules-path /usr/local//include -fintrinsic-modules-path /usr/local//include/gfortran -fintrinsic-modules-path /usr/local//lib/gfortran/modules -L/usr/local//lib -L/usr/local//lib64 -fuse-ld=bfd -static -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules -fintrinsic-modules-path /usr/lib64/openmpi/lib -pthread -Wall -fbacktrace -ffpe-trap=invalid,zero,overflow -fdump-core -O3 -ffinite-math-only -fno-math-errno -fopenmp -g -DPROCPS -DOFDAVAIL -DFFTW3AVAIL -DANNAVAIL -DMATHEVALAVAIL
           make -j2 Galacticus.exe
