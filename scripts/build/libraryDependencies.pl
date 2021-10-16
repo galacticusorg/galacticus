@@ -40,7 +40,8 @@ my %staticLinkDependencies =
      FoX_dom        => [ "FoX_fsys", "FoX_utils", "FoX_sax", "FoX_wxml" ],
      FoX_sax        => [ "FoX_common"                                   ],
      FoX_wxml       => [ "FoX_utils"                                    ],
-     FoX_common     => [ "FoX_fsys"                                     ]
+     FoX_common     => [ "FoX_fsys"                                     ],
+     fl             => [ "matheval"                                     ]
     );
 # Find default preprocessor directives.
 my @preprocessorDirectives;
