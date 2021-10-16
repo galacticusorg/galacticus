@@ -121,7 +121,7 @@ jobs:
           export GALACTICUS_CFLAGS="-I/usr/local/include -I/opt/local/include"
           export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include"
           make -j3 Galacticus.exe 2>&1 | tee build.log
-          ./scripts/build/staticRelinker.pl `grep Galacticus.exe build.log`
+          ./scripts/build/staticRelinker.pl `grep "-o Galacticus.exe" build.log`
           mv Galacticus.exe Galacticus_MacOS.exe
       - name: Update release
         uses: johnwbyrd/update-release@v1.0.0
