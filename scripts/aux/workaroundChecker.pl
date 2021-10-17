@@ -44,6 +44,7 @@ sub fileMatcher {
     return
 	unless ( $fullName =~ m/\.(F90|Inc|pm)$/ );
     print "Scanning ".$fullName."\n";
+    system("pwd; ls ".$fullName);
     open(my $file,$fullName);
     while ( my $line = <$file> ) {
 	if ( $line =~ m/^\s*#??\s*<workaround\s.*PR="(\d+)"/ ) {
@@ -58,7 +59,7 @@ sub checkLinks {
     foreach my $PR ( keys(%{$workarounds}) ) {
 	$workarounds->{$PR}->{'status'} = "UNKNOWN";
 	my $url = "https://gcc.gnu.org/bugzilla/show_bug.cgi?id=".$PR;
-	system("sleep 1; curl --insecure --location --output pr.html --fail \"".$url."\"");
+	system("sleep 1; curl --silent --insecure --location --output pr.html --fail \"".$url."\"");
 	open(my $report,"pr.html");
 	while ( my $line = <$report> ) {
 	    if ( $line =~ m/<span id="static_bug_status">([A-Z]+)/ ) {

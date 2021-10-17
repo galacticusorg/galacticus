@@ -8,7 +8,7 @@ use warnings;
 # Extract PDF destinations.
 our $pdfDestinations;
 foreach my $suffix ( "Usage", "Physics", "Development", "Source" ) {
-    system("curl -L --insecure --output Galacticus_".$suffix.".pdf https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_".$suffix.".pdf");
+    system("curl --silent -L --insecure --output Galacticus_".$suffix.".pdf https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_".$suffix.".pdf");
     system("./scripts/aux/pdfDestinationsExtract.py Galacticus_".$suffix.".pdf Galacticus_".$suffix.".dests");
     open(my $destFile,"./Galacticus_".$suffix.".dests");
     while ( my $dest = <$destFile> ) {
@@ -17,7 +17,7 @@ foreach my $suffix ( "Usage", "Physics", "Development", "Source" ) {
     }
     close($destFile);
 }
-
+system("pwd; ls -lcrt; cat Galacticus_*.dests");
 # Initialize list of broken URLs.
 our @brokenURLs;
 our $urlCount = 0;
@@ -130,7 +130,7 @@ sub checkLink {
 	$status = exists($pdfDestinations->{$suffix}) && exists($pdfDestinations->{$suffix}->{$anchor});
     } else {
 	# An external link. Include a short sleep here to rate limit requests.
-	system("sleep 1; curl --insecure --location --output /dev/null --fail --range 0-0 \"".$url."\"");
+	system("sleep 1; curl --silent --insecure --location --output /dev/null --fail --range 0-0 \"".$url."\"");
 	$status = $? == 0 ? 1 : 0;	
     }
     return $status;
