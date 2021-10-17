@@ -52,7 +52,7 @@ while ( my $fileName = readdir($wikiFolder) ) {
 closedir($wikiFolder);
 
 # Check status.
-my $status = scalar(@brokenURLs) == 0;
+my $status = scalar(@brokenURLs) != 0;
 exit $status;
 
 sub scanFile {
