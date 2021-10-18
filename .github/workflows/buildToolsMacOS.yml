@@ -3,12 +3,12 @@ on:
   push:
     branches:
       - master
-    paths:
-      - 'source/interface.CAMB.F90'
-      - 'source/interface.CLASS.F90'
-      - 'source/interface.Cloudy.F90'
-      - 'source/interface.FSPS.F90'
-      - 'source/interface.RecFast.F90'
+    # paths:
+    #   - 'source/interface.CAMB.F90'
+    #   - 'source/interface.CLASS.F90'
+    #   - 'source/interface.Cloudy.F90'
+    #   - 'source/interface.FSPS.F90'
+    #   - 'source/interface.RecFast.F90'
 jobs:
   Build-Tools:
     runs-on: macos-11
