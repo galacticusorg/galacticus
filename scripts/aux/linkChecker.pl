@@ -17,7 +17,7 @@ foreach my $suffix ( "Usage", "Physics", "Development", "Source" ) {
     }
     close($destFile);
 }
-system("pwd; ls -lcrt; cat Galacticus_*.dests");
+
 # Initialize list of broken URLs.
 our @brokenURLs;
 our $urlCount = 0;
@@ -74,7 +74,7 @@ sub scanFile {
 	}
 	while ( $line =~ m/\\refPhysics\{([^\}]+)\}/ ) {
 	    my $ref = $1;
-	    my $url = "https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#physics.".$ref;
+	    my $url = "https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#physics.".$ref;
 	    $line =~ s/\\refPhysics\{([^\}]+)\}//;
 	    unless ( &checkLink($url) ) {
 		print "Broken refPhysics link: \"".$ref."\" in ".$path."/".$fileName." line ".$lineNumber."\n";
@@ -83,7 +83,7 @@ sub scanFile {
 	}
 	while ( $line =~ m/\\refClass\{([^\}]+)\}/ ) {
 	    my $ref = $1;
-	    my $url = "https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#class.".$ref;
+	    my $url = "https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf\#class.".$ref;
 	    $line =~ s/\\refClass\{([^\}]+)\}//;
 	    unless ( &checkLink($url) ) {
 		print "Broken refClass link: \"".$ref."\" in ".$path."/".$fileName." line ".$lineNumber."\n";

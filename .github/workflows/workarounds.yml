@@ -23,7 +23,5 @@ jobs:
       - name: Check for workaround fixes
         run: |
           cd $GALACTICUS_EXEC_PATH
-          pwd
-          ls
           ./scripts/aux/workaroundChecker.pl
       - run: echo "This job's status is ${{ job.status }}."
