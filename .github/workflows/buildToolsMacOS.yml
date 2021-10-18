@@ -130,6 +130,13 @@ jobs:
           make -j3 Galacticus.exe
       - name: Build tools
         run: |
+          export GALACTICUS_EXEC_PATH=`pwd`
+          export FCCOMPILER=gfortran-11
+          export CCOMPILER=gcc-11
+          export CPPCOMPILER=g++-11
+          export GALACTICUS_FCFLAGS="-fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib"
+          export GALACTICUS_CFLAGS="-I/usr/local/include -I/opt/local/include"
+          export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include"
           cd $GALACTICUS_EXEC_PATH
           mkdir -p $GALACTICUS_DATA_PATH/dynamic
           ./Galacticus.exe parameters/buildTools.xml 2>&1 | tee build.log
