@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implements the ETHOS power spectrum window function class.
+  Implements the ETHOS power spectrum window function class from \cite{bohr_halo_2021}.
   !!}
   
   use :: Cosmology_Parameters, only : cosmologyParametersClass
@@ -26,13 +26,12 @@
   !![
   <powerSpectrumWindowFunction name="powerSpectrumWindowFunctionETHOS">
    <description>
-    ETHOS window function for filtering of power spectra. This window function was chosen to give good matches to N-body halo
-    mass functions derived from the ETHOS transfer functions. The functional form was provided by Francis-Yan Cyr-Racine
-    ({\normalfont \ttfamily \textless fycr@unm.edu\textgreater}; private communication):
+    ETHOS window function for filtering of power spectras from \cite{bohr_halo_2021}. This window function was chosen to give good
+    matches to N-body halo mass functions derived from the ETHOS transfer functions. Specifically the window function is given by:
     \begin{equation}
-     W(kR) = (\frac{1}{1+\left(\frac{kR}{c}\right)^\beta})
+     W(kR) = (\frac{1}{1+\left(\frac{kR}{c_\mathrm{W}}\right)^\beta})
     \end{equation}
-    with $c = 3.78062835$, $\beta = 3.4638743$, where $R$ is related to $M$ via the standard relation $M =
+    with $c_\mathrm{W} = 3.78062835$, $\beta = 3.4638743$, where $R$ is related to $M$ via the standard relation $M =
     \frac{4\pi}{3}\bar\rho_m R^3$.
    </description>
   </powerSpectrumWindowFunction>
@@ -110,13 +109,13 @@ contains
 
   double precision function ETHOSValue(self,wavenumber,smoothingMass)
     !!{
-    ETHOS window function used in computing the variance of the power spectrum.
+    ETHOS window function used in computing the variance of the power spectrum. Best fit values for parameters are from \cite[][\S3.2]{bohr_halo_2021}.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
     class           (powerSpectrumWindowFunctionETHOS), intent(inout) :: self
-    double precision                                  , intent(in   ) :: smoothingMass               , wavenumber
-    double precision                                  , parameter     :: b               =3.4638743d0, c         =3.78062835d0 
+    double precision                                  , intent(in   ) :: smoothingMass       , wavenumber
+    double precision                                  , parameter     :: beta         =3.46d0, cW        =3.79d0 
     double precision                                                  :: radius
     
     radius =+(                                             &
@@ -136,8 +135,8 @@ contains
             &       +(            &
             &         +wavenumber &
             &         *radius     &
-            &         /c          &
-            &        )**b         &
+            &         /cW         &
+            &        )**beta      &
             &      )
     end if
     return
