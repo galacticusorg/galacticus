@@ -149,7 +149,10 @@ jobs:
           cd $GALACTICUS_DATA_PATH/dynamic/c17.02/source/
           echo BEFORE
           otool -L cloudy.exe
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o cloudy.exe' $GALACTICUS_EXEC_PATH/build.log`
+          grep -E '\-o cloudy.exe' $GALACTICUS_EXEC_PATH/build.log | sed s/"\-lcloudy"/""/ | tr -d "\n" > cloudyLink.txt
+          grep "ar cr libcloudy.a" $GALACTICUS_EXEC_PATH/build.log | sed s/"ar cr libcloudy\.a"/""/ >> cloudyLink.txt
+          cat cloudyLink.txt
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `cat cloudyLink.txt`
           echo AFTER
           otool -L cloudy.exe
           cd $GALACTICUS_DATA_PATH/dynamic/fsps-3.2/src
