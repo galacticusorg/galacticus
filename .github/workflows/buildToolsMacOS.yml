@@ -126,7 +126,7 @@ jobs:
           export CPPCOMPILER=g++-11
           export GALACTICUS_FCFLAGS="-fintrinsic-modules-path /usr/local/include -L/usr/local/lib -L/opt/local/lib"
           export GALACTICUS_CFLAGS="-I/usr/local/include -I/opt/local/include"
-          export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include"
+          export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include -fvisibility=hidden -fvisibility-inlines-hidden"
           make -j3 Galacticus.exe
       - name: Build tools
         run: |
@@ -147,14 +147,7 @@ jobs:
           cd $GALACTICUS_DATA_PATH/dynamic/RecFast/
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl gfortran-11 recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none
           cd $GALACTICUS_DATA_PATH/dynamic/c17.02/source/
-          echo BEFORE
-          otool -L cloudy.exe
-          grep -E '\-o cloudy.exe' $GALACTICUS_EXEC_PATH/build.log | sed s/"\-lcloudy"/""/ | tr -d "\n" > cloudyLink.txt
-          grep "ar cr libcloudy.a" $GALACTICUS_EXEC_PATH/build.log | sed s/"ar cr libcloudy\.a"/""/ >> cloudyLink.txt
-          cat cloudyLink.txt
-          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `cat cloudyLink.txt`
-          echo AFTER
-          otool -L cloudy.exe
+          $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o cloudy.exe' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH/dynamic/fsps-3.2/src
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o autosps.exe' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH
