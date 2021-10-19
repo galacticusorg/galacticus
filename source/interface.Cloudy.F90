@@ -38,10 +38,10 @@ contains
     use :: File_Utilities    , only : File_Exists
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic
-    use :: ISO_Varying_String, only : assignment(=)          , char                 , operator(//), varying_string
+    use :: ISO_Varying_String, only : assignment(=)          , char                 , operator(//)     , varying_string
     use :: System_Command    , only : System_Command_Do
     use :: System_Download   , only : download
-    use :: System_Compilers  , only : compiler               , languageCPlusPlus
+    use :: System_Compilers  , only : compiler               , compilerOptions      , languageCPlusPlus
     implicit none
     type     (varying_string), intent(  out)           :: cloudyPath   , cloudyVersion
     logical                  , intent(in   ), optional :: static
@@ -84,9 +84,9 @@ contains
           if (statusEnvironment <= 0) static_=staticDefault == "yes"
        end if
        if (static_) then
-          call System_Command_Do("cd "//cloudyPath//"/source; sed -i~ -E s/'^EXTRA[[:space:]]*=.*'/'EXTRA = -static'/g Makefile")
+          call System_Command_Do("cd "//cloudyPath//"/source; sed -i~ -E s/'^EXTRA[[:space:]]*=.*'/'EXTRA = -static "//compilerOptions(languageCPlusPlus)//"'/g Makefile")
        else
-          call System_Command_Do("cd "//cloudyPath//"/source; sed -i~ -E s/'^EXTRA[[:space:]]*=.*'/'EXTRA ='/g Makefile")
+          call System_Command_Do("cd "//cloudyPath//"/source; sed -i~ -E s/'^EXTRA[[:space:]]*=.*'/'EXTRA = "        //compilerOptions(languageCPlusPlus)//"'/g Makefile")
        end if
        command="cd "//cloudyPath//"/source; chmod u=wrx configure.sh capabilities.pl;"
        call Get_Environment_Variable('CLOUDY_COMPILER_PATH',compilerPath,status=statusPath)
