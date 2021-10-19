@@ -84,9 +84,9 @@ contains
           if (statusEnvironment <= 0) static_=staticDefault == "yes"
        end if
        if (static_) then
-          call System_Command_Do("cd "//cloudyPath//"/source; sed -i~ -E s/'^EXTRA[[:space:]]*=.*'/'EXTRA = -static "//compilerOptions(languageCPlusPlus)//"'/g Makefile")
+          call System_Command_Do("cd "//cloudyPath//"/source; sed -i~ -E s/'^EXTRA[[:space:]]*=.*'/'EXTRA = -static "//stringSubstitute(stringSubstitute(compilerOptions(languageCPlusPlus),"/","\/"),"-","\-")//"'/g Makefile")
        else
-          call System_Command_Do("cd "//cloudyPath//"/source; sed -i~ -E s/'^EXTRA[[:space:]]*=.*'/'EXTRA = "        //compilerOptions(languageCPlusPlus)//"'/g Makefile")
+          call System_Command_Do("cd "//cloudyPath//"/source; sed -i~ -E s/'^EXTRA[[:space:]]*=.*'/'EXTRA = "        //stringSubstitute(stringSubstitute(compilerOptions(languageCPlusPlus),"/","\/"),"-","\-")//"'/g Makefile")
        end if
        command="cd "//cloudyPath//"/source; chmod u=wrx configure.sh capabilities.pl;"
        call Get_Environment_Variable('CLOUDY_COMPILER_PATH',compilerPath,status=statusPath)
