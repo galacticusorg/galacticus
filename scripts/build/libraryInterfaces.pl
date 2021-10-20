@@ -258,273 +258,45 @@ sub interfacesConstructors {
     $ext::functionClass        = shift();
     my $libraryFunctionClasses = shift();
     foreach $ext::implementation ( @{$ext::functionClass->{'implementations'}} ) {
-	# Reset all generated code fragments.
-	undef($ext::declarations              );
-	undef(@ext::constructorArguments      );
-	undef(@ext::constructorArgumentNames  );
-	undef(@ext::pythonConstructorArguments);
-	undef($ext::dereference               );
-	undef(@ext::functionArguments         );
-	undef(@ext::pythonFunctionArguments   );
-	undef(@ext::pythonFunctionPassBy      );
-	undef($ext::pythonReassignments       );
-	undef(%ext::isoCBindingSymbols        );
-	undef($ext::moduleUses                );
-	undef(@ext::clibArgTypes              );
-	undef(@ext::argsOptional              );
-	undef(@ext::argsUniqueOptional        );
-	# Initialize the hash of ISO_C_Binding symbols that we must import. "c_ptr" and "c_loc" are always needed.
-	$ext::isoCBindingSymbols{'c_ptr'} = 1;
-	$ext::isoCBindingSymbols{'c_loc'} = 1;
-	# Initialize a hash of which "GetPtr" functions have already been declared.
-	my %getPtrClasses;
-	# Add the "self" argument to the Python constructor arguments.
-	push(@ext::pythonConstructorArguments,"self");
-	# Iterate over each argument, building the argument list, declarations, pointer dereferencings, and constructor arguments.
-	$ext::countOptional       = 0;
-	$ext::countUniqueOptional = 0;
-	my $pythonDefaultArg      = 0;
-	foreach my $argument ( @{$ext::implementation->{'arguments'}} ) {
-	    # Flag if this is the last argument.
-	    my $isLast = $argument == ${$ext::implementation->{'arguments'}}[-1];
-	    # Determine if argument is optional.
-	    my $isOptional = grep {$_ eq "optional"} @{$argument->{'attributes'}};
-	    if ( $isOptional ) {
-		++$ext::countOptional;
-		++$ext::countUniqueOptional;
-		push(@ext::argsOptional      ,$ext::countOptional      -1);
-		push(@ext::argsUniqueOptional,$ext::countUniqueOptional-1);
-	    } else {
-		push(@ext::argsOptional      ,                         -1);
-		push(@ext::argsUniqueOptional,                         -1);
-	    }
-	    # Push onto the function argument list.
-	    push(@ext::functionArguments      ,$argument->{'name'});
-	    push(@ext::pythonFunctionArguments,$argument->{'name'});
-	    # Build the C-interoperable declaration.
-	    my $cType;
-	    my @cAttributes;
-	    # By default the argument name to pass to the constructor is just the argument name passed to this interface function.
-	    $argument->{'passName'} = $argument->{'name'};
-	    # Map types.
-	    my $declarations = "";
-	    if ( $argument->{'intrinsic'} eq "double precision" ) {
-		$cType                               = "real(c_double)";
-		$ext::isoCBindingSymbols{'c_double'} = 1;
-		push(@ext::clibArgTypes,"c_double");
-	    } elsif ( $argument->{'intrinsic'} eq "integer" ) {
-		unless ( defined($argument->{'type'}) ) {
-		    $cType                            = "integer(c_int)";
-		    $ext::isoCBindingSymbols{'c_int'} = 1;
-		    push(@ext::clibArgTypes,"c_int");
-		}
-	    } elsif ( $argument->{'intrinsic'} eq "logical" ) {
-		$cType                               = "logical(c_bool)";
-		$ext::isoCBindingSymbols{'c_bool'} = 1;
-		push(@ext::clibArgTypes,"c_bool");
-		$ext::dereference          .= ($isOptional ? "if (present(".$argument->{'name'}."))" : "").$argument->{'name'}."_=logical(".$argument->{'name'}.")\n";
-		$argument->{'passName'}    .= "_";
-		$declarations              .= "  logical :: ".$argument->{'name'}."_\n";
-	    } elsif ( $argument->{'intrinsic'} eq "character" ) {
-		$cType                               = "character(c_char)";
-		$ext::isoCBindingSymbols{'c_char'} = 1;
-		push(@ext::clibArgTypes,"c_char_p");
-		push(@cAttributes,"dimension(*)");
-		$argument->{'passName'}     = "char(String_C_to_Fortran(".$argument->{'name'}."))";
-		$ext::moduleUses->{'String_Handling'}->{'String_C_to_Fortran'} = 1;
-		$ext::moduleUses->{'ISO_Varying_String'}->{'char'} = 1;
-	    } elsif ( $argument->{'intrinsic'} eq "type" ) {
-		if ( $argument->{'type'} eq "varying_string" ) {
-		    $cType                               = "character(c_char)";
-		    $ext::isoCBindingSymbols{'c_char'} = 1;
-		    push(@ext::clibArgTypes,"c_char_p");
-		    push(@cAttributes,"dimension(*)");
-		    $argument->{'passName'}     = "String_C_to_Fortran(".$argument->{'name'}.")";
-		    $ext::moduleUses->{'String_Handling'}->{'String_C_to_Fortran'} = 1;
-		} else {
-		    # Assume this is a type that we can just pass as a void pointer.
-		    $cType                               = "type(c_ptr)";
-		    $ext::isoCBindingSymbols{'c_ptr'} = 1;
-		    $ext::isoCBindingSymbols{'c_f_pointer'} = 1;
-		    push(@ext::clibArgTypes,"c_void_p");
-		    $declarations              .= "  type(".$argument->{'type'}."), pointer :: ".$argument->{'name'}."_\n";
-		    $argument->{'passName'}     = $argument->{'name'}."_";
-		    $ext::dereference          .= ($isOptional ? "if (present(".$argument->{'name'}.")) " : "")."call c_f_pointer(".$argument->{'name'}.",".$argument->{'name'}."_)\n";
-		    $ext::moduleUses->{$ext::functionClass->{'module'}}->{$argument->{'type'}} = 1;
-		}
-	    } elsif ( $argument->{'intrinsic'} eq "class" ) {
-		$cType                            = "type(c_ptr)";
-		$ext::isoCBindingSymbols{'c_ptr'} = 1;
-		push(@ext::clibArgTypes,"c_void_p");
-		# Check for a functionClass argument.
-		if ( my @matchedClass = grep {$argument->{'type'} eq $_."Class"} keys(%{$libraryFunctionClasses->{'classes'}}) ) {
-		    # Add a classID argument for this functionClass argument, and send the object pointer and ID separately to the Python interface.
-		    push(@ext::functionArguments,$argument->{'name'}."_ID");
-		    push(@ext::clibArgTypes,"c_int");
-		    if ( $isOptional ) {
-			++$ext::countOptional;
-			push(@ext::argsOptional,$ext::countOptional-1);
-			$ext::pythonFunctionArguments[-1] .= "_glcObj";
-			$ext::argumentName = $argument->{'name'};
-			push(@ext::pythonFunctionArguments,$argument->{'name'}."_classID");
-			$ext::pythonReassignments .= fill_in_string(<<'CODE', PACKAGE => 'ext');
-    if {$argumentName}:
-        {$argumentName}_glcObj={$argumentName}._glcObj
-        {$argumentName}_classID={$argumentName}._classID
-    else:
-        {$argumentName}_glcObj=None
-        {$argumentName}_classID=None
+	# Extract the list of arguments and process to determine how interfaces should be built.
+	my @argumentList = @{$ext::implementation->{'arguments'}};
+	@argumentList    = &assignCTypes             (\@argumentList                                         );
+	@argumentList    = &assignCAttributes        (\@argumentList                                         );
+	@argumentList    = &buildPythonReassignments (\@argumentList                                         );
+	@argumentList    = &buildFortranReassignments(\@argumentList,$ext::functionClass,$ext::implementation);
+	# Construct pre- and post-arguments content for the call from Fortran to Galacticus.
+	my $preArguments  .= fill_in_string(<<'CODE', PACKAGE => 'ext');
+  !![
+  <referenceConstruct object="self">
+   <constructor>
+    {$implementation->{'name'}}( &amp;
 CODE
-		    } else {
-			push(@ext::argsOptional,-1);
-			$ext::pythonFunctionArguments[-1] .= "._glcObj";
-			push(@ext::pythonFunctionArguments,$argument->{'name'}."._classID");
-		    }
-		    $declarations                     .= "  integer(c_int), ".($isOptional ? "optional" : "value")." :: ".$argument->{'name'}."_ID\n";
-		    $ext::isoCBindingSymbols{'c_int'}  = 1;
-		    # Add code to deference this to a pointer.
-		    (my $className = $argument->{'type'}) =~ s/Class$//;
-		    $declarations              .= "  class(".$argument->{'type'}."), pointer :: ".$className."GetPtr\n"
-			unless ( exists($getPtrClasses{$className}) );
-		    $declarations              .= "  class(".$argument->{'type'}."), pointer :: ".$argument->{'name'}."_\n";
-		    $getPtrClasses{$className}  = 1;
-		    $ext::dereference          .= ($isOptional ? "if (present(".$argument->{'name'}.")) " : "").$argument->{'name'}."_ => ".$className."GetPtr(".$argument->{'name'}.",".$argument->{'name'}."_ID)\n";
-		    $argument->{'passName'}    .= "_";
-		    my $moduleName              = $libraryFunctionClasses->{'classes'}->{$matchedClass[0]}->{'module'};
-		    $ext::moduleUses->{$moduleName}->{$argument->{'type'}} = 1;
-		} elsif ( $argument->{'type'} eq "*" ) {
-		    # Unlimited polymorphic argument. We must find the concrete type to use for this argument.
-		    die("no concrete type information provided for argument '".$argument->{'name'}."' of class '".$ext::implementation->{'name'}."'")
-			unless ( exists($libraryFunctionClasses->{'classes'}->{$ext::functionClass->{'name'}}->{$ext::implementation->{'name'}}->{'constructor'}->{'argument'}) );
-		    my @concreteTypes = grep {$_->{'name'} eq $argument->{'name'}} &List::ExtraUtils::as_array($libraryFunctionClasses->{'classes'}->{$ext::functionClass->{'name'}}->{$ext::implementation->{'name'}}->{'constructor'}->{'argument'});
-		    die("no unique concrete type information provided found for argument '".$argument->{'name'}."' of class '".$ext::implementation->{'name'}."'")
-			unless ( scalar(@concreteTypes) == 1 );
-		    $cType                            = "type(c_ptr)";
-		    push(@ext::clibArgTypes,"c_void_p");
-		    $ext::isoCBindingSymbols{'c_ptr'} = 1;
-		    $ext::isoCBindingSymbols{'c_f_pointer'}  = 1;
-		    $ext::moduleUses->{$concreteTypes[0]->{'module'}}->{$concreteTypes[0]->{'type'}} = 1;
-		    $declarations                   .= "type(".$concreteTypes[0]->{'type'}."), pointer :: ".$argument->{'name'}."_\n";
-		    $argument->{'passName'}    .= "_";
-		    $ext::dereference          .= ($isOptional ? "if (present(".$argument->{'name'}."))" : "")."call c_f_pointer(".$argument->{'name'}.",".$argument->{'name'}."_)\n";
-		} else {
-		    die("unsupported type 'class(".$argument->{'type'}.")' in constructor argument '".$argument->{'name'}."' for class '".$ext::implementation->{'name'}."'");
-		}
-	    } else {
-		die "unsupported type '".$argument->{'intrinsic'}."' in constructor argument '".$argument->{'name'}."' for class '".$ext::implementation->{'name'}."'";
-	    }
-	    # Transfer any dimension attributes to the C interface.
-	    push(@cAttributes,grep {$_ =~ m/^dimension/} @{$argument->{'attributes'}});
-	    # Determine whether to pass by value or by reference.
-	    my $passBy =
-		(
-		 (
-		  $cType eq "type(c_ptr)"
-		  ||
-		  grep {$_ =~ m/intent\s*\(\s*in\s*\)/} @{$argument->{'attributes'}}
-		 )
-		 &&
-		 (! grep {$_ eq "optional"              } @{$argument->{'attributes'}})
-		 &&
-		 (! grep {$_ =~ m/^dimension/} @cAttributes )
-		)
-		?
-		"value"
-		:
-		"reference";
-	    push(@cAttributes,"value")
-		if ( $passBy eq "value" );
-	    push(@cAttributes,"optional")
-		if ( $isOptional );
-	    # Mark how Python should pass arguments.
-	    while ( scalar(@ext::pythonFunctionPassBy) < scalar(@ext::pythonFunctionArguments) ) {
-		push(@ext::pythonFunctionPassBy,$passBy);
-	    }
-	    # Add this argument to the Python constructor.
-	    my $pythonConstructorArgument = $argument->{'name'};
-	    $pythonDefaultArg = 1
-		if ( $isOptional );
-	    $pythonConstructorArgument .= "=None"
-		if ( $pythonDefaultArg );
-	    push(@ext::pythonConstructorArguments,$pythonConstructorArgument);
-	    # Add a declaration for this argument, and add it into the call to the constructor function.
-	    $ext::declarations         .= "  ".$cType.(@cAttributes ? ", " : "").join(", ",@cAttributes)." :: ".$argument->{'name'}."\n".$declarations;
-	    push(@ext::constructorArguments    ,$argument->{'passName'});
-	    push(@ext::constructorArgumentNames,$argument->{'name'    });
-	}
-	# Build code for module uses.
-	$ext::moduleUseCode = "";
-	foreach my $moduleName ( sort(keys(%{$ext::moduleUses})) ) {
-	    $ext::moduleUseCode .= "use :: ".$moduleName.", only : ".join(", ",sort(keys(%{$ext::moduleUses->{$moduleName}})))."\n";
-	}
+	my $postArguments .= fill_in_string(<<'CODE', PACKAGE => 'ext');
+     &amp;                     )
+   </constructor>
+  </referenceConstruct>
+  !!]
+CODE
 	# Finally, build the interface constructor function.
+	$ext::isoCBindingImport = &isoCBindingImport   (\@argumentList,'c_ptr'      ,'c_loc'       );
+	@ext::functionArguments = &fortranArgList      (\@argumentList                             );
+	$ext::declarations      = &fortranDeclarations (\@argumentList                             );
+	$ext::reassignments     = &fortranReassignments(\@argumentList                             );	
+	$ext::moduleUseCode     = &fortranModuleUses   (\@argumentList                             );
+	$ext::callCode          = &fortranCallCode     (\@argumentList,$preArguments,$postArguments);
 	my $constructor .= fill_in_string(<<'CODE', PACKAGE => 'ext');
 function {$implementation->{'name'}}L({join(",",@functionArguments)}) bind(c,name='{$implementation->{'name'}}L')
-  use, intrinsic :: ISO_C_Binding               , only : {join(", ",keys(%isoCBindingSymbols))}
-  use            :: {$functionClass->{'module'}}, only : {$implementation->{'name'}}
+  use :: {$functionClass->{'module'}}, only : {$implementation->{'name'}}
+{$isoCBindingImport}
 {$moduleUseCode}
   implicit none
   type(c_ptr                      )          :: {$implementation->{'name'}}L
   type({$implementation->{'name'}}), pointer :: self
 {$declarations}
 
-{$dereference}
+{$reassignments}
   allocate(self)
-CODE
-	if ( $ext::countUniqueOptional == 0 ) {
-	    $ext::constructorCall = "";
-	    my $isFirst = 1;
-	    for(my $i=0;$i<scalar(@ext::constructorArguments);++$i) {
-		$ext::constructorCall .= ", &amp;\n"
-		    unless ( $isFirst );
-		$ext::constructorCall .= "&amp; ".$ext::constructorArgumentNames[$i]."=".$ext::constructorArguments[$i];
-		$isFirst = 0;
-	    }
-	    $ext::constructorCall .= " &amp;"
-		if ( scalar(@ext::constructorArguments) > 0 );
-	    $constructor .= fill_in_string(<<'CODE', PACKAGE => 'ext');
-  !![
-  <referenceConstruct object="self">
-   <constructor>
-    {$implementation->{'name'}}( &amp;
-{$constructorCall}
-     &amp;                     )
-   </constructor>
-  </referenceConstruct>
-  !!]
-CODE
-        } else {
-	    my $formatBinary = "%.".$ext::countUniqueOptional."b";
-	    for(my $i=0;$i<2**$ext::countUniqueOptional;++$i) {
-		@ext::state = split(//,sprintf($formatBinary,$i));
-		$ext::condition = ($i > 0 ? "else " : "")."if (".join(" .and. ",map {$ext::argsUniqueOptional[$_] < 0 ? () : ($ext::state[$ext::argsUniqueOptional[$_]] == 0 ? ".not." : "")."present(".$ext::constructorArgumentNames[$_].")"} 0..scalar(@ext::constructorArguments)-1).") then";
-		my $isFirst = 1;
-		$ext::constructorCall = "";
-		for(my $i=0;$i<scalar(@ext::constructorArguments);++$i) {
-		    if ( $ext::argsUniqueOptional[$i] < 0 || $ext::state[$ext::argsUniqueOptional[$i]] ) {
-			$ext::constructorCall .= ", &amp;\n"
-			    unless ( $isFirst );
-			$ext::constructorCall .= "&amp; ".$ext::constructorArgumentNames[$i]."=".$ext::constructorArguments[$i];
-			$isFirst = 0;
-		    }
-		}
-		$ext::constructorCall .= " &amp;";
-		$constructor .= fill_in_string(<<'CODE', PACKAGE => 'ext');
-{$condition}
-  !![
-  <referenceConstruct object="self">
-   <constructor>
-    {$implementation->{'name'}}( &amp;
-{$constructorCall}
-     &amp;                     )
-   </constructor>
-  </referenceConstruct>
-  !!]
-CODE
-	    }
-	    $constructor .= "end if\n";
-        }
-	$constructor .= fill_in_string(<<'CODE', PACKAGE => 'ext');
+{$callCode}
   {$implementation->{'name'}}L=c_loc(self)
   return
 end function {$implementation->{'name'}}L
@@ -534,45 +306,27 @@ CODE
 	    $constructor
 	);
 	# Add library interface descriptors.
-	for($ext::firstOptional=0;$ext::firstOptional<scalar(@ext::clibArgTypes);++$ext::firstOptional) {
-	    last
-		if ( $ext::argsOptional[$ext::firstOptional] >= 0 );
-	}
-	my @clibArgTypesNonOptional = ();
-	for(my $i=0;$i<$ext::firstOptional;++$i) {
-	    push(@clibArgTypesNonOptional,($ext::pythonFunctionPassBy[$i] eq "reference" && $ext::clibArgTypes[$i] ne "c_char_p" ? "POINTER(" : "").$ext::clibArgTypes[$i].($ext::pythonFunctionPassBy[$i] eq "reference" && $ext::clibArgTypes[$i] ne "c_char_p" ? ")" : ""));
-	}
+	my @clibArgTypes = &ctypesArgTypes(\@argumentList);
 	push(
 	    @{$python->{'c_lib'}},
 	    {
 		name     => $ext::implementation->{'name'}."L",
 		restype  => "c_void_p",
-		argtypes => \@clibArgTypesNonOptional
+		argtypes => \@clibArgTypes
 	    }
 	    );
 	# Add a constructor to the Python class.
+	@ext::pythonConstructorArguments = &pythonArgList      (\@argumentList                                                           );
+	$ext::pythonReassignments        = &pythonReassignments(\@argumentList                                                           );
+	$ext::pythonCallCode             = &pythonCallCode     (\@argumentList,"self._glcObj = c_lib.".$ext::implementation->{'name'}."L");
 	my $pythonConstructor = fill_in_string(<<'CODE', PACKAGE => 'ext');
 # Constructor
 def __init__({join(",",@pythonConstructorArguments)}):
     # Assign class ID so relevant pointers can be constructed on the Fortran side.
     self._classID = {$implementation->{'classID'}}
 {$pythonReassignments}
+{$pythonCallCode}
 CODE
-        if ( $ext::countOptional == 0 ) {
-	    $pythonConstructor .= fill_in_string(<<'CODE', PACKAGE => 'ext');
-    self._glcObj = c_lib.{$implementation->{'name'}}L({join(",",map {$pythonFunctionArguments[$_]} 0..scalar(@pythonFunctionArguments)-1)})
-CODE
-        } else {
-	    my $formatBinary = "%.".$ext::countOptional."b";
-	    for(my $i=0;$i<2**$ext::countOptional;++$i) {
-		@ext::state = split(//,sprintf($formatBinary,$i));
-		$ext::condition = "    ".($i > 0 ? "el" : "")."if ".join(" and ",map {$ext::argsOptional[$_] < 0 ? () : ($ext::state[$ext::argsOptional[$_]] == 0 ? "not " : "")."".$ext::pythonFunctionArguments[$_]} 0..scalar(@ext::pythonFunctionArguments)-1).":";
-		$pythonConstructor .= fill_in_string(<<'CODE', PACKAGE => 'ext');
-{$condition}
-        self._glcObj = c_lib.{$implementation->{'name'}}L({join(",",map {$argsOptional[$_] < 0 ? ($_ >= $firstOptional ? ($pythonFunctionPassBy[$_] eq "reference" ? "byref(" : "").$clibArgTypes[$_]."(" : "").$pythonFunctionArguments[$_].($_ >= $firstOptional ? ")".($pythonFunctionPassBy[$_] eq "reference" ? ")" : "") : "") : ($state[$argsOptional[$_]] == 1 ? "byref(".$clibArgTypes[$_]."(".$pythonFunctionArguments[$_]."))" : "None")} 0..scalar(@pythonFunctionArguments)-1)})
-CODE
-	    }
-        }
 	push(
 	    @{$python->{'units'}->{$ext::implementation->{'name'}}->{'subUnits'}},
 	    {
@@ -932,7 +686,7 @@ CODE
 }
 
 sub interfacesPythonClasses {
-    # Build Python parent class.
+    # Build Python parent class. This corresponds to a Galacticus "functionClass" class.
     my $python          = shift();
     $ext::functionClass = shift();
 
@@ -948,8 +702,8 @@ CODE
     $python->{'units'}->{$ext::functionClass->{'name'}}->{'content'     } = $class;
     $python->{'units'}->{$ext::functionClass->{'name'}}->{'indent'      } = 0;
     $python->{'units'}->{$ext::functionClass->{'name'}}->{'dependencies'} = [ "init" ];
-
-    # Add child classes.
+    
+    # Add child classes. These correspond to each implementation of the Galacticus "functionClass".
     foreach $ext::implementation ( @{$ext::functionClass->{'implementations'}} ) {
 	my $class = fill_in_string(<<'CODE', PACKAGE => 'ext');
 class {$implementation->{'name'}}({$functionClass->{'name'}}):
@@ -958,4 +712,579 @@ CODE
 	$python->{'units'}->{$ext::implementation->{'name'}}->{'indent'      } = 0;
 	$python->{'units'}->{$ext::implementation->{'name'}}->{'dependencies'} = [ $ext::functionClass->{'name'} ];	
     }
+}
+
+sub assignCTypes {
+    # Assign appropriate C-types for each argument in the list.
+    my @argumentList = @{shift()};
+    my @argumentListNew;
+    while ( @argumentList ) {
+	my $argument = pop(@argumentList);
+	# Detect if this argument is optional.
+	$argument->{'isOptional'} = grep {$_ eq "optional"} @{$argument->{'attributes'}};
+	# Mark the argument as present in all argument lists.
+	$argument->{'fortran'   }->{'isPresent'} = 1;
+	$argument->{'python'    }->{'isPresent'} = 1;
+	$argument->{'galacticus'}->{'isPresent'} = 1;
+	# Mark the argument as not a functionClass object by default.
+	$argument->{'isFunctionClass'} = 0;
+	# Determine the type of the argument.
+	if ( $argument->{'intrinsic'} eq "double precision" ) {
+	    # Double precision type is represented as a C double.
+	    $argument->{'ctypes' }->{'type'} = "c_double";
+	    $argument->{'fortran'}->{'type'} = "real(c_double)";
+	} elsif ( $argument->{'intrinsic'} eq "integer"     ) {
+	    # Integer type - check the kind.
+	    if ( defined($argument->{'type'}) ) {
+		die("Unknown integer kind '".$argument->{'type'}."' for argument '".$argument->{'name'}."'");
+	    } else {
+		# No kind was specified - use a C int.
+		$argument->{'ctypes' }->{'type'} = "c_int";
+		$argument->{'fortran'}->{'type'} = "integer(c_int)";
+	    }
+	} elsif ( $argument->{'intrinsic'} eq "logical" ) {
+	    # Logical type is represented as a C bool.
+	    $argument->{'ctypes' }->{'type'} = "c_bool";
+	    $argument->{'fortran'}->{'type'} = "logical(c_bool)";
+	} elsif ( $argument->{'intrinsic'} eq "character" ) {
+	    # Character type is represented as a C char pointer.
+	    $argument->{'ctypes' }->{'type'} = "c_char_p";
+	    $argument->{'fortran'}->{'type'} = "character(c_char)";
+	} elsif ( $argument->{'intrinsic'} eq "type" ) {
+	    # Derived-type argument. Check the type.
+	    if ( $argument->{'type'} eq "varying_string" ) {
+		# Varying strings are represented as C char pointers.
+		$argument->{'ctypes' }->{'type'} = "c_char_p";
+		$argument->{'fortran'}->{'type'} = "character(c_char)";
+	    } else {
+		# Other types are represented as opaque (void) pointers.
+		$argument->{'ctypes' }->{'type'} = "c_void_p";
+		$argument->{'fortran'}->{'type'} = "type(c_ptr)";
+	    }
+	} elsif ( $argument->{'intrinsic'} eq "class" ) {
+	    # Derived-type class arguments are represented as opaque (void) pointers.
+	    $argument->{'ctypes' }->{'type'} = "c_void_p";
+	    $argument->{'fortran'}->{'type'} = "type(c_ptr)";
+	    # Check for a functionClass argument.
+	    if ( my @matchedClass = grep {$argument->{'type'} eq $_."Class"} keys(%{$libraryFunctionClasses->{'classes'}}) ) {
+		# Mark as a functionClass argument.
+		$argument->{'isFunctionClass'} = 1;
+		# For functionClass types we must add an extra argument which passes an integer specifying the concrete type of
+		# the class. This argument will not be present in the Python function arguments.
+		my $argumentNew =
+		         {
+			     name       => $argument->{'name'}."_ID",
+			     intrinsic  => "integer"                ,
+			     type       => undef()                  ,
+			     attributes => [ "intent(in   )" ],
+			     ctypes     =>
+			                   {
+					       type      => "c_int"
+					   },
+			     fortran    =>
+			                   {
+					       type      => "integer(c_int)",
+					       isPresent => 1
+					   },
+			     python     =>
+			                   {
+					       isPresent => 0
+					   },
+			     galacticus =>
+			                   {
+					       isPresent => 0
+					   }
+			 };
+		if ( $argument->{'isOptional'} ) {
+		    push(@{$argumentNew->{'attributes'}},"optional");
+		    $argumentNew->{'isOptional'}              = 1;
+		    $argumentNew->{'python'    }->{'present'} = $argument->{'name'};
+		}
+		unshift(@argumentListNew,$argumentNew);
+	    }
+	} else {
+	    die("Unsupported argument type '".$argument->{'type'}."'");
+	}
+	# Put this argument onto the new list.
+	unshift(@argumentListNew,$argument);
+    }
+    return @argumentListNew;
+}
+
+sub assignCAttributes {
+    # Assign appropriate attributes for each argument in the list.
+    my @argumentList = @{shift()};
+    my @argumentListNew;
+    while ( @argumentList ) {
+	# Get the next argument from the list.
+	my $argument = pop(@argumentList);
+	# Build attributes.
+	## Add "optional" attribute for any optional argument.
+ 	push(@{$argument->{'fortran'}->{'attributes'}},"optional")
+	    if ( $argument->{'isOptional'}            );
+	## Transfer any dimension attributes.
+	push(@{$argument->{'fortran'}->{'attributes'}},grep {$_ =~ m/^dimension/} @{$argument->{'attributes'}});
+	## String argument passed as type "c_char_p" must be "dimension(*)" in Fortran.
+ 	push(@{$argument->{'fortran'}->{'attributes'}},"dimension(*)")
+	    if ( $argument->{'ctypes'}->{'type'} eq "c_char_p" );
+	## Determine whether to pass by value or by reference.
+	$argument->{'passBy'    } =
+	    (
+	     # Can pass by value if the C-type is a pointer type, or if intent is "in".
+	     (
+	      $argument->{'ctypes'}->{'type'} =~ m/_p$/
+	      ||
+	      ( grep {$_ =~ m/intent\s*\(\s*in\s*\)/} @{$argument             ->{'attributes'}})
+	     )
+	     # Optional arguments can not be passed by value.
+	     &&
+	      !                                         $argument             ->{'isOptional'}
+	     # Non-scalar arguments can not be passed by value.
+	     &&
+	     (! grep {$_ =~ m/^dimension/           } @{$argument->{'fortran'}->{'attributes'}})
+	    )
+	    ?
+	    "value"
+	    :
+	    "reference";
+	## Add "value" attribute for any argument passed by value.
+ 	push(@{$argument->{'fortran'}->{'attributes'}},"value")
+	    if ( $argument->{'passBy'} eq "value" );
+	# Record whether ctypes should pass a pointer. This is the case if we pass by reference, except for c_char_p types which
+	# are passed as a pointer value from Python, but received as a pointer reference by Fortran.
+	$argument->{'ctypes'}->{'pointer'} =
+	    $argument->{'passBy'}           eq "reference"
+	    &&
+	    $argument->{'ctypes'}->{'type'} ne "c_char_p" ;
+	# Put this argument onto the new list.
+	unshift(@argumentListNew,$argument);	
+    }
+    return @argumentListNew;
+}
+
+sub buildPythonReassignments {
+    # Geneate reassignments of Python arguments to allow passing between languages.
+    my @argumentList = @{shift()};
+    my @argumentListNew;
+    while ( @argumentList ) {
+	# Get the next argument from the list.
+	my $argument = pop(@argumentList);
+	# For optional functionClass arguments we must use temporary variables within the Python function.
+	if ( $argument->{'isFunctionClass'} ) {
+	    # Get the class ID argument.
+	    my $argumentID = shift(@argumentListNew);
+	    if ( $argument->{'isOptional'} ) {
+		# Set the name to use when passing this argument, and for the following argument (which will be the class ID number).
+		$argument  ->{'python'}->{'passAs'} = $argument->{'name'}."_glcObj" ;
+		$argumentID->{'python'}->{'passAs'} = $argument->{'name'}."_classID";
+		# Create the reassignment code. If the argument is present, simply extract the opaque pointer and class ID into the
+		# variable that will be passed. Otherwise, set those to "None".
+		$ext::argumentName = $argument->{'name'};
+		$argument->{'python'}->{'reassignment'} = fill_in_string(<<'CODE', PACKAGE => 'ext');
+    if {$argumentName}:
+        {$argumentName}_glcObj ={$argumentName}._glcObj
+        {$argumentName}_classID={$argumentName}._classID
+    else:
+        {$argumentName}_glcObj =None
+        {$argumentName}_classID=None
+CODE
+	    } else {
+		# Set the name to use when passing this argument, and for the following argument (which will be the class ID
+		# number). Argument is non-optional, so we can access the relevant properties directly.
+		$argument  ->{'python'}->{'passAs'} = $argument->{'name'}."._glcObj" ;
+		$argumentID->{'python'}->{'passAs'} = $argument->{'name'}."._classID";
+	    }
+	    # Push the class ID argument back onto the list.
+	    unshift(@argumentListNew,$argumentID);
+	}
+	# Put this argument onto the new list.
+	unshift(@argumentListNew,$argument);
+    }
+    return @argumentListNew;
+}
+
+sub buildFortranReassignments {
+    # Geneate reassignments of Fortran arguments to allow passing between languages.
+    my @argumentList   = @{shift()};
+    my $functionClass  =   shift() ;
+    my $implementation =   shift() ;
+    my @argumentListNew;
+    while ( @argumentList ) {
+	# Get the next argument from the list.
+	my $argument = pop(@argumentList);
+	# Determine any reassignments.
+	if ( $argument->{'intrinsic'} eq "logical" ) {
+	    # Logical arguments are passed in as type "c_bool". They must be reassigned to a regular "logical".
+	    $argument->{'fortran'}->{'reassignment'} = ($argument->{'isOptional'} ? "if (present(".$argument->{'name'}."))" : "").$argument->{'name'}."_=logical(".$argument->{'name'}.")\n";
+	    $argument->{'fortran'}->{'declarations'} = "logical :: ".$argument->{'name'}."_\n";
+	    $argument->{'fortran'}->{'passAs'      } = $argument->{'name'}."_";
+	} elsif ( $argument->{'intrinsic'} eq "character" ) {
+	    # Character arguments are passed as type c_char_p. We can convert it to varying_string via the String_C_to_Fortran() function.
+	    $argument->{'fortran'}->{'modules'}->{'String_Handling'   }->{'String_C_to_Fortran'} = 1;
+	    $argument->{'fortran'}->{'modules'}->{'ISO_Varying_String'}->{'char'               } = 1;
+	    $argument->{'fortran'}->{'passAs' }                                                  = "char(String_C_to_Fortran(".$argument->{'name'}."))"
+	} elsif ( $argument->{'intrinsic'} eq "type" ) {
+	    if ( $argument->{'type'} eq "varying_string" ) {
+		# varying_string arguments are passed as type c_char_p. We can convert it to varying_string via the String_C_to_Fortran() function.
+		$argument->{'fortran'}->{'modules'}->{'String_Handling'}->{'String_C_to_Fortran'} = 1;
+		$argument->{'fortran'}->{'passAs' }                                               = "String_C_to_Fortran(".$argument->{'name'}.")"
+	    } else {
+		# Derived types (other than "varying_string") are passed as opaque pointers, and must be dereferenced.
+		die("no functionClass defined for this function")
+		    unless ( defined($functionClass) );
+		$argument  ->{'fortran'}->{'declarations'      }                                                       = "type(".$argument->{'type'}."), pointer :: ".$argument->{'name'}."_\n";
+		$argument  ->{'fortran'}->{'passAs'            }                                                       = $argument->{'name'}."_";
+		$argument  ->{'fortran'}->{'reassignment'      }                                                       = ($argument->{'isOptional'} ? "if (present(".$argument->{'name'}.")) " : "")."call c_f_pointer(".$argument->{'name'}.",".$argument->{'name'}."_)\n";
+		@{$argument->{'fortran'}->{'isoCBindingSymbols'}                                                     } = ( "c_f_pointer" );
+		$argument  ->{'fortran'}->{'modules'           }->{$functionClass->{'module'}}->{$argument->{'type'}}  = 1;
+	    }
+	} elsif ( $argument->{'isFunctionClass'} ) {
+	    # functionClass arguments must be dereferenced via a specialized function.
+	    (my $className = $argument->{'type'}) =~ s/Class$//;
+	    my @matchedClass = grep {$className eq $_} keys(%{$libraryFunctionClasses->{'classes'}});
+	    die("unable to locate matching functionClass")
+		unless ( scalar(@matchedClass) == 1 );
+	    my $moduleName = $libraryFunctionClasses->{'classes'}->{$matchedClass[0]}->{'module'};
+	    $argument->{'fortran'}->{'declarations' }                                        = "class(".$argument->{'type'}."), pointer :: ".$argument->{'name'}."_\n";
+	    $argument->{'fortran'}->{'reassignment' }                                        = ($argument->{'isOptional'} ? "if (present(".$argument->{'name'}.")) " : "").$argument->{'name'}."_ => ".$className."GetPtr(".$argument->{'name'}.",".$argument->{'name'}."_ID)\n";
+	    $argument->{'fortran'}->{'passAs'       }                                        = $argument->{'name'}."_";
+	    $argument->{'fortran'}->{'functionClass'}                                        = $className; 
+	    $argument->{'fortran'}->{'modules'      }->{$moduleName}->{$argument->{'type'}}  = 1;
+	} elsif ( $argument->{'intrinsic'} eq "class" && $argument->{'type'} eq "*" ) {
+	    # Unlimited polymorphic argument. We must find the concrete type to use for this argument.
+	    die("no functionClass defined for this function")
+		unless ( defined($functionClass ) );
+	    die("no implementation defined for this function")
+		unless ( defined($implementation) );
+	    die("no concrete type information provided for argument '".$argument->{'name'}."' of class '".$implementation->{'name'}."'")
+	     	unless ( exists($libraryFunctionClasses->{'classes'}->{$functionClass->{'name'}}->{$implementation->{'name'}}->{'constructor'}->{'argument'}) );
+	    my @concreteTypes = grep {$_->{'name'} eq $argument->{'name'}} &List::ExtraUtils::as_array($libraryFunctionClasses->{'classes'}->{$functionClass->{'name'}}->{$implementation->{'name'}}->{'constructor'}->{'argument'});
+	    $argument  ->{'fortran'}->{'modules'           }->{$concreteTypes[0]->{'module'}}->{$concreteTypes[0]->{'type'}}  = 1;
+	    $argument  ->{'fortran'}->{'declarations'      }                                                                  = "type(".$concreteTypes[0]->{'type'}."), pointer :: ".$argument->{'name'}."_\n";
+	    $argument  ->{'fortran'}->{'reassignment'      }                                                                  = ($argument->{'isOptional'} ? "if (present(".$argument->{'name'}."))" : "")."call c_f_pointer(".$argument->{'name'}.",".$argument->{'name'}."_)\n";
+	    $argument  ->{'fortran'}->{'passAs'            }                                                                  = $argument->{'name'}."_";
+	    @{$argument->{'fortran'}->{'isoCBindingSymbols'}                                                                } = ( "c_f_pointer" );
+	}
+	# Put this argument onto the new list.
+	unshift(@argumentListNew,$argument);
+    }
+    return @argumentListNew;
+}
+
+sub ctypesArgTypes {
+    # Geneate an ".argtypes" definition for a function.
+    my @argumentList = @{shift()};
+    my @argTypes;
+    foreach my $argument ( @argumentList ) {
+	# Only arguments prior to the first optional argument can be included in the list. ctypes will complain if we specify
+	# subsequent arguments but then pass "None" to them if they are not present.
+	last
+	    if ( $argument->{'isOptional'} );
+	# Wrap the type inside a "POINTER" function if it should be passed by reference.
+	my $ctype =
+	               $argument->{'ctypes'}->{'pointer'}
+	    ?
+	    "POINTER(".$argument->{'ctypes'}->{'type'   }.")"
+	    :
+	               $argument->{'ctypes'}->{'type'   }    ;
+	# Add the type.
+	push(
+	    @argTypes,
+	    $ctype
+	    );
+    }
+    return @argTypes;
+}
+
+sub pythonArgList {
+    # Generate an argument list for the Python function.
+    my @argumentList = @{shift()};
+    # Initialize the argument list with "self".
+    my @argList = ( "self" );
+    # Add all other arguments.
+    my $firstOptionalFound = 0;
+    foreach my $argument ( @argumentList ) {
+	# Skip arguments not present in the Python function.
+	next
+	    unless ( $argument->{'python'}->{'isPresent'} );
+	# Record when we see the first optional argument.
+	$firstOptionalFound = 1
+	    if ( $argument->{'isOptional'} );
+	# Assign the argument name.
+	my $pythonArg = $argument->{'name'};
+	# For all arguments including and after the first optional argument we must provide a default (of "None").
+	$pythonArg .= "=None"
+	    if ( $firstOptionalFound );
+	# Push this argument onto our list.
+	push(
+	    @argList,
+	    $pythonArg
+	    );
+    }
+    return @argList;
+}
+
+sub pythonReassignments {
+    # Generate reassignments of arguments in the Python function.
+    my @argumentList = @{shift()};
+    # Build reassignments.
+    return join("\n",map {exists($_->{'python'}->{'reassignment'}) ? $_->{'python'}->{'reassignment'} : ()} @argumentList );
+}
+
+sub pythonCallCode {
+    # Generate an argument list for the Python call.
+    my @argumentList = @{shift()};
+    my $call         =   shift() ;
+    # Initialize the code;
+    my $code;
+    # Determine if any optional arguments are present.
+    my $hasOptionals = grep {$_->{'isOptional'}} @argumentList;
+    # If there are no optional arguments simply pass all arguments by name directly.
+    if ( ! $hasOptionals ) {
+	# No optional arguments - pass all arguments directly by name. No need for any type conversion or explicit "byref()" as
+	# the ctypes.arglist specifications will handle this automatically for us.
+	$code =
+	    "    ".
+	    $call.
+	    "(".
+	    join
+	    (
+	     ",",
+	     map
+	     {
+		 $_->{'fortran'}->{'isPresent'}                                                 # Skip arguments not present in the Fortran function.
+		 ?
+	         exists($_->{'python'}->{'passAs'}) ? $_->{'python'}->{'passAs'} : $_->{'name'} # Use the "passAs" name if defined, otherwise the regular argument name.
+		 :
+	         ()
+	     }
+	     @argumentList
+	    ).
+	    ")";
+    } else {
+	# Some optional arguments are present.
+	my %presentNames;
+	foreach my $argument ( @argumentList ) {
+	    next
+		unless ( $argument->{'isOptional'} );
+	    # Assign default argument names to check for argument presence.
+	    $argument->{'python'}->{'present'} = $argument->{'name'}
+	        unless ( exists($argument->{'python'}->{'present'}) );
+	    # Accumulate a dictionary of argument names for presence checks.
+	    ++$presentNames{$argument->{'python'}->{'present'}};
+	}
+	# Determine names of optional arguments.
+	my @optionalNames  = sort(keys(%presentNames));
+	my $countOptionals = scalar(@optionalNames);
+	# Iterate over all possible combinations of present parameters.
+	my $formatBinary = "%.".$countOptionals."b";
+	for(my $i=0;$i<2**$countOptionals;++$i) {
+	    my @state = split(//,sprintf($formatBinary,$i));
+	    my %present;
+	    for(my $i=0;$i<scalar(@optionalNames);++$i) {
+		$present{$optionalNames[$i]} = $state[$i];
+	    }
+	    # Build the condition for this state.
+	    $code .= "    ".($i > 0 ? "el" : "")."if ".join(" and ",map {($present{$_} ? "" : "not ").$_} @optionalNames).":\n";
+	    # Add all arguments.
+	    my @argList;
+	    my $firstOptionalFound = 0;
+	    foreach my $argument ( @argumentList ) {
+	    	# Skip arguments not present in the Fortran function.
+	    	next
+	    	    unless ( $argument->{'fortran'}->{'isPresent'} );
+	    	# Record when we see the first optional argument.
+	    	$firstOptionalFound = 1
+	    	    if ( $argument->{'isOptional'} );
+	    	# Assign the argument name. This is just the actual argument name, unless a specific "pass as" name has been specified for
+	    	# the Python function.
+	    	my $callArg = exists($argument->{'python'}->{'passAs'}) ? $argument->{'python'}->{'passAs'} : $argument->{'name'};
+		# If we are at or past the first optional argument then we must perform explicit conversion of the argument as
+		# ctypes does not know how to do it for us.
+		if ( $firstOptionalFound ) {
+		    # Add explicit conversion to the relevant ctype.
+		    $callArg = $argument->{'ctypes' }->{'type'}."(".$callArg.")";
+		    # Add explicit passing by reference is needed.
+		    $callArg = "byref(".$callArg.")"
+			if ( $argument->{'passBy'} eq "reference" );
+		}
+		# Check the state for this argument, and replace it with "None" if not present.
+		$callArg = "None"
+		    unless ( ! $argument->{'isOptional'} || $present{$argument->{'python'}->{'present'}} );
+	    	# Push this argument onto our list.
+	    	push(
+	    	    @argList,
+	    	    $callArg
+	    	    );
+	    }
+	    $code .= "        ".$call."(".join(",",@argList).")\n";
+	}
+    }
+    return $code;
+}
+
+sub fortranArgList {
+    # Generate an argument list for the Fortran function.
+    my @argumentList = @{shift()};
+    # Create the argument list.
+    my @argList = map {$_->{'fortran'}->{'isPresent'} ? $_->{'name'} : ()} @argumentList;
+    return @argList;
+}
+
+sub fortranDeclarations {
+    # Generate variable declarations list for the Fortran function.
+    my @argumentList = @{shift()};
+    # Initialize the declaration code.
+    my $code = "";
+    # Initialize list of functionClasses needed.
+    my %functionClasses;
+    # Iterate over all arguments.
+    foreach my $argument ( @argumentList ) {
+	# Add a declaration for this argument.
+	my @attributes = @{$argument->{'fortran'}->{'attributes'}};
+	$code .= "  ".$argument->{'fortran'}->{'type'}.(@attributes ? ", " : "").join(", ",@attributes)." :: ".$argument->{'name'}."\n";
+	# Add any extra declarations needed for this argument.
+	$code .= $argument->{'fortran'}->{'declarations'}
+	    if ( exists($argument->{'fortran'}->{'declarations'}) );
+	# Accumulate any functionClass needed.
+	$functionClasses{$argument->{'fortran'}->{'functionClass'}} = 1
+	    if ( exists($argument->{'fortran'}->{'functionClass'}) );
+    }
+    # Add declarations for any functionClass pointer dereferencing functions.
+    foreach my $functionClass ( sort(keys(%functionClasses)) ) {
+	$code .= "class(".$functionClass."Class), pointer :: ".$functionClass."GetPtr\n";
+    }
+    # Return the declarations.
+    return $code;
+}
+
+sub fortranReassignments {
+    # Generate variable reassignments for the Fortran function.
+    my @argumentList = @{shift()};
+    # Generate the code.
+    my $code = join("",map {exists($_->{'fortran'}->{'reassignment'}) ? $_->{'fortran'}->{'reassignment'} : ()} @argumentList);
+    return $code;
+}
+
+sub fortranModuleUses {
+    # Generate module use statements for the Fortran function.
+    my @argumentList = @{shift()};
+
+    # Initialize module data structure.
+    my $modules;
+    # Iterate over all arguments accumulating a dictionary of required symbols.
+    foreach my $argument ( @argumentList ) {
+	next
+	    unless ( exists($argument->{'fortran'}->{'modules'}) );
+	foreach my $moduleName ( keys(%{$argument->{'fortran'}->{'modules'}}) ) {
+	    foreach my $symbolName ( keys(%{$argument->{'fortran'}->{'modules'}->{$moduleName}}) ) {
+		++$modules->{$moduleName}->{$symbolName};
+	    }
+	}
+    }
+    # Generate the code.
+    my $code = "";
+    foreach my $moduleName ( keys(%{$modules}) ) {
+	$code .= "use :: ".$moduleName.", only : ".join(", ",sort(keys(%{$modules->{$moduleName}})))."\n";
+    }
+    return $code;
+}
+
+sub fortranCallCode {
+    # Generate an argument list for the Fortran call.
+    my @argumentList  = @{shift()};
+    my $preArguments  =   shift() ;
+    my $postArguments =   shift() ;
+    # Initialize the code;
+    my $code;
+    # Determine if any optional arguments are present.
+    my $hasOptionals = grep {$_->{'isOptional'}} @argumentList;
+    # If there are no optional arguments simply pass all arguments by name directly.
+    if ( ! $hasOptionals ) {
+	# No optional arguments - pass all arguments directly.
+	$code =
+	    $preArguments.
+	    "&amp; ".
+	    join
+	    (
+	     ",",
+	     map
+	     {
+		 $_->{'galacticus'}->{'isPresent'}                                                # Skip arguments not present in the Galacticus function.
+		 ?
+	         exists($_->{'fortran'}->{'passAs'}) ? $_->{'fortran'}->{'passAs'} : $_->{'name'} # Use the "passAs" name if defined, otherwise the regular argument name.
+		 :
+	         ()
+	     }
+	     @argumentList
+	    ).
+	    "&amp;\n".
+	    $postArguments;
+    } else {
+	# Some optional arguments are present.
+	my %presentNames;
+	foreach my $argument ( @argumentList ) {
+	    next
+		unless ( $argument->{'isOptional'} && $argument->{'galacticus'}->{'isPresent'} );
+	    # Accumulate a dictionary of argument names for presence checks.
+	    ++$presentNames{$argument->{'name'}};
+	}
+	# Determine names of optional arguments.
+	my @optionalNames  = sort(keys(%presentNames));
+	my $countOptionals = scalar(@optionalNames);
+	# Iterate over all possible combinations of present parameters.
+	my $formatBinary = "%.".$countOptionals."b";
+	for(my $i=0;$i<2**$countOptionals;++$i) {
+	    my @state = split(//,sprintf($formatBinary,$i));
+	    my %present;
+	    for(my $i=0;$i<scalar(@optionalNames);++$i) {
+		$present{$optionalNames[$i]} = $state[$i];
+	    }
+	    # Build the condition for this state.
+	    $code .= ($i > 0 ? "else " : "")."if (".join(" .and. ",map {($present{$_} ? "" : ".not.")."present(".$_.")"} @optionalNames).") then\n";
+	    # Add all arguments.
+	    my @argList;
+	    foreach my $argument ( @argumentList ) {
+	    	# Skip arguments not present in the Galacticus function, or which do not have their state set.
+	    	next
+	    	    unless ( $argument->{'galacticus'}->{'isPresent'} && ( ! $argument->{'isOptional'} || $present{$argument->{'name'}} ) );
+	    	# Assign the argument name. This is just the actual argument name, unless a specific "pass as" name has been specified for
+	    	# the Fortran function.
+	    	my $callArg = $argument->{'name'}."=".(exists($argument->{'fortran'}->{'passAs'}) ? $argument->{'fortran'}->{'passAs'} : $argument->{'name'});
+	    	# Push this argument onto our list.
+	    	push(
+	    	    @argList,
+	    	    $callArg
+	    	    );
+	    }
+	    $code .= $preArguments."&amp; ".join(",",@argList)." &amp;\n".$postArguments;
+	}
+	$code .= "end if\n";
+    }
+    return $code;
+}
+
+sub isoCBindingImport {
+    # Generate code to import symbols from ISO_C_Binding.
+    my @argumentList = @{shift()};
+    my @extraSymbols = @_;
+    # Initialize the list of required symbols with any passed directly to this function.
+    my %symbols;
+    $symbols{$_} = 1
+	foreach ( @extraSymbols );
+    # Add symbols from all arguments.
+    foreach my $argument ( @argumentList ) {
+	# Extract the ISO_C_Binding symbol from the Fortran type.
+	if ( $argument->{'fortran'}->{'type'} =~ m/\(([a-z_]+)\)/ ) {
+	    $symbols{$1} = 1;
+	} else {
+	    die("can not determine ISO_C_Binding symbol");
+	}
+	# Add any additional symbols needed for this argument.
+	if ( exists($argument->{'fortran'}->{'isoCBindingSymbols'}) ) {
+	    $symbols{$_} = 1
+		foreach ( @{$argument->{'fortran'}->{'isoCBindingSymbols'}} );
+	}
+    }
+    return "   use, intrinsic :: ISO_C_Binding, only : ".join(", ",sort(keys(%symbols)))."\n";
 }
