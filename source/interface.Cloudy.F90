@@ -39,6 +39,7 @@ contains
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic
     use :: ISO_Varying_String, only : assignment(=)          , char                 , operator(//)     , varying_string
+    use :: String_Handling   , only : stringSubstitute
     use :: System_Command    , only : System_Command_Do
     use :: System_Download   , only : download
     use :: System_Compilers  , only : compiler               , compilerOptions      , languageCPlusPlus
