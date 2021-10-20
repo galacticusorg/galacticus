@@ -154,6 +154,8 @@ jobs:
           echo AFTER
           otool -L cloudy.exe
           file cloudy.exe
+          md5sum cloudy.exe
+          ls -l cloudy.exe
           cd $GALACTICUS_DATA_PATH/dynamic/fsps-3.2/src
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o autosps.exe' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH
@@ -171,6 +173,10 @@ jobs:
             dynamic/fsps-3.2/SPECTRA \
             dynamic/fsps-3.2/OUTPUTS \
             dynamic/fsps-3.2/ISOCHRONES
+          md5sum dynamic/c17.02/source/cloudy.exe
+          ls -l dynamic/c17.02/source/cloudy.exe
+          file dynamic/c17.02/source/cloudy.exe
+          otool -L dynamic/c17.02/source/cloudy.exe
       - name: Update release
         uses: johnwbyrd/update-release@v1.0.0
         with:

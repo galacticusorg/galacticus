@@ -76,7 +76,7 @@ system($compileCommand);
 # Restore dylibs.
 if ( scalar(@mvLibs) > 0 ) {
     my $mvCommand = "sudo -- sh -c '".join("; ",map {"mv ".$mvDirName."/".$_."~ ".$mvDirName."/".$_} @mvLibs)."'";
-    print "Must restore temprarily moved dylibs (requires sudo):\n";
+    print "Must restore temporarily moved dylibs (requires sudo):\n";
     system($mvCommand);
 }
 exit;
