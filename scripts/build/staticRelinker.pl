@@ -71,6 +71,7 @@ $compileCommand .= " -static-libgcc"
 $compileCommand .= " -static-libstdc++"
     if ( $isGPP      );
 # Compile the static binary.
+print "Relinking with: ".$compileCommand."\n";
 system($compileCommand);
 # Restore dylibs.
 if ( scalar(@mvLibs) > 0 ) {
