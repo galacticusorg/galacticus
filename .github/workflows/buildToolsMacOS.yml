@@ -161,7 +161,7 @@ jobs:
           cd $GALACTICUS_DATA_PATH/dynamic/fsps-3.2/src
           $GALACTICUS_EXEC_PATH/scripts/build/staticRelinker.pl `grep -E '\-o autosps.exe' $GALACTICUS_EXEC_PATH/build.log`
           cd $GALACTICUS_DATA_PATH
-          tar cfj toolsMacOS.tar.bz2 \
+          zip -r toolsMacOS.zip \
             dynamic/CAMB-1.3.2/fortran/camb \
             dynamic/class_public-3.0.2/class \
             dynamic/RecFast/recfast.exe \
@@ -177,13 +177,15 @@ jobs:
             dynamic/fsps-3.2/ISOCHRONES
           md5sum dynamic/c17.02/source/cloudy.exe
           md5sum dynamic/CAMB-1.3.2/fortran/camb
-          md5sum dynamic/class_public-3.0.2/clas
+          md5sum dynamic/class_public-3.0.2/class
           md5sum dynamic/RecFast/recfast.exe
           md5sum dynamic/fsps-3.2/src/autosps.exe
           md5sum toolsMacOS.tar.bz2
+          md5sum dynamic/c17.02/source/cloudy.exe
           ls -l dynamic/c17.02/source/cloudy.exe
           file dynamic/c17.02/source/cloudy.exe
           otool -L dynamic/c17.02/source/cloudy.exe
+          md5sum dynamic/c17.02/source/cloudy.exe
       - name: Update release
         uses: johnwbyrd/update-release@v1.0.0
         with:
