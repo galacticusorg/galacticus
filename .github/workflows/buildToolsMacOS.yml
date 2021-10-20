@@ -38,6 +38,8 @@ jobs:
         run: sudo port install guile18
       - name: Install libmatheval
         run: sudo port install libmatheval
+      - name: Install md5sum
+        run: sudo port install md5sha1sum
       - name: Install GSL
         run: |
           curl -L ftp://ftp.gnu.org/gnu/gsl/gsl-2.6.tar.gz --output gsl-2.6.tar.gz
