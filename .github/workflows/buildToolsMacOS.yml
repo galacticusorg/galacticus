@@ -176,6 +176,11 @@ jobs:
             dynamic/fsps-3.2/OUTPUTS \
             dynamic/fsps-3.2/ISOCHRONES
           md5sum dynamic/c17.02/source/cloudy.exe
+          md5sum dynamic/CAMB-1.3.2/fortran/camb
+          md5sum dynamic/class_public-3.0.2/clas
+          md5sum dynamic/RecFast/recfast.exe
+          md5sum dynamic/fsps-3.2/src/autosps.exe
+          md5sum toolsMacOS.tar.bz2
           ls -l dynamic/c17.02/source/cloudy.exe
           file dynamic/c17.02/source/cloudy.exe
           otool -L dynamic/c17.02/source/cloudy.exe
