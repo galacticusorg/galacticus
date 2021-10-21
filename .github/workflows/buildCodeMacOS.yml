@@ -3,6 +3,42 @@ on:
   push:
     branches:
       - master
+    paths:
+      - 'Makefile'
+      - 'source/**'
+      - 'source/Bivar/**'
+      - 'source/ISO_Varying_String/**'
+      - 'source/gslODEInitVal2/**'
+      - 'source/NSWC/**'
+      - 'source/pFq/**'
+      - 'source/gslSpecFuncApprox/**'
+      - 'source/FFTlog/**'
+      - 'perl/**'
+      - 'perl/File/**'
+      - 'perl/Galacticus/**'
+      - 'perl/Galacticus/Launch/**'
+      - 'perl/Galacticus/Constraints/**'
+      - 'perl/Galacticus/Build/**'
+      - 'perl/Galacticus/Build/Components/**'
+      - 'perl/Galacticus/Build/Components/Classes/**'
+      - 'perl/Galacticus/Build/Components/Implementations/**'
+      - 'perl/Galacticus/Build/Components/Properties/**'
+      - 'perl/Galacticus/Build/Components/TreeNodes/**'
+      - 'perl/Galacticus/Build/Components/Hierarchy/**'
+      - 'perl/Galacticus/Build/SourceTree/**'
+      - 'perl/Galacticus/Build/SourceTree/Parse/**'
+      - 'perl/Galacticus/Build/SourceTree/Analyze/**'
+      - 'perl/Galacticus/Build/SourceTree/Process/**'
+      - 'perl/Galacticus/Build/SourceTree/Process/FunctionClass/**'
+      - 'perl/List/**'
+      - 'perl/Sort/**'
+      - 'perl/LaTeX/**'
+      - 'perl/IO/**'
+      - 'perl/IO/Compress/**'
+      - 'perl/System/**'
+      - 'perl/Fortran/**'
+      - 'scripts/build/**'
+      - 'schema/**'
 jobs:
   Build-Executable:
     runs-on: macos-11

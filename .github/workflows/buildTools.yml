@@ -9,6 +9,7 @@ on:
       - 'source/interface.Cloudy.F90'
       - 'source/interface.FSPS.F90'
       - 'source/interface.RecFast.F90'
+      - 'aux/**'
 jobs:
   Build-Tools:
     runs-on: ubuntu-latest
