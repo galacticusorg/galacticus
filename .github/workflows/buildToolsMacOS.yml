@@ -190,7 +190,7 @@ jobs:
         uses: johnwbyrd/update-release@v1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          files: ./datasets/toolsMacOS.tar.bz2
+          files: ./datasets/toolsMacOS.zip
           release: bleeding-edge
           prerelease: true
           message: Bleeding edge release
