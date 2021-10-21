@@ -51,9 +51,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
-          pwd
-          ls
-          ./test.nodes.exe
+          ./tests.nodes.exe
       - run: echo "This job's status is ${{ job.status }}."
   Test-Parameters:
     runs-on: ubuntu-latest
@@ -76,6 +74,6 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
-          ./test.parameters.exe
+          ./tests.parameters.exe
       - run: echo "This job's status is ${{ job.status }}."
 
