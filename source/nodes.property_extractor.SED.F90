@@ -932,10 +932,18 @@ contains
     descriptorString=descriptor%serializeToString()
     call descriptor%destroy()
     descriptorString=descriptorString//":sourceDigest{"//String_C_To_Fortran(nodePropertyExtractorSED5)//"}"
-    if (descriptorString /= descriptorStringPrevious) then
-       descriptorStringPrevious=         descriptorString
-       hashedDescriptorPrevious=Hash_MD5(descriptorString)
-    end if
-    sedHistoryHashedDescriptor=hashedDescriptorPrevious
+    !![
+    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845">
+     <description>
+      Memory leak possibly due to OpenMP parallelism, or some failing of gfortran.
+     </description>
+    </workaround>
+    !!]
+    !if (descriptorString /= descriptorStringPrevious) then
+    !   descriptorStringPrevious=         descriptorString
+    !   hashedDescriptorPrevious=Hash_MD5(descriptorString)
+    !end if
+    !sedHistoryHashedDescriptor=hashedDescriptorPrevious
+    sedHistoryHashedDescriptor=Hash_MD5(descriptorString)
     return
   end function sedHistoryHashedDescriptor

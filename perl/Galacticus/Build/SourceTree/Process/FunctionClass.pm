@@ -630,22 +630,21 @@ CODE
 	    $hashedDescriptorCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
 end select
 end if
-if (omp_get_level() == 1) then
-   if (descriptorString /= descriptorStringPrevious) then
-      descriptorStringPrevious=         descriptorString
-      hashedDescriptorPrevious=Hash_MD5(descriptorString)
-   end if
-   {$directiveName}HashedDescriptor=hashedDescriptorPrevious
-else
+!   Workaround starts here.
+!   if (descriptorString /= descriptorStringPrevious) then
+!      descriptorStringPrevious=         descriptorString
+!      hashedDescriptorPrevious=Hash_MD5(descriptorString)
+!   end if
+!   {$directiveName}HashedDescriptor=hashedDescriptorPrevious
    {$directiveName}HashedDescriptor=Hash_MD5(descriptorString)
-end if
+! Workaround ends here.
 CODE
 	    $methods{'hashedDescriptor'} =
 	    {
 		description => "Return a hash of the descriptor for this object, optionally include the source code digest in the hash.",
 		type        => "type(varying_string)",
 		pass        => "yes",
-		modules     => "ISO_Varying_String String_Handling Input_Parameters Hashes_Cryptographic FoX_DOM OMP_Lib",
+		modules     => "ISO_Varying_String String_Handling Input_Parameters Hashes_Cryptographic FoX_DOM",
 		argument    => [ "logical, intent(in   ), optional :: includeSourceDigest" ],
 		code        => $hashedDescriptorCode
 	    };
