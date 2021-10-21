@@ -211,7 +211,7 @@ contains
     implicit none
     type(mergerTreeEvolveTimestepHistory), intent(inout) :: self
 
-    call hdf5PreCloseEvent%detach(self,historyWrite)
+    if (hdf5PreCloseEvent%isAttached(self,historyWrite)) call hdf5PreCloseEvent%detach(self,historyWrite)
     !![
     <objectDestructor name="self%cosmologyFunctions_"        />
     <objectDestructor name="self%starFormationRateDisks_"    />

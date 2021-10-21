@@ -45,11 +45,11 @@
      of radiation perturbations.
      !!}
      private
-     logical                                                    :: tableInitialized
-     double precision                                           :: tableTimeMinimum                          , tableTimeMaximum      , &
-          &                                                        tableWavenumberMinimum                    , tableWavenumberMaximum, &
-          &                                                        fractionDarkMatter                        , fractionBaryons       , &
-          &                                                        normalizationMatterDominated              , redshiftInitial       , &
+     logical                                                    :: tableInitialized                 =  .false.
+     double precision                                           :: tableTimeMinimum                           , tableTimeMaximum      , &
+          &                                                        tableWavenumberMinimum                     , tableWavenumberMaximum, &
+          &                                                        fractionDarkMatter                         , fractionBaryons       , &
+          &                                                        normalizationMatterDominated               , redshiftInitial       , &
           &                                                        redshiftInitialDelta
      integer                                                    :: cambCountPerDecade
      type            (table2DLogLogLin               )          :: growthFactor

@@ -150,6 +150,9 @@ contains
     !$GLC attributes initialized :: lockNodeSimple, lockNodeSatellite, lockNodeSatelliteDestruction
 
     ! Find all timesteps.
+    lockNodeSimple               => null()
+    lockNodeSatellite            => null()
+    lockNodeSatelliteDestruction => null()
     timeEvolveToSimple              =self%simple              %timeEvolveTo(timeEnd,node,taskSimple              ,taskSelfSimple              ,report,lockNode,lockType)
     if (present(lockNode)) lockNodeSimple               => lockNode
     if (present(lockType)) lockTypeSimple               =  lockType

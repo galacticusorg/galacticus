@@ -34,17 +34,17 @@
      A halo mass function class using the fitting function of \cite{tinker_towardhalo_2008}.
      !!}
      private
-     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
-     class           (linearGrowthClass            ), pointer :: linearGrowth_
-     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
-     double precision                                         :: time                     , mass, &
+     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
+     class           (linearGrowthClass            ), pointer :: linearGrowth_             => null()
+     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
+     double precision                                         :: time                               , mass, &
           &                                                      massFunction
    contains
      !![
      <methods>
-       <method description="Return the parameter $a$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="a" />
-       <method description="Return the parameter $b$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="b" />
-       <method description="Return the parameter $c$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="c" />
+       <method description="Return the parameter $a$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="a"             />
+       <method description="Return the parameter $b$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="b"             />
+       <method description="Return the parameter $c$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="c"             />
        <method description="Return the parameter $A$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="normalization" />
      </methods>
      !!]

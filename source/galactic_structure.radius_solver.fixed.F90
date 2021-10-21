@@ -179,10 +179,10 @@ contains
     <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
     !!]
-    call   preDerivativeEvent%detach(self,fixedSolvePreDeriativeHook)
-    call      postEvolveEvent%detach(self,fixedSolveHook            )
-    call satelliteMergerEvent%detach(self,fixedSolveHook            )
-    call   nodePromotionEvent%detach(self,fixedSolveHook            )
+    if (  preDerivativeEvent%isAttached(self,fixedSolvePreDeriativeHook)) call   preDerivativeEvent%detach(self,fixedSolvePreDeriativeHook)
+    if (     postEvolveEvent%isAttached(self,fixedSolveHook            )) call      postEvolveEvent%detach(self,fixedSolveHook            )
+    if (satelliteMergerEvent%isAttached(self,fixedSolveHook            )) call satelliteMergerEvent%detach(self,fixedSolveHook            )
+    if (  nodePromotionEvent%isAttached(self,fixedSolveHook            )) call   nodePromotionEvent%detach(self,fixedSolveHook            )
     return
   end subroutine fixedDestructor
 

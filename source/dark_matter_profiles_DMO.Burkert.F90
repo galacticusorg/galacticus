@@ -64,38 +64,38 @@
      !!}
      private
      ! Minimum and maximum concentrations to tabulate.
-     double precision                                        :: concentrationMinimum                             , concentrationMaximum
+     double precision                                        :: concentrationMinimum                                    , concentrationMaximum
      ! Minimum and maximum radii to tabulate.
-     double precision                                        :: freefallRadiusMinimum                            , radiusMinimum                        , &
-          &                                                     densityRadiusMinimum                             , radialVelocityDispersionRadiusMinimum
-     double precision                                        :: freefallRadiusMaximum                            , radiusMaximum                        , &
-          &                                                     densityRadiusMaximum                             , radialVelocityDispersionRadiusMaximum
-     double precision                                        :: freefallTimeMinimum                              , specificAngularMomentumMinimum       , &
+     double precision                                        :: freefallRadiusMinimum                                   , radiusMinimum                                , &
+          &                                                     densityRadiusMinimum                                    , radialVelocityDispersionRadiusMinimum
+     double precision                                        :: freefallRadiusMaximum                                   , radiusMaximum                                , &
+          &                                                     densityRadiusMaximum                                    , radialVelocityDispersionRadiusMaximum
+     double precision                                        :: freefallTimeMinimum                                     , specificAngularMomentumMinimum               , &
           &                                                     densityMinimum
-     double precision                                        :: freefallTimeMaximum                              , specificAngularMomentumMaximum       , &
+     double precision                                        :: freefallTimeMaximum                                     , specificAngularMomentumMaximum               , &
           &                                                     densityMaximum
      ! Tables of Burkert properties.
-     logical                                                 :: burkertFreefallTableInitialized                  , burkertInverseTableInitialized       , &
-          &                                                     burkertTableInitialized                          , burkertDensityTableInitialized       , &
-          &                                                     burkertRadialVelocityDispersionTableInitialized
-     integer                                                 :: burkertFreefallTableNumberPoints                 , burkertInverseTableNumberPoints      , &
-          &                                                     burkertTableNumberPoints                         , burkertDensityTableNumberPoints      , &
+     logical                                                 :: burkertFreefallTableInitialized                 =.false., burkertInverseTableInitialized       =.false., &
+          &                                                     burkertTableInitialized                         =.false., burkertDensityTableInitialized       =.false., &
+          &                                                     burkertRadialVelocityDispersionTableInitialized =.false.
+     integer                                                 :: burkertFreefallTableNumberPoints                        , burkertInverseTableNumberPoints              , &
+          &                                                     burkertTableNumberPoints                                , burkertDensityTableNumberPoints              , &
           &                                                     burkertRadialVelocityDispersionTableNumberPoints
      type            (table1DLogarithmicLinear)              :: burkertConcentrationTable
      ! Tables.
-     type            (table1DLogarithmicLinear)              :: burkertFreeFall                                  , burkertSpecificAngularMomentum       , &
-          &                                                     burkertDensityTable                              , burkertRadialVelocityDispersionTable
-     class           (table1D                 ), allocatable :: burkertFreefallInverse                           , burkertSpecificAngularMomentumInverse, &
+     type            (table1DLogarithmicLinear)              :: burkertFreeFall                                         , burkertSpecificAngularMomentum               , &
+          &                                                     burkertDensityTable                                     , burkertRadialVelocityDispersionTable
+     class           (table1D                 ), allocatable :: burkertFreefallInverse                                  , burkertSpecificAngularMomentumInverse        , &
           &                                                     burkertDensityTableInverse
      ! Module variables used in integrations.
-     double precision                                        :: concentrationParameter                           , radiusStart
+     double precision                                        :: concentrationParameter                                  , radiusStart
      ! Record of unique ID of node which we last computed results for.
      integer         (kind=kind_int8          )              :: lastUniqueID
      ! Record of whether or not quantities have been computed.
-     logical                                                 :: specificAngularMomentumScalingsComputed          , maximumVelocityComputed
+     logical                                                 :: specificAngularMomentumScalingsComputed                 , maximumVelocityComputed
      ! Stored values of computed quantities.
-     double precision                                        :: specificAngularMomentumLengthScale               , specificAngularMomentumScale         , &
-          &                                                     concentrationPrevious                            , burkertNormalizationFactorPrevious   , &
+     double precision                                        :: specificAngularMomentumLengthScale                      , specificAngularMomentumScale                 , &
+          &                                                     concentrationPrevious                                   , burkertNormalizationFactorPrevious           , &
           &                                                     maximumVelocityPrevious
    contains
      !![
@@ -284,7 +284,7 @@ contains
     !![
     <objectDestructor name="self%darkMatterHaloScale_" />
     !!]
-    call calculationResetEvent%detach(self,burkertCalculationReset)
+    if (calculationResetEvent%isAttached(self,burkertCalculationReset)) call calculationResetEvent%detach(self,burkertCalculationReset)
     return
   end subroutine burkertDestructor
 

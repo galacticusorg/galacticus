@@ -48,7 +48,6 @@
        <method description="Run {\normalfont \scshape Cloudy} to tabulate the cooling function as necessary." method="tabulate" />
      </methods>
      !!]
-     final     ::                                       atomicCIECloudyDestructor
      procedure :: tabulate                           => atomicCIECloudyTabulate
      procedure :: coolingFunction                    => atomicCIECloudyCoolingFunction
      procedure :: coolingFunctionFractionInBand      => atomicCIECloudyCoolingFunctionFractionInBand
@@ -108,18 +107,6 @@ contains
     self%initialized             =.false.
    return
   end function atomicCIECloudyConstructorInternal
-
-  subroutine atomicCIECloudyDestructor(self)
-    !!{
-    Destructor for the ``atomic CIE Cloudy'' cooling function class.
-    !!}
-    implicit none
-    type(coolingFunctionAtomicCIECloudy), intent(inout) :: self
-    !$GLC attributes unused :: self
-
-    ! Nothing to do.
-    return
-  end subroutine atomicCIECloudyDestructor
 
   subroutine atomicCIECloudyTabulate(self,gasAbundances)
     !!{

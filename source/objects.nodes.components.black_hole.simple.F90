@@ -212,7 +212,7 @@ contains
        <objectDestructor name="blackHoleBinaryMerger_"     />
        <objectDestructor name="starFormationRateSpheroids_"/>
        !!]
-       call satelliteMergerEvent%detach(defaultBlackHoleComponent,satelliteMerger)
+       if (satelliteMergerEvent%isAttached(defaultBlackHoleComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultBlackHoleComponent,satelliteMerger)
     end if
     return
   end subroutine Node_Component_Black_Hole_Simple_Thread_Uninitialize

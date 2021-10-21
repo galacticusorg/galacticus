@@ -192,8 +192,8 @@ contains
        <objectDestructor name="coldModeInfallRate_"      />
        <objectDestructor name="hotHaloColdModeCoreRadii_"/>
        !!]
-       call nodePromotionEvent  %detach(defaultHotHaloComponent,nodePromotion  )
-       call satelliteMergerEvent%detach(defaultHotHaloComponent,satelliteMerger)
+       if (nodePromotionEvent  %isAttached(defaultHotHaloComponent,nodePromotion  )) call nodePromotionEvent  %detach(defaultHotHaloComponent,nodePromotion  )
+       if (satelliteMergerEvent%isAttached(defaultHotHaloComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultHotHaloComponent,satelliteMerger)
    end if
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Thread_Uninitialize

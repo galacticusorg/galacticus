@@ -171,7 +171,7 @@ contains
        <objectDestructor name="virialOrbit_"                 />
        <objectDestructor name="mergerTreeMassResolution_"    />
        !!]
-        call nodePromotionEvent%detach(defaultDarkMatterProfileComponent,nodePromotion)
+        if (nodePromotionEvent%isAttached(defaultDarkMatterProfileComponent,nodePromotion)) call nodePromotionEvent%detach(defaultDarkMatterProfileComponent,nodePromotion)
    end if
     return
   end subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Uninitialize

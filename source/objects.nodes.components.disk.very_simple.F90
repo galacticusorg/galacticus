@@ -247,8 +247,8 @@ contains
        <objectDestructor name="starFormationRateDisks_"     />
        <objectDestructor name="mergerMassMovements_"        />
        !!]
-       call satelliteMergerEvent%detach(defaultDiskComponent,satelliteMerger)
-       call postEvolveEvent     %detach(defaultDiskComponent,postEvolve     )
+       if (satelliteMergerEvent%isAttached(defaultDiskComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultDiskComponent,satelliteMerger)
+       if (postEvolveEvent     %isAttached(defaultDiskComponent,postEvolve     )) call postEvolveEvent     %detach(defaultDiskComponent,postEvolve     )
     end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Thread_Uninitialize

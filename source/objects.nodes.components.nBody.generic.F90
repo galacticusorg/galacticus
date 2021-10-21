@@ -153,7 +153,7 @@ contains
     use :: Galacticus_Nodes, only : defaultNBodyComponent
     implicit none
 
-    if (defaultNBodyComponent%genericIsActive()) &
+    if (defaultNBodyComponent%genericIsActive() .and. nodePromotionEvent%isAttached(defaultNBodyComponent,nodePromotion)) &
          & call nodePromotionEvent%detach(defaultNBodyComponent,nodePromotion)
     return
   end subroutine Node_Component_NBody_Generic_Thread_Uninitialize

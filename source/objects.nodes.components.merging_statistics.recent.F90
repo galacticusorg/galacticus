@@ -179,7 +179,7 @@ contains
        <objectDestructor name="darkMatterHaloScale_"/>
        <objectDestructor name="outputTimes_"        />
        !!]
-       call nodePromotionEvent%detach(defaultMergingStatisticsComponent,nodePromotion)
+       if (nodePromotionEvent%isAttached(defaultMergingStatisticsComponent,nodePromotion)) call nodePromotionEvent%detach(defaultMergingStatisticsComponent,nodePromotion)
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Recent_Thread_Uninitialize

@@ -168,7 +168,7 @@ contains
     <objectDestructor name="self%cosmologyFunctions_"  />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
     !!]
-    call calculationResetEvent%detach(self,velocityMaxScalingCalculationReset)
+    if (calculationResetEvent%isAttached(self,velocityMaxScalingCalculationReset)) call calculationResetEvent%detach(self,velocityMaxScalingCalculationReset)
     return
   end subroutine velocityMaxScalingDestructor
 

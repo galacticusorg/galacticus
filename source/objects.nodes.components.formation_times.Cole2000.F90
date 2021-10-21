@@ -126,7 +126,7 @@ contains
     use :: Galacticus_Nodes, only : defaultFormationTimeComponent
     implicit none
 
-    if (defaultFormationTimeComponent%cole2000IsActive()) &
+    if (defaultFormationTimeComponent%cole2000IsActive() .and. nodePromotionEvent%isAttached(defaultFormationTimeComponent,nodePromotion)) &
          & call nodePromotionEvent%detach(defaultFormationTimeComponent,nodePromotion)
     return
   end subroutine Node_Component_Formation_Times_Cole2000_Thread_Uninitialize

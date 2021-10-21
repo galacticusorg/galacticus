@@ -103,7 +103,7 @@ contains
        !![
        <objectDestructor name="darkMatterHaloScale_"/>
        !!]
-       call nodePromotionEvent%detach(defaultDarkMatterProfileComponent,nodePromotion)
+       if (nodePromotionEvent%isAttached(defaultDarkMatterProfileComponent,nodePromotion)) call nodePromotionEvent%detach(defaultDarkMatterProfileComponent,nodePromotion)
     end if
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize

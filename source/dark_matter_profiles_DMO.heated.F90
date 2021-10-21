@@ -211,7 +211,7 @@ contains
     <objectDestructor name="self%darkMatterHaloScale_"      />
     <objectDestructor name="self%darkMatterProfileHeating_" />
     !!]
-    call calculationResetEvent%detach(self,heatedCalculationReset)
+    if (calculationResetEvent%isAttached(self,heatedCalculationReset)) call calculationResetEvent%detach(self,heatedCalculationReset)
     return
   end subroutine heatedDestructor
 

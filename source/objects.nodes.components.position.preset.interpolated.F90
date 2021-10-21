@@ -156,7 +156,7 @@ contains
        !![
        <objectDestructor name="cosmologyFunctions_"/>
        !!]
-       call nodePromotionEvent%detach(defaultPositionComponent,nodePromotion)
+       if (nodePromotionEvent%isAttached(defaultPositionComponent,nodePromotion)) call nodePromotionEvent%detach(defaultPositionComponent,nodePromotion)
     end if
     return
   end subroutine threadUninitialize

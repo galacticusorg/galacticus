@@ -39,13 +39,13 @@
      A dark matter halo profile class implementing \cite{penarrubia_impact_2010} dark matter halos.
      !!}
      private
-     double precision                                        :: betaStripped                             , muRadius                                   , &
-          &                                                     etaRadius                                , muVelocity                                 , &
-          &                                                     etaVelocity                              , ratioRadiusMaximumRadiusScaleStripped      , &
-          &                                                     ratioRadiusMaximumRadiusScaleUnstripped  , ratioVelocityMaximumVelocityScaleUnstripped, &
-          &                                                     ratioVelocityMaximumVelocityScaleStripped, scaleRadiusPrevious                        , &
+     double precision                                        :: betaStripped                                       , muRadius                                             , &
+          &                                                     etaRadius                                          , muVelocity                                           , &
+          &                                                     etaVelocity                                        , ratioRadiusMaximumRadiusScaleStripped                , &
+          &                                                     ratioRadiusMaximumRadiusScaleUnstripped            , ratioVelocityMaximumVelocityScaleUnstripped          , &
+          &                                                     ratioVelocityMaximumVelocityScaleStripped          , scaleRadiusPrevious                                  , &
           &                                                     normalizationPrevious
-     type            (darkMatterProfileDMOZhao1996), pointer :: darkMatterProfileStripped                , darkMatterProfileUnstripped
+     type            (darkMatterProfileDMOZhao1996), pointer :: darkMatterProfileStripped                 => null(), darkMatterProfileUnstripped                 => null()
      integer         (kind_int8                   )          :: uniqueIDPrevious
    contains
      !![

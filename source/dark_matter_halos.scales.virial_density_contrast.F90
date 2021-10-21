@@ -188,7 +188,7 @@ contains
     <objectDestructor name="self%virialDensityContrast_"/>
     !!]
     if (self%meanDensityTimeMinimum >= 0.0d0) call self%meanDensityTable%destroy()
-    call calculationResetEvent%detach(self,virialDensityContrastDefinitionCalculationReset)
+    if (calculationResetEvent%isAttached(self,virialDensityContrastDefinitionCalculationReset)) call calculationResetEvent%detach(self,virialDensityContrastDefinitionCalculationReset)
     return
   end subroutine virialDensityContrastDefinitionDestructor
 

@@ -154,7 +154,7 @@ contains
     <objectDestructor name="self%darkMatterHaloScale_"/>
     <objectDestructor name="self%darkMatterHaloScale_"/>
     !!]
-    call calculationResetEvent%detach(self,king1962CalculationReset)
+    if (calculationResetEvent%isAttached(self,king1962CalculationReset)) call calculationResetEvent%detach(self,king1962CalculationReset)
     return
   end subroutine king1962Destructor
 

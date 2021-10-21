@@ -42,17 +42,17 @@
      A merger tree operator class which records and outputs tree processing time information.
      !!}
      private
-     logical                                                :: collectMemoryUsageData
-     double precision                                       :: timePostEvolution     , timePreConstruction, &
-          &                                                    timePreEvolution      , mass
+     logical                                                :: collectMemoryUsageData=.false.
+     double precision                                       :: timePostEvolution             , timePreConstruction, &
+          &                                                    timePreEvolution              , mass
      integer         (kind_int8)                            :: treeID
-     integer         (c_size_t )                            :: memoryUsagePeak       , countNodes
+     integer         (c_size_t )                            :: memoryUsagePeak               , countNodes
      real                                                   :: time
      integer                                                :: countTrees
-     double precision           , allocatable, dimension(:) :: timesConstruct        , timesEvolve    , &
+     double precision           , allocatable, dimension(:) :: timesConstruct                , timesEvolve        , &
           &                                                    masses
      integer         (kind_int8), allocatable, dimension(:) :: treeIDs
-     integer         (c_size_t ), allocatable, dimension(:) :: memoryUsagesPeak      , countsNodes
+     integer         (c_size_t ), allocatable, dimension(:) :: memoryUsagesPeak              , countsNodes
    contains
      final     ::                           treeProcessingTimerDestructor
      procedure :: operatePreConstruction => treeProcessingTimerOperatePreConstruction
@@ -136,7 +136,8 @@ contains
     implicit none
     type(mergerTreeOperatorTreeProcessingTimer), intent(inout) :: self
 
-    if (self%collectMemoryUsageData) call postEvolveEvent%detach(self,treeProcessingTimerPostEvolve)
+    if (self%collectMemoryUsageData .and. postEvolveEvent%isAttached(self,treeProcessingTimerPostEvolve)) &
+         & call postEvolveEvent%detach(self,treeProcessingTimerPostEvolve)
     return
   end subroutine treeProcessingTimerDestructor
 

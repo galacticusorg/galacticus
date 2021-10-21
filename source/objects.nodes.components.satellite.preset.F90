@@ -140,7 +140,7 @@ contains
     use :: Galacticus_Nodes, only : defaultSatelliteComponent
     implicit none
 
-    if (defaultSatelliteComponent%presetIsActive()) &
+    if (defaultSatelliteComponent%presetIsActive() .and. nodePromotionEvent%isAttached(defaultSatelliteComponent,nodePromotion)) &
          & call nodePromotionEvent%detach(defaultSatelliteComponent,nodePromotion)
     return
   end subroutine Node_Component_Satellite_Preset_Thread_Uninitialize

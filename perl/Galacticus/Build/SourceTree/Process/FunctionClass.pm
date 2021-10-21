@@ -622,21 +622,30 @@ type is ({$type})
 descriptorString=descriptorString//":sourceDigest\{"//String_C_To_Fortran({$type}5)//"\}"
 CODE
 	    }
+	    # <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845">
+	    #  <description>
+	    #   Nested parallelism results in memory leaks.
+	    #  </description>
+	    # </workaround>
 	    $hashedDescriptorCode .= fill_in_string(<<'CODE', PACKAGE => 'code');
 end select
 end if
-if (descriptorString /= descriptorStringPrevious) then
-   descriptorStringPrevious=         descriptorString
-   hashedDescriptorPrevious=Hash_MD5(descriptorString)
+if (omp_get_level() == 1) then
+   if (descriptorString /= descriptorStringPrevious) then
+      descriptorStringPrevious=         descriptorString
+      hashedDescriptorPrevious=Hash_MD5(descriptorString)
+   end if
+   {$directiveName}HashedDescriptor=hashedDescriptorPrevious
+else
+   {$directiveName}HashedDescriptor=Hash_MD5(descriptorString)
 end if
-{$directiveName}HashedDescriptor=hashedDescriptorPrevious
 CODE
 	    $methods{'hashedDescriptor'} =
 	    {
 		description => "Return a hash of the descriptor for this object, optionally include the source code digest in the hash.",
 		type        => "type(varying_string)",
 		pass        => "yes",
-		modules     => "ISO_Varying_String String_Handling Input_Parameters Hashes_Cryptographic FoX_DOM",
+		modules     => "ISO_Varying_String String_Handling Input_Parameters Hashes_Cryptographic FoX_DOM OMP_Lib",
 		argument    => [ "logical, intent(in   ), optional :: includeSourceDigest" ],
 		code        => $hashedDescriptorCode
 	    };

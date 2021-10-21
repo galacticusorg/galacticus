@@ -63,6 +63,7 @@
      class           (universeOperatorClass      ), pointer :: universeOperator_             => null()
      ! Pointer to the parameters for this task.
      type            (inputParameters            )          :: parameters
+logical :: initialized=.false.
    contains
      !![
      <methods>
@@ -241,6 +242,7 @@ contains
 
     self%parameters=inputParameters(parameters)
     call self%parameters%parametersGroupCopy(parameters)
+    self%initialized=.true.
     return
   end function evolveForestsConstructorInternal
 
@@ -308,6 +310,7 @@ contains
     implicit none
     type(taskEvolveForests), intent(inout) :: self
 
+    if (.not.self%initialized) return
     !![
     <objectDestructor name="self%mergerTreeConstructor_" />
     <objectDestructor name="self%mergerTreeOperator_"    />
@@ -319,8 +322,8 @@ contains
     <objectDestructor name="self%mergerTreeOutputter_"   />
     <objectDestructor name="self%mergerTreeInitializor_" />
     !!]
-    call stateStoreEvent  %detach(self,evolveForestsStateStore  )
-    call stateRestoreEvent%detach(self,evolveForestsStateRestore)
+    if (stateStoreEvent  %isAttached(self,evolveForestsStateStore  )) call stateStoreEvent  %detach(self,evolveForestsStateStore  )
+    if (stateRestoreEvent%isAttached(self,evolveForestsStateRestore)) call stateRestoreEvent%detach(self,evolveForestsStateRestore)
     call Node_Components_Uninitialize()
     return
   end subroutine evolveForestsDestructor

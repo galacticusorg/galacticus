@@ -37,8 +37,8 @@
      and so has no wavenumber dependence. Also assumes no growth of radiation perturbations.
      !!}
      private
-     logical                                                 :: tableInitialized
-     double precision                                        :: tableTimeMinimum                      , tableTimeMaximum, &
+     logical                                                 :: tableInitialized             =  .false.
+     double precision                                        :: tableTimeMinimum                       , tableTimeMaximum, &
           &                                                     normalizationMatterDominated
      class           (table1D                 ), allocatable :: growthFactor
      class           (cosmologyParametersClass), pointer     :: cosmologyParameters_         => null()

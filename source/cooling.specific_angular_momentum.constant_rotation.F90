@@ -198,7 +198,7 @@ contains
     <objectDestructor name="self%darkMatterProfileDMO_"   />
     <objectDestructor name="self%hotHaloMassDistribution_"/>
     !!]
-    call calculationResetEvent%detach(self,constantRotationCalculationReset)
+    if (calculationResetEvent%isAttached(self,constantRotationCalculationReset)) call calculationResetEvent%detach(self,constantRotationCalculationReset)
     return
   end subroutine constantRotationDestructor
 

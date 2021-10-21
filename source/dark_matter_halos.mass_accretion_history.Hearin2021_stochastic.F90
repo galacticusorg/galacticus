@@ -625,7 +625,7 @@ contains
     double precision                                                        , dimension(3  ) :: means_      , sample_
     double precision                                                        , dimension(3,3) :: cholesky_
     type            (vector                                                )                 :: means       , sample         , &
-         &                                                                                      randoms
+         &                                                                                      randoms     , offsets
     type            (matrix                                                )                 :: cholesky
     double precision                                                                         :: fractionLate, massLogarithmic
     logical                                                                                  :: isLate
@@ -685,9 +685,19 @@ contains
             &          ]                                                             &
             &         )
        ! Compute the parameters.
-       sample= means    &
-            & +cholesky &
-            & *randoms
+       !![
+       <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
+	 <description>
+	   Function results are not finalized after use. So, we must store the result of "cholesky*randoms" in a variable here
+	   (instead of just using this directly in the expression for "sample" to avoid a memory leak. The variable "offsets" will
+	   be finalized when leaving this function scope.
+	 </description>
+       </workaround>
+       !!]   
+       offsets= cholesky &
+            &  *randoms
+       sample = means    &
+            &  +offsets
        ! Extract the parameters.
        sample_                  = sample
        self%powerLawIndexEarly  =+softPlus(sample_(1)) &

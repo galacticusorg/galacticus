@@ -40,8 +40,8 @@
      A linear growth of cosmological structure contrast class in models consisting only of collisionless matter.
      !!}
      private
-     logical                                                 :: tableInitialized
-     double precision                                        :: tableTimeMinimum                      , tableTimeMaximum, &
+     logical                                                 :: tableInitialized             =  .false.
+     double precision                                        :: tableTimeMinimum                       , tableTimeMaximum, &
           &                                                     normalizationMatterDominated
      class           (table1D                 ), allocatable :: growthFactor
      class           (cosmologyParametersClass), pointer     :: cosmologyParameters_         => null()

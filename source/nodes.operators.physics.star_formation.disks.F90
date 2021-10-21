@@ -105,6 +105,9 @@ contains
     <constructorAssign variables="luminositiesStellarInactive, *starFormationRateDisks_, *stellarPopulationProperties_, *starFormationHistory_"/>
     !!]
 
+    ! Initialize values.
+    self%fractionMassRetainedInitial=1.0d0
+    self%fractionMassRetainedFinal  =1.0d0
     return
   end function starFormationDisksConstructorInternal
 
