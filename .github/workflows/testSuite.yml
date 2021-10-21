@@ -51,6 +51,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./tests.nodes.exe
           ./tests.nodes.exe
       - run: echo "This job's status is ${{ job.status }}."
   Test-Parameters:
@@ -74,6 +75,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./tests.parameters.exe
           ./tests.parameters.exe
       - run: echo "This job's status is ${{ job.status }}."
 
