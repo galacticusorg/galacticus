@@ -23,7 +23,7 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -48,12 +48,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -81,12 +80,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -114,12 +112,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -147,12 +144,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -180,12 +176,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -213,12 +208,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -246,12 +240,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -279,12 +272,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -312,12 +304,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -345,12 +336,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -378,12 +368,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -411,12 +400,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -444,12 +432,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -477,12 +464,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -510,12 +496,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -543,12 +528,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -576,12 +560,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -609,12 +592,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -642,12 +624,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -675,12 +656,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -708,12 +688,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -741,12 +720,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -774,12 +752,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -807,12 +784,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -840,12 +816,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -873,12 +848,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -906,12 +880,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -939,12 +912,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -972,12 +944,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1005,12 +976,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1038,12 +1008,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1071,12 +1040,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1104,12 +1072,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1137,12 +1104,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1170,12 +1136,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1203,12 +1168,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1236,12 +1200,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1269,12 +1232,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1302,12 +1264,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1335,12 +1296,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1368,12 +1328,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1401,12 +1360,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1434,12 +1392,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1467,12 +1424,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1500,12 +1456,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1533,12 +1488,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1566,12 +1520,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1599,12 +1552,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1632,12 +1584,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1665,12 +1616,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1698,12 +1648,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1731,12 +1680,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1764,12 +1712,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1797,12 +1744,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1830,12 +1776,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1863,12 +1808,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1896,12 +1840,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1929,12 +1872,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1962,12 +1904,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -1995,12 +1936,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2028,12 +1968,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2061,12 +2000,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2094,12 +2032,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2127,12 +2064,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2160,12 +2096,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2193,12 +2128,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2226,12 +2160,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2259,12 +2192,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2292,12 +2224,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2325,12 +2256,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2341,6 +2271,12 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.abundances.exe
+          echo ls
+          ls
+          echo ls ..
+          ls ..
+          echo ls ../../
+          ls ../../
           ./tests.abundances.exe 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -2358,12 +2294,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2391,12 +2326,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2424,12 +2358,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2457,12 +2390,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2490,12 +2422,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2523,12 +2454,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2556,12 +2486,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2589,12 +2518,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2622,12 +2550,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2655,12 +2582,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2688,12 +2614,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2721,12 +2646,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2754,12 +2678,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2787,12 +2710,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2820,12 +2742,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2853,12 +2774,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2886,12 +2806,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2919,12 +2838,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2952,12 +2870,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -2985,12 +2902,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -3018,12 +2934,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -3051,12 +2966,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -3084,12 +2998,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -3116,12 +3029,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -3149,12 +3061,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -3182,12 +3093,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -3215,12 +3125,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
@@ -3248,12 +3157,11 @@ jobs:
         uses: actions/checkout@v2      
         with:
           repository: galacticusorg/datasets
-          path: galacticus
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
-          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/../datasets" >> $GITHUB_ENV
       - name: Download executables
         uses: actions/download-artifact@v2
         with:
