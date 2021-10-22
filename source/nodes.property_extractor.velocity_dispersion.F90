@@ -29,7 +29,7 @@
     A property extractor class for the velocity dispersion at a set of radii. The radii and types of projected density to output
     is specified by the {\normalfont \ttfamily radiusSpecifiers} parameter. This parameter's value can contain multiple
     entries, each of which should be a valid
-    \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
+    \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
     specifier}, but with an additional, colon-separated, value at the end indicating the direction in which the velocity
     dispersion should be computed. This direction should be one of {\normalfont \ttfamily radial} (computes the radial
     component of velocity dispersion), {\normalfont \ttfamily lineOfSight\{\textless luminosity\textgreater\}} (computes the

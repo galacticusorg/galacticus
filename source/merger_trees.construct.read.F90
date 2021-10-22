@@ -85,7 +85,7 @@
       halo and any sibling nodes. These are not required to specify the tree structure but are computationally convenient.
     \item It is acceptable for a node to begin its existence as a subhalo (i.e. to have never had an isolated node progenitor). Such
       nodes will be created as satellites in the merger tree and, providing the selected node components (see
-      \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.Components}{here})
+      \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.Components}{here})
       initialize their properties appropriately, will be evolved correctly.
     \item It is acceptable for an isolated node to have progenitors, none of which are a primary progenitor. This can happen if all
       progenitors descend into subhalos in the isolated node. In such cases, \glc\ will create a clone of the isolated node at a very
@@ -159,7 +159,7 @@
       by seeking a value which gives the correct half mass radius. It is therefore important that the definition of halo mass
       (specifically the virial overdensity) in \protect\glc\ be the same as was used in computing the input half mass radii.}. This
     requires a dark matter profile scale component which supports setting of the scale length (see
-    \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.DarkMatterProfileScale}{here}).
+    \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.DarkMatterProfileScale}{here}).
     
     \textbf{Satellite Merger Times:}\index{merger times}\index{satellite!merger times} If {\normalfont \ttfamily
       [mergerTreeReadPresetMergerTimes]}$=${\normalfont \ttfamily true} then merger times for satellites will be computed directly
@@ -172,7 +172,7 @@
     within the {\normalfont \ttfamily haloTrees} group (see
     \href{https://github.com/galacticusorg/galacticus/wiki/Merger-Tree-File-Format#forest-halos-group}{here}) then the spin parameters
     of nodes will be computed and set. This requires a dark matter halo spin component which supports setting of the spin (see
-    \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.DarkMatterHaloSpinComponent}{here}).
+    \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.DarkMatterHaloSpinComponent}{here}).
   !!]
 
   !![
@@ -557,7 +557,7 @@ contains
     <inputParameter>
       <name>missingHostsAreFatal</name>
       <defaultValue>.true.</defaultValue>
-      <description>Specifies whether nodes with missing host nodes should be considered to be fatal---see \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#physics.mergerTreeConstructRead.missingHosts}{here}.</description>
+      <description>Specifies whether nodes with missing host nodes should be considered to be fatal---see \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#physics.mergerTreeConstructRead.missingHosts}{here}.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
