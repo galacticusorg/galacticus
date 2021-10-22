@@ -193,7 +193,7 @@ contains
        <objectDestructor name="cosmologyParameters_"/>
        <objectDestructor name="cosmologyFunctions_" />
        !!]
-       call nodePromotionEvent%detach(defaultBasicComponent,nodePromotion)
+       if (nodePromotionEvent%isAttached(defaultBasicComponent,nodePromotion)) call nodePromotionEvent%detach(defaultBasicComponent,nodePromotion)
     end if
     return
   end subroutine Node_Component_Basic_Extended_Thread_Uninitialize

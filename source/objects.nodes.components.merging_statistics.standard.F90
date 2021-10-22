@@ -211,10 +211,10 @@ contains
        <objectDestructor name="darkMatterHaloMassAccretionHistory_"/>
        <objectDestructor name="mergerMassMovements_"               />
        !!]
-       call nodePromotionEvent   %detach(defaultMergingStatisticsComponent,nodePromotion       )
-       call subhaloPromotionEvent%detach(defaultMergingStatisticsComponent,nodeSubhaloPromotion)
-       call satelliteMergerEvent %detach(defaultMergingStatisticsComponent,satelliteMerger     )
-       call postEvolveEvent      %detach(defaultMergingStatisticsComponent,postEvolve          )
+       if (nodePromotionEvent   %isAttached(defaultMergingStatisticsComponent,nodePromotion       )) call nodePromotionEvent   %detach(defaultMergingStatisticsComponent,nodePromotion       )
+       if (subhaloPromotionEvent%isAttached(defaultMergingStatisticsComponent,nodeSubhaloPromotion)) call subhaloPromotionEvent%detach(defaultMergingStatisticsComponent,nodeSubhaloPromotion)
+       if (satelliteMergerEvent %isAttached(defaultMergingStatisticsComponent,satelliteMerger     )) call satelliteMergerEvent %detach(defaultMergingStatisticsComponent,satelliteMerger     )
+       if (postEvolveEvent      %isAttached(defaultMergingStatisticsComponent,postEvolve          )) call postEvolveEvent      %detach(defaultMergingStatisticsComponent,postEvolve          )
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Standard_Thread_Uninitialize

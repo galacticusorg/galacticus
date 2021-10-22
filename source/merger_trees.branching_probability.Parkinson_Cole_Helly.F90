@@ -55,23 +55,23 @@ Implements a merger tree branching probability class using the algorithm of \cit
      A merger tree branching probability class using the algorithm of \cite{parkinson_generating_2008}.
      !!}
      private
-     double precision                                         :: gamma1                                          , gamma2                             , &
-          &                                                      G0                                              , accuracyFirstOrder                 , &
+     double precision                                         :: gamma1                                           , gamma2                                     , &
+          &                                                      G0                                               , accuracyFirstOrder                         , &
           &                                                      precisionHypergeometric
-     logical                                                  :: hypergeometricTabulate                          , cdmAssumptions                     , &
+     logical                                                  :: hypergeometricTabulate                           , cdmAssumptions                             , &
           &                                                      hypergeometricFailureWarned
-     type            (table1DLogarithmicLinear     )          :: subresolutionHypergeometric                     , upperBoundHypergeometric
-     logical                                                  :: subresolutionHypergeometricInitialized          , upperBoundHypergeometricInitialized
-     double precision                                         :: massResolutionTabulated                         , factorG0Gamma2                     , &
-          &                                                      branchingProbabilityPreFactor                   , sigmaParentSquared                 , &
-          &                                                      sigmaParent                                     , deltaParent                        , &
-          &                                                      massHaloParent                                  , probabilityMinimumMassLog          , &
-          &                                                      probabilityMaximumMassLog                       , probabilitySeek                    , &
-          &                                                      probabilityGradientMinimum                      , probabilityGradientMaximum         , &
-          &                                                      probabilityMaximum                              , probabilityMinimumMass             , &
-          &                                                      haloMassPrevious                                , deltaCriticalPrevious              , &
-          &                                                      massResolutionPrevious                          , probabilityPrevious                , &
-          &                                                      resolutionSigma                                 , resolutionAlpha                    , &
+     type            (table1DLogarithmicLinear     )          :: subresolutionHypergeometric                      , upperBoundHypergeometric
+     logical                                                  :: subresolutionHypergeometricInitialized =  .false., upperBoundHypergeometricInitialized=.false.
+     double precision                                         :: massResolutionTabulated                          , factorG0Gamma2                             , &
+          &                                                      branchingProbabilityPreFactor                    , sigmaParentSquared                         , &
+          &                                                      sigmaParent                                      , deltaParent                                , &
+          &                                                      massHaloParent                                   , probabilityMinimumMassLog                  , &
+          &                                                      probabilityMaximumMassLog                        , probabilitySeek                            , &
+          &                                                      probabilityGradientMinimum                       , probabilityGradientMaximum                 , &
+          &                                                      probabilityMaximum                               , probabilityMinimumMass                     , &
+          &                                                      haloMassPrevious                                 , deltaCriticalPrevious                      , &
+          &                                                      massResolutionPrevious                           , probabilityPrevious                        , &
+          &                                                      resolutionSigma                                  , resolutionAlpha                            , &
           &                                                      timeParent
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_              => null()
      class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_                   => null()
@@ -223,8 +223,8 @@ contains
     implicit none
     type(mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout) :: self
 
-    call self%subresolutionHypergeometric%destroy()
-    call self%upperBoundHypergeometric   %destroy()
+    if (self%subresolutionHypergeometricInitialized) call self%subresolutionHypergeometric%destroy()
+    if (self%upperBoundHypergeometricInitialized   ) call self%upperBoundHypergeometric   %destroy()
     !![
     <objectDestructor name="self%criticalOverdensity_"     />
     <objectDestructor name="self%cosmologicalMassVariance_"/>

@@ -33,7 +33,7 @@ Contains a module which implements a high-pass filter on any node property.
      A high-pass galactic filter class on any node property.
      !!}
      private
-     class           (nodePropertyExtractorScalar), pointer :: nodePropertyExtractor_
+     class           (nodePropertyExtractorScalar), pointer :: nodePropertyExtractor_ => null()
      double precision                                       :: threshold
    contains
      final     ::           highPassDestructor

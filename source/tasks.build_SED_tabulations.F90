@@ -181,6 +181,7 @@ contains
     disk     => node    %disk    (autoCreate=.true.)
     spheroid => node    %spheroid(autoCreate=.true.)
     basic    => node    %basic   (autoCreate=.true.)
+    call tree%properties%initialize()
     ! Initialize a single instance.
     instance=multiCounter([1_c_size_t])
     ! Initialize a tree output lock - this is required by the star formation history output functions, even though we don't
@@ -205,24 +206,27 @@ contains
     call spheroid%starFormationHistorySet       (     starFormationHistorySpheroid     )
     ! Iterate over output times.
     do i=1_c_size_t,self%outputTimes_%count()
-#ifdef USEMPI
-       if (mod(i,mpiSelf%count()) /= mpiSelf%rank()) cycle
-#endif
        time=self%outputTimes_%time(i)
        call basic   %timeSet            (time)
        call basic   %timeLastIsolatedSet(time)
        call instance%reset              (    )
        if (.not.instance%increment()) call Galacticus_Error_Report('failed to increment instance'//{introspection:location})
-       select type (extractor_ => self%nodePropertyExtractor_)
-       class is (nodePropertyExtractorSED  )
-          ! SED property extractor - extract and store the values.
-          doubleArray     =extractor_%extract      (node,time,instance)
-          deallocate(doubleArray     )
-       class is (nodePropertyExtractorMulti)
-          ! Multi property extractor - extract and store the values.
-          doubleProperties=extractor_%extractDouble(node,time,instance)
-          deallocate(doubleProperties)
-       end select
+#ifdef USEMPI
+       if (mod(i,mpiSelf%count()) == mpiSelf%rank()) then
+#endif
+          select type (extractor_ => self%nodePropertyExtractor_)
+          class is (nodePropertyExtractorSED  )
+             ! SED property extractor - extract and store the values.
+             doubleArray     =extractor_%extract      (node,time,instance)
+             deallocate(doubleArray     )
+          class is (nodePropertyExtractorMulti)
+             ! Multi property extractor - extract and store the values.
+             doubleProperties=extractor_%extractDouble(node,time,instance)
+             deallocate(doubleProperties)
+          end select
+#ifdef USEMPI
+       end if
+#endif
        ! Output star formation history, which also triggers update of the history.
        call starFormationHistoryDisk    %destroy                (                                                   &
             &                                                   )

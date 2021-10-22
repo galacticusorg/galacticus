@@ -49,7 +49,7 @@ module Stellar_Population_Spectra_Postprocess
      !!{
      Type used to build linked list of stellar population spectra postprocessors.
      !!}
-     class(stellarPopulationSpectraPostprocessorClass), pointer :: stellarPopulationSpectraPostprocessor_
+     class(stellarPopulationSpectraPostprocessorClass), pointer :: stellarPopulationSpectraPostprocessor_ => null()
    contains
      final :: stellarPopulationSpectraPostprocessorListDestructor
   end type stellarPopulationSpectraPostprocessorList

@@ -85,10 +85,10 @@ contains
     implicit none
     type(galacticStructureSolverNull), intent(inout) :: self
 
-    call   preDerivativeEvent%detach(self,nullSolvePreDeriativeHook)
-    call      postEvolveEvent%detach(self,nullSolveHook            )
-    call satelliteMergerEvent%detach(self,nullSolveHook            )
-    call   nodePromotionEvent%detach(self,nullSolveHook            )
+    if (  preDerivativeEvent%isAttached(self,nullSolvePreDeriativeHook)) call   preDerivativeEvent%detach(self,nullSolvePreDeriativeHook)
+    if (     postEvolveEvent%isAttached(self,nullSolveHook            )) call      postEvolveEvent%detach(self,nullSolveHook            )
+    if (satelliteMergerEvent%isAttached(self,nullSolveHook            )) call satelliteMergerEvent%detach(self,nullSolveHook            )
+    if (  nodePromotionEvent%isAttached(self,nullSolveHook            )) call   nodePromotionEvent%detach(self,nullSolveHook            )
     return
   end subroutine nullDestructor
 

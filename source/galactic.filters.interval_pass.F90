@@ -33,8 +33,8 @@ Contains a module which implements an interval pass filter on any node property.
      an interval pass galactic filter class on any node property.
      !!}
      private
-     class           (nodePropertyExtractorScalar), pointer :: nodePropertyExtractor_
-     double precision                                       :: thresholdLow          , thresholdHigh
+     class           (nodePropertyExtractorScalar), pointer :: nodePropertyExtractor_ => null()
+     double precision                                       :: thresholdLow                    , thresholdHigh
    contains
      final     ::           intervalPassDestructor
      procedure :: passes => intervalPassPasses

@@ -162,8 +162,8 @@ contains
     implicit none
     type(mergerMassMovementsBaugh2005), intent(inout) :: self
 
-    call calculationResetEvent%detach(self,baugh2005CalculationReset)
-    call satelliteMergerEvent %detach(self,baugh2005GetHook         )
+    if (calculationResetEvent%isAttached(self,baugh2005CalculationReset)) call calculationResetEvent%detach(self,baugh2005CalculationReset)
+    if (satelliteMergerEvent %isAttached(self,baugh2005GetHook         )) call satelliteMergerEvent %detach(self,baugh2005GetHook         )
     return
   end subroutine baugh2005Destructor
 

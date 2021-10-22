@@ -181,7 +181,7 @@ contains
     implicit none
     type(accretionHaloNaozBarkana2007), intent(inout) :: self
 
-    call calculationResetEvent%detach(self,naozBarkana2007CalculationReset)
+    if (calculationResetEvent%isAttached(self,naozBarkana2007CalculationReset)) call calculationResetEvent%detach(self,naozBarkana2007CalculationReset)
     !![
     <objectDestructor name="self%intergalacticMediumFilteringMass_"/>
     !!]

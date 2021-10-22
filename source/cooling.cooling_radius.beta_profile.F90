@@ -235,7 +235,7 @@ contains
     <objectDestructor name="self%cosmologyFunctions_"       />
     <objectDestructor name="self%radiation"                 />
     !!]
-    call calculationResetEvent%detach(self,betaProfileCalculationReset)
+    if (calculationResetEvent%isAttached(self,betaProfileCalculationReset)) call calculationResetEvent%detach(self,betaProfileCalculationReset)
     return
   end subroutine betaProfileDestructor
 

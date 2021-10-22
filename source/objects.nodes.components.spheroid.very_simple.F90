@@ -223,8 +223,8 @@ contains
     implicit none
 
     if (defaultSpheroidComponent%verySimpleIsActive()) then
-       call postEvolveEvent     %detach(defaultSpheroidComponent,postEvolve     )
-       call satelliteMergerEvent%detach(defaultSpheroidComponent,satelliteMerger)
+       if (postEvolveEvent     %isAttached(defaultSpheroidComponent,postEvolve     )) call postEvolveEvent     %detach(defaultSpheroidComponent,postEvolve     )
+       if (satelliteMergerEvent%isAttached(defaultSpheroidComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultSpheroidComponent,satelliteMerger)
        !![
        <objectDestructor name="darkMatterHaloScale_"         />
        <objectDestructor name="darkMatterProfileDMO_"        />

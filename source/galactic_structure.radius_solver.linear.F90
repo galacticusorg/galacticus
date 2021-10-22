@@ -127,10 +127,10 @@ contains
     !![
     <objectDestructor name="self%darkMatterHaloScale_"/>
     !!]
-    call   preDerivativeEvent%detach(self,linearSolvePreDeriativeHook)
-    call      postEvolveEvent%detach(self,linearSolveHook            )
-    call satelliteMergerEvent%detach(self,linearSolveHook            )
-    call   nodePromotionEvent%detach(self,linearSolveHook            )
+    if (  preDerivativeEvent%isAttached(self,linearSolvePreDeriativeHook)) call   preDerivativeEvent%detach(self,linearSolvePreDeriativeHook)
+    if (     postEvolveEvent%isAttached(self,linearSolveHook            )) call      postEvolveEvent%detach(self,linearSolveHook            )
+    if (satelliteMergerEvent%isAttached(self,linearSolveHook            )) call satelliteMergerEvent%detach(self,linearSolveHook            )
+    if (  nodePromotionEvent%isAttached(self,linearSolveHook            )) call   nodePromotionEvent%detach(self,linearSolveHook            )
     return
   end subroutine linearDestructor
 

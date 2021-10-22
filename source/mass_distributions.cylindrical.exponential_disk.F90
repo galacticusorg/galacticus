@@ -34,28 +34,28 @@
      The exponential disk mass distribution: $\rho(r,z)=\rho_0 \exp(-r/r_\mathrm{s}) \hbox{sech}^2(z/z_\mathrm{s})$.
      !!}
   private
-  double precision                                                        :: scaleRadius                           , scaleHeight                           , &
-       &                                                                     densityNormalization                  , surfaceDensityNormalization           , &
+  double precision                                                        :: scaleRadius                                   , scaleHeight                                   , &
+       &                                                                     densityNormalization                          , surfaceDensityNormalization                   , &
        &                                                                     mass
   ! Tables used for rotation curves and potential.
-  logical                                                                 :: scaleLengthFactorSet                  , rotationCurveInitialized              , &
-       &                                                                     rotationCurveGradientInitialized      , potentialInitialized                  , &
-       &                                                                     accelerationInitialized
+  logical                                                                 :: scaleLengthFactorSet                          , rotationCurveInitialized              =.false., &
+       &                                                                     rotationCurveGradientInitialized      =.false., potentialInitialized                  =.false., &
+       &                                                                     accelerationInitialized               =.false.
   double precision                                                        :: scaleLengthFactor
-  double precision                                                        :: rotationCurveHalfRadiusMinimum        , rotationCurveHalfRadiusMaximum
-  double precision                                                        :: rotationCurveGradientHalfRadiusMinimum, rotationCurveGradientHalfRadiusMaximum
-  type            (table1DLogarithmicLinear)                              :: rotationCurveTable                    , rotationCurveGradientTable            , &
+  double precision                                                        :: rotationCurveHalfRadiusMinimum                , rotationCurveHalfRadiusMaximum
+  double precision                                                        :: rotationCurveGradientHalfRadiusMinimum        , rotationCurveGradientHalfRadiusMaximum
+  type            (table1DLogarithmicLinear)                              :: rotationCurveTable                            , rotationCurveGradientTable                    , &
        &                                                                     potentialTable
-  double precision                          , allocatable, dimension(:  ) :: accelerationRadii                     , accelerationHeights
-  double precision                          , allocatable, dimension(:,:) :: accelerationRadial                    , accelerationVertical                  , &
-       &                                                                     tidalTensorRadialRadial               , tidalTensorVerticalVertical           , &
+  double precision                          , allocatable, dimension(:  ) :: accelerationRadii                             , accelerationHeights
+  double precision                          , allocatable, dimension(:,:) :: accelerationRadial                            , accelerationVertical                          , &
+       &                                                                     tidalTensorRadialRadial                       , tidalTensorVerticalVertical                   , &
        &                                                                     tidalTensorCross
-  double precision                                                        :: accelerationRadiusMinimumLog          , accelerationRadiusMaximumLog          , &
-       &                                                                     accelerationHeightMinimumLog          , accelerationHeightMaximumLog          , &
-       &                                                                     accelerationRadiusInverseInterval     , accelerationHeightInverseInterval
+  double precision                                                        :: accelerationRadiusMinimumLog                  , accelerationRadiusMaximumLog                  , &
+       &                                                                     accelerationHeightMinimumLog                  , accelerationHeightMaximumLog                  , &
+       &                                                                     accelerationRadiusInverseInterval             , accelerationHeightInverseInterval
   ! Locks.
-  !$ integer      (omp_lock_kind           )                              :: factorComputeLock                     , rotationCurveLock                     , &
-  !$   &                                                                     rotationCurveGradientLock             , potentialLock
+  !$ integer      (omp_lock_kind           )                              :: factorComputeLock                             , rotationCurveLock                             , &
+  !$   &                                                                     rotationCurveGradientLock                     , potentialLock
 contains
      !![
      <methods>
@@ -232,9 +232,9 @@ contains
     implicit none
     type(massDistributionExponentialDisk), intent(inout) :: self
 
-    call self%rotationCurveTable        %destroy()
-    call self%rotationCurveGradientTable%destroy()
-    call self%potentialTable            %destroy()
+    if (self%rotationCurveInitialized        ) call self%rotationCurveTable        %destroy()
+    if (self%rotationCurveGradientInitialized) call self%rotationCurveGradientTable%destroy()
+    if (self%potentialInitialized            ) call self%potentialTable            %destroy()
     !$ call OMP_Destroy_Lock(self%factorComputeLock        )
     !$ call OMP_Destroy_Lock(self%rotationCurveLock        )
     !$ call OMP_Destroy_Lock(self%rotationCurveGradientLock)

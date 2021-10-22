@@ -143,10 +143,10 @@ contains
     !![
     <objectDestructor name="self%darkMatterProfileDMO_"/>
     !!]
-    call   preDerivativeEvent%detach(self,simpleSolvePreDeriativeHook)
-    call      postEvolveEvent%detach(self,simpleSolveHook            )
-    call satelliteMergerEvent%detach(self,simpleSolveHook            )
-    call   nodePromotionEvent%detach(self,simpleSolveHook            )
+    if (  preDerivativeEvent%isAttached(self,simpleSolvePreDeriativeHook)) call   preDerivativeEvent%detach(self,simpleSolvePreDeriativeHook)
+    if (     postEvolveEvent%isAttached(self,simpleSolveHook            )) call      postEvolveEvent%detach(self,simpleSolveHook            )
+    if (satelliteMergerEvent%isAttached(self,simpleSolveHook            )) call satelliteMergerEvent%detach(self,simpleSolveHook            )
+    if (  nodePromotionEvent%isAttached(self,simpleSolveHook            )) call   nodePromotionEvent%detach(self,simpleSolveHook            )
     return
   end subroutine simpleDestructor
 

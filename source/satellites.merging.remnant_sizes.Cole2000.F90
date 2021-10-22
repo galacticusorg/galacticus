@@ -165,8 +165,8 @@ contains
     !![
     <objectDestructor name="self%mergerProgenitorProperties_"/>
     !!]
-    call calculationResetEvent%detach(self,cole2000CalculationReset)
-    call satelliteMergerEvent %detach(self,cole2000GetHook         )
+    if (calculationResetEvent%isAttached(self,cole2000CalculationReset)) call calculationResetEvent%detach(self,cole2000CalculationReset)
+    if (satelliteMergerEvent %isAttached(self,cole2000GetHook         )) call satelliteMergerEvent %detach(self,cole2000GetHook         )
     return
   end subroutine cole2000Destructor
 

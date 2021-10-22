@@ -224,7 +224,7 @@ contains
     <objectDestructor name="self%cosmologyFunctions_"       />
     <objectDestructor name="self%radiation"                 />
     !!]
-    call calculationResetEvent%detach(self,simpleCalculationReset)
+    if (calculationResetEvent%isAttached(self,simpleCalculationReset)) call calculationResetEvent%detach(self,simpleCalculationReset)
     return
   end subroutine simpleDestructor
 

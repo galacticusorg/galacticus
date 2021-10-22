@@ -41,18 +41,18 @@
      A dark matter halo progenitor mass function output analysis class.
      !!}
      private
-     type            (galacticFilterAll                    ), pointer                   :: galacticFilterParentMass_
-     type            (outputAnalysisWeightOperatorNbodyMass), pointer                   :: outputAnalysisWeightOperatorNbodyMass_
-     type            (nodePropertyExtractorMassHalo        ), pointer                   :: nodePropertyExtractorMassParent_
+     type            (galacticFilterAll                    ), pointer                   :: galacticFilterParentMass_              => null()
+     type            (outputAnalysisWeightOperatorNbodyMass), pointer                   :: outputAnalysisWeightOperatorNbodyMass_ => null()
+     type            (nodePropertyExtractorMassHalo        ), pointer                   :: nodePropertyExtractorMassParent_       => null()
      double precision                                       , allocatable, dimension(:) :: rootVarianceTargetFractional
-     double precision                                                                   :: massRatioMinimum                      , massRatioMaximum            , &
-          &                                                                                massParentMinimum                     , massParentMaximum           , &
-          &                                                                                timeProgenitor                        , timeParent                  , &
-          &                                                                                weightParents                         , massRatioLikelihoodMinimum  , &
+     double precision                                                                   :: massRatioMinimum                                , massRatioMaximum          , &
+          &                                                                                massParentMinimum                               , massParentMaximum         , &
+          &                                                                                timeProgenitor                                  , timeParent                , &
+          &                                                                                weightParents                                   , massRatioLikelihoodMinimum, &
           &                                                                                massRatioLikelihoodMaximum
-     integer         (c_size_t                             )                            :: countMassRatio                        , indexOutput
-     logical                                                                            :: alwaysIsolatedOnly                    , covarianceDiagonalize       , &
-          &                                                                                covarianceTargetOnly                  , likelihoodInLog             , &
+     integer         (c_size_t                             )                            :: countMassRatio                                  , indexOutput
+     logical                                                                            :: alwaysIsolatedOnly                              , covarianceDiagonalize     , &
+          &                                                                                covarianceTargetOnly                            , likelihoodInLog           , &
           &                                                                                weightsFinalized
    contains
      final     ::                     progenitorMassFunctionDestructor

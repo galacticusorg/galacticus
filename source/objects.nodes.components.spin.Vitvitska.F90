@@ -183,7 +183,7 @@ contains
        <objectDestructor name="virialOrbit_"                 />
        <objectDestructor name="mergerTreeMassResolution_"    />
        !!]
-       call nodePromotionEvent%detach(defaultSpinComponent,nodePromotion)
+       if (nodePromotionEvent%isAttached(defaultSpinComponent,nodePromotion)) call nodePromotionEvent%detach(defaultSpinComponent,nodePromotion)
     end if
     return
   end subroutine Node_Component_Spin_Vitvitska_Thread_Uninitialize

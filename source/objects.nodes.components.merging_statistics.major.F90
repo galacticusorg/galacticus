@@ -99,8 +99,8 @@ contains
        !![
        <objectDestructor name="mergerMassMovements_"/>
        !!]
-       call nodePromotionEvent  %detach(defaultMergingStatisticsComponent,nodePromotion  )
-       call satelliteMergerEvent%detach(defaultMergingStatisticsComponent,satelliteMerger)
+       if (nodePromotionEvent  %isAttached(defaultMergingStatisticsComponent,nodePromotion  )) call nodePromotionEvent  %detach(defaultMergingStatisticsComponent,nodePromotion  )
+       if (satelliteMergerEvent%isAttached(defaultMergingStatisticsComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultMergingStatisticsComponent,satelliteMerger)
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Major_Thread_Uninitialize

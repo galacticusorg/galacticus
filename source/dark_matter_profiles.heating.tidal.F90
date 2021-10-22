@@ -167,7 +167,7 @@ contains
     implicit none
     type(darkMatterProfileHeatingTidal), intent(inout) :: self
 
-    call calculationResetEvent%detach(self,tidalCalculationReset)
+    if (calculationResetEvent%isAttached(self,tidalCalculationReset)) call calculationResetEvent%detach(self,tidalCalculationReset)
     return
   end subroutine tidalDestructor
 

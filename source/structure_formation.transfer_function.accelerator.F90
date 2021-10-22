@@ -34,12 +34,11 @@
      !!}
      private
      type            (table1DLinearLinear  )          :: transferTable
-     class           (transferFunctionClass), pointer :: transferFunction_ => null()
-     double precision                                 :: wavenumberLogarithmicMinimum, wavenumberLogarithmicMaximum
+     class           (transferFunctionClass), pointer :: transferFunction_            => null()
+     double precision                                 :: wavenumberLogarithmicMinimum           , wavenumberLogarithmicMaximum
      integer                                          :: tablePointsPerDecade
-     logical                                          :: tableInitialized
+     logical                                          :: tableInitialized             =  .false.
    contains
-
      final     ::                          acceleratorDestructor
      procedure :: value                 => acceleratorValue
      procedure :: logarithmicDerivative => acceleratorLogarithmicDerivative

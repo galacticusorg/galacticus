@@ -43,39 +43,39 @@
      !!}
      private
      ! Minimum and maximum concentrations to tabulate.
-     double precision                                        :: concentrationMinimum                   , concentrationMaximum
+     double precision                                        :: concentrationMinimum                           , concentrationMaximum
      ! Minimum and maximum radii to tabulate.
-     double precision                                        :: freefallRadiusMinimum                  , radiusMinimum
-     double precision                                        :: freefallRadiusMaximum                  , radiusMaximum
-     double precision                                        :: freefallTimeMinimum                    , specificAngularMomentumMinimum
-     double precision                                        :: freefallTimeMaximum                    , specificAngularMomentumMaximum
-     double precision                                        :: enclosedDensityRadiusMinimum           , enclosedDensityRadiusMaximum
-     double precision                                        :: enclosedDensityMinimum                 , enclosedDensityMaximum
+     double precision                                        :: freefallRadiusMinimum                          , radiusMinimum
+     double precision                                        :: freefallRadiusMaximum                          , radiusMaximum
+     double precision                                        :: freefallTimeMinimum                            , specificAngularMomentumMinimum
+     double precision                                        :: freefallTimeMaximum                            , specificAngularMomentumMaximum
+     double precision                                        :: enclosedDensityRadiusMinimum                   , enclosedDensityRadiusMaximum
+     double precision                                        :: enclosedDensityMinimum                         , enclosedDensityMaximum
      ! Tables of NFW properties.
-     logical                                                 :: nfwFreefallTableInitialized            , nfwInverseTableInitialized         , &
-          &                                                     nfwTableInitialized                    , nfwEnclosedDensityTableInitialized
-     integer                                                 :: nfwFreefallTableNumberPoints           , nfwInverseTableNumberPoints        , &
-          &                                                     nfwTableNumberPoints                   , nfwEnclosedDensityTableNumberPoints
+     logical                                                 :: nfwFreefallTableInitialized            =.false., nfwInverseTableInitialized         =.false., &
+          &                                                     nfwTableInitialized                    =.false., nfwEnclosedDensityTableInitialized =.false.
+     integer                                                 :: nfwFreefallTableNumberPoints                   , nfwInverseTableNumberPoints                , &
+          &                                                     nfwTableNumberPoints                           , nfwEnclosedDensityTableNumberPoints
      type            (table1DLogarithmicLinear)              :: nfwConcentrationTable
      ! Tables.
-     type            (table1DLogarithmicLinear)              :: nfwFreeFall                            , nfwSpecificAngularMomentum         , &
+     type            (table1DLogarithmicLinear)              :: nfwFreeFall                                    , nfwSpecificAngularMomentum                 , &
           &                                                     nfwEnclosedDensity
-     class           (table1D                 ), allocatable :: nfwFreefallInverse                     , nfwSpecificAngularMomentumInverse  , &
+     class           (table1D                 ), allocatable :: nfwFreefallInverse                             , nfwSpecificAngularMomentumInverse          , &
           &                                                     nfwEnclosedDensityInverse
      ! Module variables used in integrations.
-     double precision                                        :: concentrationParameter                 , radiusStart
+     double precision                                        :: concentrationParameter                         , radiusStart
      ! Record of unique ID of node which we last computed results for.
      integer         (kind=kind_int8          )              :: lastUniqueID
      ! Record of whether or not quantities have been computed.
-     logical                                                 :: specificAngularMomentumScalingsComputed, maximumVelocityComputed
+     logical                                                 :: specificAngularMomentumScalingsComputed        , maximumVelocityComputed
      ! Stored values of computed quantities.
-     double precision                                        :: specificAngularMomentumLengthScale     , specificAngularMomentumScale       , &
-          &                                                     concentrationPrevious                  , nfwNormalizationFactorPrevious     , &
-          &                                                     maximumVelocityPrevious                , enclosedDensityPrevious            , &
-          &                                                     enclosingDensityRadiusPrevious         , densityScalePrevious               , &
-          &                                                     enclosedMassPrevious                   , enclosingMassRadiusPrevious        , &
-          &                                                     massScalePrevious                      , circularVelocityPrevious           , &
-          &                                                     circularVelocityRadiusPrevious         , radialVelocityDispersionPrevious   , &
+     double precision                                        :: specificAngularMomentumLengthScale             , specificAngularMomentumScale               , &
+          &                                                     concentrationPrevious                          , nfwNormalizationFactorPrevious             , &
+          &                                                     maximumVelocityPrevious                        , enclosedDensityPrevious                    , &
+          &                                                     enclosingDensityRadiusPrevious                 , densityScalePrevious                       , &
+          &                                                     enclosedMassPrevious                           , enclosingMassRadiusPrevious                , &
+          &                                                     massScalePrevious                              , circularVelocityPrevious                   , &
+          &                                                     circularVelocityRadiusPrevious                 , radialVelocityDispersionPrevious           , &
           &                                                     radialVelocityDispersionRadiusPrevious
      logical                                                 :: velocityDispersionUseSeriesExpansion
    contains
@@ -265,7 +265,7 @@ contains
     !![
     <objectDestructor name="self%darkMatterHaloScale_" />
     !!]
-    call calculationResetEvent%detach(self,nfwCalculationReset)
+    if (calculationResetEvent%isAttached(self,nfwCalculationReset)) call calculationResetEvent%detach(self,nfwCalculationReset)
     return
   end subroutine nfwDestructor
 

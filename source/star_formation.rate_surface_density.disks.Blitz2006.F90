@@ -207,7 +207,7 @@ contains
     implicit none
     type(starFormationRateSurfaceDensityDisksBlitz2006), intent(inout) :: self
 
-    call calculationResetEvent%detach(self,blitz2006CalculationReset)
+    if (calculationResetEvent%isAttached(self,blitz2006CalculationReset)) call calculationResetEvent%detach(self,blitz2006CalculationReset)
     return
   end subroutine blitz2006Destructor
 

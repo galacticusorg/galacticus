@@ -162,8 +162,8 @@ contains
     <objectDestructor name="self%darkMatterHaloScale_"       />
     <objectDestructor name="self%mergerProgenitorProperties_"/>
     !!]
-    call calculationResetEvent%detach(self,covington2008CalculationReset)
-    call satelliteMergerEvent %detach(self,covington2008GetHook         )
+    if (calculationResetEvent%isAttached(self,covington2008CalculationReset)) call calculationResetEvent%detach(self,covington2008CalculationReset)
+    if (satelliteMergerEvent %isAttached(self,covington2008GetHook         )) call satelliteMergerEvent %detach(self,covington2008GetHook         )
     return
   end subroutine covington2008Destructor
 

@@ -44,14 +44,14 @@ Implements the gravitational lensing distributions of \cite{takahashi_probabilit
      class           (cosmologyParametersClass   ), pointer :: cosmologyParameters_    => null()
      class           (cosmologyFunctionsClass    ), pointer :: cosmologyFunctions_     => null()
      class           (powerSpectrumNonlinearClass), pointer :: powerSpectrumNonlinear_ => null()
-     logical                                                :: tableInitialized                 , cdfInitialized
+     logical                                                :: tableInitialized        =  .false., cdfInitialized                      =.false.
      !$ type         (ompReadWriteLock           )          :: lock
      type            (table1DGeneric             )          :: convergencePDF
      type            (table1DLogarithmicLinear   )          :: magnificationCDFTable
-     double precision                                       :: redshiftPrevious                 , convergenceEmptyBeam                , &
-          &                                                    convergenceVariance              , convergenceScale                    , &
-          &                                                    convergenceVarianceScaled        , convergenceDistributionNormalization, &
-          &                                                    aConvergence                     , omegaConvergence                    , &
+     double precision                                       :: redshiftPrevious                  , convergenceEmptyBeam                        , &
+          &                                                    convergenceVariance               , convergenceScale                            , &
+          &                                                    convergenceVarianceScaled         , convergenceDistributionNormalization        , &
+          &                                                    aConvergence                      , omegaConvergence                            , &
           &                                                    scaleSourcePrevious
    contains
      !![

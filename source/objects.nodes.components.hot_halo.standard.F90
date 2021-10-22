@@ -539,9 +539,9 @@ contains
        <objectDestructor name="radiationCosmicMicrowaveBackground"/>
        <objectDestructor name="radiation"                         />
        !!]
-       call nodePromotionEvent  %detach(defaultHotHaloComponent,nodePromotion  )
-       call satelliteMergerEvent%detach(defaultHotHaloComponent,satelliteMerger)
-       call postEvolveEvent     %detach(defaultHotHaloComponent,postEvolve     )
+       if (nodePromotionEvent  %isAttached(defaultHotHaloComponent,nodePromotion  )) call nodePromotionEvent  %detach(defaultHotHaloComponent,nodePromotion  )
+       if (satelliteMergerEvent%isAttached(defaultHotHaloComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultHotHaloComponent,satelliteMerger)
+       if (postEvolveEvent     %isAttached(defaultHotHaloComponent,postEvolve     )) call postEvolveEvent     %detach(defaultHotHaloComponent,postEvolve     )
     end if
     return
   end subroutine Node_Component_Hot_Halo_Standard_Thread_Uninitialize

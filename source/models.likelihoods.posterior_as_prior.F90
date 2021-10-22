@@ -55,14 +55,14 @@
      !!}
      private
      class           (posteriorSampleLikelihoodClass), pointer                     :: posteriorSampleLikelihood_ => null()
-     integer                                         , allocatable, dimension(:  ) :: neighborIndices           , exclusions
+     integer                                         , allocatable, dimension(:  ) :: neighborIndices                     , exclusions
      logical                                         , allocatable, dimension(:  ) :: included
-     double precision                                , allocatable, dimension(:  ) :: neighborDistances         , rootVariance
+     double precision                                , allocatable, dimension(:  ) :: neighborDistances                   , rootVariance
      double precision                                , allocatable, dimension(:,:) :: states
      class           (nearestNeighbors              ), allocatable                 :: searcher
-     integer                                                                       :: dimCount                  , convergedStateCount  , &
+     integer                                                                       :: dimCount                            , convergedStateCount  , &
           &                                                                           neighborCount
-     double precision                                                              :: tolerance                 , logPriorNormalization
+     double precision                                                              :: tolerance                           , logPriorNormalization
      logical                                                                       :: initialized
    contains
      !![

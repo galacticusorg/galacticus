@@ -55,7 +55,7 @@
      double precision                                            :: linkingLength
      type            (varying_string                  )          :: fileName
      class           (cosmologyFunctionsClass         ), pointer :: cosmologyFunctions_             => null()
-     logical                                                     :: isRecursive                              , parentDeferred
+     logical                                                     :: isRecursive                               , parentDeferred
      class           (virialDensityContrastPercolation), pointer :: recursiveSelf                   => null()
      !![
      <workaround type="gfortran" PR="90788" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=90788">
@@ -66,10 +66,10 @@
      class           (*                               ), pointer :: percolationObjects_
      integer         (kind_int8                       )          :: selfID
      ! Tabulation of density contrast vs. time and mass.
-     double precision                                            :: densityContrastTableTimeMinimum          , densityContrastTableTimeMaximum
-     double precision                                            :: densityContrastTableMassMinimum          , densityContrastTableMassMaximum
-     integer                                                     :: densityContrastTableMassCount            , densityContrastTableTimeCount
-     logical                                                     :: densityContrastTableInitialized
+     double precision                                            :: densityContrastTableTimeMinimum           , densityContrastTableTimeMaximum
+     double precision                                            :: densityContrastTableMassMinimum           , densityContrastTableMassMaximum
+     integer                                                     :: densityContrastTableMassCount             , densityContrastTableTimeCount
+     logical                                                     :: densityContrastTableInitialized =  .false.
      type            (table2DLogLogLin                )          :: densityContrastTable
      !$ integer      (omp_lock_kind                   )          :: densityContrastTableLock
      integer                                                     :: densityContrastTableRemakeCount
@@ -242,7 +242,7 @@ contains
     implicit none
     type(virialDensityContrastPercolation), intent(inout) :: self
 
-    call self%densityContrastTable%destroy()
+    if (self%densityContrastTableInitialized) call self%densityContrastTable%destroy()
     !$ call OMP_Destroy_Lock(self%densityContrastTableLock)
     !![
     <objectDestructor name="self%cosmologyFunctions_" />

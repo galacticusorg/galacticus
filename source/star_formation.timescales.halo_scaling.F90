@@ -168,7 +168,7 @@ contains
     <objectDestructor name="self%cosmologyFunctions_" />
     <objectDestructor name="self%darkMatterHaloScale_"/>
     !!]
-    call calculationResetEvent%detach(self,haloScalingCalculationReset)
+    if (calculationResetEvent%isAttached(self,haloScalingCalculationReset)) call calculationResetEvent%detach(self,haloScalingCalculationReset)
     return
   end subroutine haloScalingDestructor
 

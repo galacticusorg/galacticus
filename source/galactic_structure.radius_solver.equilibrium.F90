@@ -34,11 +34,11 @@
      Implementation of an ``equilibrium'' solver for galactic structure.
      !!}
      private
-     logical                                              :: includeBaryonGravity      , useFormationHalo, &
+     logical                                              :: includeBaryonGravity                , useFormationHalo, &
           &                                                  solveForInactiveProperties
      double precision                                     :: solutionTolerance
-     class           (darkMatterProfileClass   ), pointer :: darkMatterProfile_
-     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
+     class           (darkMatterProfileClass   ), pointer :: darkMatterProfile_         => null()
+     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_      => null()
    contains
      final     ::             equilibriumDestructor
      procedure :: solve    => equilibriumSolve
@@ -164,10 +164,10 @@ contains
     <objectDestructor name="self%darkMatterProfile_"   />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
     !!]
-    call   preDerivativeEvent%detach(self,equilibriumSolvePreDeriativeHook)
-    call      postEvolveEvent%detach(self,equilibriumSolveHook            )
-    call satelliteMergerEvent%detach(self,equilibriumSolveHook            )
-    call   nodePromotionEvent%detach(self,equilibriumSolveHook            )
+    if (  preDerivativeEvent%isAttached(self,equilibriumSolvePreDeriativeHook)) call   preDerivativeEvent%detach(self,equilibriumSolvePreDeriativeHook)
+    if (     postEvolveEvent%isAttached(self,equilibriumSolveHook            )) call      postEvolveEvent%detach(self,equilibriumSolveHook            )
+    if (satelliteMergerEvent%isAttached(self,equilibriumSolveHook            )) call satelliteMergerEvent%detach(self,equilibriumSolveHook            )
+    if (  nodePromotionEvent%isAttached(self,equilibriumSolveHook            )) call   nodePromotionEvent%detach(self,equilibriumSolveHook            )
     return
   end subroutine equilibriumDestructor
 

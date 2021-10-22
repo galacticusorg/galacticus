@@ -33,17 +33,17 @@
      !!{
      The S\'ersic density profile.
      !!}
-     double precision                                               :: densityNormalization , mass              , &
-          &                                                            radiusHalfMass_      , index
+     double precision                                               :: densityNormalization         , mass              , &
+          &                                                            radiusHalfMass_              , index
      ! Tabulation of the Sérsic profile.
-     double precision                                               :: coefficient          , radiusStart
-     logical                                                        :: tableInitialized
+     double precision                                               :: coefficient                  , radiusStart
+     logical                                                        :: tableInitialized     =.false.
      integer                                                        :: tableCount
-     double precision                                               :: tableRadiusMaximum   , tableRadiusMinimum
+     double precision                                               :: tableRadiusMaximum           , tableRadiusMinimum
      double precision                                               :: table3dRadiusHalfMass
      double precision                                               :: table2dRadiusHalfMass
-     double precision                   , allocatable, dimension(:) :: tableDensity         , tableEnclosedMass , &
-          &                                                            tablePotential       , tableRadius
+     double precision                   , allocatable, dimension(:) :: tableDensity                 , tableEnclosedMass , &
+          &                                                            tablePotential               , tableRadius
      type            (interpolator     )                            :: tableInterpolator
      !$ integer      (omp_lock_kind    )                            :: tableLock
    contains
