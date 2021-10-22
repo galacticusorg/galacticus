@@ -197,6 +197,10 @@ while ( my $line = <STDIN> ) {
 	$dropBuffer = 1
 	    if ( exists($initializedVariables{lc($1)}) );
     }
+    if ( $line =~ /note: '([a-zA-Z0-9_]+)[a-zA-Z0-9_\.\[\]]*' was declared here/ ) {
+	$dropBuffer = 1
+	    if ( exists($initializedVariables{lc($1)}) );
+    }
     # Handle ignore "pointer may outlive target" warnings.
     if ( $line =~ m/^\s*\d+\s*\|\s*([a-z0-9_]+)\s*=>\s*[a-z0-9_]+/i ) {
 	$pointerName = lc($1);
