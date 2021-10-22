@@ -3139,7 +3139,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.fail.exe
           ./tests.fail.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Excursion-Sets:
     runs-on: ubuntu-latest
@@ -3265,7 +3265,7 @@ jobs:
         with:
           name: galacticus-execs
       - name: Install valgrind
-        run: sudo apt -y install valgrind
+        run: apt -y install valgrind
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Run test
