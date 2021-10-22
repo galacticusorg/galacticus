@@ -63,7 +63,8 @@ contains
     integer(hsize_t        )                :: chunkSize
     integer                                 :: sieveBufferSize
     integer(size_t         )                :: cacheElementsCount, cacheSizeBytes
-
+    type   (varying_string )                :: fileNamePrefix
+    
     if (.not.galacticusOutputFileIsOpen) then
        !![
        <inputParameter>
@@ -116,14 +117,18 @@ contains
        ! Modify the file name on a per-process basis if running under MPI.
 #ifdef USEMPI
        if (extract(galacticusOutputFileName       ,len(galacticusOutputFileName       )-4,len(galacticusOutputFileName       )) == ".hdf5") then
-          galacticusOutputFileName       =extract(galacticusOutputFileName       ,1,len(galacticusOutputFileName       )-5)//':MPI'//mpiSelf%rankLabel()//'.hdf5'
+          fileNamePrefix                 =extract(galacticusOutputFileName       ,1,len(galacticusOutputFileName       )-5)
+          galacticusOutputFileName       =fileNamePrefix//':MPI'//mpiSelf%rankLabel()//'.hdf5'
        else
-          galacticusOutputFileName       =galacticusOutputFileName       //':MPI'//mpiSelf%rankLabel()
+          fileNamePrefix                 =galacticusOutputFileName
+          galacticusOutputFileName       =fileNamePrefix//':MPI'//mpiSelf%rankLabel()
        end if
        if (extract(galacticusOutputScratchFileName,len(galacticusOutputScratchFileName)-4,len(galacticusOutputScratchFileName)) == ".hdf5") then
-          galacticusOutputScratchFileName=extract(galacticusOutputScratchFileName,1,len(galacticusOutputScratchFileName)-5)//':MPI'//mpiSelf%rankLabel()//'.hdf5'
+          fileNamePrefix                 =extract(galacticusOutputScratchFileName,1,len(galacticusOutputScratchFileName)-5)
+          galacticusOutputScratchFileName=fileNamePrefix//':MPI'//mpiSelf%rankLabel()//'.hdf5'
        else
-          galacticusOutputScratchFileName=galacticusOutputScratchFileName//':MPI'//mpiSelf%rankLabel()
+          fileNamePrefix                 =galacticusOutputScratchFileName
+          galacticusOutputScratchFileName=fileNamePrefix//':MPI'//mpiSelf%rankLabel()
        end if
 #endif
        ! Open the file.
