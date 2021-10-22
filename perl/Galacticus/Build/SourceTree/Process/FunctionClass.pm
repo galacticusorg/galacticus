@@ -587,12 +587,19 @@ sub Process_FunctionClass {
 	    };
 	    # Add a "hashedDescriptor" method.
 	    $code::directiveName = $directive->{'name'};
+	    # <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845">
+	    #  <description>
+	    #   Nested parallelism results in memory leaks.
+	    #  </description>
+	    # </workaround>
 	    my $hashedDescriptorCode = fill_in_string(<<'CODE', PACKAGE => 'code');
 logical                        :: includeSourceDigest_
 type   (inputParameters)       :: descriptor
 type   (varying_string )       :: descriptorString
-type   (varying_string ), save :: descriptorStringPrevious, hashedDescriptorPrevious
-!$omp threadprivate(descriptorStringPrevious,hashedDescriptorPrevious)
+!   Workaround starts here.
+! type   (varying_string ), save :: descriptorStringPrevious, hashedDescriptorPrevious
+! !$omp threadprivate(descriptorStringPrevious,hashedDescriptorPrevious)
+! Workaround ends here.
 descriptor=inputParameters()
 ! Disable live nodeLists in FoX as updating these nodeLists leads to memory leaks.
 call setLiveNodeLists(descriptor%document,.false.)

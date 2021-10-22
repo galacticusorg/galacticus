@@ -886,8 +886,15 @@ contains
     type     (inputParameters         )                :: descriptor
     type     (varying_string          )                :: descriptorString          , values
     integer                                            :: i
-    type     (varying_string          ), save          :: descriptorStringPrevious  , hashedDescriptorPrevious
-    !$omp threadprivate(descriptorStringPrevious,hashedDescriptorPrevious)
+    !![
+    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845">
+      <description>
+	Memory leak possibly due to OpenMP parallelism, or some failing of gfortran.
+      </description>
+    </workaround>
+    !!]
+    ! type     (varying_string          ), save          :: descriptorStringPrevious  , hashedDescriptorPrevious
+    ! !$omp threadprivate(descriptorStringPrevious,hashedDescriptorPrevious)
     
     descriptor=inputParameters()
     call setLiveNodeLists(descriptor%document,.false.)
