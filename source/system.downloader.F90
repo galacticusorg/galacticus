@@ -90,9 +90,9 @@ contains
     call downloadInitialize()
     status_=errorStatusFail
     if      (downloadUsingWget) then
-       call System_Command_Do("wget --no-check-certificate "//trim(url)//" -O "      //trim(outputFileName),status_)
+       call System_Command_Do('wget --no-check-certificate "'//trim(url)//'" -O '      //trim(outputFileName),status_)
     else if (downloadUsingCurl) then
-       call System_Command_Do("curl --insecure --location " //trim(url)//" --output "//trim(outputFileName),status_)
+       call System_Command_Do('curl --insecure --location "' //trim(url)//'" --output '//trim(outputFileName),status_)
     else if (.not.present(status)) then
        call Galacticus_Error_Report('no downloader available'//{introspection:location})
     end if
