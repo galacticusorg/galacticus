@@ -43,7 +43,7 @@ jobs:
   Build-Executable:
     runs-on: macos-11
     concurrency:
-      group: buildmacos-${{ github.ref }}
+      group: build-library-macos-${{ github.ref }}
       cancel-in-progress: true
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."

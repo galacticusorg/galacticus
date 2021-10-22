@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
     concurrency:
-      group: ci-${{ github.ref }}
+      group: build-library-${{ github.ref }}
       cancel-in-progress: true
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
