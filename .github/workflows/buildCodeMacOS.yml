@@ -1,5 +1,6 @@
 name: Builder-MacOS
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
