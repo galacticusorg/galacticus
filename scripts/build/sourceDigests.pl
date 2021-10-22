@@ -49,10 +49,10 @@ if ( exists($stateStorables->{'functionClassTypes'}->{'name'}) ) {
     push(@allowedNames,sort(keys(%{$stateStorables->{'functionClassTypes'}          })));
 }
 # Build a list of object file dependencies.
-(my $dependencyFileName = $ENV{'BUILDPATH'}."/".$targetName) =~ s/\.(exe|o)/\.d/;
+(my $dependencyFileName = $ENV{'BUILDPATH'}."/".$targetName) =~ s/\.(exe|o)$/\.d/;
 my @objectFiles = map { $_ =~ /^$ENV{'BUILDPATH'}\/(.+\.o)$/ ? $1 : () } read_file($dependencyFileName, chomp => 1);
 # Initialize structure to hold record of parameters from each source file.
-(my $blobFileName = $targetName) =~ s/\.(exe|o)/.md5.blob/;
+(my $blobFileName = $targetName) =~ s/\.(exe|o)$/.md5.blob/;
 my $digestsPerFile;
 my $havePerFile = -e $ENV{'BUILDPATH'}."/".$blobFileName;
 my $updateTime;
@@ -220,7 +220,7 @@ while ( ! $resolved ) {
 # Output the per file digest data.
 store($digestsPerFile,$ENV{'BUILDPATH'}."/".$blobFileName);
 # Output the results.
-(my $outputFileName = $targetName) =~ s/\.(exe|o)/.md5s.c/;
+(my $outputFileName = $targetName) =~ s/\.(exe|o)$/.md5s.c/;
 open(my $outputFile,">".$ENV{'BUILDPATH'}."/".$outputFileName);
 foreach my $hashName ( sort(keys(%{$digestsPerFile->{'types'}})) ) {
     print $outputFile "char ".$hashName."MD5[]=\"".$digestsPerFile->{'types'}->{$hashName}->{'compositeMD5'}."\";\n"
