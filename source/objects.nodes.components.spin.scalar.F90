@@ -89,7 +89,7 @@ contains
     use :: Galacticus_Nodes, only : defaultSpinComponent
     implicit none
 
-    if (defaultSpinComponent%scalarIsActive()) &
+    if (defaultSpinComponent%scalarIsActive() .and. nodePromotionEvent%isAttached(defaultSpinComponent,nodePromotion)) &
          & call nodePromotionEvent%detach(defaultSpinComponent,nodePromotion)
     return
   end subroutine Node_Component_Spin_Scalar_Thread_Uninitialize

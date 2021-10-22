@@ -43,16 +43,16 @@
      A critical overdensity class based on spherical collapse accounting for non-clustering of baryons.
      !!}
      private
-     logical                                                                           :: tableInitialized
-     double precision                                                                  :: tableClusteredTimeMinimum                  , tableClusteredTimeMaximum                    , &
-          &                                                                               tableUnclusteredTimeMinimum                , tableUnclusteredTimeMaximum
+     logical                                                                           :: tableInitialized                  =  .false.
+     double precision                                                                  :: tableClusteredTimeMinimum                   , tableClusteredTimeMaximum                    , &
+          &                                                                               tableUnclusteredTimeMinimum                 , tableUnclusteredTimeMaximum
      double precision                                                                  :: normalization
      logical                                                                           :: tableStore
-     class           (table1D                                           ), allocatable :: overdensityCriticalClustered               , overdensityCriticalUnclustered
+     class           (table1D                                           ), allocatable :: overdensityCriticalClustered                , overdensityCriticalUnclustered
      class           (darkMatterParticleClass                           ), pointer     :: darkMatterParticle_               => null()
      class           (cosmologyParametersClass                          ), pointer     :: cosmologyParameters_              => null()
      class           (intergalacticMediumFilteringMassClass             ), pointer     :: intergalacticMediumFilteringMass_ => null()
-     type            (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy), pointer     :: sphericalCollapseSolverClustered_ => null(), sphericalCollapseSolverUnclustered_ => null()
+     type            (sphericalCollapseSolverBaryonsDarkMatterDarkEnergy), pointer     :: sphericalCollapseSolverClustered_ => null() , sphericalCollapseSolverUnclustered_ => null()
    contains
      !![
      <methods>

@@ -325,7 +325,7 @@ contains
     implicit none
 
     if (defaultBlackHoleComponent%standardIsActive()) then
-       call satelliteMergerEvent%detach(defaultBlackHoleComponent,satelliteMerger)
+       if (satelliteMergerEvent%isAttached(defaultBlackHoleComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultBlackHoleComponent,satelliteMerger)
        !![
        <objectDestructor name="cosmologyParameters_"                />
        <objectDestructor name="accretionDisks_"                     />

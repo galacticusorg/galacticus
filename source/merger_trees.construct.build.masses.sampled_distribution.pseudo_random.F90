@@ -33,7 +33,7 @@
      Implementation of a merger tree masses class which samples masses from a distribution with pseudi-random sampling.
      !!}
      private
-     class(randomNumberGeneratorClass), pointer :: randomNumberGenerator_
+     class(randomNumberGeneratorClass), pointer :: randomNumberGenerator_ => null()
    contains
      final     ::              sampledDistributionPseudoRandomDestructor
      procedure :: sampleCMF => sampledDistributionPseudoRandomSampleCMF

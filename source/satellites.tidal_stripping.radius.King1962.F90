@@ -154,7 +154,7 @@ contains
     <objectDestructor name="self%darkMatterHaloScale_"/>
     <objectDestructor name="self%darkMatterHaloScale_"/>
     !!]
-    call calculationResetEvent%detach(self,king1962CalculationReset)
+    if (calculationResetEvent%isAttached(self,king1962CalculationReset)) call calculationResetEvent%detach(self,king1962CalculationReset)
     return
   end subroutine king1962Destructor
 
@@ -163,9 +163,9 @@ contains
     Return the tidal radius using the formulation of \cite{king_structure_1962}. To allow for non-spherical mass distributions,
     we proceed as follows to determine the tidal field:
     
-    Let $\bm{\mathsf{G}}$ be the gravitational tidal tensor evaluated at the position of the satellite. Consider a unit vector,
-    $\boldsymbol{\hat{x}}$ in the satellite. The tidal field along this vector is $\bm{\mathsf{G}} \boldsymbol{\hat{x}}$. The
-    radial component of the tidal field in this direction is then $\boldsymbol{\hat{x}} \bm{\mathsf{G}}
+    Let $\boldsymbol{\mathsf{G}}$ be the gravitational tidal tensor evaluated at the position of the satellite. Consider a unit vector,
+    $\boldsymbol{\hat{x}}$ in the satellite. The tidal field along this vector is $\boldsymbol{\mathsf{G}} \boldsymbol{\hat{x}}$. The
+    radial component of the tidal field in this direction is then $\boldsymbol{\hat{x}} \boldsymbol{\mathsf{G}}
     \boldsymbol{\hat{x}}$. We want to find the maximum of the tidal field over all possible directions (i.e. all possible unit
     vectors).
     
@@ -173,15 +173,15 @@ contains
     \begin{equation}
      \boldsymbol{\hat{x}} = \sum_{i=1}^3 a_i \boldsymbol{\hat{e}}_i,
     \end{equation}
-    where the $\boldsymbol{\hat{e}}_i$ are the eigenvectors of $\bm{\mathsf{G}}$ and $\sum_{i=1}^3 a_i^2 = 1$. Then since, by
-    definition, $\bm{\mathsf{G}} \boldsymbol{\hat{e}}_i = \lambda_i \boldsymbol{\hat{e}}_i$, where $\lambda_i$ are the
-    eigenvalues of $\bm{\mathsf{G}}$, we have that
+    where the $\boldsymbol{\hat{e}}_i$ are the eigenvectors of $\boldsymbol{\mathsf{G}}$ and $\sum_{i=1}^3 a_i^2 = 1$. Then since, by
+    definition, $\boldsymbol{\mathsf{G}} \boldsymbol{\hat{e}}_i = \lambda_i \boldsymbol{\hat{e}}_i$, where $\lambda_i$ are the
+    eigenvalues of $\boldsymbol{\mathsf{G}}$, we have that
     \begin{equation}
-     \boldsymbol{\hat{x}} \bm{\mathsf{G}} \boldsymbol{\hat{x}}= \sum_{i=1}^3 a_i^2 \lambda_i.
+     \boldsymbol{\hat{x}} \boldsymbol{\mathsf{G}} \boldsymbol{\hat{x}}= \sum_{i=1}^3 a_i^2 \lambda_i.
     \end{equation}
     The sum on the right hand side of the above is a weighted average of eigenvalues. Any weighted averge is maximized by
     setting the weight of the largest value to $1$, and all other weights to $0$. Therefore, our tidal field is maximized along
-    the direction corresponding the eigenvector of $\bm{\mathsf{G}}$ with the largest eigenvalue. (Note that we want the
+    the direction corresponding the eigenvector of $\boldsymbol{\mathsf{G}}$ with the largest eigenvalue. (Note that we want the
     largest positive eigenvalue, not the largest absolute eigenvalue as we're interested in stretching tidal fields, not
     compressive ones.)
     !!}

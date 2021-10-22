@@ -71,12 +71,12 @@
      type            (varying_string              )                            :: outputsGroupName
      type            (hdf5Object                  )                            :: outputsGroup
      logical                                                                   :: outputsGroupOpened
-     integer         (c_size_t                    )                            :: outputGroupsCount
-     integer                                                                   :: doublePropertyCount              , integerPropertyCount
-     integer                                                                   :: doublePropertiesWritten          , integerPropertiesWritten
-     integer                                                                   :: doubleBufferCount                , integerBufferCount
-     integer                                                                   :: doubleScalarCount                , integerScalarCount
-     integer                                                                   :: integerBufferSize                , doubleBufferSize
+     integer         (c_size_t                    )                            :: outputGroupsCount       =  0_c_size_t
+     integer                                                                   :: doublePropertyCount                  , integerPropertyCount
+     integer                                                                   :: doublePropertiesWritten              , integerPropertiesWritten
+     integer                                                                   :: doubleBufferCount                    , integerBufferCount
+     integer                                                                   :: doubleScalarCount                    , integerScalarCount
+     integer                                                                   :: integerBufferSize                    , doubleBufferSize
      type            (outputPropertyInteger       ), allocatable, dimension(:) :: integerProperty
      type            (outputPropertyDouble        ), allocatable, dimension(:) :: doubleProperty
      type            (outputGroup                 ), allocatable, dimension(:) :: outputGroups

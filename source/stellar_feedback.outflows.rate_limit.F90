@@ -31,7 +31,7 @@
      Implementation of a rate-limiting stellar feedback model.
      !!}
      private
-     class           (stellarFeedbackOutflowsClass), pointer :: stellarFeedbackOutflows_
+     class           (stellarFeedbackOutflowsClass), pointer :: stellarFeedbackOutflows_          => null()
      double precision                                        :: timescaleOutflowFractionalMinimum
    contains
      final     ::                rateLimitDestructor

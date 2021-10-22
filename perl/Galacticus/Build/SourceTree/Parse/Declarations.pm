@@ -43,32 +43,9 @@ sub Parse_Declarations {
 		    $isImplicitNone   = 1;
 		    $isDeclaration    = 1;
 		}
-		my $declaration;
-		foreach ( keys(%Fortran::Utils::intrinsicDeclarations) ) {
-		    if ( my @matches = ( $processedLine =~ $Fortran::Utils::intrinsicDeclarations{$_}->{'regEx'} ) ) {
-			my $intrinsic  = $Fortran::Utils::intrinsicDeclarations{$_}->{'intrinsic'};
-			my $type;
-			($type         = $matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'type'}]) =~ s/\(\s*([^\s]*)\s*\)/$1/
-			    if ( $matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'type'}] );
-			my $openMP = $matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'openmp'}] ? 1 : 0;
-			my $attributesText = $matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'attributes'}];
-			$attributesText =~ s/^\s*,\s*//
-			    if  ( $attributesText );
-			my @attributes    = &Fortran::Utils::Extract_Variables($attributesText,keepQualifiers => 1);
-			my @variables     = &Fortran::Utils::Extract_Variables($matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'variables'}],keepQualifiers => 1                );
-			my @variableNames = &Fortran::Utils::Extract_Variables($matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'variables'}],keepQualifiers => 0, lowerCase => 0);
-			$declaration = {
-			    intrinsic     => $intrinsic     ,
-			    type          => $type          ,
-			    openMP        => $openMP        ,
-			    attributes    => \@attributes   ,
-			    variables     => \@variables    ,
-			    variableNames => \@variableNames
-			};
-			$isDeclaration = 1;
-			last;
-		    }
-		}
+		my $declaration = &parseDeclaration($processedLine);
+		$isDeclaration = 1
+		    if ( defined($declaration) );
 		# Accumulate raw text.
 		if ( $isDeclaration == 1 ) {
 		    $rawDeclaration .= $rawLine;
@@ -308,6 +285,37 @@ sub DeclarationExists {
  	$childNode = $childNode->{'sibling'};
     }
     return $exists;
+}
+
+sub parseDeclaration {
+    # Parse an individual declaration line.
+    my $line = shift();
+    my $declaration;
+    foreach ( keys(%Fortran::Utils::intrinsicDeclarations) ) {
+	if ( my @matches = ( $line =~ $Fortran::Utils::intrinsicDeclarations{$_}->{'regEx'} ) ) {
+	    my $intrinsic  = $Fortran::Utils::intrinsicDeclarations{$_}->{'intrinsic'};
+	    my $type;
+	    ($type         = $matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'type'}]) =~ s/\(\s*([^\s]*)\s*\)/$1/
+               if ( $matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'type'}] );
+	    my $openMP = $matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'openmp'}] ? 1 : 0;
+	    my $attributesText = $matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'attributes'}];
+	    $attributesText =~ s/^\s*,\s*//
+		if  ( $attributesText );
+	    my @attributes    = &Fortran::Utils::Extract_Variables($attributesText,keepQualifiers => 1);
+	    my @variables     = &Fortran::Utils::Extract_Variables($matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'variables'}],keepQualifiers => 1                );
+	    my @variableNames = &Fortran::Utils::Extract_Variables($matches[$Fortran::Utils::intrinsicDeclarations{$_}->{'variables'}],keepQualifiers => 0, lowerCase => 0);
+	    $declaration = {
+		intrinsic     => $intrinsic     ,
+		type          => $type          ,
+		openMP        => $openMP        ,
+		attributes    => \@attributes   ,
+		variables     => \@variables    ,
+		variableNames => \@variableNames
+	    };
+	    last;
+	}
+    }
+    return $declaration;
 }
 
 1;

@@ -151,7 +151,7 @@ contains
     implicit none
     type(starFormationRateSurfaceDensityDisksExtendedSchmidt), intent(inout) :: self
 
-    call calculationResetEvent%detach(self,extendedSchmidtCalculationReset)
+    if (calculationResetEvent%isAttached(self,extendedSchmidtCalculationReset)) call calculationResetEvent%detach(self,extendedSchmidtCalculationReset)
     return
   end subroutine extendedSchmidtDestructor
 

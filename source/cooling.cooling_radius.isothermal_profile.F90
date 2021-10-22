@@ -224,7 +224,7 @@ contains
     <objectDestructor name="self%hotHaloMassDistribution_"  />
     <objectDestructor name="self%radiation"                 />
     !!]
-    call calculationResetEvent%detach(self,isothermalCalculationReset)
+    if (calculationResetEvent%isAttached(self,isothermalCalculationReset)) call calculationResetEvent%detach(self,isothermalCalculationReset)
     return
   end subroutine isothermalDestructor
 

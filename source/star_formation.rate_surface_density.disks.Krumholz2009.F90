@@ -237,8 +237,9 @@ contains
     implicit none
     type(starFormationRateSurfaceDensityDisksKrumholz2009), intent(inout) :: self
 
-    call self                 %molecularFraction%destroy(                                 )
-    call calculationResetEvent%detach                   (self,krumholz2009CalculationReset)
+    if (calculationResetEvent%isAttached(self,krumholz2009CalculationReset))                       &
+         & call calculationResetEvent%detach                   (self,krumholz2009CalculationReset)
+    call        self                 %molecularFraction%destroy(                                 )
     return
   end subroutine krumholz2009Destructor
 

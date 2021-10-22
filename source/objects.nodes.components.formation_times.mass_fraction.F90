@@ -110,7 +110,7 @@ contains
     use :: Galacticus_Nodes, only : defaultFormationTimeComponent
     implicit none
 
-    if (defaultFormationTimeComponent%massFractionIsActive()) &
+    if (defaultFormationTimeComponent%massFractionIsActive() .and. nodePromotionEvent%isAttached(defaultFormationTimeComponent,nodePromotion)) &
          & call nodePromotionEvent%detach(defaultFormationTimeComponent,nodePromotion)
     return
   end subroutine Node_Component_Formation_Times_Mass_Fraction_Thread_Uninit

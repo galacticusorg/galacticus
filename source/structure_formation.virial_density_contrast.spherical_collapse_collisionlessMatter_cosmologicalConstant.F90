@@ -173,11 +173,11 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     class           (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), intent(inout)           :: self
-    double precision                                                                 , intent(in   )           :: mass
-    double precision                                                                 , intent(in   ), optional :: time            , expansionFactor
-    logical                                                                          , intent(in   ), optional :: collapsing
-    logical                                                                                                    :: collapsingActual
-    double precision                                                                                           :: timeActual
+    double precision                                                                , intent(in   )           :: mass
+    double precision                                                                , intent(in   ), optional :: time            , expansionFactor
+    logical                                                                         , intent(in   ), optional :: collapsing
+    logical                                                                                                   :: collapsingActual
+    double precision                                                                                          :: timeActual
     !$GLC attributes unused :: mass
 
     ! Determine which type of input we have.

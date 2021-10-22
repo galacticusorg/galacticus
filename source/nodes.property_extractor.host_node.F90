@@ -31,7 +31,7 @@ Contains a module which implements an output analysis property extractor class t
      A property extractor output analysis class that extracts a property from the host node of the given node.
      !!}
      private
-     class(nodePropertyExtractorScalar), pointer :: nodePropertyExtractor_
+     class(nodePropertyExtractorScalar), pointer :: nodePropertyExtractor_ => null()
    contains
      final     ::                hostNodeDestructor
      procedure :: extract     => hostNodeExtract

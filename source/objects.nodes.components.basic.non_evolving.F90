@@ -98,7 +98,7 @@ contains
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
 
-    if (defaultBasicComponent%nonEvolvingIsActive()) &
+    if (defaultBasicComponent%nonEvolvingIsActive() .and. nodePromotionEvent%isAttached(defaultBasicComponent,nodePromotion)) &
          & call nodePromotionEvent%detach(defaultBasicComponent,nodePromotion)
     return
   end subroutine Node_Component_Basic_Non_Evolving_Thread_Uninitialize

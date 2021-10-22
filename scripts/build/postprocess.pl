@@ -109,6 +109,7 @@ my $functionName;
 my $procedureName;
 my $pointerName;
 my %bogusUninitialized;
+my $lastDropped = 0;
 while ( my $line = <STDIN> ) {
     if ( $line =~ m/^([a-zA-Z0-9_\.\/]+\.p\.F90):(\d+):([\d\-]+):\s*$/ ) {
 	my $fileName     = $1;
@@ -196,6 +197,10 @@ while ( my $line = <STDIN> ) {
 	$dropBuffer = 1
 	    if ( exists($initializedVariables{lc($1)}) );
     }
+    if ( $line =~ /note: '([a-zA-Z0-9_]+)[a-zA-Z0-9_\.\[\]]*' was declared here/ ) {
+	$dropBuffer = 1
+	    if ( exists($initializedVariables{lc($1)}) );
+    }
     # Handle ignore "pointer may outlive target" warnings.
     if ( $line =~ m/^\s*\d+\s*\|\s*([a-z0-9_]+)\s*=>\s*[a-z0-9_]+/i ) {
 	$pointerName = lc($1);
@@ -204,7 +209,12 @@ while ( my $line = <STDIN> ) {
 	$dropBuffer = 1
 	    if ( exists($ignoreOutlives{lc($pointerName)}) );
 	undef($pointerName);
-    }    
+    }
+    # Handle "note:"s.
+    if ( $line =~m/^note:/ ) {
+	$dropBuffer = 1
+	    if ( $lastDropped );
+    }
     # Determine when to print the buffered output.
     my $printBuffer = 0;
     $printBuffer = 1
@@ -231,9 +241,11 @@ while ( my $line = <STDIN> ) {
     $buffer .= $line;
     if ( $dropBuffer ) {
 	undef($buffer);
+	$lastDropped = 1;
     } elsif ( $printBuffer ) {
 	print $buffer;
 	undef($buffer);
+	$lastDropped = 0;
     }
 }
 print $buffer

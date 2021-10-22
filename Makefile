@@ -10,6 +10,9 @@ export SUFFIX ?=
 else ifeq '$(GALACTICUS_BUILD_OPTION)' 'MPI'
 export BUILDPATH ?= ./work/buildMPI
 export SUFFIX ?=
+else ifeq '$(GALACTICUS_BUILD_OPTION)' 'lib'
+export BUILDPATH ?= ./work/buildLib
+export SUFFIX ?=_lib
 else ifeq '$(GALACTICUS_BUILD_OPTION)' 'gprof'
 export BUILDPATH ?= ./work/buildGProf
 export SUFFIX ?= _gprof
@@ -56,7 +59,7 @@ CONDORLINKER =
 #CONDORLINKER = condor_compile
 
 # Fortran compiler flags:
-FCFLAGS += -ffree-line-length-none -frecursive -DBUILDPATH=\'$(BUILDPATH)\' -J$(BUILDPATH)/moduleBuild/ -I$(BUILDPATH)/ ${GALACTICUS_FCFLAGS} -fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/lib/gfortran/modules -fintrinsic-modules-path /usr/include/gfortran -fintrinsic-modules-path /usr/include -fintrinsic-modules-path /usr/finclude -fintrinsic-modules-path /usr/lib64/gfortran/modules -fintrinsic-modules-path /usr/lib64/openmpi/lib -pthread
+FCFLAGS += -ffree-line-length-none -frecursive -DBUILDPATH=\'$(BUILDPATH)\' -J$(BUILDPATH)/moduleBuild/ -I$(BUILDPATH)/ ${GALACTICUS_FCFLAGS} -pthread
 # Fortran77 compiler flags:
 F77FLAGS = ${GALACTICUS_F77FLAGS} -DBUILDPATH=\'$(BUILDPATH)\'
 # Error checking flags
@@ -76,6 +79,15 @@ export CFLAGS
 
 # C++ compiler flags:
 CPPFLAGS += -DBUILDPATH=\'$(BUILDPATH)\' -I./source/ -I$(BUILDPATH)/ -fopenmp ${GALACTICUS_CPPFLAGS}
+
+# Detect library compile.
+ifeq '$(GALACTICUS_BUILD_OPTION)' 'lib'
+FCFLAGS       += -fPIC
+FCFLAGS_NOOPT += -fPIC
+F77FLAGS      += -fPIC
+CFLAGS        += -fPIC
+CPPFLAGS      += -fPIC
+endif
 
 # Detect GProf compile.
 ifeq '$(GALACTICUS_BUILD_OPTION)' 'gprof'
@@ -426,6 +438,23 @@ $(BUILDPATH)/%.m : ./source/%.F90
 	./scripts/build/sourceDigests.pl `pwd` $*.exe
 	$(CCOMPILER) -c $(BUILDPATH)/$*.md5s.c -o $(BUILDPATH)/$*.md5s.o $(CFLAGS)
 	$(CONDORLINKER) $(FCCOMPILER) `cat $*.d` $(BUILDPATH)/$*.parameters.o $(BUILDPATH)/$*.md5s.o -o $*.exe$(SUFFIX) $(FCFLAGS) `scripts/build/libraryDependencies.pl $*.exe $(FCFLAGS)`
+
+# Library.
+$(BUILDPATH)/libgalacticus.Inc: $(BUILDPATH)/directiveLocations.xml $(BUILDPATH)/stateStorables.xml
+	./scripts/build/libraryInterfaces.pl
+$(BUILDPATH)/libgalacticus.p.Inc.up : $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/hdf5FCInterop.dat $(BUILDPATH)/openMPCriticalSections.xml
+	./scripts/build/preprocess.pl $(BUILDPATH)/libgalacticus.Inc $(BUILDPATH)/libgalacticus.p.Inc
+$(BUILDPATH)/libgalacticus.p.Inc : | $(BUILDPATH)/libgalacticus.p.Inc.up
+	@true
+$(BUILDPATH)/libgalacticus.inc : $(BUILDPATH)/libgalacticus.p.Inc Makefile
+	perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{Fortran}{-keep})/\/\*$$4\*\/$$5/; print $$l' $(BUILDPATH)/libgalacticus.p.Inc | cpp -nostdinc -C | perl -MRegexp::Common -ne '$$l=$$_;$$l =~ s/($$RE{comment}{C}{-keep})/!$$4/; print $$l' > $(BUILDPATH)/libgalacticus.tmp
+	mv -f $(BUILDPATH)/libgalacticus.tmp $(BUILDPATH)/libgalacticus.inc
+libgalacticus.so: $(BUILDPATH)/libgalacticus.o
+	./scripts/build/parameterDependencies.pl `pwd` libgalacticus.o
+	$(FCCOMPILER) -c $(BUILDPATH)/libgalacticus.parameters.F90 -o $(BUILDPATH)/libgalacticus.parameters.o $(FCFLAGS)
+	./scripts/build/sourceDigests.pl `pwd` libgalacticus.o
+	$(CCOMPILER) -c $(BUILDPATH)/libgalacticus.md5s.c -o $(BUILDPATH)/libgalacticus.md5s.o $(CFLAGS)
+	$(FCCOMPILER) -shared `cat $(BUILDPATH)/libgalacticus.d` $(BUILDPATH)/libgalacticus.parameters.o $(BUILDPATH)/libgalacticus.md5s.o -o libgalacticus.so $(FCFLAGS) `scripts/build/libraryDependencies.pl libgalacticus.o $(FCFLAGS)`
 
 # Ensure that we don't delete object files which make considers to be intermediate
 .PRECIOUS: $(BUILDPATH)/%.p.F90 $(BUILDPATH)/%.p.F90.up $(BUILDPATH)/%.Inc $(BUILDPATH)/%.Inc.up $(BUILDPATH)/%.d

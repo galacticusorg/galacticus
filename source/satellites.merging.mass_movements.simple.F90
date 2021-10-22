@@ -147,8 +147,8 @@ contains
     implicit none
     type(mergerMassMovementsSimple), intent(inout) :: self
 
-    call calculationResetEvent%detach(self,simpleCalculationReset)
-    call satelliteMergerEvent %detach(self,simpleGetHook         )
+    if (calculationResetEvent%isAttached(self,simpleCalculationReset)) call calculationResetEvent%detach(self,simpleCalculationReset)
+    if (satelliteMergerEvent %isAttached(self,simpleGetHook         )) call satelliteMergerEvent %detach(self,simpleGetHook         )
     return
   end subroutine simpleDestructor
 

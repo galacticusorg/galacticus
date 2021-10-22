@@ -120,7 +120,7 @@ contains
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
 
-    if (defaultBasicComponent%extendedTrackingIsActive()) &
+    if (defaultBasicComponent%extendedTrackingIsActive() .and. nodePromotionEvent%isAttached(defaultBasicComponent,nodePromotion)) &
          & call nodePromotionEvent%detach(defaultBasicComponent,nodePromotion)
     return
   end subroutine Node_Component_Basic_Extended_Tracking_Thread_Uninitialize

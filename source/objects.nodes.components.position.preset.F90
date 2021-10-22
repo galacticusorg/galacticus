@@ -131,7 +131,7 @@ contains
     use :: Galacticus_Nodes, only : defaultPositionComponent
     implicit none
 
-    if (defaultPositionComponent%presetIsActive()) &
+    if (defaultPositionComponent%presetIsActive() .and. nodePromotionEvent%isAttached(defaultPositionComponent,nodePromotion)) &
          & call nodePromotionEvent%detach(defaultPositionComponent,nodePromotion)
     return
   end subroutine Node_Component_Position_Preset_Thread_Uninitialize

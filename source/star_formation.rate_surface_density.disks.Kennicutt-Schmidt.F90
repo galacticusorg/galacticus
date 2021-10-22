@@ -190,7 +190,7 @@ contains
     implicit none
     type(starFormationRateSurfaceDensityDisksKennicuttSchmidt), intent(inout) :: self
 
-    call calculationResetEvent%detach(self,kennicuttSchmidtCalculationReset)
+    if (calculationResetEvent%isAttached(self,kennicuttSchmidtCalculationReset)) call calculationResetEvent%detach(self,kennicuttSchmidtCalculationReset)
     return
   end subroutine kennicuttSchmidtDestructor
 

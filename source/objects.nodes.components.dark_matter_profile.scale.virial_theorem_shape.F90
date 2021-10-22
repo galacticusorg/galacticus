@@ -140,7 +140,7 @@ contains
        !![
        <objectDestructor name="darkMatterProfileShape_"/>
        !!]
-       call nodePromotionEvent%detach(defaultDarkMatterProfileComponent,nodePromotion)
+       if (nodePromotionEvent%isAttached(defaultDarkMatterProfileComponent,nodePromotion)) call nodePromotionEvent%detach(defaultDarkMatterProfileComponent,nodePromotion)
     end if
     return
   end subroutine Node_Component_Dark_Matter_Profile_VT_Shape_Thread_Uninit

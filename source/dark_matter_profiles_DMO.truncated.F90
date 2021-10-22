@@ -172,7 +172,7 @@ contains
     <objectDestructor name="self%darkMatterProfileDMO_"/>
     <objectDestructor name="self%darkMatterHaloScale_" />
     !!]
-    call calculationResetEvent%detach(self,truncatedCalculationReset)
+    if (calculationResetEvent%isAttached(self,truncatedCalculationReset)) call calculationResetEvent%detach(self,truncatedCalculationReset)
     return
   end subroutine truncatedDestructor
 

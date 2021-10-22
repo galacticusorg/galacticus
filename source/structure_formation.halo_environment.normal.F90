@@ -227,7 +227,7 @@ contains
     <objectDestructor name="self%distributionOverdensity"       />
     <objectDestructor name="self%distributionOverdensityMassive"/>
     !!]
-    call calculationResetEvent%detach(self,normalCalculationReset)
+    if (calculationResetEvent%isAttached(self,normalCalculationReset)) call calculationResetEvent%detach(self,normalCalculationReset)
     return
   end subroutine normalDestructor
 

@@ -43,12 +43,12 @@
      private
      class           (cosmologyParametersClass), pointer     :: cosmologyParameters_            => null()
      class           (darkMatterHaloScaleClass), pointer     :: darkMatterHaloScale_            => null()
-     double precision                                        :: coreRadiusOverScaleRadius                , coreRadiusOverVirialRadiusMaximum
-     double precision                                        :: coreRadiusMaximum                        , coreRadiusMinimum
-     double precision                                        :: hotGasFractionSaved                      , coreRadiusOverVirialRadiusInitialSaved, &
+     double precision                                        :: coreRadiusOverScaleRadius                 , coreRadiusOverVirialRadiusMaximum
+     double precision                                        :: coreRadiusMaximum                         , coreRadiusMinimum
+     double precision                                        :: hotGasFractionSaved                       , coreRadiusOverVirialRadiusInitialSaved, &
           &                                                     coreRadiusOverVirialRadiusSaved
      integer                                                 :: coreRadiusTableCount
-     logical                                                 :: coreRadiusTableInitialized
+     logical                                                 :: coreRadiusTableInitialized      =  .false.
      type            (table1DLogarithmicLinear)              :: coreRadiusTable
      class           (table1D                 ), allocatable :: coreRadiusTableInverse
    contains
@@ -147,7 +147,7 @@ contains
     implicit none
     type(hotHaloMassDistributionCoreRadiusGrowing), intent(inout) :: self
 
-    call self%coreRadiusTable%destroy()
+    if (self%coreRadiusTableInitialized) call self%coreRadiusTable%destroy()
     !![
     <objectDestructor name="self%darkMatterHaloScale_"/>
     <objectDestructor name="self%cosmologyParameters_"/>

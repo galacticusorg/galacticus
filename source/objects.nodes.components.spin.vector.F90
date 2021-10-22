@@ -94,7 +94,7 @@ contains
     use :: Galacticus_Nodes, only : defaultSpinComponent
     implicit none
 
-    if (defaultSpinComponent%vectorIsActive()) &
+    if (defaultSpinComponent%vectorIsActive() .and. nodePromotionEvent%isAttached(defaultSpinComponent,nodePromotion)) &
          & call nodePromotionEvent%detach(defaultSpinComponent,nodePromotion)
     return
   end subroutine Node_Component_Spin_Vector_Thread_Uninitialize

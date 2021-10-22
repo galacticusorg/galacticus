@@ -180,7 +180,7 @@ contains
     !![
     <objectDestructor name="self%coolingFunction_"/>
     !!]
-    call calculationResetEvent%detach(self,coldModeCalculationReset)
+    if (calculationResetEvent%isAttached(self,coldModeCalculationReset)) call calculationResetEvent%detach(self,coldModeCalculationReset)
     return
   end subroutine coldModeDestructor
 
