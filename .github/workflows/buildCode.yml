@@ -61,7 +61,10 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           export BUILDPATH=./work/build
-          make -j2 Galacticus.exe
+          make -j2 Galacticus.exe 2>&1 | tee build.log
+          grep -v -q Error: build.log
+          grep -v -q Warning: build.log
+          grep -v 'is up to date' build.log | grep -v -q make: 
           md5sum Galacticus.exe
       - name: Update release
         uses: johnwbyrd/update-release@v1.0.0
