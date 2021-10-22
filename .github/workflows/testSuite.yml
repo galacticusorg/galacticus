@@ -3234,7 +3234,7 @@ jobs:
           ./tests.event_hooks.exe 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
-  Tests-Event-Hooks:
+  Tests-Tree-Branch_Destroy:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
     needs: Build-Executables
