@@ -6,13 +6,13 @@ on:
 defaults:
   run:
     shell: bash
+concurrency:
+  group: testing-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   Build-Executables:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
-    concurrency:
-      group: testing-${{ github.ref }}
-      cancel-in-progress: true
     steps:
       - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "This job is now running on a ${{ runner.os }} server."
