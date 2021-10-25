@@ -1,0 +1,773 @@
+name: Test-Methods
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - 'Makefile'
+      - 'source/**'
+      - 'source/Bivar/**'
+      - 'source/ISO_Varying_String/**'
+      - 'source/gslODEInitVal2/**'
+      - 'source/NSWC/**'
+      - 'source/pFq/**'
+      - 'source/gslSpecFuncApprox/**'
+      - 'source/FFTlog/**'
+      - 'perl/**'
+      - 'perl/File/**'
+      - 'perl/Galacticus/**'
+      - 'perl/Galacticus/Launch/**'
+      - 'perl/Galacticus/Constraints/**'
+      - 'perl/Galacticus/Build/**'
+      - 'perl/Galacticus/Build/Components/**'
+      - 'perl/Galacticus/Build/Components/Classes/**'
+      - 'perl/Galacticus/Build/Components/Implementations/**'
+      - 'perl/Galacticus/Build/Components/Properties/**'
+      - 'perl/Galacticus/Build/Components/TreeNodes/**'
+      - 'perl/Galacticus/Build/Components/Hierarchy/**'
+      - 'perl/Galacticus/Build/SourceTree/**'
+      - 'perl/Galacticus/Build/SourceTree/Parse/**'
+      - 'perl/Galacticus/Build/SourceTree/Analyze/**'
+      - 'perl/Galacticus/Build/SourceTree/Process/**'
+      - 'perl/Galacticus/Build/SourceTree/Process/FunctionClass/**'
+      - 'perl/List/**'
+      - 'perl/Sort/**'
+      - 'perl/LaTeX/**'
+      - 'perl/IO/**'
+      - 'perl/IO/Compress/**'
+      - 'perl/System/**'
+      - 'perl/Fortran/**'
+      - 'scripts/build/**'
+      - 'schema/**'
+defaults:
+  run:
+    shell: bash
+concurrency:
+  group: test-methods-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  Build-Executables:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Build the code
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          make -j2 Galacticus.exe
+      - name: Upload executables
+        uses: actions/upload-artifact@v2
+        with:
+          name: galacticus-exec
+          path: '**.exe'
+      - run: echo "This job's status is ${{ job.status }}."
+  Runner-01:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./test-methods.pl
+          ./test-methods.pl --threadMaximum 1 --ompThreads 2 --instance 1:20 2>&1 | tee test.log
+          grep -v -q FAIL test.log
+      - run: echo "This job's status is $jobstatus."
+  Runner-02:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./test-methods.pl
+          ./test-methods.pl --threadMaximum 1 --ompThreads 2 --instance 2:20 2>&1 | tee test.log
+          grep -v -q FAIL test.log
+      - run: echo "This job's status is $jobstatus."
+  Runner-03:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./test-methods.pl
+          ./test-methods.pl --threadMaximum 1 --ompThreads 2 --instance 3:20 2>&1 | tee test.log
+          grep -v -q FAIL test.log
+      - run: echo "This job's status is $jobstatus."
+  Runner-04:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./test-methods.pl
+          ./test-methods.pl --threadMaximum 1 --ompThreads 2 --instance 4:20 2>&1 | tee test.log
+          grep -v -q FAIL test.log
+      - run: echo "This job's status is $jobstatus."
+  Runner-05:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./test-methods.pl
+          ./test-methods.pl --threadMaximum 1 --ompThreads 2 --instance 5:20 2>&1 | tee test.log
+          grep -v -q FAIL test.log
+      - run: echo "This job's status is $jobstatus."
+  Runner-06:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./test-methods.pl
+          ./test-methods.pl --threadMaximum 1 --ompThreads 2 --instance 6:20 2>&1 | tee test.log
+          grep -v -q FAIL test.log
+      - run: echo "This job's status is $jobstatus."
+  Runner-07:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./test-methods.pl
+          ./test-methods.pl --threadMaximum 1 --ompThreads 2 --instance 7:20 2>&1 | tee test.log
+          grep -v -q FAIL test.log
+      - run: echo "This job's status is $jobstatus."
+  Runner-08:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./test-methods.pl
+          ./test-methods.pl --threadMaximum 1 --ompThreads 2 --instance 8:20 2>&1 | tee test.log
+          grep -v -q FAIL test.log
+      - run: echo "This job's status is $jobstatus."
+  Runner-09:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./test-methods.pl
+          ./test-methods.pl --threadMaximum 1 --ompThreads 2 --instance 9:20 2>&1 | tee test.log
+          grep -v -q FAIL test.log
+      - run: echo "This job's status is $jobstatus."
+  Runner-10:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./test-methods.pl
+          ./test-methods.pl --threadMaximum 1 --ompThreads 2 --instance 10:20 2>&1 | tee test.log
+          grep -v -q FAIL test.log
+      - run: echo "This job's status is $jobstatus."
+  Runner-11:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./test-methods.pl
+          ./test-methods.pl --threadMaximum 1 --ompThreads 2 --instance 11:20 2>&1 | tee test.log
+          grep -v -q FAIL test.log
+      - run: echo "This job's status is $jobstatus."
+  Runner-12:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./test-methods.pl
+          ./test-methods.pl --threadMaximum 1 --ompThreads 2 --instance 12:20 2>&1 | tee test.log
+          grep -v -q FAIL test.log
+      - run: echo "This job's status is $jobstatus."
+  Runner-13:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./test-methods.pl
+          ./test-methods.pl --threadMaximum 1 --ompThreads 2 --instance 13:20 2>&1 | tee test.log
+          grep -v -q FAIL test.log
+      - run: echo "This job's status is $jobstatus."
+  Runner-14:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./test-methods.pl
+          ./test-methods.pl --threadMaximum 1 --ompThreads 2 --instance 14:20 2>&1 | tee test.log
+          grep -v -q FAIL test.log
+      - run: echo "This job's status is $jobstatus."
+  Runner-15:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./test-methods.pl
+          ./test-methods.pl --threadMaximum 1 --ompThreads 2 --instance 15:20 2>&1 | tee test.log
+          grep -v -q FAIL test.log
+      - run: echo "This job's status is $jobstatus."
+  Runner-16:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./test-methods.pl
+          ./test-methods.pl --threadMaximum 1 --ompThreads 2 --instance 16:20 2>&1 | tee test.log
+          grep -v -q FAIL test.log
+      - run: echo "This job's status is $jobstatus."
+  Runner-17:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./test-methods.pl
+          ./test-methods.pl --threadMaximum 1 --ompThreads 2 --instance 17:20 2>&1 | tee test.log
+          grep -v -q FAIL test.log
+      - run: echo "This job's status is $jobstatus."
+  Runner-18:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./test-methods.pl
+          ./test-methods.pl --threadMaximum 1 --ompThreads 2 --instance 18:20 2>&1 | tee test.log
+          grep -v -q FAIL test.log
+      - run: echo "This job's status is $jobstatus."
+  Runner-19:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./test-methods.pl
+          ./test-methods.pl --threadMaximum 1 --ompThreads 2 --instance 19:20 2>&1 | tee test.log
+          grep -v -q FAIL test.log
+      - run: echo "This job's status is $jobstatus."
+  Runner-20:
+    runs-on: ubuntu-latest
+    container: docker://galacticusorg/buildenv:latest
+    needs: Build-Executables
+    steps:
+      - run: echo "The job was automatically triggered by a $githubevent_name event."
+      - run: echo "This job is now running on a $runneros server."
+      - run: echo "The name of the branch is $github and the repository is $githubrepository."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - name: Check out repository datasets
+        uses: actions/checkout@v2      
+        with:
+          repository: galacticusorg/datasets
+          path: datasets
+      - run: echo "The $githubrepository repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+      - name: Download executables
+        uses: actions/download-artifact@v2
+        with:
+          name: galacticus-exec
+      - name: Create test suite output directory
+        run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
+      - name: Run test
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          chmod u=wrx ./Galacticus.exe
+          cd testSuite
+          chmod u=wrx ./test-methods.pl
+          ./test-methods.pl --threadMaximum 1 --ompThreads 2 --instance 20:20 2>&1 | tee test.log
+          grep -v -q FAIL test.log
+      - run: echo "This job's status is $jobstatus."
