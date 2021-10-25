@@ -61,6 +61,7 @@ jobs:
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "SUFFIX=_MPI >> $GITHUB_ENV
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH
@@ -69,7 +70,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: galacticus-exec-MPI
-          path: '**.exe'
+          path: '**.exe_MPI'
       - run: echo "This job's status is ${{ job.status }}."
   Test-State-Restore:
     runs-on: ubuntu-latest
