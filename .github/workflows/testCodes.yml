@@ -1,4 +1,4 @@
-name: Testsuite
+name: Test-Codes
 on:
   workflow_dispatch:
   push:
