@@ -7,8 +7,6 @@ use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use File::Copy;
 use File::Slurp;
-use MIME::Lite;
-use IO::Compress::Simple;
 use System::Redirect;
 
 sub Failed {
@@ -35,6 +33,7 @@ sub Failed {
 	&&
 	$launchScript->{'emailReport'} eq "yes" 
 	) {
+	require MIME::Lite;
 	$message .= "Log file is attached.\n";
 	my $msg = MIME::Lite->new(
 	    From    => 'Galacticus',
@@ -72,18 +71,6 @@ sub Analyze {
 	    ." ".
 	    ${$launchScript->{'mergeGroups'}->{$job->{'mergeGroup'}}}[0]."/galacticusMerged.hdf5"
 	    );
-	# for(my $i=0;$i<scalar(@{$launchScript->{'mergeGroups'}->{$job->{'mergeGroup'}}});++$i) {
-	#     (my $mergedDirectory = ${$launchScript->{'mergeGroups'}->{$job->{'mergeGroup'}}}[0]) =~ s/.*?([^\/]+)$/..\/$1/;
-	#     system(
-	# 	"rm -f ".${$launchScript->{'mergeGroups'}->{$job->{'mergeGroup'}}}[$i]."/galacticus.hdf5;".
-	# 	"ln -sf ".
-	# 	$mergedDirectory."/galacticusMerged.hdf5 ".
-	# 	${$launchScript->{'mergeGroups'}->{$job->{'mergeGroup'}}}[$i]."/galacticus.hdf5"
-	# 	);
-	#     &CleanUp($job,$launchScript)
-	# 	unless ( $i == scalar(@{$launchScript->{'mergeGroups'}->{$job->{'mergeGroup'}}})-1 );
-	# }
-	
     }
     # Perform analysis.
     if ( defined($job->{'analysis'}) ) {
@@ -97,15 +84,6 @@ sub Analyze {
 	    $job->{'directory'}."/analysis.out"
 	    );
     }
-}
-
-sub CleanUp {
-    # Clean up after a job is finished.
-    my $job          = shift();
-    my $launchScript = shift();
-    # Compress output if requested.
-    &IO::Compress::Simple::Compress_Directory($job->{'directory'})
-	if ( $launchScript->{'compressModels'} eq "yes" );
 }
 
 1;
