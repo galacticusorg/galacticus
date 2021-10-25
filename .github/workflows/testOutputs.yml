@@ -103,7 +103,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-outputs.pl
-          ./test-outputs.pl --threadMaximum 1 --ompThreads 2 --instance 1:10 2>&1 | tee test.log
+          ./test-outputs.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 1:10 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-02:

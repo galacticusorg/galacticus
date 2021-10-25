@@ -104,7 +104,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe_MPI
           cd testSuite
           chmod u=wrx ./test-methods_MPI.pl
-          ./test-methods_MPI.pl --threadMaximum 1 --ompThreads 1 --instance 1:2 2>&1 | tee test.log
+          ./test-methods_MPI.pl --launchMethod local --threadMaximum 1 --ompThreads 1 --instance 1:2 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-02:
@@ -139,6 +139,6 @@ jobs:
           chmod u=wrx ./Galacticus.exe_MPI
           cd testSuite
           chmod u=wrx ./test-methods_MPI.pl
-          ./test-methods_MPI.pl --threadMaximum 1 --ompThreads 1 --instance 2:2 2>&1 | tee test.log
+          ./test-methods_MPI.pl --launchMethod local --threadMaximum 1 --ompThreads 1 --instance 2:2 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is $jobstatus."

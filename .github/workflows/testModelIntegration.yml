@@ -103,6 +103,6 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-model-integration.pl
-          ./test-model-integration.pl --threadMaximum 1 --ompThreads 2 2>&1 | tee test.log
+          ./test-model-integration.pl --launchMethod local --threadMaximum 1 --ompThreads 2 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."

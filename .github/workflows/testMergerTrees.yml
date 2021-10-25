@@ -103,7 +103,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-merger-tree-builder.pl
-          ./test-merger-tree-builder.pl --threadMaximum 1 --ompThreads 2 2>&1 | tee test.log
+          ./test-merger-tree-builder.pl --launchMethod local --threadMaximum 1 --ompThreads 2 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Test-Merger-Tree-Write:
@@ -138,6 +138,6 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-merger-tree-write.pl
-          ./test-merger-tree-write.pl --threadMaximum 1 --ompThreads 2 2>&1 | tee test.log
+          ./test-merger-tree-write.pl --launchMethod local --threadMaximum 1 --ompThreads 2 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."

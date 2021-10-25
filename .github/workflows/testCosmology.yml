@@ -103,7 +103,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-cosmology.pl
-          ./test-cosmology.pl --threadMaximum 1 --ompThreads 2 --instance 1:2 2>&1 | tee test.log
+          ./test-cosmology.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 1:2 2>&1 | tee test.log
           grep -v -q "BEGIN failed" test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -139,7 +139,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-cosmology.pl
-          ./test-cosmology.pl --threadMaximum 1 --ompThreads 2 --instance 2:2 2>&1 | tee test.log
+          ./test-cosmology.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 2:2 2>&1 | tee test.log
           grep -v -q "BEGIN failed" test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
