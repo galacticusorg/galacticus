@@ -138,6 +138,6 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-radiativeTransfer-StromgrenSphere_MPI.pl
-         ./test-radiativeTransfer-StromgrenSphere_MPI.pl --processesPerNode 2 --allow-run-as-root yes 2>&1 | tee test.log
+          ./test-radiativeTransfer-StromgrenSphere_MPI.pl --processesPerNode 2 --allow-run-as-root yes 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
