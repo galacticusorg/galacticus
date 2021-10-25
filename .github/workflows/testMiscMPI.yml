@@ -101,7 +101,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
+          chmod u=wrx ./Galacticus.exe_MPI
           cd testSuite
           chmod u=wrx ./test-stateRestore_MPI.pl
           ./test-stateRestore_MPI.pl --processesPerNode 8 --allow-run-as-root yes 2>&1 | tee test.log
@@ -136,7 +136,7 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
+          chmod u=wrx ./Galacticus.exe_MPI
           cd testSuite
           chmod u=wrx ./test-radiativeTransfer-StromgrenSphere_MPI.pl
           ./test-radiativeTransfer-StromgrenSphere_MPI.pl --processesPerNode 2 --allow-run-as-root yes 2>&1 | tee test.log
