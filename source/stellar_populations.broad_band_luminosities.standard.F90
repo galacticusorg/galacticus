@@ -560,7 +560,7 @@ contains
                                   message=message//displayGreen()
                                   message=message//"HELP: "
                                   message=message//displayReset()
-                                  message=message//      "consider increasing the integrationtolerance parameter from the currnet value of "
+                                  message=message//      "consider increasing the integrationtolerance parameter from the current value of "
                                   message=message//trim(adjustl(label))
                                   write (label,'(e9.3)') 2.0d0*self%integrationToleranceRelative
                                   message=message//"      to "
