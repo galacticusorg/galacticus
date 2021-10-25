@@ -44,7 +44,7 @@ defaults:
   run:
     shell: bash
 concurrency:
-  group: testing-${{ github.ref }}
+  group: test-codes-MPI-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   Build-Executables:
