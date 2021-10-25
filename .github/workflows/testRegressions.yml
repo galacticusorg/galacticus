@@ -101,6 +101,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/bug1053153.xml 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -134,6 +135,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
           chmod u=wrx ./testSuite/regressions/bug1066052.pl
           ./testSuite/regressions/bug1066052.pl 2>&1 | tee test.log
           grep -v -q FAIL test.log
@@ -168,6 +170,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/bug711424.xml 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -201,6 +204,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/bug725315.xml 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -234,6 +238,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/coincidentMergerAndBranchJump.xml 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -267,6 +272,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/cole2000TreeBuilderWDMNodeWellOrdering.xml 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -300,6 +306,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/deadlockMergeTargetInDescendentOfMergee2.xml 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -333,6 +340,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/deadlockMergeTargetInDescendentOfMergee.xml 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -366,6 +374,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/finalTimeBeforeOutputTime.xml 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -399,6 +408,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/immediateSubSubMergerThenBranchJump.xml 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -432,6 +442,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/initialSatelliteNoPrimaryProgenitor.xml 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -465,6 +476,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/issue142.xml 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -498,6 +510,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/linearGrowthForFutureModel.xml 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -531,6 +544,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/ludlowScaleSetBeforeTreeInitialization.xml 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -564,6 +578,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/mergerAtFinalTimeInTree.xml 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -597,6 +612,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
           chmod u=wrx ./testSuite/regressions/mergerTreeBoxSizeWeight.pl
           ./testSuite/regressions/mergerTreeBoxSizeWeight.pl 2>&1 | tee test.log
           grep -v -q FAIL test.log
@@ -631,6 +647,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/particulate.xml 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -664,6 +681,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
           chmod u=wrx ./testSuite/regressions/satellitePresetBoundMassNonZero.pl
           ./testSuite/regressions/satellitePresetBoundMassNonZero.pl 2>&1 | tee test.log
           grep -v -q FAIL test.log
@@ -698,6 +716,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
           chmod u=wrx ./testSuite/regressions/setProperties.pl
           ./testSuite/regressions/setProperties.pl 2>&1 | tee test.log
           grep -v -q FAIL test.log
@@ -732,6 +751,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/subhaloMergesAtFinalTimeOfTree.xml 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -765,6 +785,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/subhaloTwoConsecutiveMergers.xml 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -798,6 +819,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/treeWithInitialSatelliteInProgenitorlessHost.xml 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
@@ -831,6 +853,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
+          mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/treeWithNoPrimaryProgenitor.xml 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
