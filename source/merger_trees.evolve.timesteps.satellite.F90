@@ -51,8 +51,8 @@
      Implementation of a merger tree evolution timestep class which limits the step to the next satellite merger.
      !!}
      private
-     class           (nodeOperatorClass), pointer :: nodeOperator_
-     double precision                             :: timeOffsetMaximumAbsolute, timeOffsetMaximumRelative
+     class           (nodeOperatorClass), pointer :: nodeOperator_             => null()
+     double precision                             :: timeOffsetMaximumAbsolute          , timeOffsetMaximumRelative
      logical                                      :: limitTimesteps
    contains
      final     ::                 satelliteDestructor
