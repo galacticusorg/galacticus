@@ -409,9 +409,7 @@ jobs:
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Run test
         run: |
-          cd $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
-          cd testSuite
+          cd $GALACTICUS_EXEC_PATH/testSuite
           chmod u=wrx ./test-extract-directives.pl
           ./test-extract-directives.pl 2>&1 | tee test.log
           grep -v -q FAIL test.log
@@ -439,9 +437,7 @@ jobs:
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Run test
         run: |
-          cd $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
-          cd testSuite
+          cd $GALACTICUS_EXEC_PATH/testSuite
           chmod u=wrx ./test-fortran-utils.pl
           ./test-fortran-utils.pl 2>&1 | tee test.log
           grep -v -q FAIL test.log
@@ -714,9 +710,7 @@ jobs:
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Run test
         run: |
-          cd $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
-          cd testSuite
+          cd $GALACTICUS_EXEC_PATH/testSuite
           chmod u=wrx ./test-parameter-validation.pl
           ./test-parameter-validation.pl 2>&1 | tee test.log
           grep -v -q FAIL test.log
@@ -744,9 +738,7 @@ jobs:
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Run test
         run: |
-          cd $GALACTICUS_EXEC_PATH
-          chmod u=wrx ./Galacticus.exe
-          cd testSuite
+          cd $GALACTICUS_EXEC_PATH/testSuite
           chmod u=wrx ./test-perl-modules.pl
           ./test-perl-modules.pl 2>&1 | tee test.log
           grep -v -q FAIL test.log
