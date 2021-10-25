@@ -1,4 +1,4 @@
-name: Test-Misc
+name: Test-Misc-MPI
 on:
   workflow_dispatch:
   push:
