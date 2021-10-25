@@ -165,10 +165,8 @@ jobs:
           mkdir galacticus
           mkdir galacticus/lib
           mkdir galacticus/python
-          # Find all dynamic libraries needed (filtering out some system libs) and copy to our folder.
-          otool -L libgalacticus.so
-          otool -L libgalacticus.so | awk '{if (NR > 1) print $1}' | grep -v -e /libSystem.B.dylib -e /System | xargs -n 1 -I{} ls -l {}
-          otool -L libgalacticus.so | awk '{if (NR > 1) print $1}' | grep -v -e /libSystem.B.dylib -e /System | xargs -n 1 -I{} cp {} galacticus/lib/
+          # Find all dynamic libraries needed (filtering out any non-"local" ones) and copy to our folder.
+          otool -L libgalacticus.so | awk '{if (NR > 1) print $1}' | grep -e /usr/local -e /opt/local | xargs -n 1 -I{} cp {} galacticus/lib/
           mv galacticus.py galacticus/python/
           zip -r libgalacticusMacOS.zip galacticus
       - name: Update release
