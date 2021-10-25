@@ -39,9 +39,13 @@ my $launchScript          = &Parse_Launch_Script            ($launchFileName);
 # Read in any configuration options.
 $launchScript->{'config'} = &Galacticus::Options::LoadConfig(               );
 
+# Override launch method if specified on the command line.
+$launchScript->{'launchMethod'} = $arguments{'launchMethod'}
+    if ( exists($arguments{'launchMethod'}) );
+
 # Check for an instance number for this launch.
 if ( $arguments{"instance"} =~ m/(\d+):(\d+)/ ) {
-    $launchScript->{'thisInstance' }  = $1;
+    $launchScript->{'thisInstance' } = $1;
     $launchScript->{'instanceCount'} = $2;
     print " -> launching instance ".$launchScript->{'thisInstance'}." of ".$launchScript->{'instanceCount'}."\n"
 	if ( $launchScript->{'verbosity'} > 0 );
