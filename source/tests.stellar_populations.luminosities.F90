@@ -30,7 +30,7 @@ program Test_Stellar_Populations_Luminosities
   use :: Cosmology_Parameters                      , only : cosmologyParametersSimple
   use :: Display                                   , only : displayVerbositySet                           , verbosityLevelWorking
   use :: Events_Hooks                              , only : eventsHooksInitialize
-  use :: File_Utilities                            , only : File_Exists
+  use :: File_Utilities                            , only : File_Exists                                   , Directory_Make
   use :: Galacticus_Output_Open                    , only : Galacticus_Output_Close_File                  , Galacticus_Output_Open_File
   use :: Galacticus_Paths                          , only : galacticusPath                                , pathTypeDataDynamic                      , pathTypeDataStatic
   use :: ISO_Varying_String                        , only : char                                          , operator(//)                             , var_str
@@ -83,6 +83,7 @@ program Test_Stellar_Populations_Luminosities
   call displayVerbositySet(verbosityLevelWorking)
   call Galacticus_Output_Open_File   (parameters      )
   ! Ensure that we have the required stellar population spectra file.
+call Directory_Make(char(galacticusPath(pathTypeDataDynamic))//'stellarPopulations/SSP_Spectra_BC2003_lowResolution_imfSalpeter.hdf5')
   if (.not.File_Exists(char(galacticusPath(pathTypeDataDynamic))//'stellarPopulations/SSP_Spectra_BC2003_lowResolution_imfSalpeter.hdf5'))  &
        & call download(                                                                                                                     &
        &               "https://drive.google.com/uc?export=download&id=1DI52tMO4PEN-eGk79-0w2BHu9yaEcFMp"                                 , &
