@@ -26,7 +26,7 @@ my %options =
     );
 &Galacticus::Options::Parse_Options(\@ARGV,\%options);
 
-# We need at least 8 processes to run this test.
+# We need at least 2 processes to run this test.
 if ( $options{'processesPerNode'} < 2 ) {
     print "SKIPPED: at least 2 processes per node are required for this test\n";
     exit;
