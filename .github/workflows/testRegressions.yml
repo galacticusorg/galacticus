@@ -136,8 +136,9 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
-          chmod u=wrx ./testSuite/regressions/bug1066052.pl
-          ./testSuite/regressions/bug1066052.pl 2>&1 | tee test.log
+          cd testSuite
+          chmod u=wrx ./regressions/bug1066052.pl
+          ./regressions/bug1066052.pl 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Bug-711424:
@@ -613,8 +614,9 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
-          chmod u=wrx ./testSuite/regressions/mergerTreeBoxSizeWeight.pl
-          ./testSuite/regressions/mergerTreeBoxSizeWeight.pl 2>&1 | tee test.log
+          cd testSuite
+          chmod u=wrx ./regressions/mergerTreeBoxSizeWeight.pl
+          ./regressions/mergerTreeBoxSizeWeight.pl 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Particulate:
@@ -682,8 +684,9 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
-          chmod u=wrx ./testSuite/regressions/satellitePresetBoundMassNonZero.pl
-          ./testSuite/regressions/satellitePresetBoundMassNonZero.pl 2>&1 | tee test.log
+          cd testSuite
+          chmod u=wrx ./regressions/satellitePresetBoundMassNonZero.pl
+          ./regressions/satellitePresetBoundMassNonZero.pl 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Set-Properties:
@@ -717,8 +720,9 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
-          chmod u=wrx ./testSuite/regressions/setProperties.pl
-          ./testSuite/regressions/setProperties.pl 2>&1 | tee test.log
+          cd testSuite
+          chmod u=wrx ./regressions/setProperties.pl
+          ./regressions/setProperties.pl 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Subhalo-Merges-At-Final-Time-Of-Tree:
