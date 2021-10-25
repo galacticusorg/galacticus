@@ -142,6 +142,8 @@ sub jobArrayLaunch {
 	    } elsif ( exists($localConfig->{'ompThreads'}) ) {
 		$ompThreads = $localConfig->{'ompThreads'};
 	    }
+	    $ompThreads = $arguments{'ompThreads'}
+	        if ( exists($arguments{'ompThreads'}) );
 	    print $scriptFile "export OMP_NUM_THREADS=".$ompThreads."\n"
 		if ( defined($ompThreads) );
 	    print $scriptFile $newJob->{'command'}."\n";
