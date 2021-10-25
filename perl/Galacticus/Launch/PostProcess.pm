@@ -7,6 +7,7 @@ use Cwd;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use File::Copy;
 use File::Slurp;
+use IO::Compress::Simple;
 use System::Redirect;
 
 sub Failed {
@@ -84,6 +85,15 @@ sub Analyze {
 	    $job->{'directory'}."/analysis.out"
 	    );
     }
+}
+
+sub CleanUp {
+    # Clean up after a job is finished.
+    my $job          = shift();
+    my $launchScript = shift();
+    # Compress output if requested.
+    &IO::Compress::Simple::Compress_Directory($job->{'directory'})
+	if ( $launchScript->{'compressModels'} eq "yes" );
 }
 
 1;
