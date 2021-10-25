@@ -101,7 +101,7 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.MPI.exe
-          mpirun -np 2 ./tests.MPI.exe 2>&1 | tee test.log
+          mpirun -np 2 --allow-run-as-root ./tests.MPI.exe 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Test-Radiative-Transfer-Atomic-Matter-State-Solver:
@@ -134,6 +134,6 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.radiative_transfer.atomic_matter.state_solver.exe
-          mpirun -np 2 ./tests.radiative_transfer.atomic_matter.state_solver.exe 2>&1 | tee test.log
+          mpirun -np 2 --allow-run-as-root ./tests.radiative_transfer.atomic_matter.state_solver.exe 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
