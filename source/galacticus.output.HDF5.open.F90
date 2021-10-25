@@ -63,7 +63,9 @@ contains
     integer(hsize_t        )                :: chunkSize
     integer                                 :: sieveBufferSize
     integer(size_t         )                :: cacheElementsCount, cacheSizeBytes
+#ifdef USEMPI
     type   (varying_string )                :: fileNamePrefix
+#endif
     
     if (.not.galacticusOutputFileIsOpen) then
        !![
