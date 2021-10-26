@@ -79,11 +79,26 @@ sub Process_Enumerations {
 		my $encodeFunctionName = "enumeration".ucfirst($node->{'directive'}->{'name'})."Encode";
 		my $onError;
 		$onError = $node->{'directive'}->{'errorValue'}
-		    if ( exists($node->{'directive'}->{'errorValue'}) );
+		if ( exists($node->{'directive'}->{'errorValue'}) );
+		my $interface;
+		$interface .= " interface ".$encodeFunctionName."\n";
+		$interface .= "  module procedure ".$encodeFunctionName."Char\n";
+		$interface .= "  module procedure ".$encodeFunctionName."VarStr\n";
+		$interface .= " end interface ".$encodeFunctionName."\n\n";
 		my $function;
 		$function .= "\n";
-		$function .= "  ! Auto-generated enumeration function\n";
-		$function .= "  integer function ".$encodeFunctionName."(name,includesPrefix)\n";
+		$function .= "  ! Auto-generated enumeration functions\n";
+		$function .= "  integer function ".$encodeFunctionName."VarStr(name,includesPrefix)\n";
+		$function .= "    !!{\n";
+		$function .= "    Encode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier.\n";
+		$function .= "    !!}\n";
+		$function .= "    implicit none\n\n";
+		$function .= "    type   (varying_string), intent(in   )           :: name\n";
+		$function .= "    logical                , intent(in   ), optional :: includesPrefix\n";
+		$function .= "    ".$encodeFunctionName."VarStr=".$encodeFunctionName."(char(name),includesPrefix)\n";
+		$function .= "    return\n";
+		$function .= "  end function ".$encodeFunctionName."VarStr\n\n";
+		$function .= "  integer function ".$encodeFunctionName."Char(name,includesPrefix)\n";
 		$function .= "    !!{\n";
 		$function .= "    Encode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier.\n";
 		$function .= "    !!}\n";
@@ -111,25 +126,28 @@ sub Process_Enumerations {
 			    $function .=                                        $_->{'label'} ;
 			}
 			$function .= "')\n";
-			$function .= "        ".$encodeFunctionName."=".++$i."\n";
+			$function .= "        ".$encodeFunctionName."Char=".++$i."\n";
 		    }
 		    $function .= "      case default\n";
 		    if ( $onError ) {
-			$function .= "      ".$encodeFunctionName."=".$onError."\n";
+			$function .= "      ".$encodeFunctionName."Char=".$onError."\n";
 		    } else {
-			$function .= "      ".$encodeFunctionName."=-1\n";
+			$function .= "      ".$encodeFunctionName."Char=-1\n";
 			$function .= "      call Galacticus_Error_Report('unrecognized enumeration member ['//trim(name)//']'//".&Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'}).")\n";
 		    }
 		    $function .= "      end select\n";
 		}
 		$function .= "    end if\n";
 		$function .= "    return\n";
-		$function .= "  end function ".$encodeFunctionName."\n\n";
-		$function .= "  ! End auto-generated enumeration function\n";
+		$function .= "  end function ".$encodeFunctionName."Char\n\n";
+		$function .= "  ! End auto-generated enumeration functions\n";
 		# Insert into the module.
 		my $encodeTree = &Galacticus::Build::SourceTree::ParseCode($function,"Galacticus::Build::SourceTree::Process::Enumeration()");
 		my @encodeNodes = &Galacticus::Build::SourceTree::Children($encodeTree);
 		&Galacticus::Build::SourceTree::InsertPostContains($node->{'parent'},\@encodeNodes);
+		my $interfaceTree = &Galacticus::Build::SourceTree::ParseCode($interface,"Galacticus::Build::SourceTree::Process::Enumeration()");
+		my @interfaceNodes = &Galacticus::Build::SourceTree::Children($interfaceTree);
+		&Galacticus::Build::SourceTree::InsertPreContains($node->{'parent'},\@interfaceNodes);
 		# Set the visibility.
 		&Galacticus::Build::SourceTree::SetVisibility($node->{'parent'},$encodeFunctionName,$visibility);
 	    }
