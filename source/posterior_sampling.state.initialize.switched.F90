@@ -31,8 +31,8 @@
      Implementation of a posterior sampling state initialization class which sets initial state by switching between two other options.
      !!}
      private
-     class(posteriorSampleStateInitializeClass), pointer                   :: stateInitializeMethod1, stateInitializeMethod2
-     type(varying_string                      ), allocatable, dimension(:) :: modelParameterName1   , modelParameterName2
+     class(posteriorSampleStateInitializeClass), pointer                   :: stateInitializeMethod1 => null(), stateInitializeMethod2 => null()
+     type(varying_string                      ), allocatable, dimension(:) :: modelParameterName1             , modelParameterName2
    contains
      final     ::                switchedDestructor
      procedure :: initialize  => switchedInitialize

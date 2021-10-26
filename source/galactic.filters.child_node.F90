@@ -35,7 +35,7 @@ Contains a module which implements a galactic filter which applies another filte
      A galactic filter which applies another filter to a child node of the given node.
      !!}
      private
-     class  (galacticFilterClass), pointer :: galacticFilter_
+     class  (galacticFilterClass), pointer :: galacticFilter_ => null()
      integer                               :: childRank
    contains
      final     ::           childNodeDestructor

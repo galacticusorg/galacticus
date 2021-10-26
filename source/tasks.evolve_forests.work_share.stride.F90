@@ -29,8 +29,8 @@
      Implementation of a forest evolution work sharing class in which forests are assigned by cycling through processes.
      !!}
      private
-     integer(c_size_t                   )          :: stride                 , offset
-     class  (evolveForestsWorkShareClass), pointer :: evolveForestsWorkShare_
+     integer(c_size_t                   )          :: stride                           , offset
+     class  (evolveForestsWorkShareClass), pointer :: evolveForestsWorkShare_ => null()
    contains
      final     ::                 strideDestructor
      procedure :: forestNumber => strideForestNumber

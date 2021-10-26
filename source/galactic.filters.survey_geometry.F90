@@ -33,7 +33,7 @@ Contains a module which implements a filter which passes only nodes that lie wit
      A galactic filter class which passes only nodes that lie within a survey geometry.
      !!}
      private
-     class(surveyGeometryClass), pointer :: surveyGeometry_
+     class(surveyGeometryClass), pointer :: surveyGeometry_ => null()
    contains
      final     ::           surveyGeometryDestructor
      procedure :: passes => surveyGeometryPasses

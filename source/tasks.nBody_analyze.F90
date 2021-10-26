@@ -30,8 +30,8 @@
      Implementation of a task which analyzes N-body simulation data.
      !!}
      private
-     class  (nbodyImporterClass), pointer :: nbodyImporter_
-     class  (nbodyOperatorClass), pointer :: nbodyOperator_
+     class  (nbodyImporterClass), pointer :: nbodyImporter_      => null()
+     class  (nbodyOperatorClass), pointer :: nbodyOperator_      => null()
      logical                              :: storeBackToImported
      ! Pointer to the parameters for this task.
      type   (inputParameters   )          :: parameters

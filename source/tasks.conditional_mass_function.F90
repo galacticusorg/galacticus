@@ -33,19 +33,19 @@
      Implementation of a task which computes and outputs the halo mass function and related quantities.
      !!}
      private
-     class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_
-     class           (conditionalMassFunctionClass   ), pointer                   :: conditionalMassFunction_
-     class           (surveyGeometryClass            ), pointer                   :: surveyGeometry_
-     class           (massFunctionIncompletenessClass), pointer                   :: massFunctionIncompleteness_
-     class           (haloMassFunctionClass          ), pointer                   :: haloMassFunction_
+     class           (cosmologyFunctionsClass        ), pointer                   :: cosmologyFunctions_         => null()
+     class           (conditionalMassFunctionClass   ), pointer                   :: conditionalMassFunction_    => null()
+     class           (surveyGeometryClass            ), pointer                   :: surveyGeometry_             => null()
+     class           (massFunctionIncompletenessClass), pointer                   :: massFunctionIncompleteness_ => null()
+     class           (haloMassFunctionClass          ), pointer                   :: haloMassFunction_           => null()
      integer                                                                      :: countMass
-     double precision                                                             :: massHalo                   , massMinimum                  , &
-          &                                                                          massMaximum                , timeMinimum                  , &
-          &                                                                          timeMaximum                , massHaloMinimum              , &
+     double precision                                                             :: massHalo                             , massMinimum                  , &
+          &                                                                          massMaximum                          , timeMinimum                  , &
+          &                                                                          timeMaximum                          , massHaloMinimum              , &
           &                                                                          massHaloMaximum
-     logical                                                                      :: useSurveyLimits            , integrateOverHaloMassFunction
+     logical                                                                      :: useSurveyLimits                      , integrateOverHaloMassFunction
      type            (varying_string                 )                            :: outputGroupName
-     double precision                                 , allocatable, dimension(:) :: massBinCenters             , massLogarithmDelta
+     double precision                                 , allocatable, dimension(:) :: massBinCenters                       , massLogarithmDelta
    contains
      final     ::            conditionalMassFunctionDestructor
      procedure :: perform => conditionalMassFunctionPerform

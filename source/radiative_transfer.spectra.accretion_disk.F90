@@ -29,8 +29,8 @@
      Implementation of a black body spectrum for radiative transfer calculations.
      !!}
      private
-     class           (accretionDiskSpectraClass), pointer :: accretionDiskSpectra_
-     double precision                                     :: massBlackHole        , accretionRateEddington, &
+     class           (accretionDiskSpectraClass), pointer :: accretionDiskSpectra_ => null()
+     double precision                                     :: massBlackHole                  , accretionRateEddington, &
           &                                                  accretionRate
    contains
      final     ::               accretionDiskDestructor

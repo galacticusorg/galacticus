@@ -36,7 +36,7 @@
      A property extractor which extracts virialProperties properties.
      !!}
      private
-     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::                 virialPropertiesDestructor
      procedure :: elementCount => virialPropertiesElementCount

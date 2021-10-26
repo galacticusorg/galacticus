@@ -57,11 +57,11 @@
      !!{
      A mass distribution class which overlays clouds on another mass distribution.
      !!}
-     class           (randomNumberGeneratorClass), pointer                   :: randomNumberGenerator_
-     class           (massDistributionClass     ), pointer                   :: massDistribution_
-     double precision                            , allocatable, dimension(:) :: radii                 , impactParameter
-     double precision                                                        :: halfWidth             , densityContrast          , &
-          &                                                                     volumeFillingFactor   , densityContrastIntershell, &
+     class           (randomNumberGeneratorClass), pointer                   :: randomNumberGenerator_ => null()
+     class           (massDistributionClass     ), pointer                   :: massDistribution_      => null()
+     double precision                            , allocatable, dimension(:) :: radii                           , impactParameter
+     double precision                                                        :: halfWidth                       , densityContrast          , &
+          &                                                                     volumeFillingFactor             , densityContrastIntershell, &
           &                                                                     radiusBoundary
      integer         (c_size_t                  )                            :: countShells
    contains

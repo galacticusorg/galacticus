@@ -47,7 +47,7 @@
      double precision                                                           :: odeToleranceAbsolute                         , odeToleranceRelative         , &
           &                                                                        odeJacobianStepSizeRelative
      integer                                                                    :: odeAlgorithm                                 , odeAlgorithmNonJacobian
-     class           (galacticStructureSolverClass ), pointer                   :: galacticStructureSolver_
+     class           (galacticStructureSolverClass ), pointer                   :: galacticStructureSolver_            => null()
      class           (nodeOperatorClass            ), pointer                   :: nodeOperator_                       => null()
      class           (mergerTreeEvolveProfilerClass), pointer                   :: mergerTreeEvolveProfiler_           => null()
      integer                                                                    :: odeLatentIntegratorType                      , odeLatentIntegratorOrder     , &
