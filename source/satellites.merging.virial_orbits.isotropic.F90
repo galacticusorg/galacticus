@@ -33,7 +33,7 @@
      another virial orbit class
      !!}
      private
-     class(virialOrbitClass), pointer :: virialOrbit_
+     class(virialOrbitClass), pointer :: virialOrbit_ => null()
    contains
      final     ::                                    isotropicDestructor
      procedure :: orbit                           => isotropicOrbit

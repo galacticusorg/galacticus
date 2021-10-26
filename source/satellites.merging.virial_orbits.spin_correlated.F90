@@ -33,7 +33,7 @@
      !!}
      private
      double precision                            :: alpha
-     class           (virialOrbitClass), pointer :: virialOrbit_
+     class           (virialOrbitClass), pointer :: virialOrbit_ => null()
    contains
      final     ::                                    spinCorrelatedDestructor
      procedure :: orbit                           => spinCorrelatedOrbit

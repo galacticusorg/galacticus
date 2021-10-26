@@ -414,11 +414,13 @@ contains
        <objectDestructor name="self%transferFunctionReference"/>
        !!]
     end if
-    do i=1,size(self%virialDensityContrasts)
-       !![
-       <objectDestructor name="self%virialDensityContrasts(i)%virialDensityContrast_"/>
-       !!]
-    end do
+    if (allocated(elf%virialDensityContrasts)) then
+       do i=1,size(self%virialDensityContrasts)
+          !![
+	  <objectDestructor name="self%virialDensityContrasts(i)%virialDensityContrast_"/>
+          !!]
+       end do
+    end if
     call Node_Components_Uninitialize()
     return
   end subroutine haloMassFunctionDestructor
