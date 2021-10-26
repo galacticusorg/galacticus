@@ -67,7 +67,7 @@ sub Launch {
 		if ( $launchScript->{'verbosity'} > 0 );
  	push(
 	    @threads,
-	    threads->create(\&Launch_Models, $iThread, \@jobs, $launchScript, \%options)
+	    threads->create(\&Launch_Models, $iThread, $threadCount, \@jobs, $launchScript, \%options)
 	    );
    }
     # Wait for threads to finish.
@@ -78,6 +78,7 @@ sub Launch {
 
 sub Launch_Models {
     my $iThread      =   shift() ;
+    my $threadCount  =   shift() ;
     my @jobs         = @{shift()};
     my $launchScript =   shift() ;
     my %options      = %{shift()}
@@ -89,7 +90,7 @@ sub Launch_Models {
     $verbosity = $options{'verbosity'}
         if ( exists($options{'verbosity'}) );
     for(my $i=0;$i<scalar(@jobs);++$i) {
-	if ( ( $i % $launchScript->{'local'}->{'threadCount'} ) == $iThread ) {
+	if ( ( $i % $threadCount ) == $iThread ) {
  	    print " -> thread ".$iThread." running job: ".$jobs[$i]->{'label'}."\n"
 		if ( $verbosity > 0 );
 	    system(
