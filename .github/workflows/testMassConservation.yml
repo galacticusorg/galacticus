@@ -150,7 +150,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-mass-conservation-standard.pl
-          ./test-mass-conservation-standard.pl --threadMaximum 1 --ompThreads 2 2>&1 | tee test.log
+          ./test-mass-conservation-standard.pl --launchMethod local --threadMaximum 1 --ompThreads 2 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Cold-Mode:
