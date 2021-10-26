@@ -45,8 +45,8 @@
      Implementation of a simple solver for galactic structure (self-gravity of baryons is ignored).
      !!}
      private
-     class  (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
-     logical                                     :: useFormationHalo     , solveForInactiveProperties
+     class  (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
+     logical                                     :: useFormationHalo               , solveForInactiveProperties
    contains
      final     ::             simpleDestructor
      procedure :: solve    => simpleSolve

@@ -44,7 +44,7 @@
      proportion to specific angular momentum).
      !!}
      private
-     class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+     class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
    contains
      final     ::             linearDestructor
      procedure :: solve    => linearSolve

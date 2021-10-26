@@ -46,8 +46,8 @@
      private
      double precision                                     :: factor
      integer                                              :: radiusFixed
-     class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_
-     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
+     class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
+     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
    contains
      final     ::             fixedDestructor
      procedure :: solve    => fixedSolve
