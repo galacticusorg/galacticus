@@ -858,6 +858,9 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
+          echo XMLLINT
+          ls -l testSuite/regressions/treeWithNoPrimaryProgenitor.xml
+          xmllint testSuite/regressions/treeWithNoPrimaryProgenitor.xml
           ./Galacticus.exe testSuite/regressions/treeWithNoPrimaryProgenitor.xml 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
