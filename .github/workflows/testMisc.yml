@@ -646,9 +646,18 @@ jobs:
       - name: Run test
         run: |
           cd $GALACTICUS_EXEC_PATH
+          echo NOW LS
+          ls
+          echo NOW CHMOD
           chmod u=wrx ./Galacticus.exe
+          echo NOW CD
           cd testSuite
+          echo NOW CHMOD
           chmod u=wrx ./test-output.pl
+          echo NOW PWD
+          pwd
+          echo NOW LSUP
+          ls ..
           ./test-output.pl 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
