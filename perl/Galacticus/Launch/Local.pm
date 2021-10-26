@@ -54,14 +54,20 @@ sub Launch {
     # Launch models on local machine.
     my @jobs         = @{shift()};
     my $launchScript =   shift() ;
+    my %options      = %{shift()}
+        if ( scalar(@_) > 0 );
+    # Determine number of threads to use.
+    my $threadCount = $launchScript->{'local'}->{'threadCount'};
+    $threadCount = $options{'threadMaximum'}
+        if ( exists($options{'threadMaximum'}) );
     # Launch model threads.
     my @threads;
-    for(my $iThread=0;$iThread<$launchScript->{'local'}->{'threadCount'};++$iThread) {
+    for(my $iThread=0;$iThread<$threadCount;++$iThread) {
 	print " -> launching thread ".$iThread." of ".$launchScript->{'local'}->{'threadCount'}."\n"
 		if ( $launchScript->{'verbosity'} > 0 );
  	push(
 	    @threads,
-	    threads->create(\&Launch_Models, $iThread, \@jobs, $launchScript)
+	    threads->create(\&Launch_Models, $iThread, \@jobs, $launchScript, \%options)
 	    );
    }
     # Wait for threads to finish.
@@ -74,15 +80,23 @@ sub Launch_Models {
     my $iThread      =   shift() ;
     my @jobs         = @{shift()};
     my $launchScript =   shift() ;
+    my %options      = %{shift()}
+        if ( scalar(@_) > 0 );
+    my $ompThreads = $launchScript->{'local'}->{'ompThreads'};
+    $ompThreads = $options{'ompThreads'}
+        if ( exists($options{'ompThreads'}) );
+    my $verbosity = $launchScript->{'verbosity'};
+    $verbosity = $options{'verbosity'}
+        if ( exists($options{'verbosity'}) );
     for(my $i=0;$i<scalar(@jobs);++$i) {
 	if ( ( $i % $launchScript->{'local'}->{'threadCount'} ) == $iThread ) {
  	    print " -> thread ".$iThread." running job: ".$jobs[$i]->{'label'}."\n"
-		if ( $launchScript->{'verbosity'} > 0 );
+		if ( $verbosity > 0 );
 	    system(
 		    "ulimit -t unlimited;"        .
 		    "ulimit -c unlimited;"        .
 		    "export GFORTRAN_ERROR_DUMPCORE=YES;".
-		    "export OMP_NUM_THREADS=".$launchScript->{'local'}->{'ompThreads'}.";".
+		    "export OMP_NUM_THREADS=".$ompThreads.";".
 		    $ENV{'GALACTICUS_EXEC_PATH'}."/Galacticus.exe ".$jobs[$i]->{'directory'}."/parameters.xml &> ".
 		    $jobs[$i]->{'directory'}."/galacticus.log"
 		);
