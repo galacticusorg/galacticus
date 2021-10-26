@@ -414,7 +414,7 @@ contains
        <objectDestructor name="self%transferFunctionReference"/>
        !!]
     end if
-    if (allocated(elf%virialDensityContrasts)) then
+    if (allocated(self%virialDensityContrasts)) then
        do i=1,size(self%virialDensityContrasts)
           !![
 	  <objectDestructor name="self%virialDensityContrasts(i)%virialDensityContrast_"/>
