@@ -21,11 +21,23 @@ use Galacticus::Launch::PBS;
 
 # Get arguments.
 my %options = (
-    calibrate           => "no",
-    calibrateCount      => 100 ,
-    calibratePercentile => 1.0
+    calibrate           => "no" ,
+    calibrateCount      => 100  ,
+    calibratePercentile => 1.0  ,
+    instance            => "1:1"
     );
 &Galacticus::Options::Parse_Options(\@ARGV,\%options);
+
+# Check for an instance number for this launch.
+my $instance;
+my $instanceCount;
+if ( $options{"instance"} =~ m/(\d+):(\d+)/ ) {
+    $instance      = $1;
+    $instanceCount = $2;
+    print " -> launching instance ".$instance." of ".$instanceCount."\n";
+} else {
+    die("'instance' argument syntax error");
+}
 
 # Specify test statistics to compute.
 my @tests =
@@ -69,12 +81,18 @@ my $pbsConfig = &Galacticus::Options::Config("pbs");
 my $ppn       = exists($pbsConfig->{'ppn'}) ? $pbsConfig->{'ppn'} : 1;
 
 # Find integration models to run.
+my $modelCount = 0;
 opendir(my $testSuite,".");
 while ( my $fileName = readdir($testSuite) ) {
     # Skip non-model integration files.
     next
 	unless ( $fileName =~ m/^test\-model\-integration\-([a-zA-Z0-9]+)\.xml$/ );
     my $modelName = $1;    
+    # Determine whether to run this model.
+    ++$modelCount;
+    next
+	unless ( $modelCount % $instanceCount == $instance-1 );
+    print "Running model '".$modelName."'\n";
     # Iterate over realizations.
     my @pbsJobs;
     for(my $i=0;$i<($options{'calibrate'} eq "yes" ? $options{'calibrateCount'} : 1);++$i) {
