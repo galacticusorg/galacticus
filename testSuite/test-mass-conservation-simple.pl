@@ -35,8 +35,10 @@ system("cd ..; scripts/aux/launch.pl testSuite/parameters/test-mass-conservation
 ## AJB HACK
 system("echo PWD; pwd");
 system("echo LS1; ls -l");
-system("echo LS2; ls -l outputs/test-mass-conservation-simple/galacticus_*");
-system("echo LS3; ls -l outputs/test-mass-conservation-simple/galacticus_0:1/galacticus.hdf5");
+system("echo LS2; ls -l outputs");
+system("echo LS3; ls -l outputs/test-mass-conservation-simple");
+system("echo LS4; ls -l outputs/test-mass-conservation-simple/galacticus_*");
+system("echo LS5; ls -l outputs/test-mass-conservation-simple/galacticus_0:1/galacticus.hdf5");
 system("echo H5DUMP; h5dump -A outputs/test-mass-conservation-simple/galacticus_0:1/galacticus.hdf5");
 
 # Check for failed models.
