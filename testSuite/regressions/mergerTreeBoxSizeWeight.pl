@@ -9,7 +9,7 @@ use PDL::IO::HDF5;
 # Andrew Benson (16-January-2014)
 
 # Run the model and check for successful completion.
-system("Galacticus.exe testSuite/regressions/mergerAtFinalTimeInTree.xml");
+system("./Galacticus.exe testSuite/regressions/mergerAtFinalTimeInTree.xml");
 die("FAILED: mergerTreeBoxSizeWeight.pl model failed to complete") 
     unless ( $? == 0 );
 
