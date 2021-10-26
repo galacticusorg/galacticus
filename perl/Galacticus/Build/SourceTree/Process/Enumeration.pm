@@ -92,6 +92,7 @@ sub Process_Enumerations {
 		$function .= "    !!{\n";
 		$function .= "    Encode a {\\normalfont \\ttfamily ".$node->{'directive'}->{'name'}."} enumeration from a string, returning the appropriate identifier.\n";
 		$function .= "    !!}\n";
+		$function .= "    use :: ISO_Varying_String\n";
 		$function .= "    implicit none\n\n";
 		$function .= "    type   (varying_string), intent(in   )           :: name\n";
 		$function .= "    logical                , intent(in   ), optional :: includesPrefix\n";
