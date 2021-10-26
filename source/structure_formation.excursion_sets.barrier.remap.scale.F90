@@ -64,6 +64,7 @@ contains
     type            (inputParameters              ), intent(inout) :: parameters
     class           (excursionSetBarrierClass     ), pointer       :: excursionSetBarrier_
     double precision                                               :: factor
+    integer                                                        :: applyTo
 
     ! Check and read parameters.
     !![
@@ -83,7 +84,8 @@ contains
     </inputParameter>
     <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
     !!]
-    self=excursionSetBarrierRemapScale(factor,enumerationExcursionSetRemapEncode(char(self%applyToText),includesPrefix=.false.),excursionSetBarrier_)
+    applyTo=enumerationExcursionSetRemapEncode(self%applyToText,includesPrefix=.false.)
+    self   =excursionSetBarrierRemapScale(factor,applyTo,excursionSetBarrier_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="excursionSetBarrier_"/>

@@ -70,7 +70,8 @@ contains
     class           (excursionSetBarrierClass             ), pointer       :: excursionSetBarrier_
     double precision                                                       :: a                   , b, &
          &                                                                    c
-
+    integer                                                                :: applyTo
+    
     ! Check and read parameters.
     !![
     <inputParameter>
@@ -103,7 +104,8 @@ contains
     </inputParameter>
     <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
     !!]
-    self=excursionSetBarrierRemapShethMoTormen(a,b,c,enumerationExcursionSetRemapEncode(char(self%applyToText),includesPrefix=.false.),excursionSetBarrier_)
+    applyTo=enumerationExcursionSetRemapEncode(self%applyToText,includesPrefix=.false.)
+    self   =excursionSetBarrierRemapShethMoTormen(a,b,c,applyTo,excursionSetBarrier_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="excursionSetBarrier_"/>
