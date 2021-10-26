@@ -64,19 +64,6 @@
      module procedure stellarFeedbackOutflowRateConstructorInternal
   end interface nodePropertyExtractorStellarFeedbackOutflowRate
 
-  ! Enumerations for galactic components.
-  !![
-  <enumeration>
-   <name>galacticComponent</name>
-   <description>Specifies the galactic component for star formation rate calculations.</description>
-   <visibility>private</visibility>
-   <encodeFunction>yes</encodeFunction>
-   <entry label="disk"    />
-   <entry label="spheroid"/>
-   <entry label="total"   />
-  </enumeration>
-  !!]
-
 contains
 
   function stellarFeedbackOutflowRateConstructorParameters(parameters) result(self)

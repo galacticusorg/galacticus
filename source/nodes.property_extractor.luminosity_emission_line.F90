@@ -94,7 +94,7 @@ Contains a module which implements a stellar mass output analysis property extra
   ! Enumerations for galactic components and ionizing continuua.
   !![
   <enumeration>
-   <name>galacticComponent</name>
+   <name>component</name>
    <description>Specifies the galactic component for emission line calculations.</description>
    <indexing>1</indexing>
    <entry label="disk"    />
@@ -368,16 +368,16 @@ contains
     ! Determine output index.
     output   =  self%outputTimes_%index(basic%time(),findClosest=.true.)
     ! Extract all required properties.
-    luminositiesStellar(galacticComponentDisk    )=disk    %luminositiesStellar             (    )
-    luminositiesStellar(galacticComponentSpheroid)=spheroid%luminositiesStellar             (    )
-    abundancesGas      (galacticComponentDisk    )=disk    %abundancesGas                   (    )
-    abundancesGas      (galacticComponentSpheroid)=spheroid%abundancesGas                   (    )
-    massGas            (galacticComponentDisk    )=disk    %massGas                         (    )
-    massGas            (galacticComponentSpheroid)=spheroid%massGas                         (    )
-    radius             (galacticComponentDisk    )=disk    %radius                          (    )
-    radius             (galacticComponentSpheroid)=spheroid%radius                          (    )
-    rateStarFormation  (galacticComponentDisk    )=self    %starFormationRateDisks_    %rate(node)
-    rateStarFormation  (galacticComponentSpheroid)=self    %starFormationRateSpheroids_%rate(node)
+    luminositiesStellar(componentDisk    )=disk    %luminositiesStellar             (    )
+    luminositiesStellar(componentSpheroid)=spheroid%luminositiesStellar             (    )
+    abundancesGas      (componentDisk    )=disk    %abundancesGas                   (    )
+    abundancesGas      (componentSpheroid)=spheroid%abundancesGas                   (    )
+    massGas            (componentDisk    )=disk    %massGas                         (    )
+    massGas            (componentSpheroid)=spheroid%massGas                         (    )
+    radius             (componentDisk    )=disk    %radius                          (    )
+    radius             (componentSpheroid)=spheroid%radius                          (    )
+    rateStarFormation  (componentDisk    )=self    %starFormationRateDisks_    %rate(node)
+    rateStarFormation  (componentSpheroid)=self    %starFormationRateSpheroids_%rate(node)
     ! Extract ionizing continuum luminosities.
     do component=1,2
        do continuum=1,3

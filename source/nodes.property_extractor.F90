@@ -64,4 +64,17 @@ module Node_Property_Extractors
   </functionClass>
   !!]
 
+  ! Enumerations for galactic components.
+  !![
+  <enumeration>
+   <name>galacticComponent</name>
+   <description>Specifies the galactic component for various node property extractors.</description>
+   <visibility>private</visibility>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="disk"    />
+   <entry label="spheroid"/>
+   <entry label="total"   />
+  </enumeration>
+  !!]
+
 end module Node_Property_Extractors
