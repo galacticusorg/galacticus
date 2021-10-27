@@ -103,7 +103,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
-          ./test-methods.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 1:20 2>&1 | tee test.log
+          ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 1:20 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-02:
@@ -138,7 +138,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
-          ./test-methods.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 2:20 2>&1 | tee test.log
+          ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 2:20 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-03:
@@ -173,7 +173,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
-          ./test-methods.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 3:20 2>&1 | tee test.log
+          ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 3:20 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-04:
@@ -208,7 +208,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
-          ./test-methods.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 4:20 2>&1 | tee test.log
+          ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 4:20 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-05:
@@ -243,7 +243,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
-          ./test-methods.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 5:20 2>&1 | tee test.log
+          ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 5:20 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-06:
@@ -278,7 +278,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
-          ./test-methods.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 6:20 2>&1 | tee test.log
+          ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 6:20 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-07:
@@ -313,7 +313,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
-          ./test-methods.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 7:20 2>&1 | tee test.log
+          ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 7:20 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-08:
@@ -348,7 +348,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
-          ./test-methods.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 8:20 2>&1 | tee test.log
+          ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 8:20 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-09:
@@ -383,7 +383,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
-          ./test-methods.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 9:20 2>&1 | tee test.log
+          ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 9:20 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-10:
@@ -418,7 +418,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
-          ./test-methods.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 10:20 2>&1 | tee test.log
+          ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 10:20 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-11:
@@ -453,7 +453,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
-          ./test-methods.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 11:20 2>&1 | tee test.log
+          ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 11:20 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-12:
@@ -488,7 +488,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
-          ./test-methods.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 12:20 2>&1 | tee test.log
+          ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 12:20 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-13:
@@ -523,7 +523,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
-          ./test-methods.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 13:20 2>&1 | tee test.log
+          ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 13:20 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-14:
@@ -558,7 +558,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
-          ./test-methods.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 14:20 2>&1 | tee test.log
+          ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 14:20 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-15:
@@ -593,7 +593,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
-          ./test-methods.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 15:20 2>&1 | tee test.log
+          ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 15:20 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-16:
@@ -628,7 +628,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
-          ./test-methods.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 16:20 2>&1 | tee test.log
+          ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 16:20 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-17:
@@ -663,7 +663,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
-          ./test-methods.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 17:20 2>&1 | tee test.log
+          ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 17:20 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-18:
@@ -698,7 +698,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
-          ./test-methods.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 18:20 2>&1 | tee test.log
+          ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 18:20 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-19:
@@ -733,7 +733,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
-          ./test-methods.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 19:20 2>&1 | tee test.log
+          ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 19:20 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-20:
@@ -768,6 +768,6 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-methods.pl
-          ./test-methods.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 20:20 2>&1 | tee test.log
+          ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 20:20 2>&1 | tee test.log
           grep -v -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
