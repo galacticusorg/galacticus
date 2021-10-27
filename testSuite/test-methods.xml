@@ -1829,6 +1829,9 @@
     <excursionSetFirstCrossing value="farahi">
       <timeStepFractional value="0.01"/>
       <fileName value="auto"/>
+      <varianceNumberPerUnitProbability value="100"/>
+      <varianceNumberPerUnit value="20"/>
+      <varianceNumberPerDecade value="40"/>
     </excursionSetFirstCrossing>
     <darkMatterProfileConcentration value="schneider2015">
       <reference value="">
