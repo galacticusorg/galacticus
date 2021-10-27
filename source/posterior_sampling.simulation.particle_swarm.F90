@@ -331,16 +331,20 @@ contains
     <objectDestructor name="self%posteriorSampleStateInitialize_"  />
     <objectDestructor name="self%randomNumberGenerator_"           />
     !!]
-    do i=1,size(self%modelParametersActive_  )
-       !![
-       <objectDestructor name="self%modelParametersActive_  (i)%modelParameter_"/>
-       !!]
-    end do
-    do i=1,size(self%modelParametersInactive_)
-       !![
-       <objectDestructor name="self%modelParametersInactive_(i)%modelParameter_"/>
-       !!]
-    end do
+    if (associated(self%modelParametersActive_  )) then
+       do i=1,size(self%modelParametersActive_  )
+          !![
+	  <objectDestructor name="self%modelParametersActive_  (i)%modelParameter_"/>
+          !!]
+       end do
+    end if
+    if (associated(self%modelParametersInactive_)) then
+       do i=1,size(self%modelParametersInactive_)
+          !![
+	  <objectDestructor name="self%modelParametersInactive_(i)%modelParameter_"/>
+          !!]
+       end do
+    end if
     return
   end subroutine particleSwarmDestructor
 
