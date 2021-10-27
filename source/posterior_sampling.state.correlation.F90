@@ -237,6 +237,7 @@ contains
 
     ! Compute correlation lengths.
     if (mpiSelf%isMaster()) call displayIndent("Computing correlation lengths")
+    allocate(stateMean(size(self%states,dim=1)))
     stateMean              =sum(self%states(:,1:self%storedStateCount),dim=2)/dble(self%storedStateCount)
     self%correlationLengths=-1
     do i=1,size(stateMean)
