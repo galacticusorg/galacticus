@@ -30,6 +30,7 @@ jobs:
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
           echo "GALACTICUS_FCFLAGS+=\ -static" >> $GITHUB_ENV
+          echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Build the code
         run: |
           cd $GALACTICUS_EXEC_PATH

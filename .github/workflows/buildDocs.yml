@@ -59,6 +59,7 @@ jobs:
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+          echo "NODE_OPTIONS=--max_old_space_size=4096" >> $GITHUB_ENV
       - name: Build the docs
         run: |
           cd $GALACTICUS_EXEC_PATH
