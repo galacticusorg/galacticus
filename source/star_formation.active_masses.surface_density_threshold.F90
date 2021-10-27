@@ -33,8 +33,8 @@
      Implementation of an active mass for star formation class in which the mass of the ISM above a surface density threshold is active.
      !!}
      private
-     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
-     double precision                                     :: surfaceDensityThreshold, surfaceDensityNormalization, &
+     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_   => null()
+     double precision                                     :: surfaceDensityThreshold          , surfaceDensityNormalization, &
           &                                                  exponentVelocity
      type            (fastExponentiator        )          :: velocityExponentiator
    contains

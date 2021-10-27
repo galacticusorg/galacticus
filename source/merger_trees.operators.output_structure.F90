@@ -40,7 +40,7 @@
      A merger tree operator class which dumps pre-evolution tree structure to the output file.
      !!}
      private
-     class(nodePropertyExtractorClass), pointer :: nodePropertyExtractor_
+     class(nodePropertyExtractorClass), pointer :: nodePropertyExtractor_ => null()
      type (hdf5Object                )          :: outputGroup
    contains
      final     ::                        outputStructureDestructor

@@ -39,13 +39,13 @@
      A property extractor class for the rotation curve at a set of radii.
      !!}
      private
-     class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_
-     integer                                                      :: radiiCount                   , elementCount_
+     class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_          => null()
+     integer                                                      :: radiiCount                             , elementCount_
      logical                                                      :: includeRadii
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
-     logical                                                      :: darkMatterScaleRadiusIsNeeded, diskIsNeeded        , &
-          &                                                          spheroidIsNeeded             , virialRadiusIsNeeded
+     logical                                                      :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
+          &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded
    contains
      final     ::                       rotationCurveDestructor
      procedure :: columnDescriptions => rotationCurveColumnDescriptions

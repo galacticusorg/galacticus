@@ -35,7 +35,7 @@ satellite node passes.
      satellite node passes.
      !!}
      private
-     class(galacticFilterClass), pointer :: galacticFilter_
+     class(galacticFilterClass), pointer :: galacticFilter_ => null()
    contains
      final     ::           anySatelliteNodeDestructor
      procedure :: passes => anySatelliteNodePasses

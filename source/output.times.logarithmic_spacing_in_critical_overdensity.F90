@@ -33,9 +33,9 @@
      Implementation of an output times class which uses a set of times spaced uniformly in $\log \delta_\mathrm{c}$
      !!}
      private
-     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_
-     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
-     double precision                                         :: redshiftMinimum          , redshiftMaximum
+     class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_      => null()
+     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
+     double precision                                         :: redshiftMinimum                    , redshiftMaximum
      integer         (c_size_t                     )          :: countTimes
    contains
      final :: logarithmicSpacingInCriticalOverdensityDestructor

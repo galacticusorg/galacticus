@@ -53,14 +53,14 @@
      A property extractor which extracts lightcone properties.
      !!}
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_
-     class           (geometryLightconeClass ), pointer                   :: geometryLightcone_
-     integer                                                              :: elementCount_           , redshiftObservedOffset   , &
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_      => null()
+     class           (geometryLightconeClass ), pointer                   :: geometryLightcone_       => null()
+     integer                                                              :: elementCount_                     , redshiftObservedOffset   , &
           &                                                                  angularCoordinatesOffset
      integer         (c_size_t               )                            :: instanceIndex
-     type            (varying_string         ), allocatable, dimension(:) :: names_                  , descriptions_
+     type            (varying_string         ), allocatable, dimension(:) :: names_                            , descriptions_
      double precision                         , allocatable, dimension(:) :: unitsInSI_
-     logical                                                              :: includeObservedRedshift , includeAngularCoordinates, &
+     logical                                                              :: includeObservedRedshift           , includeAngularCoordinates, &
           &                                                                  atCrossing
    contains
      final     ::                 lightconeDestructor

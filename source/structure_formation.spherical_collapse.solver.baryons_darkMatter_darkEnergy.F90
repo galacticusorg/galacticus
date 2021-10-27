@@ -33,7 +33,7 @@
      A spherical collapse solver for universes consisting of baryons, collisionless matter, and dark energy.
      !!}
      private
-     class  (cosmologyParametersClass), pointer :: cosmologyParameters_
+     class  (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      logical                                    :: baryonsCluster
    contains
      final     ::             baryonsDarkMatterDarkEnergyDestructor

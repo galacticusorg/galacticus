@@ -33,7 +33,7 @@ Contains a module which implements a node property extractor class for halo envi
      A property extractor class for halo environment.
      !!}
      private
-     class(haloEnvironmentClass), pointer :: haloEnvironment_
+     class(haloEnvironmentClass), pointer :: haloEnvironment_ => null()
    contains
      final     ::                 haloEnvironmentDestructor
      procedure :: elementCount => haloEnvironmentElementCount

@@ -39,11 +39,11 @@
      A node operator class that tracks the mean star formation rate between successive outputs.
      !!}
      private
-     class  (outputTimesClass               ), pointer :: outputTimes_
-     class  (mergerMassMovementsClass       ), pointer :: mergerMassMovements_
-     class  (starFormationRateDisksClass    ), pointer :: starFormationRateDisks_
-     class  (starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_
-     integer                                           :: starFormationRateDiskInterOutputID, starFormationRateSpheroidInterOutputID, &
+     class  (outputTimesClass               ), pointer :: outputTimes_                       => null()
+     class  (mergerMassMovementsClass       ), pointer :: mergerMassMovements_               => null()
+     class  (starFormationRateDisksClass    ), pointer :: starFormationRateDisks_            => null()
+     class  (starFormationRateSpheroidsClass), pointer :: starFormationRateSpheroids_        => null()
+     integer                                           :: starFormationRateDiskInterOutputID          , starFormationRateSpheroidInterOutputID, &
           &                                               starFormationRateInterOutputNextID
    contains
      final     ::                                starFormationRateInterOutputDestructor

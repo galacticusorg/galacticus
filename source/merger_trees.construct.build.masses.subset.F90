@@ -33,8 +33,8 @@
      Implementation of a merger tree masses class which constructs a subset of another class.
      !!}
      private
-     class  (mergerTreeBuildMassesClass), pointer :: mergerTreeBuildMasses_
-     integer(c_size_t                  )          :: subsetBegin           , subsetEnd
+     class  (mergerTreeBuildMassesClass), pointer :: mergerTreeBuildMasses_ => null()
+     integer(c_size_t                  )          :: subsetBegin                     , subsetEnd
    contains
      final     ::              subsetDestructor
      procedure :: construct => subsetConstruct

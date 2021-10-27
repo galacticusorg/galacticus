@@ -34,9 +34,9 @@
      dynamical time.
      !!}
      private
-     class           (starFormationTimescaleClass), pointer :: starFormationTimescale_
+     class           (starFormationTimescaleClass), pointer :: starFormationTimescale_ => null()
      double precision                                       :: timescaleMinimum
-     logical                                                :: diskSupported          , spheroidSupported
+     logical                                                :: diskSupported                    , spheroidSupported
    contains
      procedure :: timescale => lowerLimitedTimescale
   end type starFormationTimescaleLowerLimited

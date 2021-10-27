@@ -34,8 +34,8 @@ Contains a module which implements a node property extractor class for the \cite
      A property extractor class for the \cite{bullock_profiles_2001} definition of spin parameter..
      !!}
      private
-     class  (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_
-     class  (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
+     class  (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
+     class  (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
      logical                                     :: vectorSpinAvailable
      integer                                     :: elementCount_
    contains
