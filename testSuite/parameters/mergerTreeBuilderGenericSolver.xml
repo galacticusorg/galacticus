@@ -113,7 +113,6 @@
 
   <!-- Output options -->
   <mergerTreeOutputter value="null"/>
-  <galacticusOutputFileName value="testSuite/outputs/mergerTreeBuilderGenericSolver.hdf5"/>
 
   <!-- Statistics -->
   <mergerTreeOperator value="conditionalMF">

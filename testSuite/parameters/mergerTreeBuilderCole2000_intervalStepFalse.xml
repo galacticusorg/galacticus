@@ -107,7 +107,6 @@
 
   <!-- Output options -->
   <mergerTreeOutputter value="null"/>
-  <galacticusOutputFileName value="testSuite/outputs/mergerTreeBuilderCole2000_intervalStepFalse.hdf5"/>
 
   <!-- Statistics -->
   <mergerTreeOperator value="conditionalMF">
