@@ -197,41 +197,41 @@
      class           (randomNumberGeneratorClass         ), pointer                   :: randomNumberGenerator_                => null()
      class           (nodeOperatorClass                  ), pointer                   :: nodeOperator_                         => null()
      integer                                                                          :: fileCurrent
-     type            (varying_string                     ), allocatable, dimension(:) :: fileNames                                      , presetNamedReals                    , &
+     type            (varying_string                     ), allocatable, dimension(:) :: fileNames                                       , presetNamedReals                    , &
           &                                                                              presetNamedIntegers
-     integer                                              , allocatable, dimension(:) :: indexNamedReals                                , indexNamedIntegers
-     logical                                                                          :: importerOpen
+     integer                                              , allocatable, dimension(:) :: indexNamedReals                                 , indexNamedIntegers
+     logical                                                                          :: importerOpen                          =  .false.
      integer         (kind_int8                          )                            :: beginAt
      double precision                                                                 :: treeWeightCurrent
      logical                                                                          :: allowBranchJumps
      logical                                                                          :: allowSubhaloPromotions
-     integer         (c_size_t                           )                            :: forestSizeMaximum                              , treeNumberOffset
+     integer         (c_size_t                           )                            :: forestSizeMaximum                               , treeNumberOffset
      logical                                                                          :: presetMergerTimes
      logical                                                                          :: presetMergerNodes
      logical                                                                          :: presetSubhaloMasses
      logical                                                                          :: presetSubhaloIndices
      logical                                                                          :: presetPositions
-     logical                                                                          :: presetScaleRadii                               , scaleRadiiFailureIsFatal
-     double precision                                                                 :: presetScaleRadiiMinimumMass                    , presetScaleRadiiConcentrationMinimum, &
+     logical                                                                          :: presetScaleRadii                                , scaleRadiiFailureIsFatal
+     double precision                                                                 :: presetScaleRadiiMinimumMass                     , presetScaleRadiiConcentrationMinimum, &
           &                                                                              presetScaleRadiiConcentrationMaximum
-     logical                                                                          :: presetSpins                                    , presetSpins3D                       , &
+     logical                                                                          :: presetSpins                                     , presetSpins3D                       , &
           &                                                                              presetUnphysicalSpins
-     logical                                                                          :: presetOrbits                                   , presetOrbitsAssertAllSet            , &
-          &                                                                              presetOrbitsBoundOnly                          , presetOrbitsSetAll
+     logical                                                                          :: presetOrbits                                    , presetOrbitsAssertAllSet            , &
+          &                                                                              presetOrbitsBoundOnly                           , presetOrbitsSetAll
      integer                                                                          :: subhaloAngularMomentaMethod
      logical                                                                          :: missingHostsAreFatal
      logical                                                                          :: treeIndexToRootNodeIndex
      integer         (c_size_t                           )                            :: outputTimesCount
      double precision                                                                 :: outputTimeSnapTolerance
      double precision                                     , allocatable, dimension(:) :: outputTimes
-     integer         (c_size_t                           ), allocatable, dimension(:) :: descendentLocations                             , nodeLocations
-     integer         (kind_int8                          ), allocatable, dimension(:) :: descendentIndicesSorted                         , nodeIndicesSorted
+     integer         (c_size_t                           ), allocatable, dimension(:) :: descendentLocations                              , nodeLocations
+     integer         (kind_int8                          ), allocatable, dimension(:) :: descendentIndicesSorted                          , nodeIndicesSorted
      !$ integer      (omp_lock_kind                      )                            :: splitForestLock
      integer                                                                          :: splitForestActiveForest
-     integer         (c_size_t                           )                            :: splitForestNextTree                             , splitForestUniqueID
-     integer         (c_size_t                           ), allocatable, dimension(:) :: splitForestTreeSize                             , splitForestTreeStart               , &
+     integer         (c_size_t                           )                            :: splitForestNextTree                              , splitForestUniqueID
+     integer         (c_size_t                           ), allocatable, dimension(:) :: splitForestTreeSize                              , splitForestTreeStart               , &
           &                                                                              splitForestMapIndex
-     integer         (kind_int8                          ), allocatable, dimension(:) :: splitForestPushTo                               , splitForestPullFrom
+     integer         (kind_int8                          ), allocatable, dimension(:) :: splitForestPushTo                                , splitForestPullFrom
      integer                                              , allocatable, dimension(:) :: splitForestPushType
      double precision                                     , allocatable, dimension(:) :: splitForestPushTime
      logical                                              , allocatable, dimension(:) :: splitForestIsPrimary                            , splitForestPushDone                , &
