@@ -11,6 +11,7 @@ use Sys::CPU;
 use Clone qw(clone);
 use Galacticus::Launch::Hooks;
 use Galacticus::Launch::PostProcess;
+use System::Redirect;
 
 # Insert hooks for our functions.
 %Galacticus::Launch::Hooks::moduleHooks = 
@@ -93,12 +94,12 @@ sub Launch_Models {
 	if ( ( $i % $threadCount ) == $iThread ) {
  	    print " -> thread ".$iThread." running job: ".$jobs[$i]->{'label'}."\n"
 		if ( $verbosity > 0 );
-	    system(
+	    &System::Redirect::tofile(
 		    "ulimit -t unlimited;"        .
 		    "ulimit -c unlimited;"        .
 		    "export GFORTRAN_ERROR_DUMPCORE=YES;".
 		    "export OMP_NUM_THREADS=".$ompThreads.";".
-		    $ENV{'GALACTICUS_EXEC_PATH'}."/Galacticus.exe ".$jobs[$i]->{'directory'}."/parameters.xml 2>&1 ".
+		    $ENV{'GALACTICUS_EXEC_PATH'}."/Galacticus.exe ".$jobs[$i]->{'directory'}."/parameters.xml",
 		    $jobs[$i]->{'directory'}."/galacticus.log"
 		);
 	    if ( $? == 0 ) {
