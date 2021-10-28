@@ -143,8 +143,10 @@ contains
     implicit none
     type(posteriorSampleLikelihoodGalaxyPopulation), intent(inout) :: self
 
-    call self%parametersModel%destroy()
-    deallocate(self%parametersModel)
+    if (associated(self%parametersModel)) then
+       call self%parametersModel%destroy()
+       deallocate(self%parametersModel)
+    end if
     return
   end subroutine galaxyPopulationDestructor
 
