@@ -5,7 +5,7 @@
   <!-- Beta model maximum likelihood model -->
 
   <!-- Logging -->
-  <verbosityLevel value="standard"/>
+  <verbosityLevel value="working"/>
 
   <!-- Random number generation -->
   <randomNumberGenerator value="GSL">
