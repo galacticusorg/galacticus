@@ -663,7 +663,7 @@ contains
                             erfcArgumentNumerator=+effectiveBarrierInitial    &
                                  &                -barrierMidTableRateQuad(j) &
                                  &                +barrier
-                            if (erfcArgumentNumerator == 0.0_kind_quad) then
+                            if (erfcArgumentNumerator == 0.0_kind_quad .or. exponent(erfcArgumentNumerator)-exponent(erfcArgumentDenominator) > maxExponent(0.0_kind_quad)) then
                                erfcValue=1.0_kind_quad
                             else
                                erfcArgumentDenominator=sqrt(2.0_kind_quad*(varianceTableRateQuad(i)-varianceMidTableRateQuad(j)))
