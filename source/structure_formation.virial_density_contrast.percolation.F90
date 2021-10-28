@@ -63,7 +63,7 @@
       <code>class           (*                      ), pointer :: percolationObjects_ => null()</code>
      </workaround>
      !!]
-     class           (*                               ), pointer :: percolationObjects_
+     class           (*                               ), pointer :: percolationObjects_ => null()
      integer         (kind_int8                       )          :: selfID
      ! Tabulation of density contrast vs. time and mass.
      double precision                                            :: densityContrastTableTimeMinimum           , densityContrastTableTimeMaximum
@@ -242,8 +242,10 @@ contains
     implicit none
     type(virialDensityContrastPercolation), intent(inout) :: self
 
-    if (self%densityContrastTableInitialized) call self%densityContrastTable%destroy()
-    !$ call OMP_Destroy_Lock(self%densityContrastTableLock)
+    if (self%densityContrastTableInitialized) then
+       call self%densityContrastTable%destroy()
+       !$ call OMP_Destroy_Lock(self%densityContrastTableLock)
+    end if
     !![
     <objectDestructor name="self%cosmologyFunctions_" />
     !!]
