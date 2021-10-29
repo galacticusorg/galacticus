@@ -129,6 +129,18 @@ if ( $? == 0 ) {
 # Read test and reference data.
 my $modelData;
 foreach my $model ( @models ) {
+    if  ( exists($model->{'tmpName'}) && -e $model->{'tmpName'} ) {
+	# Model was run.
+	system("cp ".$model->{'tmpName'}." ".$model->{'fileName'});
+	$model->{'exists'} = 1;
+    } elsif ( ! exists($model->{'tmpName'}) ) {
+	# Reference model.
+	$model->{'exists'} = 1;
+    } else {
+	# Model was not run.
+	$model->{'exists'} = 0;
+	next;
+    }
     $modelData->{$model->{'type'}}->{'file' } = new PDL::IO::HDF5($model->{'fileName'});
     $modelData->{$model->{'type'}}->{'group'} = $modelData->{$model->{'type'}}->{'file'}->group("conditionalMassFunction");
     foreach my $datasetName ( 'massParent', 'massRatio', 'redshiftParent', 'redshiftProgenitor', 'conditionalMassFunction', 'conditionalMassFunctionError' ) {
@@ -170,6 +182,8 @@ for(my $iRedshift=0;$iRedshift<nelem($modelData->{'reference'}->{'redshiftParent
 	print $gnuPlot "set yrange [1.0e-2:1.0e1]\n";
 	print $gnuPlot "set pointsize 1.0\n";
 	foreach my $model ( @models ) {
+	    next
+		unless ( $model->{'exists'} );
 	    # Construct measure of how well the model matches the reference model.
 	    if ( exists($model->{'reference'}) ) {
 		my $select = which
@@ -210,7 +224,7 @@ for(my $iRedshift=0;$iRedshift<nelem($modelData->{'reference'}->{'redshiftParent
 my $typeLength = &List::Util::max(map {length($_->{'type'})} @models);
 foreach my $model ( @models ) {
     next
-	unless ( exists($model->{'reference'}) );
+	unless ( $model->{'exists'} && exists($model->{'reference'}) );
     my $status = ($modelData->{$model->{'type'}}->{'matchMeasureMaximum'} > $model->{'toleranceSigma'} && $modelData->{$model->{'type'}}->{'deviationFractionalMaximum'} > $model->{'toleranceFractional'}) ? "FAILED" : "success";
     print $status.": ".$model->{'type'}.(" " x ($typeLength-length($model->{'type'}))).": Δσₘₐₓ = ".sprintf("%3.1f",$modelData->{$model->{'type'}}->{'matchMeasureMaximum'})." {limit: ".sprintf("%3.1f",$model->{'toleranceSigma'})."}; Δ(log f)ₘₐₓ = ".sprintf("%7.1e",$modelData->{$model->{'type'}}->{'deviationFractionalMaximum'})." {limit: ".sprintf("%7.1e",$model->{'toleranceFractional'})."}\n";
 }
