@@ -678,18 +678,18 @@ contains
                             end if
                          end do
                          varianceTableStepRate=varianceTableRateQuad(i)-varianceTableRateQuad(i-1)
-                         firstCrossingTableRateQuad(i)=max(                                                                              &
-                              &                            +0.0_kind_quad,                                                               &
-                              &                            +(                                                                            &
-                              &                              +Error_Function_Complementary(                                              &
-                              &                                                            +effectiveBarrierInitial                      &
-                              &                                                            /sqrt(2.0_kind_quad*varianceTableRateQuad(i)) &
-                              &                                                           )                                              &
-                              &                              -sigma1f                                                                    &
-                              &                             )                                                                            &
-                              &                            /varianceTableStepRate                                                        &
-                              &                            /integralKernelRate                                                           &
-                              &                           )
+                         firstCrossingTableRateQuad(i)=+Error_Function_Complementary(                                              &
+                              &                                                      +effectiveBarrierInitial                      &
+                              &                                                      /sqrt(2.0_kind_quad*varianceTableRateQuad(i)) &
+                              &                                                     )                                              &
+                              &                        -sigma1f
+                         if (firstCrossingTableRateQuad(i) > 0.0d0) then
+                            firstCrossingTableRateQuad(i)=+firstCrossingTableRateQuad(i) &
+                                 &                        /varianceTableStepRate         &
+                                 &                        /integralKernelRate
+                         else
+                            firstCrossingTableRateQuad(i)=0.0d0
+                         end if
                          ! Remove unphysical values. Force the crossing rate at points close to maximum variance, or where most
                          ! trajectories have already crossed the barrier to zero if its value is one order of magnitude larger
                          ! than the value at previous point.
