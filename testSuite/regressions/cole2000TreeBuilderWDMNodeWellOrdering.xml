@@ -5,7 +5,7 @@
   <version>0.9.4</version>
 
   <!-- Verbosity -->
-  <verbosityLevel value="working"/>
+  <verbosityLevel value="warn"/>
 
   <!-- Component selection -->
   <componentBasic value="standard"/>
