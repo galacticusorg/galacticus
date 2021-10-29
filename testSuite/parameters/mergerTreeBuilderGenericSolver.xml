@@ -101,7 +101,9 @@
   </mergerTreeMassResolution>
   <excursionSetBarrier value="criticalOverdensity"/>
   <excursionSetFirstCrossing value="farahiMidpoint">
-    <fileName value="auto"/>
+    <fileName                value="auto"/>
+    <varianceNumberPerUnit   value=" 10" />
+    <varianceNumberPerDecade value="100" />
   </excursionSetFirstCrossing>
 
   <!-- Substructure hierarchy options -->
