@@ -136,6 +136,7 @@ module MPI_Utilities
      integer(c_size_t    ) :: counter
 #endif
      !$ type(ompLock )     :: ompLock_
+     logical               :: initialized=.false.
    contains
      !![
      <methods>
@@ -1918,6 +1919,7 @@ call mpiBarrier()
     self%counter=0
 #endif
     !$ self%ompLock_=ompLock()
+    self%initialized=.true.
     return
   end function counterConstructor
 
@@ -1933,8 +1935,10 @@ call mpiBarrier()
 #ifdef USEMPI
     integer                            :: iError
 
-    call MPI_Win_Free(self%window ,iError)
-    call MPI_Free_Mem(self%counter,iError)
+    if (self%initialized) then
+       call MPI_Win_Free(self%window ,iError)
+       call MPI_Free_Mem(self%counter,iError)
+    end if
 #else
     !$GLC attributes unused :: self
 #endif
