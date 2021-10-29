@@ -123,7 +123,9 @@ while ( my $fileName = readdir($testSuite) ) {
     		);
     	    push(@pbsJobs,\%job);
     	} else {
-    	    system("cd ..; ./Galacticus.exe testSuite/outputs/test-model-integration/".$modelName."/parameters.xml");
+	    ## AJB HACK
+    	    #system("cd ..; ./Galacticus.exe testSuite/outputs/test-model-integration/".$modelName."/parameters.xml");
+    	    system("cd ..; ./Galacticus.exe testSuite/outputs/test-model-integration/".$modelName."/parameters.xml &; sleep 600; p=`ps aux|grep Galacticus.exe | grep -v grep | awk '{print $2}'`; gdb --pid $p -batch -ex 'info threads' -ex 'thead 1' -ex 'where' -ex 'thread 2' -ex 'where'; kill -KILL $p");
     	}
     	print "   <-- ...done\n";
     	print "<-- ...done\n";
