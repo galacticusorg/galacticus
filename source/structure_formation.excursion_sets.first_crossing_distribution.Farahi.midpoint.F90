@@ -374,7 +374,7 @@ contains
     class           (excursionSetBarrierClass               ), pointer                         :: excursionSetBarrier_
     class           (cosmologicalMassVarianceClass          ), pointer                         :: cosmologicalMassVariance_
     real            (kind=kind_quad                         ), parameter                       :: nonCrossingFractionTiny   =1.0e-002_kind_quad
-    real            (kind=kind_quad                         ), parameter                       :: fractionCrossingRateHuge  =1.0e+100_kind_quad
+    real            (kind=kind_quad                         ), parameter                       :: firstCrossingRateHuge     =1.0e+100_kind_quad
 #ifdef USEMPI
     integer                                                                                    :: taskCount
 #endif
@@ -703,7 +703,11 @@ contains
                               &    crossingFraction                                                  > (1.0_kind_quad-nonCrossingFractionTiny)                       &
                               &   )                                                                                                                                  &
                               &  .and.                                                                                                                               &
+                              &  (                                                                                                                                   &
                               &   firstCrossingTableRateQuad(i)                                      > 10.0_kind_quad*firstCrossingTableRateQuad(i-1)                &
+                              &   .or.                                                                                                                               &
+                              &   firstCrossingTableRateQuad(i)                                      >                firstCrossingRateHuge                          &
+                              &   )                                                                                                                                  &
                               & )                                                                                                                                    &
                               & firstCrossingTableRateQuad(i)=0.0_kind_quad
                          ! Accumulate the crossing fraction for use in the above check.
@@ -712,7 +716,7 @@ contains
                          crossingFractionNew  =+crossingFraction                &
                               &                +firstCrossingTableRateQuad(i  ) &
                               &                *varianceTableStepRate
-                         if ((crossingFractionNew > 1.1_kind_quad .or. firstCrossingTableRateQuad(i) > fractionCrossingRateHuge) .and. displayVerbosity() >= verbosityLevelWarn) then
+                         if ((crossingFractionNew > 1.1_kind_quad .or. firstCrossingTableRateQuad(i) > firstCrossingRateHuge) .and. displayVerbosity() >= verbosityLevelWarn) then
                             message=         displayMagenta()//"WARNING:"//displayReset()//" unphysical solution for crossing rate:"//char(10)
                             write (label,'(e15.6)') crossingFractionNew
                             message=message//"    crossing fraction = "//trim(label)//char(10)
