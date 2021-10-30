@@ -696,6 +696,12 @@ contains
                          ! Remove unphysical values. Force the crossing rate at points close to maximum variance, or where most
                          ! trajectories have already crossed the barrier to zero if its value is one order of magnitude larger
                          ! than the value at previous point.
+ 
+
+                         !! AJB HACK
+                         if (iTime == 2 .and. iVariance == 645 .and. i >= 1257) write (0,*) "DEBUG ",i,varianceTableRateQuad(i),varianceTableRateBaseQuad(iVariance), self%varianceMaximumRate-10.0_kind_quad*varianceTableStepRate,crossingFraction,(1.0_kind_quad-nonCrossingFractionTiny),firstCrossingTableRateQuad(i),10.0_kind_quad*firstCrossingTableRateQuad(i-1),firstCrossingRateHuge,varianceTableRateQuad    (i)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate-10.0_kind_quad*varianceTableStepRate,crossingFraction                                                  > (1.0_kind_quad-nonCrossingFractionTiny),firstCrossingTableRateQuad(i)                                      > 10.0_kind_quad*firstCrossingTableRateQuad(i-1)  ,firstCrossingTableRateQuad(i)                                      >                firstCrossingRateHuge
+
+
                          if     (                                                                                                                                    &
                               &  (                                                                                                                                   &
                               &    varianceTableRateQuad    (i)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate-10.0_kind_quad*varianceTableStepRate &
