@@ -387,7 +387,7 @@ contains
     double precision                                                                           :: timeProgenitor                               , varianceMinimumRate      , &
          &                                                                                        massProgenitor                               , timeMinimumRate          , &
          &                                                                                        timeMaximumRate
-    character       (len=24                                 )                                  :: label
+    character       (len=64                                 )                                  :: label
     type            (varying_string                         )                                  :: message
     type            (lockDescriptor                         )                                  :: fileLock
     real            (kind=kind_quad                         )                                  :: crossingFraction                             , effectiveBarrierInitial  , &
@@ -693,6 +693,12 @@ contains
                          else
                             firstCrossingTableRateQuad(i)=0.0d0
                          end if
+                         ! Accumulate the crossing fraction for use in the following check.
+                         varianceTableStepRate=+varianceTableRateQuad     (i  ) &
+                              &                -varianceTableRateQuad     (i-1)
+                         crossingFractionNew  =+crossingFraction                &
+                              &                +firstCrossingTableRateQuad(i  ) &
+                              &                *varianceTableStepRate
                          ! Remove unphysical values. Force the crossing rate at points close to maximum variance, or where most
                          ! trajectories have already crossed the barrier to zero if its value is one order of magnitude larger
                          ! than the value at previous point.
@@ -700,7 +706,7 @@ contains
                               &  (                                                                                                                                   &
                               &    varianceTableRateQuad    (i)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate-10.0_kind_quad*varianceTableStepRate &
                               &   .or.                                                                                                                               &
-                              &    crossingFraction                                                  > (1.0_kind_quad-nonCrossingFractionTiny)                       &
+                              &    crossingFractionNew                                               > (1.0_kind_quad-nonCrossingFractionTiny)                       &
                               &   )                                                                                                                                  &
                               &  .and.                                                                                                                               &
                               &  (                                                                                                                                   &
@@ -712,15 +718,9 @@ contains
                               &   )                                                                                                                                  &
                               & )                                                                                                                                    &
                               & firstCrossingTableRateQuad(i)=0.0_kind_quad
-                         ! Accumulate the crossing fraction for use in the above check.
-                         varianceTableStepRate=+varianceTableRateQuad     (i  ) &
-                              &                -varianceTableRateQuad     (i-1)
-                         crossingFractionNew  =+crossingFraction                &
-                              &                +firstCrossingTableRateQuad(i  ) &
-                              &                *varianceTableStepRate
                          if (abs(firstCrossingTableRateQuad(i)) > firstCrossingRateHuge .and. displayVerbosity() >= verbosityLevelWarn) then
                             message=         displayMagenta()//"WARNING:"//displayReset()//" unphysical solution for crossing rate:"//char(10)
-                            write (label,'(e15.6)') crossingFractionNew
+                            write (label,'(e15.6," (",e15.6,")")') crossingFraction,crossingFractionNew
                             message=message//"    crossing fraction = "//trim(label)//char(10)
                             write (label,'(e15.6)') firstCrossingTableRateQuad(i)
                             message=message//"  first crossing rate = "//trim(label)//char(10)
