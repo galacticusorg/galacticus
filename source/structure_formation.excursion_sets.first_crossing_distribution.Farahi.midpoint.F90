@@ -696,7 +696,7 @@ contains
                          ! Remove unphysical values. Force the crossing rate at points close to maximum variance, or where most
                          ! trajectories have already crossed the barrier to zero if its value is one order of magnitude larger
                          ! than the value at previous point.
-                          if     (                                                                                                                                    &
+                         if     (                                                                                                                                    &
                               &  (                                                                                                                                   &
                               &    varianceTableRateQuad    (i)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate-10.0_kind_quad*varianceTableStepRate &
                               &   .or.                                                                                                                               &
@@ -707,6 +707,8 @@ contains
                               &   firstCrossingTableRateQuad(i)                                      > 10.0_kind_quad*firstCrossingTableRateQuad(i-1)                &
                               &   .or.                                                                                                                               &
                               &   firstCrossingTableRateQuad(i)                                      >                firstCrossingRateHuge                          &
+                              &   .or.                                                                                                                               &
+                              &   firstCrossingTableRateQuad(i)                                      <  0.0_kind_quad                                                &
                               &   )                                                                                                                                  &
                               & )                                                                                                                                    &
                               & firstCrossingTableRateQuad(i)=0.0_kind_quad
@@ -716,7 +718,7 @@ contains
                          crossingFractionNew  =+crossingFraction                &
                               &                +firstCrossingTableRateQuad(i  ) &
                               &                *varianceTableStepRate
-                         if ((crossingFractionNew > 1.1_kind_quad .or. firstCrossingTableRateQuad(i) > firstCrossingRateHuge) .and. displayVerbosity() >= verbosityLevelWarn) then
+                         if (abs(firstCrossingTableRateQuad(i)) > firstCrossingRateHuge .and. displayVerbosity() >= verbosityLevelWarn) then
                             message=         displayMagenta()//"WARNING:"//displayReset()//" unphysical solution for crossing rate:"//char(10)
                             write (label,'(e15.6)') crossingFractionNew
                             message=message//"    crossing fraction = "//trim(label)//char(10)
