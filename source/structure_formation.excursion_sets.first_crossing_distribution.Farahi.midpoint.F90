@@ -563,7 +563,7 @@ contains
           ! is initialized and covers the whole range we are intereseted in.
           barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMinimumRate*(1.0d0-self%timeStepFractional),node,rateCompute=.true.)
           barrierRateTest=self%excursionSetBarrier_%barrier(self%varianceMaximumRate,self%timeMaximumRate                                ,node,rateCompute=.true.)
-          !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,integralKernelRate,crossingFraction,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_,cosmologicalMassVariance_,barrierTableRateQuad,barrierMidTableRateQuad,massProgenitor,growthFactorEffective) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
+          !$omp parallel private(iTime,timeProgenitor,iVariance,varianceTableStepRate,i,j,sigma1f,integralKernelRate,crossingFraction,crossingFractionNew,barrier,effectiveBarrierInitial,firstCrossingTableRateQuad,excursionSetBarrier_,cosmologicalMassVariance_,barrierTableRateQuad,barrierMidTableRateQuad,massProgenitor,growthFactorEffective,message,label) if (.not.mpiSelf%isActive() .or. .not.self%coordinatedMPI_)
           allocate(excursionSetBarrier_     ,mold=self%excursionSetBarrier_     )
           allocate(cosmologicalMassVariance_,mold=self%cosmologicalMassVariance_)
           !$omp critical(excursionSetsSolverFarahiMidpointDeepCopy)
@@ -696,13 +696,7 @@ contains
                          ! Remove unphysical values. Force the crossing rate at points close to maximum variance, or where most
                          ! trajectories have already crossed the barrier to zero if its value is one order of magnitude larger
                          ! than the value at previous point.
- 
-
-                         !! AJB HACK
-                         if (iTime == 2 .and. iVariance == 645 .and. i >= 1257) write (0,*) "DEBUG ",i,varianceTableRateQuad(i),varianceTableRateBaseQuad(iVariance), self%varianceMaximumRate-10.0_kind_quad*varianceTableStepRate,crossingFraction,(1.0_kind_quad-nonCrossingFractionTiny),firstCrossingTableRateQuad(i),10.0_kind_quad*firstCrossingTableRateQuad(i-1),firstCrossingRateHuge,varianceTableRateQuad    (i)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate-10.0_kind_quad*varianceTableStepRate,crossingFraction                                                  > (1.0_kind_quad-nonCrossingFractionTiny),firstCrossingTableRateQuad(i)                                      > 10.0_kind_quad*firstCrossingTableRateQuad(i-1)  ,firstCrossingTableRateQuad(i)                                      >                firstCrossingRateHuge
-
-
-                         if     (                                                                                                                                    &
+                          if     (                                                                                                                                    &
                               &  (                                                                                                                                   &
                               &    varianceTableRateQuad    (i)+varianceTableRateBaseQuad(iVariance) > self%varianceMaximumRate-10.0_kind_quad*varianceTableStepRate &
                               &   .or.                                                                                                                               &
