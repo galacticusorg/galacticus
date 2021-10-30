@@ -57,19 +57,14 @@
      class           (cosmologyFunctionsClass         ), pointer :: cosmologyFunctions_             => null()
      logical                                                     :: isRecursive                               , parentDeferred
      class           (virialDensityContrastPercolation), pointer :: recursiveSelf                   => null()
-     !![
-     <workaround type="gfortran" PR="90788" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=90788">
-      <description>Null initialization of the following class(*) pointer causes an ICE in gfortran 10.0</description>
-      <code>class           (*                      ), pointer :: percolationObjects_ => null()</code>
-     </workaround>
-     !!]
-     class           (*                               ), pointer :: percolationObjects_ => null()
+     class           (*                               ), pointer :: percolationObjects_             => null()
      integer         (kind_int8                       )          :: selfID
      ! Tabulation of density contrast vs. time and mass.
      double precision                                            :: densityContrastTableTimeMinimum           , densityContrastTableTimeMaximum
      double precision                                            :: densityContrastTableMassMinimum           , densityContrastTableMassMaximum
      integer                                                     :: densityContrastTableMassCount             , densityContrastTableTimeCount
      logical                                                     :: densityContrastTableInitialized =  .false.
+     logical                                                     :: densityContrastLockInitialized  =  .false.
      type            (table2DLogLogLin                )          :: densityContrastTable
      !$ integer      (omp_lock_kind                   )          :: densityContrastTableLock
      integer                                                     :: densityContrastTableRemakeCount
@@ -194,6 +189,7 @@ contains
     self%densityContrastTableMassMaximum= 1.0d+16
     self%densityContrastTableInitialized=.false.
     self%densityContrastTableRemakeCount= 0
+    self%densityContrastLockInitialized =.true.
     !$ call OMP_Init_Lock(self%densityContrastTableLock)
     ! Check if we have been given a percolation objects container. If not, we expect that we are being built recursively, in which
     ! case we require a pointer to the originating object under construction.
@@ -242,10 +238,8 @@ contains
     implicit none
     type(virialDensityContrastPercolation), intent(inout) :: self
 
-    if (self%densityContrastTableInitialized) then
-       call self%densityContrastTable%destroy()
-       !$ call OMP_Destroy_Lock(self%densityContrastTableLock)
-    end if
+    if    (self%densityContrastTableInitialized) call                  self%densityContrastTable    %destroy()
+    !$ if (self%densityContrastLockInitialized ) call OMP_Destroy_Lock(self%densityContrastTableLock          )
     !![
     <objectDestructor name="self%cosmologyFunctions_" />
     !!]
@@ -563,7 +557,8 @@ contains
           call percolationObjectsDeepCopy_(self%percolationobjects_,destination%percolationobjects_)
        end if
        call destination%densitycontrasttable%deepCopyActions()
-       !$ call OMP_Init_Lock(destination%densitycontrasttablelock)
+       destination%densityContrastLockInitialized=.true.
+       !$ call OMP_Init_Lock(destination%densityContrastTableLock)
     class default
        call Galacticus_Error_Report('destination and source types do not match'//{introspection:location})
     end select
