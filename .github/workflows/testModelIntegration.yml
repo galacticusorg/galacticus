@@ -109,7 +109,12 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           cd testSuite
           chmod u=wrx ./test-model-integration.pl
-          ./test-model-integration.pl --instance 1:2 2>&1 | tee test.log
+          # AJB HACK ./test-model-integration.pl --instance 1:2 2>&1 | tee test.log
+          sudo apt update
+          sudo apt install -y gdb
+          cd ..
+          mkdir -p testSuite/outputs/test-model-integration/beta
+          ./scripts/aux/gdbController.pl 'run' 300 'thread apply all bt' gdb --args ./Galacticus.exe testSuite/test-model-integration-beta.xml
           grep -v -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Runner-2:
