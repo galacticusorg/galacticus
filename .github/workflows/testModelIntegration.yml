@@ -110,8 +110,8 @@ jobs:
           cd testSuite
           chmod u=wrx ./test-model-integration.pl
           # AJB HACK ./test-model-integration.pl --instance 1:2 2>&1 | tee test.log
-          sudo apt update
-          sudo apt install -y gdb
+          apt update
+          apt install -y gdb
           cd ..
           mkdir -p testSuite/outputs/test-model-integration/beta
           ./scripts/aux/gdbController.pl 'run' 300 'thread apply all bt' gdb --args ./Galacticus.exe testSuite/test-model-integration-beta.xml
