@@ -182,12 +182,10 @@ module File_Utilities
      type(varying_string) :: fileName
   end type lockDescriptor
 
-#ifdef OFDUNAVAIL
   type   (ompLock) :: posixOpenMPFileLock
   logical          :: posixOpenMPFileLockInitialized=.false.
   integer          :: posixOpenMPFileLockCount      =0
   !$omp threadprivate(posixOpenMPFileLockCount)
-#endif
   
 contains
 
@@ -280,8 +278,8 @@ contains
 
     lockIsShared_=0
     if (present(lockIsShared).and.lockIsShared) lockIsShared_=1
-#ifdef OFDUNAVAIL
-    ! Without OFD locks we must lock per OpenMP thread since POSIX file locks are only process-aware, not thread-aware.
+    ! Even is using OFD locks we must lock per OpenMP thread since POSIX file locks, since we may have the file open multiple
+    ! times with different "descriptions" (see https://www.gnu.org/software/libc/manual/html_node/Open-File-Description-Locks.html).
     if (.not.posixOpenMPFileLockInitialized) then
        !$omp critical(ofdOpenMPInitialize)
        if (.not.posixOpenMPFileLockInitialized) then
@@ -293,7 +291,6 @@ contains
     ! Obtain an OpenMP lock, if this thread has no other file locks active.
     if (posixOpenMPFileLockCount == 0) call posixOpenMPFileLock%set()
     posixOpenMPFileLockCount=posixOpenMPFileLockCount+1
-#endif
     ! Now obtain the lock on the file.
     call flock_C(trim(fileName)//".lock"//char(0),lock%lockDescriptorC,lockIsShared_)
     lock%fileName=trim(fileName)
@@ -358,12 +355,11 @@ contains
     end if
     ! First unlock the file.
     call funlock_C(lock%lockDescriptorC)
-#ifdef OFDUNAVAIL
-    ! Without OFD locks we must lock per OpenMP thread since POSIX file locks are only process-aware, not thread-aware. Release
-    ! that lock now, if this thread has no more file locks.
+    ! Even is using OFD locks we must lock per OpenMP thread since POSIX file locks, since we may have the file open multiple
+    ! times with different "descriptions" (see https://www.gnu.org/software/libc/manual/html_node/Open-File-Description-Locks.html).
+    ! Release that lock now, if this thread has no more file locks.
     posixOpenMPFileLockCount=posixOpenMPFileLockCount-1
     if (posixOpenMPFileLockCount == 0) call posixOpenMPFileLock%unset()
-#endif
     return
   end subroutine File_Unlock
 
