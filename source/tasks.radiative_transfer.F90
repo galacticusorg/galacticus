@@ -43,12 +43,12 @@
      class           (radiativeTransferOutputterClass   ), pointer                   :: radiativeTransferOutputter_    => null()
      class           (randomNumberGeneratorClass        ), pointer                   :: randomNumberGenerator_         => null()
      integer                                                                         :: wavelengthCountPerDecade
-     integer         (c_size_t                          )                            :: countPhotonsPerWavelength               , countIterationsMaximum                 , &
+     integer         (c_size_t                          )                            :: countPhotonsPerWavelength               , countIterationsMaximum                         , &
           &                                                                             countIterationsMinimum                  , countPhotonsPerWavelengthFinalIteration
      double precision                                                                :: wavelengthMinimum                       , wavelengthMaximum
-     double precision                                    , allocatable, dimension(:) :: wavelengthsMinimum                      , wavelengthsMaximum                     , &
+     double precision                                    , allocatable, dimension(:) :: wavelengthsMinimum                      , wavelengthsMaximum                             , &
           &                                                                             wavelengths
-     logical                                                                         :: outputIterations
+     logical                                                                         :: outputIterations                        , nodeComponentsInitialized              =.false.
    contains
      final     ::            radiativeTransferDestructor
      procedure :: perform => radiativeTransferPerform
@@ -101,6 +101,7 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
+    self%nodeComponentsInitialized=.true.
     !![
     <inputParameter>
       <name>wavelengthMinimum</name>
@@ -229,7 +230,7 @@ contains
     <objectDestructor name="self%radiativeTransferOutputter_"   />
     <objectDestructor name="self%randomNumberGenerator_"        />
     !!]
-    call Node_Components_Uninitialize()
+    if (self%nodeComponentsInitialized) call Node_Components_Uninitialize()
     return
   end subroutine radiativeTransferDestructor
 

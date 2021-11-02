@@ -31,14 +31,15 @@
      Implementation of a task which computes and outputs the halo spin distribution.
      !!}
      private
-     class           (haloSpinDistributionClass), pointer :: haloSpinDistribution_ => null()
-     class           (outputTimesClass         ), pointer :: outputTimes_          => null()
-     class           (cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_   => null()
-     double precision                                     :: spinMinimum                    , spinMaximum    , &
-          &                                                  spinPointsPerDecade            , haloMassMinimum
+     class           (haloSpinDistributionClass), pointer :: haloSpinDistribution_     => null()
+     class           (outputTimesClass         ), pointer :: outputTimes_              => null()
+     class           (cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_       => null()
+     double precision                                     :: spinMinimum                         , spinMaximum    , &
+          &                                                  spinPointsPerDecade                 , haloMassMinimum
      type            (varying_string           )          :: outputGroup
      ! Pointer to the parameters for this task.
      type            (inputParameters          )          :: parameters
+     logical                                              :: nodeComponentsInitialized =  .false.
    contains
      final     ::            haloSpinDistributionDestructor
      procedure :: perform => haloSpinDistributionPerform
@@ -85,6 +86,7 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
+    self%nodeComponentsInitialized=.true.
     !![
     <inputParameter>
       <name>spinMinimum</name>
@@ -169,7 +171,7 @@ contains
     <objectDestructor name="self%outputTimes_"         />
     <objectDestructor name="self%cosmologyFunctions_"  />
     !!]
-    call Node_Components_Uninitialize()
+    if (self%nodeComponentsInitialized) call Node_Components_Uninitialize()
     return
   end subroutine haloSpinDistributionDestructor
 

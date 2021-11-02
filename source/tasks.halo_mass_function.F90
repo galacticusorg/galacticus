@@ -66,11 +66,11 @@
      class           (outputTimesClass                       ), pointer                   :: outputTimes_                        => null()
      class           (darkMatterProfileScaleRadiusClass      ), pointer                   :: darkMatterProfileScaleRadius_       => null()
      class           (darkMatterHaloMassAccretionHistoryClass), pointer                   :: darkMatterHaloMassAccretionHistory_ => null()
-     double precision                                                                     :: haloMassMinimum                              , haloMassMaximum                    , &
+     double precision                                                                     :: haloMassMinimum                              , haloMassMaximum                     , &
           &                                                                                  pointsPerDecade
      type            (varying_string                         )                            :: outputGroup
-     logical                                                                              :: includeUnevolvedSubhaloMassFunction          , includeMassAccretionRate           , &
-          &                                                                                  massesRelativeToHalfModeMass
+     logical                                                                              :: includeUnevolvedSubhaloMassFunction          , includeMassAccretionRate            , &
+          &                                                                                  massesRelativeToHalfModeMass                 , nodeComponentsInitialized =  .false.
      double precision                                         , allocatable, dimension(:) :: fractionModeMasses
      type            (virialDensityContrastList              ), allocatable, dimension(:) :: virialDensityContrasts
      ! Pointer to the parameters for this task.
@@ -141,6 +141,7 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
+    self%nodeComponentsInitialized=.true.
     !![
     <inputParameter>
       <name>haloMassMinimum</name>
@@ -421,7 +422,7 @@ contains
           !!]
        end do
     end if
-    call Node_Components_Uninitialize()
+    if (self%nodeComponentsInitialized) call Node_Components_Uninitialize()
     return
   end subroutine haloMassFunctionDestructor
 

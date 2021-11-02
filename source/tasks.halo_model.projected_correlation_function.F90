@@ -47,13 +47,13 @@
      class           (darkMatterProfileDMOClass        ), pointer                   :: darkMatterProfileDMO_         => null()
      class           (darkMatterHaloBiasClass          ), pointer                   :: darkMatterHaloBias_           => null()
      class           (darkMatterProfileScaleRadiusClass), pointer                   :: darkMatterProfileScaleRadius_ => null()
-      double precision                                  , allocatable, dimension(:) :: separationProjectedBinned              , correlationProjectedBinned
-     double precision                                                               :: separationMinimum                      , separationMaximum         , &
-          &                                                                            massMinimum                            , massMaximum               , &
-          &                                                                            massHaloMinimum                        , massHaloMaximum           , &
+      double precision                                  , allocatable, dimension(:) :: separationProjectedBinned               , correlationProjectedBinned
+     double precision                                                               :: separationMinimum                       , separationMaximum         , &
+          &                                                                            massMinimum                             , massMaximum               , &
+          &                                                                            massHaloMinimum                         , massHaloMaximum           , &
           &                                                                            depthLineOfSight
      integer                                                                        :: countSeparations
-     logical                                                                        :: halfIntegral
+     logical                                                                        :: nodeComponentsInitialized     =  .false., halfIntegral
      type            (varying_string                   )                            :: outputGroup
      ! Pointer to the parameters for this task.
      type            (inputParameters                  )                            :: parameters
@@ -114,6 +114,7 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
+    self%nodeComponentsInitialized=.true.
     !![
     <inputParameter>
       <name>separationMinimum</name>
@@ -253,7 +254,7 @@ contains
     <objectDestructor name="self%darkMatterHaloBias_"          />
     <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
     !!]
-    call Node_Components_Uninitialize()
+    if (self%nodeComponentsInitialized) call Node_Components_Uninitialize()
     return
   end subroutine haloModelProjectedCorrelationFunctionDestructor
 

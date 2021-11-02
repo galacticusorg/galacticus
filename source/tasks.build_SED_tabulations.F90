@@ -35,10 +35,11 @@
      Implementation of a task which pre-builds tabulations needed for SED calculations.
      !!}
      private
-     class(nodePropertyExtractorClass), pointer :: nodePropertyExtractor_ => null()
-     class(outputTimesClass          ), pointer :: outputTimes_           => null()
-     class(starFormationHistoryClass ), pointer :: starFormationHistory_  => null()
-     type (inputParameters           )          :: parameters
+     class  (nodePropertyExtractorClass), pointer :: nodePropertyExtractor_    => null()
+     class  (outputTimesClass          ), pointer :: outputTimes_              => null()
+     class  (starFormationHistoryClass ), pointer :: starFormationHistory_     => null()
+     type   (inputParameters           )          :: parameters
+     logical                                      :: nodeComponentsInitialized =  .false.
    contains
      final     ::                       buildSEDDestructor
      procedure :: perform            => buildSEDTabulationsPerform
@@ -83,6 +84,7 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
+    self%nodeComponentsInitialized=.true.
     !![
     <objectBuilder class="nodePropertyExtractor" name="nodePropertyExtractor_" source="parameters"/>
     <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
@@ -130,7 +132,7 @@ contains
     <objectDestructor name="self%starFormationHistory_" />
     <objectDestructor name="self%outputTimes_"          />
     !!]
-    call Node_Components_Uninitialize()
+    if (self%nodeComponentsInitialized) call Node_Components_Uninitialize()
     return
   end subroutine buildSEDDestructor
 

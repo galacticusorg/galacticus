@@ -45,10 +45,11 @@
      class           (cosmologicalMassVarianceClass      ), pointer :: cosmologicalMassVariance_       => null()
      class           (haloMassFunctionClass              ), pointer :: haloMassFunction_               => null()
      class           (cosmologyFunctionsClass            ), pointer :: cosmologyFunctions_             => null()
-     double precision                                               :: velocityMinimum                          , velocityMaximum       , &
-          &                                                            massMinimum                              , massMaximum           , &
+     double precision                                               :: velocityMinimum                           , velocityMaximum       , &
+          &                                                            massMinimum                               , massMaximum           , &
           &                                                            time
-     integer                                                        :: countMassesPerDecade                     , countVelocitiesPerUnit
+     integer                                                        :: countMassesPerDecade                      , countVelocitiesPerUnit
+     logical                                                        :: nodeComponentsInitialized       =  .false.
    contains
      final     ::            mergingHaloOrbitDistributionDestructor
      procedure :: perform => mergingHaloOrbitDistributionPerform
@@ -104,6 +105,7 @@ contains
        call Node_Components_Initialize       (parameters    )
        call Node_Components_Thread_Initialize(parameters    )
     end if
+    self%nodeComponentsInitialized=.true.
     !![
     <inputParameter>
       <name>velocityMinimum</name>
@@ -226,8 +228,10 @@ contains
     <objectDestructor name="self%cosmologicalMassVariance_"      />
     <objectDestructor name="self%haloMassFunction_"              />
     !!]
-    call Node_Components_Uninitialize       ()
-    call Node_Components_Thread_Uninitialize()
+    if (self%nodeComponentsInitialized) then
+       call Node_Components_Uninitialize       ()
+       call Node_Components_Thread_Uninitialize()
+    end if
     return
   end subroutine mergingHaloOrbitDistributionDestructor
 

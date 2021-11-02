@@ -40,10 +40,11 @@
      class           (conditionalMassFunctionClass     ), pointer :: conditionalMassFunction_      => null()
      class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()
      class           (randomNumberGeneratorClass       ), pointer :: randomNumberGenerator_        => null()
-     double precision                                             :: massMinimum                            , massMaximum
-     type            (varying_string                   )          :: galaxyCatalogFileName                  , haloCatalogFileName
+     double precision                                             :: massMinimum                             , massMaximum
+     type            (varying_string                   )          :: galaxyCatalogFileName                   , haloCatalogFileName
      ! Pointer to the parameters for this task.
-     type            (inputParameters                 )           :: parameters
+     type            (inputParameters                  )          :: parameters
+     logical                                                      :: nodeComponentsInitialized     =  .false.
    contains
      final     ::                       haloModelGenerateDestructor
      procedure :: perform            => haloModelGeneratePerform
@@ -93,6 +94,7 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
+    self%nodeComponentsInitialized=.false.
     !![
     <inputParameter>
       <name>haloCatalogFileName</name>
@@ -175,7 +177,7 @@ contains
     <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
     <objectDestructor name="self%randomNumberGenerator_"       />
     !!]
-    call Node_Components_Uninitialize()
+    if(self%nodeComponentsInitialized) call Node_Components_Uninitialize()
     return
   end subroutine haloModelGenerateDestructor
 

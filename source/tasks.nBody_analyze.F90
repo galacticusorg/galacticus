@@ -32,7 +32,7 @@
      private
      class  (nbodyImporterClass), pointer :: nbodyImporter_      => null()
      class  (nbodyOperatorClass), pointer :: nbodyOperator_      => null()
-     logical                              :: storeBackToImported
+     logical                              :: storeBackToImported          , nodeComponentsInitialized=.false.
      ! Pointer to the parameters for this task.
      type   (inputParameters   )          :: parameters
    contains
@@ -79,6 +79,7 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
+    self%nodeComponentsInitialized=.true.
     !![
     <inputParameter>
       <name>storeBackToImported</name>
@@ -130,7 +131,7 @@ contains
     <objectDestructor name="self%nbodyOperator_"/>
     <objectDestructor name="self%nbodyImporter_"/>
     !!]
-    call Node_Components_Uninitialize()
+    if (self%nodeComponentsInitialized) call Node_Components_Uninitialize()
     return
   end subroutine nbodyAnalyzeDestructor
 

@@ -63,7 +63,7 @@
      class           (universeOperatorClass      ), pointer :: universeOperator_             => null()
      ! Pointer to the parameters for this task.
      type            (inputParameters            )          :: parameters
-logical :: initialized=.false.
+     logical                                                :: initialized                   =.false., nodeComponentsInitialized=.false.
    contains
      !![
      <methods>
@@ -143,6 +143,7 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
+    self%nodeComponentsInitialized=.true.
     !![
     <inputParameter>
       <name>walltimeMaximum</name>
@@ -324,7 +325,7 @@ contains
     !!]
     if (stateStoreEvent  %isAttached(self,evolveForestsStateStore  )) call stateStoreEvent  %detach(self,evolveForestsStateStore  )
     if (stateRestoreEvent%isAttached(self,evolveForestsStateRestore)) call stateRestoreEvent%detach(self,evolveForestsStateRestore)
-    call Node_Components_Uninitialize()
+    if (self%nodeComponentsInitialized)                               call Node_Components_Uninitialize()
     return
   end subroutine evolveForestsDestructor
 
