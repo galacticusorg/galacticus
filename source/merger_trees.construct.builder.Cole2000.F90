@@ -267,7 +267,8 @@ contains
     !!{
     Build a merger tree.
     !!}
-    use :: Galacticus_Error        , only : Galacticus_Error_Report
+    use :: Display                 , only : displayReset                 , displayMagenta
+    use :: Galacticus_Error        , only : Galacticus_Error_Report      , Galacticus_Warn
     use :: Galacticus_Nodes        , only : mergerTree                   , nodeComponentBasic              , treeNode
     use :: ISO_Varying_String      , only : varying_string
     use :: Kind_Numbers            , only : kind_int8
@@ -277,24 +278,25 @@ contains
     implicit none
     class           (mergerTreeBuilderCole2000       ), intent(inout)         :: self
     type            (mergerTree                      ), intent(inout), target :: tree
-    type            (treeNode                        ), pointer               :: nodeNew1                  , nodeNew2                   , node
-    class           (nodeComponentBasic              ), pointer               :: basicNew1                 , basicNew2                  , basic                     , &
-         &                                                                       basicParent
+    type            (treeNode                        ), pointer               :: nodeNew1                     , nodeNew2                   , node                      , &
+         &                                                                       nodeChild
+    class           (nodeComponentBasic              ), pointer               :: basicNew1                    , basicNew2                  , basic                     , &
+         &                                                                       basicParent                  , basicChild
     double precision                                  , parameter             :: toleranceTimeEarliest =2.0d-6
     double precision                                  , parameter             :: toleranceDeltaCritical=1.0d-6
     double precision                                  , parameter             :: toleranceTime         =1.0d-6
     type            (mergerTreeWalkerTreeConstruction)                        :: treeWalkerConstruction
     type            (mergerTreeWalkerIsolatedNodes   )                        :: treeWalkerIsolated
     integer         (kind=kind_int8                  )                        :: nodeIndex
-    double precision                                                          :: accretionFraction         , baseNodeTime               , branchingProbability      , &
-         &                                                                       collapseTime              , deltaCritical              , deltaCritical1            , &
-         &                                                                       deltaCritical2            , deltaW                     , nodeMass1                 , &
-         &                                                                       nodeMass2                 , deltaCriticalEarliest      , uniformRandom             , &
-         &                                                                       massResolution            , accretionFractionCumulative, branchMassCurrent         , &
-         &                                                                       branchDeltaCriticalCurrent, branchingInterval          , branchingIntervalScaleFree, &
-         &                                                                       branchingProbabilityRate  , deltaWAccretionLimit       , deltaWEarliestTime        , &
-         &                                                                       collapseTimeTruncate      , rootVarianceGrowthFactor   , time
-    logical                                                                   :: doBranch                  , branchIsDone               , snapAccretionFraction     , &
+    double precision                                                          :: accretionFraction            , baseNodeTime               , branchingProbability      , &
+         &                                                                       collapseTime                 , deltaCritical              , deltaCritical1            , &
+         &                                                                       deltaCritical2               , deltaW                     , nodeMass1                 , &
+         &                                                                       nodeMass2                    , deltaCriticalEarliest      , uniformRandom             , &
+         &                                                                       massResolution               , accretionFractionCumulative, branchMassCurrent         , &
+         &                                                                       branchDeltaCriticalCurrent   , branchingInterval          , branchingIntervalScaleFree, &
+         &                                                                       branchingProbabilityRate     , deltaWAccretionLimit       , deltaWEarliestTime        , &
+         &                                                                       collapseTimeTruncate         , rootVarianceGrowthFactor   , time
+    logical                                                                   :: doBranch                     , branchIsDone               , snapAccretionFraction     , &
          &                                                                       snapEarliestTime
     type            (varying_string                  )                        :: message
     character       (len=20                          )                        :: label
@@ -615,13 +617,30 @@ contains
     end do
     basic => tree%baseNode%basic()
     call basic%timeSet(baseNodeTime)
+    ! Check for mis-ordering of the base node and its child node(s). This can happen because we force the time of the base node to
+    ! be precisely the base time, but for other nodes the time is computed by inverting the w(t)=delta_crit(t)/D(t)
+    ! relation. Numerical inaccuracies in the inversion can lead to small mis-ordering in the tree times.
+    if (associated(tree%baseNode%firstChild)) then
+       basicChild => tree%baseNode%firstChild%basic()
+       if (basic%time() <= basicChild%time()) then
+          ! Base node is mis-ordered. Simply shift and child nodes to be slightly earlier. If this leads to mis-ordering of those
+          ! child nodes it will be detected below.
+          call Galacticus_Warn(displayMagenta()//'WARNING:'//displayReset()//' tree is not well-ordered at base node - fixing')
+          nodeChild => tree%baseNode%firstChild
+          do while (associated(nodeChild))
+             basicChild => nodeChild%basic()
+             call basicChild%timeSet(basic%time())
+             nodeChild => nodeChild%sibling
+          end do
+       end if
+    end if
     ! Check for well-ordering in time.
     treeWalkerIsolated=mergerTreeWalkerIsolatedNodes(tree)
     do while (treeWalkerIsolated%next(node))
        if (associated(node%parent)) then
           basic       => node       %basic()
           basicParent => node%parent%basic()
-          if (basicParent%time() <= basic%time()) then
+          if (basicParent%time() < basic%time()) then
              if     (                                                                            &
                   &   basicParent%mass() < massResolution*(1.0d0+self%toleranceResolutionParent) &
                   &  .and.                                                                       &
