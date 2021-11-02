@@ -216,7 +216,7 @@ contains
     call self%retabulate(time_)
     ! Interpolate to get the critical overdensity.
     sphericalCollapseClsnlssMttrCsmlgclCnstntValue=+self%overdensityCritical%interpolate(time_) &
-         &                                          *self%normalization
+         &                                         *self%normalization
     return
   end function sphericalCollapseClsnlssMttrCsmlgclCnstntValue
 
