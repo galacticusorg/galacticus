@@ -175,24 +175,24 @@ contains
     double precision                                                                 , intent(in   ) :: time
     integer                                                                          , intent(in   ) :: calculationType
     class           (table1D                                           ), allocatable, intent(inout) :: sphericalCollapse_
-    class           (linearGrowthClass                                 ), pointer                    :: linearGrowth_
-    double precision                                                    , parameter                  :: toleranceAbsolute              =0.0d0  , toleranceRelative              =1.0d-12
+    class           (linearGrowthClass                                 ), pointer                    :: linearGrowth_                  => null()
+    double precision                                                    , parameter                  :: toleranceAbsolute              =  0.0d0  , toleranceRelative              =1.0d-12
     double precision                                                    , dimension(2)               :: timeRange
-    type            (rootFinder                                        ), save                       :: finderPerturbationInitial              , finderExpansionMaximum
-    logical                                                             , save                       :: finderPerturbationConstructed  =.false., finderExpansionConstructed     =.false.
+    type            (rootFinder                                        ), save                       :: finderPerturbationInitial                , finderExpansionMaximum
+    logical                                                             , save                       :: finderPerturbationConstructed  =  .false., finderExpansionConstructed     =.false.
     !$omp threadprivate(finderPerturbationInitial,finderExpansionMaximum,finderPerturbationConstructed,finderExpansionConstructed)
-    integer                                                                                          :: countTimes                             , iTime                                  , &
+    integer                                                                                          :: countTimes                               , iTime                                  , &
          &                                                                                              iCount
-    double precision                                                                                 :: expansionFactor                        , epsilonPerturbation                    , &
-         &                                                                                              epsilonPerturbationMaximum             , epsilonPerturbationMinimum             , &
-         &                                                                                              densityContrastExpansionMaximum        , expansionFactorExpansionMaximum        , &
-         &                                                                                              radiusExpansionMaximum                 , timeExpansionMaximum                   , &
-         &                                                                                              normalization                          , q                                      , &
-         &                                                                                              timeEnergyFixed                        , timeInitial                            , &
-         &                                                                                              y                                      , timeMinimum                            , &
-         &                                                                                              timeMaximum                            , r                                      , &
-         &                                                                                              z                                      , fractionDarkMatter
-    double complex                                                                                   :: a                                      , b                                      , &
+    double precision                                                                                 :: expansionFactor                          , epsilonPerturbation                    , &
+         &                                                                                              epsilonPerturbationMaximum               , epsilonPerturbationMinimum             , &
+         &                                                                                              densityContrastExpansionMaximum          , expansionFactorExpansionMaximum        , &
+         &                                                                                              radiusExpansionMaximum                   , timeExpansionMaximum                   , &
+         &                                                                                              normalization                            , q                                      , &
+         &                                                                                              timeEnergyFixed                          , timeInitial                            , &
+         &                                                                                              y                                        , timeMinimum                            , &
+         &                                                                                              timeMaximum                              , r                                      , &
+         &                                                                                              z                                        , fractionDarkMatter
+    double complex                                                                                   :: a                                        , b                                      , &
          &                                                                                              x
     type            (varying_string                                    )                             :: message
     character       (len=13                                            )                             :: label
@@ -232,14 +232,14 @@ contains
        message=message//trim(adjustl(label))
        call displayIndent(message,verbosity=verbosityLevelWorking)
        iCount=0
-       call displayCounter(                            &
-            &                                    iCount          , &
-            &                          isNew    =.true.          , &
-            &                          verbosity=verbosityLevelWorking  &
-            &                         )
+       call displayCounter(                                 &
+            &                        iCount               , &
+            &              isNew    =.true.               , &
+            &              verbosity=verbosityLevelWorking  &
+            &             )
        !$omp parallel private(expansionFactor,epsilonPerturbationMaximum,epsilonPerturbationMinimum,epsilonPerturbation,timeInitial,timeRange,timeExpansionMaximum,expansionFactorExpansionMaximum,q,y,r,z,timeEnergyFixed,a,b,x,linearGrowth_)
-       allocate(cllsnlssMttrDarkEnergyCosmologyFunctions_,mold=self%cosmologyFunctions_)
        !$omp critical(sphericalCollapseSolverBrynsDrkMttrDrkEnrgyDeepCopy)
+       allocate(cllsnlssMttrDarkEnergyCosmologyFunctions_,mold=self%cosmologyFunctions_)
        !![
        <deepCopyReset variables="self%cosmologyFunctions_"/>
        <deepCopy source="self%cosmologyFunctions_" destination="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
@@ -252,6 +252,8 @@ contains
           <deepCopy source="self%linearGrowth_" destination="linearGrowth_"/>
           <deepCopyFinalize variables="linearGrowth_"/>
           !!]
+       else
+          linearGrowth_ => null()
        end if
        !$omp end critical(sphericalCollapseSolverBrynsDrkMttrDrkEnrgyDeepCopy)
        !$omp do schedule(dynamic)
@@ -416,11 +418,11 @@ contains
        end do
        !$omp end do
        !![
-          <objectDestructor name="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
+       <objectDestructor name="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
        !!]
        if (calculationType == cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity) then
           !![
-          <objectDestructor name="linearGrowth_"                      />
+          <objectDestructor name="linearGrowth_"/>
           !!]
        end if
        !$omp end parallel
