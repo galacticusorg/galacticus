@@ -118,6 +118,11 @@
 	<massTree value="1.0e12"/>
 	<treeCount  value="1"/>
       </mergerTreeBuildMasses>
+      <mergerTreeBuildMasses value="fixedMass">
+	<massTree value="1.0e12"/>
+	<radiusTree value="300.0e-3"/>
+	<treeCount  value="1"/>
+      </mergerTreeBuildMasses>
       <darkMatterHaloMassAccretionHistory value="wechsler2002" parameterLevel="top"/>
       <darkMatterHaloMassAccretionHistory value="zhao2009" parameterLevel="top"/>
       <darkMatterHaloMassAccretionHistory value="correa2015" parameterLevel="top"/>
