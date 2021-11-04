@@ -138,6 +138,8 @@ contains
     ! Set initialization state.
     self%initialized=.false.
     ! No reference transfer function is used.
+    self%massHalfModeAvailable              =  .false.
+    self%massQuarterModeAvailable           =  .false.
     self%transferFunctionReferenceAvailable =  .false.
     self%transferFunctionReference          => null()
     ! Set the epoch time for this transfer function.
