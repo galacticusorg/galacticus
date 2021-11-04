@@ -2507,7 +2507,11 @@ CODE
 		    if ( exists($_->{'scope'}) && $_->{'scope'} eq "module" ) {
 			$modulePreContains->{'content'} .= $_->{'content'}."\n";
 			if ( exists($_->{'threadprivate'}) && $_->{'threadprivate'} eq "yes" && $_->{'content'} =~ m/::\s*(.*)$/ ) {
-			    $modulePreContains->{'content'} .= "   !\$omp threadprivate(".$1.")\n";
+			    my @declarations = split(/\s*,\s*/,$1);
+			    foreach my $declaration ( @declarations ) {
+				$declaration =~ s/\s*=.*//;
+			    }
+			    $modulePreContains->{'content'} .= "   !\$omp threadprivate(".join(",",@declarations).")\n";
 			}
 		    }
 		}
