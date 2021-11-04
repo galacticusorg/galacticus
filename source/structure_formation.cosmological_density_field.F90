@@ -47,16 +47,16 @@ module Cosmological_Density_Field
    <data>double precision                                         :: collapseThresholdMinimum                   , collapseThresholdMaximum                </data>
    <data>logical                                                  :: collapseThresholdInitialized=.false.                                                 </data>
    <data>type            (treeNode                     ), pointer :: node                                                                                 </data>
-   <data>logical                                                  :: massPresent                              , nodePresent                               </data>
-   <data>logical                                                  :: dependenciesInitialized   =  .false.     , isMassDependent_                          </data>
+   <data>logical                                                  :: massPresent                                , nodePresent                             </data>
+   <data>logical                                                  :: dependenciesInitialized     =  .false.     , isMassDependent_                        </data>
    <data>logical                                                  :: isNodeDependent_                                                                     </data>
-   <data>class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()                                                  </data>
-   <data>class           (linearGrowthClass            ), pointer :: linearGrowth_             => null()                                                  </data>
-   <data>class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()                                                  </data>
+   <data>class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_         => null()                                                </data>
+   <data>class           (linearGrowthClass            ), pointer :: linearGrowth_               => null()                                                </data>
+   <data>class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_   => null()                                                </data>
    <data>
     <scope>module</scope>
     <threadprivate>yes</threadprivate>
-    <content>class(criticalOverdensityClass), pointer :: globalSelf</content>
+    <content>class(criticalOverdensityClass), pointer :: globalSelf => null()</content>
    </data>
    <method name="value" >
     <description>Return the critical overdensity at the given time and mass.</description>
