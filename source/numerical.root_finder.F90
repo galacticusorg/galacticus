@@ -455,7 +455,8 @@ contains
     integer                                                                       :: iteration                   , statusActual
     double precision                                                              :: xHigh                       , xLow                   , xRoot               , &
          &                                                                           xRootPrevious               , fLow                   , fHigh
-    type            (varying_string      )                                        :: message
+    type            (varying_string      ), save                                  :: message
+    !$omp threadprivate(message)
     character       (len= 30             )                                        :: label
     !$GLC attributes initialized :: xRoot
 
