@@ -59,6 +59,7 @@ Contains a module which implements a normally-distributed halo environment.
           &                                                                          includedVolumeFraction
      integer         (kind_int8                                        )          :: uniqueIDPrevious
      logical                                                                      :: linearToNonLinearInitialized
+     type            (varying_string                                   )          :: propertyName
    contains
      !![
      <methods>
@@ -136,6 +137,7 @@ contains
     !!}
     use :: Error_Functions         , only : Error_Function
     use :: Numerical_Constants_Math, only : Pi
+    use :: ISO_Varying_String      , only : assignment(=)
     implicit none
     type            (haloEnvironmentNormal        )                         :: self
     class           (cosmologyParametersClass     ), target , intent(in   ) :: cosmologyParameters_
@@ -189,6 +191,8 @@ contains
     self%uniqueIDPrevious=-1_kind_int8
     ! Set initialization states.
     self%linearToNonLinearInitialized=.false.
+    ! Set name of property to use for environment.
+    self%propertyName='haloEnvironmentOverdensity'
     ! Construct a spherical collapse solver.
     allocate(self%sphericalCollapseSolver_)
     !![
@@ -262,8 +266,8 @@ contains
 
     if (node%hostTree%baseNode%uniqueID() /= self%uniqueIDPrevious) then
        self%uniqueIDPrevious=node%hostTree%baseNode%uniqueID()
-       if (node%hostTree%properties%exists('haloEnvironmentOverdensity')) then
-          self%overdensityPrevious=node%hostTree%properties%value('haloEnvironmentOverdensity')
+       if (node%hostTree%properties%exists(self%propertyName)) then
+          self%overdensityPrevious=node%hostTree%properties%value(self%propertyName)
        else
           ! Choose an overdensity.
           basic    => node%hostTree%baseNode        %basic       (                                                       )
@@ -288,7 +292,7 @@ contains
                   &                        )                                                                                                         &
                   &                   +      self%criticalOverdensity_      %value  (time                 =basic         %time                 ())
           end if
-          call node%hostTree%properties%set('haloEnvironmentOverdensity',self%overdensityPrevious)
+          call node%hostTree%properties%set(self%propertyName,self%overdensityPrevious)
        end if
     end if
     normalOverdensityLinear=self%overdensityPrevious
@@ -418,7 +422,7 @@ contains
     !$GLC attributes unused :: self
 
     if (overdensity > self%environmentalOverdensityMaximum) call Galacticus_Error_Report('δ≥δ_c is inconsistent with normal (peak-background) density field'//{introspection:location})
-    call node%hostTree%properties%set('haloEnvironmentOverdensity',overdensity)
+    call node%hostTree%properties%set(self%propertyName,overdensity)
     self%uniqueIDPrevious   =-1_kind_int8
     self%overdensityPrevious=overdensity
     return
