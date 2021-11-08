@@ -35,22 +35,23 @@ module Numerical_Roman_Numerals
   
 contains
 
-  function Roman_Numerals(i)
+  function Roman_Numerals(i) result(numeral)
     !!{
     Convert the given integer to Roman numerals.
     !!}
     use :: ISO_Varying_String, only : varying_string, var_str, operator(//)
     implicit none
-    type   (varying_string)                :: Roman_Numerals
+    type   (varying_string)                :: numeral, numeral_
     integer                , intent(in   ) :: i
-    integer                                :: i_            , j
+    integer                                :: i_     , j
     
-    i_            =i
-    Roman_Numerals=var_str('')
+    i_     =i
+    numeral=var_str('')
     do j=13,1,-1       
        do while (i_ >= decimal(j))
-          Roman_Numerals=Roman_Numerals//trim(adjustl(roman  (j)))
-          i_           =i_             -              decimal(j)
+          numeral_=numeral //trim(adjustl(roman  (j)))
+          numeral =numeral_
+          i_      =i_     -               decimal(j)
        end do
     end do
     return
