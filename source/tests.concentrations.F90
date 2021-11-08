@@ -55,17 +55,17 @@ program Test_Concentrations
   type            (treeNode                                                    ), pointer                             :: node
   class           (nodeComponentBasic                                          ), pointer                             :: basic
   class           (darkMatterProfileConcentrationClass                         ), pointer                             :: darkMatterProfileConcentration_
-  type            (cosmologyParametersSimple                                   )                                      :: cosmologyParametersSimple_
-  type            (cosmologyFunctionsMatterLambda                              )                                      :: cosmologyFunctionsMatterLambda_
-  type            (linearGrowthCollisionlessMatter                             )                                      :: linearGrowthCollisionlessMatter_
-  type            (cosmologicalMassVarianceFilteredPower                       )                                      :: cosmologicalMassVarianceFilteredPower_
-  type            (powerSpectrumWindowFunctionTopHat                           )                                      :: powerSpectrumWindowFunctionTopHat_
-  type            (powerSpectrumPrimordialPowerLaw                             )                                      :: powerSpectrumPrimordialPowerLaw_
-  type            (transferFunctionEisensteinHu1999                            )                                      :: transferFunctionEisensteinHu1999_
-  type            (powerSpectrumPrimordialTransferredSimple                    )                                      :: powerSpectrumPrimordialTransferredSimple_
-  type            (powerSpectrumStandard                                       )                                      :: powerSpectrumStandard_
-  type            (darkMatterParticleCDM                                       )                                      :: darkMatterParticleCDM_
-  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt)                                      :: criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_
+  type            (cosmologyParametersSimple                                   ), pointer                             :: cosmologyParametersSimple_
+  type            (cosmologyFunctionsMatterLambda                              ), pointer                             :: cosmologyFunctionsMatterLambda_
+  type            (linearGrowthCollisionlessMatter                             ), pointer                             :: linearGrowthCollisionlessMatter_
+  type            (cosmologicalMassVarianceFilteredPower                       ), pointer                             :: cosmologicalMassVarianceFilteredPower_
+  type            (powerSpectrumWindowFunctionTopHat                           ), pointer                             :: powerSpectrumWindowFunctionTopHat_
+  type            (powerSpectrumPrimordialPowerLaw                             ), pointer                             :: powerSpectrumPrimordialPowerLaw_
+  type            (transferFunctionEisensteinHu1999                            ), pointer                             :: transferFunctionEisensteinHu1999_
+  type            (powerSpectrumPrimordialTransferredSimple                    ), pointer                             :: powerSpectrumPrimordialTransferredSimple_
+  type            (powerSpectrumStandard                                       ), pointer                             :: powerSpectrumStandard_
+  type            (darkMatterParticleCDM                                       ), pointer                             :: darkMatterParticleCDM_
+  type            (criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer                             :: criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_
   type            (varying_string                                              )                                      :: parameterFile
   integer                                                                       , parameter                           :: countModels                                                   =5
   type            (varying_string                                              ), dimension(countModels)              :: modelName                                                       , modelLabel         , &
@@ -159,6 +159,17 @@ program Test_Concentrations
      ! Convert masses from h⁻¹M☉ to M☉.
      mass=mass/(HubbleConstant/100.0d0)
      ! Construct all required objects.
+     allocate(cosmologyParametersSimple_                                   )
+     allocate(cosmologyFunctionsMatterLambda_                              )
+     allocate(linearGrowthCollisionlessMatter_                             )
+     allocate(cosmologicalMassVarianceFilteredPower_                       )
+     allocate(powerSpectrumWindowFunctionTopHat_                           )
+     allocate(powerSpectrumPrimordialPowerLaw_                             )
+     allocate(transferFunctionEisensteinHu1999_                            )
+     allocate(powerSpectrumPrimordialTransferredSimple_                    )
+     allocate(powerSpectrumStandard_                                       )
+     allocate(darkMatterParticleCDM_                                       )
+     allocate(criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_)
      !![
      <referenceConstruct object="darkMatterParticleCDM_"                                        >
       <constructor>
@@ -396,7 +407,18 @@ program Test_Concentrations
      deallocate(concentration      )
      deallocate(concentrationTarget)
      !![
-     <objectDestructor name="darkMatterProfileConcentration_"/>
+     <objectDestructor name="darkMatterProfileConcentration_"                              />
+     <objectDestructor name="cosmologyParametersSimple_"                                   />
+     <objectDestructor name="cosmologyFunctionsMatterLambda_"                              />
+     <objectDestructor name="linearGrowthCollisionlessMatter_"                             />
+     <objectDestructor name="cosmologicalMassVarianceFilteredPower_"                       />
+     <objectDestructor name="powerSpectrumWindowFunctionTopHat_"                           />
+     <objectDestructor name="powerSpectrumPrimordialPowerLaw_"                             />
+     <objectDestructor name="transferFunctionEisensteinHu1999_"                            />
+     <objectDestructor name="powerSpectrumPrimordialTransferredSimple_"                    />
+     <objectDestructor name="powerSpectrumStandard_"                                       />
+     <objectDestructor name="darkMatterParticleCDM_"                                       />
+     <objectDestructor name="criticalOverdensitySphericalCollapseClsnlssMttrCsmlgclCnstnt_"/>
      !!]
      call Node_Components_Thread_Uninitialize()
      call Node_Components_Uninitialize       ()
