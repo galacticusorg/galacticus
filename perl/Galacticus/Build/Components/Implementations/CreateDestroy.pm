@@ -269,7 +269,7 @@ sub Implementation_Builder {
 	modules     =>
 	    [
 	     "Galacticus_Error",
-	     "FoX_DOM",
+	     "FoX_DOM, only : node, nodeList, getLength, extractDataContent, getElementsByTagName, item",
 	     "Memory_Management",
 	     "ISO_Varying_String"
 	    ],

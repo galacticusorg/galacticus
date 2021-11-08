@@ -114,7 +114,7 @@ sub Class_Builder {
 	modules     =>
 	    [
 	     "Galacticus_Error",
-	     "FoX_DOM"
+	     "FoX_DOM, only : node"
 	    ],
 	variables   =>
 	    [
