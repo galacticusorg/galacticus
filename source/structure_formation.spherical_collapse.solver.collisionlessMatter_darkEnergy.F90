@@ -60,11 +60,11 @@
   !!]
 
   ! Pointer to the default cosmology functions object.
-  class           (cosmologyFunctionsClass), pointer   :: cllsnlssMttrDarkEnergyCosmologyFunctions_
+  class           (cosmologyFunctionsClass), pointer   :: cllsnlssMttrDarkEnergyCosmologyFunctions_            => null()
   !$omp threadprivate(cllsnlssMttrDarkEnergyCosmologyFunctions_)
 
   ! Fraction of current expansion factor to use as initial time in perturbation dynamics solver.
-  double precision                         , parameter :: cllsnlssMttrDarkEnergyExpansionFactorInitialFraction=1.0d-6
+  double precision                         , parameter :: cllsnlssMttrDarkEnergyExpansionFactorInitialFraction =  1.0d-6
 
   ! Variables used in root finding.
   double precision                                     :: cllsnlssMttrDarkEnergyPerturbationRadiusInitial
@@ -157,23 +157,23 @@ contains
     double precision                                                            , intent(in   ) :: time
     integer                                                                     , intent(in   ) :: calculationType
     class           (table1D                                      ), allocatable, intent(inout) :: sphericalCollapse_
-    class           (linearGrowthClass                            ), pointer                    :: linearGrowth_
-    double precision                                               , parameter                  :: toleranceAbsolute              =0.0d0  , toleranceRelative              =1.0d-9
+    class           (linearGrowthClass                            ), pointer                    :: linearGrowth_                  => null()
+    double precision                                               , parameter                  :: toleranceAbsolute              =  0.0d0  , toleranceRelative              =1.0d-9
     double precision                                               , dimension(2)               :: timeRange
-    type            (rootFinder                                   ), save                       :: finderAmplitudePerturbation            , finderExpansionMaximum
-    logical                                                                                     :: finderAmplitudeConstructed     =.false., finderExpansionConstructed     =.false.
+    type            (rootFinder                                   ), save                       :: finderAmplitudePerturbation              , finderExpansionMaximum
+    logical                                                                                     :: finderAmplitudeConstructed     =  .false., finderExpansionConstructed     =.false.
     !$omp threadprivate(finderAmplitudePerturbation,finderExpansionMaximum,finderAmplitudeConstructed,finderExpansionConstructed)
-    integer                                                                                     :: countTimes                             , iTime                                  , &
+    integer                                                                                     :: countTimes                               , iTime                                  , &
          &                                                                                         iCount
-    double precision                                                                            :: expansionFactor                        , epsilonPerturbation                    , &
-         &                                                                                         epsilonPerturbationMaximum             , epsilonPerturbationMinimum             , &
-         &                                                                                         densityContrastExpansionMaximum        , expansionFactorExpansionMaximum        , &
-         &                                                                                         radiusExpansionMaximum                 , maximumExpansionTime                   , &
-         &                                                                                         normalization                          , q                                      , &
-         &                                                                                         timeEnergyFixed                        , timeInitial                            , &
-         &                                                                                         y                                      , timeMinimum                            , &
+    double precision                                                                            :: expansionFactor                          , epsilonPerturbation                    , &
+         &                                                                                         epsilonPerturbationMaximum               , epsilonPerturbationMinimum             , &
+         &                                                                                         densityContrastExpansionMaximum          , expansionFactorExpansionMaximum        , &
+         &                                                                                         radiusExpansionMaximum                   , maximumExpansionTime                   , &
+         &                                                                                         normalization                            , q                                      , &
+         &                                                                                         timeEnergyFixed                          , timeInitial                            , &
+         &                                                                                         y                                        , timeMinimum                            , &
          &                                                                                         timeMaximum
-    double complex                                                                              :: a                                      , b                                      , &
+    double complex                                                                              :: a                                        , b                                      , &
          &                                                                                         x
     type            (varying_string                               )                             :: message
     character       (len=13                                       )                             :: label
@@ -218,9 +218,9 @@ contains
             &                          isNew    =.true.          , &
             &                          verbosity=verbosityLevelWorking  &
             &                         )
-       !$omp parallel private(expansionFactor,epsilonPerturbationMaximum,epsilonPerturbationMinimum,epsilonPerturbation,timeInitial,timeRange,maximumExpansionTime,expansionFactorExpansionMaximum,q,y,timeEnergyFixed,a,b,x,linearGrowth_)
-       allocate(cllsnlssMttrDarkEnergyCosmologyFunctions_,mold=self%cosmologyFunctions_)
+       !$omp parallel private(expansionFactor,epsilonPerturbationMaximum,epsilonPerturbationMinimum,epsilonPerturbation,timeInitial,timeRange,maximumExpansionTime,expansionFactorExpansionMaximum,q,y,timeEnergyFixed,a,b,x,linearGrowth_)       
        !$omp critical(sphericalCollapseSolveCllnlssMttrDrkEnrgyDeepCopy)
+       allocate(cllsnlssMttrDarkEnergyCosmologyFunctions_,mold=self%cosmologyFunctions_)
        !![
        <deepCopyReset variables="self%cosmologyFunctions_"/>
        <deepCopy source="self%cosmologyFunctions_" destination="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
@@ -233,15 +233,17 @@ contains
           <deepCopy source="self%linearGrowth_" destination="linearGrowth_"/>
           <deepCopyFinalize variables="linearGrowth_"/>
           !!]
+       else
+          linearGrowth_ => null()
        end if
        !$omp end critical(sphericalCollapseSolveCllnlssMttrDrkEnrgyDeepCopy)
        !$omp do schedule(dynamic)
        do iTime=1,countTimes
-          call displayCounter(                                              &
-               &                          int(100.0d0*dble(iCount-1)/dble(countTimes)), &
-               &                          isNew=.false.                               , &
-               &                          verbosity=verbosityLevelWorking                    &
-               &                         )
+          call displayCounter(                                                        &
+               &                        int(100.0d0*dble(iCount-1)/dble(countTimes)), &
+               &              isNew    =.false.                                     , &
+               &              verbosity=verbosityLevelWorking                         &
+               &             )
           ! Get the current expansion factor.
           expansionFactor=cllsnlssMttrDarkEnergyCosmologyFunctions_%expansionFactor(sphericalCollapse_%x(iTime))
           ! In the case of dark energy we cannot (easily) determine the largest (i.e. least negative) value of ε for which a
@@ -365,9 +367,14 @@ contains
        !![
        <objectDestructor name="cllsnlssMttrDarkEnergyCosmologyFunctions_"/>
        !!]
+       if (calculationType == cllsnlssMttCsmlgclCnstntClcltnCriticalOverdensity) then
+          !![
+	  <objectDestructor name="linearGrowth_"/>
+          !!]
+       end if
        !$omp end parallel
        call displayCounterClear(       verbosity=verbosityLevelWorking)
-       call displayUnindent     ('done',verbosity=verbosityLevelWorking)
+       call displayUnindent    ('done',verbosity=verbosityLevelWorking)
     end select
     return
   end subroutine cllsnlssMttrDarkEnergyTabulate
