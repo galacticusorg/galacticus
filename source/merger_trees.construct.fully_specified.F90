@@ -149,7 +149,7 @@
      !!}
      private
      type   (node), pointer :: doc       => null()
-     integer                :: copyCount
+     integer                :: copyCount =  0
   end type documentContainer
 
   interface mergerTreeConstructorFullySpecified
@@ -184,9 +184,9 @@ contains
     self=mergerTreeConstructorFullySpecified(fileName,randomNumberGenerator_)
     !![
     <inputParametersValidate source="parameters"/>
-     <objectDestructor name="randomNumberGenerator_"/>
-     !!]
-   return
+    <objectDestructor name="randomNumberGenerator_"/>
+    !!]
+    return
   end function fullySpecifiedConstructorParameters
 
   function fullySpecifiedConstructorInternal(fileName,randomNumberGenerator_) result(self)
@@ -229,14 +229,16 @@ contains
     type(mergerTreeConstructorFullySpecified), intent(inout) :: self
 
     ! Reduce the count of document copies.
-    !$omp atomic
-    self%document%copyCount=self%document%copyCount-1
-    ! Destroy the XML document only if the count of document copies decreases to 0.
-    if (self%document%copyCount == 0) then
-       !$omp critical (FoX_DOM_Access)
-       call destroy(self%document%doc)
-       if (associated(self%document)) deallocate(self%document)
-       !$omp end critical (FoX_DOM_Access)
+    if (associated(self%document)) then
+       !$omp atomic
+       self%document%copyCount=self%document%copyCount-1
+       ! Destroy the XML document only if the count of document copies decreases to 0.
+       if (self%document%copyCount == 0) then
+          !$omp critical (FoX_DOM_Access)
+          call destroy(self%document%doc)
+          if (associated(self%document)) deallocate(self%document)
+          !$omp end critical (FoX_DOM_Access)
+       end if
     end if
     !![
     <objectDestructor name="self%randomNumberGenerator_"/>
