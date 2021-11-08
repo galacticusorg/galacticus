@@ -76,7 +76,7 @@
   end type cosmologyFunctionsMatterDarkEnergy
 
   ! Module scope pointer to the current object.
-  class(cosmologyFunctionsMatterDarkEnergy), pointer :: matterDarkEnergySelfGlobal
+  class(cosmologyFunctionsMatterDarkEnergy), pointer :: matterDarkEnergySelfGlobal => null()
   !$omp threadprivate(matterDarkEnergySelfGlobal)
 
   interface cosmologyFunctionsMatterDarkEnergy
@@ -143,8 +143,14 @@ contains
     !![
     <constructorAssign variables="*cosmologyParameters_, darkEnergyEquationOfStateW0, darkEnergyEquationOfStateW1"/>
     !!]
-
-    self%enableRangeChecks=.true.
+    
+    self%collapsingUniverse                  =.false.
+    self%enableRangeChecks                   =.true.
+    self%expansionFactorMaximum              =0.0d0
+    self%timeTurnaround                      =0.0d0
+    self%timeMaximum                         =0.0d0
+    self%expansionRatePrevious               =-1.0d0
+    self%expansionRateExpansionFactorPrevious=-1.0d0
     ! Build root finder for epoch of matter domination.
     if (self%cosmologyParameters_%OmegaDarkEnergy() /= 0.0d0)                             &
          & self%finderDomination=rootFinder(                                              &

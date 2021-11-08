@@ -138,8 +138,8 @@ contains
     self=darkMatterProfileDMOTruncatedExponential(radiusFractionalDecay,alpha,beta,gamma,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),darkMatterProfileDMO_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="darkMatterProfileDMO_"  />
-    <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="darkMatterProfileDMO_"/>
+    <objectDestructor name="darkMatterHaloScale_" />
     !!]
     return
   end function truncatedExponentialConstructorParameters
@@ -162,8 +162,12 @@ contains
 
     ! Validate.
     if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Galacticus_Error_Report('invalid non-analytic solver type'//{introspection:location})
-    self%lastUniqueID       =-1_kind_int8
-    self%genericLastUniqueID=-1_kind_int8
+    self%lastUniqueID                                           =-1_kind_int8
+    self%genericLastUniqueID                                    =-1_kind_int8
+    self%kappaPrevious                                          =-huge(0.0d0)
+    self%enclosingMassRadiusPrevious                            =-1.0d0
+    self%radialVelocityDispersionVirialRadiusPrevious           =-1.0d0
+    self%radialVelocityDispersionVirialRadiusUntruncatedPrevious=-1.0d0
     return
   end function truncatedExponentialConstructorInternal
 
@@ -203,10 +207,12 @@ contains
     class(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
     type (treeNode                                ), intent(inout) :: node
 
-    self%lastUniqueID               = node%uniqueID()
-    self%genericLastUniqueID        =node%uniqueID()
-    self%kappaPrevious              =-huge(0.0d0)
-    self%enclosingMassRadiusPrevious=-1.0d0
+    self%lastUniqueID                                           = node%uniqueID()
+    self%genericLastUniqueID                                    =node%uniqueID()
+    self%kappaPrevious                                          =-huge(0.0d0)
+    self%enclosingMassRadiusPrevious                            =-1.0d0
+    self%radialVelocityDispersionVirialRadiusPrevious           =-1.0d0
+    self%radialVelocityDispersionVirialRadiusUntruncatedPrevious=-1.0d0
     if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
     if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
     if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
