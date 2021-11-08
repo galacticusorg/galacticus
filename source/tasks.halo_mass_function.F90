@@ -583,7 +583,7 @@ contains
     end if
     massHalo                   =Make_Range(massHaloMinimum,massHaloMaximum,int(massCount),rangeTypeLogarithmic)
     massHaloLogarithmicInterval=log(massHaloMaximum/massHaloMinimum)/dble(massCount-1)
-    !$omp parallel private(iOutput,iMass,densityMean,densityCritical,tree,basic,darkMatterProfileHalo,massHaloBinMinimum,massHaloBinMaximum,haloEnvironment_,cosmologyFunctions_,cosmologicalMassVariance_,criticalOverdensity_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,unevolvedSubhaloMassFunction_,darkMatterHaloBias_,darkMatterProfileScaleRadius_,darkMatterHaloMassAccretionHistory_,virialDensityContrasts,integrator_)
+    !$omp parallel private(iOutput,iMass,densityMean,densityCritical,tree,basic,darkMatterProfileHalo,massHaloBinMinimum,massHaloBinMaximum,haloEnvironment_,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,unevolvedSubhaloMassFunction_,darkMatterHaloBias_,darkMatterProfileScaleRadius_,darkMatterHaloMassAccretionHistory_,virialDensityContrasts,integrator_)
     allocate(haloEnvironment_                   ,mold=self%haloEnvironment_                   )
     allocate(cosmologyFunctions_                ,mold=self%cosmologyFunctions_                )
     allocate(cosmologyParameters_               ,mold=self%cosmologyParameters_               )
