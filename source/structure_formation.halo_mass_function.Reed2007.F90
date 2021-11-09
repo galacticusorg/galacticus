@@ -118,6 +118,7 @@ contains
     class           (haloMassFunctionReed2007), intent(inout)           :: self
     double precision                          , intent(in   )           :: time                               , mass
     type            (treeNode                ), intent(inout), optional :: node
+    ! Parameter values from Reed et al. (2007), text after equations (11) and (12).
     double precision                          , parameter               :: c                          =1.080d0, a         =0.764d0/c, &
          &                                                                 normalization              =0.310d0, p         =0.300d0
     double precision                                                    :: rootVariance                       , peakHeight          , &
@@ -135,19 +136,25 @@ contains
     peakHeight                 =+self%criticalOverdensity_%value(time=time,mass=mass,node=node) &
          &                      /     rootVariance
     alpha                      =self%cosmologicalMassVariance_%rootVarianceLogarithmicGradient(mass,time)
+    !! Scaled peak height defined by Reed et al. (2007; test after equation 9).
     peakHeightScaled           =+sqrt(                                                    &
          &                            +c                                                  &
          &                            *a                                                  &
          &                           )                                                    &
          &                      *peakHeight
+    !! Reed et al. (2007; equation 12).
     G1                         =+exp(-0.50d0*(log(peakHeightScaled)-0.788d0)**2/0.6d0**2)
     G2                         =+exp(-0.50d0*(log(peakHeightScaled)-1.138d0)**2/0.2d0**2)
+    !! Reed et al. (2007; equation 13).
     powerSpectrumSlopeEffective=-6.0d0                                                    &
          &                      *alpha                                                    &
          &                      -3.0d0
     if (powerSpectrumSlopeEffective <= -3.0d0) then
        reed2007Differential=0.0d0
     else
+       !! Reed et al. (2007; equation 12). Note that the published version has some typos. Specifically, in the exponential term
+       !! the "w" (scaled peak height) parameter should be squared, but is not. The expression below has been validated against
+       !! Darren Reed's "genmf" code.
        reed2007Differential=+self%cosmologyParameters_%OmegaMatter    ()         &
             &               *self%cosmologyParameters_%densityCritical()         &
             &               /mass**2                                             &
