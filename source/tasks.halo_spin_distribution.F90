@@ -17,9 +17,10 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
-  use :: Cosmology_Functions    , only : cosmologyFunctions  , cosmologyFunctionsClass
-  use :: Halo_Spin_Distributions, only : haloSpinDistribution, haloSpinDistributionClass
-  use :: Output_Times           , only : outputTimes         , outputTimesClass
+  use :: Cosmology_Functions     , only : cosmologyFunctions       , cosmologyFunctionsClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Halo_Spin_Distributions , only : haloSpinDistribution     , haloSpinDistributionClass
+  use :: Output_Times            , only : outputTimes              , outputTimesClass
 
   !![
   <task name="taskHaloSpinDistribution">
@@ -34,6 +35,7 @@
      class           (haloSpinDistributionClass), pointer :: haloSpinDistribution_     => null()
      class           (outputTimesClass         ), pointer :: outputTimes_              => null()
      class           (cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_       => null()
+     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_     => null()
      double precision                                     :: spinMinimum                         , spinMaximum    , &
           &                                                  spinPointsPerDecade                 , haloMassMinimum
      type            (varying_string           )          :: outputGroup
@@ -68,6 +70,7 @@ contains
     class           (haloSpinDistributionClass), pointer               :: haloSpinDistribution_
     class           (outputTimesClass         ), pointer               :: outputTimes_
     class           (cosmologyFunctionsClass  ), pointer               :: cosmologyFunctions_
+    class           (darkMatterProfileDMOClass), pointer               :: darkMatterProfileDMO_
     type            (inputParameters          ), pointer               :: parametersRoot
     type            (varying_string           )                        :: outputGroup
     double precision                                                   :: spinMinimum          , spinMaximum    , &
@@ -125,18 +128,20 @@ contains
     <objectBuilder class="haloSpinDistribution" name="haloSpinDistribution_" source="parameters"/>
     <objectBuilder class="outputTimes"          name="outputTimes_"          source="parameters"/>
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     !!]
-    self=taskHaloSpinDistribution(spinMinimum,spinMaximum,spinPointsPerDecade,haloMassMinimum,outputGroup,haloSpinDistribution_,outputTimes_,cosmologyFunctions_,parametersRoot)
+    self=taskHaloSpinDistribution(spinMinimum,spinMaximum,spinPointsPerDecade,haloMassMinimum,outputGroup,haloSpinDistribution_,outputTimes_,cosmologyFunctions_,darkMatterProfileDMO_,parametersRoot)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="haloSpinDistribution_"/>
     <objectDestructor name="outputTimes_"         />
     <objectDestructor name="cosmologyFunctions_"  />
+    <objectDestructor name="darkMatterProfileDMO_"/>
     !!]
     return
   end function haloSpinDistributionConstructorParameters
 
-  function haloSpinDistributionConstructorInternal(spinMinimum,spinMaximum,spinPointsPerDecade,haloMassMinimum,outputGroup,haloSpinDistribution_,outputTimes_,cosmologyFunctions_,parameters) result(self)
+  function haloSpinDistributionConstructorInternal(spinMinimum,spinMaximum,spinPointsPerDecade,haloMassMinimum,outputGroup,haloSpinDistribution_,outputTimes_,cosmologyFunctions_,darkMatterProfileDMO_,parameters) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily haloSpinDistribution} task class which takes a parameter set as input.
     !!}
@@ -145,12 +150,13 @@ contains
     class           (haloSpinDistributionClass), intent(in   ), target :: haloSpinDistribution_
     class           (outputTimesClass         ), intent(in   ), target :: outputTimes_
     class           (cosmologyFunctionsClass  ), intent(in   ), target :: cosmologyFunctions_
+    class           (darkMatterProfileDMOClass), intent(in   ), target :: darkMatterProfileDMO_
     type            (varying_string           ), intent(in   )         :: outputGroup
     double precision                           , intent(in   )         :: spinMinimum          , spinMaximum    , &
          &                                                                spinPointsPerDecade  , haloMassMinimum
     type            (inputParameters          ), intent(in   ), target :: parameters
     !![
-    <constructorAssign variables="spinMinimum, spinMaximum, spinPointsPerDecade, haloMassMinimum, outputGroup, *haloSpinDistribution_, *outputTimes_, *cosmologyFunctions_"/>
+    <constructorAssign variables="spinMinimum, spinMaximum, spinPointsPerDecade, haloMassMinimum, outputGroup, *haloSpinDistribution_, *outputTimes_, *cosmologyFunctions_, *darkMatterProfileDMO_"/>
     !!]
 
     self%parameters=inputParameters(parameters)
@@ -170,6 +176,7 @@ contains
     <objectDestructor name="self%haloSpinDistribution_"/>
     <objectDestructor name="self%outputTimes_"         />
     <objectDestructor name="self%cosmologyFunctions_"  />
+    <objectDestructor name="self%darkMatterProfileDMO_"/>
     !!]
     if (self%nodeComponentsInitialized) call Node_Components_Uninitialize()
     return
@@ -179,14 +186,15 @@ contains
     !!{
     Compute and output the halo spin distribution.
     !!}
-    use            :: Display                , only : displayIndent                    , displayUnindent
-    use            :: Galacticus_Error       , only : Galacticus_Error_Report          , errorStatusSuccess
+    use            :: Dark_Matter_Halo_Spins , only : Dark_Matter_Halo_Angular_Momentum_Scale
+    use            :: Display                , only : displayIndent                          , displayUnindent
+    use            :: Galacticus_Error       , only : Galacticus_Error_Report                , errorStatusSuccess
     use            :: Galacticus_HDF5        , only : galacticusOutputFile
-    use            :: Galacticus_Nodes       , only : nodeComponentBasic               , nodeComponentDarkMatterProfile     , nodeComponentSpin, treeNode
+    use            :: Galacticus_Nodes       , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile     , nodeComponentSpin, treeNode
     use            :: Halo_Spin_Distributions, only : haloSpinDistributionNbodyErrors
     use            :: IO_HDF5                , only : hdf5Object
     use, intrinsic :: ISO_C_Binding          , only : c_size_t
-    use            :: Node_Components        , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
+    use            :: Node_Components        , only : Node_Components_Thread_Initialize      , Node_Components_Thread_Uninitialize
     use            :: String_Handling        , only : operator(//)
     implicit none
     class           (taskHaloSpinDistribution      ), intent(inout), target       :: self
@@ -228,7 +236,7 @@ contains
        ! Iterate over spins.
        do iSpin=1,spinCount
           spin(iSpin)=exp(log(self%spinMinimum)+log(self%spinMaximum/self%spinMinimum)*dble(iSpin-1)/dble(spinCount-1))
-          call nodeSpin%spinSet(spin(iSpin))
+          call nodeSpin%angularMomentumSet(spin(iSpin)*Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_))
           ! Evaluate the distribution.
           if (self%haloMassMinimum <= 0.0d0) then
              ! No minimum halo mass specified - simply evaluate the spin distribution.

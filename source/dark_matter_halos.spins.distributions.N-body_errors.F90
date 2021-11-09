@@ -235,10 +235,11 @@ contains
     !!{
     Tabulate the halo spin distribution.
     !!}
+    use :: Dark_Matter_Halo_Spins        , only : Dark_Matter_Halo_Angular_Momentum_Scale
     use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
     use :: Galacticus_Error              , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes              , only : nodeComponentBasic           , nodeComponentDarkMatterProfile, nodeComponentSpin, treeNode
-    use :: Memory_Management             , only : allocateArray                , deallocateArray
+    use :: Galacticus_Nodes              , only : nodeComponentBasic                     , nodeComponentDarkMatterProfile, nodeComponentSpin, treeNode
+    use :: Memory_Management             , only : allocateArray                          , deallocateArray
     use :: Numerical_Integration         , only : integrator
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout)           :: self
@@ -500,7 +501,7 @@ contains
       else
          ! Evaluate an estimate of the absolute scale of the spin distribution for use in setting an absolute precision level on the
          ! integration.
-         call nodeSpin%spinSet(spinMeasured)
+         call nodeSpin%angularMomentumSet(spinMeasured*Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_))
          call Galacticus_Calculations_Reset(node)
          scaleAbsolute=self%distributionIntrinsic%distribution(node)
          ! Evaluate the integral over the spin distribution. We integrate from ±ασ around the measured spin, with σ being the larger
@@ -572,7 +573,7 @@ contains
       ! Compute intrinsic spin.
       spinIntrinsic=exp(logSpinIntrinsic)
       ! Set the intrinsic spin.
-      call nodeSpin%spinSet(spinIntrinsic)
+      call nodeSpin%angularMomentumSet(spinIntrinsic*Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_))
       call Galacticus_Calculations_Reset(node)
       ! Compute the integrand.
       spinIntegral=+self%distributionIntrinsic%distribution(node         ) & ! Weight by the intrinsic spin distribution.
@@ -813,7 +814,8 @@ contains
     !!{
     Compute the spin distribution.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpin, treeNode
+    use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
+    use :: Galacticus_Nodes      , only : nodeComponentBasic                     , nodeComponentSpin, treeNode
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
@@ -825,10 +827,11 @@ contains
          &                                                              jMass    , jSpin
 
     ! Extract the mass and spin of the halo.
-    nodeBasic => node     %basic()
-    nodeSpin  => node     %spin ()
-    mass      =  nodeBasic%mass ()
-    spin      =  nodeSpin %spin ()
+    nodeBasic =>  node     %basic          ()
+    nodeSpin  =>  node     %spin           ()
+    mass      =   nodeBasic%mass           ()
+    spin      =  +nodeSpin %angularMomentum()                                              &
+         &       /Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_)
     ! Ensure the table has sufficient extent.
     call self%tabulate(massRequired=mass,spinRequired=spin)
     ! Find the interpolating factors.
@@ -852,7 +855,8 @@ contains
     !!{
     Compute the spin distribution for a fixed point in intrinsic mass and spin.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpin, treeNode
+    use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
+    use :: Galacticus_Nodes      , only : nodeComponentBasic                     , nodeComponentSpin, treeNode
     implicit none
     class           (haloSpinDistributionNbodyErrors), intent(inout) :: self
     type            (treeNode                       ), intent(inout) :: node
@@ -865,10 +869,11 @@ contains
     integer                                                             iSpin              , jSpin
 
     ! Extract the mass and spin of the halo.
-    nodeBasic => node     %basic()
-    nodeSpin  => node     %spin ()
-    mass      =  nodeBasic%mass ()
-    spin      =  nodeSpin %spin ()
+    nodeBasic =>  node     %basic          ()
+    nodeSpin  =>  node     %spin           ()
+    mass      =   nodeBasic%mass           ()
+    spin      =  +nodeSpin %angularMomentum()                                              &
+         &       /Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_)
     ! Ensure the table has sufficient extent.
     call self%tabulate(massFixed=mass,spinFixed=spin,spinFixedMeasuredMinimum=spinMeasuredMinimum,spinFixedMeasuredMaximum=spinMeasuredMaximum)
     ! Find the interpolating factors.

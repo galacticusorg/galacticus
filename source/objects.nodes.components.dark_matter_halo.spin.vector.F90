@@ -18,17 +18,18 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a module which implements the a vector spin component for tree nodes.
+Contains a module which implements the a vector angular momentum component for halos.
 !!}
 
-module Node_Component_Spin_Vector
+module Node_Component_Halo_Angular_Momentum_Vector
   !!{
   Implements the vector spin component.
   !!}
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   implicit none
   private
-  public :: Node_Component_Spin_Vector_Thread_Initialize, Node_Component_Spin_Vector_Thread_Uninitialize, &
-       &    Node_Component_Spin_Vector_Scale_Set
+  public :: Node_Component_Halo_Angular_Momentum_Vector_Thread_Initialize, Node_Component_Halo_Angular_Momentum_Vector_Thread_Uninitialize, &
+       &    Node_Component_Halo_Angular_Momentum_Vector_Scale_Set
   
   !![
   <component>
@@ -41,15 +42,15 @@ module Node_Component_Spin_Vector
    <isDefault>false</isDefault>
    <properties>
     <property>
-      <name>spinVector</name>
+      <name>angularMomentumVector</name>
       <type>double</type>
       <rank>1</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
-      <output labels="[X,Y,Z]" unitsInSI="0.0d0" comment="Spin vector of the node."/>
+      <output labels="[X,Y,Z]" unitsInSI="massSolar*megaParsec*kilo" comment="Angular momentum vector of the DMO halo."/>
       <classDefault>[0.0d0,0.0d0,0.0d0]</classDefault>
     </property>
     <property>
-      <name>spinVectorGrowthRate</name>
+      <name>angularMomentumVectorGrowthRate</name>
       <type>double</type>
       <rank>1</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
@@ -58,16 +59,20 @@ module Node_Component_Spin_Vector
   </component>
   !!]
 
+  ! Objects used by this component.
+  class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
+  !$omp threadprivate(darkMatterProfileDMO_)
+
 contains
 
   !![
   <nodeComponentThreadInitializationTask>
-   <unitName>Node_Component_Spin_Vector_Thread_Initialize</unitName>
+   <unitName>Node_Component_Halo_Angular_Momentum_Vector_Thread_Initialize</unitName>
   </nodeComponentThreadInitializationTask>
   !!]
-  subroutine Node_Component_Spin_Vector_Thread_Initialize(parameters_)
+  subroutine Node_Component_Halo_Angular_Momentum_Vector_Thread_Initialize(parameters_)
     !!{
-    Initializes the tree node vector spin module.
+    Initializes the halo vector angular momentum module.
     !!}
     use :: Events_Hooks    , only : nodePromotionEvent  , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultSpinComponent
@@ -76,17 +81,21 @@ contains
     type(inputParameters), intent(inout) :: parameters_
     !$GLC attributes unused :: parameters_
     
-    if (defaultSpinComponent%vectorIsActive()) &
-         & call nodePromotionEvent%attach(defaultSpinComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentSpinVector')
+    if (defaultSpinComponent%vectorIsActive()) then
+       !![
+       <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters_"/>
+       !!]
+       call nodePromotionEvent%attach(defaultSpinComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentSpinVector')
+    end if
     return
-  end subroutine Node_Component_Spin_Vector_Thread_Initialize
+  end subroutine Node_Component_Halo_Angular_Momentum_Vector_Thread_Initialize
 
   !![
   <nodeComponentThreadUninitializationTask>
-   <unitName>Node_Component_Spin_Vector_Thread_Uninitialize</unitName>
+   <unitName>Node_Component_Halo_Angular_Momentum_Vector_Thread_Uninitialize</unitName>
   </nodeComponentThreadUninitializationTask>
   !!]
-  subroutine Node_Component_Spin_Vector_Thread_Uninitialize()
+  subroutine Node_Component_Halo_Angular_Momentum_Vector_Thread_Uninitialize()
     !!{
     Uninitializes the tree node preset spin module.
     !!}
@@ -94,25 +103,30 @@ contains
     use :: Galacticus_Nodes, only : defaultSpinComponent
     implicit none
 
-    if (defaultSpinComponent%vectorIsActive() .and. nodePromotionEvent%isAttached(defaultSpinComponent,nodePromotion)) &
-         & call nodePromotionEvent%detach(defaultSpinComponent,nodePromotion)
+    if (defaultSpinComponent%vectorIsActive()) then
+       !![
+       <objectDestructor name="darkMatterProfileDMO_"/>
+       !!]
+       if (nodePromotionEvent%isAttached(defaultSpinComponent,nodePromotion)) call nodePromotionEvent%detach(defaultSpinComponent,nodePromotion)
+    end if
     return
-  end subroutine Node_Component_Spin_Vector_Thread_Uninitialize
+  end subroutine Node_Component_Halo_Angular_Momentum_Vector_Thread_Uninitialize
  
   !![
   <scaleSetTask>
-   <unitName>Node_Component_Spin_Vector_Scale_Set</unitName>
+   <unitName>Node_Component_Halo_Angular_Momentum_Vector_Scale_Set</unitName>
   </scaleSetTask>
   !!]
-  subroutine Node_Component_Spin_Vector_Scale_Set(node)
+  subroutine Node_Component_Halo_Angular_Momentum_Vector_Scale_Set(node)
     !!{
     Set scales for properties in the preset implementation of the spin component.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentSpin, nodeComponentSpinVector, treeNode, defaultSpinComponent
+    use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
+    use :: Galacticus_Nodes      , only : nodeComponentSpin                      , nodeComponentSpinVector, treeNode, defaultSpinComponent
     implicit none
-    type            (treeNode         ), intent(inout), pointer :: node
-    class           (nodeComponentSpin)               , pointer :: spin
-    double precision                   , parameter              :: spinMinimum=1.0d-6
+    type            (treeNode         ), intent(inout), pointer   :: node
+    class           (nodeComponentSpin)               , pointer   :: spin
+    double precision                                  , parameter :: spinMinimum=1.0d-6
 
     ! Return immediately if this class is not in use.
     if (.not.defaultSpinComponent%vectorIsActive()) return
@@ -122,14 +136,14 @@ contains
     select type (spin)
     class is (nodeComponentSpinVector)
        ! Set scale for spin.
-       call spin%spinVectorScale([1.0d0,1.0d0,1.0d0]*max(spin%spin(),spinMinimum))
+       call spin%angularMomentumVectorScale([1.0d0,1.0d0,1.0d0]*max(spin%angularMomentum(),spinMinimum*Dark_Matter_Halo_Angular_Momentum_Scale(node,darkMatterProfileDMO_)))
     end select
     return
-  end subroutine Node_Component_Spin_Vector_Scale_Set
+  end subroutine Node_Component_Halo_Angular_Momentum_Vector_Scale_Set
 
   subroutine nodePromotion(self,node)
     !!{
-    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the spin of {\normalfont \ttfamily node}
+    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the angular momentum of {\normalfont \ttfamily node}
     to be that of its parent.
     !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
@@ -147,11 +161,11 @@ contains
     basic       => node      %basic ()
     basicParent => nodeParent%basic ()
     if (basic%time() /= basicParent%time()) call Galacticus_Error_Report('node has not been evolved to its parent'//{introspection:location})
-    ! Adjust the spin growth rate to that of the parent node.
+    ! Adjust the angular momentum growth rate to that of the parent node.
     spinParent => nodeParent%spin()
-    call spin%spinVectorSet          (spinParent%spinVector          ())
-    call spin%spinVectorGrowthRateSet(spinParent%spinVectorGrowthRate())
+    call spin%angularMomentumVectorSet          (spinParent%angularMomentumVector          ())
+    call spin%angularMomentumVectorGrowthRateSet(spinParent%angularMomentumVectorGrowthRate())
     return
   end subroutine nodePromotion
 
-end module Node_Component_Spin_Vector
+end module Node_Component_Halo_Angular_Momentum_Vector

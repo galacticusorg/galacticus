@@ -46,7 +46,7 @@
       <presetSubhaloMasses value="false"/>
       <presetPositions value="true"/>
       <presetScaleRadii value="false"/>
-      <presetSpins value="false"/>
+      <presetAngularMomenta value="false"/>
     </mergerTreeConstructor>
   </parameters>
 </parameterGrid>

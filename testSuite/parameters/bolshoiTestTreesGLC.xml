@@ -62,8 +62,8 @@
     <presetOrbitsBoundOnly value="true"/>
     <presetOrbitsSetAll value="true"/>
     <presetOrbitsAssertAllSet value="true"/>
-    <presetSpins value="true"/>
-    <presetSpins3D value="true"/>
+    <presetAngularMomenta value="true"/>
+    <presetAngularMomenta3D value="true"/>
     <presetUnphysicalSpins value="true"/>
     <presetScaleRadii value="true"/>
     <presetScaleRadiiMinimumMass value="1.0e10"/>
@@ -237,7 +237,7 @@
     <!-- Halo concentrations -->
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spin -->
-    <nodeOperator value="haloSpinInterpolate"/>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>

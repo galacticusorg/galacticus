@@ -62,7 +62,7 @@
     <treeIndexToRootNodeIndex value="true"/>
     <presetPositions value="false"/>
     <presetOrbits value="false"/>
-    <presetSpins value="false"/>
+    <presetAngularMomenta value="false"/>
     <presetMergerTimes value="true"/>
     <presetMergerNodes value="true"/>
     <presetScaleRadii value="false"/>
@@ -223,9 +223,10 @@
     <!-- Halo concentrations -->
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spins -->
-    <nodeOperator value="haloSpinRandom">
+    <nodeOperator value="haloAngularMomentumRandom">
       <factorReset value="2.0"/>
     </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>

@@ -453,7 +453,7 @@ contains
     ! Create a spin parameter property extractor.
     allocate(nodePropertyExtractor_        )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                   constructor="nodePropertyExtractorSpin                        (                                                                       )"/>
+    <referenceConstruct object="nodePropertyExtractor_"                   constructor="nodePropertyExtractorSpin                        (darkMatterProfileDMO_                                                  )"/>
     !!]
     ! Create a log10 property operator.
     allocate(outputAnalysisPropertyOperator_         )

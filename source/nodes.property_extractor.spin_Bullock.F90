@@ -21,8 +21,7 @@
 Contains a module which implements a node property extractor class for the \cite{bullock_profiles_2001} definition of spin parameter.
 !!}
 
-  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScale , darkMatterHaloScaleClass
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScale, darkMatterHaloScaleClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSpinBullock">
@@ -34,10 +33,9 @@ Contains a module which implements a node property extractor class for the \cite
      A property extractor class for the \cite{bullock_profiles_2001} definition of spin parameter..
      !!}
      private
-     class  (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
-     class  (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
-     logical                                     :: vectorSpinAvailable
-     integer                                     :: elementCount_
+     class  (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     logical                                    :: vectorSpinAvailable
+     integer                                    :: elementCount_
    contains
      final     ::                 spinBullockDestructor
      procedure :: elementCount => spinBullockElementCount
@@ -67,22 +65,19 @@ contains
     type (nodePropertyExtractorSpinBullock)                :: self
     type (inputParameters                 ), intent(inout) :: parameters
     class(darkMatterHaloScaleClass        ), pointer       :: darkMatterHaloScale_
-    class(darkMatterProfileDMOClass       ), pointer       :: darkMatterProfileDMO_
 
     !![
-    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
     !!]
-    self=nodePropertyExtractorSpinBullock(darkMatterHaloScale_,darkMatterProfileDMO_)
+    self=nodePropertyExtractorSpinBullock(darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="darkMatterHaloScale_" />
-    <objectDestructor name="darkMatterProfileDMO_"/>
+    <objectDestructor name="darkMatterHaloScale_"/>
     !!]
     return
   end function spinBullockConstructorParameters
 
-  function spinBullockConstructorInternal(darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
+  function spinBullockConstructorInternal(darkMatterHaloScale_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily spinBullock} output analysis property extractor class.
     !!}
@@ -90,12 +85,11 @@ contains
     implicit none
     type (nodePropertyExtractorSpinBullock)                        :: self
     class(darkMatterHaloScaleClass        ), intent(in   ), target :: darkMatterHaloScale_
-    class(darkMatterProfileDMOClass       ), intent(in   ), target :: darkMatterProfileDMO_
     !![
-    <constructorAssign variables="*darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="*darkMatterHaloScale_"/>
     !!]
 
-    self%vectorSpinAvailable=defaultSpinComponent%spinVectorIsGettable()
+    self%vectorSpinAvailable=defaultSpinComponent%angularMomentumVectorIsGettable()
     if (self%vectorSpinAvailable) then
        self%elementCount_=4
     else
@@ -112,8 +106,7 @@ contains
     type(nodePropertyExtractorSpinBullock), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%darkMatterHaloScale_" />
-    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    <objectDestructor name="self%darkMatterHaloScale_"/>
     !!]
     return
   end subroutine spinBullockDestructor
@@ -135,33 +128,32 @@ contains
     !!{
     Implement extraction of the spin parameter under the \cite{bullock_profiles_2001} defintiion.
     !!}
-    use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum
-    use :: Galacticus_Nodes      , only : nodeComponentBasic               , nodeComponentSpin, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpin, treeNode
     implicit none
-    double precision                                   , dimension(:) , allocatable :: spinBullockExtract
-    class           (nodePropertyExtractorSpinBullock ), intent(inout), target      :: self
-    type            (treeNode                         ), intent(inout), target      :: node
-    double precision                                   , intent(in   )              :: time
-    type            (multiCounter                     ), intent(inout), optional    :: instance
-    class           (nodeComponentBasic               ), pointer                    :: basic
-    class           (nodeComponentSpin                ), pointer                    :: spin
-    double precision                                   , dimension(3)               :: spinVectorUnit
-    double precision                                                                :: spinBullock
+    double precision                                  , dimension(:) , allocatable :: spinBullockExtract
+    class           (nodePropertyExtractorSpinBullock), intent(inout), target      :: self
+    type            (treeNode                        ), intent(inout), target      :: node
+    double precision                                  , intent(in   )              :: time
+    type            (multiCounter                    ), intent(inout), optional    :: instance
+    class           (nodeComponentBasic              ), pointer                    :: basic
+    class           (nodeComponentSpin               ), pointer                    :: spin
+    double precision                                  , dimension(3)               :: spinVectorUnit
+    double precision                                                               :: spinBullock
     !$GLC attributes unused :: time, instance
 
     allocate(spinBullockExtract(self%elementCount_))
-    basic                 =>  node                     %basic         (                               )
-    spinBullock           =  +Dark_Matter_Halo_Angular_Momentum       (node,self%darkMatterProfileDMO_) &
-         &                   /sqrt(2.0d0)                                                               &
-         &                   /basic                    %mass          (                               ) &
-         &                   /self%darkMatterHaloScale_%virialRadius  (node                           ) &
-         &                   /self%darkMatterHaloScale_%virialVelocity(node                           )
+    basic       =>  node                     %basic          (    )
+    spin        =>  node                     %spin           (    )
+    spinBullock =  +spin                     %angularMomentum(    ) &
+         &         /sqrt(2.0d0)                                     &
+         &         /basic                    %mass           (    ) &
+         &         /self%darkMatterHaloScale_%virialRadius   (node) &
+         &         /self%darkMatterHaloScale_%virialVelocity (node)
     spinBullockExtract(1) =   spinBullock
     if (self%vectorSpinAvailable) then
-       spin                    =>  node          %spin      ()
-       spinVectorUnit          =  +spin          %spinVector() &
-            &                     /spin          %spin      ()
-       spinBullockExtract(2:4) =  +spinBullock                 &
+       spinVectorUnit          =  +spin%angularMomentumVector() &
+            &                     /spin%angularMomentum      ()
+       spinBullockExtract(2:4) =  +spinBullock                  &
             &                     *spinVectorUnit
     end if
     return

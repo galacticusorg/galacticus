@@ -229,9 +229,10 @@
     <!-- Halo concentrations -->
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
      <!-- Halo spins -->
-    <nodeOperator value="haloSpinRandomWalk">
+    <nodeOperator value="haloAngularMomentumRandomWalk">
       <spinVarianceSpecific value="1.0e-3"/>
     </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks">
       <luminositiesStellarInactive value="true"/>

@@ -62,7 +62,7 @@
     <fileNames value="testSuite/data/mergerTrees/coincidentMergerAndBranchJump.hdf5"/>
     <treeIndexToRootNodeIndex value="true"/>
     <presetPositions value="false"/>
-    <presetSpins value="false"/>
+    <presetAngularMomenta value="false"/>
     <presetOrbits value="false"/>
     <presetMergerTimes value="true"/>
     <presetMergerNodes value="true"/>
@@ -209,9 +209,10 @@
     <!-- Halo concentrations -->
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spins -->
-    <nodeOperator value="haloSpinRandom">
+    <nodeOperator value="haloAngularMomentumRandom">
       <factorReset value="2.0"/>
     </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>

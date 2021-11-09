@@ -14,7 +14,7 @@
     <gamma2 value="0.0587448775510245" />
     <gamma3 value="0.645617093475741" />
   </mergerTreeBranchingProbability>
-  <spinVitvitskaMassExponent value="0.92527794238468" />
+  <angularMomentumVitvitskaMassExponent value="0.92527794238468" />
   <virialOrbit value="spinCorrelated">
     <alpha value="0.155573112534425" />
   </virialOrbit>

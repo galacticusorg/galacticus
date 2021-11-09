@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implements a node operator class that initializes halo spins using a random walk in angular momentum.
+  Implements a node operator class that initializes halo angular momenta using a random walk in angular momentum.
   !!}
 
   use :: Halo_Spin_Distributions , only : haloSpinDistributionClass
@@ -26,7 +26,7 @@
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
 
   !![
-  <nodeOperator name="nodeOperatorHaloSpinRandomWalk">
+  <nodeOperator name="nodeOperatorHaloAngularMomentumRandomWalk">
    <description>
     A node operator class that initializes halo spins using a random walk in angular momentum. The three components of the
     angular momentum vector are treated as independent Wiener processes with time-dependent variance. Specifically, each
@@ -38,51 +38,49 @@
     $M_\mathrm{v}(t)$, $V_\mathrm{v}(t)$, and $R_\mathrm{v}(t)$ are the virial mass, velocity, and radius respectively,
     $\sigma^2$ represents the variance in angular momentum per unit increase in $J_\mathrm{v}^2$, and $N(0,1)$ is a random
     variable distributed as a standard normal.
-  
-    The spin is then found from the magnitude of the total angular momentum, $|J| = \sum_{i=1}^3 J_\mathrm{i}^2$.
    </description>
   </nodeOperator>
   !!]
-  type, extends(nodeOperatorClass) :: nodeOperatorHaloSpinRandomWalk
+  type, extends(nodeOperatorClass) :: nodeOperatorHaloAngularMomentumRandomWalk
      !!{
      A node operator class that initializes halo spins using a random walk in angular momentum.
      !!}
      private
-     class           (haloSpinDistributionClass), pointer :: haloSpinDistribution_ => null()
-     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
-     class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
-     double precision                                     :: spinVarianceSpecific
+     class           (haloSpinDistributionClass), pointer :: haloSpinDistribution_           => null()
+     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_           => null()
+     class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_            => null()
+     double precision                                     :: angularMomentumVarianceSpecific
    contains
-     final     ::                   haloSpinRandomWalkDestructor
-     procedure :: nodeInitialize => haloSpinRandomWalkNodeInitialize
-  end type nodeOperatorHaloSpinRandomWalk
+     final     ::                   haloAngularMomentumRandomWalkDestructor
+     procedure :: nodeInitialize => haloAngularMomentumRandomWalkNodeInitialize
+  end type nodeOperatorHaloAngularMomentumRandomWalk
   
-  interface nodeOperatorHaloSpinRandomWalk
+  interface nodeOperatorHaloAngularMomentumRandomWalk
      !!{
-     Constructors for the {\normalfont \ttfamily haloSpinRandomWalk} node operator class.
+     Constructors for the {\normalfont \ttfamily haloAngularMomentumRandomWalk} node operator class.
      !!}
-     module procedure haloSpinRandomWalkConstructorParameters
-     module procedure haloSpinRandomWalkConstructorInternal
-  end interface nodeOperatorHaloSpinRandomWalk
+     module procedure haloAngularMomentumRandomWalkConstructorParameters
+     module procedure haloAngularMomentumRandomWalkConstructorInternal
+  end interface nodeOperatorHaloAngularMomentumRandomWalk
   
 contains
   
-  function haloSpinRandomWalkConstructorParameters(parameters) result(self)
+  function haloAngularMomentumRandomWalkConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily haloSpinRandomWalk} node operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily haloAngularMomentumRandomWalk} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type            (nodeOperatorHaloSpinRandomWalk)                :: self
-    type            (inputParameters               ), intent(inout) :: parameters
-    class           (haloSpinDistributionClass     ), pointer       :: haloSpinDistribution_
-    class           (darkMatterProfileDMOClass     ), pointer       :: darkMatterProfileDMO_
-    class           (darkMatterHaloScaleClass      ), pointer       :: darkMatterHaloScale_
-    double precision                                                :: spinVarianceSpecific
+    type            (nodeOperatorHaloAngularMomentumRandomWalk)                :: self
+    type            (inputParameters                          ), intent(inout) :: parameters
+    class           (haloSpinDistributionClass                ), pointer       :: haloSpinDistribution_
+    class           (darkMatterProfileDMOClass                ), pointer       :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass                 ), pointer       :: darkMatterHaloScale_
+    double precision                                                           :: angularMomentumVarianceSpecific
      
     !![
     <inputParameter>
-      <name>spinVarianceSpecific</name>
+      <name>angularMomentumVarianceSpecific</name>
       <description>The variance in the difference in the angular momentum of a halo per unit mass growth.</description>
       <source>parameters</source>
       <defaultValue>0.0029d0</defaultValue>
@@ -91,7 +89,7 @@ contains
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     !!]
-    self=nodeOperatorHaloSpinRandomWalk(spinVarianceSpecific,haloSpinDistribution_,darkMatterProfileDMO_,darkMatterHaloScale_)
+    self=nodeOperatorHaloAngularMomentumRandomWalk(angularMomentumVarianceSpecific,haloSpinDistribution_,darkMatterProfileDMO_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="haloSpinDistribution_"/>
@@ -99,31 +97,31 @@ contains
     <objectDestructor name="darkMatterHaloScale_" />
     !!]
     return
-  end function haloSpinRandomWalkConstructorParameters
+  end function haloAngularMomentumRandomWalkConstructorParameters
 
-  function haloSpinRandomWalkConstructorInternal(spinVarianceSpecific,haloSpinDistribution_,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
+  function haloAngularMomentumRandomWalkConstructorInternal(angularMomentumVarianceSpecific,haloSpinDistribution_,darkMatterProfileDMO_,darkMatterHaloScale_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily haloSpinRandomWalk} node operator class.
+    Internal constructor for the {\normalfont \ttfamily haloAngularMomentumRandomWalk} node operator class.
     !!}
     implicit none
-    type            (nodeOperatorHaloSpinRandomWalk)                        :: self
-    class           (haloSpinDistributionClass     ), intent(in   ), target :: haloSpinDistribution_
-    class           (darkMatterProfileDMOClass     ), intent(in   ), target :: darkMatterProfileDMO_
-    class           (darkMatterHaloScaleClass      ), intent(in   ), target :: darkMatterHaloScale_
-    double precision                                , intent(in   )         :: spinVarianceSpecific
+    type            (nodeOperatorHaloAngularMomentumRandomWalk)                        :: self
+    class           (haloSpinDistributionClass                ), intent(in   ), target :: haloSpinDistribution_
+    class           (darkMatterProfileDMOClass                ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (darkMatterHaloScaleClass                 ), intent(in   ), target :: darkMatterHaloScale_
+    double precision                                           , intent(in   )         :: angularMomentumVarianceSpecific
     !![
-    <constructorAssign variables="spinVarianceSpecific, *haloSpinDistribution_, *darkMatterProfileDMO_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="angularMomentumVarianceSpecific, *haloSpinDistribution_, *darkMatterProfileDMO_, *darkMatterHaloScale_"/>
     !!]
 
     return
-  end function haloSpinRandomWalkConstructorInternal
+  end function haloAngularMomentumRandomWalkConstructorInternal
 
-  subroutine haloSpinRandomWalkDestructor(self)
+  subroutine haloAngularMomentumRandomWalkDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily haloSpinRandomWalk} node operator class.
+    Destructor for the {\normalfont \ttfamily haloAngularMomentumRandomWalk} node operator class.
     !!}
     implicit none
-    type(nodeOperatorHaloSpinRandomWalk), intent(inout) :: self
+    type(nodeOperatorHaloAngularMomentumRandomWalk), intent(inout) :: self
 
     !![
     <objectDestructor name="self%haloSpinDistribution_"/>
@@ -131,24 +129,24 @@ contains
     <objectDestructor name="self%darkMatterHaloScale_" />
     !!]
     return
-  end subroutine haloSpinRandomWalkDestructor
+  end subroutine haloAngularMomentumRandomWalkDestructor
 
-  subroutine haloSpinRandomWalkNodeInitialize(self,node)
+  subroutine haloAngularMomentumRandomWalkNodeInitialize(self,node)
     !!{
     Assign a randomly-drawn spin to a node.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpin
-    use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum, Dark_Matter_Halo_Spin
+    use :: Galacticus_Nodes      , only : nodeComponentBasic                     , nodeComponentSpin
+    use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
     implicit none
-    class           (nodeOperatorHaloSpinRandomWalk), intent(inout)               :: self
-    type            (treeNode                      ), intent(inout), target       :: node
-    type            (treeNode                      )               , pointer      :: nodeProgenitor
-    class           (nodeComponentSpin             )               , pointer      :: spinProgenitor         , spin
-    class           (nodeComponentBasic            )               , pointer      :: basicProgenitor
-    double precision                                               , dimension(3) :: angularMomentumVector
-    double precision                                                              :: angularMomentumPrevious, angularMomentumCurrent, &
-         &                                                                           spinScalar
-    integer                                                                       :: i
+    class           (nodeOperatorHaloAngularMomentumRandomWalk), intent(inout)               :: self
+    type            (treeNode                                 ), intent(inout), target       :: node
+    type            (treeNode                                 )               , pointer      :: nodeProgenitor
+    class           (nodeComponentSpin                        )               , pointer      :: spinProgenitor         , spin
+    class           (nodeComponentBasic                       )               , pointer      :: basicProgenitor
+    double precision                                                          , dimension(3) :: angularMomentumVector
+    double precision                                                                         :: angularMomentumPrevious, angularMomentumCurrent, &
+         &                                                                                      angularMomentumScalar
+    integer                                                                                  :: i
     
     ! Ensure that the spin has not yet been assigned for this node.
     spin => node%spin()
@@ -159,17 +157,18 @@ contains
        do while (associated(nodeProgenitor%firstChild))
           nodeProgenitor => nodeProgenitor%firstChild
        end do
-       ! Select a spin for the initial halo from a distribution function.
-       basicProgenitor => nodeProgenitor                      %basic (                         )
-       spinProgenitor  => nodeProgenitor                      %spin  (autoCreate=.true.        )
-       spinScalar      =  self          %haloSpinDistribution_%sample(           nodeProgenitor)
-       call spinProgenitor%spinSet(spinScalar)
+       ! Select a angular momentum for the initial halo using the spin distribution function.
+       basicProgenitor       =>  nodeProgenitor                      %basic (                         )
+       spinProgenitor        =>  nodeProgenitor                      %spin  (autoCreate=.true.        )
+       angularMomentumScalar =  +self          %haloSpinDistribution_%sample(           nodeProgenitor)             &
+            &                   *Dark_Matter_Halo_Angular_Momentum_Scale(nodeProgenitor,self%darkMatterProfileDMO_)
+       call spinProgenitor%angularMomentumSet(angularMomentumScalar)
        ! Compute the initial angular momentum vector. We choose this to be aligned along the x-axis. As we only care about the
-       ! magnitude of the spin any choice of initial vector direction is equivalent.
-       angularMomentumVector  =[                                                                              &
-            &                   Dark_Matter_Halo_Angular_Momentum(nodeProgenitor,self%darkMatterProfileDMO_), &
-            &                   0.0d0                                                                       , &
-            &                   0.0d0                                                                         &
+       ! magnitude of the angular momentum any choice of initial vector direction is equivalent.
+       angularMomentumVector  =[                       &
+            &                   angularMomentumScalar, &
+            &                   0.0d0                , &
+            &                   0.0d0                  &
             &                  ]
        ! Compute the characteristic angular momentum of this halo.
        angularMomentumPrevious=+self           %darkMatterHaloScale_%virialRadius  (nodeProgenitor) &
@@ -188,16 +187,16 @@ contains
           do i=1,3
              angularMomentumVector(i)=+angularMomentumVector(i)                                              &
                   &                   +sqrt(                                                                 &
-                  &                         +self%spinVarianceSpecific                                       &
+                  &                         +self%angularMomentumVarianceSpecific                            &
                   &                         *(                                                               &
-                  &                           +angularMomentumCurrent**2                                     &
+                  &                           +angularMomentumCurrent **2                                    &
                   &                           -angularMomentumPrevious**2                                    &
                   &                          )                                                               &
                   &                        )                                                                 &
                   &                   *nodeProgenitor%hostTree%randomNumberGenerator_%standardNormalSample()
           end do
-          ! Compute and store the scalar spin.
-          call spinProgenitor%spinSet(Dark_Matter_Halo_Spin(nodeProgenitor,sqrt(sum(angularMomentumVector**2)),self%darkMatterProfileDMO_))
+          ! Store the scalar angular momentum.
+          call spinProgenitor%angularMomentumSet(sqrt(sum(angularMomentumVector**2)))
           ! Store the current characteristic angular momentum.
           angularMomentumPrevious=angularMomentumCurrent
           ! Move to the next descendent halo.
@@ -209,5 +208,5 @@ contains
        end do
     end select
     return
-  end subroutine haloSpinRandomWalkNodeInitialize
+  end subroutine haloAngularMomentumRandomWalkNodeInitialize
 

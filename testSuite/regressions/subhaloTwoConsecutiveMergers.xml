@@ -181,7 +181,7 @@
     <treeIndexToRootNodeIndex value="true"/>
     <presetOrbits value="true"/>
     <fileNames value="testSuite/data/mergerTrees/subhaloTwoConsecutiveMergers.hdf5"/>
-    <presetSpins value="false"/>
+    <presetAngularMomenta value="false"/>
     <presetPositions value="true"/>
     <outputTimeSnapTolerance value="0.001"/>
     <presetSubhaloMasses value="false"/>

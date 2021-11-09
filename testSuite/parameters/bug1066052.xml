@@ -14,7 +14,7 @@
     <presetMergerTimes value="false"/>
     <presetMergerNodes value="false"/>
     <presetSubhaloMasses value="true"/>
-    <presetSpins value="false"/>
+    <presetAngularMomenta value="false"/>
     <presetScaleRadii value="true"/>
   </mergerTreeConstructor>
   <galacticusOutputFileName value="testSuite/outputs/bug1066052.hdf5"/>
@@ -70,9 +70,10 @@
     <!-- Halo concentrations -->
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spins -->
-    <nodeOperator value="haloSpinRandom">
+    <nodeOperator value="haloAngularMomentumRandom">
       <factorReset value="2.0"/>
     </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>
     <!--Stellar feedback outflows-->

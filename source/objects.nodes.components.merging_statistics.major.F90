@@ -159,6 +159,7 @@ contains
     double precision                                , allocatable  , dimension(:) :: timeMajorMerger        , timeMajorMergerParent, &
          &                                                                           timeMajorMergerNew
     !$GLC attributes unused :: self
+    !$GLC attributes initialized :: timeMajorMerger, timeMajorMergerParent
     
     mergingStatisticsParent => node%parent            %mergingStatistics(autoCreate=.true.)
     mergingStatistics       => node                   %mergingStatistics(autoCreate=.true.)

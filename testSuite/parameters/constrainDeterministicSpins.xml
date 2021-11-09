@@ -125,7 +125,7 @@
   <componentSatellite value="standard"/>
   <componentSpheroid value="null"/>
   <componentSpin value="vitvitska"/>
-  <spinVitvitskaMassExponent value="0.274460218346487"/>
+  <angularMomentumVitvitskaMassExponent value="0.274460218346487"/>
 
   <!-- Merger tree construction -->
   <mergerTreeBuilder value="cole2000">

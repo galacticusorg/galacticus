@@ -44,13 +44,13 @@
     the mean specific angular momentum interior to radius $r$), if {\normalfont \ttfamily [useInteriorMean]}$=${\normalfont
     \ttfamily true}.
   
-    If {\normalfont \ttfamily [sourceAngularMomentumSpecificMean]}$=${\normalfont \ttfamily darkMatter} then $\langle j
-    \rangle$ is the mean specific angular momentum of the dark matter halo, computed from its spin parameter, while if
-    {\normalfont \ttfamily [sourceAngularMomentumSpecificMean]}$=${\normalfont \ttfamily hotGas} then $\langle j \rangle$ is
-    equal to the mean specific angular momentum of gas currently in the hot gas reservoir. If {\normalfont \ttfamily
-    [sourceNormalizationRotation]}$=${\normalfont \ttfamily darkMatter} then the rotation normalization $A$ is computed using
-    the dark matter density profile, while if {\normalfont \ttfamily [sourceNormalizationRotation]}$=${\normalfont \ttfamily
-    hotGas} it is computed using the density profile of the hot gas reservoir.
+    If {\normalfont \ttfamily [sourceAngularMomentumSpecificMean]}$=${\normalfont \ttfamily darkMatter} then $\langle j \rangle$
+    is the mean specific angular momentum of the dark matter halo, while if {\normalfont \ttfamily
+    [sourceAngularMomentumSpecificMean]}$=${\normalfont \ttfamily hotGas} then $\langle j \rangle$ is equal to the mean specific
+    angular momentum of gas currently in the hot gas reservoir. If {\normalfont \ttfamily
+    [sourceNormalizationRotation]}$=${\normalfont \ttfamily darkMatter} then the rotation normalization $A$ is computed using the
+    dark matter density profile, while if {\normalfont \ttfamily [sourceNormalizationRotation]}$=${\normalfont \ttfamily hotGas}
+    it is computed using the density profile of the hot gas reservoir.
    </description>
   </coolingSpecificAngularMomentum>
   !!]
@@ -206,8 +206,8 @@ contains
     !!{
     Return the specific angular momentum of cooling gas in the constantRotation model.
     !!}
-    use :: Galacticus_Error            , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes            , only : nodeComponentBasic             , nodeComponentHotHalo, nodeComponentSpin, treeNode
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
+    use :: Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentHotHalo, nodeComponentSpin, treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (coolingSpecificAngularMomentumConstantRotation), intent(inout) :: self
@@ -227,13 +227,11 @@ contains
        ! Compute the mean specific angular momentum.
        select case (self%sourceAngularMomentumSpecificMean)
        case (angularMomentumSourceDarkMatter)
-          ! Compute mean specific angular momentum of the dark matter halo from the spin parameter, mass and energy of the halo.
-          basic => node%basic()
-          spin  => node%spin ()
-          angularMomentumSpecificMean=+gravitationalConstantGalacticus                            &
-               &                      *         spin                       %spin  (    )          &
-               &                      *         basic                      %mass  (    )  **1.5d0 &
-               &                      /sqrt(abs(self %darkMatterProfileDMO_%energy(node)))
+          ! Compute mean specific angular momentum of the dark matter halo.
+          basic                       =>  node               %basic()
+          spin                        =>  node               %spin ()
+          angularMomentumSpecificMean =  +spin%angularMomentum     () &
+               &                         /basic              %mass ()
        case (angularMomentumSourceHotGas    )
           ! Compute mean specific angular momentum from the hot halo component.
           hotHalo => node%hotHalo()

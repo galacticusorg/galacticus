@@ -184,7 +184,7 @@
     <alpha   value="1.7091800"/>
     <lambda0 value="0.0420190"/>
   </haloSpinDistribution>
-  <spinVitvitskaMassExponent value="0.10475"/> <!-- Best fit value from Benson, Behrens, & Lu (2020) -->
+  <angularMomentumVitvitskaMassExponent value="0.10475"/> <!-- Best fit value from Benson, Behrens, & Lu (2020) -->
 
   <!-- Introduce baryonic physics -->
   <!-- Halo accretion options -->
@@ -322,11 +322,6 @@
     <nodeOperator value="satelliteDestructionMassThreshold" >
       <massDestruction           value="=[mergerTreeMassResolution::massResolution]"/>
       <massDestructionFractional value="0.0e0"/>
-    </nodeOperator>
-
-    <!-- Halo spins -->
-    <nodeOperator value="haloSpinRandom">
-      <factorReset value="2.0"/>
     </nodeOperator>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>

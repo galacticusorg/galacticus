@@ -43,7 +43,7 @@
       <treeIndexToRootNodeIndex value="true"/>
       <presetSubhaloMasses value="true"/>
       <presetPositions value="true"/>
-      <presetSpins value="false"/>
+      <presetAngularMomenta value="false"/>
       <presetScaleRadii value="false"/>
       <hotHaloRamPressureStripping value="virialRadius" parameterLevel="top"/>
       <hotHaloTrackStrippedGas value="false" parameterLevel="top"/>

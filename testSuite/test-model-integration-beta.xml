@@ -5,7 +5,7 @@
   <!-- Beta model maximum likelihood model -->
 
   <!-- Logging -->
-  <verbosityLevel value="working"/>
+  <verbosityLevel value="standard"/>
 
   <!-- Random number generation -->
   <randomNumberGenerator value="GSL">
@@ -250,9 +250,10 @@
     <!-- Halo concentrations -->
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spins -->
-    <nodeOperator value="haloSpinRandom">
+    <nodeOperator value="haloAngularMomentumRandom">
       <factorReset value="2.0"/>
     </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="stellarFeedbackDisks">

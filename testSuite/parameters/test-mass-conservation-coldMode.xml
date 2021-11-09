@@ -272,9 +272,10 @@
       <!-- Halo concentrations -->
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <!-- Halo spins -->
-      <nodeOperator value="haloSpinRandom" iterable="no">
+      <nodeOperator value="haloAngularMomentumRandom" iterable="no">
 	<factorReset value="2.0"/>
       </nodeOperator>
+      <nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
       <!-- Star formation -->
       <nodeOperator value="starFormationDisks" iterable="no"/>
       <nodeOperator value="starFormationSpheroids" iterable="no"/>

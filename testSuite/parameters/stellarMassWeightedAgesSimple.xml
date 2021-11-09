@@ -60,9 +60,6 @@
   <!-- Substructure hierarchy options -->
   <mergerTreeNodeMerger value="singleLevelHierarchy"/>
 
-  <!-- Dark matter halo structure options -->
-  <darkMatterProfileDMO value="isothermal"/>
-
   <!-- Halo accretion options -->
   <accretionHalo value="zero"/>
 
@@ -94,7 +91,7 @@
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
     <!-- Halo spins -->
-    <nodeOperator value="haloSpinInterpolate"/>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <!-- Stellar mass-weighted ages -->

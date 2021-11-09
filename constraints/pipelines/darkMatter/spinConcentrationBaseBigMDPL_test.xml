@@ -114,7 +114,7 @@
     <alpha   value="1.7044657787810300"/>
     <lambda0 value="0.0420508166675498"/>
   </haloSpinDistribution>
-  <spinVitvitskaMassExponent value="1.1455744754766510"/>
+  <angularMomentumVitvitskaMassExponent value="1.1455744754766510"/>
 
   <!-- Galactic structure -->
   <galacticStructureSolver value="null"/>

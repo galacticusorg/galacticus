@@ -182,7 +182,7 @@
     <presetScaleRadii value="false"/>
     <presetMergerNodes value="false"/>
     <fileNames value="testSuite/data/mergerTrees/finalTimeBeforeOutputTime.hdf5"/>
-    <presetSpins value="false"/>
+    <presetAngularMomenta value="false"/>
     <presetPositions value="false"/>
     <outputTimeSnapTolerance value="0.001"/>
   </mergerTreeConstructor>

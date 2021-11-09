@@ -443,24 +443,25 @@ contains
     use :: Display                       , only : displayMessage         , verbosityLevelWarn
     use :: Galacticus_Error              , only : Galacticus_Error_Report
     use :: Galacticus_Nodes              , only : defaultDiskComponent   , nodeComponentDisk  , nodeComponentDiskStandard, nodeComponentSpin, &
-          &                                       treeNode
+          &                                       treeNode               , nodeComponentBasic
     use :: ISO_Varying_String            , only : assignment(=)          , operator(//)       , varying_string
     use :: Interface_GSL                 , only : GSL_Failure
     use :: Stellar_Luminosities_Structure, only : abs                    , stellarLuminosities
     use :: String_Handling               , only : operator(//)
     implicit none
-    type            (treeNode                ), intent(inout), pointer :: node
-    integer                                   , intent(inout)          :: status
-    class           (nodeComponentDisk       )               , pointer :: disk
-    class           (nodeComponentSpin       )               , pointer :: spin
-    double precision                          , parameter              :: angularMomentumTolerance=1.0d-2
-    double precision                          , save                   :: fractionalErrorMaximum  =0.0d+0
-    double precision                                                   :: diskMass                       , fractionalError, &
-         &                                                                specificAngularMomentum
-    character       (len=20                  )                         :: valueString
-    type            (varying_string          ), save                   :: message
+    type            (treeNode           ), intent(inout), pointer :: node
+    integer                              , intent(inout)          :: status
+    class           (nodeComponentDisk  )               , pointer :: disk
+    class           (nodeComponentBasic )               , pointer :: basic
+    class           (nodeComponentSpin  )               , pointer :: spin
+    double precision                     , parameter              :: angularMomentumTolerance=1.0d-2
+    double precision                     , save                   :: fractionalErrorMaximum  =0.0d+0
+    double precision                                              :: diskMass                       , fractionalError, &
+         &                                                           specificAngularMomentum
+    character       (len=20             )                         :: valueString
+    type            (varying_string     ), save                   :: message
     !$omp threadprivate(message)
-    type            (stellarLuminosities     ), save                   :: luminositiesStellar
+    type            (stellarLuminosities), save                   :: luminositiesStellar
     !$omp threadprivate(luminositiesStellar)
 
     ! Return immediately if this class is not in use.
@@ -577,7 +578,8 @@ contains
        end if
        ! Trap negative angular momentum.
        if (disk%angularMomentum() < 0.0d0) then
-          spin => node%spin()
+          spin  => node%spin ()
+          basic => node%basic()
           if      (                           &
                &     disk  %massStellar    () &
                &    +disk  %massGas        () &
@@ -586,30 +588,28 @@ contains
                &  ) then
              call disk%angularMomentumSet(0.0d0)
           else if (.not.diskNegativeAngularMomentumAllowed) then
-             if  (                                 &
-                  &    abs(disk%angularMomentum()) &
-                  &   /(                           &
-                  &        disk%massStellar    ()  &
-                  &     +  disk%massGas        ()  &
-                  &    )                           &
-                  &  <                             &
-                  &    angularMomentumTolerance    &
-                  &   *darkMatterHaloScale_%virialRadius  (node) &
-                  &   *darkMatterHaloScale_%virialVelocity(node) &
-                  &   *spin            %spin          (        ) &
+             if  (                                &
+                  &    abs(disk%angularMomentum())&
+                  &   /(                          &
+                  &        disk%massStellar    () &
+                  &     +  disk%massGas        () &
+                  &    )                          &
+                  &  <                            &
+                  &    angularMomentumTolerance   &
+                  &   *spin    %angularMomentum() &
+                  &   /basic   %mass           () &
                   & ) then
                 call disk%angularMomentumSet(0.0d0)
              else
                 message='negative angular momentum in disk with positive mass'
-                write (valueString,'(e12.6)') disk%angularMomentum()
+                write (valueString,'(e12.6)') disk  %angularMomentum()
                 message=message//char(10)//' -> angular momentum       = '//trim(valueString)
-                write (valueString,'(e12.6)') disk%massStellar    ()
+                write (valueString,'(e12.6)') disk  %massStellar    ()
                 message=message//char(10)//' -> stellar mass           = '//trim(valueString)
-                write (valueString,'(e12.6)') disk%massGas        ()
+                write (valueString,'(e12.6)') disk  %massGas        ()
                 message=message//char(10)//' -> gas mass               = '//trim(valueString)
-                write (valueString,'(e12.6)') +darkMatterHaloScale_%virialRadius  (node) &
-                     &                        *darkMatterHaloScale_%virialVelocity(node) &
-                     &                        *spin                %spin          (    )
+                write (valueString,'(e12.6)') +spin %angularMomentum() &
+                     &                        /basic%mass           ()
                 message=message//char(10)//' -> angular momentum scale = '//trim(valueString)
                 call Galacticus_Error_Report(message//{introspection:location})
              end if
