@@ -67,12 +67,6 @@ module Dark_Matter_Profiles_DMO
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
-   <method name="energyGrowthRate" >
-    <description> Returns the rate of chance of the total energy of {\normalfont \ttfamily node} in units of $M_\odot$ km$^2$ s$^{-2}$ Gyr$^{-1}$.</description>
-    <type>double precision</type>
-    <pass>yes</pass>
-    <argument>type(treeNode), intent(inout), target :: node</argument>
-   </method>
    <method name="rotationNormalization" >
     <description> Returns the relation between specific angular momentum and rotation velocity (assuming a rotation velocity that is constant in radius) for the given {\normalfont \ttfamily node}. Specifically, the normalization, $A$, returned is such that $V_\mathrm{rot} = A J/M$</description>
     <type>double precision</type>

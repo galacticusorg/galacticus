@@ -114,7 +114,6 @@
      procedure :: radiusFromSpecificAngularMomentum                => nfwRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization                            => nfwRotationNormalization
      procedure :: energy                                           => nfwEnergy
-     procedure :: energyGrowthRate                                 => nfwEnergyGrowthRate
      procedure :: kSpace                                           => nfwKSpace
      procedure :: freefallRadius                                   => nfwFreefallRadius
      procedure :: freefallRadiusIncreaseRate                       => nfwFreefallRadiusIncreaseRate
@@ -803,55 +802,6 @@ contains
          &    *basic                      %mass          (                                               )
     return
   end function nfwEnergy
-
-  double precision function nfwEnergyGrowthRate(self,node)
-    !!{
-    Return the rate of change of the energy of an NFW halo density profile.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
-    implicit none
-    class           (darkMatterProfileDMONFW       ), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), target  :: node
-    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
-    class           (nodeComponentBasic            )               , pointer :: basic
-    double precision                                                         :: concentration    , energy, &
-         &                                                                      energyGradient
-
-    ! Get components.
-    basic             => node%basic            (                 )
-    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
-
-    ! Find the concentration parameter of this halo.
-    concentration=self%darkMatterHaloScale_%virialRadius(node)/darkMatterProfile%scale()
-
-    ! Ensure that the interpolations exist and extend sufficiently far.
-    call self%tabulate(concentration)
-
-    ! Find the energy gradient by interpolation.
-    energy             =+self%nfwConcentrationTable%interpolate        (concentration,table=nfwConcentrationEnergyIndex)
-    energyGradient     =+self%nfwConcentrationTable%interpolateGradient(concentration,table=nfwConcentrationEnergyIndex)
-
-    nfwEnergyGrowthRate=+    self                     %energy                   (node)&
-         &              *(                                                            &
-         &                +       basic               %accretionRate           (    ) &
-         &                /       basic               %mass                    (    ) &
-         &                +2.0d0                                                      &
-         &                *  self%darkMatterHaloScale_%virialVelocityGrowthRate(node) &
-         &                /  self%darkMatterHaloScale_%virialVelocity          (node) &
-         &                +(                                                          &
-         &                  +energyGradient                                           &
-         &                  *concentration                                            &
-         &                  /energy                                                   &
-         &                 )                                                          &
-         &                *(                                                          &
-         &                  +self%darkMatterHaloScale_%virialRadiusGrowthRate  (node) &
-         &                  /self%darkMatterHaloScale_%virialRadius            (node) &
-         &                  -     darkMatterProfile   %scaleGrowthRate         (    ) &
-         &                  /     darkMatterProfile   %scale                   (    ) &
-         &                 )                                                          &
-         &               )
-    return
-  end function nfwEnergyGrowthRate
 
   double precision function nfwAngularMomentumScaleFree(self,concentration)
     !!{

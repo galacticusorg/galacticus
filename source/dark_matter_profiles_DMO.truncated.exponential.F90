@@ -69,7 +69,6 @@
      procedure :: radiusFromSpecificAngularMomentum => truncatedExponentialRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => truncatedExponentialRotationNormalization
      procedure :: energy                            => truncatedExponentialEnergy
-     procedure :: energyGrowthRate                  => truncatedExponentialEnergyGrowthRate
      procedure :: kSpace                            => truncatedExponentialKSpace
      procedure :: freefallRadius                    => truncatedExponentialFreefallRadius
      procedure :: freefallRadiusIncreaseRate        => truncatedExponentialFreefallRadiusIncreaseRate
@@ -586,22 +585,6 @@ contains
     end if
     return
   end function truncatedExponentialEnergy
-
-  double precision function truncatedExponentialEnergyGrowthRate(self,node)
-    !!{
-    Return the rate of change of the energy of a truncatedExponential halo density profile.
-    !!}
-    implicit none
-    class(darkMatterProfileDMOTruncatedExponential), intent(inout)         :: self
-    type (treeNode                                ), intent(inout), target :: node
-
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
-       truncatedExponentialEnergyGrowthRate=self%darkMatterProfileDMO_%energyGrowthRate         (node)
-    else
-       truncatedExponentialEnergyGrowthRate=self                      %energyGrowthRateNumerical(node)
-    end if
-    return
-  end function truncatedExponentialEnergyGrowthRate
 
   double precision function truncatedExponentialKSpace(self,node,waveNumber)
     !!{

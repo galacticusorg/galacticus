@@ -78,7 +78,6 @@
      procedure :: radiusFromSpecificAngularMomentum => finiteResolutionRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => finiteResolutionRotationNormalization
      procedure :: energy                            => finiteResolutionEnergy
-     procedure :: energyGrowthRate                  => finiteResolutionEnergyGrowthRate
      procedure :: kSpace                            => finiteResolutionKSpace
      procedure :: freefallRadius                    => finiteResolutionFreefallRadius
      procedure :: freefallRadiusIncreaseRate        => finiteResolutionFreefallRadiusIncreaseRate
@@ -489,22 +488,6 @@ contains
     end if
     return
   end function finiteResolutionEnergy
-
-  double precision function finiteResolutionEnergyGrowthRate(self,node)
-    !!{
-    Return the rate of change of the energy of a finiteResolution halo density profile.
-    !!}
-    implicit none
-    class(darkMatterProfileDMOFiniteResolution), intent(inout)         :: self
-    type (treeNode                            ), intent(inout), target :: node
-
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
-       finiteResolutionEnergyGrowthRate=self%darkMatterProfileDMO_%energyGrowthRate         (node)
-    else
-       finiteResolutionEnergyGrowthRate=self                      %energyGrowthRateNumerical(node)
-    end if
-    return
-  end function finiteResolutionEnergyGrowthRate
 
   double precision function finiteResolutionKSpace(self,node,waveNumber)
     !!{

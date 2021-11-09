@@ -136,7 +136,6 @@
      procedure :: radiusFromSpecificAngularMomentum => adiabaticGnedin2004RadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => adiabaticGnedin2004RotationNormalization
      procedure :: energy                            => adiabaticGnedin2004Energy
-     procedure :: energyGrowthRate                  => adiabaticGnedin2004EnergyGrowthRate
      procedure :: kSpace                            => adiabaticGnedin2004KSpace
      procedure :: freefallRadius                    => adiabaticGnedin2004FreefallRadius
      procedure :: freefallRadiusIncreaseRate        => adiabaticGnedin2004FreefallRadiusIncreaseRate
@@ -548,22 +547,6 @@
     end if
     return
   end function adiabaticGnedin2004Energy
-
-  double precision function adiabaticGnedin2004EnergyGrowthRate(self,node)
-    !!{
-    Return the rate of change of the energy of a adiabaticGnedin2004 halo density profile.
-    !!}
-    implicit none
-    class(darkMatterProfileAdiabaticGnedin2004), intent(inout) :: self
-    type (treeNode                            ), intent(inout) :: node
-
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
-       adiabaticGnedin2004EnergyGrowthRate=self%darkMatterProfileDMO_%energyGrowthRate         (node)
-    else
-       adiabaticGnedin2004EnergyGrowthRate=self                      %energyGrowthRateNumerical(node)
-    end if
-    return
-  end function adiabaticGnedin2004EnergyGrowthRate
 
   double precision function adiabaticGnedin2004KSpace(self,node,waveNumber)
     !!{

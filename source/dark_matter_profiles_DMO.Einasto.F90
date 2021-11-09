@@ -133,7 +133,6 @@
      procedure :: radiusFromSpecificAngularMomentum          => einastoRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization                      => einastoRotationNormalization
      procedure :: energy                                     => einastoEnergy
-     procedure :: energyGrowthRate                           => einastoEnergyGrowthRate
      procedure :: kSpace                                     => einastoKSpace
      procedure :: freefallRadius                             => einastoFreefallRadius
      procedure :: freefallRadiusIncreaseRate                 => einastoFreefallRadiusIncreaseRate
@@ -835,66 +834,6 @@ contains
          &        *self%darkMatterHaloScale_%virialVelocity(node)**2
     return
   end function einastoEnergy
-
-  double precision function einastoEnergyGrowthRate(self,node)
-    !!{
-    Return the energy of an Einasto halo density profile.
-    !!}
-    use            :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
-    use, intrinsic :: ISO_C_Binding   , only : c_size_t
-    implicit none
-    class           (darkMatterProfileDMOEinasto   ), intent(inout)           :: self
-    type            (treeNode                      ), intent(inout) , target  :: node
-    class           (nodeComponentBasic            )                , pointer :: basic
-    class           (nodeComponentDarkMatterProfile)                , pointer :: darkMatterProfile
-    integer         (c_size_t                      ), dimension(0:1)          :: jAlpha
-    double precision                                , dimension(0:1)          :: hAlpha
-    integer                                                                   :: iAlpha
-    double precision                                                          :: alpha                      , energy     , &
-         &                                                                       energyGradient             , scaleRadius, &
-         &                                                                       virialRadiusOverScaleRadius
-
-    ! Get components.
-    basic             => node%basic            (                 )
-    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
-
-    ! Get scale radius, shape parameter and concentration.
-    scaleRadius                =darkMatterProfile%scale()
-    alpha                      =darkMatterProfile%shape()
-    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
-
-    ! Ensure the table exists and is sufficiently tabulated.
-    call self%energyTableMake(virialRadiusOverScaleRadius,alpha)
-
-    ! Get interpolating factors in alpha.
-    call self%energyTableAlphaInterpolator%linearFactors(alpha,jAlpha(0),hAlpha)
-    jAlpha(1)=jAlpha(0)+1
-    
-    ! Find the energy gradient by interpolation.
-    energy        =0.0d0
-    energyGradient=0.0d0
-    do iAlpha=0,1
-       energy        =+energy                                                                                                                &
-            &         +self%energyTableConcentrationInterpolator%interpolate(virialRadiusOverScaleRadius,self%energyTable(:,jAlpha(iAlpha))) &
-            &         *                                                                                                     hAlpha(iAlpha)
-       energyGradient=+energyGradient                                                                                                        &
-            &         +self%energyTableConcentrationInterpolator%derivative (virialRadiusOverScaleRadius,self%energyTable(:,jAlpha(iAlpha))) &
-            &         *                                                                                                     hAlpha(iAlpha)
-    end do
-
-    ! Compute the energy growth rate.
-    einastoEnergyGrowthRate=+self%energy(node)                                                                                               &
-         &                  *(                                                                                                               &
-         &                    +basic%accretionRate()/basic%mass()                                                                            &
-         &                    +2.0d0*self%darkMatterHaloScale_%virialVelocityGrowthRate(node)/self%darkMatterHaloScale_%virialVelocity(node) &
-         &                    +(energyGradient*virialRadiusOverScaleRadius/energy)                                                           &
-         &                    *(                                                                                                             &
-         &                      +self%darkMatterHaloScale_%virialRadiusGrowthRate(node)/self%darkMatterHaloScale_%virialRadius(node)         &
-         &                      -darkMatterProfile%scaleGrowthRate()/darkMatterProfile%scale()                                               &
-         &                     )                                                                                                             &
-         &                   )
-    return
-  end function einastoEnergyGrowthRate
 
   subroutine einastoEnergyTableMake(self,concentrationRequired,alphaRequired)
     !!{

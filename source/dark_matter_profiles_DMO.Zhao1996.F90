@@ -70,7 +70,6 @@
      procedure :: radiusFromSpecificAngularMomentum => zhao1996RadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => zhao1996RotationNormalization
      procedure :: energy                            => zhao1996Energy
-     procedure :: energyGrowthRate                  => zhao1996EnergyGrowthRate
      procedure :: kSpace                            => zhao1996KSpace
      procedure :: freefallRadius                    => zhao1996FreefallRadius
      procedure :: freefallRadiusIncreaseRate        => zhao1996FreefallRadiusIncreaseRate
@@ -481,18 +480,6 @@ contains
     zhao1996Energy=self%energyNumerical(node)
     return
   end function zhao1996Energy
-
-  double precision function zhao1996EnergyGrowthRate(self,node)
-    !!{
-    Return the rate of change of the energy of an Zhao1996 halo density profile.
-    !!}
-    implicit none
-    class(darkMatterProfileDMOZhao1996), intent(inout)          :: self
-    type (treeNode                    ), intent(inout), target  :: node
-
-    zhao1996EnergyGrowthRate=self%energyGrowthRateNumerical(node)
-    return
-  end function zhao1996EnergyGrowthRate
 
   double precision function zhao1996KSpace(self,node,waveNumber)
     !!{

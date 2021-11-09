@@ -84,7 +84,6 @@
      procedure :: radiusFromSpecificAngularMomentum => heatedRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => heatedRotationNormalization
      procedure :: energy                            => heatedEnergy
-     procedure :: energyGrowthRate                  => heatedEnergyGrowthRate
      procedure :: kSpace                            => heatedKSpace
      procedure :: freefallRadius                    => heatedFreefallRadius
      procedure :: freefallRadiusIncreaseRate        => heatedFreefallRadiusIncreaseRate
@@ -647,22 +646,6 @@ contains
     end if
     return
   end function heatedEnergy
-
-  double precision function heatedEnergyGrowthRate(self,node)
-    !!{
-    Return the rate of change of the energy of a heated halo density profile.
-    !!}
-    implicit none
-    class(darkMatterProfileDMOHeated), intent(inout)         :: self
-    type (treeNode                  ), intent(inout), target :: node
-
-   if (self%darkMatterProfileHeating_%specificEnergyIsEverywhereZero(node,self%darkMatterProfileDMO_) .or. self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
-       heatedEnergyGrowthRate=self%darkMatterProfileDMO_%energyGrowthRate         (node)
-    else
-       heatedEnergyGrowthRate=self                      %energyGrowthRateNumerical(node)
-    end if
-    return
-  end function heatedEnergyGrowthRate
 
   double precision function heatedKSpace(self,node,waveNumber)
     !!{

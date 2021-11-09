@@ -53,7 +53,6 @@
      procedure :: radiusFromSpecificAngularMomentum => multipleRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => multipleRotationNormalization
      procedure :: energy                            => multipleEnergy
-     procedure :: energyGrowthRate                  => multipleEnergyGrowthRate
      procedure :: kSpace                            => multipleKSpace
      procedure :: freefallRadius                    => multipleFreefallRadius
      procedure :: freefallRadiusIncreaseRate        => multipleFreefallRadiusIncreaseRate
@@ -363,22 +362,6 @@ contains
     end if
     return
   end function multipleEnergy
-
-  double precision function multipleEnergyGrowthRate(self,node)
-    !!{
-    Return the rate of change of the energy of a multiple halo density profile.
-    !!}
-    implicit none
-    class(darkMatterProfileDMOMultiple), intent(inout)         :: self
-    type (treeNode                    ), intent(inout), target :: node
-
-    if (node%isSatellite()) then
-       multipleEnergyGrowthRate=self%darkMatterProfileDMOSatellite_%energyGrowthRate(node)
-    else
-       multipleEnergyGrowthRate=self%darkMatterProfileDMOHost_     %energyGrowthRate(node)
-    end if
-    return
-  end function multipleEnergyGrowthRate
 
   double precision function multipleKSpace(self,node,waveNumber)
     !!{

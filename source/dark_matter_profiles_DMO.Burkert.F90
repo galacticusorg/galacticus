@@ -130,7 +130,6 @@
      procedure :: radiusFromSpecificAngularMomentum => burkertRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => burkertRotationNormalization
      procedure :: energy                            => burkertEnergy
-     procedure :: energyGrowthRate                  => burkertEnergyGrowthRate
      procedure :: kSpace                            => burkertKSpace
      procedure :: freefallRadius                    => burkertFreefallRadius
      procedure :: freefallRadiusIncreaseRate        => burkertFreefallRadiusIncreaseRate
@@ -705,47 +704,6 @@ contains
          &        *basic%mass()*self%darkMatterHaloScale_%virialVelocity(node)**2
     return
   end function burkertEnergy
-
-  double precision function burkertEnergyGrowthRate(self,node)
-    !!{
-    Return the rate of change of the energy of an Burkert halo density profile.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
-    implicit none
-    class           (darkMatterProfileDMOBurkert   ), intent(inout)          :: self
-    type            (treeNode                      ), intent(inout), target  :: node
-    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
-    class           (nodeComponentBasic            )               , pointer :: basic
-    double precision                                                         :: concentration     , energy, &
-         &                                                                      energyGradient
-
-    ! Get components.
-    basic             => node%basic            (                 )
-    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
-
-    ! Find the concentration parameter of this halo.
-    concentration=self%darkMatterHaloScale_%virialRadius(node)/darkMatterProfile%scale()
-
-    ! Ensure that the interpolations exist and extend sufficiently far.
-    call self%tabulate(concentration)
-
-    ! Find the energy gradient by interpolation.
-    energy        =self%burkertConcentrationTable%interpolate        (concentration,table=burkertConcentrationEnergyIndex)
-    energyGradient=self%burkertConcentrationTable%interpolateGradient(concentration,table=burkertConcentrationEnergyIndex)
-
-    burkertEnergyGrowthRate=+self%energy(node)                                                                                               &
-         &                  *(                                                                                                               &
-         &                    +basic%accretionRate()/basic%mass()                                                                            &
-         &                    +2.0d0*self%darkMatterHaloScale_%virialVelocityGrowthRate(node)/self%darkMatterHaloScale_%virialVelocity(node) &
-         &                    +(energyGradient*concentration/energy)                                                                         &
-         &                    *(                                                                                                             &
-         &                      +self%darkMatterHaloScale_%virialRadiusGrowthRate(node)/self%darkMatterHaloScale_%virialRadius(node)         &
-         &                      -darkMatterProfile%scaleGrowthRate()/darkMatterProfile%scale()                                               &
-         &                     )                                                                                                             &
-         &                   )
-
-    return
-  end function burkertEnergyGrowthRate
 
   double precision function burkertAngularMomentumScaleFree(self,concentration)
     !!{

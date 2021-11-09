@@ -76,7 +76,6 @@ module Dark_Matter_Profiles_Generic
        <method description="Return the normalization of the rotation velocity vs. specific angular momentum relation." method="rotationNormalizationNumerical" />
        <method description="Returns the Fourier transform of the density profile at the specified {\normalfont \ttfamily waveNumber} (given in Mpc$^{-1}$)." method="kSpaceNumerical" />
        <method description="Return the energy of the dark matter density profile." method="energyNumerical" />
-       <method description="Return the rate of growth of the energy of the dark matter density profile." method="energyGrowthRateNumerical" />
        <method description="Returns the freefall radius in the dark matter density profile at the specified {\normalfont \ttfamily time} (given in Gyr)." method="freefallRadiusNumerical" />
        <method description="Returns the rate of increase of the freefall radius in the dark matter density profile at the specified {\normalfont \ttfamily time} (given in Gyr)." method="freefallRadiusIncreaseRateNumerical" />
        <method description="Returns the radius (in Mpc) in the dark matter profile of {\normalfont \ttfamily node} which encloses the given {\normalfont \ttfamily density} (given in units of $M_\odot/$Mpc$^{-3}$)." method="radiusEnclosingDensityNumerical" />
@@ -102,7 +101,6 @@ module Dark_Matter_Profiles_Generic
      procedure                                         :: rotationNormalizationNumerical             => genericRotationNormalizationNumerical
      procedure                                         :: kSpaceNumerical                            => genericKSpaceNumerical
      procedure                                         :: energyNumerical                            => genericEnergyNumerical
-     procedure                                         :: energyGrowthRateNumerical                  => genericEnergyGrowthRateNumerical
      procedure                                         :: freefallRadiusNumerical                    => genericFreefallRadiusNumerical
      procedure                                         :: freefallRadiusIncreaseRateNumerical        => genericFreefallRadiusIncreaseRateNumerical
      procedure                                         :: radiusEnclosingDensityNumerical            => genericRadiusEnclosingDensityNumerical
@@ -805,43 +803,6 @@ contains
     end function integrandPseudoPressure
 
   end function genericEnergyNumerical
-
-  double precision function genericEnergyGrowthRateNumerical(self,node)
-    !!{
-    Returns the rate of growth of the energy if the dark matter density profile.
-    !!}
-    use :: Numerical_Differentiation, only : differentiator
-    implicit none
-    class           (darkMatterProfileGeneric), intent(inout), target :: self
-    type            (treeNode                ), intent(inout), target :: node
-    double precision                          , parameter             :: timeLogarithmicStep=0.1d0
-    type            (differentiator          )                        :: differentiator_
-    double precision                                                  :: timeLastIsolated
-
-    call self%solverSet  (node)
-    differentiator_                  =   differentiator                            (genericEnergyEvaluate                    )
-    genericBasic                     =>  node                    %basic            (                                         )
-    genericDarkMatterProfile         =>  node                    %darkMatterProfile(                                         )
-    genericTime                      =   genericBasic            %time             (                                         )
-    timeLastIsolated                 =   genericBasic            %timeLastIsolated (                                         )
-    genericMass                      =   genericBasic            %mass             (                                         )
-    genericMassGrowthRate            =   genericBasic            %accretionRate    (                                         )
-    genericScale                     =   genericDarkMatterProfile%scale            (                                         )
-    genericScaleGrowthRate           =   genericDarkMatterProfile%scaleGrowthRate  (                                         )
-    genericShape                     =   genericDarkMatterProfile%shape            (                                         )
-    genericShapeGrowthRate           =   genericDarkMatterProfile%shapeGrowthRate  (                                         )
-    genericEnergyGrowthRateNumerical =  +differentiator_         %derivative       (log(genericTime)     ,timeLogarithmicStep) &
-         &                              /                                               genericTime
-    call genericBasic%timeSet                       (genericTime           )
-    call genericBasic%timeLastIsolatedSet           (timeLastIsolated      )
-    call genericBasic%massSet                       (genericMass           )
-    call genericDarkMatterProfile%scaleSet          (genericScale          )
-    call genericDarkMatterProfile%scaleGrowthRateSet(genericScaleGrowthRate)
-    call genericDarkMatterProfile%shapeSet          (genericShape          )
-    call genericDarkMatterProfile%shapeGrowthRateSet(genericShapeGrowthRate)
-    call self%solverUnset(   )
-    return
-  end function genericEnergyGrowthRateNumerical
 
   double precision function genericEnergyEvaluate(timeLogarithmic)
     !!{

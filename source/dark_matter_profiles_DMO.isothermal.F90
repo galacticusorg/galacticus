@@ -52,7 +52,6 @@
      procedure :: radiusFromSpecificAngularMomentum => isothermalRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => isothermalRotationNormalization
      procedure :: energy                            => isothermalEnergy
-     procedure :: energyGrowthRate                  => isothermalEnergyGrowthRate
      procedure :: kSpace                            => isothermalKSpace
      procedure :: freefallRadius                    => isothermalFreefallRadius
      procedure :: freefallRadiusIncreaseRate        => isothermalFreefallRadiusIncreaseRate
@@ -334,25 +333,6 @@ contains
     isothermalEnergy =  -0.5d0*basic%mass()*self%darkMatterHaloScale_%virialVelocity(node)**2
     return
   end function isothermalEnergy
-
-  double precision function isothermalEnergyGrowthRate(self,node)
-    !!{
-    Return the rate of change of the energy of an isothermal halo density profile.
-    !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
-    implicit none
-    class(darkMatterProfileDMOIsothermal), intent(inout)          :: self
-    type (treeNode                      ), intent(inout), target  :: node
-    class(nodeComponentBasic            )               , pointer :: basic
-
-    basic   => node%basic     ()
-    isothermalEnergyGrowthRate=self%energy(node)                                                                                                &
-         &                     *(                                                                                                               &
-         &                       +basic%accretionRate()/basic%mass()                                                                            &
-         &                       +2.0d0*self%darkMatterHaloScale_%virialVelocityGrowthRate(node)/self%darkMatterHaloScale_%virialVelocity(node) &
-         &                      )
-    return
-  end function isothermalEnergyGrowthRate
 
   double precision function isothermalKSpace(self,node,waveNumber)
     !!{
