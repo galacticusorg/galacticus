@@ -76,6 +76,7 @@ contains
     !!{
     Constructor for the ``piecewise power-law'' primordial power spectrum class which takes a parameter set as input.
     !!}
+    use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
     type            (powerSpectrumPrimordialPiecewisePowerLaw)                              :: self
     type            (inputParameters                         ), intent(inout)               :: parameters
