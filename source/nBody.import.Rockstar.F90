@@ -377,6 +377,8 @@ contains
              columnMap=1
           else if (columnNames(36) == "Tidal_Force(35)") then
              columnMap=2
+          else if (columnNames(36) == "Mvir_all"       ) then
+             columnMap=3
           else
              call Galacticus_Error_Report('unrecognized column layout'//{introspection:location})
           end if
@@ -389,9 +391,20 @@ contains
                      &  .or.                                              &
                      &   self%readColumns(j) == rockstarColumnTidal_ID    &
                      & ) call Galacticus_Error_Report('tidal properties not available'//{introspection:location})
-                if (self%readColumns(j) > 34)                   &
+                if (self%readColumns(j) > 34)                               &
                      & self%readColumnsMapped(j)=+self%readColumnsMapped(j) &
                      &                           -2
+             end do
+          case (3)
+             do j=1,size(self%readColumns)
+                if     (                                                  &
+                     &   self%readColumns(j) == rockstarColumnTidal_Force &
+                     &  .or.                                              &
+                     &   self%readColumns(j) == rockstarColumnTidal_ID    &
+                     & ) call Galacticus_Error_Report('tidal properties not available'//{introspection:location})
+                if (self%readColumns(j) > 33)                               &
+                     & self%readColumnsMapped(j)=+self%readColumnsMapped(j) &
+                     &                           -3
              end do
           end select
        end if
@@ -424,6 +437,17 @@ contains
                      &                          columnsReal   (35   ), &
                      &                          columnsInteger(36   ), &
                      &                          columnsReal   (37:56)
+             case (3)
+                ! Older layout with "Mvir_all" in column 35.
+                read (line,*,ioStat=lineStatus) columnsReal   ( 0   ), &
+                     &                          columnsInteger( 1   ), &
+                     &                          columnsReal   ( 2   ), &
+                     &                          columnsInteger( 3: 8), &
+                     &                          columnsReal   ( 9:13), &
+                     &                          columnsInteger(14:14), &
+                     &                          columnsReal   (15:26), &
+                     &                          columnsInteger(27:33), &
+                     &                          columnsReal   (35:54)
              case default
                 call Galacticus_Error_Report('unknown column layout'//{introspection:location})
              end select
