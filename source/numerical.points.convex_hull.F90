@@ -109,9 +109,11 @@ contains
     double precision            , dimension(:,:), intent(in   ) :: points
     integer                                                     :: status
     
+#ifdef QHULLAVAIL
     if (size(points,dim=1) /= 3) call Galacticus_Error_Report('3D points are required'//{introspection:location})
     self%qhull=convexHullConstructorC(size(points,dim=2,kind=c_long),points,status)
     if (status /= 0) call Galacticus_Error_Report('convex hull construction failed'//{introspection:location})
+#endif
     return
   end function convexHullConstructor
 
@@ -123,7 +125,9 @@ contains
     implicit none
     type(convexHull), intent(inout) :: self
     
+#ifdef QHULLAVAIL
     if (c_associated(self%qhull)) call convexHullDestructorC(self%qhull)
+#endif
     return
   end subroutine convexHullDestructor
 
@@ -131,10 +135,17 @@ contains
     !!{
     Return the volume of a convex hull.
     !!}
+#ifdef QHULLAVAIL
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#endif
     implicit none
     class(convexHull), intent(inout) :: self
 
+#ifdef QHULLAVAIL
     convexHullVolume=convexHullVolumeC(self%qhull)
+#else
+    call Galacticus_Error_Report('qhull library is unavailable'//{introspection:location})
+#endif
     return
   end function convexHullVolume
   
@@ -142,11 +153,18 @@ contains
     !!{
     Return the volume of a convex hull.
     !!}
+#ifdef QHULLAVAIL
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+#endif
     implicit none
     class(convexHull), intent(inout) :: self
     real (c_double  ), dimension(3)  :: point
 
+#ifdef QHULLAVAIL
     convexHullPointIsInHull=convexHullPointIsInHullC(self%qhull,point)
+#else
+    call Galacticus_Error_Report('qhull library is unavailable'//{introspection:location})
+#endif
     return
   end function convexHullPointIsInHull
   

@@ -37,6 +37,7 @@ program Test_Convex_Hulls
   call Unit_Tests_Begin_Group("Convex hulls")
   ! Test convex hull volume for a unit octahedron.
   call Unit_Tests_Begin_Group("Regular octahedron")
+#ifdef QHULLAVAIL
   allocate(hull)
   hull=convexHull(                               &
        &          reshape(                       &
@@ -59,6 +60,13 @@ program Test_Convex_Hulls
   call Assert("point [½,½-10⁻⁶,0] inside hull" ,hull%pointIsInHull([0.5d0,0.5d0-1.0d-6,0.0d0]),.true.                          )
   call Assert("point [½,½+10⁻⁶,0] outside hull",hull%pointIsInHull([0.5d0,0.5d0+1.0d-6,0.0d0]),.false.                         )
   deallocate(hull)
+#else
+  call   Skip("volume"                         ,"qhull library unavailable")
+  call   Skip("point [0,0     ,0] inside hull" ,"qhull library unavailable")
+  call   Skip("point [2,0     ,0] outside hull","qhull library unavailable")
+  call   Skip("point [½,½-10⁻⁶,0] inside hull" ,"qhull library unavailable")
+  call   Skip("point [½,½+10⁻⁶,0] outside hull","qhull library unavailable")
+#endif
   call Unit_Tests_End_Group()
   ! End unit tests.
   call Unit_Tests_End_Group()
