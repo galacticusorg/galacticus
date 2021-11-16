@@ -84,6 +84,7 @@ foreach my $massFunctionType ( @massFunctionTypes ) {
     close($parameterOutputFile);
 
     # Construct a transfer function file for Galacticus.
+    system("echo DEBUG; pwd; ls -lcrt outputs/HMFcalc; h5dump -A outputs/HMFcalc/".$massFunctionType->{'label'}."_Tk.hdf5"); ## AJB HACK
     my $transferFunctionFile = new PDL::IO::HDF5(">outputs/HMFcalc/".$massFunctionType->{'label'}."_Tk.hdf5");
     $transferFunctionFile                                             ->dataset('wavenumber'             )->set    (                     $wavenumber                     );
     $transferFunctionFile->group('darkMatter'   )                     ->dataset('transferFunctionZ0.0000')->set    (                     $transferFunction               );
