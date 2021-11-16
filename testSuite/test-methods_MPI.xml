@@ -18,7 +18,10 @@
     <postSubmitSleepDuration>1</postSubmitSleepDuration>
     <jobWaitSleepDuration>10</jobWaitSleepDuration>
   </pbs>
-
+  <local>
+    <executable>Galacticus.exe_MPI</executable>
+  </local>
+  
   <!-- Tree construction methods -->
   <parameters>
     <formatVersion>2</formatVersion>

@@ -31,8 +31,9 @@ sub Validate {
     # Set defaults.
     my %defaults = 
 	(
-	 threadCount => 1        ,
-	 ompThreads  => "maximum"
+	 threadCount => 1               ,
+	 ompThreads  => "maximum"       ,
+	 executable  => "Galacticus.exe"
 	);
     foreach ( keys(%defaults) ) {
 	$launchScript->{'local'}->{$_} = $defaults{$_}
@@ -89,7 +90,10 @@ sub Launch_Models {
         if ( exists($options{'ompThreads'}) );
     my $verbosity = $launchScript->{'verbosity'};
     $verbosity = $options{'verbosity'}
-        if ( exists($options{'verbosity'}) );
+    if ( exists($options{'verbosity'}) );
+    my $executable = $launchScript->{'local'}->{'executable'};
+    $executable = $options{'executable'}
+        if ( exists($options{'executable'}) );
     for(my $i=0;$i<scalar(@jobs);++$i) {
 	if ( ( $i % $threadCount ) == $iThread ) {
  	    print " -> thread ".$iThread." running job: ".$jobs[$i]->{'label'}."\n"
@@ -99,7 +103,7 @@ sub Launch_Models {
 		    "ulimit -c unlimited;"        .
 		    "export GFORTRAN_ERROR_DUMPCORE=YES;".
 		    "export OMP_NUM_THREADS=".$ompThreads.";".
-		    $ENV{'GALACTICUS_EXEC_PATH'}."/Galacticus.exe ".$jobs[$i]->{'directory'}."/parameters.xml",
+		    $ENV{'GALACTICUS_EXEC_PATH'}."/".$executable." ".$jobs[$i]->{'directory'}."/parameters.xml",
 		    $jobs[$i]->{'directory'}."/galacticus.log"
 		);
 	    if ( $? == 0 ) {
