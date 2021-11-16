@@ -24,8 +24,10 @@ sub Failed {
     # Report the model failure (by e-mail if we have an e-mail address to send a report to and if
     # so requested).
     my $message = "FAILED: A Galacticus model failed to finish:\n\n";
-    $message   .= "  Host:\t".$ENV{"HOSTNAME"}."\n";
-    $message   .= "  User:\t".$ENV{"USER"}."\n\n";
+    $message   .= "  Host:\t".$ENV{"HOSTNAME"}."\n"
+	if ( exists($ENV{"HOSTNAME"}) );
+    $message   .= "  User:\t".$ENV{"USER"}."\n\n"
+	if ( exists($ENV{"USER"    }) );
     $message   .= "Model output is in: ".$job->{'directory'}."\n\n";
     if (
 	exists($launchScript->{'config'}->{'contact'}->{'email'}) 
