@@ -102,7 +102,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.nodes.exe
           ./tests.nodes.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Test-Parameters:
     runs-on: ubuntu-latest
@@ -135,7 +135,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.parameters.exe
           ./tests.parameters.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Files:
     runs-on: ubuntu-latest
@@ -168,7 +168,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.files.exe
           ./tests.files.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-IO-HDF5:
     runs-on: ubuntu-latest
@@ -201,7 +201,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.IO.HDF5.exe
           ./tests.IO.HDF5.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-IO-XML:
     runs-on: ubuntu-latest
@@ -234,7 +234,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.IO.XML.exe
           ./tests.IO.XML.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-ODE-Solver:
     runs-on: ubuntu-latest
@@ -267,7 +267,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.ODE_solver.exe
           ./tests.ODE_solver.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Random:
     runs-on: ubuntu-latest
@@ -300,7 +300,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.random.exe
           ./tests.random.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Random-Quasi:
     runs-on: ubuntu-latest
@@ -333,7 +333,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.random.quasi.exe
           ./tests.random.quasi.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Arrays:
     runs-on: ubuntu-latest
@@ -366,7 +366,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.arrays.exe
           ./tests.arrays.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Meshes:
     runs-on: ubuntu-latest
@@ -399,7 +399,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.meshes.exe
           ./tests.meshes.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Comparisons:
     runs-on: ubuntu-latest
@@ -432,7 +432,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.comparisons.exe
           ./tests.comparisons.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Geometry-Coordinate-Systems:
     runs-on: ubuntu-latest
@@ -465,7 +465,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.geometry.coordinate_systems.exe
           ./tests.geometry.coordinate_systems.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Hashes:
     runs-on: ubuntu-latest
@@ -498,7 +498,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.hashes.exe
           ./tests.hashes.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Hashes-Perfect:
     runs-on: ubuntu-latest
@@ -531,7 +531,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.hashes.perfect.exe
           ./tests.hashes.perfect.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Regular-Expressions:
     runs-on: ubuntu-latest
@@ -564,7 +564,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.regular_expressions.exe
           ./tests.regular_expressions.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Hashes-Cryptographic:
     runs-on: ubuntu-latest
@@ -597,7 +597,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.hashes.cryptographic.exe
           ./tests.hashes.cryptographic.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Integration:
     runs-on: ubuntu-latest
@@ -630,7 +630,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.integration.exe
           ./tests.integration.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Integration2:
     runs-on: ubuntu-latest
@@ -663,7 +663,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.integration2.exe
           ./tests.integration2.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Differentiation:
     runs-on: ubuntu-latest
@@ -696,7 +696,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.differentiation.exe
           ./tests.differentiation.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Tables:
     runs-on: ubuntu-latest
@@ -729,7 +729,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.tables.exe
           ./tests.tables.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Interpolation:
     runs-on: ubuntu-latest
@@ -762,7 +762,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.interpolation.exe
           ./tests.interpolation.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Interpolation-2D:
     runs-on: ubuntu-latest
@@ -795,7 +795,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.interpolation.2D.exe
           ./tests.interpolation.2D.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Make-Ranges:
     runs-on: ubuntu-latest
@@ -828,7 +828,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.make_ranges.exe
           ./tests.make_ranges.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Mass-Distributions:
     runs-on: ubuntu-latest
@@ -861,7 +861,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.mass_distributions.exe
           ./tests.mass_distributions.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Math-Special-Functions:
     runs-on: ubuntu-latest
@@ -894,7 +894,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.math_special_functions.exe
           ./tests.math_special_functions.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Math-Distributions:
     runs-on: ubuntu-latest
@@ -927,7 +927,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.math_distributions.exe
           ./tests.math_distributions.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Math-Fast:
     runs-on: ubuntu-latest
@@ -960,7 +960,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.math.fast.exe
           ./tests.math.fast.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Math-Linear-Algebra:
     runs-on: ubuntu-latest
@@ -993,7 +993,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.math.linear_algebra.exe
           ./tests.math.linear_algebra.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Root-Finding:
     runs-on: ubuntu-latest
@@ -1026,7 +1026,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.root_finding.exe
           ./tests.root_finding.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Multi-Dimensional-Minimizer:
     runs-on: ubuntu-latest
@@ -1059,7 +1059,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.multi_dimensional_minimizer.exe
           ./tests.multi_dimensional_minimizer.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Search:
     runs-on: ubuntu-latest
@@ -1092,7 +1092,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.search.exe
           ./tests.search.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Roman-Numerals:
     runs-on: ubuntu-latest
@@ -1125,7 +1125,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.Roman_numerals.exe
           ./tests.Roman_numerals.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Sort:
     runs-on: ubuntu-latest
@@ -1158,7 +1158,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.sort.exe
           ./tests.sort.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Sort-Topological:
     runs-on: ubuntu-latest
@@ -1191,7 +1191,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.sort.topological.exe
           ./tests.sort.topological.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-String-Utilities:
     runs-on: ubuntu-latest
@@ -1224,7 +1224,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.string_utilities.exe
           ./tests.string_utilities.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Vectors:
     runs-on: ubuntu-latest
@@ -1257,7 +1257,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.vectors.exe
           ./tests.vectors.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Multi-Counters:
     runs-on: ubuntu-latest
@@ -1290,7 +1290,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.multi_counters.exe
           ./tests.multi_counters.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Tensors:
     runs-on: ubuntu-latest
@@ -1323,7 +1323,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.tensors.exe
           ./tests.tensors.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Cosmic-Age:
     runs-on: ubuntu-latest
@@ -1356,7 +1356,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.cosmic_age.exe
           ./tests.cosmic_age.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spherical-Collapse-Open:
     runs-on: ubuntu-latest
@@ -1389,7 +1389,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.open.exe
           ./tests.spherical_collapse.open.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spherical-Collapse-Flat:
     runs-on: ubuntu-latest
@@ -1422,7 +1422,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.flat.exe
           ./tests.spherical_collapse.flat.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spherical-Collapse-Dark-Energy-EdS:
     runs-on: ubuntu-latest
@@ -1455,7 +1455,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.dark_energy.EdS.exe
           ./tests.spherical_collapse.dark_energy.EdS.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spherical-Collapse-Dark-Energy-Open:
     runs-on: ubuntu-latest
@@ -1488,7 +1488,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.dark_energy.open.exe
           ./tests.spherical_collapse.dark_energy.open.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spherical-Collapse-Dark-Energy-Lambda:
     runs-on: ubuntu-latest
@@ -1521,7 +1521,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.dark_energy.lambda.exe
           ./tests.spherical_collapse.dark_energy.lambda.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spherical-Collapse-Dark-Energy-ConstantEoSminusHalf:
     runs-on: ubuntu-latest
@@ -1554,7 +1554,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.dark_energy.constantEoSminusHalf.exe
           ./tests.spherical_collapse.dark_energy.constantEoSminusHalf.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spherical-Collapse-Dark-Energy-ConstantEoSminusTwoThirds:
     runs-on: ubuntu-latest
@@ -1587,7 +1587,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.dark_energy.constantEoSminusTwoThirds.exe
           ./tests.spherical_collapse.dark_energy.constantEoSminusTwoThirds.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spherical-Collapse-Dark-Energy-ConstantEoSminus0-6:
     runs-on: ubuntu-latest
@@ -1620,7 +1620,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.dark_energy.constantEoSminus0.6.exe
           ./tests.spherical_collapse.dark_energy.constantEoSminus0.6.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spherical-Collapse-Dark-Energy-ConstantEoSminus0-8:
     runs-on: ubuntu-latest
@@ -1653,7 +1653,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.dark_energy.constantEoSminus0.8.exe
           ./tests.spherical_collapse.dark_energy.constantEoSminus0.8.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spherical-Collapse-Baryons-Dark-Matter:
     runs-on: ubuntu-latest
@@ -1686,7 +1686,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.baryons_dark_matter.exe
           ./tests.spherical_collapse.baryons_dark_matter.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spherical-Collapse-Nonlinear:
     runs-on: ubuntu-latest
@@ -1719,7 +1719,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spherical_collapse.nonlinear.exe
           ./tests.spherical_collapse.nonlinear.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Warm-Dark-Matter:
     runs-on: ubuntu-latest
@@ -1752,7 +1752,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.warm_dark_matter.exe
           ./tests.warm_dark_matter.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Linear-Growth-Cosmological-Constant:
     runs-on: ubuntu-latest
@@ -1785,7 +1785,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.linear_growth.cosmological_constant.exe
           ./tests.linear_growth.cosmological_constant.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Linear-Growth-EdS:
     runs-on: ubuntu-latest
@@ -1818,7 +1818,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.linear_growth.EdS.exe
           ./tests.linear_growth.EdS.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Linear-Growth-Open:
     runs-on: ubuntu-latest
@@ -1851,7 +1851,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.linear_growth.open.exe
           ./tests.linear_growth.open.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Linear-Growth-Dark-Energy:
     runs-on: ubuntu-latest
@@ -1884,7 +1884,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.linear_growth.dark_energy.exe
           ./tests.linear_growth.dark_energy.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Linear-Growth-Baryons-EdS:
     runs-on: ubuntu-latest
@@ -1917,7 +1917,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.linear_growth.baryons.EdS.exe
           ./tests.linear_growth.baryons.EdS.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Halo-Mass-Function-Tinker:
     runs-on: ubuntu-latest
@@ -1950,7 +1950,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.halo_mass_function.Tinker.exe
           ./tests.halo_mass_function.Tinker.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Halo-Mass-Function-Reed2007:
     runs-on: ubuntu-latest
@@ -1983,7 +1983,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.halo_mass_function.Reed2007.exe
           ./tests.halo_mass_function.Reed2007.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Comoving-Distance:
     runs-on: ubuntu-latest
@@ -2016,7 +2016,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.comoving_distance.exe
           ./tests.comoving_distance.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Mass-Accretion-History-Correa2015:
     runs-on: ubuntu-latest
@@ -2049,7 +2049,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.mass_accretion_history.Correa2015.exe
           ./tests.mass_accretion_history.Correa2015.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Zhao2009-Algorithms-Dark-Energy:
     runs-on: ubuntu-latest
@@ -2082,7 +2082,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.Zhao2009_algorithms.dark_energy.exe
           ./tests.Zhao2009_algorithms.dark_energy.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Zhao2009-Algorithms-EdS:
     runs-on: ubuntu-latest
@@ -2115,7 +2115,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.Zhao2009_algorithms.EdS.exe
           ./tests.Zhao2009_algorithms.EdS.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Zhao2009-Algorithms-Open:
     runs-on: ubuntu-latest
@@ -2148,7 +2148,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.Zhao2009_algorithms.open.exe
           ./tests.Zhao2009_algorithms.open.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-NFW96-Concentration-Dark-Energy:
     runs-on: ubuntu-latest
@@ -2181,7 +2181,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.NFW96_concentration.dark_energy.exe
           ./tests.NFW96_concentration.dark_energy.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Prada2011-Concentration:
     runs-on: ubuntu-latest
@@ -2214,7 +2214,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.Prada2011_concentration.exe
           ./tests.Prada2011_concentration.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-DiemerKravtsov2014-Concentration:
     runs-on: ubuntu-latest
@@ -2247,7 +2247,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.DiemerKravtsov2014_concentration.exe
           ./tests.DiemerKravtsov2014_concentration.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Concentration-Correa2015:
     runs-on: ubuntu-latest
@@ -2280,7 +2280,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.concentration.Correa2015.exe
           ./tests.concentration.Correa2015.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Concentrations:
     runs-on: ubuntu-latest
@@ -2313,7 +2313,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.concentrations.exe
           ./tests.concentrations.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Biases:
     runs-on: ubuntu-latest
@@ -2346,7 +2346,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.biases.exe
           ./tests.biases.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Kepler-Orbits:
     runs-on: ubuntu-latest
@@ -2379,7 +2379,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.kepler_orbits.exe
           ./tests.kepler_orbits.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Abundances:
     runs-on: ubuntu-latest
@@ -2418,7 +2418,7 @@ jobs:
           echo ls ../../
           ls ../../
           ./tests.abundances.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Sigma:
     runs-on: ubuntu-latest
@@ -2451,7 +2451,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.sigma.exe
           ./tests.sigma.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Power-Spectrum-Primordial:
     runs-on: ubuntu-latest
@@ -2484,7 +2484,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.power_spectrum.primordial.exe
           ./tests.power_spectrum.primordial.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Power-Spectrum:
     runs-on: ubuntu-latest
@@ -2517,7 +2517,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.power_spectrum.exe
           ./tests.power_spectrum.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Transfer-Functions:
     runs-on: ubuntu-latest
@@ -2550,7 +2550,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.transfer_functions.exe
           ./tests.transfer_functions.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Black-Hole-Fundamentals:
     runs-on: ubuntu-latest
@@ -2583,7 +2583,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.black_hole_fundamentals.exe
           ./tests.black_hole_fundamentals.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Bug745815:
     runs-on: ubuntu-latest
@@ -2616,7 +2616,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.bug745815.exe
           ./tests.bug745815.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Gaunt-Factors:
     runs-on: ubuntu-latest
@@ -2649,7 +2649,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.gaunt_factors.exe
           ./tests.gaunt_factors.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Cooling-Functions:
     runs-on: ubuntu-latest
@@ -2682,7 +2682,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.cooling_functions.exe
           ./tests.cooling_functions.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Accretion-Disks:
     runs-on: ubuntu-latest
@@ -2715,7 +2715,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.accretion_disks.exe
           ./tests.accretion_disks.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Mass-Accretion-History-Hearin2021:
     runs-on: ubuntu-latest
@@ -2748,7 +2748,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.mass_accretion_history.Hearin2021.exe
           ./tests.mass_accretion_history.Hearin2021.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Mass-Accretion-History-Hearin2021-Stochastic:
     runs-on: ubuntu-latest
@@ -2781,7 +2781,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.mass_accretion_history.Hearin2021_stochastic.exe
           ./tests.mass_accretion_history.Hearin2021_stochastic.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Dark-Matter-Profiles:
     runs-on: ubuntu-latest
@@ -2814,7 +2814,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.dark_matter_profiles.exe
           ./tests.dark_matter_profiles.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Dark-Matter-Profiles-Heated:
     runs-on: ubuntu-latest
@@ -2847,7 +2847,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.dark_matter_profiles.heated.exe
           ./tests.dark_matter_profiles.heated.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Dark-Matter-Halo-Radius-Enclosing-Mass:
     runs-on: ubuntu-latest
@@ -2880,7 +2880,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.dark_matter_halo_radius_enclosing_mass.exe
           ./tests.dark_matter_halo_radius_enclosing_mass.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Dark-Matter-Profiles-Tidal-Tracks:
     runs-on: ubuntu-latest
@@ -2913,7 +2913,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.dark_matter_profiles.tidal_tracks.exe
           ./tests.dark_matter_profiles.tidal_tracks.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Dark-Matter-Profiles-Generic:
     runs-on: ubuntu-latest
@@ -2946,7 +2946,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.dark_matter_profiles.generic.exe
           ./tests.dark_matter_profiles.generic.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Spectra-Postprocess-Inoue2014:
     runs-on: ubuntu-latest
@@ -2979,7 +2979,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.spectra.postprocess.Inoue2014.exe
           ./tests.spectra.postprocess.Inoue2014.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Recombination-Computed:
     runs-on: ubuntu-latest
@@ -3012,7 +3012,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.recombination_computed.exe
           ./tests.recombination_computed.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Recombination-Cooling-Hummer:
     runs-on: ubuntu-latest
@@ -3045,7 +3045,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.recombination_cooling.Hummer.exe
           ./tests.recombination_cooling.Hummer.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Locks:
     runs-on: ubuntu-latest
@@ -3078,7 +3078,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.locks.exe
           ./tests.locks.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Initial-Mass-Functions:
     runs-on: ubuntu-latest
@@ -3111,7 +3111,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.initial_mass_functions.exe
           ./tests.initial_mass_functions.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Stellar-Populations:
     runs-on: ubuntu-latest
@@ -3144,7 +3144,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.stellar_populations.exe
           ./tests.stellar_populations.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Stellar-Populations-Luminosities:
     runs-on: ubuntu-latest
@@ -3177,7 +3177,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.stellar_populations.luminosities.exe
           ./tests.stellar_populations.luminosities.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Crash:
     runs-on: ubuntu-latest
@@ -3275,7 +3275,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.excursion_sets.exe
           ./tests.excursion_sets.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Merger-Tree-Branching:
     runs-on: ubuntu-latest
@@ -3308,7 +3308,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.merger_tree_branching.exe
           ./tests.merger_tree_branching.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Event-Hooks:
     runs-on: ubuntu-latest
@@ -3341,7 +3341,7 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.event_hooks.exe
           ./tests.event_hooks.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tests-Tree-Branch_Destroy:
     runs-on: ubuntu-latest
@@ -3376,5 +3376,5 @@ jobs:
           cd $GALACTICUS_EXEC_PATH
           chmod u=wrx ./tests.tree_branch_destroy.exe
           valgrind --error-exitcode=1 ./tests.tree_branch_destroy.exe 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."

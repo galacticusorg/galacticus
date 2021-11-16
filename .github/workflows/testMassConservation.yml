@@ -110,7 +110,7 @@ jobs:
           cd testSuite
           chmod u=wrx ./test-mass-conservation-simple.pl
           ./test-mass-conservation-simple.pl --launchMethod local --threadMaximum 1 --ompThreads 2 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Standard:
     runs-on: ubuntu-latest
@@ -151,7 +151,7 @@ jobs:
           cd testSuite
           chmod u=wrx ./test-mass-conservation-standard.pl
           ./test-mass-conservation-standard.pl --launchMethod local --threadMaximum 1 --ompThreads 2 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Cold-Mode:
     runs-on: ubuntu-latest
@@ -192,5 +192,5 @@ jobs:
           cd testSuite
           chmod u=wrx ./test-mass-conservation-coldMode.pl
           ./test-mass-conservation-coldMode.pl --launchMethod local --threadMaximum 1 --ompThreads 2  2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."

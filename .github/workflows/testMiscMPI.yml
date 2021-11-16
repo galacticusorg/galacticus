@@ -105,7 +105,7 @@ jobs:
           cd testSuite
           chmod u=wrx ./test-stateRestore_MPI.pl
           ./test-stateRestore_MPI.pl --processesPerNode 8 --allow-run-as-root yes 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Test-Radiative-Transfer-Stromgren-Sphere:
     runs-on: ubuntu-latest
@@ -140,5 +140,5 @@ jobs:
           cd testSuite
           chmod u=wrx ./test-radiativeTransfer-StromgrenSphere_MPI.pl
           ./test-radiativeTransfer-StromgrenSphere_MPI.pl --processesPerNode 2 --allow-run-as-root yes 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."

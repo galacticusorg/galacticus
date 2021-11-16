@@ -103,7 +103,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/bug1053153.xml 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Bug-1066052:
     runs-on: ubuntu-latest
@@ -138,7 +138,7 @@ jobs:
           mkdir -p testSuite/outputs/regressions
           chmod u=wrx ./testSuite/regressions/bug1066052.pl
           ./testSuite/regressions/bug1066052.pl 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Bug-711424:
     runs-on: ubuntu-latest
@@ -172,7 +172,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/bug711424.xml 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Bug-725315:
     runs-on: ubuntu-latest
@@ -206,7 +206,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/bug725315.xml 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Coincident-Merger-And-Branch-Jump:
     runs-on: ubuntu-latest
@@ -240,7 +240,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/coincidentMergerAndBranchJump.xml 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Cole2000-Tree-Builder-WDM-Node-Well-Ordering:
     runs-on: ubuntu-latest
@@ -274,7 +274,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/cole2000TreeBuilderWDMNodeWellOrdering.xml 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Deadlock-Merge-Target-In-Descendent-Of-Mergee-2:
     runs-on: ubuntu-latest
@@ -308,7 +308,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/deadlockMergeTargetInDescendentOfMergee2.xml 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Deadlock-Merge-Target-In-Descendent-Of-Mergee:
     runs-on: ubuntu-latest
@@ -342,7 +342,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/deadlockMergeTargetInDescendentOfMergee.xml 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Final-Time-Before-Output-Time:
     runs-on: ubuntu-latest
@@ -376,7 +376,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/finalTimeBeforeOutputTime.xml 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Immediate-Sub-Sub-Merger-Then-Branch-Jump:
     runs-on: ubuntu-latest
@@ -410,7 +410,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/immediateSubSubMergerThenBranchJump.xml 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Initial-Satellite-No-Primary-Progenitor:
     runs-on: ubuntu-latest
@@ -444,7 +444,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/initialSatelliteNoPrimaryProgenitor.xml 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Issue-142:
     runs-on: ubuntu-latest
@@ -478,7 +478,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/issue142.xml 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Linear-Growth-For-Future-Model:
     runs-on: ubuntu-latest
@@ -512,7 +512,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/linearGrowthForFutureModel.xml 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Ludlow-Scale-Set-Before-Tree-Initialization:
     runs-on: ubuntu-latest
@@ -546,7 +546,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/ludlowScaleSetBeforeTreeInitialization.xml 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Merger-At-Final-Time-In-Tree:
     runs-on: ubuntu-latest
@@ -580,7 +580,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/mergerAtFinalTimeInTree.xml 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Merger-Tree-Box-Size-Weight:
     runs-on: ubuntu-latest
@@ -615,7 +615,7 @@ jobs:
           mkdir -p testSuite/outputs/regressions
           chmod u=wrx ./testSuite/regressions/mergerTreeBoxSizeWeight.pl
           ./testSuite/regressions/mergerTreeBoxSizeWeight.pl 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Particulate:
     runs-on: ubuntu-latest
@@ -649,7 +649,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/particulate.xml 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Satellite-Preset-Bound-Mass-Non-Zero:
     runs-on: ubuntu-latest
@@ -684,7 +684,7 @@ jobs:
           mkdir -p testSuite/outputs/regressions
           chmod u=wrx ./testSuite/regressions/satellitePresetBoundMassNonZero.pl
           ./testSuite/regressions/satellitePresetBoundMassNonZero.pl 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Set-Properties:
     runs-on: ubuntu-latest
@@ -725,7 +725,7 @@ jobs:
           mkdir -p testSuite/outputs/regressions
           chmod u=wrx ./testSuite/regressions/setProperties.pl
           ./testSuite/regressions/setProperties.pl 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Subhalo-Merges-At-Final-Time-Of-Tree:
     runs-on: ubuntu-latest
@@ -759,7 +759,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/subhaloMergesAtFinalTimeOfTree.xml 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Subhalo-Two-Consecutive-Mergers:
     runs-on: ubuntu-latest
@@ -793,7 +793,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/subhaloTwoConsecutiveMergers.xml 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tree-With-Initial-Satellite-In-Progenitorless-Host:
     runs-on: ubuntu-latest
@@ -827,7 +827,7 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/treeWithInitialSatelliteInProgenitorlessHost.xml 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Tree-With-No-Primary-Progenitor:
     runs-on: ubuntu-latest
@@ -861,5 +861,5 @@ jobs:
           chmod u=wrx ./Galacticus.exe
           mkdir -p testSuite/outputs/regressions
           ./Galacticus.exe testSuite/regressions/treeWithNoPrimaryProgenitor.xml 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."

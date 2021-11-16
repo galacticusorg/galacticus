@@ -110,7 +110,7 @@ jobs:
           cd testSuite
           chmod u=wrx ./test-merger-tree-builder.pl
           ./test-merger-tree-builder.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 1:4 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Test-Merger-Tree-Builder-2:
     runs-on: ubuntu-latest

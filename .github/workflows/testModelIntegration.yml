@@ -110,7 +110,7 @@ jobs:
           cd testSuite
           chmod u=wrx ./test-model-integration.pl
           ./test-model-integration.pl --instance 1:2 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Runner-2:
     runs-on: ubuntu-latest
@@ -151,5 +151,5 @@ jobs:
           cd testSuite
           chmod u=wrx ./test-model-integration.pl
           ./test-model-integration.pl --instance 2:2 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."

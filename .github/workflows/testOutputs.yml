@@ -104,7 +104,7 @@ jobs:
           cd testSuite
           chmod u=wrx ./test-outputs.pl
           ./test-outputs.pl --launchMethod local  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 1:10 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-02:
     runs-on: ubuntu-latest
@@ -139,7 +139,7 @@ jobs:
           cd testSuite
           chmod u=wrx ./test-outputs.pl
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 2:10 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-03:
     runs-on: ubuntu-latest
@@ -174,7 +174,7 @@ jobs:
           cd testSuite
           chmod u=wrx ./test-outputs.pl
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 3:10 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-04:
     runs-on: ubuntu-latest
@@ -209,7 +209,7 @@ jobs:
           cd testSuite
           chmod u=wrx ./test-outputs.pl
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 4:10 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-05:
     runs-on: ubuntu-latest
@@ -244,7 +244,7 @@ jobs:
           cd testSuite
           chmod u=wrx ./test-outputs.pl
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 5:10 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-06:
     runs-on: ubuntu-latest
@@ -279,7 +279,7 @@ jobs:
           cd testSuite
           chmod u=wrx ./test-outputs.pl
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 6:10 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-07:
     runs-on: ubuntu-latest
@@ -314,7 +314,7 @@ jobs:
           cd testSuite
           chmod u=wrx ./test-outputs.pl
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 7:10 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-08:
     runs-on: ubuntu-latest
@@ -349,7 +349,7 @@ jobs:
           cd testSuite
           chmod u=wrx ./test-outputs.pl
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 8:10 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-09:
     runs-on: ubuntu-latest
@@ -384,7 +384,7 @@ jobs:
           cd testSuite
           chmod u=wrx ./test-outputs.pl
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 9:10 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is $jobstatus."
   Runner-10:
     runs-on: ubuntu-latest
@@ -419,5 +419,5 @@ jobs:
           cd testSuite
           chmod u=wrx ./test-outputs.pl
           ./test-outputs.pl  --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 10:10 2>&1 | tee test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is $jobstatus."

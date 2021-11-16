@@ -105,7 +105,7 @@ jobs:
           chmod u=wrx ./test-cosmology.pl
           ./test-cosmology.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 1:2 2>&1 | tee test.log
           grep -v -q "BEGIN failed" test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
   Runner-2:
     runs-on: ubuntu-latest
@@ -141,5 +141,5 @@ jobs:
           chmod u=wrx ./test-cosmology.pl
           ./test-cosmology.pl --launchMethod local --threadMaximum 1 --ompThreads 2 --instance 2:2 2>&1 | tee test.log
           grep -v -q "BEGIN failed" test.log
-          grep -v -q FAIL test.log
+          ! grep -q FAIL test.log
       - run: echo "This job's status is ${{ job.status }}."
