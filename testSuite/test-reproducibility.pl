@@ -193,7 +193,7 @@ foreach my $test ( @tests ) {
 		$values      = $property->get    (                        );
 	    } elsif ( exists($assertion->{'expression'}) ) {
 		my %propertyNames;
-		while ( my @matches = $assertion->{'expression'} =~ m/%\[([^%]+?)({(\d+)})??\]/ ) {
+		while ( my @matches = $assertion->{'expression'} =~ m/%\[([^%]+?)(\{(\d+)\})??\]/ ) {
 		    my $propertyName  = $matches[0];
 		    my $propertyIndex = $matches[2];
 		    my $replacement = "\$properties{'$1'}";

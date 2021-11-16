@@ -42,7 +42,7 @@ for(my $i=1;$i<4;++$i) {
     my $timeIncrease                   = $time                                                                        -$timePrevious;
     my $massIncreaseFromRate           = $rateStarFormationInterOutput->($order)*$timeIncrease*(1.0-$recycledFraction)              ;
     $status = 0
-	if ( any(abs($massIncreaseFromRate-$massIncrease) > 1.0e-2*$massIncrease & $massIncrease > 1.0) );
+	if ( any((abs($massIncreaseFromRate-$massIncrease) > 1.0e-2*$massIncrease) & ($massIncrease > 1.0)) );
     $timePrevious .= $time                 ;
     $massPrevious .= $massStellar->($order);
 }
