@@ -69,6 +69,8 @@ jobs:
         run: sudo port install guile18
       - name: Install libmatheval
         run: sudo port install libmatheval
+      - name: Install qhull
+        run: sudo port install qhull
       - name: Install GSL
         run: |
           curl -L ftp://ftp.gnu.org/gnu/gsl/gsl-2.6.tar.gz --output gsl-2.6.tar.gz
@@ -157,7 +159,7 @@ jobs:
           export CPPCOMPILER=g++-11
           export GALACTICUS_FCFLAGS="-fintrinsic-modules-path /usr/local/finclude -fintrinsic-modules-path /usr/local/include -fintrinsic-modules-path /usr/local/include/gfortran -fintrinsic-modules-path /usr/local/lib/gfortran/modules -L/usr/local/lib -L/opt/local/lib"
           export GALACTICUS_CFLAGS="-I/usr/local/include -I/opt/local/include"
-          export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include"
+          export GALACTICUS_CPPFLAGS="-I/usr/local/include -I/opt/local/include -I/opt/local/include/qhull"
           export BUILDPATH=./work/build
           make -j3 Galacticus.exe 2>&1 | tee build.log
           ./scripts/build/staticRelinker.pl `grep '\-o Galacticus.exe' build.log`
