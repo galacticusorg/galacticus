@@ -216,6 +216,7 @@
     <!-- Node evolution and physics -->
     <nodeOperator value="multi">
       <!-- Halo concentrations -->
+      <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <!-- Halo spins -->
       <nodeOperator value="haloAngularMomentumRandom" iterable="no">

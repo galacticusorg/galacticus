@@ -104,8 +104,11 @@
   </mergerRemnantSize>
 
   <!-- Node evolution and physics -->
-  <nodeOperator value="darkMatterProfileScaleInterpolate"/>
- 
+  <nodeOperator value="multi">
+    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+ </nodeOperator>
+
   <!-- Numerical tolerances -->
   <mergerTreeNodeEvolver value="standard">
     <odeToleranceAbsolute value="0.01"/>

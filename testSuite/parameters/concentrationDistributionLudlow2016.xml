@@ -84,8 +84,11 @@
     </darkMatterProfileScaleRadius>
   </darkMatterProfileScaleRadius>
   <darkMatterProfileConcentration value="diemerJoyce2019"/>
-  <nodeOperator value="darkMatterProfileScaleInterpolate"/>
-
+  <nodeOperator value="multi">
+    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+  </nodeOperator>
+  
   <!-- Halo accretion options -->
   <accretionHalo value="zero"/>
 

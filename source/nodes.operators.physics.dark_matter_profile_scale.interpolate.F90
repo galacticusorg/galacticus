@@ -40,10 +40,11 @@
      !!}
      private
      class(darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()
+     integer                                           :: scaleGrowthRateID
    contains
      final     ::                          darkMatterProfileScaleInterpolateConstructorDestructor
-     procedure :: nodeTreeInitialize    => darkMatterProfileScaleInterpolateNodeTreeInitialize
      procedure :: nodeInitialize        => darkMatterProfileScaleInterpolateNodeInitialize
+     procedure :: nodePromote           => darkMatterProfileScaleInterpolateNodePromote
      procedure :: differentialEvolution => darkMatterProfileScaleInterpolateDifferentialEvolution
   end type nodeOperatorDarkMatterProfileScaleInterpolate
   
@@ -82,7 +83,7 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily darkMatterProfileScaleInterpolate} node operator class which takes a parameter set as input.
     !!}
-    use :: Input_Parameters, only : inputParameters
+    use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
     type (nodeOperatorDarkMatterProfileScaleInterpolate)                        :: self
     class(darkMatterProfileScaleRadiusClass            ), intent(in   ), target :: darkMatterProfileScaleRadius_
@@ -90,6 +91,7 @@ contains
     <constructorAssign variables="*darkMatterProfileScaleRadius_"/>
     !!]
 
+    self%scaleGrowthRateID=defaultDarkMatterProfileComponent%addMetaProperty(var_str('scaleGrowthRate'),'darkMatterProfile:scaleGrowthRate',isEvolvable=.false.)  
     return
   end function darkMatterProfileScaleInterpolateConstructorInternal
 
@@ -106,35 +108,6 @@ contains
     return
   end subroutine darkMatterProfileScaleInterpolateConstructorDestructor
 
-  subroutine darkMatterProfileScaleInterpolateNodeTreeInitialize(self,node)
-    !!{
-    Initialize dark matter profile scale radii.
-    !!}
-    use :: Galacticus_Nodes   , only : nodeComponentDarkMatterProfile
-    use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
-    implicit none
-    class(nodeOperatorDarkMatterProfileScaleInterpolate), intent(inout), target  :: self
-    type (treeNode                                     ), intent(inout), target  :: node
-    type (treeNode                                     )               , pointer :: nodeWork
-    class(nodeComponentDarkMatterProfile               )               , pointer :: darkMatterProfile, darkMatterProfileWork
-    type (mergerTreeWalkerAllNodes                     )                         :: treeWalker
-
-    ! Initialize the scale radius, if necessary.
-    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
-    if (darkMatterProfile%scale() < 0.0d0) then
-       ! Perform our own depth-first tree walk to set scales in all nodes of the tree. This is necessary as we require access
-       ! to the parent scale to set scale growth rates, but must initialize scales in a strictly depth-first manner as some
-       ! algorithms rely on knowing the progenitor structure of the tree to compute scale radii.
-       treeWalker=mergerTreeWalkerAllNodes(node%hostTree,spanForest=.true.)
-       do while (treeWalker%next(nodeWork))
-          ! Get the scale radius - this will initialize the radius if necessary.
-          darkMatterProfileWork => nodeWork%darkMatterProfile(autoCreate=.true.)
-          call darkMatterProfileWork%scaleSet(self%darkMatterProfileScaleRadius_%radius(nodeWork))
-      end do
-    end if
-    return
-  end subroutine darkMatterProfileScaleInterpolateNodeTreeInitialize
-  
   subroutine darkMatterProfileScaleInterpolateNodeInitialize(self,node)
     !!{
     Compute the rate of growth of dark matter profile scale radius assuming a constant growth rate.
@@ -158,20 +131,21 @@ contains
             &          -basic             %time ()
        if (timeInterval > 0.0d0) then
           darkMatterProfileParent => node%parent%darkMatterProfile()
-          call darkMatterProfile%scaleGrowthRateSet(                                         &
-               &                                    (                                        &
-               &                                     +darkMatterProfileParent%scale       () &
-               &                                     -darkMatterProfile      %scale       () &
-               &                                    )                                        &
-               &                                    /                         timeInterval   &
-               &                                   )
+          call darkMatterProfile%metaPropertySet(                                                &
+               &                                    self                   %scaleGrowthRateID  , &
+               &                                 +(                                              &
+               &                                   +darkMatterProfileParent%scale            ()  &
+               &                                   -darkMatterProfile      %scale            ()  &
+               &                                  )                                              &
+               &                                 /                          timeInterval         &
+               &                                )
        else
           ! Time interval is non-positive - assume zero growth rate.
-          call darkMatterProfile%scaleGrowthRateSet(0.0d0)
+          call darkMatterProfile%metaPropertySet(self%scaleGrowthRateID,0.0d0)
        end if
     else
        ! Node is a non-primary progenitor - assume zero growth rate.
-       call    darkMatterProfile%scaleGrowthRateSet(0.0d0)
+       call    darkMatterProfile%metaPropertySet(self%scaleGrowthRateID,0.0d0)
     end if
     return
   end subroutine darkMatterProfileScaleInterpolateNodeInitialize
@@ -194,8 +168,8 @@ contains
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
     ! Get the dark matter profile component.
-    darkMatterProfile => node             %darkMatterProfile()
-    rateScaleRadius   =  darkMatterProfile%scaleGrowthRate  ()
+    darkMatterProfile => node             %darkMatterProfile(                      )
+    rateScaleRadius   =  darkMatterProfile%metaPropertyGet  (self%scaleGrowthRateID)
     if (node%isPrimaryProgenitor()) then
        ! If necessary, limit the growth rate so that we do not exceed the scale radius of the parent halo.
        darkMatterProfileParent => node%parent%darkmatterProfile()
@@ -208,3 +182,20 @@ contains
     call darkMatterProfile%scaleRate(rateScaleRadius)
     return
   end subroutine darkMatterProfileScaleInterpolateDifferentialEvolution
+
+  subroutine darkMatterProfileScaleInterpolateNodePromote(self,node)
+    !!{
+    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the scale radius
+    growth rate of {\normalfont \ttfamily node} to be that of its parent.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
+    implicit none
+    class(nodeOperatorDarkMatterProfileScaleInterpolate), intent(inout) :: self
+    type (treeNode                                     ), intent(inout) :: node
+    class(nodeComponentDarkMatterProfile               ), pointer       :: darkMatterProfile, darkMatterProfileParent
+    
+    darkMatterProfile       => node       %darkMatterProfile()
+    darkMatterProfileParent => node%parent%darkMatterProfile()
+    call darkMatterProfile%metaPropertySet(self%scaleGrowthRateID,darkMatterProfileParent%metaPropertyGet(self%scaleGrowthRateID))
+    return
+  end subroutine darkMatterProfileScaleInterpolateNodePromote

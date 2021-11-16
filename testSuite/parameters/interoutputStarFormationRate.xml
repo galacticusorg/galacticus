@@ -198,6 +198,7 @@
     <!-- Include calculation of mean interoutput star formation rate -->
     <nodeOperator value="starFormationRateInterOutput"/>
     <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spins -->
     <nodeOperator value="haloAngularMomentumRandom">

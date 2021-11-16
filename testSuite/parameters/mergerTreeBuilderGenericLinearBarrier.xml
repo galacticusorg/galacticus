@@ -141,6 +141,9 @@
   </darkMatterProfileScaleRadius>
 
   <!-- Halo concentrations -->
-  <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+  <nodeOperator value="multi">
+    <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
+    <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+  </nodeOperator>
 
 </parameters>

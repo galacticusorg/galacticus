@@ -162,6 +162,7 @@
       <scatter value="0.16" />
     </darkMatterProfileConcentration>
   </darkMatterProfileScaleRadius>
+  <nodeOperator value="darkMatterProfileScaleSet"/>
   <nodeOperator value="darkMatterProfileScaleInterpolate"/>
   <haloSpinDistribution value="bett2007">
     <alpha value="2.509"/>

@@ -234,7 +234,7 @@ module Node_Component_Hot_Halo_Standard
   integer                                                             :: abundancesCount                            , chemicalsCount
 
   ! Configuration variables.
-  logical                                                             :: hotHaloExcessHeatDrivesOutflow             , hotHaloAngularMomentumAlwaysGrows
+  logical                                                             :: hotHaloExcessHeatDrivesOutflow
   double precision                                                    :: hotHaloExpulsionRateMaximum                , hotHaloOutflowStrippingEfficiency
 
   ! Quantities stored to avoid repeated computation.
@@ -276,7 +276,8 @@ contains
     use :: ISO_Varying_String                   , only : var_str                             , varying_string                 , char
     use :: Input_Parameters                     , only : inputParameter                      , inputParameters
     use :: Node_Component_Hot_Halo_Standard_Data, only : currentNode                         , formationNode                  , hotHaloAngularMomentumLossFraction, hotHaloCoolingFromNode   , &
-          &                                              hotHaloNodeMergerLimitBaryonFraction, hotHaloOutflowReturnOnFormation, starveSatellites                  , starveSatellitesOutflowed
+         &                                               hotHaloNodeMergerLimitBaryonFraction, hotHaloOutflowReturnOnFormation, starveSatellites                  , starveSatellitesOutflowed, &
+         &                                               hotHaloAngularMomentumAlwaysGrows
     implicit none
     type(inputParameters             ), intent(inout) :: parameters_
     type(varying_string              )                :: hotHaloCoolingFromText
@@ -1081,9 +1082,9 @@ contains
     use :: Accretion_Halos                      , only : accretionModeHot                     , accretionModeTotal
     use :: Chemical_Abundances_Structure        , only : chemicalAbundances
     use :: Chemical_Reaction_Rates_Utilities    , only : Chemicals_Mass_To_Density_Conversion
-    use :: Galacticus_Nodes                     , only : defaultHotHaloComponent              , interruptTask       , nodeComponentBasic, nodeComponentHotHalo, &
-          &                                              nodeComponentHotHaloStandard         , propertyTypeInactive, treeNode          , nodeComponentSpin
-    use :: Node_Component_Hot_Halo_Standard_Data, only : outerRadiusOverVirialRadiusMinimum
+    use :: Galacticus_Nodes                     , only : defaultHotHaloComponent              , interruptTask                    , nodeComponentBasic, nodeComponentHotHalo, &
+          &                                              nodeComponentHotHaloStandard         , propertyTypeInactive             , treeNode          , nodeComponentSpin
+    use :: Node_Component_Hot_Halo_Standard_Data, only : outerRadiusOverVirialRadiusMinimum   , hotHaloAngularMomentumAlwaysGrows
     use :: Numerical_Constants_Astronomical     , only : gigaYear
     use :: Numerical_Constants_Math             , only : Pi
     use :: Radiation_Fields                     , only : radiationFieldIntergalacticBackground

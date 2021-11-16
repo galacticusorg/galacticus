@@ -165,7 +165,7 @@
     
     <mergerTreeConstructor value="read">
       <fileNames value="testSuite/test-MergerTrees.hdf5"/>
-      <nodeOperatorTreeInitializor value="darkMatterProfileScaleInterpolate"/>
+      <nodeOperatorTreeInitializor value="darkMatterProfileScaleSet"/>
       <hotHaloRamPressureStripping value="virialRadius" parameterLevel="top"/>
       <hotHaloTrackStrippedGas value="false" parameterLevel="top"/>
       <satelliteOrbitStoreOrbitalParameters value="false" parameterLevel="top"/>
@@ -792,6 +792,7 @@
     <version>0.9.4</version>
     <nodeOperator value="multi">
       <!-- Halo concentrations -->
+      <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <!-- Halo spins -->
       <nodeOperator value="haloAngularMomentumRandom" iterable="no">
@@ -829,6 +830,7 @@
     <version>0.9.4</version>
     <nodeOperator value="multi">
       <!-- Halo concentrations -->
+      <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <!-- Halo spins -->
       <nodeOperator value="haloAngularMomentumRandom" iterable="no">
@@ -867,6 +869,7 @@
     <version>0.9.4</version>
     <nodeOperator value="multi">
       <!-- Halo concentrations -->
+      <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <!-- Halo spins -->
       <nodeOperator value="haloAngularMomentumRandom" iterable="no">
@@ -904,6 +907,7 @@
     <version>0.9.4</version>
     <nodeOperator value="multi">
       <!-- Halo concentrations -->
+      <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <!-- Halo spins -->
       <nodeOperator value="haloAngularMomentumRandom" iterable="no">
@@ -1066,6 +1070,7 @@
     </spheroidMassDistribution>
     <componentSpin value="scalar"/>
     <nodeOperator value="multi" >
+      <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <nodeOperator value="haloAngularMomentumRandom" iterable="no">
 	<factorReset value="2.0"/>
@@ -1770,6 +1775,7 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
+    <nodeOperator value="darkMatterProfileScaleSet"/>
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <componentBasic value="standard"/>
     <componentHotHalo value="null"/>

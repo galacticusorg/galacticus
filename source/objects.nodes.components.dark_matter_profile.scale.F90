@@ -45,12 +45,6 @@ module Node_Component_Dark_Matter_Profile_Scale
       <output unitsInSI="megaParsec" comment="Scale radius of the dark matter profile [Mpc]."/>
       <classDefault>-1.0d0</classDefault>
     </property>
-    <property>
-      <name>scaleGrowthRate</name>
-      <type>double</type>
-      <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
-    </property>
    </properties>
   </component>
   !!]
@@ -70,7 +64,6 @@ contains
     !!{
     Initializes the tree node scale dark matter profile module.
     !!}
-    use :: Events_Hooks    , only : nodePromotionEvent               , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     use :: Input_Parameters, only : inputParameter                   , inputParameters
     implicit none
@@ -81,7 +74,6 @@ contains
        !![
        <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
        !!]
-       call nodePromotionEvent%attach(defaultDarkMatterProfileComponent,nodePromotion,openMPThreadBindingAtLevel,label="nodeComponentDarkMatterProfileScale")
      end if
      return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Initialize
@@ -95,7 +87,6 @@ contains
     !!{
     Uninitializes the tree node scale dark matter profile module.
     !!}
-    use :: Events_Hooks    , only : nodePromotionEvent
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
 
@@ -103,7 +94,6 @@ contains
        !![
        <objectDestructor name="darkMatterHaloScale_"/>
        !!]
-       if (nodePromotionEvent%isAttached(defaultDarkMatterProfileComponent,nodePromotion)) call nodePromotionEvent%detach(defaultDarkMatterProfileComponent,nodePromotion)
     end if
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Thread_Uninitialize
@@ -142,31 +132,6 @@ contains
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Plausibility
 
-  subroutine nodePromotion(self,node)
-    !!{
-    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the growth rate of {\normalfont \ttfamily node}
-    to be that of its parent.
-    !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileScale, treeNode
-    implicit none
-    class(*                             ), intent(inout) :: self
-    type (treeNode                      ), intent(inout) :: node
-    class(nodeComponentDarkMatterProfile), pointer       :: darkMatterProfileParent, darkMatterProfile
-    class(nodeComponentBasic            ), pointer       :: basicParent            , basic
-    !$GLC attributes unused :: self    
-
-    darkMatterProfile       => node       %darkMatterProfile()
-    darkMatterProfileParent => node%parent%darkMatterProfile()
-    basic                   => node       %basic            ()
-    basicParent             => node%parent%basic            ()
-    if (basic%time() /= basicParent%time()) call Galacticus_Error_Report('node has not been evolved to its parent'//{introspection:location})
-    ! Adjust the scale radius and its growth rate to that of the parent node.
-    call darkMatterProfile%scaleSet          (darkMatterProfileParent%scale          ())
-    call darkMatterProfile%scaleGrowthRateSet(darkMatterProfileParent%scaleGrowthRate())
-    return
-  end subroutine nodePromotion
-  
   !![
   <scaleSetTask>
    <unitName>Node_Component_Dark_Matter_Profile_Scale_Scale_Set</unitName>

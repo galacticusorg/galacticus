@@ -33,10 +33,9 @@ module Node_Component_Scale_Virial_Theorem
   use Merger_Trees_Build_Mass_Resolution, only : mergerTreeMassResolutionClass
   implicit none
   private
-  public :: Node_Component_Dark_Matter_Profile_Vrl_Thrm_Rate_Compute     , Node_Component_Dark_Matter_Profile_Vrl_Thrm_Tree_Initialize    , &
+  public :: Node_Component_Dark_Matter_Profile_Vrl_Thrm_Plausibility     , Node_Component_Dark_Matter_Profile_Vrl_Thrm_Tree_Initialize    , &
        &    Node_Component_Dark_Matter_Profile_Vrl_Thrm_Initialize       , Node_Component_Dark_Matter_Profile_Vrl_Thrm_Scale_Set          , &
-       &    Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Initialize, Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Uninitialize, &
-       &    Node_Component_Dark_Matter_Profile_Vrl_Thrm_Plausibility
+       &    Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Initialize, Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Uninitialize
 
   !![
   <component>
@@ -51,12 +50,6 @@ module Node_Component_Scale_Virial_Theorem
       <attributes isSettable="true" isGettable="true" isEvolvable="true" />
       <output unitsInSI="megaParsec" comment="Scale radius of the dark matter profile [Mpc]."/>
       <classDefault>-1.0d0</classDefault>
-    </property>
-    <property>
-      <name>scaleGrowthRate</name>
-      <type>double</type>
-      <rank>0</rank>
-      <attributes isSettable="true" isGettable="true" isEvolvable="false" />
     </property>
    </properties>
   </component>
@@ -126,7 +119,6 @@ contains
     !!{
     Initializes the tree node scale dark matter profile module.
     !!}
-    use :: Events_Hooks                      , only : nodePromotionEvent               , openMPThreadBindingAtLevel
     use :: Input_Parameters                  , only : inputParameters                  , inputParameter
     use :: Galacticus_Nodes                  , only : defaultDarkMatterProfileComponent
     use :: Dark_Matter_Profile_Scales        , only : darkMatterProfileScaleRadius
@@ -145,7 +137,6 @@ contains
        <objectBuilder class="virialOrbit"                  name="virialOrbit_"                  source="parameters"/>
        <objectBuilder class="mergerTreeMassResolution"     name="mergerTreeMassResolution_"     source="parameters"/>
        !!]
-       call nodePromotionEvent%attach(defaultDarkMatterProfileComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentDarkMatterProfileVirialTheorem')
     end if
     return
   end subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Initialize
@@ -159,7 +150,6 @@ contains
     !!{
     Uninitializes the tree node scale dark matter profile module.
     !!}
-    use :: Events_Hooks    , only : nodePromotionEvent
     use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
 
@@ -171,42 +161,9 @@ contains
        <objectDestructor name="virialOrbit_"                 />
        <objectDestructor name="mergerTreeMassResolution_"    />
        !!]
-        if (nodePromotionEvent%isAttached(defaultDarkMatterProfileComponent,nodePromotion)) call nodePromotionEvent%detach(defaultDarkMatterProfileComponent,nodePromotion)
-   end if
+    end if
     return
   end subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Thread_Uninitialize
-
-  !![
-  <rateComputeTask>
-   <unitName>Node_Component_Dark_Matter_Profile_Vrl_Thrm_Rate_Compute</unitName>
-  </rateComputeTask>
-  !!]
-  subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Rate_Compute(node,interrupt,interruptProcedure,propertyType)
-    !!{
-    Compute the rate of change of the scale radius.
-    !!}
-    use Galacticus_Nodes, only : treeNode, nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileVirialTheorem, propertyTypeInactive
-    implicit none
-    type            (treeNode                      ), intent(inout)          :: node
-    logical                                         , intent(inout)          :: interrupt
-    procedure       (                              ), intent(inout), pointer :: interruptProcedure
-    integer                                         , intent(in   )          :: propertyType
-    class           (nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfile
-    double precision                                                         :: growthRate
-    !$GLC attributes unused :: interrupt, interruptProcedure
-    
-    ! Return immediately if inactive variables are requested.
-    if (propertyType == propertyTypeInactive) return
-    ! Get the dark matter profile component.
-    darkMatterProfile => node%darkMatterProfile()
-    ! Ensure that it is of the scale class.
-    select type (darkMatterProfile)
-    class is (nodeComponentDarkMatterProfileVirialTheorem)
-       growthRate=darkMatterProfile%scaleGrowthRate()
-       call darkMatterProfile%scaleRate(growthRate)
-    end select
-    return
-  end subroutine Node_Component_Dark_Matter_Profile_Vrl_Thrm_Rate_Compute
 
   !![
   <radiusSolverPlausibility>
@@ -262,25 +219,22 @@ contains
     use Hypergeometric_Functions
     implicit none
     type            (treeNode                      ), intent(inout), pointer   :: node
-    type            (treeNode                      )               , pointer   :: nodeChild                                      , nodeSibling                     , &
+    type            (treeNode                      )               , pointer   :: nodeChild                                      , nodeSibling                      , &
          &                                                                        nodeWork                                       , nodeUnresolved
-    class           (nodeComponentBasic            )               , pointer   :: basicChild                                     , basicSibling                    , &
-         &                                                                        basic                                          , basicParent                     , &
-         &                                                                        basicUnresolved
-    class           (nodeComponentDarkMatterProfile)               , pointer   :: darkMatterProfile                              , darkMatterProfileSibling        , &
-         &                                                                        darkMatterProfileChild                         , darkMatterProfileParent         , &
-         &                                                                        darkMatterProfileUnresolved
+    class           (nodeComponentBasic            )               , pointer   :: basicChild                                     , basicSibling                     , &
+         &                                                                        basic                                          , basicUnresolved
+    class           (nodeComponentDarkMatterProfile)               , pointer   :: darkMatterProfile                              , darkMatterProfileSibling         , &
+         &                                                                        darkMatterProfileChild                         , darkMatterProfileUnresolved
     class           (nodeComponentSatellite        )               , pointer   :: satelliteSibling
     double precision                                               , parameter :: massFunctionSlopeLogarithmic            =1.90d0
     double precision                                               , parameter :: energyInternalFormFactorSlopeLogarithmic=0.03d0
-    double precision                                                           :: energyOrbital                                  , massRatio                       , &
-         &                                                                        radiusScaleChild                               , radiusScale                     , &
-         &                                                                        massUnresolved                                 , deltaTime                       , &
-         &                                                                        radiusScaleUnresolved                          , massResolution                  , &
-         &                                                                        energyPotentialSubresolutionFactor             , energyKineticSubresolutionFactor, &
-         &                                                                        a                                              , b                               , &
-         &                                                                        energyPotential                                , energyKinetic                   , &
-         &                                                                        energyInternalSubresolutionFactor
+    double precision                                                           :: energyOrbital                                  , massRatio                        , &
+         &                                                                        radiusScaleChild                               , radiusScale                      , &
+         &                                                                        massUnresolved                                 , energyInternalSubresolutionFactor, &
+         &                                                                        radiusScaleUnresolved                          , massResolution                   , &
+         &                                                                        energyPotentialSubresolutionFactor             , energyKineticSubresolutionFactor , &
+         &                                                                        a                                              , b                                , &
+         &                                                                        energyPotential                                , energyKinetic
     type            (rootFinder                    )                           :: finder
     type            (keplerOrbit                   )                           :: orbit
     type            (mergerTreeWalkerAllNodes      )                           :: treeWalker
@@ -455,35 +409,6 @@ contains
              end if
              call darkMatterProfile%scaleSet(radiusScale)             
           end do
-          ! Walk the tree again to set growth rates.
-          treeWalker=mergerTreeWalkerAllNodes(node%hostTree,spanForest=.false.)
-          do while (treeWalker%next(nodeWork))
-             darkMatterProfile => nodeWork%darkMatterProfile()
-             ! Check if this node is the primary progenitor.
-             if (nodeWork%isPrimaryProgenitor()) then
-                ! It is, so compute the scale radius growth rate.
-                ! Now compute the growth rate.
-                basic       =>  nodeWork          %basic()
-                basicParent =>  nodeWork   %parent%basic()
-                deltaTime   =  +basicParent       %time () &
-                     &         -basic             %time ()
-                if (deltaTime > 0.0d0) then
-                   darkMatterProfileParent => nodeWork%parent%darkMatterProfile()
-                   call darkMatterProfile%scaleGrowthRateSet(                                  &
-                        &                                    (                                 &
-                        &                                     +darkMatterProfileParent%scale() &
-                        &                                     -darkMatterProfile      %scale() &
-                        &                                    )                                 &
-                        &                                    /deltaTime                        &
-                        &                                   )
-                else
-                   call darkMatterProfile%scaleGrowthRateSet(0.0d0)
-                end if
-             else
-                ! It is not, so set scale radius growth rate to zero.
-                call    darkMatterProfile%scaleGrowthRateSet(0.0d0)
-             end if
-          end do
        end if
     end if
     return
@@ -501,37 +426,6 @@ contains
          &          -darkMatterProfile_%energy(nodeActive)
     return
   end function radiusScaleRoot
-  
-  subroutine nodePromotion(self,node)
-    !!{
-    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the growth rate of {\normalfont \ttfamily node}
-    to be that of its parent.
-    !!}
-    use Galacticus_Error, only : Galacticus_Error_Report
-    use Galacticus_Nodes, only : treeNode               , nodeComponentDarkMatterProfile, nodeComponentDarkMatterProfileVirialTheorem, nodeComponentBasic
-    implicit none
-    class(*                             ), intent(inout)          :: self
-    type (treeNode                      ), intent(inout), target  :: node
-    class(nodeComponentDarkMatterProfile)               , pointer :: darkMatterProfileParent, darkMatterProfile
-    class(nodeComponentBasic            )               , pointer :: basicParent            , basic
-    !$GLC attributes unused :: self
-
-    ! Get the dark matter profile component.
-    darkMatterProfile => node%darkMatterProfile()
-    ! Ensure it is of the scale class.
-    select type (darkMatterProfile)
-    class is (nodeComponentDarkMatterProfileVirialTheorem)
-       darkMatterProfileParent => node%parent%darkMatterProfile()
-       basic                   => node       %basic            ()
-       basicParent             => node%parent%basic            ()
-       if (basic%time() /= basicParent%time()) call Galacticus_Error_Report('node has not been evolved to its parent'//{introspection:location})
-       ! Adjust the scale radius to that of the parent node.
-       call darkMatterProfile%scaleSet          (darkMatterProfileParent%scale          ())
-       ! Adjust the growth rate to that of the parent node.
-       call darkMatterProfile%scaleGrowthRateSet(darkMatterProfileParent%scaleGrowthRate())
-    end select
-    return
-  end subroutine nodePromotion
 
   !![
   <scaleSetTask>

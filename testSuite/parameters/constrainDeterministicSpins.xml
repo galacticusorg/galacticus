@@ -227,6 +227,7 @@
 
   <nodeOperator value="multi">
     <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>

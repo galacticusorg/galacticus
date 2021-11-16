@@ -266,10 +266,10 @@ contains
     use :: Abundances_Structure                             , only : abs
     use :: Accretion_Halos                                  , only : accretionModeCold
     use :: Galactic_Structure_Densities                     , only : Galactic_Structure_Density
-    use :: Galactic_Structure_Options                       , only : componentTypeColdHalo                   , coordinateSystemSpherical         , massTypeGaseous
-    use :: Galacticus_Nodes                                 , only : defaultHotHaloComponent                 , interruptTask                     , nodeComponentBasic, nodeComponentHotHalo, &
-          &                                                          nodeComponentHotHaloColdMode            , propertyTypeInactive              , treeNode          , nodeComponentSpin
-    use :: Node_Component_Hot_Halo_Standard_Data            , only : hotHaloOutflowAngularMomentumAlwaysGrows, outerRadiusOverVirialRadiusMinimum
+    use :: Galactic_Structure_Options                       , only : componentTypeColdHalo            , coordinateSystemSpherical         , massTypeGaseous
+    use :: Galacticus_Nodes                                 , only : defaultHotHaloComponent          , interruptTask                     , nodeComponentBasic, nodeComponentHotHalo, &
+          &                                                          nodeComponentHotHaloColdMode     , propertyTypeInactive              , treeNode          , nodeComponentSpin
+    use :: Node_Component_Hot_Halo_Standard_Data            , only : hotHaloAngularMomentumAlwaysGrows, outerRadiusOverVirialRadiusMinimum
     use :: Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks, only : darkMatterHaloScale_
     use :: Numerical_Constants_Math                         , only : Pi
     implicit none
@@ -310,7 +310,7 @@ contains
        angularMomentumAccretionRate=+spin%angularMomentumGrowthRate() &
             &                       *     massAccretionRate           &
             &                       /basic%accretionRate           ()
-       if (hotHaloOutflowAngularMomentumAlwaysGrows) angularMomentumAccretionRate=abs(angularMomentumAccretionRate)
+           if (hotHaloAngularMomentumAlwaysGrows) angularMomentumAccretionRate=abs(angularMomentumAccretionRate)
        call hotHalo%angularMomentumColdRate(angularMomentumAccretionRate,interrupt,interruptProcedure)
     end if
     select type (hotHalo)
@@ -467,9 +467,9 @@ contains
        massVirial    =basic%mass()
        radiusVirial  =darkMatterHaloScale_%virialRadius  (node)
        velocityVirial=darkMatterHaloScale_%virialVelocity(node)
-       call    hotHalo%           massColdScale(               massVirial                            *scaleMassRelative  )
-       call    hotHalo%     abundancesColdScale(unitAbundances*massVirial                            *scaleMassRelative  )
-       call    hotHalo%angularMomentumColdScale(               massVirial*radiusVirial*velocityVirial*scaleMassRelative  )
+       call    hotHalo%           massColdScale(               massVirial                            *scaleMassRelative)
+       call    hotHalo%     abundancesColdScale(unitAbundances*massVirial                            *scaleMassRelative)
+       call    hotHalo%angularMomentumColdScale(               massVirial*radiusVirial*velocityVirial*scaleMassRelative)
     end select
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Scale_Set
@@ -600,7 +600,7 @@ contains
        call hotHaloParent%unaccretedMassSet(hotHaloParent%unaccretedMass()-massReaccreted)
        call hotHaloParent%      massColdSet(hotHaloParent%      massCold()+massReaccreted)
        ! Compute the reaccreted angular momentum.
-       angularMomentumAccreted=+            massreaccreted    &
+       angularMomentumAccreted=+            massReaccreted    &
             &                  *spinParent %angularMomentum() &
             &                  /basicParent%mass           ()
        call hotHaloParent%angularMomentumColdSet(hotHaloParent%angularMomentumCold()+angularMomentumAccreted)

@@ -33,7 +33,7 @@ module Node_Component_Hot_Halo_Standard_Data
   ! Controls on cooling.
   double precision            :: hotHaloAngularMomentumLossFraction
   ! Controls on accretion.
-  logical                     :: hotHaloNodeMergerLimitBaryonFraction  , hotHaloOutflowAngularMomentumAlwaysGrows
+  logical                     :: hotHaloNodeMergerLimitBaryonFraction  , hotHaloAngularMomentumAlwaysGrows
   ! Control for starvation of satellites.
   logical                     :: starveSatellites
   logical                     :: starveSatellitesOutflowed

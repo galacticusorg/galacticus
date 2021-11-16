@@ -148,6 +148,10 @@
     <odeToleranceAbsolute value="0.01"/>
     <odeToleranceRelative value="0.01"/>
   </mergerTreeNodeEvolver>
+  <nodeOperator value="multi">
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <nodeOperator value="haloAngularMomentumInterpolate"   />
+  </nodeOperator>
 
   <!-- Output options -->
   <galacticusOutputFileName  value="HugeMDPL.hdf5"/>

@@ -206,6 +206,7 @@
   <!-- Node physics -->
   <nodeOperator value="multi">
     <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <nodeOperator value="haloAngularMomentumRandom">
       <factorReset value="2.0"/>
