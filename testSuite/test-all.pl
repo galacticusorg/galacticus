@@ -398,6 +398,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.halo_mass_function.Reed2007.exe",                                # Tests of dark matter halo mass functions.
+ 	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     =>"tests.comoving_distance.exe",                                         # Tests of comoving distance calculations.
  	valgrind => 0,
 	mpi      => 0
@@ -469,6 +474,11 @@ my @executablesToRun = (
     },
     {
 	name     => "tests.power_spectrum.exe",                                           # Power spectrum.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
+	name     => "tests.power_spectrum.primordial.exe",                                # Primordial power spectrum.
 	valgrind => 0,
 	mpi      => 0
     },
