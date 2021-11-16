@@ -30,11 +30,11 @@
   !![
   <darkMatterProfileScaleRadius name="darkMatterProfileScaleRadiusLudlow2016">
    <description>
-  Dark matter halo scale radii are computed using the algorithm of \cite{ludlow_mass-concentration-redshift_2016}. While
-  \cite{ludlow_mass-concentration-redshift_2016} used $\Delta = 200 \rho_\mathrm{crit}$ to define halos, their model actually
-  predicts the scale radius, $r_{-2}$, rather than the concentration. Therefore, here we report that the
-  \cite{ludlow_mass-concentration-redshift_2016} concentrations are defined using the model's own virial density contrast
-  definition --- this ensures that the predicted scale radii are applied directly to model halos.
+    Dark matter halo scale radii are computed using the algorithm of \cite{ludlow_mass-concentration-redshift_2016}. While
+    \cite{ludlow_mass-concentration-redshift_2016} used $\Delta = 200 \rho_\mathrm{crit}$ to define halos, their model actually
+    predicts the scale radius, $r_{-2}$, rather than the concentration. Therefore, here we report that the
+    \cite{ludlow_mass-concentration-redshift_2016} concentrations are defined using the model's own virial density contrast
+    definition --- this ensures that the predicted scale radii are applied directly to model halos.
    </description>
   </darkMatterProfileScaleRadius>
   !!]
