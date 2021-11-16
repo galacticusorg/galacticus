@@ -30,6 +30,7 @@ my @externalModules = ( "omp_lib", "hdf5", "h5tb", "h5lt", "h5global", "h5fortra
 # name of the required library.
 my %moduleLibraries = (
     nearest_neighbors   => "ANN"           ,
+    points_convex_hull  => "qhullcpp"      ,
     fftw3               => "fftw3"         ,
     fox_common          => "FoX_common"    ,
     fox_dom             => "FoX_dom"       ,

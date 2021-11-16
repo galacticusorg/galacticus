@@ -26,7 +26,8 @@ my %dependencies =
      gsl            => [ "gslcblas"                         ],
      FoX_dom        => [ "FoX_fsys", "FoX_utils", "FoX_sax" ],
      FoX_sax        => [ "FoX_common"                       ],
-     FoX_utils      => [ "FoX_wxml"                         ]
+     FoX_utils      => [ "FoX_wxml"                         ],
+     qhullcpp       => [ "qhull_r"                          ]
     );
 # Library order dependencies for static linking. Each key specifies a library name. The associated value is a list of libraries
 # before which the key library must appear in the link command when static linking is used.
@@ -95,6 +96,11 @@ while ( scalar(keys(%libraries)) != $libraryCount) {
 # Remove ANN library if not used.
 delete($libraries{'ANN'})
     if ( exists($libraries{'ANN'}) && ! grep {$_ eq "-DANNAVAIL"} @compilerOptions );
+# Remove qhull library if not used.
+delete($libraries{'qhullcpp'})
+    if ( exists($libraries{'qhullcpp'}) && ! grep {$_ eq "-DQHULLAVAIL"} @compilerOptions );
+delete($libraries{'qhull_r' })
+    if ( exists($libraries{'qhull_r' }) && ! grep {$_ eq "-DQHULLAVAIL"} @compilerOptions );
 # Remove libmatheval if not used.
 delete($libraries{'matheval'})
     if ( exists($libraries{'matheval'}) && ! grep {$_ eq "-DMATHEVALAVAIL"} @compilerOptions );

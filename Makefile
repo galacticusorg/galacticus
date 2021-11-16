@@ -247,6 +247,19 @@ $(BUILDPATH)/Makefile_Config_ANN: source/ann_config.cpp
 	 echo "CPPFLAGS += -DANNUNAVAIL" >> $(BUILDPATH)/Makefile_Config_ANN ; \
 	fi
 
+# Configuration for availability of qhull.
+-include $(BUILDPATH)/Makefile_Config_QHull
+$(BUILDPATH)/Makefile_Config_QHull: source/qhull_config.cpp
+	@mkdir -p $(BUILDPATH)
+	$(CPPCOMPILER) -c source/qhull_config.cpp -o $(BUILDPATH)/qhull_config.o $(CPPFLAGS) > /dev/null 2>&1 ; \
+	if [ $$? -eq 0 ] ; then \
+	 echo "FCFLAGS  += -DQHULLAVAIL"   >  $(BUILDPATH)/Makefile_Config_QHull ; \
+	 echo "CPPFLAGS += -DQHULLAVAIL"   >> $(BUILDPATH)/Makefile_Config_QHull ; \
+	else \
+	 echo "FCFLAGS  += -DQHULLUNAVAIL" >  $(BUILDPATH)/Makefile_Config_QHull ; \
+	 echo "CPPFLAGS += -DQHULLUNAVAIL" >> $(BUILDPATH)/Makefile_Config_QHull ; \
+	fi
+
 # Configuration for availability of libmatheval.
 -include $(BUILDPATH)/Makefile_Config_MathEval
 $(BUILDPATH)/Makefile_Config_MathEval: source/libmatheval_config.cpp

@@ -163,6 +163,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.convex_hulls.exe",                                             # Tests of convex hull functions.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.comparisons.exe",                                              # Tests of comparison functions.
 	valgrind => 0,
 	mpi      => 0
