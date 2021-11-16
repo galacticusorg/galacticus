@@ -12,7 +12,7 @@ use PDL::IO::HDF5;
 system("mkdir -p outputs/");
 
 # Run the branchless model.
-system("cd ..; Galacticus.exe testSuite/parameters/mergerTreeBranchless.xml");
+system("cd ..; ./Galacticus.exe testSuite/parameters/mergerTreeBranchless.xml");
 unless ( $? == 0 ) {
     print "FAIL: merger tree branchless model failed to run\n";
     exit;

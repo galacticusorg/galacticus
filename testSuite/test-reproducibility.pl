@@ -180,7 +180,7 @@ my @tests =
 # Run tests.
 foreach my $test ( @tests ) {
     print "Running test \"".$test->{'name'}."\": Galacticus.exe ".$test->{'parameters'}."\n";
-    system("cd ..; Galacticus.exe ".$test->{'parameters'});
+    system("cd ..; ./Galacticus.exe ".$test->{'parameters'});
     if ( $? == 0 ) {
 	my $model   = new PDL::IO::HDF5("../".$test->{'outputFileName'});
 	my $outputs = $model->group('Outputs');
