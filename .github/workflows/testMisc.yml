@@ -729,11 +729,17 @@ jobs:
         with:
           repository: galacticusorg/datasets
           path: datasets
+      - name: Check out repository analysis-perl
+        uses: actions/checkout@v2
+        with:
+          repository: galacticusorg/analysis-perl
+          path: analysis-perl
       - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
       - name: "Set environmental variables"
         run: |
           echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
           echo "GALACTICUS_DATA_PATH=$GITHUB_WORKSPACE/datasets" >> $GITHUB_ENV
+          echo "GALACTICUS_ANALYSIS_PERL_PATH=$GITHUB_WORKSPACE/analysis-perl" >> $GITHUB_ENV
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Run test
