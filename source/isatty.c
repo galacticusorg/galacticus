@@ -21,7 +21,6 @@
 
 #include <unistd.h>
 #include <stdio.h>
-#include <io.h>
 
 int stdOutIsATTY_() {
   //% Fortran-callable wrapper around the isatty() function to determine if stdout is a TTY.
