@@ -1775,8 +1775,10 @@
   <parameters>
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
-    <nodeOperator value="darkMatterProfileScaleSet"/>
-    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <nodeOperator value="multi">
+      <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
+      <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+    </nodeOperator>
     <componentBasic value="standard"/>
     <componentHotHalo value="null"/>
     <componentBlackHole value="null"/>
