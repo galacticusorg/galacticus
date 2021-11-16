@@ -92,10 +92,6 @@ contains
        timeInterval =  +basicParent       %time                          () &
             &          -basic             %time                          ()
        if (timeInterval > 0.0d0) then
-
-
-write (0,*) "SET IN ",node%uniqueID()
-          
           call        spin%angularMomentumGrowthRateSet      (                                      &
                &                                              +(                                    &
                &                                                +spinParent%angularMomentum      () &

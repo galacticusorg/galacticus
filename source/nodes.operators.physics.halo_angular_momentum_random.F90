@@ -139,10 +139,6 @@ contains
        ! Walk forward through the branch, assigning spins/angular momenta. If the mass of the halo exceeds that of the halo for
        ! which we last selected a spin by a given factor, then select a new spin from the distribution. Otherwise, use the
        ! previously assigned spin.
-
-
-write (0,*) "CREATE IN ",node%uniqueid()
-       
        spinProgenitor  => nodeProgenitor                       %spin  (autoCreate=.true.        )
        basicProgenitor => nodeProgenitor                       %basic (                         )
        spinPrevious    =  self           %haloSpinDistribution_%sample(           nodeProgenitor)
