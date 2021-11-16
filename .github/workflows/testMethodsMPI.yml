@@ -66,11 +66,12 @@ jobs:
         run: |
           cd $GALACTICUS_EXEC_PATH
           make -j2 GALACTICUS_BUILD_OPTION=MPI Galacticus.exe
+          mv Galacticus.exe_MPI Galacticus.exe
       - name: Upload executables
         uses: actions/upload-artifact@v2
         with:
           name: galacticus-exec-MPI
-          path: '**.exe_MPI'
+          path: '**.exe'
       - run: echo "This job's status is ${{ job.status }}."
   Runner-01:
     runs-on: ubuntu-latest
