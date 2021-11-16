@@ -27,7 +27,8 @@ program Test_Convex_Hulls
   !!}
   use :: Display           , only : displayVerbositySet, verbosityLevelStandard
   use :: Points_Convex_Hull, only : convexHull
-  use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
+  use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish, &
+       &                            Skip
   implicit none
   type(convexHull), allocatable :: hull
 
