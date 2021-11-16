@@ -314,7 +314,7 @@ if (.not.found) then
  end if
  {$class->{'name'}}MetaPropertyCount={$class->{'name'}}MetaPropertyCount+1
  if ({$class->{'name'}}MetaPropertyEvolvable(nodeComponent{ucfirst($class->{'name'})}AddMetaProperty)) {$class->{'name'}}MetaPropertyEvolvableCount={$class->{'name'}}MetaPropertyEvolvableCount+1
- implementationNameLengthMax=max(len(name),implementationNameLengthMax) 
+ propertyNameLengthMax=max(len(name),propertyNameLengthMax) 
 end if
 !$omp end critical ({class->{'name'}}MetaPropertyUpdate)
 CODE
