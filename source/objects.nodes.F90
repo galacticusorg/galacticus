@@ -70,7 +70,7 @@ module Galacticus_Nodes
      type            (treeNode                  ), pointer         :: baseNode               => null()
      type            (mergerTree                ), pointer         :: nextTree               => null(), firstTree        => null()
      type            (universe                  ), pointer         :: hostUniverse           => null()
-     type            (treeEvent                 ), pointer, public :: event
+     type            (treeEvent                 ), pointer, public :: event                  => null()
      class           (randomNumberGeneratorClass), pointer         :: randomNumberGenerator_ => null()
      type            (doubleHash                )                  :: properties
    contains
