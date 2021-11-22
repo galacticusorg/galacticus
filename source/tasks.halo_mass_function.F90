@@ -630,8 +630,9 @@ contains
     ! Create a node object, assume zero environmental overdensity.
     tree%baseNode          => treeNode()
     tree%baseNode%hostTree => tree
-    call tree            %properties%initialize          (                               )
-    call haloEnvironment_           %overdensityLinearSet(tree%baseNode,overdensity=0.0d0)
+    call tree                   %properties%initialize(                               )
+    if (haloEnvironment_%overdensityIsSettable())                                       &
+         & call haloEnvironment_%overdensityLinearSet (tree%baseNode,overdensity=0.0d0)
     ! Get the basic and dark matter profile components.
     basic                 => tree%baseNode%basic            (autoCreate=.true.)
     darkMatterProfileHalo => tree%baseNode%darkMatterProfile(autoCreate=.true.)
@@ -658,20 +659,28 @@ contains
           ! Compute halo properties.
           densityFieldRootVariance                      (iMass,iOutput)=+cosmologicalMassVariance_         %rootVariance                   (mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput)                   )
           densityFieldRootVarianceGradientLogarithmic   (iMass,iOutput)=+cosmologicalMassVariance_         %rootVarianceLogarithmicGradient(mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput)                   )
-          peakHeight                                    (iMass,iOutput)=+criticalOverdensity_              %value                          (mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput)                   )    &
-               &                                                        /densityFieldRootVariance                                          (                           iMass                                    ,                 iOutput)
+          if (densityFieldRootVariance(iMass,iOutput) > 0.0d0) then
+             peakHeight                                 (iMass,iOutput)=+criticalOverdensity_              %value                          (mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput)                   )    &
+                  &                                                     /densityFieldRootVariance                                          (                           iMass                                    ,                 iOutput)
+          else
+             peakHeight                                 (iMass,iOutput)=+0.0d0
+          end if
           massFunctionDifferentialLogarithmicBinAveraged(iMass,iOutput)=+haloMassFunction_                 %integrated                     (massLow=massHaloBinMinimum       ,massHigh=massHaloBinMaximum       ,time=outputTimes(iOutput),node=tree%baseNode)    &
                &                                                        /massHaloLogarithmicInterval
           massFunctionDifferential                      (iMass,iOutput)=+haloMassFunction_                 %differential                   (mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput),node=tree%baseNode)
           massFunctionCumulative                        (iMass,iOutput)=+haloMassFunction_                 %integrated                     (massLow=massHalo          (iMass),massHigh=haloMassEffectiveInfinity,time=outputTimes(iOutput),node=tree%baseNode)
           massFunctionMassFraction                      (iMass,iOutput)=+haloMassFunction_                 %massFraction                   (massLow=massHalo          (iMass),massHigh=haloMassEffectiveInfinity,time=outputTimes(iOutput),node=tree%baseNode)
-          peakHeightMassFunction                        (iMass,iOutput)=+massHalo                                                          (                           iMass                                                                                 )**2 &
-               &                                                        *massFunctionDifferential                                          (                           iMass                                    ,                 iOutput                    )    &
-               &                                                        /cosmologyParameters_              %densityCritical                (                                                                                                                 )    &
-               &                                                        /cosmologyParameters_              %OmegaMatter                    (                                                                                                                 )    &
-               &                                                        /abs(                                                                                                                                                                                     &
-               &                                                             cosmologicalMassVariance_     %rootVarianceLogarithmicGradient(mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput)                   )    &
-               &                                                            )
+          if (massFunctionDifferential(iMass,iOutput) > 0.0d0) then
+             peakHeightMassFunction                     (iMass,iOutput)=+massHalo                                                          (                           iMass                                                                                 )**2 &
+                  &                                                     *massFunctionDifferential                                          (                           iMass                                    ,                 iOutput                    )    &
+                  &                                                     /cosmologyParameters_              %densityCritical                (                                                                                                                 )    &
+                  &                                                     /cosmologyParameters_              %OmegaMatter                    (                                                                                                                 )    &
+                  &                                                     /abs(                                                                                                                                                                                     &
+                  &                                                          cosmologicalMassVariance_     %rootVarianceLogarithmicGradient(mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput)                   )    &
+                  &                                                         )
+          else
+             peakHeightMassFunction                     (iMass,iOutput)=+0.0d0
+          end if
           biasHalo                                      (iMass,iOutput)=darkMatterHaloBias_                %bias                           (                                                                                               node=tree%baseNode)
           velocityVirial                                (iMass,iOutput)=darkMatterHaloScale_               %virialVelocity                 (                                                                                               node=tree%baseNode)
           temperatureVirial                             (iMass,iOutput)=darkMatterHaloScale_               %virialTemperature              (                                                                                               node=tree%baseNode)

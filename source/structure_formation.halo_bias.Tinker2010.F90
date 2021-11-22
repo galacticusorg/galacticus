@@ -135,31 +135,35 @@ contains
     ! Get critical overdensity for collapse and root-variance, then compute peak height parameter, nu.
     deltaCritical=self%criticalOverdensity_     %value       (time=time,mass=mass)
     sigma        =self%cosmologicalMassVariance_%rootVariance(time=time,mass=mass)
-    nu           =+deltaCritical                                                   &
-         &        /sigma
-    ! Update fitting parameters if the time has changed.
-    if (time /= self%timePrevious .or. mass /= self%massPrevious) then
-       ! Store the new time and mass.
-       self%timePrevious=time
-       self%massPrevious=mass
-       ! Compute logarithm of halo density contrast
-       y     =log10(self%virialDensityContrast_%densityContrast(mass,time))
-       ! Compute parameters as a function of halo overdensity (from Table 2 of Tinker et al. 2010)
-       self%upperA=+1.000d0          +0.24d0*y*exp(-(4.0d0/y)**4)
-       self%lowerA=-0.880d0+0.440d0*y
-       self%upperC=+0.019d0+0.107d0*y+0.19d0  *exp(-(4.0d0/y)**4)
+    if (sigma <= 0.0d0) then
+       tinker2010BiasByMass=+1.0d0
+    else
+       nu           =+deltaCritical                                                   &
+            &        /sigma
+       ! Update fitting parameters if the time has changed.
+       if (time /= self%timePrevious .or. mass /= self%massPrevious) then
+          ! Store the new time and mass.
+          self%timePrevious=time
+          self%massPrevious=mass
+          ! Compute logarithm of halo density contrast
+          y     =log10(self%virialDensityContrast_%densityContrast(mass,time))
+          ! Compute parameters as a function of halo overdensity (from Table 2 of Tinker et al. 2010)
+          self%upperA=+1.000d0          +0.24d0*y*exp(-(4.0d0/y)**4)
+          self%lowerA=-0.880d0+0.440d0*y
+          self%upperC=+0.019d0+0.107d0*y+0.19d0  *exp(-(4.0d0/y)**4)
+       end if
+       ! Compute halo bias (equation 6 of Tinker et al. 2010).
+       tinker2010BiasByMass=+1.0d0                        &
+            &               -                 self%upperA &
+            &               *  nu           **self%lowerA &
+            &               /(                            &
+            &                 +nu           **self%lowerA &
+            &                 +deltaCritical**self%lowerA &
+            &                )                            &
+            &               +                      upperB &
+            &               *  nu           **     lowerB &
+            &               +                 self%upperC &
+            &               *  nu           **     lowerC
     end if
-    ! Compute halo bias (equation 6 of Tinker et al. 2010).
-    tinker2010BiasByMass=+1.0d0                        &
-         &               -                 self%upperA &
-         &               *  nu           **self%lowerA &
-         &               /(                            &
-         &                 +nu           **self%lowerA &
-         &                 +deltaCritical**self%lowerA &
-         &                )                            &
-         &               +                      upperB &
-         &               *  nu           **     lowerB &
-         &               +                 self%upperC &
-         &               *  nu           **     lowerC
     return
   end function tinker2010BiasByMass
