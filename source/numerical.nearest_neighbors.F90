@@ -145,14 +145,16 @@ contains
     !!{
     Destroys a nearest neighbor search object.
     !!}
-#ifndef ANNAVAIL
-    use :: Galacticus_Error, only : Galacticus_Error_Report
+#ifdef ANNAVAIL
+    use, intrinsic :: ISO_C_Binding   , only : c_associated
+#else
+    use            :: Galacticus_Error, only : Galacticus_Error_Report
 #endif
     implicit none
     type(nearestNeighbors), intent(inout) :: self
 
 #ifdef ANNAVAIL
-    call nearestNeighborsDestructorC(self%ANNkd_tree)
+    if (c_associated(self%ANNkd_tree)) call nearestNeighborsDestructorC(self%ANNkd_tree)
 #else
     !$GLC attributes unused :: self
     call Galacticus_Error_Report('ANN library is required but was not found'//{introspection:location})
