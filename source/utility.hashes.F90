@@ -60,7 +60,7 @@ module Hashes
      Derived type for {Type¦label} hashes.
      !!}
      private
-     integer                                                   :: allocatedSize, elementCount
+     integer                                                   :: allocatedSize=0, elementCount=0
      integer(c_size_t             )                            :: indexPrevious
      type   ({Type¦label}Container), allocatable, dimension(:) :: hashValues
      type   (varying_string       ), allocatable, dimension(:) :: hashKeys
