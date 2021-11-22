@@ -40,6 +40,7 @@ Contains a module which implements a uniform halo environment.
      procedure :: pdf                           => uniformPDF
      procedure :: cdf                           => uniformCDF
      procedure :: overdensityLinearSet          => uniformOverdensityLinearSet
+     procedure :: overdensityIsSettable         => uniformOverdensityIsSettable
   end type haloEnvironmentUniform
 
   interface haloEnvironmentUniform
@@ -176,3 +177,14 @@ contains
     return
   end subroutine uniformOverdensityLinearSet
 
+  logical function uniformOverdensityIsSettable(self)
+    !!{
+    Return false as the overdensity is not settable.
+    !!}
+    implicit none
+    class(haloEnvironmentUniform), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    uniformOverdensityIsSettable=.false.
+    return
+  end function uniformOverdensityIsSettable

@@ -241,6 +241,15 @@ module Cosmological_Density_Field
     <argument>double precision          , intent(in   ) :: overdensity</argument>
     <pass>yes</pass>
    </method>
+   <method name="overdensityIsSettable" >
+    <description>Return true if the overdensity is settable.</description>
+    <type>logical</type>
+    <pass>yes</pass>
+    <code>
+      !$GLC attributes unused :: self
+      haloEnvironmentOverdensityIsSettable=.true.
+    </code>
+   </method>
   </functionClass>
   !!]
 

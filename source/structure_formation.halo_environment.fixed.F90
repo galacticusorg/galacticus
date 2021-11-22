@@ -60,6 +60,7 @@ Contains a module which implements a fixed halo environment.
      procedure :: pdf                           => fixedHEPDF
      procedure :: cdf                           => fixedHECDF
      procedure :: overdensityLinearSet          => fixedHEOverdensityLinearSet
+     procedure :: overdensityIsSettable         => fixedHEOverdensityIsSettable
   end type haloEnvironmentFixed
 
   interface haloEnvironmentFixed
@@ -123,11 +124,11 @@ contains
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    type            (haloEnvironmentFixed        )                         :: self
-    class           (cosmologyFunctionsClass      ) , intent(in   ), target :: cosmologyFunctions_
-    class           (linearGrowthClass            ) , intent(in   ), target :: linearGrowth_
-    double precision                                        , intent(in   ) :: overdensity
-    double precision                                        , intent(in   ), optional :: radiusEnvironment,massEnvironment
+    type            (haloEnvironmentFixed   )                           :: self
+    class           (cosmologyFunctionsClass) , intent(in   ), target   :: cosmologyFunctions_
+    class           (linearGrowthClass      ) , intent(in   ), target   :: linearGrowth_
+    double precision                          , intent(in   )           :: overdensity
+    double precision                          , intent(in   ), optional :: radiusEnvironment  , massEnvironment
     !![
     <constructorAssign variables="*cosmologyFunctions_, *linearGrowth_, overdensity, radiusEnvironment, massEnvironment"/>
     !!]
@@ -316,3 +317,15 @@ contains
     call Galacticus_Error_Report('can not set overdensity'//{introspection:location})
     return
   end subroutine fixedHEOverdensityLinearSet
+
+  logical function fixedHEOverdensityIsSettable(self)
+    !!{
+    Return false as the overdensity is not settable.
+    !!}
+    implicit none
+    class(haloEnvironmentFixed), intent(inout) :: self
+    !$GLC attributes unused :: self
+
+    fixedHEOverdensityIsSettable=.false.
+    return
+  end function fixedHEOverdensityIsSettable
