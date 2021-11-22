@@ -312,14 +312,15 @@ contains
     !!{
     Import data from a Rockstar file.
     !!}
-    use :: Cosmology_Parameters, only : hubbleUnitsLittleH
-    use :: Display             , only : displayCounter        , displayCounterClear     , displayIndent     , displayUnindent         , &
-          &                             verbosityLevelStandard
-    use :: File_Utilities      , only : Count_Lines_in_File
-    use :: Hashes              , only : doubleHash            , integerSizeTHash        , rank1DoublePtrHash, rank1IntegerSizeTPtrHash, &
-          &                             rank2DoublePtrHash    , rank2IntegerSizeTPtrHash, varyingStringHash
-    use :: Memory_Management   , only : allocateArray         , deallocateArray
-    use :: String_Handling     , only : String_Split_Words    , String_Count_Words
+    use :: Cosmology_Parameters        , only : hubbleUnitsLittleH
+    use :: Display                     , only : displayCounter        , displayCounterClear     , displayIndent     , displayUnindent         , &
+          &                                     verbosityLevelStandard
+    use :: File_Utilities              , only : Count_Lines_in_File
+    use :: Hashes                      , only : doubleHash            , integerSizeTHash        , rank1DoublePtrHash, rank1IntegerSizeTPtrHash, &
+          &                                     rank2DoublePtrHash    , rank2IntegerSizeTPtrHash, varyingStringHash , genericHash
+    use :: Memory_Management           , only : allocateArray         , deallocateArray
+    use :: Numerical_Constants_Prefixes, only : kilo
+    use :: String_Handling             , only : String_Split_Words    , String_Count_Words
     implicit none
     class           (nbodyImporterRockstar     ), intent(inout)                                 :: self
     type            (nBodyData                 ), intent(  out), dimension( :    ), allocatable :: simulations
@@ -502,6 +503,7 @@ contains
     simulations(1)%attributesInteger=integerSizeTHash ()
     simulations(1)%attributesReal   =doubleHash       ()
     simulations(1)%attributesText   =varyingStringHash()
+    simulations(1)%attributesGeneric=genericHash      ()
     call simulations(1)%attributesReal%set('boxSize',boxSize)
     ! Add any additional properties.
     simulations(1)%propertiesInteger     =rank1IntegerSizeTPtrHash()
@@ -554,13 +556,15 @@ contains
              case (rockstarColumnRvir      )
                 columnName='radiusVirial'
                 propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
-                     &                         /self                 %cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
+                     &                         /self                 %cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) &
+                     &                         /kilo
              case (rockstarColumnSpin      )
                 columnName='spin'
              case (rockstarColumnrs        )
                 columnName='radiusScale'
                 propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
-                     &                         /self                 %cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
+                     &                         /self                 %cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH) &
+                     &                         /kilo
              case (rockstarColumnTU        )
                 columnName='virialRatio'
                 propertiesReal(jReal)%property=+propertiesReal(jReal)                     %property                           &
