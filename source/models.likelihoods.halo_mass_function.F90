@@ -51,7 +51,7 @@
           &                                                                          massRangeMinimum                   , redshift
      type            (vector                       )                              :: means
      type            (matrix                       )                              :: covariance
-     integer                                                                      :: errorModel
+     integer                                                                      :: errorModel                         , haloMassFunctionType
      type            (varying_string               )                              :: fileName
      logical                                                                      :: environmentAveraged
    contains
@@ -68,12 +68,25 @@
      module procedure haloMassFunctionConstructorInternal
   end interface posteriorSampleLikelihoodHaloMassFunction
 
+  ! Mass function enumeration.
+  !![
+  <enumeration>
+   <name>haloMassFunctionType</name>
+   <description>Used to specify the halo mass function for likelihoods.</description>
+   <visibility>public</visibility>
+   <validator>yes</validator>
+   <encodeFunction>yes</encodeFunction>
+   <entry label="shethTormen"     />
+   <entry label="bhattacharya2011"/>
+  </enumeration>
+  !!]
+
   ! Mass function error model enumeration.
   !![
   <enumeration>
    <name>haloMassFunctionErrorModel</name>
    <description>Used to specify the error model to use for halo mass function likelihoods.</description>
-   <visibility>private</visibility>
+   <visibility>public</visibility>
    <validator>yes</validator>
    <encodeFunction>yes</encodeFunction>
    <entry label="none"                />
@@ -95,7 +108,8 @@ contains
     type            (posteriorSampleLikelihoodHaloMassFunction)                :: self
     type            (inputParameters                          ), intent(inout) :: parameters
     type            (inputParameters                          )                :: parametersUnconditioned
-    type            (varying_string                           )                :: fileName                 , errorModel
+    type            (varying_string                           )                :: fileName                 , errorModel                            , &
+         &                                                                        haloMassFunctionType
     double precision                                                           :: redshift                 , massRangeMinimum                      , &
          &                                                                        massParticle
     integer                                                                    :: binCountMinimum
@@ -127,6 +141,11 @@ contains
     <inputParameter>
       <name>binCountMinimum</name>
       <description>The minimum number of halos per bin required to permit bin to be included in likelihood evaluation.</description>
+      <source>parameters</source>
+    </inputParameter>
+    <inputParameter>
+      <name>haloMassFunctionType</name>
+      <description>The type of halo mass function to use in likelihood calculations.</description>
       <source>parameters</source>
     </inputParameter>
     <inputParameter>
@@ -162,7 +181,7 @@ contains
        cosmologicalMassVarianceUnconditioned_ => null()
        criticalOverdensityUnconditioned_      => null()
     end if
-    self=posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,binCountMinimum,enumerationHaloMassFunctionErrorModelEncode(char(errorModel),includesPrefix=.false.),massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceUnconditioned_,criticalOverdensityUnconditioned_,darkMatterHaloScale_,darkMatterProfileDMO_,haloEnvironment_)
+    self=posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,binCountMinimum,enumerationHaloMassFunctionTypeEncode(char(haloMassFunctionType),includesPrefix=.false.),enumerationHaloMassFunctionErrorModelEncode(char(errorModel),includesPrefix=.false.),massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceUnconditioned_,criticalOverdensityUnconditioned_,darkMatterHaloScale_,darkMatterProfileDMO_,haloEnvironment_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"      />
@@ -182,7 +201,7 @@ contains
     return
   end function haloMassFunctionConstructorParameters
 
-  function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,binCountMinimum,errorModel,massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceUnconditioned_,criticalOverdensityUnconditioned_,darkMatterHaloScale_,darkMatterProfileDMO_,haloEnvironment_) result(self)
+  function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,binCountMinimum,haloMassFunctionType,errorModel,massParticle,environmentAveraged,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,cosmologicalMassVarianceUnconditioned_,criticalOverdensityUnconditioned_,darkMatterHaloScale_,darkMatterProfileDMO_,haloEnvironment_) result(self)
     !!{
     Constructor for ``haloMassFunction'' posterior sampling likelihood class.
     !!}
@@ -198,7 +217,8 @@ contains
     character       (len=*                                    ), intent(in   )                 :: fileName
     double precision                                           , intent(in   )                 :: redshift                      , massRangeMinimum                      , &
          &                                                                                        massParticle
-    integer                                                    , intent(in   )                 :: binCountMinimum               , errorModel
+    integer                                                    , intent(in   )                 :: binCountMinimum               , errorModel                            , &
+         &                                                                                        haloMassFunctionType
     logical                                                    , intent(in   )                 :: environmentAveraged
     class           (cosmologyFunctionsClass                  ), intent(in   ), target         :: cosmologyFunctions_
     class           (cosmologyParametersClass                 ), intent(in   ), target         :: cosmologyParameters_
@@ -220,7 +240,7 @@ contains
     type            (matrix                                   )                                :: eigenVectors
     type            (vector                                   )                                :: eigenValues
     !![
-    <constructorAssign variables="fileName, redshift, massRangeMinimum, errorModel, massParticle, environmentAveraged, *cosmologyFunctions_, *cosmologyParameters_, *cosmologicalMassVariance_, *criticalOverdensity_, *cosmologicalMassVarianceUnconditioned_, *criticalOverdensityUnconditioned_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *haloEnvironment_"/>
+    <constructorAssign variables="fileName, redshift, massRangeMinimum, haloMassFunctionType, errorModel, massParticle, environmentAveraged, *cosmologyFunctions_, *cosmologyParameters_, *cosmologicalMassVariance_, *criticalOverdensity_, *cosmologicalMassVarianceUnconditioned_, *criticalOverdensityUnconditioned_, *darkMatterHaloScale_, *darkMatterProfileDMO_, *haloEnvironment_"/>
     !!]
 
     ! Convert redshift to time.
@@ -336,12 +356,13 @@ contains
     Return the log-likelihood for the halo mass function likelihood function.
     !!}
     use :: Galacticus_Error                 , only : Galacticus_Error_Report
-    use :: Halo_Mass_Functions              , only : haloMassFunctionClass          , haloMassFunctionEnvironmentAveraged, haloMassFunctionErrorConvolved, haloMassFunctionShethTormen
-    use :: Linear_Algebra                   , only : assignment(=)                  , operator(*)
+    use :: Halo_Mass_Functions              , only : haloMassFunctionClass           , haloMassFunctionEnvironmentAveraged, haloMassFunctionErrorConvolved, haloMassFunctionShethTormen, &
+         &                                           haloMassFunctionBhattacharya2011
+    use :: Linear_Algebra                   , only : assignment(=)                   , operator(*)
     use :: Models_Likelihoods_Constants     , only : logImpossible
     use :: Posterior_Sampling_Convergence   , only : posteriorSampleConvergenceClass
     use :: Posterior_Sampling_State         , only : posteriorSampleStateClass
-    use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass        , nbodyHaloMassErrorPowerLaw         , nbodyHaloMassErrorSOHaloFinder, nbodyHaloMassErrorTrenti2010
+    use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass         , nbodyHaloMassErrorPowerLaw         , nbodyHaloMassErrorSOHaloFinder, nbodyHaloMassErrorTrenti2010
     implicit none
     class           (posteriorSampleLikelihoodHaloMassFunction), intent(inout)               :: self
     class           (posteriorSampleStateClass                ), intent(inout)               :: simulationState
@@ -358,7 +379,7 @@ contains
     class           (haloMassFunctionClass                    ), pointer                     :: haloMassFunctionRaw_            , haloMassFunctionAveraged_     , &
          &                                                                                      haloMassFunctionConvolved_      , haloMassFunctionUnconditioned_
     type            (vector                                   )                              :: difference
-    integer                                                                                  :: i
+    integer                                                                                  :: i                               , haloMassFunctionParameterCount
     !$GLC attributes unused :: simulationConvergence, temperature, timeEvaluate, logLikelihoodCurrent, logPriorCurrent, modelParametersInactive_, forceAcceptance
 
     ! There is no variance in our likelihood estimate.
@@ -374,32 +395,83 @@ contains
        stateVector(i)=modelParametersActive_(i)%modelParameter_%unmap(stateVector(i))
     end do
     ! Construct the raw mass function.
-    allocate(haloMassFunctionShethTormen :: haloMassFunctionRaw_)
-    select type (haloMassFunctionRaw_)
-    type is (haloMassFunctionShethTormen)
-       haloMassFunctionRaw_=haloMassFunctionShethTormen(                                   &
-            &                                           self%cosmologyParameters_        , &
-            &                                           self%cosmologicalMassVariance_   , &
-            &                                           self%criticalOverdensity_        , &
-            &                                           stateVector                   (1), &
-            &                                           stateVector                   (2), &
-            &                                           stateVector                   (3)  &
-            &                                          )
+    select case (self%haloMassFunctionType)
+    case (haloMassFunctionTypeShethTormen     )
+       haloMassFunctionParameterCount=3
+       if (size(stateVector) < haloMassFunctionParameterCount  )                                               &
+            & call Galacticus_Error_Report(                                                                    &
+            &                              'at least 3 parameters are required for this likelihood function'// &
+            &                              {introspection:location}                                            &
+            &                             )
+       allocate(haloMassFunctionShethTormen      :: haloMassFunctionRaw_)
+       select type (haloMassFunctionRaw_)
+       type is (haloMassFunctionShethTormen     )
+          haloMassFunctionRaw_=haloMassFunctionShethTormen     (                                   &
+               &                                                self%cosmologyParameters_        , &
+               &                                                self%cosmologicalMassVariance_   , &
+               &                                                self%criticalOverdensity_        , &
+               &                                                stateVector                   (1), &
+               &                                                stateVector                   (2), &
+               &                                                stateVector                   (3)  &
+               &                                               )
+       end select
+    case (haloMassFunctionTypeBhattacharya2011)
+       haloMassFunctionParameterCount=4
+       if (size(stateVector) < haloMassFunctionParameterCount)                                                 &
+            & call Galacticus_Error_Report(                                                                    &
+            &                              'at least 4 parameters are required for this likelihood function'// &
+            &                              {introspection:location}                                            &
+            &                             )
+       allocate(haloMassFunctionBhattacharya2011 :: haloMassFunctionRaw_)
+       select type (haloMassFunctionRaw_)
+       type is (haloMassFunctionBhattacharya2011)
+          haloMassFunctionRaw_=haloMassFunctionBhattacharya2011(                                   &
+               &                                                self%cosmologyParameters_        , &
+               &                                                self%cosmologicalMassVariance_   , &
+               &                                                self%criticalOverdensity_        , &
+               &                                                stateVector                   (1), &
+               &                                                stateVector                   (2), &
+               &                                                stateVector                   (3), &
+               &                                                stateVector                   (4)  &
+               &                                               )
+       end select
+    case default
+       haloMassFunctionParameterCount=-1
+       call Galacticus_Error_Report('unknown halo mass function'//{introspection:location})
     end select
     ! If averaging over environment, build the averager.
     if (self%environmentAveraged) then
-       ! First build an unconditioned (on environment) Sheth-Tormen mass function.
-       allocate(haloMassFunctionShethTormen :: haloMassFunctionUnconditioned_)
-       select type (haloMassFunctionUnconditioned_)
-       type is (haloMassFunctionShethTormen)
-          haloMassFunctionUnconditioned_=haloMassFunctionShethTormen(                                                &
-               &                                                     self%cosmologyParameters_                     , &
-               &                                                     self%cosmologicalMassVarianceUnconditioned_   , &
-               &                                                     self%criticalOverdensityUnconditioned_        , &
-               &                                                     stateVector                                (1), &
-               &                                                     stateVector                                (2), &
-               &                                                     stateVector                                (3)  &
-               &                                                    )
+       ! First build an unconditioned (on environment) mass function.
+       select case (self%haloMassFunctionType)
+       case (haloMassFunctionTypeShethTormen     )
+          allocate(haloMassFunctionShethTormen      :: haloMassFunctionUnconditioned_)
+          select type (haloMassFunctionUnconditioned_)
+          type is (haloMassFunctionShethTormen     )
+             haloMassFunctionUnconditioned_=haloMassFunctionShethTormen     (                                                &
+                  &                                                     self%cosmologyParameters_                     , &
+                  &                                                          self%cosmologicalMassVarianceUnconditioned_   , &
+                  &                                                          self%criticalOverdensityUnconditioned_        , &
+                  &                                                          stateVector                                (1), &
+                  &                                                          stateVector                                (2), &
+                  &                                                          stateVector                                (3)  &
+                  &                                                         )
+          end select
+       case (haloMassFunctionTypeBhattacharya2011     )
+          allocate(haloMassFunctionBhattacharya2011 :: haloMassFunctionUnconditioned_)
+          select type (haloMassFunctionUnconditioned_)
+          type is (haloMassFunctionBhattacharya2011)
+             haloMassFunctionUnconditioned_=haloMassFunctionBhattacharya2011(                                                &
+                  &                                                          self%cosmologyParameters_                     , &
+                  &                                                          self%cosmologicalMassVarianceUnconditioned_   , &
+                  &                                                          self%criticalOverdensityUnconditioned_        , &
+                  &                                                          stateVector                                (1), &
+                  &                                                          stateVector                                (2), &
+                  &                                                          stateVector                                (3), &
+                  &                                                          stateVector                                (4)  &
+                  &                                                         )
+          end select
+       case default
+          call Galacticus_Error_Report('unknown halo mass function'//{introspection:location})
        end select
        ! Now build the environment averaged mass function.
        allocate(haloMassFunctionEnvironmentAveraged :: haloMassFunctionAveraged_)
@@ -418,17 +490,17 @@ contains
     ! If convolving with an error distribution, build the error model.
     select case (self%errorModel)
     case (haloMassFunctionErrorModelNone                )
-       if (size(stateVector) /= 3 )                                                                   &
-            & call Galacticus_Error_Report(                                                           &
-            &                              '3 parameters are required for this likelihood function'// &
-            &                              {introspection:location}                                   &
+       if (size(stateVector) /= haloMassFunctionParameterCount  )                                          &
+            & call Galacticus_Error_Report(                                                                &
+            &                              'incorrect number of parameters for this likelihood function'// &
+            &                              {introspection:location}                                        &
             &                             )
        haloMassFunctionConvolved_ => haloMassFunctionAveraged_
     case (haloMassFunctionErrorModelPowerLaw            )
-       if (size(stateVector) /= 6 )                                                                   &
-            & call Galacticus_Error_Report(                                                           &
-            &                              '6 parameters are required for this likelihood function'// &
-            &                              {introspection:location}                                   &
+       if (size(stateVector) /= haloMassFunctionParameterCount+3)                                          &
+            & call Galacticus_Error_Report(                                                                &
+            &                              'incorrect number of parameters for this likelihood function'// &
+            &                              {introspection:location}                                        &
             &                             )
        allocate(nbodyHaloMassErrorPowerLaw :: nbodyHaloMassError_)
        select type (nbodyHaloMassError_)
@@ -451,10 +523,10 @@ contains
        end select
        nullify(nbodyHaloMassError_)
     case (haloMassFunctionErrorModelSphericalOverdensity)
-       if (size(stateVector) /= 3 )                                                                   &
-            & call Galacticus_Error_Report(                                                           &
-            &                              '3 parameters are required for this likelihood function'// &
-            &                              {introspection:location}                                   &
+       if (size(stateVector) /= haloMassFunctionParameterCount  )                                          &
+            & call Galacticus_Error_Report(                                                                &
+            &                              'incorrect number of parameters for this likelihood function'// &
+            &                              {introspection:location}                                        &
             &                             )
        ! Use a mass function convolved with an error model for spherical overdensity algorithm errors.
        allocate(nbodyHaloMassErrorSOHaloFinder :: nbodyHaloMassError_)
@@ -478,10 +550,10 @@ contains
        end select
        nullify(nbodyHaloMassError_)
     case (haloMassFunctionErrorModelTrenti2010          )
-       if (size(stateVector) /= 3 )                                                                   &
-            & call Galacticus_Error_Report(                                                           &
-            &                              '3 parameters are required for this likelihood function'// &
-            &                              {introspection:location}                                   &
+       if (size(stateVector) /= haloMassFunctionParameterCount  )                                          &
+            & call Galacticus_Error_Report(                                                                &
+            &                              'incorrect number of parameters for this likelihood function'// &
+            &                              {introspection:location}                                        &
             &                             )
        ! Use a mass function convolved with the error model from Trenti et al. (2010).
        allocate(nbodyHaloMassErrorTrenti2010 :: nbodyHaloMassError_)
