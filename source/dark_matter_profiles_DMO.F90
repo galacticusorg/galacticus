@@ -240,7 +240,7 @@ module Dark_Matter_Profiles_DMO
   class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMOSelf   => null()
   type            (treeNode                 ), pointer :: darkMatterProfileDMONode   => null()
   double precision                                     :: darkMatterProfileDMOMass_
-  !$omp threadprivate(darkMatterProfileDMOSelf,darkMatterProfileDMOMass_)
+  !$omp threadprivate(darkMatterProfileDMOSelf,darkMatterProfileDMONode,darkMatterProfileDMOMass_)
 
 contains
 
