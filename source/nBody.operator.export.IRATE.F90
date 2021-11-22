@@ -260,6 +260,10 @@ contains
              datasetDescription="Halo virial mass."
              unitName="massSolar"
              unitscgs=[massSolar*kilo,0.0d0,0.0d0]
+          case ('massParticle'             )
+             datasetDescription="Particle mass."
+             unitName="massSolar"
+             unitscgs=[massSolar*kilo,0.0d0,0.0d0]
           case default
              datasetDescription="Unknown property."
           end select
