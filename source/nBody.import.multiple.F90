@@ -132,7 +132,8 @@ contains
     Import data using multiple importers.
     !!}
     use :: Display, only : displayIndent     , displayUnindent         , verbosityLevelStandard
-    use :: Hashes , only : rank1DoublePtrHash, rank1IntegerSizeTPtrHash, rank2DoublePtrHash    , rank2IntegerSizeTPtrHash
+    use :: Hashes , only : rank1DoublePtrHash, rank1IntegerSizeTPtrHash, rank2DoublePtrHash    , rank2IntegerSizeTPtrHash, &
+         &                 doubleHash        , integerSizeTHash        , varyingStringHash     , genericHash
     implicit none
     class  (nbodyImporterMultiple), intent(inout)                            :: self
     type   (nBodyData            ), intent(  out), allocatable, dimension(:) :: simulations
@@ -167,6 +168,10 @@ contains
           importer_%simulations(i)%propertiesIntegerRank1=rank2IntegerSizeTPtrHash()
           importer_%simulations(i)%propertiesReal        =rank1DoublePtrHash      ()
           importer_%simulations(i)%propertiesRealRank1   =rank2DoublePtrHash      ()
+          importer_%simulations(1)%attributesInteger     =integerSizeTHash        ()
+          importer_%simulations(1)%attributesReal        =doubleHash              ()
+          importer_%simulations(1)%attributesText        =varyingStringHash       ()
+          importer_%simulations(1)%attributesGeneric     =genericHash             ()
        end do
        importer_ => importer_%next
     end do

@@ -148,7 +148,7 @@ contains
     use :: Display         , only : displayIndent          , displayUnindent         , verbosityLevelStandard
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Hashes          , only : doubleHash             , integerSizeTHash        , rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, &
-          &                         rank2DoublePtrHash     , rank2IntegerSizeTPtrHash, varyingStringHash
+          &                         rank2DoublePtrHash     , rank2IntegerSizeTPtrHash, varyingStringHash     , genericHash
     implicit none
     class           (nbodyImporterMerge), intent(inout)                              :: self
     type            (nBodyData         ), intent(  out), allocatable, dimension(  :) :: simulations
@@ -215,6 +215,13 @@ contains
     if (self%importers%simulations(1)%attributesText   %size() > 0) then
        do k=1,self%importers%simulations(1)%attributesText   %size()
           call simulations(1)%attributesText   %set(self%importers%simulations(1)%attributesText   %key(k),self%importers%simulations(1)%attributesText   %value(k))
+       end do
+    end if
+    !! Generic attributes.
+    simulations(1)%attributesGeneric=genericHash          ()
+    if (self%importers%simulations(1)%attributesGeneric%size() > 0) then
+       do k=1,self%importers%simulations(1)%attributesGeneric%size()
+          call simulations(1)%attributesGeneric%set(self%importers%simulations(1)%attributesGeneric%key(k),self%importers%simulations(1)%attributesGeneric%value(k))
        end do
     end if
     !! Scalar integer properties.

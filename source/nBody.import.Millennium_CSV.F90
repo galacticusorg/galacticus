@@ -148,7 +148,8 @@ contains
     use :: Display             , only : displayCounter        , displayCounterClear     , displayIndent     , displayUnindent         , &
           &                             verbosityLevelStandard
     use :: File_Utilities      , only : Count_Lines_in_File
-    use :: Hashes              , only : rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, rank2DoublePtrHash, rank2IntegerSizeTPtrHash
+    use :: Hashes              , only : rank1DoublePtrHash    , rank1IntegerSizeTPtrHash, rank2DoublePtrHash, rank2IntegerSizeTPtrHash, &
+         &                              doubleHash            , integerSizeTHash        , varyingStringHash , genericHash
     use :: String_Handling     , only : String_Count_Words    , String_Split_Words
     implicit none
     class           (nbodyImporterMillenniumCSV), intent(inout)                              :: self
@@ -295,6 +296,10 @@ contains
     simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTPtrHash()
     simulations(1)%propertiesReal        =rank1DoublePtrHash      ()
     simulations(1)%propertiesRealRank1   =rank2DoublePtrHash      ()
+    simulations(1)%attributesInteger     =integerSizeTHash        ()
+    simulations(1)%attributesReal        =doubleHash              ()
+    simulations(1)%attributesText        =varyingStringHash       ()
+    simulations(1)%attributesGeneric     =genericHash             ()
     call simulations(1)%propertiesRealRank1%set('position'  ,position  )
     call simulations(1)%propertiesRealRank1%set('velocity'  ,velocity  )
     call simulations(1)%propertiesInteger  %set('particleID',particleID)
