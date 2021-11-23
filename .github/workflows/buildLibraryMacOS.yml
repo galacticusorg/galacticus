@@ -136,8 +136,8 @@ jobs:
       - name: Install Perl modules
         run: |
           export CFLAGS=-I/Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/System/Library/Perl/5.18/darwin-thread-multi-2level/CORE
-          sudo perl -MCPAN -e 'force("install","Net::SSLeay")'
           sudo perl -MCPAN -e 'force("install","IO::Socket::SSL")'
+          sudo perl -MCPAN -e 'force("install","Net::SSLeay")'
           sudo perl -MCPAN -e 'force("install","NestedMap")'
           sudo perl -MCPAN -e 'force("install","Scalar::Util")'
           sudo perl -MCPAN -e 'force("install","Term::ANSIColor")'
