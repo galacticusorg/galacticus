@@ -33,7 +33,7 @@
     <presetAngularMomenta3D value="true"/>
     <presetSubhaloIndices value="true"/>
     <presetSubhaloMasses value="true"/>
-    <presetUnphysicalSpins value="true"/>
+    <presetUnphysicalAngularMomenta value="true"/>
     <satelliteMergingTimescalesSubresolution value="boylanKolchin2008"/>
     <fileNames value="testSuite/data/mergerTrees/deadlockMergeTargetInDescendentOfMergee2.hdf5"/>
   </mergerTreeConstructor>

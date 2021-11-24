@@ -65,7 +65,7 @@
     <presetOrbitsAssertAllSet value="true"/>
     <presetAngularMomenta value="true"/>
     <presetAngularMomenta3D value="true"/>
-    <presetUnphysicalSpins value="true"/>
+    <presetUnphysicalAngularMomenta value="true"/>
     <presetScaleRadii value="false"/>
     <presetScaleRadiiMinimumMass value="1.0e10"/>
     <presetMergerTimes value="true"/>
