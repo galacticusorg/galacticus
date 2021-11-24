@@ -27,7 +27,7 @@ my %dependencies =
      FoX_dom        => [ "FoX_fsys", "FoX_utils", "FoX_sax" ],
      FoX_sax        => [ "FoX_common"                       ],
      FoX_utils      => [ "FoX_wxml"                         ],
-     qhullcpp       => [ "qhull_r"                          ]
+     qhullcpp       => [ "qhull_r", "stdc++"                ]
     );
 # Library order dependencies for static linking. Each key specifies a library name. The associated value is a list of libraries
 # before which the key library must appear in the link command when static linking is used.
@@ -42,7 +42,8 @@ my %staticLinkDependencies =
      FoX_sax        => [ "FoX_common"                                   ],
      FoX_wxml       => [ "FoX_utils"                                    ],
      FoX_common     => [ "FoX_fsys"                                     ],
-     matheval       => [ "fl"                                           ]
+     matheval       => [ "fl"                                           ],
+     qhullcpp       => [ "stdc++"                                       ]
     );
 # Find default preprocessor directives.
 my @preprocessorDirectives;
