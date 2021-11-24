@@ -42,6 +42,7 @@
    contains
      procedure :: nodeInitialize        => haloAngularMomentumInterpolateNodeInitialize
      procedure :: differentialEvolution => haloAngularMomentumInterpolateDifferentialEvolution
+     procedure :: nodePromote           => haloAngularMomentumInterpolateNodePromote
   end type nodeOperatorHaloAngularMomentumInterpolate
   
   interface nodeOperatorHaloAngularMomentumInterpolate
@@ -60,7 +61,7 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodeOperatorHaloAngularMomentumInterpolate)                :: self
-    type(inputParameters                ), intent(inout) :: parameters
+    type(inputParameters                           ), intent(inout) :: parameters
      
     self=nodeOperatorHaloAngularMomentumInterpolate()
     !![
@@ -77,8 +78,8 @@ contains
     implicit none
     class           (nodeOperatorHaloAngularMomentumInterpolate), intent(inout)          :: self
     type            (treeNode                                  ), intent(inout), target  :: node
-    class           (nodeComponentBasic                        )               , pointer :: basic       , basicParent
-    class           (nodeComponentSpin                         )               , pointer :: spin        , spinParent
+    class           (nodeComponentBasic                        )               , pointer :: basic                  , basicParent
+    class           (nodeComponentSpin                         )               , pointer :: spin                   , spinParent
     double precision                                                                     :: timeInterval
     logical                                                                              :: angularMomentumIsVector
     
@@ -86,11 +87,11 @@ contains
     angularMomentumIsVector =  spin%angularMomentumVectorGrowthRateIsSettable()
     if (node%isPrimaryProgenitor()) then
        ! For primary progenitors compute and store the angular momentum growth rate.
-       basic        =>  node              %basic                         ()
-       basicParent  =>  node       %parent%basic                         ()
-       spinParent   =>  node       %parent%spin                          ()
-       timeInterval =  +basicParent       %time                          () &
-            &          -basic             %time                          ()
+       basic        =>  node              %basic()
+       basicParent  =>  node       %parent%basic()
+       spinParent   =>  node       %parent%spin ()
+       timeInterval =  +basicParent       %time () &
+            &          -basic             %time ()
        if (timeInterval > 0.0d0) then
           call        spin%angularMomentumGrowthRateSet      (                                      &
                &                                              +(                                    &
@@ -131,7 +132,7 @@ contains
   
   subroutine haloAngularMomentumInterpolateDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{
-    Evolve scalar halo angular momentum at a constant rate, to achieve linear interpolation in time.
+    Evolve halo angular momentum at a constant rate, to achieve linear interpolation in time.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpin, propertyTypeInactive
     implicit none
@@ -165,3 +166,28 @@ contains
     end if
     return
   end subroutine haloAngularMomentumInterpolateDifferentialEvolution
+
+  subroutine haloAngularMomentumInterpolateNodePromote(self,node)
+    !!{
+    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the angular momentum of {\normalfont \ttfamily node}
+    to be that of its parent.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentSpin, treeNode
+    implicit none
+    class(nodeOperatorHaloAngularMomentumInterpolate), intent(inout)  :: self
+    type (treeNode                                  ), intent(inout)  :: node
+    type (treeNode                                  ), pointer        :: nodeParent
+    class(nodeComponentSpin                         ), pointer        :: spinParent , spin
+    !$GLC attributes unused :: self
+
+    nodeParent => node      %parent
+    spin       => node      %spin  ()
+    spinParent => nodeParent%spin  ()
+    call    spin%angularMomentumSet                (spinParent%angularMomentum                ())
+    call    spin%angularMomentumGrowthRateSet      (spinParent%angularMomentumGrowthRate      ())
+    if (spin%angularMomentumVectorGrowthRateIsSettable()) then
+       call spin%angularMomentumVectorSet          (spinParent%angularMomentumVector          ())
+       call spin%angularMomentumVectorGrowthRateSet(spinParent%angularMomentumVectorGrowthRate())
+    end if
+    return
+  end subroutine haloAngularMomentumInterpolateNodePromote

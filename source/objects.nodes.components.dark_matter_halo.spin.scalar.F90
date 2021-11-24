@@ -69,7 +69,6 @@ contains
     !!{
     Initializes the halo scalar angular momentum module.
     !!}
-    use :: Events_Hooks    , only : nodePromotionEvent  , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultSpinComponent
     use :: Input_Parameters, only : inputParameter      , inputParameters
     implicit none
@@ -80,7 +79,6 @@ contains
        !![
        <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters_"/>
        !!]
-        call nodePromotionEvent%attach(defaultSpinComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentSpinScalar')
      end if
      return
   end subroutine Node_Component_Halo_Angular_Momentum_Scalar_Thread_Initialize
@@ -94,7 +92,6 @@ contains
     !!{
     Uninitializes the halo scalar angular momenutm module.
     !!}
-    use :: Events_Hooks    , only : nodePromotionEvent
     use :: Galacticus_Nodes, only : defaultSpinComponent
     implicit none
 
@@ -102,7 +99,6 @@ contains
        !![
        <objectDestructor name="darkMatterProfileDMO_"/>
        !!]
-       if( nodePromotionEvent%isAttached(defaultSpinComponent,nodePromotion)) call nodePromotionEvent%detach(defaultSpinComponent,nodePromotion)
     end if
     return
   end subroutine Node_Component_Halo_Angular_Momentum_Scalar_Thread_Uninitialize
@@ -135,30 +131,5 @@ contains
     end select
     return
   end subroutine Node_Component_Halo_Angular_Momentum_Scalar_Scale_Set
-
-  subroutine nodePromotion(self,node)
-    !!{
-    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the angular momentum of {\normalfont \ttfamily node}
-    to be that of its parent.
-    !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentSpin, treeNode
-    implicit none
-    class(*                 ), intent(inout) :: self
-    type (treeNode          ), intent(inout) :: node
-    type (treeNode          ), pointer       :: nodeParent
-    class(nodeComponentSpin ), pointer       :: spinParent , spin
-    class(nodeComponentBasic), pointer       :: basicParent, basic
-    !$GLC attributes unused :: self
-
-    nodeParent  => node      %parent
-    spin        => node      %spin  ()
-    spinParent  => nodeParent%spin  ()
-    basic       => node      %basic ()
-    basicParent => nodeParent%basic ()
-    call spin%angularMomentumSet          (spinParent%angularMomentum          ())
-    call spin%angularMomentumGrowthRateSet(spinParent%angularMomentumGrowthRate())
-    return
-  end subroutine nodePromotion
 
 end module Node_Component_Halo_Angular_Momentum_Scalar

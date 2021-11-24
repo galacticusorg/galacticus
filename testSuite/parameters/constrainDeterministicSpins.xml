@@ -124,8 +124,7 @@
   <componentMergingStatistics value="standard"/>
   <componentSatellite value="standard"/>
   <componentSpheroid value="null"/>
-  <componentSpin value="vitvitska"/>
-  <angularMomentumVitvitskaMassExponent value="0.274460218346487"/>
+  <componentSpin value="vector"/>
 
   <!-- Merger tree construction -->
   <mergerTreeBuilder value="cole2000">
@@ -229,6 +228,11 @@
     <!-- Halo concentrations -->
     <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Halo angular momentum -->
+    <nodeOperator value="haloAngularMomentumVitvitska2002"  >
+      <exponentMass value="0.274460218346487"/>
+    </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>

@@ -29,7 +29,7 @@ module Node_Component_Halo_Angular_Momentum_Vector
   implicit none
   private
   public :: Node_Component_Halo_Angular_Momentum_Vector_Thread_Initialize, Node_Component_Halo_Angular_Momentum_Vector_Thread_Uninitialize, &
-       &    Node_Component_Halo_Angular_Momentum_Vector_Scale_Set
+       &    Node_Component_Halo_Angular_Momentum_Vector_Scale_Set        , Node_Component_Halo_Angular_Momentum_Vector_Initialize
   
   !![
   <component>
@@ -55,6 +55,12 @@ module Node_Component_Halo_Angular_Momentum_Vector
       <rank>1</rank>
       <attributes isSettable="true" isGettable="true" isEvolvable="false" />
     </property>
+    <property>
+      <name>angularMomentumGrowthRate</name>
+      <type>double</type>
+      <rank>0</rank>
+      <attributes isSettable="false" isGettable="true" isEvolvable="false" isDeferred="get" />
+    </property>
    </properties>
   </component>
   !!]
@@ -66,6 +72,27 @@ module Node_Component_Halo_Angular_Momentum_Vector
 contains
 
   !![
+  <nodeComponentInitializationTask>
+   <unitName>Node_Component_Halo_Angular_Momentum_Vector_Initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
+  subroutine Node_Component_Halo_Angular_Momentum_Vector_Initialize(parameters_)
+    !!{
+    Initializes the tree node vector halo angular momentum methods module.
+    !!}
+    use :: Galacticus_Nodes, only : defaultSpinComponent, nodeComponentSpinVector
+    use :: Input_Parameters, only : inputParameter      , inputParameters
+    implicit none
+    type(inputParameters        ), intent(inout) :: parameters_
+    type(nodeComponentSpinVector)                :: spinVectorComponent
+    !$GLC attributes unused :: parameters_
+
+    if (defaultSpinComponent%vectorIsActive())                                                      &
+         & call spinVectorComponent%angularMomentumGrowthRateFunction(angularMomentumGrowthRateGet)
+    return
+  end subroutine Node_Component_Halo_Angular_Momentum_Vector_Initialize
+
+  !![
   <nodeComponentThreadInitializationTask>
    <unitName>Node_Component_Halo_Angular_Momentum_Vector_Thread_Initialize</unitName>
   </nodeComponentThreadInitializationTask>
@@ -74,7 +101,6 @@ contains
     !!{
     Initializes the halo vector angular momentum module.
     !!}
-    use :: Events_Hooks    , only : nodePromotionEvent  , openMPThreadBindingAtLevel
     use :: Galacticus_Nodes, only : defaultSpinComponent
     use :: Input_Parameters, only : inputParameters
     implicit none
@@ -85,7 +111,6 @@ contains
        !![
        <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters_"/>
        !!]
-       call nodePromotionEvent%attach(defaultSpinComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentSpinVector')
     end if
     return
   end subroutine Node_Component_Halo_Angular_Momentum_Vector_Thread_Initialize
@@ -99,7 +124,6 @@ contains
     !!{
     Uninitializes the tree node preset spin module.
     !!}
-    use :: Events_Hooks    , only : nodePromotionEvent
     use :: Galacticus_Nodes, only : defaultSpinComponent
     implicit none
 
@@ -107,7 +131,6 @@ contains
        !![
        <objectDestructor name="darkMatterProfileDMO_"/>
        !!]
-       if (nodePromotionEvent%isAttached(defaultSpinComponent,nodePromotion)) call nodePromotionEvent%detach(defaultSpinComponent,nodePromotion)
     end if
     return
   end subroutine Node_Component_Halo_Angular_Momentum_Vector_Thread_Uninitialize
@@ -141,31 +164,19 @@ contains
     return
   end subroutine Node_Component_Halo_Angular_Momentum_Vector_Scale_Set
 
-  subroutine nodePromotion(self,node)
+  double precision function angularMomentumGrowthRateGet(self)
     !!{
-    Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the angular momentum of {\normalfont \ttfamily node}
-    to be that of its parent.
+    Compute the rate of growth of the magnitude of halo angular momentum.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : nodeComponentBasic     , nodeComponentSpin, treeNode
-    implicit none
-    class(*                 ), intent(inout)          :: self
-    type (treeNode          ), intent(inout), target  :: node
-    type (treeNode          )               , pointer :: nodeParent
-    class(nodeComponentSpin )               , pointer :: spinParent , spin
-    class(nodeComponentBasic)               , pointer :: basicParent, basic
-    !$GLC attributes unused :: self
+    use :: Galacticus_Nodes, only : nodeComponentSpinVector
+    class(nodeComponentSpinVector), intent(inout) :: self
 
-    spin        => node      %spin  ()
-    nodeParent  => node      %parent
-    basic       => node      %basic ()
-    basicParent => nodeParent%basic ()
-    if (basic%time() /= basicParent%time()) call Galacticus_Error_Report('node has not been evolved to its parent'//{introspection:location})
-    ! Adjust the angular momentum growth rate to that of the parent node.
-    spinParent => nodeParent%spin()
-    call spin%angularMomentumVectorSet          (spinParent%angularMomentumVector          ())
-    call spin%angularMomentumVectorGrowthRateSet(spinParent%angularMomentumVectorGrowthRate())
+    angularMomentumGrowthRateGet=+sum(                                        &
+         &                            +self%angularMomentumVector          () &
+         &                            *self%angularMomentumVectorGrowthRate() &
+         &                           )                                        &
+         &                       /     self%angularMomentum                ()
     return
-  end subroutine nodePromotion
+  end function angularMomentumGrowthRateGet
 
 end module Node_Component_Halo_Angular_Momentum_Vector
