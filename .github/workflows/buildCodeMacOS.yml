@@ -131,7 +131,7 @@ jobs:
       - name: Install CPAN
         run: |
           sudo perl -MCPAN -e shell
-          sudo 
+          sudo cpan <<EOF
           o conf urllist http://mirrors.namecheap.com/CPAN/ http://mirrors.gossamer-threads.com/CPAN/
           o conf commit
           EOF
