@@ -131,8 +131,9 @@ jobs:
       - name: Install CPAN
         run: |
           sudo perl -MCPAN -e shell
-          cpan <<EOF
-          o conf pushy_https 0
+          sudo cpan <<EOF
+          o conf curl /usr/bin/curl
+          o conf commit
           EOF
           sudo perl -MCPAN -e 'install Bundle::CPAN'
       - name: Install Perl modules
