@@ -458,7 +458,6 @@ contains
     type            (varying_string      ), save                                  :: message
     !$omp threadprivate(message)
     character       (len= 30             )                                        :: label
-    !$GLC attributes initialized :: xRoot
 
     ! Add the current finder to the list of finders. This allows us to track back to the previously used finder if this function is called recursively.
     currentFinderIndex=currentFinderIndex+1
@@ -697,6 +696,7 @@ contains
        end if
     else
        iteration=0
+       xRoot    =0.0d0
        do
           iteration=iteration+1
           if (self%useDerivative) then
@@ -705,20 +705,22 @@ contains
              statusActual=GSL_Root_fSolver_Iterate  (self%solver)
           end if
           if (statusActual /= GSL_Success .or. iteration > iterationMaximum) exit
-          select case (self%stoppingCriterion)
-          case (stoppingCriterionDelta   )
-             xRootPrevious=xRoot
-             xRoot        =GSL_Root_fdfSolver_Root(self%solver)
-             statusActual =GSL_Root_Test_Delta(xRoot,xRootPrevious,self%toleranceAbsolute,self%toleranceRelative)
-          case (stoppingCriterionInterval)
-             xRoot =GSL_Root_fSolver_Root   (self%solver)
-             xLow  =GSL_Root_fSolver_x_Lower(self%solver)
-             xHigh =GSL_Root_fSolver_x_Upper(self%solver)
-             statusActual=GSL_Root_Test_Interval(xLow,xHigh,self%toleranceAbsolute,self%toleranceRelative)
-          case default
-             call Galacticus_Error_Report('unknown stopping criterion'//{introspection:location})
-          end select
-          if (statusActual == GSL_Success) exit
+          if (iteration > 1) then
+             select case (self%stoppingCriterion)
+             case (stoppingCriterionDelta   )
+                xRootPrevious=xRoot
+                xRoot        =GSL_Root_fdfSolver_Root(self%solver)
+                statusActual =GSL_Root_Test_Delta(xRoot,xRootPrevious,self%toleranceAbsolute,self%toleranceRelative)
+             case (stoppingCriterionInterval)
+                xRoot =GSL_Root_fSolver_Root   (self%solver)
+                xLow  =GSL_Root_fSolver_x_Lower(self%solver)
+                xHigh =GSL_Root_fSolver_x_Upper(self%solver)
+                statusActual=GSL_Root_Test_Interval(xLow,xHigh,self%toleranceAbsolute,self%toleranceRelative)
+             case default
+                call Galacticus_Error_Report('unknown stopping criterion'//{introspection:location})
+             end select
+             if (statusActual == GSL_Success) exit
+          end if
        end do
        if (statusActual /= GSL_Success) then
           rootFinderFind=0.0d0
