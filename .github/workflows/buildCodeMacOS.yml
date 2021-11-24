@@ -131,6 +131,7 @@ jobs:
       - name: Install CPAN
         run: |
           ls /Library/Developer/CommandLineTools/SDKs/MacOSX*.sdk/System/Library/Perl/
+          perl -v
           sudo perl -MCPAN -e shell
           sudo perl -MCPAN -e 'install Bundle::CPAN'
       - name: Install Perl modules
