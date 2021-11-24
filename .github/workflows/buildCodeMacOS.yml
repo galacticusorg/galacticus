@@ -132,6 +132,8 @@ jobs:
         run: |
           sudo perl -MCPAN -e shell
           sudo cpan <<EOF
+          o conf init pushy_https
+          o conf init pushy_https 0
           o conf urllist http://mirrors.namecheap.com/CPAN/ http://mirrors.gossamer-threads.com/CPAN/
           o conf commit
           EOF
