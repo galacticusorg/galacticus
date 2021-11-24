@@ -131,17 +131,11 @@ jobs:
       - name: Install CPAN
         run: |
           sudo perl -MCPAN -e shell
-          sudo cpan <<EOF
-          o conf init pushy_https
-          o conf init pushy_https 0
-          o conf urllist http://mirrors.namecheap.com/CPAN/ http://mirrors.gossamer-threads.com/CPAN/
-          o conf commit
-          EOF
-          sudo cat /Users/runner/.cpan/CPAN/MyConfig.pm
           sudo perl -MCPAN -e 'install Bundle::CPAN'
       - name: Install Perl modules
         run: |
           export CFLAGS=-I/Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/System/Library/Perl/5.18/darwin-thread-multi-2level/CORE
+          ls /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/System/Library/Perl/
           sudo perl -MCPAN -e 'force("install","NestedMap")'
           sudo perl -MCPAN -e 'force("install","Scalar::Util")'
           sudo perl -MCPAN -e 'force("install","Term::ANSIColor")'
