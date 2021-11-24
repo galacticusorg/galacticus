@@ -130,7 +130,7 @@ jobs:
       #     cp -R include/* /usr/local/include/.
       - name: Install CPAN
         run: |
-          ls /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/System/Library/Perl/
+          ls /Library/Developer/CommandLineTools/SDKs/MacOSX*.sdk/System/Library/Perl/
           sudo perl -MCPAN -e shell
           sudo perl -MCPAN -e 'install Bundle::CPAN'
       - name: Install Perl modules
