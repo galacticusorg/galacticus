@@ -128,10 +128,24 @@ jobs:
       #     cp bin/* /usr/local/bin/.
       #     cp lib/* /usr/local/lib/.
       #     cp -R include/* /usr/local/include/.
+      - name: Install IO::Socket::SSL
+        run: |
+          curl -L https://cpan.metacpan.org/authors/id/C/CH/CHRISN/Net-SSLeay-1.90.tar.gz --output Net-SSLeay-1.90.tar.gz
+          tar xvfz Net-SSLeay-1.90.tar.gz
+          cd Net-SSLeay-1.90
+          perl Makefile.PL
+          make
+          sudo make install
+          cd ..
+          curl -L https://cpan.metacpan.org/authors/id/S/SU/SULLR/IO-Socket-SSL-1.966.tar.gz --output IO-Socket-SSL-1.966.tar.gz
+          tar xvfz IO-Socket-SSL-1.966.tar.gz
+          cd IO-Socket-SSL-1.966
+          perl Makefile.PL
+          make
+          sudo make install
+          cd ..
       - name: Install CPAN
         run: |
-          ls /Library/Developer/CommandLineTools/SDKs/MacOSX*.sdk/System/Library/Perl/
-          perl -v
           sudo perl -MCPAN -e shell
           sudo perl -MCPAN -e 'install Bundle::CPAN'
       - name: Install Perl modules
