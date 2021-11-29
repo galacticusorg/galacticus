@@ -824,46 +824,47 @@ contains
     !![
     <referenceConstruct object="haloEnvironment_"                      >
      <constructor>
-      haloEnvironmentNormal                      (                                                                  &amp;
-       &amp;                                      radiusEnvironment        =radiusEnvironment                     , &amp;
-       &amp;                                      cosmologyParameters_     =cosmologyParameters_                  , &amp;
-       &amp;                                      cosmologyFunctions_      =cosmologyFunctions_                   , &amp;
-       &amp;                                      cosmologicalMassVariance_=cosmologicalMassVariance_             , &amp;
-       &amp;                                      linearGrowth_            =linearGrowth_                         , &amp;
-       &amp;                                      criticalOverdensity_     =criticalOverdensity_                    &amp;
+      haloEnvironmentNormal                      (                                                                       &amp;
+       &amp;                                      radiusEnvironment        =radiusEnvironment                          , &amp;
+       &amp;                                      time                     =cosmologyFunctions_      %cosmicTime(1.0d0), &amp;
+       &amp;                                      cosmologyParameters_     =cosmologyParameters_                       , &amp;
+       &amp;                                      cosmologyFunctions_      =cosmologyFunctions_                        , &amp;
+       &amp;                                      cosmologicalMassVariance_=cosmologicalMassVariance_                  , &amp;
+       &amp;                                      linearGrowth_            =linearGrowth_                              , &amp;
+       &amp;                                      criticalOverdensity_     =criticalOverdensity_                         &amp;
        &amp;                                      )
      </constructor>
     </referenceConstruct>
     <referenceConstruct object="cosmologicalMassVarianceEnvironmental_">
      <constructor>
-      cosmologicalMassVariancePeakBackgroundSplit(                                                                  &amp;
-       &amp;                                      haloEnvironment_         =haloEnvironment_                      , &amp;
-       &amp;                                      cosmologicalMassVariance_=cosmologicalMassVariance_             , &amp;
-       &amp;                                      cosmologyParameters_     =cosmologyParameters_                  , &amp;
-       &amp;                                      cosmologyFunctions_      =cosmologyFunctions_                     &amp;
+      cosmologicalMassVariancePeakBackgroundSplit(                                                                       &amp;
+       &amp;                                      haloEnvironment_         =haloEnvironment_                           , &amp;
+       &amp;                                      cosmologicalMassVariance_=cosmologicalMassVariance_                  , &amp;
+       &amp;                                      cosmologyParameters_     =cosmologyParameters_                       , &amp;
+       &amp;                                      cosmologyFunctions_      =cosmologyFunctions_                          &amp;
        &amp;                                     )
      </constructor>
     </referenceConstruct>
     <referenceConstruct object="criticalOverdensityEnvironmental_"     >
      <constructor>
-      criticalOverdensityPeakBackgroundSplit     (                                                                  &amp;
-       &amp;                                      criticalOverdensity_     =criticalOverdensity_                  , &amp;
-       &amp;                                      haloEnvironment_         =haloEnvironment_                      , &amp;
-       &amp;                                      cosmologyFunctions_      =cosmologyFunctions_                   , &amp;
-       &amp;                                      cosmologicalMassVariance_=cosmologicalMassVariance_             , &amp;
-       &amp;                                      linearGrowth_            =linearGrowth_                           &amp;
+      criticalOverdensityPeakBackgroundSplit     (                                                                       &amp;
+       &amp;                                      criticalOverdensity_     =criticalOverdensity_                       , &amp;
+       &amp;                                      haloEnvironment_         =haloEnvironment_                           , &amp;
+       &amp;                                      cosmologyFunctions_      =cosmologyFunctions_                        , &amp;
+       &amp;                                      cosmologicalMassVariance_=cosmologicalMassVariance_                  , &amp;
+       &amp;                                      linearGrowth_            =linearGrowth_                                &amp;
        &amp;                                     )
      </constructor>
     </referenceConstruct>
     <referenceConstruct object="haloMassFunctionEnvironmental_"        >
      <constructor>
-      haloMassFunctionShethTormen                (                                                                  &amp;
-       &amp;                                      cosmologyParameters_     =cosmologyParameters_                  , &amp;
-       &amp;                                      cosmologicalMassVariance_=cosmologicalMassVarianceEnvironmental_, &amp;
-       &amp;                                      criticalOverdensity_     =criticalOverdensityEnvironmental_     , &amp;
-       &amp;                                      a                        =self%haloMassFunctionA                , &amp;
-       &amp;                                      p                        =self%haloMassFunctionP                , &amp;
-       &amp;                                      normalization            =self%haloMassFunctionNormalization      &amp;
+      haloMassFunctionShethTormen                (                                                                       &amp;
+       &amp;                                      cosmologyParameters_     =cosmologyParameters_                       , &amp;
+       &amp;                                      cosmologicalMassVariance_=cosmologicalMassVarianceEnvironmental_     , &amp;
+       &amp;                                      criticalOverdensity_     =criticalOverdensityEnvironmental_          , &amp;
+       &amp;                                      a                        =self%haloMassFunctionA                     , &amp;
+       &amp;                                      p                        =self%haloMassFunctionP                     , &amp;
+       &amp;                                      normalization            =self%haloMassFunctionNormalization           &amp;
        &amp;                                     )
      </constructor>
     </referenceConstruct>
