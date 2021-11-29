@@ -206,7 +206,7 @@ contains
       implicit none
       double precision, intent(in   ) :: environmentOverdensity
 
-      environmentAveragedRoot=self%haloEnvironment_ %cdf(environmentOverdensity)-cdfTarget
+      environmentAveragedRoot=self%haloEnvironment_%cdf(environmentOverdensity)-cdfTarget
       return
     end function environmentAveragedRoot
 
