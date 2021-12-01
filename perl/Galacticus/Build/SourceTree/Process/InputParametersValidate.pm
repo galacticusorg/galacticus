@@ -25,9 +25,7 @@ sub Process_InputParametersValidate {
     my $fileName;
     $fileName = $tree->{'name'}
         if ( $tree->{'type'} eq "file" );
-    # Get code directive locations.
-    my $directiveLocations = $xml->XMLin($ENV{'BUILDPATH'}."/directiveLocations.xml");
-     # Walk the tree, looking for input parameter validation directives.
+    # Walk the tree, looking for input parameter validation directives.
     my $node  = $tree;
     my $depth = 0;
     while ( $node ) {
