@@ -121,7 +121,6 @@
   <componentDarkMatterProfile value="scale"/>
   <componentDisk value="null"/>
   <componentHotHalo value="null"/>
-  <componentMergingStatistics value="standard"/>
   <componentSatellite value="standard"/>
   <componentSpheroid value="null"/>
   <componentSpin value="vector"/>
@@ -236,5 +235,7 @@
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>
+    <!-- Analyses -->
+    <nodeOperator value="nodeMajorMergerTime"/>
   </nodeOperator>
 </parameters>

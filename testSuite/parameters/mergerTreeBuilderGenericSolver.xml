@@ -60,7 +60,6 @@
   <componentBasic value="standard"/>
   <componentDarkMatterProfile value="scale"/>
   <componentSatellite value="standard"/>
-  <componentMergingStatistics value="standard"/>
   <componentSpin value="null"/>
   <componentBlackHole value="null"/>
   <componentDisk value="null"/>
@@ -144,6 +143,7 @@
   <nodeOperator value="multi">
     <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
     <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+    <nodeOperator value="hierarchy"                         iterable="no"/>
   </nodeOperator>
 
 </parameters>

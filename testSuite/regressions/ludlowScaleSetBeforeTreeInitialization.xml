@@ -16,7 +16,6 @@
   <componentSpheroid value="null"/>
   <spheroidMassDistribution value="null"/>
   <componentSpin value="null"/>
-  <componentMergingStatistics value="standard"/>
   <!-- Cosmological parameters and options -->
   <cosmologyFunctions value="matterLambda"/>
   <cosmologyParameters value="simple"       >

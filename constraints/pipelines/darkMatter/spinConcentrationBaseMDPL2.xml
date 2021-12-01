@@ -19,7 +19,6 @@
   <componentHotHalo            value="null"    />
   <componentSatellite          value="standard"/>
   <componentSpheroid           value="null"    />
-  <componentMergingStatistics  value="standard"/>
   <componentSpin               value="vector"  />
 
   <!-- Cosmological parameters matched to MDPL -->
@@ -163,6 +162,7 @@
       <exponentMass value="0.10475"/>
     </nodeOperator>
     <nodeOperator value="haloAngularMomentumInterpolate"   />
+    <nodeOperator value="nodeMajorMergerTime"              />
   </nodeOperator>
 
   <!-- Output options -->

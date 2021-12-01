@@ -154,27 +154,27 @@
      A merger tree operator class which accumulates conditional mass functions for trees.
      !!}
      private
-     class           (nbodyHaloMassErrorClass), pointer                             :: haloMassError_ => null()
-     class           (cosmologyFunctionsClass), pointer                             :: cosmologyFunctions_ => null()
-     double precision                         , allocatable, dimension(:          ) :: timeParents                         , timeProgenitors                      , &
-          &                                                                            parentRedshifts                     , progenitorRedshifts                  , &
-          &                                                                            massParents                         , massRatios                           , &
-          &                                                                            normalizationSubhaloMassFunction    , normalizationSubhaloMassFunctionError
-     double precision                         , allocatable, dimension(:,:        ) :: normalization                       , normalizationError
+     class           (nbodyHaloMassErrorClass), pointer                             :: haloMassError_                       => null()
+     class           (cosmologyFunctionsClass), pointer                             :: cosmologyFunctions_                  => null()
+     double precision                         , allocatable, dimension(:          ) :: timeParents                                   , timeProgenitors                      , &
+          &                                                                            parentRedshifts                               , progenitorRedshifts                  , &
+          &                                                                            massParents                                   , massRatios                           , &
+          &                                                                            normalizationSubhaloMassFunction              , normalizationSubhaloMassFunctionError
+     double precision                         , allocatable, dimension(:,:        ) :: normalization                                 , normalizationError
      double precision                         , allocatable, dimension(:,:,:,:    ) :: normalizationCovariance
-     double precision                         , allocatable, dimension(:,:,:      ) :: conditionalMassFunction             , conditionalMassFunctionError
-     double precision                         , allocatable, dimension(:,:,:,:,:,:) :: conditionalMassFunctionCovariance
-     double precision                         , allocatable, dimension(:,:,:      ) :: subhaloMassFunction                 , subhaloMassFunctionError
-     double precision                         , allocatable, dimension(:,:,:,:    ) :: primaryProgenitorMassFunction       , primaryProgenitorMassFunctionError
-     double precision                         , allocatable, dimension(:,:,:,:    ) :: formationRateFunction               , formationRateFunctionError
-     integer                                                                        :: parentMassCount                     , primaryProgenitorDepth               , &
-          &                                                                            massRatioCount                      , timeCount                            , &
-          &                                                                            subhaloHierarchyDepth
-     double precision                                                               :: massParentLogarithmicMinimum        , massRatioLogarithmicMinimum          , &
-          &                                                                            massParentLogarithmicBinWidthInverse, massRatioLogarithmicBinWidthInverse  , &
+     double precision                         , allocatable, dimension(:,:,:      ) :: conditionalMassFunction                       , conditionalMassFunctionError
+     double precision                         , allocatable, dimension(:,:,:,:,:,:) :: conditionalMassFunctionCovariance          
+     double precision                         , allocatable, dimension(:,:,:      ) :: subhaloMassFunction                           , subhaloMassFunctionError
+     double precision                         , allocatable, dimension(:,:,:,:    ) :: primaryProgenitorMassFunction                 , primaryProgenitorMassFunctionError
+     double precision                         , allocatable, dimension(:,:,:,:    ) :: formationRateFunction                         , formationRateFunctionError
+     integer                                                                        :: parentMassCount                               , primaryProgenitorDepth               , &
+          &                                                                            massRatioCount                                , timeCount                            , &
+          &                                                                            subhaloHierarchyDepth                         , nodeHierarchyLevelMaximumID
+     double precision                                                               :: massParentLogarithmicMinimum                  , massRatioLogarithmicMinimum          , &
+          &                                                                            massParentLogarithmicBinWidthInverse          , massRatioLogarithmicBinWidthInverse  , &
           &                                                                            formationRateTimeFraction
-     logical                                                                        :: alwaysIsolatedHalosOnly             , primaryProgenitorStatisticsValid     , &
-          &                                                                            extendedStatistics                  , computeCovariances
+     logical                                                                        :: alwaysIsolatedHalosOnly                       , primaryProgenitorStatisticsValid     , &
+          &                                                                            extendedStatistics                            , computeCovariances
      type            (varying_string         )                                      :: outputGroupName
      !$ integer      (omp_lock_kind          )                                      :: accumulateLock
    contains
@@ -354,10 +354,9 @@ contains
     !!{
     Internal constructor for the conditional mass function merger tree operator class.
     !!}
-    use :: Galacticus_Error , only : Galacticus_Component_List        , Galacticus_Error_Report
-    use :: Galacticus_Nodes , only : defaultMergingStatisticsComponent
+    use :: Galacticus_Error , only : Galacticus_Error_Report
     use :: Memory_Management, only : allocateArray
-    use :: Numerical_Ranges , only : Make_Range                       , rangeTypeLogarithmic
+    use :: Numerical_Ranges , only : Make_Range             , rangeTypeLogarithmic
     implicit none
     type            (mergerTreeOperatorConditionalMF)                              :: self
     double precision                                 , intent(in   ), dimension(:) :: parentRedshifts                 , progenitorRedshifts
@@ -381,17 +380,6 @@ contains
     self%primaryProgenitorStatisticsValid=self%haloMassError_%errorZeroAlways()
     if (size(progenitorRedshifts) /= self%timeCount) &
          & call Galacticus_Error_Report('mismatch in sizes of parent and progenitor redshift arrays'//{introspection:location})
-    ! Check for required property attributes.
-    if (alwaysIsolatedHalosOnly.and..not.defaultMergingStatisticsComponent%nodeHierarchyLevelMaximumIsGettable())                                              &
-         & call Galacticus_Error_Report                                                                                                                        &
-         &      (                                                                                                                                              &
-         &       'statistics of always isolated halos require a merging statistics component that provides a gettable "nodeHierarchyLevelMaximum" property.'// &
-         &       Galacticus_Component_List(                                                                                                                    &
-         &                                 'mergingStatistics'                                                                                               , &
-         &                                  defaultMergingStatisticsComponent%nodeHierarchyLevelMaximumAttributeMatch(requireGettable=.true.)                  &
-         &                                )                                                                                                                 // &
-         &       {introspection:location}                                                                                                                      &
-         &      )
     ! Allocate arrays.
     call allocateArray(self%parentRedshifts    ,[self%timeCount        ])
     call allocateArray(self%progenitorRedshifts,[self%timeCount        ])
@@ -585,6 +573,10 @@ contains
     end if
     ! Initialize OpenMP lock.
     !$ call OMP_Init_Lock(self%accumulateLock)
+    ! Get required meta-property.
+    !![
+    <addMetaProperty component="basic" name="nodeHierarchyLevelMaximum" type="integer" id="self%nodeHierarchyLevelMaximumID"/>
+    !!]
     return
   end function conditionalMFConstructorInternal
 
@@ -610,7 +602,7 @@ contains
     Compute conditional mass function on {\normalfont \ttfamily tree}.
     !!}
     use    :: Galacticus_Error    , only : Galacticus_Error_Report
-    use    :: Galacticus_Nodes    , only : mergerTree                   , nodeComponentBasic, nodeComponentMergingStatistics, treeNode
+    use    :: Galacticus_Nodes    , only : mergerTree                   , nodeComponentBasic, treeNode
     use    :: Merger_Tree_Walkers , only : mergerTreeWalkerIsolatedNodes
     use    :: Numerical_Comparison, only : Values_Agree
     !$ use :: OMP_Lib             , only : OMP_Set_Lock                 , OMP_Unset_Lock
@@ -624,7 +616,6 @@ contains
     class           (nodeComponentBasic             ), pointer                                              :: basic                  , basicChild           , &
          &                                                                                                     basicParent            , descendentBasic      , &
          &                                                                                                     basicParentChild       , basicSibling
-    class           (nodeComponentMergingStatistics ), pointer                                              :: mergingStatistics
     type            (mergerTreeWalkerIsolatedNodes  )                                                       :: treeWalker
     integer                                                                                                 :: i                      , binMassParent        , &
          &                                                                                                     binMassRatio           , iPrimary             , &
@@ -681,10 +672,10 @@ contains
           do while (associated(nodeChild))
              ! Check if child should be included.
              if (self%alwaysIsolatedHalosOnly) then
-                mergingStatistics =>  nodeChild        %mergingStatistics        (autoCreate=.true.)
-                includeBranch     =  (mergingStatistics%nodeHierarchyLevelMaximum(                 ) == 0)
+                basicChild    =>  nodeChild%basic                 (                                )
+                includeBranch =  (basic    %integerMetaPropertyGet(self%nodeHierarchyLevelMaximumID) == 0)
              else
-                includeBranch     =  .true.
+                includeBranch =  .true.
              end if
              if (includeBranch) then
                 ! Get the basic components.
@@ -789,10 +780,10 @@ contains
                          nodeParentChild   => nodeParent      %firstChild
                          ! Check if child should be included.
                          if (self%alwaysIsolatedHalosOnly) then
-                            mergingStatistics =>  nodeParentChild  %mergingStatistics        (autoCreate=.true.)
-                            includeBranch     =  (mergingStatistics%nodeHierarchyLevelMaximum(                 ) == 0)
+                            basicChild    =>  nodeParentChild%basic                 (                                )
+                            includeBranch =  (basicChild     %integerMetaPropertyGet(self%nodeHierarchyLevelMaximumID) == 0)
                          else
-                            includeBranch     =  .true.
+                            includeBranch =  .true.
                          end if
                          if (includeBranch) then
                             ! Get the basic components.

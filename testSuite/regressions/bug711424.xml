@@ -180,7 +180,6 @@
     <accuracyFirstOrder value="+0.10"/>
   </mergerTreeBranchingProbability>
   <blackHoleSeedMass value="100"/>
-  <componentMergingStatistics value="standard"/>
   <stellarPopulationSelector value="fixed"/>
   <accretionHalo value="simple">
     <redshiftReionization value="9"/>

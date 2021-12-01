@@ -191,8 +191,7 @@
   <componentHotHalo            value="null"    />
   <componentSatellite          value="standard"/>
   <componentSpheroid           value="null"    />
-  <componentMergingStatistics  value="standard"/>
   <componentSpin               value="null"    />
-  <satelliteMergingTimescales value="zero"    />
+  <satelliteMergingTimescales  value="zero"    />
 
 </parameters>
