@@ -19,22 +19,31 @@ use Galacticus::Build::Components::DataTypes;
      {
 	 classIteratedFunctions =>
 	     [
-	      \&Class_Meta_Property_Get,
-	      \&Class_Meta_Property_Set
+	      \&Class_Meta_Property_Get        ,
+	      \&Class_Meta_Property_Set        ,
+	      \&Class_Integer_Meta_Property_Get,
+	      \&Class_Integer_Meta_Property_Set
 	     ]
      }
     );
 
 sub Class_Meta_Property_Get {
     # Generate a function to return the value of an indexed meta-property.
-    my $build            = shift();
-    $code::class         = shift();
-    $code::classTypeName = "nodeComponent".ucfirst($code::class->{'name'});
+    my $build             = shift();
+    $code::class          = shift();
+    $code::classTypeName  = "nodeComponent".ucfirst($code::class->{'name'});
+    my $content;
+    $content              = "if (.not.".$code::class->{'name'}."MetaPropertyCreator(metaPropertyID)) call metaPropertyNoCreator('".$code::class->{'name'}."',char(".$code::class->{'name'}."MetaPropertyLabels(metaPropertyID)),'real')\n";
+    $content             .= $code::classTypeName."MetaPropertyGet=self%metaProperties(metaPropertyID)\n";
     my $function =
     {
 	type        => "double precision",
 	name        => $code::classTypeName."MetaPropertyGet",
 	description => "Return the value of a meta-property of a ".$code::classTypeName." component given its ID.",
+	modules     =>
+	    [
+	     "ISO_Varying_String"
+	    ],
 	variables   =>
 	    [
 	     {
@@ -49,7 +58,7 @@ sub Class_Meta_Property_Get {
 		 variables  => [ "metaPropertyID" ]
 	     }
 	    ],
-	content     => $code::classTypeName."MetaPropertyGet=self%metaProperties(metaPropertyID)\n"
+	content     => $content
     };
     # Insert a type-binding for this function.
     push(
@@ -64,14 +73,21 @@ sub Class_Meta_Property_Get {
 
 sub Class_Meta_Property_Set {
     # Generate a function to set the value of an indexed meta-property.
-    my $build            = shift();
-    $code::class         = shift();
-    $code::classTypeName = "nodeComponent".ucfirst($code::class->{'name'});
+    my $build             = shift();
+    $code::class          = shift();
+    $code::classTypeName  = "nodeComponent".ucfirst($code::class->{'name'});
+    my $content;
+    $content              = "if (.not.".$code::class->{'name'}."MetaPropertyCreator(metaPropertyID)) call metaPropertyNoCreator('".$code::class->{'name'}."',char(".$code::class->{'name'}."MetaPropertyLabels(metaPropertyID)),'real')\n";
+    $content             .= "self%metaProperties(metaPropertyID)=metaPropertyValue\n";
     my $function =
     {
 	type        => "void",
 	name        => $code::classTypeName."MetaPropertySet",
 	description => "Set the value of a meta-property of a ".$code::classTypeName." component given its ID.",
+	modules     =>
+	    [
+	     "ISO_Varying_String"
+	    ],
 	variables   =>
 	    [
 	     {
@@ -91,7 +107,7 @@ sub Class_Meta_Property_Set {
 		 variables  => [ "metaPropertyValue" ]
 	     }
 	    ],
-	content     => "self%metaProperties(metaPropertyID)=metaPropertyValue\n"
+	content     => $content
     };
     # Insert a type-binding for this function.
     push(
@@ -100,6 +116,99 @@ sub Class_Meta_Property_Set {
 	    type        => "procedure",
 	    descriptor  => $function,
 	    name        => "metaPropertySet", 
+	}
+	);
+}
+
+sub Class_Integer_Meta_Property_Get {
+    # Generate a function to return the value of an indexed meta-property.
+    my $build             = shift();
+    $code::class          = shift();
+    $code::classTypeName  = "nodeComponent".ucfirst($code::class->{'name'});
+    my $content;
+    $content              = "if (.not.".$code::class->{'name'}."IntegerMetaPropertyCreator(metaPropertyID)) call metaPropertyNoCreator('".$code::class->{'name'}."',char(".$code::class->{'name'}."IntegerMetaPropertyLabels(metaPropertyID)),'integer')\n";
+    $content             .= $code::classTypeName."IntegerMetaPropertyGet=self%integerMetaProperties(metaPropertyID)\n";
+    my $function =
+    {
+	type        => "integer(kind_int8)",
+	name        => $code::classTypeName."IntegerMetaPropertyGet",
+	description => "Return the value of an integer meta-property of a ".$code::classTypeName." component given its ID.",
+	modules     =>
+	    [
+	     "ISO_Varying_String"
+	    ],
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => $code::classTypeName,
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "metaPropertyID" ]
+	     }
+	    ],
+	content     => $content
+    };
+    # Insert a type-binding for this function.
+    push(
+	@{$build->{'types'}->{$code::classTypeName}->{'boundFunctions'}},
+	{
+	    type        => "procedure",
+	    descriptor  => $function,
+	    name        => "integerMetaPropertyGet", 
+	}
+	);
+}
+
+sub Class_Integer_Meta_Property_Set {
+    # Generate a function to set the value of an indexed meta-property.
+    my $build            = shift();
+    $code::class         = shift();
+    $code::classTypeName = "nodeComponent".ucfirst($code::class->{'name'});
+    my $content;
+    $content              = "if (.not.".$code::class->{'name'}."IntegerMetaPropertyCreator(metaPropertyID)) call metaPropertyNoCreator('".$code::class->{'name'}."',char(".$code::class->{'name'}."IntegerMetaPropertyLabels(metaPropertyID)),'integer')\n";
+    $content             .= "self%integerMetaProperties(metaPropertyID)=metaPropertyValue\n";
+    my $function =
+    {
+	type        => "void",
+	name        => $code::classTypeName."IntegerMetaPropertySet",
+	description => "Set the value of an integer meta-property of a ".$code::classTypeName." component given its ID.",
+	modules     =>
+	    [
+	     "ISO_Varying_String"
+	    ],
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => $code::classTypeName,
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "metaPropertyID" ]
+	     },
+	     {
+		 intrinsic  => "integer(kind_int8)",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "metaPropertyValue" ]
+	     }
+	    ],
+	content     => $content
+    };
+    # Insert a type-binding for this function.
+    push(
+	@{$build->{'types'}->{$code::classTypeName}->{'boundFunctions'}},
+	{
+	    type        => "procedure",
+	    descriptor  => $function,
+	    name        => "integerMetaPropertySet", 
 	}
 	);
 }

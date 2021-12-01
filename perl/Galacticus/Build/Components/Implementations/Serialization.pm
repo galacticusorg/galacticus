@@ -151,6 +151,13 @@ if (allocated({$class->{'name'}}MetaPropertyNames)) then
   call displayMessage(message)
  end do
 end if
+if (allocated({$class->{'name'}}IntegerMetaPropertyNames)) then
+ do i=1,size(({$class->{'name'}}IntegerMetaPropertyNames))
+  write (label,{$formatLabel{'longInteger'}}) self%integerMetaProperties(i)
+  message=trim({$class->{'name'}}IntegerMetaPropertyNames(i))//': '//repeat(' ',propertyNameLengthMax-len_trim({$class->{'name'}}IntegerMetaPropertyNames(i)))//label
+  call displayMessage(message)
+ end do
+end if
 CODE
     }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -273,6 +280,11 @@ if (allocated({$class->{'name'}}MetaPropertyNames)) then
   write (fileHandle,'(a,a,a,{$formatLabel{'double'}},a,a,a)') '   <'//char({$class->{'name'}}MetaPropertyNames(i))//'>',self%metaProperties(i),'</'//char({$class->{'name'}}MetaPropertyNames(i))//'>'
  end do
 end if
+if (allocated({$class->{'name'}}IntegerMetaPropertyNames)) then
+ do i=1,size(({$class->{'name'}}IntegerMetaPropertyNames))
+  write (fileHandle,'(a,a,a,{$formatLabel{'longInteger'}},a,a,a)') '   <'//char({$class->{'name'}}IntegerMetaPropertyNames(i))//'>',self%integerMetaProperties(i),'</'//char({$class->{'name'}}IntegerMetaPropertyNames(i))//'>'
+ end do
+end if
 CODE
     }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -374,7 +386,8 @@ CODE
     # Serialize meta-properties.
     if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (allocated({$class->{'name'}}MetaPropertyNames)) write (fileHandle) self%metaProperties
+if (allocated({$class->{'name'}}MetaPropertyNames       )) write (fileHandle) self%metaProperties
+if (allocated({$class->{'name'}}IntegerMetaPropertyNames)) write (fileHandle) self%integerMetaProperties
 CODE
     }
     # Insert a type-binding for this function.
@@ -493,7 +506,8 @@ CODE
     # Deserialize meta-properties.
     if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (allocated({$class->{'name'}}MetaPropertyNames)) read (fileHandle) self%metaProperties
+if (allocated({$class->{'name'}}MetaPropertyNames       )) read (fileHandle) self%metaProperties
+if (allocated({$class->{'name'}}IntegerMetaPropertyNames)) read (fileHandle) self%integerMetaProperties
 CODE
     }
     # Insert a type-binding for this function.

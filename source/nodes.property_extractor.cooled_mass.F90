@@ -78,7 +78,6 @@ contains
     !!{
     Internal constructor for the ``massCooled'' output extractor property extractor class.
     !!}
-    use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type   (nodePropertyExtractorMassCooled)                :: self
     logical                                 , intent(in   ) :: resetAfterExtract
@@ -86,7 +85,9 @@ contains
     <constructorAssign variables="resetAfterExtract"/>
     !!]
     
-    self%massCooledID=defaultHotHaloComponent%addMetaProperty(var_str('massCooled'),'hotHalo:massCooled',isEvolvable=.true.)  
+    !![
+    <addMetaProperty component="hotHalo" name="massCooled" id="self%massCooledID" isEvolvable="yes" isCreator="no"/>
+    !!]
     return
   end function massCooledConstructorInternal
 

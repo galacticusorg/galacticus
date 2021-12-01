@@ -227,8 +227,9 @@ contains
     type            (treeNode                              ), intent(inout) , target      :: node
     double precision                                        , intent(in   )               :: time
     type            (multiCounter                          ), intent(inout) , optional    :: instance
+    double precision                                        , parameter                   :: radiusTiny             =1.0d-12
     integer                                                                               :: i
-    double precision                                                                      :: enclosedMass           , radius, &
+    double precision                                                                      :: enclosedMass                   , radius, &
          &                                                                                   densityReference
     !$GLC attributes unused :: time, instance
 
@@ -255,14 +256,22 @@ contains
          &                                    / self%cosmologyParameters_%OmegaMatter()
     ! Iterate over density contrasts.    
     do i=1,self%countDensityContrasts
-       densityTarget=self       %densityContrasts(          i                                           )*densityReference
-       radius       =self%finder%find            (rootGuess=self%darkMatterHaloScale_%virialRadius(node))
-       enclosedMass =Galactic_Structure_Enclosed_Mass(                                     &
-            &                                                            node            , &
-            &                                                            radius          , &
-            &                                         componentType=     componentTypeAll, &
-            &                                         massType     =self%massTypeSelected  &
-            &                                        )
+       densityTarget=self%densityContrasts(i)*densityReference
+       if (densityContrastsRoot(radiusTiny*self%darkMatterHaloScale_%virialRadius(node)) < 0.0d0) then
+          ! The target density contrast is not reached even at this tiny radius. This happens in cored density profiles. Return
+          ! zero mass and radius.
+          radius      =0.0d0
+          enclosedMass=0.0d0
+       else
+          ! The target density is reached, so find the exact radius at which it occurs.
+          radius      =self%finder%find            (rootGuess=self%darkMatterHaloScale_%virialRadius(node))
+          enclosedMass=Galactic_Structure_Enclosed_Mass(                                     &
+               &                                                           node            , &
+               &                                                           radius          , &
+               &                                        componentType=     componentTypeAll, &
+               &                                        massType     =self%massTypeSelected  &
+               &                                       )
+       end if
        densityContrastsExtract(i,:)=[radius,enclosedMass]
     end do
     return

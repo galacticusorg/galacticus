@@ -80,11 +80,12 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily massHostMaximum} node operator class.
     !!}
-    use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
     type(nodeOperatorMassHostMaximum) :: self
     
-    self%massHostMaximumID=defaultBasicComponent%addMetaProperty(var_str('massHostMaximum'),'basic:massHostMaximum',isEvolvable=.false.)
+    !![
+    <addMetaProperty component="basic" name="massHostMaximum" id="self%massHostMaximumID" isEvolvable="no" isCreator="yes"/>
+    !!]
     return
   end function massHostMaximumConstructorInternal
 

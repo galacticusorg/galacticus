@@ -1015,7 +1015,7 @@ module Galacticus_Nodes
     return
   end subroutine Node_Component_Generic_Destroy
 
-  integer function Node_Component_Generic_Add_Meta_Property(self,label,name,isEvolvable)
+  integer function Node_Component_Generic_Add_Meta_Property(self,label,name,isEvolvable,isCreator)
     !!{
     Add a meta-property to a node component.
     !!}
@@ -1023,14 +1023,34 @@ module Galacticus_Nodes
     class    (nodeComponent ), intent(inout)           :: self
     type     (varying_string), intent(in   )           :: label
     character(len=*         ), intent(in   )           :: name
-    logical                  , intent(in   ), optional :: isEvolvable
-    !$GLC attributes unused :: self, label, name, isEvolvable
+    logical                  , intent(in   ), optional :: isEvolvable, isCreator
+    !$GLC attributes unused :: self, label, name, isEvolvable, isCreator
 
     Node_Component_Generic_Add_Meta_Property=-1
     call Galacticus_Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})
     return
   end function Node_Component_Generic_Add_Meta_Property
 
+  integer function Node_Component_Generic_Add_Integer_Meta_Property(self,label,name,isCreator)
+    !!{
+    Add an integer meta-property to a node component.
+    !!}
+    implicit none
+    class    (nodeComponent ), intent(inout)           :: self
+    type     (varying_string), intent(in   )           :: label
+    character(len=*         ), intent(in   )           :: name
+    logical                  , intent(in   ), optional :: isCreator
+    !$GLC attributes unused :: self, label, name, isCreator
+
+    Node_Component_Generic_Add_Integer_Meta_Property=-1
+    call Galacticus_Error_Report('can not add integer meta-properties to a generic nodeComponent'//{introspection:location})
+    return
+  end function Node_Component_Generic_Add_Integer_Meta_Property
+  
+  !![
+  <metaPropertyDatabase/>
+  !!]
+  
   subroutine Node_Component_ODE_Step_Initialize_Null(self)
     !!{
     Initialize a generic tree node component for an ODE solver step.

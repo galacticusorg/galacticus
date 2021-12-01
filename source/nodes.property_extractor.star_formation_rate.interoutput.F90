@@ -71,12 +71,13 @@ contains
     !!{
     Internal constructor for the ``starFormationRateInterOutput'' output extractor property extractor class.
     !!}
-    use :: Galacticus_Nodes, only : defaultDiskComponent, defaultSpheroidComponent
     implicit none
     type (nodePropertyExtractorStarFormationRateInterOutput) :: self
-  
-    self%starFormationRateDiskInterOutputID    =defaultDiskComponent    %addMetaProperty(var_str('starFormationRateDiskInterOutputID'    ),'disk:starFormationRateDiskInterOutput'    ,isEvolvable=.true.)
-    self%starFormationRateSpheroidInterOutputID=defaultSpheroidComponent%addMetaProperty(var_str('starFormationRateSpheroidInterOutputID'),'spheroid:starFormationRateDiskInterOutput',isEvolvable=.true.)
+    
+    !![
+    <addMetaProperty component="disk"     name="starFormationRateDiskInterOutput" isEvolvable="yes" id="self%starFormationRateDiskInterOutputID"    />
+    <addMetaProperty component="spheroid" name="starFormationRateDiskInterOutput" isEvolvable="yes" id="self%starFormationRateSpheroidInterOutputID"/>
+    !!]
     return
   end function starFormationRateInterOutputConstructorInternal
 

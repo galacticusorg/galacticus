@@ -79,7 +79,6 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily massCooled} node operator class.
     !!}
-    use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type (nodeOperatorMassCooled)                        :: self
     class(coolingRateClass      ), intent(in   ), target :: coolingRate_
@@ -87,7 +86,9 @@ contains
     <constructorAssign variables="*coolingRate_"/>
     !!]
     
-    self%massCooledID=defaultHotHaloComponent%addMetaProperty(var_str('massCooled'),'hotHalo:massCooled',isEvolvable=.true.)  
+    !![
+    <addMetaProperty component="hotHalo" name="massCooled" id="self%massCooledID" isEvolvable="yes" isCreator="yes"/>
+    !!]
     return
   end function massCooledConstructorInternal
 

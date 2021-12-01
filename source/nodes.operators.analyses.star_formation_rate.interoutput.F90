@@ -97,7 +97,6 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily starFormationRateInterOutput} node operator class.
     !!}
-    use :: Galacticus_Nodes, only : defaultBasicComponent, defaultDiskComponent, defaultSpheroidComponent
     implicit none
     type (nodeOperatorStarFormationRateInterOutput)                        :: self
     class(outputTimesClass                        ), intent(in   ), target :: outputTimes_
@@ -108,9 +107,11 @@ contains
     <constructorAssign variables="*outputTimes_, *mergerMassMovements_, *starFormationRateDisks_, *starFormationRateSpheroids_"/>
     !!]
     
-    self%starFormationRateInterOutputNextID    =defaultBasicComponent   %addMetaProperty(var_str('starFormationRateInterOutputNextID'    ),'basic:starFormationRateInterOutputNext'   ,isEvolvable=.false.)
-    self%starFormationRateDiskInterOutputID    =defaultDiskComponent    %addMetaProperty(var_str('starFormationRateDiskInterOutputID'    ),'disk:starFormationRateDiskInterOutput'    ,isEvolvable=.true. )
-    self%starFormationRateSpheroidInterOutputID=defaultSpheroidComponent%addMetaProperty(var_str('starFormationRateSpheroidInterOutputID'),'spheroid:starFormationRateDiskInterOutput',isEvolvable=.true. )
+    !![
+    <addMetaProperty component="basic"    name="starFormationRateInterOutputNext"     id="self%starFormationRateInterOutputNextID"     isEvolvable="no"  isCreator="yes"/>
+    <addMetaProperty component="disk"     name="starFormationRateDiskInterOutput"     id="self%starFormationRateDiskInterOutputID"     isEvolvable="yes" isCreator="yes"/>
+    <addMetaProperty component="spheroid" name="starFormationRateSpheroidInterOutput" id="self%starFormationRateSpheroidInterOutputID" isEvolvable="yes" isCreator="yes"/>
+    !!]
     return
   end function starFormationRateInterOutputConstructorInternal
 

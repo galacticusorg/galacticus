@@ -108,7 +108,6 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily coolingEnergyRadiated} node operator class.
     !!}
-    use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type (nodeOperatorCoolingEnergyRadiated)                        :: self
     class(cosmologyFunctionsClass          ), intent(in   ), target :: cosmologyFunctions_
@@ -123,8 +122,8 @@ contains
     allocate(self%radiation)
     !![
     <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
+    <addMetaProperty component="hotHalo" name="energyRadiatedBensonBower2010" id="self%energyRadiatedID" isEvolvable="yes" isCreator="yes"/>
     !!]
-    self%energyRadiatedID=defaultHotHaloComponent%addMetaProperty(var_str('energyRadiatedBensonBower2010'),'hotHalo:energyRadiated',isEvolvable=.true.)  
     return
   end function coolingEnergyRadiatedConstructorInternal
 

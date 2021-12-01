@@ -17,6 +17,8 @@ use Galacticus::Build::SourceTree::Parse::Visibilities;
 use Galacticus::Build::SourceTree::Parse::ModuleUses;
 use Galacticus::Build::SourceTree::Parse::Declarations;
 use Galacticus::Build::SourceTree::Parse::ModuleProcedures;
+use Galacticus::Build::SourceTree::Process::AddMetaProperty;
+use Galacticus::Build::SourceTree::Process::MetaPropertyDatabase;
 use Galacticus::Build::SourceTree::Process::Enumeration;
 use Galacticus::Build::SourceTree::Process::InputParameter;
 use Galacticus::Build::SourceTree::Process::InputParametersValidate;

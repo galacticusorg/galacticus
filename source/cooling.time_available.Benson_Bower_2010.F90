@@ -102,7 +102,6 @@ contains
     !!{
     Internal constructor for the \cite{benson_galaxy_2010-1} cooling rate class.
     !!}
-    use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type (coolingTimeAvailableBensonBower2010)                        :: self
     class(cosmologyFunctionsClass            ), intent(in   ), target :: cosmologyFunctions_
@@ -116,8 +115,8 @@ contains
     allocate(self%radiation)
     !![
     <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
+    <addMetaProperty component="hotHalo" name="energyRadiatedBensonBower2010" isEvolvable="yes" id="self%energyRadiatedID"/>
     !!]
-    self%energyRadiatedID=defaultHotHaloComponent%addMetaProperty(var_str('energyRadiatedBensonBower2010'),'hotHalo:energyRadiated',isEvolvable=.true.)  
     return
   end function bensonBower2010ConstructorInternal
 

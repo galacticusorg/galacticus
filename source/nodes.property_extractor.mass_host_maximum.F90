@@ -72,7 +72,9 @@ contains
     implicit none
     type(nodePropertyExtractorMassHostMaximum) :: self
 
-    self%massHostMaximumID=defaultBasicComponent%addMetaProperty(var_str('massHostMaximum'),'basic:massHostMaximum',isEvolvable=.false.)
+    !![
+    <addMetaProperty component="basic" name="massHostMaximum" id="self%massHostMaximumID" isEvolvable="no"/>
+    !!]
     return
   end function massHostMaximumConstructorInternal
 

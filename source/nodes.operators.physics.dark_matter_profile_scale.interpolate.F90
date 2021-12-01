@@ -83,7 +83,6 @@ contains
     !!{
     Constructor for the {\normalfont \ttfamily darkMatterProfileScaleInterpolate} node operator class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Nodes, only : defaultDarkMatterProfileComponent
     implicit none
     type (nodeOperatorDarkMatterProfileScaleInterpolate)                        :: self
     class(darkMatterProfileScaleRadiusClass            ), intent(in   ), target :: darkMatterProfileScaleRadius_
@@ -91,7 +90,9 @@ contains
     <constructorAssign variables="*darkMatterProfileScaleRadius_"/>
     !!]
 
-    self%scaleGrowthRateID=defaultDarkMatterProfileComponent%addMetaProperty(var_str('scaleGrowthRate'),'darkMatterProfile:scaleGrowthRate',isEvolvable=.false.)  
+    !![
+    <addMetaProperty component="darkMatterProfile" name="scaleGrowthRate" id="self%scaleGrowthRateID" isEvolvable="no" isCreator="yes"/>
+    !!]
     return
   end function darkMatterProfileScaleInterpolateConstructorInternal
 
