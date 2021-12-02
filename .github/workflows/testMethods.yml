@@ -105,7 +105,7 @@ jobs:
           chmod u=wrx ./test-methods.pl
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 1:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - run: echo "This job's status is $jobstatus."
+      - run: echo "This job's status is ${{ job.status }}."
   Runner-02:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
@@ -140,7 +140,7 @@ jobs:
           chmod u=wrx ./test-methods.pl
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 2:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - run: echo "This job's status is $jobstatus."
+      - run: echo "This job's status is ${{ job.status }}."
   Runner-03:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
@@ -175,7 +175,7 @@ jobs:
           chmod u=wrx ./test-methods.pl
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 3:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - run: echo "This job's status is $jobstatus."
+      - run: echo "This job's status is ${{ job.status }}."
   Runner-04:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
@@ -210,7 +210,7 @@ jobs:
           chmod u=wrx ./test-methods.pl
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 4:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - run: echo "This job's status is $jobstatus."
+      - run: echo "This job's status is ${{ job.status }}."
   Runner-05:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
@@ -245,7 +245,7 @@ jobs:
           chmod u=wrx ./test-methods.pl
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 5:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - run: echo "This job's status is $jobstatus."
+      - run: echo "This job's status is ${{ job.status }}."
   Runner-06:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
@@ -280,7 +280,7 @@ jobs:
           chmod u=wrx ./test-methods.pl
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 6:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - run: echo "This job's status is $jobstatus."
+      - run: echo "This job's status is ${{ job.status }}."
   Runner-07:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
@@ -315,7 +315,7 @@ jobs:
           chmod u=wrx ./test-methods.pl
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 7:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - run: echo "This job's status is $jobstatus."
+      - run: echo "This job's status is ${{ job.status }}."
   Runner-08:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
@@ -350,7 +350,7 @@ jobs:
           chmod u=wrx ./test-methods.pl
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 8:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - run: echo "This job's status is $jobstatus."
+      - run: echo "This job's status is ${{ job.status }}."
   Runner-09:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
@@ -385,7 +385,7 @@ jobs:
           chmod u=wrx ./test-methods.pl
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 9:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - run: echo "This job's status is $jobstatus."
+      - run: echo "This job's status is ${{ job.status }}."
   Runner-10:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
@@ -420,7 +420,7 @@ jobs:
           chmod u=wrx ./test-methods.pl
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 10:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - run: echo "This job's status is $jobstatus."
+      - run: echo "This job's status is ${{ job.status }}."
   Runner-11:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
@@ -455,7 +455,7 @@ jobs:
           chmod u=wrx ./test-methods.pl
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 11:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - run: echo "This job's status is $jobstatus."
+      - run: echo "This job's status is ${{ job.status }}."
   Runner-12:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
@@ -490,7 +490,7 @@ jobs:
           chmod u=wrx ./test-methods.pl
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 12:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - run: echo "This job's status is $jobstatus."
+      - run: echo "This job's status is ${{ job.status }}."
   Runner-13:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
@@ -525,7 +525,7 @@ jobs:
           chmod u=wrx ./test-methods.pl
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 13:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - run: echo "This job's status is $jobstatus."
+      - run: echo "This job's status is ${{ job.status }}."
   Runner-14:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
@@ -560,7 +560,7 @@ jobs:
           chmod u=wrx ./test-methods.pl
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 14:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - run: echo "This job's status is $jobstatus."
+      - run: echo "This job's status is ${{ job.status }}."
   Runner-15:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
@@ -595,7 +595,7 @@ jobs:
           chmod u=wrx ./test-methods.pl
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 15:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - run: echo "This job's status is $jobstatus."
+      - run: echo "This job's status is ${{ job.status }}."
   Runner-16:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
@@ -630,7 +630,7 @@ jobs:
           chmod u=wrx ./test-methods.pl
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 16:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - run: echo "This job's status is $jobstatus."
+      - run: echo "This job's status is ${{ job.status }}."
   Runner-17:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
@@ -665,7 +665,7 @@ jobs:
           chmod u=wrx ./test-methods.pl
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 17:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - run: echo "This job's status is $jobstatus."
+      - run: echo "This job's status is ${{ job.status }}."
   Runner-18:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
@@ -700,7 +700,7 @@ jobs:
           chmod u=wrx ./test-methods.pl
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 18:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - run: echo "This job's status is $jobstatus."
+      - run: echo "This job's status is ${{ job.status }}."
   Runner-19:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
@@ -735,7 +735,7 @@ jobs:
           chmod u=wrx ./test-methods.pl
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 19:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - run: echo "This job's status is $jobstatus."
+      - run: echo "This job's status is ${{ job.status }}."
   Runner-20:
     runs-on: ubuntu-latest
     container: docker://galacticusorg/buildenv:latest
@@ -770,4 +770,4 @@ jobs:
           chmod u=wrx ./test-methods.pl
           ./test-methods.pl --launchMethod local --verbosity 1 --threadMaximum 1 --ompThreads 2 --instance 20:20 2>&1 | tee test.log
           ! grep -q FAIL test.log
-      - run: echo "This job's status is $jobstatus."
+      - run: echo "This job's status is ${{ job.status }}."
