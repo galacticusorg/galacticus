@@ -451,7 +451,7 @@ if (.not.found) then
  propertyNameLengthMax=max(len(name),propertyNameLengthMax) 
 else
  if (present(isCreator)) then
-  if (isCreator) {$class->{'name'}}MetaPropertyCreator(nodeComponent{ucfirst($class->{'name'})}AddIntegerMetaProperty)=.true.
+  if (isCreator) {$class->{'name'}}IntegerMetaPropertyCreator(nodeComponent{ucfirst($class->{'name'})}AddIntegerMetaProperty)=.true.
  end if
 end if
 !$omp end critical ({class->{'name'}}IntegerMetaPropertyUpdate)
