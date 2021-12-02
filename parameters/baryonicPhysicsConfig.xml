@@ -894,13 +894,7 @@
   <componentSatellite          value="standard"       />
   <componentSpheroid           value="standard"       />
   <componentSpin               value="scalar"         />
-  <componentAgeStatistics      value="null"           />
-  <componentDynamicsStatistics value="null"           />
   <componentFormationTime      value="null"           />
-  <componentHostHistory        value="null"           />
-  <componentIndices            value="null"           />
-  <componentInterOutput        value="null"           />
-  <componentMassFlowStatistics value="null"           />
   <componentMergingStatistics  value="null"           />
   <componentNBody              value="null"           />
 
