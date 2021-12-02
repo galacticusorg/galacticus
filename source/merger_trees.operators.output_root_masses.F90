@@ -168,7 +168,7 @@ contains
        if     (                                                                                &
             &   .not.self      %alwaysIsolatedHalosOnly                                        &
             &  .or.                                                                            &
-            &        basicChild%metaPropertyGet        (self%nodeHierarchyLevelMaximumID) == 0 &
+            &        basicChild%integerMetaPropertyGet (self%nodeHierarchyLevelMaximumID) == 0 &
             & ) then
           ! Determine range of times spanned by this branch.
           basic       => node      %basic()
