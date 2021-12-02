@@ -94,11 +94,13 @@ contains
     !!{
     Attach to various event hooks.
     !!}
-    use :: Events_Hooks, only : satelliteMergerEvent, openMPThreadBindingAtLevel
+    use :: Events_Hooks, only : satelliteMergerEvent, openMPThreadBindingAtLevel, dependencyDirectionAfter, dependencyRegEx
     implicit none
     class(nodeOperatorGalaxyMajorMergerTime), intent(inout) :: self
+    type (dependencyRegEx                  ), dimension(1)  :: dependenciesSatelliteMerger 
 
-    call satelliteMergerEvent%attach(self,satelliteMerger ,openMPThreadBindingAtLevel,label='galaxyMajorMergerTime')
+    dependenciesSatelliteMerger(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
+    call satelliteMergerEvent%attach(self,satelliteMerger ,openMPThreadBindingAtLevel,label='galaxyMajorMergerTime',dependencies=dependenciesSatelliteMerger )
     return
   end subroutine galaxyMajorMergerTimeAutoHook
 

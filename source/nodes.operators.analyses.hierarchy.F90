@@ -111,12 +111,15 @@ contains
     !!{
     Attach to various event hooks.
     !!}
-    use :: Events_Hooks, only : satelliteHostChangeEvent, subhaloPromotionEvent, openMPThreadBindingAtLevel
+    use :: Events_Hooks, only : satelliteHostChangeEvent , subhaloPromotionEvent, openMPThreadBindingAtLevel, dependencyExact, &
+         &                      dependencyDirectionBefore
     implicit none
     class(nodeOperatorHierarchy), intent(inout) :: self
-
-    call satelliteHostChangeEvent%attach(self,satelliteHostChange ,openMPThreadBindingAtLevel,label='hierarchy')
-    call    subhaloPromotionEvent%attach(self,nodeSubhaloPromotion,openMPThreadBindingAtLevel,label='hierarchy')
+    type (dependencyExact      ), dimension(1)  :: dependenciesSubhaloPromotion
+    
+    dependenciesSubhaloPromotion(1)=dependencyExact(dependencyDirectionBefore,'mergerTreeNodeEvolver')
+    call satelliteHostChangeEvent%attach(self,satelliteHostChange ,openMPThreadBindingAtLevel,label='hierarchy'                                          )
+    call    subhaloPromotionEvent%attach(self,nodeSubhaloPromotion,openMPThreadBindingAtLevel,label='hierarchy',dependencies=dependenciesSubhaloPromotion)
     return
   end subroutine hierarchyAutoHook
 
