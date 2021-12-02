@@ -70,7 +70,6 @@ contains
     !!{
     Internal constructor for the ``hierarchy'' output extractor property extractor class.
     !!}
-    use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
     type(nodePropertyExtractorHierarchy) :: self
 
