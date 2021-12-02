@@ -114,7 +114,7 @@ close($launchFile);
 system("cd ..; mkdir -p testSuite/outputs/test-merger-tree-builder; scripts/aux/launch.pl testSuite/outputs/test-merger-tree-builder.xml ".join(" ",map {"--".$_." ".$options{$_}} keys(%options)));
 
 # Check for failed models.
-system("grep -q -i -e fatal -e \"Galacticus experienced an error in the GSL library\" outputs/test-merger-tree-builder/galacticus_*/galacticus.log");
+system("grep -q -i -e fatal -e aborted -e \"Galacticus experienced an error in the GSL library\" outputs/test-merger-tree-builder/galacticus_*/galacticus.log");
 if ( $? == 0 ) {
     # Failures were found. Output their reports.
     my @failures = split(" ",`grep -l -i -e fatal -e aborted outputs/test-merger-tree-builder/galacticus_*/galacticus.log`);

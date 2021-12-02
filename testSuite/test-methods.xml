@@ -1758,7 +1758,7 @@
       <redshift value="0.1"/>
       <fileName value="testSuite/outputs/rootMasses.hdf5"/>
     </mergerTreeOperator>
-    <nodeOperator value="null"/>
+    <nodeOperator value="hierarchy"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
