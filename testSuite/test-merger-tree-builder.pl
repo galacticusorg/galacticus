@@ -117,7 +117,7 @@ system("cd ..; mkdir -p testSuite/outputs/test-merger-tree-builder; scripts/aux/
 system("grep -q -i -e fatal -e \"Galacticus experienced an error in the GSL library\" outputs/test-merger-tree-builder/galacticus_*/galacticus.log");
 if ( $? == 0 ) {
     # Failures were found. Output their reports.
-    my @failures = split(" ",`grep -l -i fatal outputs/test-merger-tree-builder/galacticus_*/galacticus.log`);
+    my @failures = split(" ",`grep -l -i -e fatal -e aborted outputs/test-merger-tree-builder/galacticus_*/galacticus.log`);
     foreach my $failure ( @failures ) {
 	print "FAILED: log from ".$failure.":\n";
 	system("cat ".$failure);
