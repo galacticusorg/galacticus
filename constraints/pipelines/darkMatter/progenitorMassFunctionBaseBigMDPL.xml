@@ -123,6 +123,7 @@
   <outputAnalysis value="multi">
     <!-- Minimum mass ratio for likelihood is the ratio of the BigMDPL 300 particle mass limit (3.48e10) to the minimum parent
          mass in the sample. -->
+    <virialDensityContrastDefinition value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
     <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_BigMDPL.hdf5"/>
       <indexParent                  value="1"                                                                                        />

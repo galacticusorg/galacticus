@@ -83,9 +83,11 @@ contains
     implicit none
     type            (outputAnalysisSubhaloRadialDistribution)                :: self
     type            (inputParameters                        ), intent(inout) :: parameters
+    class           (cosmologyParametersClass               ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass                ), pointer       :: cosmologyFunctions_
     class           (outputTimesClass                       ), pointer       :: outputTimes_
-    class           (virialDensityContrastClass             ), pointer       :: virialDensityContrast_
+    class           (virialDensityContrastClass             ), pointer       :: virialDensityContrastDefinition_ , virialDensityContrast_
+    class           (darkMatterProfileDMOClass              ), pointer       :: darkMatterProfileDMO_
     double precision                                                         :: radiusFractionMinimum            , radiusFractionMaximum            , &
          &                                                                      redshift                         , negativeBinomialScatterFractional, &
          &                                                                      massRatioThreshold
@@ -142,30 +144,36 @@ contains
       <defaultSource>\citep{boylan-kolchin_theres_2010}</defaultSource>
       <description>The fractional scatter (relative to the Poisson scatter) in the negative binomial distribution used in likelihood calculations.</description>
     </inputParameter>
-    <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
-    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
-    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    <objectBuilder class="outputTimes"           name="outputTimes_"                     source="parameters"                                                />
+    <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"             source="parameters"                                                />
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"              source="parameters"                                                />
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_          " source="parameters"                                                />
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrastDefinition_" source="parameters" parameterName="virialDensityContrastDefinition"/>
+    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"            source="parameters"                                                />
     !!]
     if (parameters%isPresent('fileName')) then
        !![
        <conditionalCall>
-        <call>self=outputAnalysisSubhaloRadialDistribution(outputTimes_,virialDensityContrast_,cosmologyFunctions_                                                                      ,fileName                                                                           ,negativeBinomialScatterFractional{conditions})</call>
+        <call>self=outputAnalysisSubhaloRadialDistribution(outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,fileName,negativeBinomialScatterFractional{conditions})</call>
          <argument name="redshift" value="redshift" parameterPresent="parameters"/>
        </conditionalCall>
        !!]
     else
-       self=outputAnalysisSubhaloRadialDistribution(outputTimes_,virialDensityContrast_,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massRatioThreshold,negativeBinomialScatterFractional)
+       self=outputAnalysisSubhaloRadialDistribution(outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massRatioThreshold,negativeBinomialScatterFractional)
     end if
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="outputTimes_"          />
-    <objectDestructor name="cosmologyFunctions_"   />
-    <objectDestructor name="virialDensityContrast_"/>
+    <objectDestructor name="outputTimes_"                    />
+    <objectDestructor name="cosmologyParameters_"            />
+    <objectDestructor name="cosmologyFunctions_"             />
+    <objectDestructor name="darkMatterProfileDMO_"           />
+    <objectDestructor name="virialDensityContrast_"          />
+    <objectDestructor name="virialDensityContrastDefinition_"/>
     !!]
     return
   end function subhaloRadialDistributionConstructorParameters
   
-  function subhaloRadialDistributionConstructorFile(outputTimes_,virialDensityContrast_,cosmologyFunctions_,fileName,negativeBinomialScatterFractional,redshift) result (self)
+  function subhaloRadialDistributionConstructorFile(outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,fileName,negativeBinomialScatterFractional,redshift) result (self)
     !!{
     Constructor for the ``subhaloRadialDistribution'' output analysis class for internal use.
     !!}
@@ -180,8 +188,10 @@ contains
     type            (varying_string                         ), intent(in   )                 :: fileName
     double precision                                         , intent(in   )                 :: negativeBinomialScatterFractional
     class           (outputTimesClass                       ), intent(inout)                 :: outputTimes_
-    class           (virialDensityContrastClass             ), intent(in   )                 :: virialDensityContrast_
+    class           (virialDensityContrastClass             ), intent(in   )                 :: virialDensityContrast_            , virialDensityContrastDefinition_
+    class           (cosmologyParametersClass               ), intent(inout)                 :: cosmologyParameters_
     class           (cosmologyFunctionsClass                ), intent(inout)                 :: cosmologyFunctions_
+    class           (darkMatterProfileDMOClass              ), intent(in   )                 :: darkMatterProfileDMO_
     double precision                                         , intent(in   ), optional       :: redshift
     double precision                                         , allocatable  , dimension(:  ) :: radiiFractionalTarget             , radialDistributionTarget         , &
          &                                                                                      radialDistributionErrorTarget
@@ -218,11 +228,11 @@ contains
     do i=1_c_size_t,countRadiiFractional
        radialDistributionCovarianceTarget(i,i)=radialDistributionErrorTarget(i)**2
     end do
-    self=outputAnalysisSubhaloRadialDistribution(outputTimes_,virialDensityContrast_,time,radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massRatioThreshold,negativeBinomialScatterFractional,radialDistributionTarget,radialDistributionCovarianceTarget,labelTarget)
+    self=outputAnalysisSubhaloRadialDistribution(outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,time,radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massRatioThreshold,negativeBinomialScatterFractional,radialDistributionTarget,radialDistributionCovarianceTarget,labelTarget)
     return
   end function subhaloRadialDistributionConstructorFile
 
-  function subhaloRadialDistributionConstructorInternal(outputTimes_,virialDensityContrast_,time,radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massRatioThreshold,negativeBinomialScatterFractional,radialDistributionTarget,radialDistributionCovarianceTarget,labelTarget) result (self)
+  function subhaloRadialDistributionConstructorInternal(outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,time,radiusFractionMinimum,radiusFractionMaximum,countRadiiFractional,massRatioThreshold,negativeBinomialScatterFractional,radialDistributionTarget,radialDistributionCovarianceTarget,labelTarget) result (self)
     !!{
     Constructor for the ``subhaloRadialDistribution'' output analysis class for internal use.
     !!}
@@ -246,7 +256,10 @@ contains
          &                                                                                                     massRatioThreshold
     integer         (c_size_t                                    ), intent(in   )                           :: countRadiiFractional
     class           (outputTimesClass                            ), intent(inout)                           :: outputTimes_
-    class           (virialDensityContrastClass                  ), intent(in   )                           :: virialDensityContrast_
+    class           (virialDensityContrastClass                  ), intent(in   )                           :: virialDensityContrast_                          , virialDensityContrastDefinition_
+    class           (cosmologyParametersClass                    ), intent(in   )                           :: cosmologyParameters_
+    class           (cosmologyFunctionsClass                     ), intent(in   )                           :: cosmologyFunctions_
+    class           (darkMatterProfileDMOClass                   ), intent(in   )                           :: darkMatterProfileDMO_
     double precision                                              , intent(in   ), dimension(:)  , optional :: radialDistributionTarget
     double precision                                              , intent(in   ), dimension(:,:), optional :: radialDistributionCovarianceTarget
     type            (varying_string                              ), intent(in   )                , optional :: labelTarget
@@ -296,8 +309,8 @@ contains
     !![
     <referenceConstruct object="nodePropertyExtractorMassBound_"     constructor="nodePropertyExtractorMassBound    (                                                                                                                                           )"/>
     <referenceConstruct object="nodePropertyExtractorRadiusOrbital_" constructor="nodePropertyExtractorRadiusOrbital(                                                                                                                                           )"/>
-    <referenceConstruct object="nodePropertyExtractorRadiusVirial_"  constructor="nodePropertyExtractorRadiusVirial (virialDensityContrast_                                                                                                                     )"/>
-    <referenceConstruct object="nodePropertyExtractorMassHalo_"      constructor="nodePropertyExtractorMassHalo     (virialDensityContrast_                                                                                                                     )"/>
+    <referenceConstruct object="nodePropertyExtractorRadiusVirial_"  constructor="nodePropertyExtractorRadiusVirial (cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_                     )"/>
+    <referenceConstruct object="nodePropertyExtractorMassHalo_"      constructor="nodePropertyExtractorMassHalo     (cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_                     )"/>
     <referenceConstruct object="nodePropertyExtractorHost_"          constructor="nodePropertyExtractorHostNode     (nodePropertyExtractorRadiusVirial_                                                                                                         )"/>
     <referenceConstruct object="nodePropertyExtractorMassHost_"      constructor="nodePropertyExtractorHostNode     (nodePropertyExtractorMassHalo_                                                                                                             )"/>
     <referenceConstruct object="nodePropertyExtractor_"              constructor="nodePropertyExtractorRatio        ('radiusFraction','Ratio of subhalo orbital radius to host virial radius',nodePropertyExtractorRadiusOrbital_,nodePropertyExtractorHost_    )"/>

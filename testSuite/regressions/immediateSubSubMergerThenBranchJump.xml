@@ -131,7 +131,6 @@
   <mergerMassMovements value="verySimple"/>
   <haloMassFunction value="tinker2008"/>
   <componentSatellite value="preset"/>
-  <mergerTreeBuildMassDistribution value="uniform"/>
   <mergerRemnantSize value="null"/>
   <transferFunction value="eisensteinHu1999">
     <neutrinoNumberEffective value="3.04"/>
@@ -193,5 +192,6 @@
   <virialOrbit value="fixed">
     <velocityTangential value="+0.75"/>
     <velocityRadial value="-0.90"/>
+    <virialDensityContrastDefinition value="kitayamaSuto1996"/>
   </virialOrbit>
 </parameters>

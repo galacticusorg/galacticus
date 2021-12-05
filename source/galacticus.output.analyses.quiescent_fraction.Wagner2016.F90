@@ -20,7 +20,7 @@
   !!{
   Contains a module which implements an output analysis class for the quiescent fraction measurements of \cite{wagner_evolution_2016}.
   !!}
-
+  
   !![
   <outputAnalysis name="outputAnalysisQuiescentFractionWagner2016">
     <description>An output analysis class for the quiescent fraction measurements of \cite{wagner_evolution_2016}.</description>
@@ -62,9 +62,11 @@ contains
     !!{
     Constructor for the ``quiescentFractionWagner2016'' output analysis class which takes a parameter set as input.
     !!}
-    use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
-    use :: Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
-    use :: Input_Parameters    , only : inputParameter     , inputParameters
+    use :: Cosmology_Parameters    , only : cosmologyParameters       , cosmologyParametersClass
+    use :: Cosmology_Functions     , only : cosmologyFunctions        , cosmologyFunctionsClass
+    use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+    use :: Virial_Density_Contrast , only : virialDensityContrastClass
+    use :: Input_Parameters        , only : inputParameter            , inputParameters
     implicit none
     type            (outputAnalysisQuiescentFractionWagner2016)                              :: self
     type            (inputParameters                          ), intent(inout)               :: parameters
@@ -73,6 +75,8 @@ contains
     class           (outputTimesClass                         ), pointer                     :: outputTimes_
     class           (starFormationRateDisksClass              ), pointer                     :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass          ), pointer                     :: starFormationRateSpheroids_
+    class           (darkMatterProfileDMOClass                ), pointer                     :: darkMatterProfileDMO_
+    class           (virialDensityContrastClass               ), pointer                     :: virialDensityContrast_
     double precision                                           , allocatable  , dimension(:) :: randomErrorPolynomialCoefficient          , systematicErrorPolynomialCoefficient, &
          &                                                                                      weightSystematicErrorPolynomialCoefficient
     double precision                                                                         :: randomErrorMinimum                        , randomErrorMaximum
@@ -129,15 +133,19 @@ contains
     </inputParameter>
     <objectBuilder class="cosmologyParameters"        name="cosmologyParameters_"        source="parameters"/>
     <objectBuilder class="cosmologyFunctions"         name="cosmologyFunctions_"         source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"       name="darkMatterProfileDMO_"       source="parameters"/>
+    <objectBuilder class="virialDensityContrast"      name="virialDensityContrast_"      source="parameters"/>
     <objectBuilder class="outputTimes"                name="outputTimes_"                source="parameters"/>
     <objectBuilder class="starFormationRateDisks"     name="starFormationRateDisks_"     source="parameters"/>
     <objectBuilder class="starFormationRateSpheroids" name="starFormationRateSpheroids_" source="parameters"/>
     !!]
-    self=outputAnalysisQuiescentFractionWagner2016(enumerationWagner2016QuiescentRedshiftRangeEncode(char(redshiftRange),includesPrefix=.false.),randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_)
+    self=outputAnalysisQuiescentFractionWagner2016(enumerationWagner2016QuiescentRedshiftRangeEncode(char(redshiftRange),includesPrefix=.false.),randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_)
     !![
     <inputParametersValidate source="parameters" />
     <objectDestructor name="cosmologyParameters_"       />
     <objectDestructor name="cosmologyFunctions_"        />
+    <objectDestructor name="darkMatterProfileDMO_"      />
+    <objectDestructor name="virialDensityContrast_"     />
     <objectDestructor name="outputTimes_"               />
     <objectDestructor name="starFormationRateDisks_"    />
     <objectDestructor name="starFormationRateSpheroids_"/>
@@ -145,13 +153,14 @@ contains
     return
   end function quiescentFractionWagner2016ConstructorParameters
 
-  function quiescentFractionWagner2016ConstructorInternal(redshiftRange,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_) result(self)
+  function quiescentFractionWagner2016ConstructorInternal(redshiftRange,randomErrorMinimum,randomErrorMaximum,randomErrorPolynomialCoefficient,systematicErrorPolynomialCoefficient,weightSystematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_,starFormationRateDisks_,starFormationRateSpheroids_) result(self)
     !!{
     Internal constructor for the ``quiescentFractionWagner2016'' output analysis class.
     !!}
     use :: Galacticus_Error                      , only : Galacticus_Error_Report
     use :: Cosmology_Functions                   , only : cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersSimple
+    use :: Dark_Matter_Profiles_DMO              , only : darkMatterProfileDMOClass
     use :: Galacticus_Paths                      , only : galacticusPath                                     , pathTypeDataStatic
     use :: Output_Times                          , only : outputTimesClass
     use :: Statistics_NBody_Halo_Mass_Errors     , only : nbodyHaloMassErrorClass
@@ -159,10 +168,10 @@ contains
     use :: Output_Analysis_Distribution_Operators, only : outputAnalysisDistributionOperatorRandomErrorPlynml
     use :: Output_Analysis_Property_Operators    , only : outputAnalysisPropertyOperatorSystmtcPolynomial
     use :: Geometry_Surveys                      , only : surveyGeometryFullSky
-    use :: Galactic_Filters                      , only : galacticFilterAll                                  , galacticFilterHaloNotIsolated, galacticFilterStellarMass, galacticFilterStarFormationRate, &
+    use :: Galactic_Filters                      , only : galacticFilterAll                                  , galacticFilterHaloNotIsolated, galacticFilterStellarMass , galacticFilterStarFormationRate, &
          &                                                galacticFilterHighPass                             , filterList
     use :: Node_Property_Extractors              , only : nodePropertyExtractorHostNode                      , nodePropertyExtractorMassHalo
-    use :: Virial_Density_Contrast               , only : virialDensityContrastFixed                         , fixedDensityTypeCritical
+    use :: Virial_Density_Contrast               , only : virialDensityContrastFixed                         , fixedDensityTypeCritical     , virialDensityContrastClass
     implicit none
     type            (outputAnalysisQuiescentFractionWagner2016          )                              :: self
     integer                                                              , intent(in   )               :: redshiftRange
@@ -174,12 +183,14 @@ contains
     class           (outputTimesClass                                   ), intent(inout), target       :: outputTimes_
     class           (starFormationRateDisksClass                        ), intent(in   ), target       :: starFormationRateDisks_
     class           (starFormationRateSpheroidsClass                    ), intent(in   ), target       :: starFormationRateSpheroids_
+    class           (virialDensityContrastClass                         ), intent(in   ), target       :: virialDensityContrast_
+    class           (darkMatterProfileDMOClass                          ), intent(in   ), target       :: darkMatterProfileDMO_
     type            (galacticFilterHaloNotIsolated                      )               , pointer      :: galacticFilterIsSubhalo_
     type            (galacticFilterHighPass                             )               , pointer      :: galacticFilterHostHaloMass_
     type            (galacticFilterStellarMass                          )               , pointer      :: galacticFilterStellarMass_
     type            (galacticFilterStarFormationRate                    )               , pointer      :: galacticFilterStarFormationRate_
     type            (galacticFilterAll                                  )               , pointer      :: galacticFilter_
-    type            (virialDensityContrastFixed                         )               , pointer      :: virialDensityContrast_
+    type            (virialDensityContrastFixed                         )               , pointer      :: virialDensityContrastDefinition_
     type            (nodePropertyExtractorHostNode                      )               , pointer      :: nodePropertyExtractorHost_
     type            (nodePropertyExtractorMassHalo                      )               , pointer      :: nodePropertyExtractorHostMass_
     type            (filterList                                         )               , pointer      :: filters_
@@ -242,13 +253,13 @@ contains
     !![
     <referenceConstruct object="galacticFilterStarFormationRate_" constructor="galacticFilterStarFormationRate(logSFR0=-1.0d0,logSFR1=1.0d0,logM0=0.0d0,starFormationRateDisks_=starFormationRateDisks_,starFormationRateSpheroids_=starFormationRateSpheroids_                                     )"/>
     !!]
-    allocate(virialDensityContrast_)
+    allocate(virialDensityContrastDefinition_)
     !![
-    <referenceConstruct object="virialDensityContrast_"           constructor="virialDensityContrastFixed     (densityContrastValue=200.0d0,densityType=fixedDensityTypeCritical,turnAroundOverVirialRadius=2.0d0,cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_)"/>
+    <referenceConstruct object="virialDensityContrastDefinition_" constructor="virialDensityContrastFixed     (densityContrastValue=200.0d0,densityType=fixedDensityTypeCritical,turnAroundOverVirialRadius=2.0d0,cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_)"/>
     !!]
     allocate(nodePropertyExtractorHostMass_)
     !![
-    <referenceConstruct object="nodePropertyExtractorHostMass_"   constructor="nodePropertyExtractorMassHalo  (virialDensityContrast_=virialDensityContrast_                                                                                                                                       )"/>
+    <referenceConstruct object="nodePropertyExtractorHostMass_"   constructor="nodePropertyExtractorMassHalo  (cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_                                                              )"/>
     !!]
     allocate(nodePropertyExtractorHost_)
     !![

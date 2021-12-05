@@ -26,9 +26,10 @@ module Node_Component_Basic_Standard_Extended
   !!{
   Extends the standard implementation of basic component to track the Bertschinger mass.
   !!}
-  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
-  use :: Cosmology_Parameters   , only : cosmologyParametersClass
-  use :: Virial_Density_Contrast, only : virialDensityContrastClass
+  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters    , only : cosmologyParametersClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Virial_Density_Contrast , only : virialDensityContrastClass
   implicit none
   private
   public :: Node_Component_Basic_Standard_Extended_Initialize, Node_Component_Basic_Standard_Extended_Node_Merger , &
@@ -79,9 +80,10 @@ module Node_Component_Basic_Standard_Extended
   !!]
 
   ! Objects used by this component.
-  class(cosmologyParametersClass), pointer :: cosmologyParameters_
-  class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
-  !$omp threadprivate(cosmologyParameters_,cosmologyFunctions_)
+  class(cosmologyParametersClass ), pointer :: cosmologyParameters_
+  class(cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_
+  class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
+  !$omp threadprivate(cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_)
 
   ! Options controlling spherical collapse model to use.
   integer                                        :: nodeComponentBasicExtendedSphericalCollapseType                 , nodeComponentBasicExtendedSphericalCollapseEnergyFixedAt
@@ -167,8 +169,9 @@ contains
 
     if (defaultBasicComponent%standardExtendedIsActive()) then
        !![
-       <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters_"/>
-       <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters_"/>
+       <objectBuilder class="cosmologyParameters"  name="cosmologyParameters_"  source="parameters_"/>
+       <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters_"/>
+       <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters_"/>
        !!]
        call nodePromotionEvent%attach(defaultBasicComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentBasicExtended')
     end if
@@ -190,8 +193,9 @@ contains
 
     if (defaultBasicComponent%standardExtendedIsActive()) then
        !![
-       <objectDestructor name="cosmologyParameters_"/>
-       <objectDestructor name="cosmologyFunctions_" />
+       <objectDestructor name="cosmologyParameters_" />
+       <objectDestructor name="cosmologyFunctions_"  />
+       <objectDestructor name="darkMatterProfileDMO_"/>
        !!]
        if (nodePromotionEvent%isAttached(defaultBasicComponent,nodePromotion)) call nodePromotionEvent%detach(defaultBasicComponent,nodePromotion)
     end if
@@ -236,15 +240,19 @@ contains
     end if
     ! Compute Bertschinger mass and turnaround radius.
     selfNode => self%hostNode
-    call self%massBertschingerSet(                                                                                                           &
-         &                        Dark_Matter_Profile_Mass_Definition(                                                                       &
-         &                                                                   selfNode                                                      , &
-         &                                                                   virialDensityContrast_%densityContrast(                         &
-         &                                                                                                          self%mass            (), &
-         &                                                                                                          self%timeLastIsolated()  &
-         &                                                                                                         )                       , &
-         &                                                            radius=radiusVirial                                                    &
-         &                                                           )                                                                       &
+    call self%massBertschingerSet(                                                                                                                           &
+         &                        Dark_Matter_Profile_Mass_Definition(                                                                                       &
+         &                                                                                   selfNode                                                      , &
+         &                                                                                   virialDensityContrast_%densityContrast(                         &
+         &                                                                                                                          self%mass            (), &
+         &                                                                                                                          self%timeLastIsolated()  &
+         &                                                                                                                         )                       , &
+         &                                                            radius                =radiusVirial                                                  , &
+         &                                                            cosmologyParameters_  =cosmologyParameters_                                          , &
+         &                                                            cosmologyFunctions_   =cosmologyFunctions_                                           , &
+         &                                                            darkMatterProfileDMO_ =darkMatterProfileDMO_                                         , &
+         &                                                            virialDensityContrast_=virialDensityContrast_                                          &
+         &                                                           )                                                                                       &
          &                       )
     call self%radiusTurnaroundSet(virialDensityContrast_%turnAroundOverVirialRadii(mass=self%mass(),time=self%time())*radiusVirial)
     return

@@ -26,10 +26,14 @@ module Node_Component_Satellite_Orbiting
   !!{
   Implements the orbiting satellite component.
   !!}
-  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
-  use :: Kepler_Orbits          , only : keplerOrbit
-  use :: Tensors                , only : tensorRank2Dimension3Symmetric
-  use :: Virial_Orbits          , only : virialOrbit                    , virialOrbitClass
+  use :: Cosmology_Parameters    , only : cosmologyParametersClass
+  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Virial_Density_Contrast , only : virialDensityContrastClass
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  use :: Kepler_Orbits           , only : keplerOrbit
+  use :: Tensors                 , only : tensorRank2Dimension3Symmetric
+  use :: Virial_Orbits           , only : virialOrbit                    , virialOrbitClass
   implicit none
   private
   public :: Node_Component_Satellite_Orbiting_Scale_Set        , Node_Component_Satellite_Orbiting_Create             , &
@@ -125,9 +129,13 @@ module Node_Component_Satellite_Orbiting
   !!]
 
   ! Objects used by this module.
-  class(darkMatterHaloScaleClass      ), pointer :: darkMatterHaloScale_
-  class(virialOrbitClass              ), pointer :: virialOrbit_
-  !$omp threadprivate(darkMatterHaloScale_,virialOrbit_)
+  class(darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_
+  class(virialDensityContrastClass), pointer :: virialDensityContrast_
+  class(cosmologyParametersClass  ), pointer :: cosmologyParameters_
+  class(cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_
+  class(darkMatterHaloScaleClass  ), pointer :: darkMatterHaloScale_
+  class(virialOrbitClass          ), pointer :: virialOrbit_
+  !$omp threadprivate(darkMatterHaloScale_,virialOrbit_,darkMatterProfileDMO_,virialDensityContrast_,cosmologyParameters_,cosmologyFunctions_)
 
   ! Option controlling whether or not unbound virial orbits are acceptable.
   logical         , parameter :: acceptUnboundOrbits=.false.
@@ -220,8 +228,12 @@ contains
 
     if (defaultSatelliteComponent%orbitingIsActive()) then
        !![
-       <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
-       <objectBuilder class="virialOrbit"         name="virialOrbit_"         source="parameters_"/>
+       <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters_"/>
+       <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters_"/>
+       <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters_"/>
+       <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters_"/>
+       <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters_"/>
+       <objectBuilder class="virialOrbit"           name="virialOrbit_"           source="parameters_"/>
        !!]
        ! Check that the virial orbit class supports setting of angular coordinates.
        if (.not.virialOrbit_%isAngularlyResolved()) call Galacticus_Error_Report('"orbiting" satellite component requires a virialOrbit class which provides angularly-resolved orbits'//{introspection:location})
@@ -243,8 +255,12 @@ contains
 
     if (defaultSatelliteComponent%orbitingIsActive()) then
        !![
-       <objectDestructor name="darkMatterHaloScale_"/>
-       <objectDestructor name="virialOrbit_"        />
+       <objectDestructor name="cosmologyFunctions_"   />
+       <objectDestructor name="cosmologyParameters_"  />
+       <objectDestructor name="darkMatterProfileDMO_" />
+       <objectDestructor name="virialDensityContrast_"/>
+       <objectDestructor name="darkMatterHaloScale_"  />
+       <objectDestructor name="virialOrbit_"          />
        !!]
     end if
     return
@@ -518,7 +534,14 @@ contains
           call satellite%boundMassSet(satelliteMass)
        case (satelliteBoundMassInitializeTypeDensityContrast)
           ! Set the initial bound mass of this satellite by assuming a specified density contrast.
-          satelliteMass=Dark_Matter_Profile_Mass_Definition(node,satelliteDensityContrast)
+          satelliteMass=Dark_Matter_Profile_Mass_Definition(                                                 &
+               &                                                                   node                    , &
+               &                                                                   satelliteDensityContrast, &
+               &                                            cosmologyParameters_  =cosmologyParameters_    , &
+               &                                            cosmologyFunctions_   =cosmologyFunctions_     , &
+               &                                            darkMatterProfileDMO_ =darkMatterProfileDMO_   , &
+               &                                            virialDensityContrast_=virialDensityContrast_    &
+               &                                           )
           call satellite%boundMassSet(satelliteMass)
        case default
           call Galacticus_Error_Report('type of method to initialize the bound mass of satellites can not be recognized. Available options are "basicMass", "maximumRadius", "densityContrast"'//{introspection:location})

@@ -109,14 +109,6 @@
   </excursionSetBarrier>
   <excursionSetFirstCrossing value="linearBarrier"/>
 
-  <!-- Intergalactic medium evolution -->
-  <intergalacticMediumState value="instantReionization">
-    <reionizationRedshift           value="8.0e0"  />
-    <reionizationTemperature        value="1.5e4"  />
-    <presentDayTemperature          value="1.0e3"  />
-    <intergalacticMediumState value="recFast"/>
-  </intergalacticMediumState>
-  
   <!-- Merger tree building options --> 
   <mergerTreeConstructor value="build"    >
     <redshiftBase value="0.0"/>
@@ -186,14 +178,7 @@
     <alpha   value="1.7091800"/>
     <lambda0 value="0.0420190"/>
   </haloSpinDistribution>
-
-  <!-- Introduce baryonic physics -->
-  <!-- Halo accretion options -->
-  <accretionHalo value="simple">
-    <redshiftReionization value="10.5"/>
-    <velocitySuppressionReionization value="35.0"/>
-  </accretionHalo>
-
+ 
   <!-- Hot halo gas cooling model options -->
   <hotHaloMassDistribution value="betaProfile"/>
   <hotHaloTemperatureProfile value="virial"/>
@@ -442,7 +427,6 @@
   <accretionHalo value="naozBarkana2007"/>
 
   <!-- Output options -->
-  <galacticusOutputFileName value="subhalos_baryonic_LCDM.hdf5"/>
   <mergerTreeOutputter value="multi">
     <mergerTreeOutputter value="standard">
       <outputReferences value="false"/>
@@ -471,6 +455,7 @@
     </nodePropertyExtractor>
   </nodePropertyExtractor>
   <outputAnalysis value="multi">
+    <virialDensityContrastDefinition value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
     <outputAnalysis value="subhaloMassFunction">
       <fileName                          value="%DATASTATICPATH%/darkMatter/subhaloDistributionsCaterpillar.hdf5"/>
       <negativeBinomialScatterFractional value="0.18"                                                            /> <!-- Boylan-Kolchin et al. (2010) -->

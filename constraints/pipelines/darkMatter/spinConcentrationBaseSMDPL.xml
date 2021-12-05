@@ -173,6 +173,7 @@
     <redshifts value="0.0"/>
   </outputTimes>
   <outputAnalysis value="multi">
+    <virialDensityContrastDefinition value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
     <outputAnalysis value="spinDistribution">
       <fileName                     value="/home/abenson/Galacticus/datasets/static/darkMatter/spinDistributionFunctions_SMDPL.hdf5"                     />
       <comment                      value="$9.96 &lt; \log_{10}(M_\mathrm{halo}/\mathrm{M}_\odot) \le 16.00$; $z=0.00$; SMDPL halos"                     />

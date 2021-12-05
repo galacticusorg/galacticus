@@ -127,6 +127,7 @@
   <virialOrbit value="fixed">
     <velocityTangential value="+0.75"/>
     <velocityRadial value="-0.90"/>
+    <virialDensityContrastDefintion value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
   </virialOrbit>
   <satelliteMergingTimescales value="jiang2008">
     <timescaleMultiplier value="0.114092219110171"/>

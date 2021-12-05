@@ -57,15 +57,19 @@ contains
     !!{
     Constructor for the ``stellarVsHaloMassRelationLeauthaud2012'' output analysis class which takes a parameter set as input.
     !!}
-    use :: Cosmology_Functions , only : cosmologyFunctions , cosmologyFunctionsClass
-    use :: Cosmology_Parameters, only : cosmologyParameters, cosmologyParametersClass
-    use :: Input_Parameters    , only : inputParameter     , inputParameters
+    use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+    use :: Cosmology_Parameters    , only : cosmologyParametersClass
+    use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+    use :: Virial_Density_Contrast , only : virialDensityContrastClass
+    use :: Input_Parameters        , only : inputParameters
     implicit none
     type            (outputAnalysisStellarVsHaloMassRelationLeauthaud2012)                              :: self
     type            (inputParameters                                     ), intent(inout)               :: parameters
     double precision                                                      , allocatable  , dimension(:) :: systematicErrorPolynomialCoefficient
     class           (cosmologyParametersClass                            ), pointer                     :: cosmologyParameters_
     class           (cosmologyFunctionsClass                             ), pointer                     :: cosmologyFunctions_
+    class           (darkMatterProfileDMOClass                           ), pointer                     :: darkMatterProfileDMO_
+    class           (virialDensityContrastClass                          ), pointer                     :: virialDensityContrast_
     class           (outputTimesClass                                    ), pointer                     :: outputTimes_
     integer                                                                                             :: redshiftInterval
     logical                                                                                             :: computeScatter
@@ -104,27 +108,32 @@ contains
       <defaultValue>0_c_size_t</defaultValue>
       <description>If $>0$ then use only the mass bin given by this value in the likelihood calculation.</description>
     </inputParameter>
-    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
+    <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
     !!]
     ! Build the object.
-    self=outputAnalysisStellarVsHaloMassRelationLeauthaud2012(redshiftInterval,likelihoodBin,computeScatter,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputTimes_)
+    self=outputAnalysisStellarVsHaloMassRelationLeauthaud2012(redshiftInterval,likelihoodBin,computeScatter,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_)
     !![
     <inputParametersValidate source="parameters" />
-    <objectDestructor name="cosmologyParameters_"/>
-    <objectDestructor name="cosmologyFunctions_" />
-    <objectDestructor name="outputTimes_"        />
+    <objectDestructor name="cosmologyParameters_"  />
+    <objectDestructor name="cosmologyFunctions_"   />
+    <objectDestructor name="darkMatterProfileDMO_" />
+    <objectDestructor name="virialDensityContrast_"/>
+    <objectDestructor name="outputTimes_"          />
     !!]
     return
   end function stellarVsHaloMassRelationLeauthaud2012ConstructorParameters
 
-  function stellarVsHaloMassRelationLeauthaud2012ConstructorInternal(redshiftInterval,likelihoodBin,computeScatter,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,outputTimes_) result (self)
+  function stellarVsHaloMassRelationLeauthaud2012ConstructorInternal(redshiftInterval,likelihoodBin,computeScatter,systematicErrorPolynomialCoefficient,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,outputTimes_) result (self)
     !!{
     Constructor for the ``stellarVsHaloMassRelationLeauthaud2012'' output analysis class for internal use.
     !!}
     use :: Cosmology_Functions                   , only : cosmologyFunctionsClass                    , cosmologyFunctionsMatterLambda
     use :: Cosmology_Parameters                  , only : cosmologyParametersClass                   , cosmologyParametersSimple
+    use :: Dark_Matter_Profiles_DMO              , only : darkMatterProfileDMOClass
     use :: Galactic_Filters                      , only : filterList                                 , galacticFilterAll                              , galacticFilterHaloIsolated                  , galacticFilterStellarMass
     use :: Galacticus_Error                      , only : Galacticus_Error_Report
     use :: Galacticus_Paths                      , only : galacticusPath                             , pathTypeDataStatic
@@ -144,7 +153,7 @@ contains
     use :: Output_Analysis_Weight_Operators      , only : outputAnalysisWeightOperatorIdentity
     use :: String_Handling                       , only : operator(//)
     use :: Tables                                , only : table                                      , table1DGeneric
-    use :: Virial_Density_Contrast               , only : fixedDensityTypeMean                       , virialDensityContrastFixed
+    use :: Virial_Density_Contrast               , only : fixedDensityTypeMean                       , virialDensityContrastFixed                     , virialDensityContrastClass
     implicit none
     type            (outputAnalysisStellarVsHaloMassRelationLeauthaud2012)                                :: self
     integer                                                               , intent(in   )                 :: redshiftInterval
@@ -153,6 +162,8 @@ contains
     double precision                                                      , intent(in   ), dimension(:  ) :: systematicErrorPolynomialCoefficient
     class           (cosmologyParametersClass                            ), intent(in   ), target         :: cosmologyParameters_
     class           (cosmologyFunctionsClass                             ), intent(inout), target         :: cosmologyFunctions_
+    class           (virialDensityContrastClass                          ), intent(in   ), target         :: virialDensityContrast_
+    class           (darkMatterProfileDMOClass                           ), intent(in   ), target         :: darkMatterProfileDMO_
     class           (outputTimesClass                                    ), intent(inout), target         :: outputTimes_
     integer         (c_size_t                                            ), parameter                     :: massHaloCount                                         =26
     integer                                                               , parameter                     :: covarianceBinomialBinsPerDecade                       =10
@@ -182,7 +193,7 @@ contains
     type            (propertyOperatorList                                ), pointer                       :: propertyOperators_
     type            (cosmologyParametersSimple                           ), pointer                       :: cosmologyParametersData
     type            (cosmologyFunctionsMatterLambda                      ), pointer                       :: cosmologyFunctionsData
-    type            (virialDensityContrastFixed                          ), pointer                       :: virialDensityContrast_
+    type            (virialDensityContrastFixed                          ), pointer                       :: virialDensityContrastDefinition_
     type            (surveyGeometryFullSky                               ), pointer                       :: surveyGeometry_
     double precision                                                      , parameter                     :: errorPolynomialZeroPoint                              =11.3d00
     logical                                                               , parameter                     :: likelihoodNormalize                                   =.false.
@@ -364,26 +375,26 @@ contains
     propertyOperators_%next%next%next%next%next%operator_ => outputAnalysisWeightPropertyOperatorFilterHighPass_
     allocate(outputAnalysisWeightPropertyOperator_                 )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyOperator_"  constructor="outputAnalysisPropertyOperatorSequence                (propertyOperators_                                                                        )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyOperator_"  constructor="outputAnalysisPropertyOperatorSequence                (propertyOperators_                                                                                                    )"/>
     !!]
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_                     )
     !![
-    <referenceConstruct object="outputAnalysisPropertyUnoperator_"      constructor="outputAnalysisPropertyOperatorAntiLog10               (                                                                                          )"/>
+    <referenceConstruct object="outputAnalysisPropertyUnoperator_"      constructor="outputAnalysisPropertyOperatorAntiLog10               (                                                                                                                      )"/>
     !!]
     ! Create a stellar mass weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_                )
     !![
-    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_" constructor="nodePropertyExtractorMassStellar                      (                                                                                          )"/>
+    <referenceConstruct object="outputAnalysisWeightPropertyExtractor_" constructor="nodePropertyExtractorMassStellar                      (                                                                                                                      )"/>
     !!]
     ! Create a halo mass weight property extractor.
-    allocate(virialDensityContrast_                                )
+    allocate(virialDensityContrastDefinition_                                )
     !![
-    <referenceConstruct object="virialDensityContrast_"                 constructor="virialDensityContrastFixed                            (200.0d0               ,fixedDensityTypeMean,2.0d0,cosmologyParameters_,cosmologyFunctions_)"/>
+    <referenceConstruct object="virialDensityContrastDefinition_"       constructor="virialDensityContrastFixed                            (200.0d0,fixedDensityTypeMean,2.0d0,cosmologyParameters_,cosmologyFunctions_                                           )"/>
     !!]
     allocate(nodePropertyExtractor_                      )
     !![
-    <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassHalo                         (virialDensityContrast_                                                                    )"/>
+    <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorMassHalo                         (cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)"/>
     !!]
     ! Build the object.
     if (computeScatter) then
@@ -513,8 +524,8 @@ contains
     <objectDestructor name="outputAnalysisWeightPropertyOperator_"                  />
     <objectDestructor name="outputAnalysisPropertyUnoperator_"                      />
     <objectDestructor name="outputAnalysisWeightPropertyExtractor_"                 />
-    <objectDestructor name="virialDensityContrast_"                                 />
-    <objectDestructor name="nodePropertyExtractor_"                       />
+    <objectDestructor name="virialDensityContrastDefinition_"                       />
+    <objectDestructor name="nodePropertyExtractor_"                                 />
     !!]
     nullify(propertyOperators_)
     nullify(filters_          )

@@ -120,16 +120,16 @@
   <nodePropertyExtractor value="multi">
     <nodePropertyExtractor value="nodeIndices"/>
     <nodePropertyExtractor value="massHalo">
-      <virialDensityContrast value="fixed">
+      <virialDensityContrastDefinition value="fixed">
 	<densityContrastValue value="200"/>
 	<densityType value="critical"/>
-      </virialDensityContrast>
+      </virialDensityContrastDefinition>
     </nodePropertyExtractor>
     <nodePropertyExtractor value="concentration">
-      <virialDensityContrast value="fixed">
+      <virialDensityContrastDefinition value="fixed">
 	<densityContrastValue value="200"/>
 	<densityType value="critical"/>
-      </virialDensityContrast>
+      </virialDensityContrastDefinition>
     </nodePropertyExtractor>
   </nodePropertyExtractor>
  

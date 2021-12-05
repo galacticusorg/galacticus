@@ -61,7 +61,9 @@
     <darkMatterProfileDMO value="isothermal"/>
     <darkMatterProfileDMO value="einasto">
       <componentDarkMatterProfile value="scaleShape" parameterLevel="top"/>
-      <virialOrbit value="fixed" parameterLevel="top"/>
+      <virialOrbit value="fixed" parameterLevel="top">
+	<virialDensityContrastDefinition value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+      </virialOrbit>
     </darkMatterProfileDMO>
   </parameters>
   <parameters>
@@ -353,7 +355,9 @@
     <virialOrbit value="benson2005"/>
     <virialOrbit value="wetzel2010"/>
     <virialOrbit value="jiang2014"/>
-    <virialOrbit value="fixed"/>
+    <virialOrbit value="fixed">
+      <virialDensityContrastDefinition value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+    </virialOrbit>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
@@ -1112,7 +1116,9 @@
     <haloMassFunction value="tinker2008"/>
     <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
     <virialOrbit value="isotropic">
-      <virialOrbit value="fixed"/>
+      <virialOrbit value="fixed">
+	<virialDensityContrastDefinition value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+     </virialOrbit>
     </virialOrbit>
     <mergerTreeConstructor value="build"/>
     <mergerTreeBuilder value="cole2000">

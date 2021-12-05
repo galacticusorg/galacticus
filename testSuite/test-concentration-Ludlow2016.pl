@@ -26,7 +26,7 @@ my @tests =
 	 mean             => 1.104,
 	 meanTolerance    => 0.040,
 	 scatter          => 0.103,
-	 scatterTolerance => 0.005
+	 scatterTolerance => 0.008
      },
      {
 	 # Model with environmental dependence.

@@ -207,10 +207,10 @@
     <virialOrbit value="fixed">
       <velocityRadial value="-0.856"/>
       <velocityTangential value="+0.842"/>
-      <virialDensityContrast value="fixed">
+      <virialDensityContrastDefinition value="fixed">
         <densityContrastValue value="200.0"/>
         <densityType value="critical"/>
-      </virialDensityContrast>
+      </virialDensityContrastDefinition>
     </virialOrbit>
 
     <!-- Node evolution and physics -->

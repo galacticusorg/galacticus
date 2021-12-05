@@ -21,9 +21,11 @@
   An implementation of virial orbits using the \cite{benson_orbital_2005} orbital parameter distribution.
   !!}
 
-  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
-  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
-  use :: Virial_Density_Contrast, only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
+  use :: Cosmology_Parameters    , only : cosmologyParametersClass
+  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  use :: Virial_Density_Contrast , only : virialDensityContrastClass, virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
 
   !![
   <virialOrbit name="virialOrbitBenson2005">
@@ -34,10 +36,10 @@
     relevant to the current definition of density contrast.
    </description>
    <deepCopy>
-    <functionClass variables="virialDensityContrast_"/>
+    <functionClass variables="virialDensityContrastDefinition_"/>
    </deepCopy>
    <stateStorable>
-    <functionClass variables="virialDensityContrast_"/>
+    <functionClass variables="virialDensityContrastDefinition_"/>
    </stateStorable>
   </virialOrbit>
   !!]
@@ -46,9 +48,12 @@
      A virial orbit class using the \cite{benson_orbital_2005} orbital parameter distribution.
      !!}
      private
-     class(darkMatterHaloScaleClass                                      ), pointer :: darkMatterHaloScale_   => null()
-     class(cosmologyFunctionsClass                                       ), pointer :: cosmologyFunctions_    => null()
-     type (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer :: virialDensityContrast_ => null()
+     class(darkMatterHaloScaleClass                                      ), pointer :: darkMatterHaloScale_             => null()
+     class(darkMatterProfileDMOClass                                     ), pointer :: darkMatterProfileDMO_            => null()
+     class(virialDensityContrastClass                                    ), pointer :: virialDensityContrast_           => null()
+     class(cosmologyParametersClass                                      ), pointer :: cosmologyParameters_             => null()
+     class(cosmologyFunctionsClass                                       ), pointer :: cosmologyFunctions_              => null()
+     type (virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt), pointer :: virialDensityContrastDefinition_ => null()
    contains
      final     ::                                    benson2005Destructor
      procedure :: orbit                           => benson2005Orbit
@@ -77,40 +82,52 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (virialOrbitBenson2005   )                :: self
-    type (inputParameters         ), intent(inout) :: parameters
-    class(darkMatterHaloScaleClass), pointer       :: darkMatterHaloScale_
-    class(cosmologyFunctionsClass ), pointer       :: cosmologyFunctions_
-
+    type (virialOrbitBenson2005     )                :: self
+    type (inputParameters           ), intent(inout) :: parameters
+    class(darkMatterHaloScaleClass  ), pointer       :: darkMatterHaloScale_
+    class(cosmologyFunctionsClass   ), pointer       :: cosmologyFunctions_
+    class(cosmologyParametersClass  ), pointer       :: cosmologyParameters_
+    class(darkMatterProfileDMOClass ), pointer       :: darkMatterProfileDMO_
+    class(virialDensityContrastClass), pointer       :: virialDensityContrast_
+    
     !![
-    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_" source="parameters"/>
-    <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"  source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     !!]
-    self=virialOrbitBenson2005(darkMatterHaloScale_,cosmologyFunctions_)
+    self=virialOrbitBenson2005(darkMatterHaloScale_,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="darkMatterHaloScale_"/>
-    <objectDestructor name="cosmologyFunctions_" />
+    <objectDestructor name="darkMatterHaloScale_"  />
+    <objectDestructor name="cosmologyFunctions_"   />
+    <objectDestructor name="cosmologyParameters_"  />
+    <objectDestructor name="darkMatterProfileDMO_" />
+    <objectDestructor name="virialDensityContrast_"/>
     !!]
     return
   end function benson2005ConstructorParameters
 
-  function benson2005ConstructorInternal(darkMatterHaloScale_,cosmologyFunctions_) result(self)
+  function benson2005ConstructorInternal(darkMatterHaloScale_,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily benson2005} virial orbits class.
     !!}
     use :: Virial_Density_Contrast, only : virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt
     implicit none
-    type (virialOrbitBenson2005   )                        :: self
-    class(darkMatterHaloScaleClass), intent(in   ), target :: darkMatterHaloScale_
-    class(cosmologyFunctionsClass ), intent(in   ), target :: cosmologyFunctions_
+    type (virialOrbitBenson2005     )                        :: self
+    class(darkMatterHaloScaleClass  ), intent(in   ), target :: darkMatterHaloScale_
+    class(cosmologyParametersClass  ), intent(in   ), target :: cosmologyParameters_
+    class(cosmologyFunctionsClass   ), intent(in   ), target :: cosmologyFunctions_
+    class(virialDensityContrastClass), intent(in   ), target :: virialDensityContrast_
+    class(darkMatterProfileDMOClass ), intent(in   ), target :: darkMatterProfileDMO_
     !![
-    <constructorAssign variables="*darkMatterHaloScale_, *cosmologyFunctions_"/>
+    <constructorAssign variables="*darkMatterHaloScale_, *cosmologyFunctions_, *cosmologyParameters_, *virialDensityContrast_, *darkMatterProfileDMO_"/>
     !!]
 
-    allocate(self%virialDensityContrast_)
+    allocate(self%virialDensityContrastDefinition_)
     !![
-    <referenceConstruct isResult="yes" owner="self" object="virialDensityContrast_" constructor="virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(.true.,cosmologyFunctions_)"/>
+    <referenceConstruct isResult="yes" owner="self" object="virialDensityContrastDefinition_" constructor="virialDensityContrastSphericalCollapseClsnlssMttrCsmlgclCnstnt(.true.,cosmologyFunctions_)"/>
     !!]
     return
   end function benson2005ConstructorInternal
@@ -123,9 +140,12 @@ contains
     type(virialOrbitBenson2005), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%darkMatterHaloScale_"  />
-    <objectDestructor name="self%cosmologyFunctions_"   />
-    <objectDestructor name="self%virialDensityContrast_"/>
+    <objectDestructor name="self%darkMatterHaloScale_"            />
+    <objectDestructor name="self%cosmologyFunctions_"             />
+    <objectDestructor name="self%virialDensityContrast_"          />
+    <objectDestructor name="self%cosmologyParameters_"            />
+    <objectDestructor name="self%darkMatterProfileDMO_"           />
+    <objectDestructor name="self%virialDensityContrastDefinition_"/>
     !!]
     return
   end subroutine benson2005Destructor
@@ -163,8 +183,24 @@ contains
     basic     => node%basic()
     hostBasic => host%basic()
     ! Find mass, radius, and velocity in the host corresponding to the Benson (2005) virial density contrast definition.
-    massHost     =Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHostSelf,velocityHost)
-    massSatellite=Dark_Matter_Profile_Mass_Definition(node,self%virialDensityContrast_%densityContrast(    basic%mass(),    basic%timeLastIsolated())                            )
+    massHost     =Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
+         &                                                                   host                                                                                                , &
+         &                                                                   self%virialDensityContrastDefinition_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()), &
+         &                                                                   radiusHostSelf                                                                                      , &
+         &                                                                   velocityHost                                                                                        , &
+         &                                            cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
+         &                                            cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
+         &                                            darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                          , &
+         &                                            virialDensityContrast_=self%virialDensityContrast_                                                                           &
+         &                                           )
+    massSatellite=Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
+         &                                                                   node                                                                                                , &
+         &                                                                   self%virialDensityContrastDefinition_%densityContrast(    basic%mass(),    basic%timeLastIsolated()), &
+         &                                            cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
+         &                                            cosmologyFunctions_   =self%cosmologyFunctions_                                                                            , &
+         &                                            darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                                          , &
+         &                                            virialDensityContrast_=self%virialDensityContrast_                                                                           &
+         &                                           )
     ! Select an orbit.
     foundOrbit=.false.
     do while(.not.foundOrbit)
@@ -218,7 +254,7 @@ contains
     class(virialDensityContrastClass), pointer       :: benson2005DensityContrastDefinition
     class(virialOrbitBenson2005     ), intent(inout) :: self
 
-    benson2005DensityContrastDefinition => self%virialDensityContrast_
+    benson2005DensityContrastDefinition => self%virialDensityContrastDefinition_
     return
   end function benson2005DensityContrastDefinition
 
@@ -239,7 +275,7 @@ contains
     !$GLC attributes unused :: node
 
     hostBasic                                 =>  host%basic()
-    massHost                                  =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    massHost                                  =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrastDefinition_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%darkMatterProfileDMO_,self%virialDensityContrast_)
     benson2005VelocityTangentialMagnitudeMean =  +velocityTangentialMean &
          &                                       *velocityHost
     return
@@ -276,7 +312,7 @@ contains
 
     basic                                  =>  node%basic()
     hostBasic                              =>  host%basic()
-    massHost                               =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    massHost                               =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrastDefinition_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%darkMatterProfileDMO_,self%virialDensityContrast_)
     benson2005AngularMomentumMagnitudeMean =  +self%velocityTangentialMagnitudeMean(node,host) &
          &                                    *radiusHost                                      &
          &                                    /(                                               & ! Account for reduced mass.
@@ -320,7 +356,7 @@ contains
     !$GLC attributes unused :: node
 
     hostBasic                              =>  host%basic()
-    massHost                               =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    massHost                               =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrastDefinition_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%darkMatterProfileDMO_,self%virialDensityContrast_)
     benson2005VelocityTotalRootMeanSquared =  +velocityTotalRootMeanSquared &
          &                                    *velocityHost
     return
@@ -342,7 +378,7 @@ contains
 
     basic                =>  node%basic()
     hostBasic            =>  host%basic()
-    massHost             =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost)
+    massHost             =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrastDefinition_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%darkMatterProfileDMO_,self%virialDensityContrast_)
     benson2005EnergyMean =  +0.5d0                                           &
          &                  *self%velocityTotalRootMeanSquared(node,host)**2 &
          &                  /(                                               & ! Account for reduced mass.

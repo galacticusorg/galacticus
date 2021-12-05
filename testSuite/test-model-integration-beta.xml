@@ -141,10 +141,10 @@
   <virialOrbit value="fixed">
     <velocityTangential value="+0.842"/>
     <velocityRadial value="-0.856"/>
-    <virialDensityContrast value="fixed">
+    <virialDensityContrastDefinition value="fixed">
       <densityContrastValue value="200.0"/>
       <densityType value="critical"/>
-    </virialDensityContrast>
+    </virialDensityContrastDefinition>
   </virialOrbit>
   <satelliteMergingTimescales value="jiang2008">
     <timescaleMultiplier value="1.2044009774202384"/>

@@ -116,6 +116,7 @@
   <virialOrbit value="fixed">
     <velocityTangential value="+0.75"/>
     <velocityRadial value="-0.90"/>
+    <virialDensityContrastDefinition value="kitayamaSuto1996"/>
   </virialOrbit>
   <virialDensityContrast value="kitayamaSuto1996"/>
   <mergerTreeNodeMerger value="singleLevelHierarchy"/>

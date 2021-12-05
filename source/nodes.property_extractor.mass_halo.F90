@@ -21,7 +21,10 @@
 Contains a module which implements a halo mass output analysis property extractor class.
 !!}
 
-  use :: Virial_Density_Contrast, only : virialDensityContrastClass
+  use :: Cosmology_Parameters    , only : cosmologyParametersClass
+  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Virial_Density_Contrast , only : virialDensityContrastClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassHalo">
@@ -36,7 +39,10 @@ Contains a module which implements a halo mass output analysis property extracto
      time at which is was last isolated (as is used for standard definition of halo mass).
      !!}
      private
-     class(virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
+     class(darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_  => null()
+     class(virialDensityContrastClass), pointer :: virialDensityContrast_ => null(), virialDensityContrastDefinition_ => null()
+     class(cosmologyParametersClass  ), pointer :: cosmologyParameters_   => null()
+     class(cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_    => null()
    contains
      final     ::                massHaloDestructor
      procedure :: extract     => massHaloExtract
@@ -64,28 +70,42 @@ contains
     implicit none
     type (nodePropertyExtractorMassHalo)                :: self
     type (inputParameters              ), intent(inout) :: parameters
-    class(virialDensityContrastClass   ), pointer       :: virialDensityContrast_
-
+    class(cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
+    class(cosmologyParametersClass     ), pointer       :: cosmologyParameters_
+    class(darkMatterProfileDMOClass    ), pointer       :: darkMatterProfileDMO_
+    class(virialDensityContrastClass   ), pointer       :: virialDensityContrast_, virialDensityContrastDefinition_
+ 
     !![
-    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"              source="parameters"                                                />
+    <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"             source="parameters"                                                />
+    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"            source="parameters"                                                />
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_"           source="parameters"                                                />
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrastDefinition_" source="parameters" parameterName="virialDensityContrastDefinition"/>
     !!]
-    self=nodePropertyExtractorMassHalo(virialDensityContrast_)
+    self=nodePropertyExtractorMassHalo(cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="virialDensityContrast_"/>
+    <objectDestructor name="cosmologyFunctions_"             />
+    <objectDestructor name="cosmologyParameters_"            />
+    <objectDestructor name="darkMatterProfileDMO_"           />
+    <objectDestructor name="virialDensityContrast_"          />
+    <objectDestructor name="virialDensityContrastDefinition_"/>
     !!]
     return
   end function massHaloConstructorParameters
 
-  function massHaloConstructorInternal(virialDensityContrast_) result(self)
+  function massHaloConstructorInternal(cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{
     Internal constructor for the ``massHalo'' output analysis property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorMassHalo)                        :: self
-    class(virialDensityContrastClass   ), intent(in   ), target :: virialDensityContrast_
+    class(cosmologyParametersClass     ), intent(in   ), target :: cosmologyParameters_
+    class(cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
+    class(virialDensityContrastClass   ), intent(in   ), target :: virialDensityContrast_, virialDensityContrastDefinition_
+    class(darkMatterProfileDMOClass    ), intent(in   ), target :: darkMatterProfileDMO_
     !![
-    <constructorAssign variables="*virialDensityContrast_"/>
+    <constructorAssign variables="*cosmologyFunctions_, *cosmologyParameters_, *darkMatterProfileDMO_, *virialDensityContrast_, *virialDensityContrastDefinition_"/>
     !!]
 
     return
@@ -99,7 +119,11 @@ contains
     type(nodePropertyExtractorMassHalo), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%virialDensityContrast_"/>
+    <objectDestructor name="self%cosmologyFunctions_"             />
+    <objectDestructor name="self%virialDensityContrast_"          />
+    <objectDestructor name="self%cosmologyParameters_"            />
+    <objectDestructor name="self%darkMatterProfileDMO_"           />
+    <objectDestructor name="self%virialDensityContrastDefinition_"/>
     !!]
     return
   end subroutine massHaloDestructor
@@ -118,7 +142,14 @@ contains
     !$GLC attributes unused :: instance
 
     basic           => node%basic()
-    massHaloExtract =  Dark_Matter_Profile_Mass_Definition(node,self%virialDensityContrast_%densityContrast(basic%mass(),basic%time()))
+    massHaloExtract =  Dark_Matter_Profile_Mass_Definition(                                                                                                         &
+         &                                                                        node                                                                            , &
+         &                                                                        self%virialDensityContrastDefinition_%densityContrast(basic%mass(),basic%time()), &
+         &                                                 cosmologyParameters_  =self%cosmologyParameters_                                                       , &
+         &                                                 cosmologyFunctions_   =self%cosmologyFunctions_                                                        , &
+         &                                                 darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                      , &
+         &                                                 virialDensityContrast_=self%virialDensityContrast_                                                       &
+         &                                                )
     return
   end function massHaloExtract
 

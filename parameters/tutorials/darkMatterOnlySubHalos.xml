@@ -308,18 +308,18 @@
     <outputAnalysis value="subhaloMassFunction">
       <fileName                          value="%DATASTATICPATH%/darkMatter/subhaloDistributionsCaterpillar.hdf5"/>
       <negativeBinomialScatterFractional value="0.18"                                                            /> <!-- Boylan-Kolchin et al. (2010) -->
-      <virialDensityContrast       value="bryanNorman1998"                                                 />
+      <virialDensityContrastDefinition   value="bryanNorman1998"                                                 />
       <redshift                          value="0.0"                                                             />
     </outputAnalysis>
     <outputAnalysis value="subhaloRadialDistribution">
       <fileName                          value="%DATASTATICPATH%/darkMatter/subhaloDistributionsCaterpillar.hdf5"/>
       <negativeBinomialScatterFractional value="0.18"                                                            /> <!-- Boylan-Kolchin et al. (2010) -->
-      <virialDensityContrast       value="bryanNorman1998"                                                 />
+      <virialDensityContrastDefinition   value="bryanNorman1998"                                                 />
       <redshift                          value="0.0"                                                             />
     </outputAnalysis>
     <outputAnalysis value="subhaloVMaxVsMass">
       <fileName                          value="%DATASTATICPATH%/darkMatter/subhaloDistributionsCaterpillar.hdf5"/>
-      <virialDensityContrast       value="bryanNorman1998"                                                 />
+      <virialDensityContrastDefinition   value="bryanNorman1998"                                                 />
       <redshift                          value="0.0"                                                             />
     </outputAnalysis>
   </outputAnalysis>

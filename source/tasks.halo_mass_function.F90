@@ -484,6 +484,7 @@ contains
     class           (darkMatterHaloBiasClass                ), pointer                         :: darkMatterHaloBias_                           => null()
     class           (darkMatterProfileScaleRadiusClass      ), pointer                         :: darkMatterProfileScaleRadius_                 => null()
     class           (darkMatterHaloMassAccretionHistoryClass), pointer                         :: darkMatterHaloMassAccretionHistory_           => null()
+    class           (virialDensityContrastClass             ), pointer                         :: virialDensityContrast_                        => null()
     type            (virialDensityContrastList              ), allocatable   , dimension(:   ) :: virialDensityContrasts
     type            (mergerTree                             ), target                          :: tree
     type            (integrator                             )                                  :: integrator_
@@ -583,10 +584,11 @@ contains
     end if
     massHalo                   =Make_Range(massHaloMinimum,massHaloMaximum,int(massCount),rangeTypeLogarithmic)
     massHaloLogarithmicInterval=log(massHaloMaximum/massHaloMinimum)/dble(massCount-1)
-    !$omp parallel private(iOutput,iMass,densityMean,densityCritical,tree,basic,darkMatterProfileHalo,massHaloBinMinimum,massHaloBinMaximum,haloEnvironment_,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,unevolvedSubhaloMassFunction_,darkMatterHaloBias_,darkMatterProfileScaleRadius_,darkMatterHaloMassAccretionHistory_,virialDensityContrasts,integrator_)
+    !$omp parallel private(iOutput,iMass,densityMean,densityCritical,tree,basic,darkMatterProfileHalo,massHaloBinMinimum,massHaloBinMaximum,haloEnvironment_,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,unevolvedSubhaloMassFunction_,darkMatterHaloBias_,darkMatterProfileScaleRadius_,darkMatterHaloMassAccretionHistory_,virialDensityContrast_,virialDensityContrasts,integrator_)
     allocate(haloEnvironment_                   ,mold=self%haloEnvironment_                   )
     allocate(cosmologyFunctions_                ,mold=self%cosmologyFunctions_                )
     allocate(cosmologyParameters_               ,mold=self%cosmologyParameters_               )
+    allocate(virialDensityContrast_             ,mold=self%virialDensityContrast_             )
     allocate(cosmologicalMassVariance_          ,mold=self%cosmologicalMassVariance_          )
     allocate(criticalOverdensity_               ,mold=self%criticalOverdensity_               )
     allocate(haloMassFunction_                  ,mold=self%haloMassFunction_                  )
@@ -602,8 +604,9 @@ contains
     end do
     !$omp critical(taskHaloMassFunctionDeepCopy)
     !![
-    <deepCopyReset variables="self%haloEnvironment_ self%cosmologyFunctions_ self%cosmologyParameters_ self%cosmologicalMassVariance_ self%criticalOverdensity_ self%haloMassFunction_ self%darkMatterHaloScale_ self%darkMatterProfileDMO_ self%unevolvedSubhaloMassFunction_ self%darkMatterHaloBias_ self%darkMatterProfileScaleRadius_ self%darkMatterHaloMassAccretionHistory_"/>
+    <deepCopyReset variables="self%haloEnvironment_ self%cosmologyFunctions_ self%cosmologyParameters_ self%virialDensityContrast_ self%cosmologicalMassVariance_ self%criticalOverdensity_ self%haloMassFunction_ self%darkMatterHaloScale_ self%darkMatterProfileDMO_ self%unevolvedSubhaloMassFunction_ self%darkMatterHaloBias_ self%darkMatterProfileScaleRadius_ self%darkMatterHaloMassAccretionHistory_"/>
     <deepCopy source="self%haloEnvironment_                   " destination="haloEnvironment_                   "/>
+    <deepCopy source="self%virialDensityContrast_             " destination="virialDensityContrast_             "/>
     <deepCopy source="self%cosmologyParameters_               " destination="cosmologyParameters_               "/>
     <deepCopy source="self%cosmologyFunctions_                " destination="cosmologyFunctions_                "/>
     <deepCopy source="self%cosmologicalMassVariance_          " destination="cosmologicalMassVariance_          "/>
@@ -615,7 +618,7 @@ contains
     <deepCopy source="self%darkMatterHaloBias_                " destination="darkMatterHaloBias_                "/>
     <deepCopy source="self%darkMatterProfileScaleRadius_      " destination="darkMatterProfileScaleRadius_      "/>
     <deepCopy source="self%darkMatterHaloMassAccretionHistory_" destination="darkMatterHaloMassAccretionHistory_"/>
-    <deepCopyFinalize variables="haloEnvironment_ cosmologyFunctions_ cosmologyParameters_ cosmologicalMassVariance_ criticalOverdensity_ haloMassFunction_ darkMatterHaloScale_ darkMatterProfileDMO_ unevolvedSubhaloMassFunction_ darkMatterHaloBias_ darkMatterProfileScaleRadius_ darkMatterHaloMassAccretionHistory_"/>
+    <deepCopyFinalize variables="haloEnvironment_ cosmologyFunctions_ cosmologyParameters_ virialDensityContrast_ cosmologicalMassVariance_ criticalOverdensity_ haloMassFunction_ darkMatterHaloScale_ darkMatterProfileDMO_ unevolvedSubhaloMassFunction_ darkMatterHaloBias_ darkMatterProfileScaleRadius_ darkMatterHaloMassAccretionHistory_"/>
     !!]
     do iAlternate=1,size(self%virialDensityContrasts)
        !![
@@ -691,7 +694,7 @@ contains
                & massAccretionRate                      (iMass,iOutput)=darkMatterHaloMassAccretionHistory_%massAccretionRate              (                                                                     time=outputTimes(iOutput),node=tree%baseNode)
           ! Compute alternate mass definitions for halos.
           do iAlternate=1,size(self%virialDensityContrasts)
-             massAlternate(iAlternate,iMass,iOutput)=Dark_Matter_Profile_Mass_Definition(tree%baseNode,virialDensityContrasts(iAlternate)%virialDensityContrast_%densityContrast(mass=massHalo(iMass),time=outputTimes(iOutput)),radius=radiusAlternate(iAlternate,iMass,iOutput))
+             massAlternate(iAlternate,iMass,iOutput)=Dark_Matter_Profile_Mass_Definition(tree%baseNode,virialDensityContrasts(iAlternate)%virialDensityContrast_%densityContrast(mass=massHalo(iMass),time=outputTimes(iOutput)),radius=radiusAlternate(iAlternate,iMass,iOutput),cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_,darkMatterProfileDMO_=darkMatterProfileDMO_,virialDensityContrast_=virialDensityContrast_)
           end do
           ! Integrate the unevolved subhalo mass function over the halo mass function to get the total subhalo mass function.
           if (self%includeUnevolvedSubhaloMassFunction)                                                                                   &
@@ -708,6 +711,7 @@ contains
     end do
     !![
     <objectDestructor name="haloEnvironment_                   "/>
+    <objectDestructor name="virialDensityContrast_             "/>
     <objectDestructor name="cosmologyParameters_               "/>
     <objectDestructor name="cosmologyFunctions_                "/>
     <objectDestructor name="cosmologicalMassVariance_          "/>

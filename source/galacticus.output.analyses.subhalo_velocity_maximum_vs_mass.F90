@@ -57,11 +57,12 @@ contains
     implicit none
     type            (outputAnalysisSubhaloVMaxVsMass)                :: self
     type            (inputParameters                ), intent(inout) :: parameters
+    class           (cosmologyParametersClass       ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass        ), pointer       :: cosmologyFunctions_
     class           (outputTimesClass               ), pointer       :: outputTimes_
-    class           (virialDensityContrastClass     ), pointer       :: virialDensityContrast_
+    class           (virialDensityContrastClass     ), pointer       :: virialDensityContrast_ , virialDensityContrastDefinition_
     class           (darkMatterProfileDMOClass      ), pointer       :: darkMatterProfileDMO_
-    double precision                                                 :: massMinimum            , massMaximum, &
+    double precision                                                 :: massMinimum            , massMaximum                     , &
          &                                                              redshift
     integer         (c_size_t                       )                :: countMasses
     type            (varying_string                 )                :: fileName
@@ -103,32 +104,36 @@ contains
       <defaultValue>0.0d0</defaultValue>
       <description>The redshift at which to compute the subhalo $V_\mathrm{max}$--$M$ relation.</description>
     </inputParameter>
-    <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
-    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
-    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
+    <objectBuilder class="outputTimes"           name="outputTimes_"                     source="parameters"                                                />
+    <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"             source="parameters"                                                />
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"              source="parameters"                                                />
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_"           source="parameters"                                                />
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrastDefinition_" source="parameters" parameterName="virialDensityContrastDefinition"/>
+    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"            source="parameters"                                                />
     !!]
     if (parameters%isPresent('fileName')) then
        !![
        <conditionalCall>
-        <call>self=outputAnalysisSubhaloVMaxVsMass(outputTimes_,virialDensityContrast_,darkMatterProfileDMO_,cosmologyFunctions_                                                                      ,fileName                 {conditions})</call>
+        <call>self=outputAnalysisSubhaloVMaxVsMass(outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,fileName{conditions})</call>
          <argument name="redshift" value="redshift" parameterPresent="parameters"/>
        </conditionalCall>
        !!]
     else
-       self=outputAnalysisSubhaloVMaxVsMass(outputTimes_,virialDensityContrast_,darkMatterProfileDMO_,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),massMinimum,massMaximum,countMasses)
+       self=outputAnalysisSubhaloVMaxVsMass(outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),massMinimum,massMaximum,countMasses)
     end if
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="outputTimes_"          />
-    <objectDestructor name="cosmologyFunctions_"   />
-    <objectDestructor name="virialDensityContrast_"/>
-    <objectDestructor name="darkMatterProfileDMO_" />
+    <objectDestructor name="outputTimes_"                    />
+    <objectDestructor name="cosmologyParameters_"            />
+    <objectDestructor name="cosmologyFunctions_"             />
+    <objectDestructor name="darkMatterProfileDMO_"           />
+    <objectDestructor name="virialDensityContrast_"          />
+    <objectDestructor name="virialDensityContrastDefinition_"/>
     !!]
     return
   end function subhaloVMaxVsMassConstructorParameters
   
-  function subhaloVMaxVsMassConstructorFile(outputTimes_,virialDensityContrast_,darkMatterProfileDMO_,cosmologyFunctions_,fileName,redshift) result (self)
+  function subhaloVMaxVsMassConstructorFile(outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,fileName,redshift) result (self)
     !!{
     Constructor for the ``subhaloVMaxVsMass'' output analysis class for internal use.
     !!}
@@ -143,11 +148,12 @@ contains
     type            (outputAnalysisSubhaloVMaxVsMass)                                :: self
     type            (varying_string                 ), intent(in   )                 :: fileName
     class           (outputTimesClass               ), intent(inout)                 :: outputTimes_
-    class           (virialDensityContrastClass     ), intent(in   )                 :: virialDensityContrast_
+    class           (virialDensityContrastClass     ), intent(in   )                 :: virialDensityContrast_  , virialDensityContrastDefinition_
+    class           (cosmologyParametersClass       ), intent(inout)                 :: cosmologyParameters_
     class           (cosmologyFunctionsClass        ), intent(inout)                 :: cosmologyFunctions_
     class           (darkMatterProfileDMOClass      ), intent(in   )                 :: darkMatterProfileDMO_
     double precision                                 , intent(in   ), optional       :: redshift
-    double precision                                 , allocatable  , dimension(:  ) :: massesTarget            , functionTarget            , &
+    double precision                                 , allocatable  , dimension(:  ) :: massesTarget            , functionTarget                  , &
          &                                                                            functionErrorTarget
     double precision                                 , allocatable  , dimension(:,:) :: functionCovarianceTarget
     double precision                                                                 :: massMinimum             , massMaximum               , &
@@ -180,11 +186,11 @@ contains
     do i=1_c_size_t,countMasses
        functionCovarianceTarget(i,i)=functionErrorTarget(i)**2
     end do
-    self=outputAnalysisSubhaloVMaxVsMass(outputTimes_,virialDensityContrast_,darkMatterProfileDMO_,time,massMinimum,massMaximum,countMasses,functionTarget,functionCovarianceTarget,labelTarget)
+    self=outputAnalysisSubhaloVMaxVsMass(outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,time,massMinimum,massMaximum,countMasses,functionTarget,functionCovarianceTarget,labelTarget)
     return
   end function subhaloVMaxVsMassConstructorFile
 
-  function subhaloVMaxVsMassConstructorInternal(outputTimes_,virialDensityContrast_,darkMatterProfileDMO_,time,massMinimum,massMaximum,countMasses,functionTarget,functionCovarianceTarget,labelTarget) result (self)
+  function subhaloVMaxVsMassConstructorInternal(outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,time,massMinimum,massMaximum,countMasses,functionTarget,functionCovarianceTarget,labelTarget) result (self)
     !!{
     Constructor for the ``subhaloVMaxVsMass'' output analysis class for internal use.
     !!}
@@ -209,7 +215,9 @@ contains
          &                                                                                                   time
     integer         (c_size_t                                  ), intent(in   )                           :: countMasses
     class           (outputTimesClass                          ), intent(inout)                           :: outputTimes_
-    class           (virialDensityContrastClass                ), intent(in   )                           :: virialDensityContrast_
+    class           (virialDensityContrastClass                ), intent(in   )                           :: virialDensityContrast_               , virialDensityContrastDefinition_
+    class           (cosmologyParametersClass                  ), intent(in   )                           :: cosmologyParameters_
+    class           (cosmologyFunctionsClass                   ), intent(in   )                           :: cosmologyFunctions_
     class           (darkMatterProfileDMOClass                 ), intent(in   )                           :: darkMatterProfileDMO_
     double precision                                            , intent(in   ), dimension(:)  , optional :: functionTarget
     double precision                                            , intent(in   ), dimension(:,:), optional :: functionCovarianceTarget
@@ -246,7 +254,7 @@ contains
     !![
     <referenceConstruct object="nodePropertyExtractorMassBound_"        constructor="nodePropertyExtractorMassBound      (                                                                                                                                                   )"/>
     <referenceConstruct object="nodePropertyExtractorRadiusOrbital_"    constructor="nodePropertyExtractorRadiusOrbital  (                                                                                                                                                   )"/>
-    <referenceConstruct object="nodePropertyExtractorRadiusVirial_"     constructor="nodePropertyExtractorRadiusVirial   (virialDensityContrast_                                                                                                                             )"/>
+    <referenceConstruct object="nodePropertyExtractorRadiusVirial_"     constructor="nodePropertyExtractorRadiusVirial   (cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_                             )"/>
     <referenceConstruct object="nodePropertyExtractorRadiusVirialHost_" constructor="nodePropertyExtractorHostNode       (nodePropertyExtractorRadiusVirial_                                                                                                                 )"/>
     <referenceConstruct object="nodePropertyExtractorRadiusFractional_" constructor="nodePropertyExtractorRatio          ('radiusFraction','Ratio of subhalo orbital radius to host virial radius',nodePropertyExtractorRadiusOrbital_,nodePropertyExtractorRadiusVirialHost_)"/>
     <referenceConstruct object="nodeWeightPropertyExtractor_"           constructor="nodePropertyExtractorVelocityMaximum(var_str('VelocityMaximum'),darkMatterProfileDMO_                                                                                                   )"/>

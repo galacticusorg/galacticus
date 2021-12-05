@@ -21,7 +21,10 @@
 Contains a module which implements a galactic high-pass filter for halo mass under a given definition.
 !!}
 
-  use :: Virial_Density_Contrast, only : virialDensityContrast, virialDensityContrastClass
+  use :: Cosmology_Parameters    , only : cosmologyParametersClass
+  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Virial_Density_Contrast , only : virialDensityContrastClass
 
   !![
   <galacticFilter name="galacticFilterHaloMass">
@@ -37,7 +40,10 @@ Contains a module which implements a galactic high-pass filter for halo mass und
      !!}
      private
      double precision                                      :: massThreshold
-     class           (virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
+     class           (darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_  => null()
+     class           (virialDensityContrastClass), pointer :: virialDensityContrast_ => null(), virialDensityContrastDefinition_ => null()
+     class           (cosmologyParametersClass  ), pointer :: cosmologyParameters_   => null()
+     class           (cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_    => null()
    contains
      final     ::           haloMassDestructor
      procedure :: passes => haloMassPasses
@@ -61,7 +67,10 @@ contains
     implicit none
     type            (galacticFilterHaloMass    )                :: self
     type            (inputParameters           ), intent(inout) :: parameters
-    class           (virialDensityContrastClass), pointer       :: virialDensityContrast_
+    class           (cosmologyFunctionsClass   ), pointer       :: cosmologyFunctions_
+    class           (cosmologyParametersClass  ), pointer       :: cosmologyParameters_
+    class           (darkMatterProfileDMOClass ), pointer       :: darkMatterProfileDMO_
+    class           (virialDensityContrastClass), pointer       :: virialDensityContrast_, virialDensityContrastDefinition_
     double precision                                            :: massThreshold
 
     ! Check and read parameters.
@@ -71,26 +80,37 @@ contains
       <source>parameters</source>
       <description>The parameter $M_0$ (in units of $M_\odot$) appearing in the mass threshold for the halo mass galactic filter class.</description>
     </inputParameter>
-    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"              source="parameters"                                                />
+    <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"             source="parameters"                                                />
+    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"            source="parameters"                                                />
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_"           source="parameters"                                                />
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrastDefinition_" source="parameters" parameterName="virialDensityContrastDefinition"/>
     !!]
-    self=galacticFilterHaloMass(massThreshold,virialDensityContrast_)
+    self=galacticFilterHaloMass(massThreshold,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="virialDensityContrast_"/>
+    <objectDestructor name="cosmologyFunctions_"             />
+    <objectDestructor name="cosmologyParameters_"            />
+    <objectDestructor name="darkMatterProfileDMO_"           />
+    <objectDestructor name="virialDensityContrast_"          />
+    <objectDestructor name="virialDensityContrastDefinition_"/>
     !!]
     return
   end function haloMassConstructorParameters
 
-  function haloMassConstructorInternal(massThreshold,virialDensityContrast_) result(self)
+  function haloMassConstructorInternal(massThreshold,cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{
     Internal constructor for the ``haloMass'' galactic filter class.
     !!}
     implicit none
     type            (galacticFilterHaloMass    )                        :: self
     double precision                            , intent(in   )         :: massThreshold
-    class           (virialDensityContrastClass), intent(in   ), target :: virialDensityContrast_
+    class           (cosmologyParametersClass  ), intent(in   ), target :: cosmologyParameters_
+    class           (cosmologyFunctionsClass   ), intent(in   ), target :: cosmologyFunctions_
+    class           (virialDensityContrastClass), intent(in   ), target :: virialDensityContrast_, virialDensityContrastDefinition_
+    class           (darkMatterProfileDMOClass ), intent(in   ), target :: darkMatterProfileDMO_
     !![
-    <constructorAssign variables="massThreshold, *virialDensityContrast_"/>
+    <constructorAssign variables="massThreshold, *cosmologyFunctions_, *cosmologyParameters_, *darkMatterProfileDMO_, *virialDensityContrast_, *virialDensityContrastDefinition_"/>
     !!]
 
     return
@@ -104,7 +124,11 @@ contains
     type(galacticFilterHaloMass), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%virialDensityContrast_"/>
+    <objectDestructor name="self%cosmologyFunctions_"             />
+    <objectDestructor name="self%virialDensityContrast_"          />
+    <objectDestructor name="self%cosmologyParameters_"            />
+    <objectDestructor name="self%darkMatterProfileDMO_"           />
+    <objectDestructor name="self%virialDensityContrastDefinition_"/>
     !!]
     return
   end subroutine haloMassDestructor
@@ -120,15 +144,19 @@ contains
     type (treeNode              ), intent(inout), target :: node
     class(nodeComponentBasic    ), pointer               :: basic
 
-    basic          =>                                                                                  node %basic()
-    haloMassPasses =   Dark_Matter_Profile_Mass_Definition(                                                           &
-         &                                                 node                                                     , &
-         &                                                 self%virialDensityContrast_%densityContrast(               &
-         &                                                                                             basic%mass (), &
-         &                                                                                             basic%time ()  &
-         &                                                                                            )               &
-         &                                                )                                                           &
-         &            >=                                                                                              &
+    basic          =>                                                                                                                   node %basic()
+    haloMassPasses =   Dark_Matter_Profile_Mass_Definition(                                                                                            &
+         &                                                                        node                                                               , &
+         &                                                                        self%virialDensityContrastDefinition_%densityContrast(               &
+         &                                                                                                                              basic%mass (), &
+         &                                                                                                                              basic%time ()  &
+         &                                                                                                                             )             , &
+         &                                                 cosmologyParameters_  =self%cosmologyParameters_                                          , &
+         &                                                 cosmologyFunctions_   =self%cosmologyFunctions_                                           , &
+         &                                                 darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                         , &
+         &                                                 virialDensityContrast_=self%virialDensityContrast_                                          &
+         &                                                )                                                                                            &
+         &            >=                                                                                                                               &
          &             self %massThreshold
     return
   end function haloMassPasses
