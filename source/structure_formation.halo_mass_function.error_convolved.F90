@@ -135,7 +135,7 @@ contains
     use :: Galacticus_Nodes     , only : nodeComponentBasic, treeNode
     use :: Numerical_Integration, only : integrator
     implicit none
-    class           (haloMassFunctionErrorConvolved), intent(inout)           :: self
+    class           (haloMassFunctionErrorConvolved), intent(inout), target   :: self
     double precision                                , intent(in   )           :: time                    , mass
     type            (treeNode                      ), intent(inout), optional :: node
     double precision                                , parameter               :: rangeIntegralSigma=5.0d0

@@ -73,7 +73,7 @@ contains
     Return the differential halo mass function at the given time and mass.
     !!}
     implicit none
-    class           (haloMassFunctionTinker2008Form), intent(inout)            :: self
+    class           (haloMassFunctionTinker2008Form), intent(inout), target    :: self
     double precision                                , intent(in   )            :: time , mass
     type            (treeNode                      ), intent(inout) , optional :: node
     double precision                                                           :: sigma, alpha

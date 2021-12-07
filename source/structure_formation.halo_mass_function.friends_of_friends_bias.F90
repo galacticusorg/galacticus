@@ -168,7 +168,7 @@ contains
     use :: Galacticus_Nodes        , only : nodeComponentBasic     , treeNode
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (haloMassFunctionFofBias), intent(inout)           :: self
+    class           (haloMassFunctionFofBias), intent(inout), target   :: self
     double precision                         , intent(in   )           :: time                                                                , &
          &                                                                mass
     type            (treeNode               ), intent(inout), optional :: node

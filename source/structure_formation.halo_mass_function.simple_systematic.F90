@@ -132,7 +132,7 @@ contains
     Return the differential halo mass function at the given time and mass.
     !!}
     implicit none
-    class           (haloMassFunctionSimpleSystematic), intent(inout)           :: self
+    class           (haloMassFunctionSimpleSystematic), intent(inout), target   :: self
     double precision                                  , intent(in   )           :: time                , mass
     type            (treeNode                        ), intent(inout), optional :: node
     double precision                                  , parameter               :: massZeroPoint=1.0d12

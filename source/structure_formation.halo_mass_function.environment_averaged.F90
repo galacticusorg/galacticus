@@ -125,7 +125,7 @@ contains
     use :: Numerical_Integration, only : integrator
     use :: Root_Finder          , only : rangeExpandAdditive, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
-    class           (haloMassFunctionEnvironmentAveraged), intent(inout)           :: self
+    class           (haloMassFunctionEnvironmentAveraged), intent(inout), target   :: self
     double precision                                     , intent(in   )           :: time                              , mass
     type            (treeNode                           ), intent(inout), optional :: node
     class           (nodeComponentBasic                 ), pointer                 :: basic

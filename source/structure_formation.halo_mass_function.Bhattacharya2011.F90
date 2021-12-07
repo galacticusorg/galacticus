@@ -165,7 +165,7 @@ contains
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (haloMassFunctionBhattacharya2011), intent(inout)           :: self
+    class           (haloMassFunctionBhattacharya2011), intent(inout), target   :: self
     double precision                                  , intent(in   )           :: time   , mass
     type            (treeNode                        ), intent(inout), optional :: node
     double precision                                                            :: alpha  , nu          , &

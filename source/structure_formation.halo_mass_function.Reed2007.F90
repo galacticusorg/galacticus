@@ -115,7 +115,7 @@ contains
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (haloMassFunctionReed2007), intent(inout)           :: self
+    class           (haloMassFunctionReed2007), intent(inout), target   :: self
     double precision                          , intent(in   )           :: time                               , mass
     type            (treeNode                ), intent(inout), optional :: node
     ! Parameter values from Reed et al. (2007), text after equations (11) and (12).

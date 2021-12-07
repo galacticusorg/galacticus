@@ -45,6 +45,7 @@ module Halo_Mass_Functions
     <description>Return the differential halo mass function for {\normalfont \ttfamily mass} [$M_\odot$] at {\normalfont \ttfamily time} [Gyr].</description>
     <type>double precision</type>
     <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
     <argument>double precision          , intent(in   )           :: time, mass</argument>
     <argument>type            (treeNode), intent(inout), optional :: node      </argument>
    </method>

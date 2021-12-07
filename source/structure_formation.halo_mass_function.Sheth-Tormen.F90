@@ -153,7 +153,7 @@ contains
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (haloMassFunctionShethTormen), intent(inout)           :: self
+    class           (haloMassFunctionShethTormen), intent(inout), target   :: self
     double precision                             , intent(in   )           :: time   , mass
     type            (treeNode                   ), intent(inout), optional :: node
     double precision                                                       :: alpha  , nu          , &

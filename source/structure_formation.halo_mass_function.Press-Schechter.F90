@@ -121,7 +121,7 @@ contains
     !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    class           (haloMassFunctionPressSchechter), intent(inout)           :: self
+    class           (haloMassFunctionPressSchechter), intent(inout), target   :: self
     double precision                                , intent(in   )           :: time , mass
     type            (treeNode                      ), intent(inout), optional :: node
     double precision                                                          :: alpha, variance
