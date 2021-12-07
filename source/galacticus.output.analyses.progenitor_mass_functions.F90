@@ -423,7 +423,7 @@ contains
     use :: Cosmology_Parameters                    , only : cosmologyParametersSimple
     use :: Dark_Matter_Profiles_DMO                , only : darkMatterProfileDMOClass
     use :: Output_Analysis_Distribution_Normalizers, only : normalizerList                                  , outputAnalysisDistributionNormalizerBinWidth, outputAnalysisDistributionNormalizerSequence, outputAnalysisDistributionNormalizerLog10ToLog
-    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorProperty
+    use :: Output_Analysis_Weight_Operators        , only : outputAnalysisWeightOperatorProperty            , outputAnalysisWeightOperatorSubsampling     , outputAnalysisWeightOperatorSequence        , weightOperatorList
     use :: Output_Analysis_Distribution_Operators  , only : outputAnalysisDistributionOperatorMassRatioNBody
     use :: Output_Analysis_Property_Operators      , only : outputAnalysisPropertyOperatorAntiLog10         , outputAnalysisPropertyOperatorLog10         , outputAnalysisPropertyOperatorIdentity
     use :: Output_Analyses_Options                 , only : outputAnalysisCovarianceModelPoisson
@@ -471,7 +471,10 @@ contains
     type            (outputAnalysisDistributionNormalizerBinWidth    ), pointer                                 :: outputAnalysisDistributionNormalizerBinWidth_
     type            (outputAnalysisDistributionNormalizerLog10ToLog  ), pointer                                 :: outputAnalysisDistributionNormalizerLog10ToLog_
     type            (normalizerList                                  ), pointer                                 :: normalizer_
-    type            (outputAnalysisWeightOperatorProperty            ), pointer                                 :: outputAnalysisWeightOperator_
+    type            (outputAnalysisWeightOperatorSequence            ), pointer                                 :: outputAnalysisWeightOperator_
+    type            (weightOperatorList                              ), pointer                                 :: weightOperator_
+    type            (outputAnalysisWeightOperatorProperty            ), pointer                                 :: outputAnalysisWeightOperatorMassRatio_
+    type            (outputAnalysisWeightOperatorSubsampling         ), pointer                                 :: outputAnalysisWeightOperatorSubsampling_
     type            (outputAnalysisDistributionOperatorMassRatioNBody), pointer                                 :: outputAnalysisDistributionOperator_
     type            (outputAnalysisPropertyOperatorLog10             ), pointer                                 :: outputAnalysisPropertyOperator_
     type            (outputAnalysisPropertyOperatorAntiLog10         ), pointer                                 :: outputAnalysisPropertyUnoperator_
@@ -565,32 +568,45 @@ contains
     ! Build log10() property operator.
     allocate(     outputAnalysisPropertyOperator_    )
     !![
-    <referenceConstruct                             object="outputAnalysisPropertyOperator_"        constructor="outputAnalysisPropertyOperatorLog10             (                                                                                                                                        )"/>
+    <referenceConstruct                             object="outputAnalysisPropertyOperator_"          constructor="outputAnalysisPropertyOperatorLog10             (                                                                                                                                        )"/>
     !!]
     ! Build anti-log10() property operator.
     allocate(     outputAnalysisPropertyUnoperator_  )
     !![
-    <referenceConstruct                             object="outputAnalysisPropertyUnoperator_"      constructor="outputAnalysisPropertyOperatorAntiLog10         (                                                                                                                                        )"/>
+    <referenceConstruct                             object="outputAnalysisPropertyUnoperator_"        constructor="outputAnalysisPropertyOperatorAntiLog10         (                                                                                                                                        )"/>
     !!]
     ! Build an identity property operator.
     allocate(     outputAnalysisPropertyIdentity_    )
     !![
-    <referenceConstruct                             object="outputAnalysisPropertyIdentity_"        constructor="outputAnalysisPropertyOperatorIdentity          (                                                                                                                                        )"/>
+    <referenceConstruct                             object="outputAnalysisPropertyIdentity_"          constructor="outputAnalysisPropertyOperatorIdentity          (                                                                                                                                        )"/>
     !!]
     ! Build a weight operator which weights by the mass ratio.
-    allocate(     outputAnalysisWeightOperator_      )
+    allocate(     outputAnalysisWeightOperatorMassRatio_)
     !![
-    <referenceConstruct                             object="outputAnalysisWeightOperator_"          constructor="outputAnalysisWeightOperatorProperty            (                                         nodePropertyExtractorMassRatio_ ,outputAnalysisPropertyIdentity_                               )"/>
+    <referenceConstruct                             object="outputAnalysisWeightOperatorMassRatio_"   constructor="outputAnalysisWeightOperatorProperty            (                                         nodePropertyExtractorMassRatio_ ,outputAnalysisPropertyIdentity_                               )"/>
     !!]
+    ! Build a weight operator for node subsampling.
+    allocate(     outputAnalysisWeightOperatorSubsampling_)
+    !![
+    <referenceConstruct                             object="outputAnalysisWeightOperatorSubsampling_" constructor="outputAnalysisWeightOperatorSubsampling         (                                                                                                                                        )"/>
+    !!]
+    allocate(outputAnalysisWeightOperator_     )
+    allocate(weightOperator_                   )
+    allocate(weightOperator_              %next)
+    weightOperator_     %operator_ => outputAnalysisWeightOperatorMassRatio_
+    weightOperator_%next%operator_ => outputAnalysisWeightOperatorSubsampling_
+    !![
+    <referenceConstruct                             object="outputAnalysisWeightOperator_"            constructor="outputAnalysisWeightOperatorSequence            (weightOperator_                                                                                                                         )"/>
+    !!]   
     ! Build a weight operator for the parent node mass uncertainty.
     allocate(self%outputAnalysisWeightOperatorNbodyMass_      )
     !![
-    <referenceConstruct isResult="yes" owner="self" object="outputAnalysisWeightOperatorNbodyMass_" constructor="outputAnalysisWeightOperatorNbodyMass           (massParentMinimum,massParentMaximum,self%nodePropertyExtractorMassParent_,outputAnalysisPropertyIdentity_,     nbodyHaloMassError_      )"/>
+    <referenceConstruct isResult="yes" owner="self" object="outputAnalysisWeightOperatorNbodyMass_"   constructor="outputAnalysisWeightOperatorNbodyMass           (massParentMinimum,massParentMaximum,self%nodePropertyExtractorMassParent_,outputAnalysisPropertyIdentity_,     nbodyHaloMassError_      )"/>
     !!]
     ! Build an identity distribution operator.
     allocate(     outputAnalysisDistributionOperator_)
     !![
-    <referenceConstruct                             object="outputAnalysisDistributionOperator_"    constructor="outputAnalysisDistributionOperatorMassRatioNBody(massParentMinimum,massParentMaximum,     timeParent                      ,nbodyHaloMassError_            ,self%galacticFilterParentMass_)"/>
+    <referenceConstruct                             object="outputAnalysisDistributionOperator_"      constructor="outputAnalysisDistributionOperatorMassRatioNBody(massParentMinimum,massParentMaximum,     timeParent                      ,nbodyHaloMassError_            ,self%galacticFilterParentMass_)"/>
     !!]
     ! Determine number of buffer bins.
     bufferCount=0_c_size_t
@@ -648,6 +664,8 @@ contains
     <objectDestructor name="outputAnalysisPropertyIdentity_"                />
     <objectDestructor name="outputAnalysisPropertyOperator_"                />
     <objectDestructor name="outputAnalysisPropertyUnoperator_"              />
+    <objectDestructor name="outputAnalysisWeightOperatorMassRatio_"         />
+    <objectDestructor name="outputAnalysisWeightOperatorSubsampling_"       />
     <objectDestructor name="outputAnalysisWeightOperator_"                  />
     <objectDestructor name="outputAnalysisDistributionOperator_"            />
     !!]
@@ -656,9 +674,10 @@ contains
        <objectDestructor name="galacticFilterHaloAlwaysIsolated_"/>
        !!]
     end if
-    nullify(filters_      )
-    nullify(filtersParent_)
-    nullify(normalizer_   )
+    nullify(filters_       )
+    nullify(filtersParent_ )
+    nullify(normalizer_    )
+    nullify(weightOperator_)
     return
   end function progenitorMassFunctionConstructorInternal
 
