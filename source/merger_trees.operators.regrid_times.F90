@@ -328,6 +328,8 @@ contains
                    if (iTime > iNow+1 ) newNodes(iTime-iNow)%node%firstChild => newNodes(iTime-iNow-1)%node
                    ! Link to parent node.
                    if (iTime < iParent) newNodes(iTime-iNow)%node%parent     => newNodes(iTime-iNow+1)%node
+                   ! Set subsampling rate.
+                   call newNodes(iTime-iNow)%node%subsamplingWeightSet(node%subsamplingWeight())
                 end do
                 ! Link final node to the parent.
                 newNodes(iParent-iNow)%node%parent  => node%parent
