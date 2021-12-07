@@ -21,7 +21,7 @@
   Implements a non-evolving class for evolving merger trees.
   !!}
 
-  use :: Merger_Tree_Initialization     , only : mergerTreeInitializorClass
+  use :: Merger_Tree_Initialization, only : mergerTreeInitializorClass
   
   !![
   <mergerTreeEvolver name="mergerTreeEvolverNonEvolving">
