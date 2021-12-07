@@ -106,6 +106,7 @@
     <odeToleranceRelative value="0.01"/>
   </mergerTreeNodeEvolver>
   <nodeOperator value="hierarchy"/>
+  <hotHaloMassDistribution value="null"/>
 
   <!-- Output options -->
   <galacticusOutputFileName  value="Caterpillar_LX14.hdf5"/>

@@ -78,6 +78,7 @@
 
   <!-- Substructure hierarchy options -->
   <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+  <hotHaloMassDistribution value="null"/>
 
   <!-- Dark matter halo structure options -->
   <darkMatterProfileDMO value="NFW"/>

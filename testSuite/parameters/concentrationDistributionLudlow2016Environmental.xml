@@ -98,6 +98,7 @@
   
   <!-- Halo accretion options -->
   <accretionHalo value="zero"/>
+  <hotHaloMassDistribution value="null"/>
 
   <!-- Evolvers -->
   <mergerTreeEvolver value="standard">

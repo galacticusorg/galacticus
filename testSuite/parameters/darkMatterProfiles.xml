@@ -11,4 +11,5 @@
   <componentSatellite         value="null"    />
   <componentSpheroid          value="null"    />
   <componentSpin              value="null"    />
+  <hotHaloMassDistribution    value="null"    />
 </parameters>

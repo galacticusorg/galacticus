@@ -1067,6 +1067,7 @@
     <componentDarkMatterProfile value="scale"/>
     <componentDisk value="null"/>
     <componentHotHalo value="null"/>
+    <hotHaloMassDistribution value="null"/>
     <componentSatellite value="orbiting"/>
     <componentSpheroid value="null"/>
     <spheroidMassDistribution value="hernquist">
@@ -1160,7 +1161,6 @@
       <redshiftReionization value="10.5"/>
       <velocitySuppressionReionization value="35.0"/>
     </accretionHalo>
-    <hotHaloMassDistribution value="null"/>
     <satelliteOrbitStoreOrbitalParameters value="true"/>
     <mergerRemnantSize value="null"/>
   </parameters>
@@ -1251,6 +1251,7 @@
     <componentDarkMatterProfile value="null"/>
     <componentDisk value="null"/>
     <componentHotHalo value="null"/>
+    <hotHaloMassDistribution value="null"/>
     <componentPosition value="null"/>
     <componentSatellite value="standard"/>
     <componentSpheroid value="null"/>
@@ -1290,6 +1291,7 @@
       </outputTimes>
     </mergerTreeOperator>
     <nodeOperator value="null"/>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1337,6 +1339,7 @@
       <progenitorRedshifts value="0.508591 1.077875"/>
     </mergerTreeOperator>
     <nodeOperator value="null"/>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1373,6 +1376,7 @@
     </mergerTreeMassResolution>
     <mergerTreeOperator value="informationContent"/>
     <nodeOperator value="null"/>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1412,6 +1416,7 @@
       <massMaximum value="6.0e12"/>
     </mergerTreeOperator>
     <nodeOperator value="null"/>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1450,6 +1455,7 @@
       <massThreshold value="1.0e11"/>
     </mergerTreeOperator>
     <nodeOperator value="null"/>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1488,6 +1494,7 @@
       <hierarchyDepth value="1"/>
     </mergerTreeOperator>
     <nodeOperator value="null"/>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1526,6 +1533,7 @@
       <redshiftEarliest value="1.0"/>
     </mergerTreeOperator>
     <nodeOperator value="null"/>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1570,6 +1578,7 @@
       <nonCosmological value="true"/>
     </mergerTreeOperator>
     <nodeOperator value="null"/>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1608,6 +1617,7 @@
       <path value="testSuite/outputs"/>
     </mergerTreeOperator>
     <nodeOperator value="null"/>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1662,6 +1672,7 @@
       </nbodyHaloMassError>
     </mergerTreeOperator>
     <nodeOperator value="null"/>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1712,6 +1723,7 @@
     </mergerTreeEvolver>
     <mergerTreeOperator value="monotonizeMassGrowth"/>
     <nodeOperator value="null"/>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1765,6 +1777,7 @@
       <fileName value="testSuite/outputs/rootMasses.hdf5"/>
     </mergerTreeOperator>
     <nodeOperator value="hierarchy"/>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1785,6 +1798,7 @@
       <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
     </nodeOperator>
+    <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentHotHalo value="null"/>
     <componentBlackHole value="null"/>

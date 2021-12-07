@@ -128,6 +128,7 @@
 
   <!-- Halo accretion options -->
   <accretionHalo           value="zero"/>
+  <hotHaloMassDistribution value="null"/>
 
   <!-- Satellite orbits -->
   <virialOrbit value="spinCorrelated">

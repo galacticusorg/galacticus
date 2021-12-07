@@ -86,6 +86,7 @@
 
   <!-- Halo accretion options -->
   <accretionHalo value="zero"/>
+  <hotHaloMassDistribution value="null"/>
 
   <!-- Satellite orbit options -->
   <satelliteOrbitStoreOrbitalParameters value="true"/>
