@@ -365,19 +365,23 @@ contains
     <objectDestructor name="self%posteriorSampleDffrntlEvltnRandomJump_"  />
     <objectDestructor name="self%randomNumberGenerator_"                  />
     !!]
-    do i=1,size(self%modelParametersActive_  )
-       !![
-       <objectDestructor name="self%modelParametersActive_  (i)%modelParameter_"/>
-       !!]
-    end do
-    do i=1,size(self%modelParametersInactive_)
-       !![
-       <objectDestructor name="self%modelParametersInactive_(i)%modelParameter_"/>
-       !!]
-    end do
-    deallocate(self%modelParametersActive_  )
-    deallocate(self%modelParametersInactive_)
-    return
+    if (allocated(self%modelParametersActive_  )) then
+       do i=1,size(self%modelParametersActive_  )
+          !![
+	  <objectDestructor name="self%modelParametersActive_  (i)%modelParameter_"/>
+          !!]
+       end do
+       deallocate(self%modelParametersActive_  )
+    end if
+    if (allocated(self%modelParametersInactive_)) then
+       do i=1,size(self%modelParametersInactive_)
+          !![
+	  <objectDestructor name="self%modelParametersInactive_(i)%modelParameter_"/>
+          !!]
+       end do
+       deallocate(self%modelParametersInactive_)
+     end if
+     return
   end subroutine differentialEvolutionDestructor
 
   subroutine differentialEvolutionSimulate(self)
