@@ -686,7 +686,13 @@ contains
                               &                                                      /sqrt(2.0_kind_quad*varianceTableRateQuad(i)) &
                               &                                                     )                                              &
                               &                        -sigma1f
-                         if (firstCrossingTableRateQuad(i) > 0.0d0 .and. integralKernelRate > 0.0d0) then
+                         if     (                                                                                                                                   &
+                              &   firstCrossingTableRateQuad(i)                                                                        > 0.0d0                      &
+                              &  .and.                                                                                                                              &
+                              &   integralKernelRate                                                                                   > 0.0d0                      &
+                              &  .and.                                                                                                                              &
+                              &   exponent(firstCrossingTableRateQuad(i))-exponent(varianceTableStepRate)-exponent(integralKernelRate) < maxExponent(0.0_kind_quad) &
+                              & ) then
                             firstCrossingTableRateQuad(i)=+firstCrossingTableRateQuad(i) &
                                  &                        /varianceTableStepRate         &
                                  &                        /integralKernelRate
