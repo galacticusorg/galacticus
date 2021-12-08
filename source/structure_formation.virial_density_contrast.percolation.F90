@@ -39,11 +39,10 @@
     found by requiring that the halo contain the required mass within such a bounding density, given the halo density profile.
    </description>
    <deepCopy>
-    <ignore   variables="recursiveSelf"                                                                       />
-    <deepCopy variables="percolationObjects_" function="percolationObjectsDeepCopy_" module="Functions_Global"/>
+    <ignore   variables="recursiveSelf"/>
    </deepCopy>
    <stateStorable>
-     <exclude variables="recursiveSelf"                                                                       />
+     <exclude variables="recursiveSelf"/>
    </stateStorable>
   </virialDensityContrast>
   !!]
