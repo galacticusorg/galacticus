@@ -528,7 +528,7 @@ $(BUILDPATH)/galacticus.output.build.environment.inc:
 # Rules for changeset creation.
 Galacticus.exe: $(BUILDPATH)/galacticus.git.patch $(BUILDPATH)/galacticus.git.bundle
 $(BUILDPATH)/galacticus.git.patch:
-	git diff > $(BUILDPATH)/galacticus.git.patch || echo unknown > $(BUILDPATH)/galacticus.git.patch
+	git diff > $(BUILDPATH)/galacticus.git.patch 2>&1 || echo unknown > $(BUILDPATH)/galacticus.git.patch
 $(BUILDPATH)/galacticus.git.bundle:
 	git bundle create $(BUILDPATH)/galacticus.git.bundle HEAD ^origin > /dev/null 2>&1 || echo unknown > $(BUILDPATH)/galacticus.git.bundle
 
