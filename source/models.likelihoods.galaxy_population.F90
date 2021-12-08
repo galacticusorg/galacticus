@@ -188,7 +188,7 @@ contains
 #endif
     real                                                                                       :: timeBegin             , timeEnd
     double precision                                                                           :: logLikelihoodProposed , valueDerived
-    type            (inputParameters                          )                                :: parameters_
+    type            (inputParameters                          )                                :: parameters_           , subParameters_
     character       (len=10                                   )                                :: labelIndex
     character       (len=24                                   )                                :: valueText
     logical                                                                                    :: firstIteration        , dependenciesResolved    , &
@@ -236,11 +236,12 @@ contains
              end if
              if (j == parameterCount) then
                 ! This is the final parameter - so get and store a pointer to its node.
-                self%modelParametersActive_(i)%parameter_   => parameters_%node         (char(parameterNames(j)),requireValue=.true. ,copyInstance=instance)
+                self%modelParametersActive_(i)%parameter_   => parameters_     %node         (char(parameterNames(j)),requireValue=.true. ,copyInstance=instance)
                 self%modelParametersActive_(i)%indexElement =  indexElement
              else
                 ! This is an intermediate parameter, get the appropriate sub-parameters.
-                parameters_                                 =  parameters_%subParameters(char(parameterNames(j)),requireValue=.false.,copyInstance=instance)
+                subParameters_                                =  parameters_   %subParameters(char(parameterNames(j)),requireValue=.false.,copyInstance=instance)
+                parameters_                                   =  subParameters_
              end if
           end do
           deallocate(parameterNames)
@@ -269,11 +270,12 @@ contains
              end if
              if (j == parameterCount) then
                 ! This is the final parameter - so get and store a pointer to its node.
-                self%modelParametersInactive_(i)%parameter_   => parameters_%node         (char(parameterNames(j)),requireValue=.true. ,copyInstance=instance)
+                self%modelParametersInactive_(i)%parameter_   => parameters_   %node         (char(parameterNames(j)),requireValue=.true. ,copyInstance=instance)
                 self%modelParametersInactive_(i)%indexElement =  indexElement
              else
                 ! This is an intermediate parameter, get the appropriate sub-parameters.
-                parameters_                                   =  parameters_%subParameters(char(parameterNames(j)),requireValue=.false.,copyInstance=instance)
+                subParameters_                                =  parameters_   %subParameters(char(parameterNames(j)),requireValue=.false.,copyInstance=instance)
+                parameters_                                   =  subParameters_
              end if
           end do
           deallocate(parameterNames)
