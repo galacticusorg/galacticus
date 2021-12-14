@@ -25,6 +25,7 @@
 
   use :: Cosmology_Parameters   , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Galactic_Structure     , only : galacticStructureClass
   use :: Kind_Numbers           , only : kind_int8
   use :: Root_Finder            , only : rootFinder
 
@@ -48,6 +49,7 @@
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     class           (galacticStructureClass  ), pointer :: galacticStructure_   => null()
      double precision                                    :: radiusTidalPrevious           , expandMultiplier, &
           &                                                 fractionDarkMatter
      integer         (kind_int8               )          :: lastUniqueID
@@ -73,9 +75,10 @@
   end interface satelliteTidalStrippingRadiusKing1962
 
   ! Module-scope objects used for root finding.
-  type            (treeNode), pointer :: king1962Node
-  double precision                    :: king1962TidalPull
-  !$omp threadprivate(king1962Node,king1962TidalPull)
+  class           (satelliteTidalStrippingRadiusKing1962), pointer :: king1962Self
+  type            (treeNode                             ), pointer :: king1962Node
+  double precision                                                 :: king1962TidalPull
+  !$omp threadprivate(king1962Node,king1962TidalPull,king1962Self)
 
 contains
 
@@ -89,21 +92,24 @@ contains
     type (inputParameters                      ), intent(inout) :: parameters
     class(cosmologyParametersClass             ), pointer       :: cosmologyParameters_
     class(darkMatterHaloScaleClass             ), pointer       :: darkMatterHaloScale_
+    class(galacticStructureClass               ), pointer       :: galacticStructure_
 
     !![
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=satelliteTidalStrippingRadiusKing1962(cosmologyParameters_,darkMatterHaloScale_)
+    self=satelliteTidalStrippingRadiusKing1962(cosmologyParameters_,darkMatterHaloScale_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
     <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function king1962ConstructorParameters
 
-  function king1962ConstructorInternal(cosmologyParameters_,darkMatterHaloScale_) result(self)
+  function king1962ConstructorInternal(cosmologyParameters_,darkMatterHaloScale_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily king1962} satellite tidal stripping class.
     !!}
@@ -111,9 +117,10 @@ contains
     type            (satelliteTidalStrippingRadiusKing1962)                        :: self
     class           (cosmologyParametersClass             ), intent(in   ), target :: cosmologyParameters_
     class           (darkMatterHaloScaleClass             ), intent(in   ), target :: darkMatterHaloScale_
+    class           (galacticStructureClass               ), intent(in   ), target :: galacticStructure_
     double precision                                       , parameter             :: toleranceAbsolute   =0.0d0, toleranceRelative=1.0d-3
     !![
-    <constructorAssign variables="*cosmologyParameters_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="*cosmologyParameters_, *darkMatterHaloScale_, *galacticStructure_"/>
     !!]
 
     self%fractionDarkMatter=+(                                         & 
@@ -153,6 +160,7 @@ contains
     !![
     <objectDestructor name="self%darkMatterHaloScale_"/>
     <objectDestructor name="self%darkMatterHaloScale_"/>
+    <objectDestructor name="self%galacticStructure_"  />
     !!]
     if (calculationResetEvent%isAttached(self,king1962CalculationReset)) call calculationResetEvent%detach(self,king1962CalculationReset)
     return
@@ -185,20 +193,18 @@ contains
     largest positive eigenvalue, not the largest absolute eigenvalue as we're interested in stretching tidal fields, not
     compressive ones.)
     !!}
-    use :: Galacticus_Error                  , only : Galacticus_Error_Report         , errorStatusSuccess
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
-    use :: Galactic_Structure_Options        , only : coordinateSystemCartesian       , massTypeDark
-    use :: Galactic_Structure_Tidal_Tensors  , only : Galactic_Structure_Tidal_Tensor
-    use :: Galacticus_Nodes                  , only : nodeComponentSatellite          , nodeComponentBasic                      , treeNode
-    use :: Linear_Algebra                    , only : vector                          , matrix                                  , assignment(=)
-    use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec                              , gravitationalConstantGalacticus
-    use :: Numerical_Constants_Math          , only : Pi
-    use :: Numerical_Constants_Prefixes      , only : kilo
-    use :: Root_Finder                       , only : rangeExpandMultiplicative       , rangeExpandSignExpectNegative           , rangeExpandSignExpectPositive
-    use :: Tensors                           , only : assignment(=)                   , tensorRank2Dimension3Symmetric
-    use :: Vectors                           , only : Vector_Magnitude                , Vector_Product
+    use :: Galacticus_Error                , only : Galacticus_Error_Report  , errorStatusSuccess
+    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian, massTypeDark
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite   , nodeComponentBasic            , treeNode
+    use :: Linear_Algebra                  , only : vector                   , matrix                        , assignment(=)
+    use :: Numerical_Constants_Astronomical, only : gigaYear                 , megaParsec                    , gravitationalConstantGalacticus
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Root_Finder                     , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative , rangeExpandSignExpectPositive
+    use :: Tensors                         , only : assignment(=)            , tensorRank2Dimension3Symmetric
+    use :: Vectors                         , only : Vector_Magnitude         , Vector_Product
     implicit none
-    class           (satelliteTidalStrippingRadiusKing1962), intent(inout)         :: self
+    class           (satelliteTidalStrippingRadiusKing1962), intent(inout), target :: self
     type            (treeNode                             ), intent(inout), target :: node
     type            (treeNode                             ), pointer               :: nodeHost
     class           (nodeComponentBasic                   ), pointer               :: basic
@@ -206,7 +212,7 @@ contains
     double precision                                       , dimension(3  )        :: position                               , velocity                        , &
          &                                                                            tidalTensorEigenValueComponents
     double precision                                       , dimension(3,3)        :: tidalTensorComponents                  , tidalTensorEigenVectorComponents
-    double precision                                       , parameter             :: radiusZero                      =0.0d0
+    double precision                                       , parameter             :: radiusZero                      =0.0d+0
     double precision                                       , parameter             :: radiusTidalTinyFraction         =1.0d-6
     integer                                                                        :: status
     double precision                                                               :: massSatellite                          , frequencyAngular                , &
@@ -241,7 +247,7 @@ contains
     ! distributions this reduces to:
     !
     ! -2GM(r)r⁻³ - 4πGρ(r)
-    tidalTensor                     = Galactic_Structure_Tidal_Tensor(nodeHost,position)
+    tidalTensor                     = self%galacticStructure_%tidalTensor(nodeHost,position)
     tidalTensorComponents           = tidalTensor
     tidalTensorMatrix               = tidalTensorComponents
     call tidalTensorMatrix%eigenSystem(tidalTensorEigenVectors,tidalTensorEigenValues)
@@ -254,12 +260,12 @@ contains
          &                             /megaParsec                                                                                                      &
          &                            )**2
     ! If the tidal force is stretching (not compressing), compute the tidal radius.
-    if     (                                                                      &
-         &   frequencyAngular**2                               > tidalFieldRadial &
-         &  .and.                                                                 &
-         &   massSatellite                                     >  0.0d0           &
-         &  .and.                                                                 &
-         &   Galactic_Structure_Enclosed_Mass(node,radiusZero) >= 0.0d0           &
+    if     (                                                                          &
+         &   frequencyAngular**2                                   > tidalFieldRadial &
+         &  .and.                                                                     &
+         &   massSatellite                                         >  0.0d0           &
+         &  .and.                                                                     &
+         &   self%galacticStructure_%massEnclosed(node,radiusZero) >= 0.0d0           &
          & ) then
        ! Check if node differs from previous one for which we performed calculations.
        if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
@@ -285,6 +291,7 @@ contains
             &                       rangeDownwardLimit           = radiusLimitDownward          , &
             &                       rangeExpandType              = rangeExpandMultiplicative      &
             &                      )
+       king1962Self => self
        king1962Node => node
        ! Find the tidal radius, using the previous result as an initial guess.
        self%radiusTidalPrevious=self%finder%find(rootGuess=self%radiusTidalPrevious,status=status)
@@ -303,9 +310,9 @@ contains
        ! the virial radius. Otherwise, solve for the radius enclosing the current bound mass.
        basic => node%basic()
        if (massSatellite > basic%mass()) then
-          king1962Radius=self%darkMatterHaloScale_%virialRadius(node)
+          king1962Radius=self%darkMatterHaloScale_%virialRadius       (node                                                            )
        else
-          king1962Radius=Galactic_Structure_Radius_Enclosing_Mass(node,massSatellite*self%fractionDarkMatter,massType=massTypeDark)
+          king1962Radius=self%galacticStructure_  %radiusEnclosingMass(node,massSatellite*self%fractionDarkMatter,massType=massTypeDark)
        end if
     end if
     return
@@ -315,15 +322,14 @@ contains
     !!{
     Root function used to find the tidal radius within a subhalo.
     !!}
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus , gigaYear, megaParsec  
-    use :: Numerical_Constants_Prefixes      , only : kilo
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus , gigaYear, megaParsec  
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     double precision, intent(in   ) :: radius
     double precision                :: enclosedMass
 
     ! Get the satellite component.
-    enclosedMass             =+Galactic_Structure_Enclosed_Mass(king1962Node,radius)
+    enclosedMass             =+king1962Self%galacticStructure_%massEnclosed(king1962Node,radius)
     king1962TidalRadiusSolver=+king1962TidalPull                  &
          &                    -gravitationalConstantGalacticus    &
          &                    *enclosedMass                       &

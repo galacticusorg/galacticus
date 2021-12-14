@@ -41,6 +41,7 @@ module Satellite_Merging_Progenitor_Properties
     <description>alculates progenitor properties for merger calculations.</description>
     <type>void</type>
     <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
     <argument>type            (treeNode), intent(inout), target :: nodeSatellite            , nodeHost              </argument>
     <argument>double precision          , intent(  out)         :: massSatellite            , massHost              </argument>
     <argument>double precision          , intent(  out)         :: massSpheroidSatellite    , massSpheroidHost      </argument>

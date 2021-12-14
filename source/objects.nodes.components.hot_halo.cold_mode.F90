@@ -30,6 +30,7 @@ module Node_Component_Hot_Halo_Cold_Mode
   use :: Accretion_Halos               , only : accretionHaloClass
   use :: Cooling_Cold_Mode_Infall_Rates, only : coldModeInfallRateClass
   use :: Cosmology_Parameters          , only : cosmologyParametersClass
+  use :: Galactic_Structure            , only : galacticStructureClass
   implicit none
   private
   public :: Node_Component_Hot_Halo_Cold_Mode_Initialize       , Node_Component_Hot_Halo_Cold_Mode_Rate_Compute       , &
@@ -84,7 +85,8 @@ module Node_Component_Hot_Halo_Cold_Mode
   class(accretionHaloClass      ), pointer :: accretionHalo_
   class(coldModeInfallRateClass ), pointer :: coldModeInfallRate_
   class(cosmologyParametersClass), pointer :: cosmologyParameters_
-  !$omp threadprivate(accretionHalo_,coldModeInfallRate_,cosmologyParameters_)
+  class(galacticStructureClass  ), pointer :: galacticStructure_
+  !$omp threadprivate(accretionHalo_,coldModeInfallRate_,cosmologyParameters_,galacticStructure_)
 
   ! Options controlling the behavior of the cold mode gas.
   logical :: hotHaloOutflowToColdMode
@@ -158,6 +160,7 @@ contains
        <objectBuilder class="accretionHalo"            name="accretionHalo_"            source="parameters_"/>
        <objectBuilder class="coldModeInfallRate"       name="coldModeInfallRate_"       source="parameters_"/>
        <objectBuilder class="hotHaloColdModeCoreRadii" name="hotHaloColdModeCoreRadii_" source="parameters_"/>
+       <objectBuilder class="galacticStructure"        name="galacticStructure_"        source="parameters_"/>
        !!]
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call nodePromotionEvent  %attach(defaultHotHaloComponent,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloColdMode'                          )
@@ -187,6 +190,7 @@ contains
        <objectDestructor name="accretionHalo_"           />
        <objectDestructor name="coldModeInfallRate_"      />
        <objectDestructor name="hotHaloColdModeCoreRadii_"/>
+       <objectDestructor name="galacticStructure_"       />
        !!]
        if (nodePromotionEvent  %isAttached(defaultHotHaloComponent,nodePromotion  )) call nodePromotionEvent  %detach(defaultHotHaloComponent,nodePromotion  )
        if (satelliteMergerEvent%isAttached(defaultHotHaloComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultHotHaloComponent,satelliteMerger)
@@ -265,7 +269,6 @@ contains
     !!}
     use :: Abundances_Structure                             , only : abs
     use :: Accretion_Halos                                  , only : accretionModeCold
-    use :: Galactic_Structure_Densities                     , only : Galactic_Structure_Density
     use :: Galactic_Structure_Options                       , only : componentTypeColdHalo            , coordinateSystemSpherical         , massTypeGaseous
     use :: Galacticus_Nodes                                 , only : defaultHotHaloComponent          , interruptTask                     , nodeComponentBasic, nodeComponentHotHalo, &
           &                                                          nodeComponentHotHaloColdMode     , propertyTypeInactive              , treeNode          , nodeComponentSpin
@@ -331,7 +334,7 @@ contains
                &   outerRadius           > outerRadiusOverVirialRadiusMinimum*darkMatterHaloScale_%virialRadius(node) &
                & ) then
              ! The ram pressure stripping radius is within the outer radius. Remove mass from the cold mode halo at the appropriate rate.
-             densityAtOuterRadius = Galactic_Structure_Density(node,[outerRadius,0.0d0,0.0d0],coordinateSystemSpherical,componentTypeColdHalo,massTypeGaseous)
+             densityAtOuterRadius=galacticStructure_%density(node,[outerRadius,0.0d0,0.0d0],coordinateSystemSpherical,componentTypeColdHalo,massTypeGaseous)
              ! Compute the mass loss rate.
              massLossRate=4.0d0*Pi*densityAtOuterRadius*outerRadius**2*outerRadiusGrowthRate
              ! Adjust the rates.
@@ -355,15 +358,14 @@ contains
     !!{
     Return outflowed gas to the cold mode reservoir.
     !!}
-    use :: Abundances_Structure                             , only : abundances                , max                      , operator(*)
-    use :: Galactic_Structure_Densities                     , only : Galactic_Structure_Density
-    use :: Galactic_Structure_Options                       , only : componentTypeColdHalo     , coordinateSystemSpherical, massTypeGaseous
+    use :: Abundances_Structure                             , only : abundances              , max                      , operator(*)
+    use :: Galactic_Structure_Options                       , only : componentTypeColdHalo   , coordinateSystemSpherical, massTypeGaseous
     use :: Galacticus_Error                                 , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes                                 , only : interruptTask             , nodeComponentBasic       , nodeComponentHotHaloColdMode, nodeComponentHotHaloStandard, &
+    use :: Galacticus_Nodes                                 , only : interruptTask           , nodeComponentBasic       , nodeComponentHotHaloColdMode, nodeComponentHotHaloStandard, &
           &                                                          treeNode
-    use :: Node_Component_Hot_Halo_Standard_Data            , only : hotHaloOutflowReturnRate  , starveSatellites
+    use :: Node_Component_Hot_Halo_Standard_Data            , only : hotHaloOutflowReturnRate, starveSatellites
     use :: Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks, only : darkMatterHaloScale_
-    use :: Numerical_Constants_Astronomical                 , only : gigaYear                  , megaParsec
+    use :: Numerical_Constants_Astronomical                 , only : gigaYear                , megaParsec
     use :: Numerical_Constants_Math                         , only : Pi
     use :: Numerical_Constants_Prefixes                     , only : kilo
     implicit none
@@ -401,7 +403,7 @@ contains
        outerRadius =self%outerRadius()
        radiusVirial=darkMatterHaloScale_%virialRadius(node)
        if (outerRadius < radiusVirial) then
-          densityAtOuterRadius=Galactic_Structure_Density(node,[outerRadius,0.0d0,0.0d0],coordinateSystemSpherical,componentTypeColdHalo,massTypeGaseous)
+          densityAtOuterRadius=galacticStructure_%density(node,[outerRadius,0.0d0,0.0d0],coordinateSystemSpherical,componentTypeColdHalo,massTypeGaseous)
           ! If the outer radius and density are non-zero we can expand the outer radius at a rate determined by the current
           ! density profile.
           if (outerRadius > 0.0d0 .and. densityAtOuterRadius > 0.0d0) then
@@ -546,7 +548,6 @@ contains
     !!}
     use :: Abundances_Structure                 , only : abundances                          , operator(*)            , zeroAbundances
     use :: Accretion_Halos                      , only : accretionModeCold                   , accretionModeTotal
-    use :: Galactic_Structure_Enclosed_Masses   , only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options           , only : componentTypeAll                    , massTypeBaryonic       , radiusLarge
     use :: Galacticus_Nodes                     , only : nodeComponentBasic                  , nodeComponentHotHalo   , nodeComponentHotHaloColdMode, nodeComponentSpin, &
           &                                              treeNode                            , defaultHotHaloComponent
@@ -650,15 +651,15 @@ contains
           ! Check if the baryon fraction in the parent hot halo exceeds the universal value. If it does, mitigate this by moving
           ! some of the mass to the failed accretion reservoir.
           if (hotHaloNodeMergerLimitBaryonFraction) then
-             baryonicMassMaximum=+basicParent         %mass       () &
-                  &              *cosmologyParameters_%omegaBaryon() &
-                  &              /cosmologyParameters_%omegaMatter()
-             baryonicMassCurrent= Galactic_Structure_Enclosed_Mass(                                &
-                  &                                                   nodeParent                    , &
-                  &                                                   radiusLarge                   , &
-                  &                                                   massType     =massTypeBaryonic, &
-                  &                                                   componentType=componentTypeAll  &
-                  &                                                  )
+             baryonicMassMaximum=+basicParent         %mass        () &
+                  &              *cosmologyParameters_%omegaBaryon () &
+                  &              /cosmologyParameters_%omegaMatter ()
+             baryonicMassCurrent= galacticStructure_  %massEnclosed(                                &
+                  &                                                 nodeParent                    , &
+                  &                                                 radiusLarge                   , &
+                  &                                                 massType     =massTypeBaryonic, &
+                  &                                                 componentType=componentTypeAll  &
+                  &                                                )
              if (baryonicMassCurrent > baryonicMassMaximum .and. hotHaloParent%mass()+hotHaloParent%massCold() > 0.0d0) then
                 fractionRemove=min((baryonicMassCurrent-baryonicMassMaximum)/hotHaloParent%massTotal(),1.0d0)
                 call hotHaloParent%     unaccretedMassSet(                                                            &

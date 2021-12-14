@@ -23,6 +23,7 @@
 
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Galactic_Structure      , only : galacticStructureClass
 
   !![
   <satelliteMergingTimescales name="satelliteMergingTimescalesBoylanKolchin2008">
@@ -39,6 +40,7 @@
      private
      class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
+     class           (galacticStructureClass   ), pointer :: galacticStructure_    => null()
      double precision                                     :: timescaleMultiplier
    contains
      final     ::                     boylanKolchin2008Destructor
@@ -66,6 +68,7 @@ contains
     type            (inputParameters                            ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass                   ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass                  ), pointer       :: darkMatterProfileDMO_
+    class           (galacticStructureClass                     ), pointer       :: galacticStructure_
     double precision                                                             :: timescaleMultiplier
 
     !![
@@ -77,17 +80,19 @@ contains
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    <objectBuilder class="galacticStructure"    name="galacticStructure_"    source="parameters"/>
     !!]
-    self=satelliteMergingTimescalesBoylanKolchin2008(timescaleMultiplier,darkMatterHaloScale_,darkMatterProfileDMO_)
+    self=satelliteMergingTimescalesBoylanKolchin2008(timescaleMultiplier,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloScale_" />
     <objectDestructor name="darkMatterProfileDMO_"/>
+    <objectDestructor name="galacticStructure_"   />
     !!]
     return
   end function boylanKolchin2008ConstructorParameters
 
-  function boylanKolchin2008ConstructorInternal(timescaleMultiplier,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
+  function boylanKolchin2008ConstructorInternal(timescaleMultiplier,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_) result(self)
     !!{
     Default constructor for the {\normalfont \ttfamily boylanKolchin2008} satellite merging timescale class.
     !!}
@@ -96,8 +101,9 @@ contains
     double precision                                             , intent(in   )         :: timescaleMultiplier
     class           (darkMatterHaloScaleClass                   ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass                  ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (galacticStructureClass                     ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="timescaleMultiplier, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="timescaleMultiplier, *darkMatterHaloScale_, *darkMatterProfileDMO_, *galacticStructure_"/>
     !!]
 
     return
@@ -113,6 +119,7 @@ contains
     !![
     <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
+    <objectDestructor name="self%galacticStructure_"   />
     !!]
     return
   end subroutine boylanKolchin2008Destructor
@@ -151,7 +158,7 @@ contains
     velocityScale=self%darkMatterHaloScale_%virialVelocity(nodeHost)
     radialScale  =self%darkMatterHaloScale_%virialRadius  (nodeHost)
     ! Get the equivalent circular orbit.
-    equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,self%darkMatterHaloScale_,self%darkMatterProfileDMO_,errorCode)
+    equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,self%darkMatterHaloScale_,self%darkMatterProfileDMO_,self%galacticStructure_,errorCode)
     ! Check error codes.
     select case (errorCode)
     case (errorCodeOrbitUnbound     )

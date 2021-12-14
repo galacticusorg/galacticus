@@ -25,6 +25,7 @@
 
   use :: Cosmology_Parameters   , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Galactic_Structure     , only : galacticStructureClass
 
   !![
   <satelliteTidalHeatingRate name="satelliteTidalHeatingRateGnedin1999">
@@ -51,6 +52,7 @@
      private
      class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
      class           (darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_ => null()
+     class           (galacticStructureClass  ), pointer :: galacticStructure_   => null()
      double precision                                    :: epsilon                       , gamma
    contains
      final     ::                gnedin1999Destructor
@@ -77,6 +79,7 @@ contains
     type            (inputParameters                    ), intent(inout) :: parameters
     class           (cosmologyParametersClass           ), pointer       :: cosmologyParameters_
     class           (darkMatterHaloScaleClass           ), pointer       :: darkMatterHaloScale_
+    class           (galacticStructureClass             ), pointer       :: galacticStructure_
     double precision                                                     :: epsilon             , gamma
 
     !![
@@ -94,17 +97,19 @@ contains
     </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=satelliteTidalHeatingRateGnedin1999(epsilon,gamma,cosmologyParameters_,darkMatterHaloScale_)
+    self=satelliteTidalHeatingRateGnedin1999(epsilon,gamma,cosmologyParameters_,darkMatterHaloScale_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
     <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function gnedin1999ConstructorParameters
 
-  function gnedin1999ConstructorInternal(epsilon,gamma,cosmologyParameters_,darkMatterHaloScale_) result(self)
+  function gnedin1999ConstructorInternal(epsilon,gamma,cosmologyParameters_,darkMatterHaloScale_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily gnedin1999} satellite tidal heating rate class.
     !!}
@@ -112,9 +117,10 @@ contains
     type            (satelliteTidalHeatingRateGnedin1999)                        :: self
     class           (cosmologyParametersClass           ), intent(in   ), target :: cosmologyParameters_
     class           (darkMatterHaloScaleClass           ), intent(in   ), target :: darkMatterHaloScale_
-    double precision                                     , intent(in)            :: epsilon, gamma
+    class           (galacticStructureClass             ), intent(in   ), target :: galacticStructure_
+    double precision                                     , intent(in)            :: epsilon             , gamma
     !![
-    <constructorAssign variables="epsilon, gamma, *cosmologyParameters_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="epsilon, gamma, *cosmologyParameters_, *darkMatterHaloScale_, *galacticStructure_"/>
     !!]
 
     return
@@ -130,6 +136,7 @@ contains
     !![
     <objectDestructor name="self%cosmologyParameters_"/>
     <objectDestructor name="self%darkMatterHaloScale_"/>
+    <objectDestructor name="self%galacticStructure_"  />
     !!]
     return
   end subroutine gnedin1999Destructor
@@ -138,18 +145,14 @@ contains
     !!{
     Return the tidal heating rate for satellite halos assuming the model of \cite{gnedin_tidal_1999}.
     !!}
-    use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass , Galactic_Structure_Radius_Enclosing_Mass
-    use :: Galactic_Structure_Options        , only : componentTypeAll                 , coordinateSystemCartesian               , massTypeDark
-    use :: Galactic_Structure_Rotation_Curves, only : Galactic_Structure_Rotation_Curve
-    use :: Galactic_Structure_Tidal_Tensors  , only : Galactic_Structure_Tidal_Tensor
-    use :: Galacticus_Nodes                  , only : nodeComponentBasic               , nodeComponentSatellite                  , treeNode
-    use :: Numerical_Constants_Astronomical  , only : gigaYear                         , megaParsec
-    use :: Numerical_Constants_Math          , only : Pi
-    use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus
-    use :: Numerical_Constants_Prefixes      , only : kilo
-    use :: Tensors                           , only : assignment(=)                    , max                                     , operator(*) , tensorRank2Dimension3Symmetric
-    use :: Vectors                           , only : Vector_Magnitude
+    use :: Galactic_Structure_Options      , only : componentTypeAll               , coordinateSystemCartesian, massTypeDark
+    use :: Galacticus_Nodes                , only : nodeComponentBasic             , nodeComponentSatellite   , treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Tensors                         , only : assignment(=)                  , max                      , operator(*) , tensorRank2Dimension3Symmetric
+    use :: Vectors                         , only : Vector_Magnitude
     implicit none
     class           (satelliteTidalHeatingRateGnedin1999), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node
@@ -180,7 +183,7 @@ contains
          &                        )                                         &
          &                       /  self%cosmologyParameters_%OmegaMatter()
     ! Find the gravitational tidal tensor.
-    tidalTensor=Galactic_Structure_Tidal_Tensor         (nodeHost,position)
+    tidalTensor              =  self%galacticStructure_%tidalTensor(nodeHost,position)
     ! Find the orbital frequency at the half mass radius of the satellite.
     basic                    => node%basic()
     satelliteHalfMass        =  +0.50d0             &
@@ -189,18 +192,18 @@ contains
          &                           satelliteMass, &
          &                           basic%mass()   &
          &                      )
-    radiusHalfMassSatellite  =  Galactic_Structure_Radius_Enclosing_Mass(                                         &
-         &                                                             node                                     , &
-         &                                                             mass                   =satelliteHalfMass, &
-         &                                                             componentType          =componentTypeAll , &
-         &                                                             massType               =massTypeDark       &
-         &                                                            )
-    velocityCircularSatellite=Galactic_Structure_Rotation_Curve       (                                           &
-         &                                                             node                                     , &
-         &                                                             radiusHalfMassSatellite                  , &
-         &                                                             componentType          =componentTypeAll , &
-         &                                                             massType               =massTypeDark       &
-         &                                                            )
+    radiusHalfMassSatellite  =  self%galacticStructure_%radiusEnclosingMass(                                            &
+         &                                                                   node                                     , &
+         &                                                                   mass                   =satelliteHalfMass, &
+         &                                                                   componentType          =componentTypeAll , &
+         &                                                                   massType               =massTypeDark       &
+         &                                                                  )
+    velocityCircularSatellite=  self%galacticStructure_%velocityRotation    (                                           &
+         &                                                                   node                                     , &
+         &                                                                   radiusHalfMassSatellite                  , &
+         &                                                                   componentType          =componentTypeAll , &
+         &                                                                   massType               =massTypeDark       &
+         &                                                                  )
     if (radiusHalfMassSatellite > 0.0d0) then
        ! Compute the orbital frequency.
        orbitalFrequencySatellite =  +velocityCircularSatellite &

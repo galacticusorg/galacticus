@@ -22,6 +22,7 @@
   !!}
 
   use :: Hot_Halo_Mass_Distributions, only : hotHaloMassDistributionClass
+  use :: Galactic_Structure         , only : galacticStructureClass
 
   !![
   <hotHaloRamPressureForce name="hotHaloRamPressureForceFont2008">
@@ -42,6 +43,7 @@
      !!}
      private
      class(hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_ => null()
+     class(galacticStructureClass      ), pointer :: galacticStructure_       => null()
    contains
      final     ::          font2008Destructor
      procedure :: force => font2008Force
@@ -66,27 +68,31 @@ contains
     type (hotHaloRamPressureForceFont2008)                :: self
     type (inputParameters                ), intent(inout) :: parameters
     class(hotHaloMassDistributionClass   ), pointer       :: hotHaloMassDistribution_
+    class(galacticStructureClass         ), pointer       :: galacticStructure_
 
     !![
     <objectBuilder class="hotHaloMassDistribution" name="hotHaloMassDistribution_" source="parameters"/>
+    <objectBuilder class="galacticStructure"       name="galacticStructure_"       source="parameters"/>
     !!]
-    self=hotHaloRamPressureForceFont2008(hotHaloMassDistribution_)
+    self=hotHaloRamPressureForceFont2008(hotHaloMassDistribution_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="hotHaloMassDistribution_"/>
+    <objectDestructor name="galacticStructure_"      />
     !!]
     return
   end function font2008ConstructorParameters
 
-  function font2008ConstructorInternal(hotHaloMassDistribution_) result(self)
+  function font2008ConstructorInternal(hotHaloMassDistribution_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily font2008} hot halo ram pressure force class.
     !!}
     implicit none
     type (hotHaloRamPressureForceFont2008)                        :: self
     class(hotHaloMassDistributionClass   ), intent(in   ), target :: hotHaloMassDistribution_
+    class(galacticStructureClass         ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="*hotHaloMassDistribution_"/>
+    <constructorAssign variables="*hotHaloMassDistribution_, *galacticStructure_"/>
     !!]
 
     return
@@ -101,6 +107,7 @@ contains
 
     !![
     <objectDestructor name="self%hotHaloMassDistribution_"/>
+    <objectDestructor name="self%galacticStructure_"      />
     !!]
     return
   end subroutine font2008Destructor
@@ -127,7 +134,7 @@ contains
     ! Get the orbit for this node.
     orbit     =  satellite%virialOrbit()
     ! Get the orbital radius and velocity at pericenter.
-    call Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumPericenter,radiusOrbital,velocityOrbital)
+    call Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumPericenter,radiusOrbital,velocityOrbital,self%galacticStructure_)
     ! Find the ram pressure force at pericenter.
     font2008Force=+self%hotHaloMassDistribution_%density(nodeHost,radiusOrbital) &
          &        *velocityOrbital**2

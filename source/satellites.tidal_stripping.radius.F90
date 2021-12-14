@@ -42,6 +42,7 @@ module Satellite_Tidal_Stripping_Radii
     <description>Returns the tidal radius for {\normalfont \ttfamily node} (in units of Mpc).</description>
     <type>double precision</type>
     <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
     <argument>type(treeNode), intent(inout), target :: node</argument>
    </method>
   </functionClass>

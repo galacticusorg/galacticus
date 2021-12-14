@@ -22,6 +22,7 @@
   use :: Cosmology_Parameters      , only : cosmologyParameters         , cosmologyParametersClass
   use :: Dark_Matter_Profile_Scales, only : darkMatterProfileScaleRadius, darkMatterProfileScaleRadiusClass
   use :: Dark_Matter_Profiles_DMO  , only : darkMatterProfileDMO        , darkMatterProfileDMOClass
+  use :: Galactic_Structure        , only : galacticStructureClass
   use :: Numerical_Random_Numbers  , only : randomNumberGeneratorClass
 
   !![
@@ -39,6 +40,7 @@
      class           (darkMatterProfileDMOClass        ), pointer :: darkMatterProfileDMO_         => null()
      class           (conditionalMassFunctionClass     ), pointer :: conditionalMassFunction_      => null()
      class           (darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()
+     class           (galacticStructureClass           ), pointer :: galacticStructure_            => null()
      class           (randomNumberGeneratorClass       ), pointer :: randomNumberGenerator_        => null()
      double precision                                             :: massMinimum                             , massMaximum
      type            (varying_string                   )          :: galaxyCatalogFileName                   , haloCatalogFileName
@@ -69,17 +71,18 @@ contains
     use :: Input_Parameters, only : inputParameter              , inputParameters
     use :: Node_Components , only : Node_Components_Initialize
     implicit none
-    type            (taskHaloModelGenerate            )                         :: self
+    type            (taskHaloModelGenerate            )                        :: self
     type            (inputParameters                  ), intent(inout), target :: parameters
-    class           (cosmologyFunctionsClass          ), pointer                :: cosmologyFunctions_
-    class           (cosmologyParametersClass         ), pointer                :: cosmologyParameters_
-    class           (darkMatterProfileDMOClass        ), pointer                :: darkMatterProfileDMO_
-    class           (conditionalMassFunctionClass     ), pointer                :: conditionalMassFunction_
-    class           (darkMatterProfileScaleRadiusClass), pointer                :: darkMatterProfileScaleRadius_
-    class           (randomNumberGeneratorClass       ), pointer                :: randomNumberGenerator_
-    type            (inputParameters                  ), pointer                :: parametersRoot
-    double precision                                                            :: massMinimum                  , massMaximum
-    type            (varying_string                   )                         :: galaxyCatalogFileName        , haloCatalogFileName
+    class           (cosmologyFunctionsClass          ), pointer               :: cosmologyFunctions_
+    class           (cosmologyParametersClass         ), pointer               :: cosmologyParameters_
+    class           (darkMatterProfileDMOClass        ), pointer               :: darkMatterProfileDMO_
+    class           (conditionalMassFunctionClass     ), pointer               :: conditionalMassFunction_
+    class           (darkMatterProfileScaleRadiusClass), pointer               :: darkMatterProfileScaleRadius_
+    class           (randomNumberGeneratorClass       ), pointer               :: randomNumberGenerator_
+    class           (galacticStructureClass           ), pointer               :: galacticStructure_
+    type            (inputParameters                  ), pointer               :: parametersRoot
+    double precision                                                           :: massMinimum                  , massMaximum
+    type            (varying_string                   )                        :: galaxyCatalogFileName        , haloCatalogFileName
 
     ! Ensure the nodes objects are initialized.
     if (associated(parameters%parent)) then
@@ -123,8 +126,9 @@ contains
     <objectBuilder class="conditionalMassFunction"      name="conditionalMassFunction_"      source="parameters"/>
     <objectBuilder class="darkMatterProfileScaleRadius" name="darkMatterProfileScaleRadius_" source="parameters"/>
     <objectBuilder class="randomNumberGenerator"        name="randomNumberGenerator_"        source="parameters"/>
+    <objectBuilder class="galacticStructure"            name="galacticStructure_"            source="parameters"/>
     !!]
-    self=taskHaloModelGenerate(galaxyCatalogFileName,haloCatalogFileName,massMinimum,massMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,conditionalMassFunction_,darkMatterProfileScaleRadius_,randomNumberGenerator_,parametersRoot)
+    self=taskHaloModelGenerate(galaxyCatalogFileName,haloCatalogFileName,massMinimum,massMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,conditionalMassFunction_,darkMatterProfileScaleRadius_,randomNumberGenerator_,galacticStructure_,parametersRoot)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"         />
@@ -133,11 +137,12 @@ contains
     <objectDestructor name="conditionalMassFunction_"     />
     <objectDestructor name="darkMatterProfileScaleRadius_"/>
     <objectDestructor name="randomNumberGenerator_"       />
+    <objectDestructor name="galacticStructure_"           />
     !!]
     return
   end function haloModelGenerateConstructorParameters
 
-  function haloModelGenerateConstructorInternal(galaxyCatalogFileName,haloCatalogFileName,massMinimum,massMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,conditionalMassFunction_,darkMatterProfileScaleRadius_,randomNumberGenerator_,parameters) result(self)
+  function haloModelGenerateConstructorInternal(galaxyCatalogFileName,haloCatalogFileName,massMinimum,massMaximum,cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,conditionalMassFunction_,darkMatterProfileScaleRadius_,randomNumberGenerator_,galacticStructure_,parameters) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily haloModelGenerate} task class which takes a parameter set as input.
     !!}
@@ -151,9 +156,10 @@ contains
     class           (conditionalMassFunctionClass     ), intent(in   ), target :: conditionalMassFunction_
     class           (darkMatterProfileScaleRadiusClass), intent(in   ), target :: darkMatterProfileScaleRadius_
     class           (randomNumberGeneratorClass       ), intent(in   ), target :: randomNumberGenerator_
+    class            (galacticStructureClass          ), intent(in   ), target :: galacticStructure_
     type            (inputParameters                  ), intent(in   ), target :: parameters
     !![
-    <constructorAssign variables="galaxyCatalogFileName, haloCatalogFileName, massMinimum, massMaximum, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *conditionalMassFunction_, *darkMatterProfileScaleRadius_, *randomNumberGenerator_"/>
+    <constructorAssign variables="galaxyCatalogFileName, haloCatalogFileName, massMinimum, massMaximum, *cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *conditionalMassFunction_, *darkMatterProfileScaleRadius_, *randomNumberGenerator_, *galacticStructure_"/>
     !!]
 
     self%parameters=inputParameters(parameters)
@@ -176,6 +182,7 @@ contains
     <objectDestructor name="self%conditionalMassFunction_"     />
     <objectDestructor name="self%darkMatterProfileScaleRadius_"/>
     <objectDestructor name="self%randomNumberGenerator_"       />
+    <objectDestructor name="self%galacticStructure_"           />
     !!]
     if(self%nodeComponentsInitialized) call Node_Components_Uninitialize()
     return
@@ -185,18 +192,17 @@ contains
     !!{
     Generate a mock galaxy catalog using a simple halo model approach.
     !!}
-    use :: Conditional_Mass_Functions        , only : haloModelGalaxyTypeCentral              , haloModelGalaxyTypeSatellite
-    use :: Display                           , only : displayIndent                           , displayMessage                     , displayUnindent
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Radius_Enclosing_Mass
+    use :: Conditional_Mass_Functions        , only : haloModelGalaxyTypeCentral       , haloModelGalaxyTypeSatellite
+    use :: Display                           , only : displayIndent                    , displayMessage                     , displayUnindent
     use :: Galactic_Structure_Options        , only : massTypeDark
     use :: Galacticus_Calculations_Resets    , only : Galacticus_Calculations_Reset
     use :: Galacticus_Error                  , only : errorStatusSuccess
-    use :: Galacticus_Nodes                  , only : nodeComponentBasic                      , nodeComponentDarkMatterProfile     , treeNode
+    use :: Galacticus_Nodes                  , only : nodeComponentBasic               , nodeComponentDarkMatterProfile     , treeNode
     use :: IO_IRATE                          , only : irate
     use :: ISO_Varying_String                , only : varying_string
-    use :: Node_Components                   , only : Node_Components_Thread_Initialize       , Node_Components_Thread_Uninitialize
+    use :: Node_Components                   , only : Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize
     use :: Numerical_Constants_Math          , only : Pi
-    use :: Root_Finder                       , only : rangeExpandMultiplicative               , rootFinder
+    use :: Root_Finder                       , only : rangeExpandMultiplicative        , rootFinder
     use :: String_Handling                   , only : operator(//)
     implicit none
     class           (taskHaloModelGenerate         ), intent(inout), target         :: self
@@ -291,10 +297,10 @@ contains
              xSatellite               =self%randomNumberGenerator_%uniformSample()*satelliteNumberMean
              massGalaxy               =finderSatellite%find(rootGuess=self%massMinimum)
              ! Sample galaxy radial position.
-             xSatellite               =     self%randomNumberGenerator_%uniformSample()
-             satelliteRadius          =Galactic_Structure_Radius_Enclosing_Mass(node,fractionalMass=xSatellite,massType=massTypeDark)
+             xSatellite               =self%randomNumberGenerator_%uniformSample      (                                                         )
+             satelliteRadius          =self%galacticStructure_    %radiusEnclosingMass(node,massFractional=xSatellite     ,massType=massTypeDark)
              ! Get circular velocity at this radius.
-             satelliteVelocityCircular=self%darkMatterProfileDMO_%circularVelocity(node,satelliteRadius)
+             satelliteVelocityCircular=self%darkMatterProfileDMO_ %circularVelocity   (node,               satelliteRadius                      )
              ! Convert radial position to comoving coordinates.
              satelliteRadius          =satelliteRadius*(1.0d0+redshift)
              ! Sample galaxy angular position.

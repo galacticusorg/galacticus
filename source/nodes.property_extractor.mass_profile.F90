@@ -21,6 +21,8 @@
 Contains a module which implements a property extractor class for the mass enclosed by a set of radii.
 !!}
 
+  use :: Galactic_Structure, only : galacticStructureClass
+
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassProfile">
    <description>
@@ -35,9 +37,11 @@ Contains a module which implements a property extractor class for the mass enclo
      A property extractor class for the mass enclosed within a specified list of radii.
      !!}
      private
-     integer         (c_size_t)                            :: radiiCount
-     double precision          , allocatable, dimension(:) :: radii
+     class           (galacticStructureClass), pointer                   :: galacticStructure_ => null()
+     integer         (c_size_t              )                            :: radiiCount
+     double precision                        , allocatable, dimension(:) :: radii
    contains
+     final     ::                       massProfileDestructor
      procedure :: columnDescriptions => massProfileColumnDescriptions
      procedure :: size               => massProfileSize
      procedure :: elementCount       => massProfileElementCount
@@ -66,6 +70,7 @@ contains
     implicit none
     type            (nodePropertyExtractorMassProfile)                              :: self
     type            (inputParameters                 ), intent(inout)               :: parameters
+    class           (galacticStructureClass          ), pointer                     :: galacticStructure_
     double precision                                  , allocatable  , dimension(:) :: radii
 
     allocate(radii(parameters%count('radii')))
@@ -75,15 +80,17 @@ contains
       <description>A list of radii at which to output the mass profile.</description>
       <source>parameters</source>
     </inputParameter>
+    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
     !!]
-    self=nodePropertyExtractorMassProfile(radii)
+    self=nodePropertyExtractorMassProfile(radii,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticStructure_"/>
     !!]
     return
   end function massProfileConstructorParameters
 
-  function massProfileConstructorInternal(radii) result(self)
+  function massProfileConstructorInternal(radii,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily massProfile} property extractor class.
     !!}
@@ -91,13 +98,27 @@ contains
     implicit none
     type            (nodePropertyExtractorMassProfile)                              :: self
     double precision                                  , intent(in   ), dimension(:) :: radii
+    class           (galacticStructureClass          ), intent(in   ), target       :: galacticStructure_
     !![
-    <constructorAssign variables="radii"/>
+    <constructorAssign variables="radii, *galacticStructure_"/>
     !!]
 
     self%radiiCount=size(radii)
     return
   end function massProfileConstructorInternal
+
+  subroutine massProfileDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily massProfile} property extractor class.
+    !!}
+    implicit none
+    type(nodePropertyExtractorMassProfile), intent(inout) :: self
+    
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
+    return
+  end subroutine massProfileDestructor
 
   integer function massProfileElementCount(self,time)
     !!{
@@ -130,8 +151,7 @@ contains
     !!{
     Implement a last isolated redshift output analysis.
     !!}
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options        , only : componentTypeAll                , massTypeAll
+    use :: Galactic_Structure_Options, only : componentTypeAll, massTypeAll
     implicit none
     double precision                                  , dimension(:,:), allocatable :: massProfileExtract
     class           (nodePropertyExtractorMassProfile), intent(inout) , target      :: self
@@ -143,7 +163,7 @@ contains
 
     allocate(massProfileExtract(self%radiiCount,1_c_size_t))
     do i=1,self%radiiCount
-       massProfileExtract(i,1)=Galactic_Structure_Enclosed_Mass(node,self%radii(i),componentType=componentTypeAll,massType=massTypeAll)
+       massProfileExtract(i,1)=self%galacticStructure_%massEnclosed(node,self%radii(i),componentType=componentTypeAll,massType=massTypeAll)
     end do
     return
   end function massProfileExtract

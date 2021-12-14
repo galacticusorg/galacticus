@@ -29,6 +29,7 @@ module Node_Component_Black_Hole_Noncentral
   use :: Black_Hole_Binary_Recoil_Velocities, only : blackHoleBinaryRecoilClass
   use :: Black_Hole_Binary_Separations      , only : blackHoleBinarySeparationGrowthRateClass
   use :: Dark_Matter_Halo_Scales            , only : darkMatterHaloScaleClass
+  use :: Galactic_Structure                 , only : galacticStructureClass
   implicit none
   private
   public :: Node_Component_Black_Hole_Noncentral_Rate_Compute       , Node_Component_Black_Hole_Noncentral_Scale_Set        , &
@@ -61,7 +62,8 @@ module Node_Component_Black_Hole_Noncentral
   class(blackHoleBinaryRecoilClass              ), pointer :: blackHoleBinaryRecoil_
   class(blackHoleBinaryMergerClass              ), pointer :: blackHoleBinaryMerger_
   class(blackHoleBinarySeparationGrowthRateClass), pointer :: blackHoleBinarySeparationGrowthRate_
-  !$omp threadprivate(darkMatterHaloScale_,blackHoleBinaryRecoil_,blackHoleBinaryMerger_,blackHoleBinarySeparationGrowthRate_)
+  class(galacticStructureClass                  ), pointer :: galacticStructure_
+  !$omp threadprivate(darkMatterHaloScale_,blackHoleBinaryRecoil_,blackHoleBinaryMerger_,blackHoleBinarySeparationGrowthRate_,galacticStructure_)
 
   ! Option specifying whether the triple black hole interaction should be used.
   logical :: tripleBlackHoleInteraction
@@ -120,6 +122,7 @@ contains
        <objectBuilder class="blackHoleBinaryRecoil"               name="blackHoleBinaryRecoil_"               source="parameters_"/>
        <objectBuilder class="blackHoleBinaryMerger"               name="blackHoleBinaryMerger_"               source="parameters_"/>
        <objectBuilder class="blackHoleBinarySeparationGrowthRate" name="blackHoleBinarySeparationGrowthRate_" source="parameters_"/>
+       <objectBuilder class="galacticStructure"                   name="galacticStructure_"                   source="parameters_"/>
        !!]
     end if
     return
@@ -143,6 +146,7 @@ contains
        <objectDestructor name="blackHoleBinaryRecoil_"              />
        <objectDestructor name="blackHoleBinaryMerger_"              />
        <objectDestructor name="blackHoleBinarySeparationGrowthRate_"/>
+       <objectDestructor name="galacticStructure_"                  />
        !!]
     end if
     return
@@ -478,9 +482,8 @@ contains
     !!{
     Return true if the given recoil velocity is sufficient to eject a black hole from the halo.
     !!}
-    use :: Galactic_Structure_Options   , only : componentTypeBlackHole
-    use :: Galactic_Structure_Potentials, only : Galactic_Structure_Potential
-    use :: Galacticus_Nodes             , only : treeNode
+    use :: Galactic_Structure_Options, only : componentTypeBlackHole
+    use :: Galacticus_Nodes          , only : treeNode
     implicit none
     type            (treeNode), intent(inout) :: node
     double precision          , intent(in   ) :: recoilVelocity        , radius
@@ -489,12 +492,12 @@ contains
          &                                       potentialHalo         , potentialHaloSelf
 
     ! Compute relevant potentials.
-    potentialCentral=Galactic_Structure_Potential(node,radius                                                                      )
-    potentialHalo   =Galactic_Structure_Potential(node,darkMatterHaloScale_%virialRadius(node)                                     )
+    potentialCentral       =galacticStructure_%potential(node,radius                                                                      )
+    potentialHalo          =galacticStructure_%potential(node,darkMatterHaloScale_%virialRadius(node)                                     )
     if (ignoreCentralBlackHole) then
        ! Compute potential of central black hole to be subtracted off of total value.
-       potentialCentralSelf=Galactic_Structure_Potential(node,radius                                 ,componentType=componentTypeBlackHole)
-       potentialHaloSelf   =Galactic_Structure_Potential(node,darkMatterHaloScale_%virialRadius(node),componentType=componentTypeBlackHole)
+       potentialCentralSelf=galacticStructure_%potential(node,radius                                 ,componentType=componentTypeBlackHole)
+       potentialHaloSelf   =galacticStructure_%potential(node,darkMatterHaloScale_%virialRadius(node),componentType=componentTypeBlackHole)
     else
        ! No correction for central black hole as it is to be included.
        potentialCentralSelf=0.0d0

@@ -63,9 +63,9 @@ contains
     Return a zero acceleration for satellites due to dynamical friction.
     !!}
     implicit none
-    double precision                                , dimension(3)  :: zeroAcceleration
-    class           (satelliteDynamicalFrictionZero), intent(inout) :: self
-    type            (treeNode                      ), intent(inout) :: node
+    double precision                                , dimension(3)          :: zeroAcceleration
+    class           (satelliteDynamicalFrictionZero), intent(inout), target :: self
+    type            (treeNode                      ), intent(inout)         :: node
     !$GLC attributes unused :: self, node
 
     zeroAcceleration=[0.0d0,0.0d0,0.0d0]

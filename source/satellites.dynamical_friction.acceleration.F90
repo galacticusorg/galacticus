@@ -42,6 +42,7 @@ module Satellite_Dynamical_Friction
     <description>Returns the satellite acceleration due to dynamical friction for {\normalfont \ttfamily node} (in units of km/s/Gyr).</description>
     <type>double precision, dimension(3)</type>
     <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
   </functionClass>

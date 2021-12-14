@@ -22,6 +22,7 @@
   !!}
   use :: Cosmology_Parameters     , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales  , only : darkMatterHaloScaleClass
+  use :: Galactic_Structure       , only : galacticStructureClass
   use :: Nodes_Operators          , only : nodeOperatorClass
   use :: Numerical_Random_Numbers , only : randomNumberGeneratorClass
 
@@ -38,6 +39,7 @@
      class           (cosmologyParametersClass  ), pointer                   :: cosmologyParameters_   => null()
      class           (darkMatterHaloScaleClass  ), pointer                   :: darkMatterHaloScale_   => null()
      class           (nodeOperatorClass         ), pointer                   :: nodeOperator_          => null()
+     class           (galacticStructureClass    ), pointer                   :: galacticStructure_     => null()
      class           (randomNumberGeneratorClass), pointer                   :: randomNumberGenerator_ => null()
      double precision                            , allocatable, dimension(:) :: massTree                        , radiusTree
      integer                                     , allocatable, dimension(:) :: treeCount
@@ -71,6 +73,7 @@ contains
     class           (darkMatterHaloScaleClass      ), pointer                   :: darkMatterHaloScale_
     class           (nodeOperatorClass             ), pointer                   :: nodeOperator_
     class           (randomNumberGeneratorClass    ), pointer                   :: randomNumberGenerator_
+    class           (galacticStructureClass        ), pointer                   :: galacticStructure_
     double precision                                                            :: massIntervalFractional
     integer                                                                     :: fixedHalosCount
 
@@ -144,19 +147,21 @@ contains
     <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters"/>
     <objectBuilder class="nodeOperator"          name="nodeOperator_"          source="parameters"/>
     <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    <objectBuilder class="galacticStructure"     name="galacticStructure_"     source="parameters"/>
     !!]
-    self=mergerTreeBuildMassesFixedMass(massTree,radiusTree,treeCount,massIntervalFractional,cosmologyParameters_,darkMatterHaloScale_,nodeOperator_,randomNumberGenerator_)
+    self=mergerTreeBuildMassesFixedMass(massTree,radiusTree,treeCount,massIntervalFractional,cosmologyParameters_,darkMatterHaloScale_,nodeOperator_,randomNumberGenerator_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"  />
     <objectDestructor name="darkMatterHaloScale_"  />
     <objectDestructor name="nodeOperator_"         />
     <objectDestructor name="randomNumberGenerator_"/>
+    <objectDestructor name="galacticStructure_"    />
     !!]
     return
   end function fixedMassConstructorParameters
 
-  function fixedMassConstructorInternal(massTree,radiusTree,treeCount,massIntervalFractional,cosmologyParameters_,darkMatterHaloScale_,nodeOperator_,randomNumberGenerator_) result(self)
+  function fixedMassConstructorInternal(massTree,radiusTree,treeCount,massIntervalFractional,cosmologyParameters_,darkMatterHaloScale_,nodeOperator_,randomNumberGenerator_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily fixedMass} merger tree masses class.
     !!}
@@ -169,8 +174,9 @@ contains
     class           (darkMatterHaloScaleClass      ), intent(in   ), target       :: darkMatterHaloScale_
     class           (nodeOperatorClass             ), intent(in   ), target       :: nodeOperator_
     class           (randomNumberGeneratorClass    ), intent(in   ), target       :: randomNumberGenerator_
+    class           (galacticStructureClass        ), intent(in   ), target       :: galacticStructure_
     !![
-    <constructorAssign variables="massTree, radiusTree, treeCount, massIntervalFractional, *cosmologyParameters_, *darkMatterHaloScale_, *nodeOperator_, *randomNumberGenerator_"/>
+    <constructorAssign variables="massTree, radiusTree, treeCount, massIntervalFractional, *cosmologyParameters_, *darkMatterHaloScale_, *nodeOperator_, *randomNumberGenerator_, *galacticStructure_"/>
     !!]
 
     return
@@ -188,6 +194,7 @@ contains
     <objectDestructor name="self%darkMatterHaloScale_"  />
     <objectDestructor name="self%nodeOperator_"         />
     <objectDestructor name="self%randomNumberGenerator_"/>
+    <objectDestructor name="self%galacticStructure_"    />
     !!]
     return
   end subroutine fixedMassDestructor
@@ -280,8 +287,7 @@ contains
       !!{
       Root finding function used to set the halo mass given the halo radius.
       !!}
-      use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-      use :: Galactic_Structure_Options        , only : massTypeDark
+      use :: Galactic_Structure_Options, only : massTypeDark
       implicit none
       double precision, intent(in   ) :: massTree
 
@@ -289,16 +295,16 @@ contains
       call self %nodeOperator_%nodeTreeInitialize(node    )
       call self %nodeOperator_%nodeInitialize    (node    )
       call Galacticus_Calculations_Reset(node)
-      massEnclosed=+Galactic_Structure_Enclosed_Mass(                              &
-           &                                                   node              , &
-           &                                                   self%radiusTree(i), &
-           &                                          massType=massTypeDark        &
-           &                                         )                             &
-           &       *  self%cosmologyParameters_%OmegaMatter()                      &
-           &       /(                                                              &
-           &         +self%cosmologyParameters_%OmegaMatter()                      &
-           &         -self%cosmologyParameters_%OmegaBaryon()                      &
-           &        )                                                              &
+      massEnclosed=+  self%galacticStructure_  %massEnclosed(                             &
+           &                                                          node              , &
+           &                                                          self%radiusTree(i), &
+           &                                                 massType=massTypeDark        &
+           &                                                )                             &
+           &       *  self%cosmologyParameters_%OmegaMatter()                             &
+           &       /(                                                                     &
+           &         +self%cosmologyParameters_%OmegaMatter()                             &
+           &         -self%cosmologyParameters_%OmegaBaryon()                             &
+           &        )                                                                     &
            &       -self%massTree(i)
       return
     end function massEnclosed

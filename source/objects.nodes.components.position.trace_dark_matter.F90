@@ -25,7 +25,8 @@ module Node_Component_Position_Trace_Dark_Matter
   !!{
   Implements a preset position component.
   !!}
-  use :: Dark_Matter_Halo_Scales       , only : darkMatterHaloScale                       , darkMatterHaloScaleClass
+  use :: Galactic_Structure            , only : galacticStructureClass
+  use :: Dark_Matter_Halo_Scales       , only : darkMatterHaloScaleClass
   use :: Satellite_Oprhan_Distributions, only : satelliteOrphanDistributionTraceDarkMatter
   implicit none
   private
@@ -52,6 +53,7 @@ module Node_Component_Position_Trace_Dark_Matter
 
   ! Objects used by this component.
   class(darkMatterHaloScaleClass                  ), pointer :: darkMatterHaloScale_
+  class(galacticStructureClass                    ), pointer :: galacticStructure_
   type (satelliteOrphanDistributionTraceDarkMatter), pointer :: satelliteOrphanDistribution_
   !$omp threadprivate(darkMatterHaloScale_,satelliteOrphanDistribution_)
 
@@ -74,10 +76,11 @@ contains
     if (defaultPositionComponent%traceDarkMatterIsActive()) then
        !![
        <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
+       <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters_"/>
        !!]
        allocate(satelliteOrphanDistribution_)
        !![
-       <referenceConstruct object="satelliteOrphanDistribution_" constructor="satelliteOrphanDistributionTraceDarkMatter(darkMatterHaloScale_)"/>
+       <referenceConstruct object="satelliteOrphanDistribution_" constructor="satelliteOrphanDistributionTraceDarkMatter(darkMatterHaloScale_,galacticStructure_)"/>
        !!]
     end if
     return
@@ -98,6 +101,7 @@ contains
     if (defaultPositionComponent%traceDarkMatterIsActive()) then
        !![
        <objectDestructor name="darkMatterHaloScale_"        />
+       <objectDestructor name="galacticStructure_"          />
        <objectDestructor name="satelliteOrphanDistribution_"/>
        !!]
     end if

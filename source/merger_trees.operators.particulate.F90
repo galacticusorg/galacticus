@@ -27,6 +27,7 @@
   use :: Cosmology_Parameters    , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Galactic_Structure      , only : galacticStructureClass
   use :: Galacticus_Nodes        , only : treeNode
   use :: HDF5                    , only : hsize_t
   use :: ISO_Varying_String      , only : varying_string
@@ -48,6 +49,7 @@
      class           (cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_   => null()
      class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
      class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
+     class           (galacticStructureClass   ), pointer :: galacticStructure_    => null()
      type            (varying_string           )          :: outputFileName
      double precision                                     :: massParticle                   , radiusTruncateOverRadiusVirial   , &
           &                                                  timeSnapshot                   , energyDistributionPointsPerDecade, &
@@ -146,6 +148,7 @@ contains
     class           (cosmologyFunctionsClass      ), pointer       :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass     ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass    ), pointer       :: darkMatterProfileDMO_
+    class           (galacticStructureClass       ), pointer       :: galacticStructure_
     type            (inputParameters              ), pointer       :: parametersRoot
     type            (varying_string               )                :: selectionText        , kernelSofteningText
 
@@ -271,15 +274,16 @@ contains
     <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters"/>
     <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    <objectBuilder class="galacticStructure"    name="galacticStructure_"    source="parameters"/>
     !!]
     if (associated(parameters%parent)) then
        parametersRoot => parameters%parent
        do while (associated(parametersRoot%parent))
           parametersRoot => parametersRoot%parent
        end do
-       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,parametersRoot)
+       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,parametersRoot)
     else
-       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,parameters    )
+       self=mergerTreeOperatorParticulate(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,parameters    )
     end if
     !![
     <inputParametersValidate source="parameters"/>
@@ -287,11 +291,12 @@ contains
     <objectDestructor name="cosmologyFunctions_"  />
     <objectDestructor name="darkMatterHaloScale_" />
     <objectDestructor name="darkMatterProfileDMO_"/>
+    <objectDestructor name="galacticStructure_"   />
     !!]
     return
   end function particulateConstructorParameters
 
-  function particulateConstructorInternal(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,parameters) result(self)
+  function particulateConstructorInternal(outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,chunkSize,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,darkMatterProfileDMO_,galacticStructure_,parameters) result(self)
     !!{
     Internal constructor for the particulate merger tree operator class.
     !!}
@@ -314,9 +319,10 @@ contains
     class           (cosmologyFunctionsClass      ), intent(in   ), target :: cosmologyFunctions_
     class           (darkMatterHaloScaleClass     ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass    ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (galacticStructureClass       ), intent(in   ), target :: galacticStructure_
     type            (inputParameters              ), intent(in   ), target :: parameters
     !![
-    <constructorAssign variables="outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,chunkSize,*cosmologyParameters_,*cosmologyFunctions_,*darkMatterHaloScale_,*darkMatterProfileDMO_"/>
+    <constructorAssign variables="outputFileName,idMultiplier,massParticle,radiusTruncateOverRadiusVirial,timeSnapshot,satelliteOffset,positionOffset,subtractRandomOffset,energyDistributionPointsPerDecade,selection,nonCosmological,addHubbleFlow,haloIdToParticleType,sampleParticleNumber,kernelSoftening,lengthSoftening,toleranceRelativeSmoothing,toleranceMass,chunkSize,*cosmologyParameters_,*cosmologyFunctions_,*darkMatterHaloScale_,*darkMatterProfileDMO_,*galacticStructure_"/>
     !!]
 
     self%parameters=inputParameters(parameters)
@@ -337,6 +343,7 @@ contains
     <objectDestructor name="self%cosmologyFunctions_"  />
     <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
+    <objectDestructor name="self%galacticStructure_"   />
     !!]
     return
   end subroutine particulateDestructor
@@ -345,15 +352,14 @@ contains
     !!{
     Perform a particulation operation on a merger tree (i.e. create a particle representation of the tree).
     !!}
-    use    :: Coordinates                       , only : assignment(=)                    , coordinateCartesian                     , coordinateSpherical
+    use    :: Coordinates                       , only : assignment(=)                    , coordinateCartesian                , coordinateSpherical
     use    :: Cosmology_Parameters              , only : hubbleUnitsLittleH
-    use    :: Display                           , only : displayCounter                   , displayCounterClear                     , verbosityLevelStandard, verbosityLevelWorking , &
+    use    :: Display                           , only : displayCounter                   , displayCounterClear                , verbosityLevelStandard, verbosityLevelWorking , &
          &                                               displayGreen                     , displayReset
-    use    :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass , Galactic_Structure_Radius_Enclosing_Mass
     use    :: Galactic_Structure_Options        , only : massTypeDark
     use    :: Galacticus_Calculations_Resets    , only : Galacticus_Calculations_Reset
     use    :: Galacticus_Error                  , only : Galacticus_Error_Report
-    use    :: Galacticus_Nodes                  , only : mergerTree                       , nodeComponentBasic                      , nodeComponentPosition , nodeComponentSatellite, &
+    use    :: Galacticus_Nodes                  , only : mergerTree                       , nodeComponentBasic                 , nodeComponentPosition , nodeComponentSatellite, &
           &                                              treeNode
     use    :: HDF5_Access                       , only : hdf5Access
     use    :: IO_HDF5                           , only : hdf5Object
@@ -473,11 +479,11 @@ contains
           radiusTruncate=+self%radiusTruncateOverRadiusVirial &
                &         *radiusVirial
           ! Determine the mass within the truncation radius.
-          massTruncate=Galactic_Structure_Enclosed_Mass(                             &
-               &                                        node                       , &
-               &                                        radiusTruncate             , &
-               &                                        massType      =massTypeDark  &
-               &                                       )
+          massTruncate=self%galacticStructure_%massEnclosed(                             &
+               &                                            node                       , &
+               &                                            radiusTruncate             , &
+               &                                            massType      =massTypeDark  &
+               &                                           )
           ! Determine the mean number of particles required to represent this node.
           particleCountMean   =+massTruncate      &
                &               /self%massParticle
@@ -539,13 +545,13 @@ contains
              !$omp end critical (mergerTreeOperatorParticulateSample)
              call positionSpherical%  phiSet(     2.0d0*Pi*randomDeviates(1)       )
              call positionSpherical%thetaSet(acos(2.0d0   *randomDeviates(2)-1.0d0))
-             call positionSpherical%    rSet(                                                                        &
-                  &                          Galactic_Structure_Radius_Enclosing_Mass(                               &
-                  &                                                                   node                         , &
-                  &                                                                   mass      =+massTruncate       &
-                  &                                                                              *randomDeviates(3), &
-                  &                                                                   massType  =massTypeDark        &
-                  &                                                                  )                               &
+             call positionSpherical%    rSet(                                                                                      &
+                  &                          particulateSelf%galacticStructure_%radiusEnclosingMass(                               &
+                  &                                                                                 node                         , &
+                  &                                                                                 mass      =+massTruncate       &
+                  &                                                                                            *randomDeviates(3), &
+                  &                                                                                 massType  =massTypeDark        &
+                  &                                                                                )                               &
                   &                         )
              ! Get the corresponding cartesian coordinates.
              positionCartesian=positionSpherical

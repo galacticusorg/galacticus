@@ -99,7 +99,7 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentSpheroid, treeNode
     implicit none
-    class(blackHoleBinaryInitialSeparationSpheroidRadiusFraction), intent(inout)         :: self
+    class(blackHoleBinaryInitialSeparationSpheroidRadiusFraction), intent(inout), target :: self
     type (treeNode                                              ), intent(inout), target :: nodeHost    , node
     class(nodeComponentSpheroid                                 ), pointer               :: spheroidHost, spheroid
 

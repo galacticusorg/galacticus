@@ -34,6 +34,7 @@ module Node_Component_Hot_Halo_Standard
   use :: Cosmology_Functions                       , only : cosmologyFunctionsClass
   use :: Cosmology_Parameters                      , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales                   , only : darkMatterHaloScaleClass
+  use :: Galactic_Structure                        , only : galacticStructureClass
   use :: Hot_Halo_Mass_Distributions               , only : hotHaloMassDistributionClass
   use :: Hot_Halo_Outflows_Reincorporations        , only : hotHaloOutflowReincorporationClass
   use :: Hot_Halo_Ram_Pressure_Stripping           , only : hotHaloRamPressureStrippingClass
@@ -228,7 +229,8 @@ module Node_Component_Hot_Halo_Standard
   class(chemicalStateClass                 ), pointer :: chemicalState_
   class(coolingRateClass                   ), pointer :: coolingRate_
   class(cosmologyParametersClass           ), pointer :: cosmologyParameters_
-  !$omp threadprivate(cosmologyFunctions_,darkMatterHaloScale_,coolingSpecificAngularMomentum_,coolingInfallRadius_,hotHaloMassDistribution_,accretionHalo_,chemicalReactionRate_,chemicalState_,hotHaloRamPressureStripping_,hotHaloRamPressureTimescale_,coolingRate_,cosmologyParameters_,hotHaloOutflowReincorporation_)
+  class(galacticStructureClass             ), pointer :: galacticStructure_ => null()
+  !$omp threadprivate(cosmologyFunctions_,darkMatterHaloScale_,coolingSpecificAngularMomentum_,coolingInfallRadius_,hotHaloMassDistribution_,accretionHalo_,chemicalReactionRate_,chemicalState_,hotHaloRamPressureStripping_,hotHaloRamPressureTimescale_,coolingRate_,cosmologyParameters_,hotHaloOutflowReincorporation_,galacticStructure_)
 
   ! Internal count of abundances and chemicals.
   integer                                                             :: abundancesCount                            , chemicalsCount
@@ -469,6 +471,7 @@ contains
        <objectBuilder class="hotHaloRamPressureTimescale"    name="hotHaloRamPressureTimescale_"    source="parameters_"/>
        <objectBuilder class="hotHaloOutflowReincorporation"  name="hotHaloOutflowReincorporation_"  source="parameters_"/>
        <objectBuilder class="coolingRate"                    name="coolingRate_"                    source="parameters_"/>
+       <objectBuilder class="galacticStructure"              name="galacticStructure_"              source="parameters_"/>
        !!]
        dependencies(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
        call nodePromotionEvent  %attach(defaultHotHaloComponent,nodePromotion  ,openMPThreadBindingAtLevel,label='nodeComponentHotHaloStandard'                          )
@@ -535,6 +538,7 @@ contains
        <objectDestructor name="radiationIntergalacticBackground"  />
        <objectDestructor name="radiationCosmicMicrowaveBackground"/>
        <objectDestructor name="radiation"                         />
+       <objectDestructor name="galacticStructure_"                />
        !!]
        if (nodePromotionEvent  %isAttached(defaultHotHaloComponent,nodePromotion  )) call nodePromotionEvent  %detach(defaultHotHaloComponent,nodePromotion  )
        if (satelliteMergerEvent%isAttached(defaultHotHaloComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultHotHaloComponent,satelliteMerger)
@@ -1549,7 +1553,6 @@ contains
     use :: Abundances_Structure                 , only : abundances                          , operator(*)            , zeroAbundances              , operator(>)
     use :: Accretion_Halos                      , only : accretionModeHot                    , accretionModeTotal
     use :: Chemical_Abundances_Structure        , only : chemicalAbundances                  , operator(*)            , zeroChemicalAbundances      , operator(>)
-    use :: Galactic_Structure_Enclosed_Masses   , only : Galactic_Structure_Enclosed_Mass
     use :: Galactic_Structure_Options           , only : componentTypeAll                    , massTypeBaryonic       , radiusLarge
     use :: Galacticus_Nodes                     , only : nodeComponentBasic                  , nodeComponentHotHalo   , nodeComponentHotHaloStandard, nodeComponentSpin, &
           &                                              treeNode                            , defaultHotHaloComponent
@@ -1733,8 +1736,7 @@ contains
           if (hotHaloNodeMergerLimitBaryonFraction) then
              ! Get the default cosmology.
              baryonicMassMaximum=parentBasic%mass()*cosmologyParameters_%OmegaBaryon()/cosmologyParameters_%OmegaMatter()
-             baryonicMassCurrent=Galactic_Structure_Enclosed_Mass(nodeParent,radiusLarge,massType=massTypeBaryonic&
-                  &,componentType =componentTypeAll)
+             baryonicMassCurrent=galacticStructure_%massEnclosed(nodeParent,radiusLarge,massType=massTypeBaryonic,componentType =componentTypeAll)
              if (baryonicMassCurrent > baryonicMassMaximum .and. hotHaloParent%mass() > 0.0d0) then
                 fractionRemove=min((baryonicMassCurrent-baryonicMassMaximum)/hotHaloParent%massTotal(),1.0d0)
                 call hotHaloParent% unaccretedMassSet(                                                       &

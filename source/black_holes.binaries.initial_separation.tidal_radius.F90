@@ -23,7 +23,8 @@
   Implements a class for black hole binary initial separation based on tidal disruption of the satellite galaxy.
   !!}
 
-  use :: Root_Finder, only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
+  use :: Galactic_Structure, only : galacticStructureClass
+  use :: Root_Finder       , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
 
   !![
   <blackHoleBinaryInitialSeparation name="blackHoleBinaryInitialSeparationTidalRadius">
@@ -45,9 +46,11 @@
      A black hole binary initial separation class in which the radius is based on tidal disruption of the satellite galaxy.
      !!}
      private
-     type(rootFinder) :: finder
+     class(galacticStructureClass), pointer :: galacticStructure_ => null()
+     type (rootFinder            )          :: finder
   contains
-     procedure :: separationInitial => tidalRadiusSeparationInitial
+    final     ::                      tidalRadiusDestructor
+    procedure :: separationInitial => tidalRadiusSeparationInitial
   end type blackHoleBinaryInitialSeparationTidalRadius
 
   interface blackHoleBinaryInitialSeparationTidalRadius
@@ -59,9 +62,10 @@
   end interface blackHoleBinaryInitialSeparationTidalRadius
 
   ! Module-scope variables used in root finding.
-  double precision                    :: tidalRadiusMassHalf, tidalRadiusRadiusHalfMass
-  type            (treeNode), pointer :: tidalRadiusNode
-  !$omp threadprivate(tidalRadiusRadiusHalfMass,tidalRadiusMassHalf,tidalRadiusNode)
+  double precision                                                       :: tidalRadiusMassHalf, tidalRadiusRadiusHalfMass
+  type            (treeNode                                   ), pointer :: tidalRadiusNode
+  class           (blackHoleBinaryInitialSeparationTidalRadius), pointer :: self_
+  !$omp threadprivate(tidalRadiusRadiusHalfMass,tidalRadiusMassHalf,tidalRadiusNode,self_)
 
 contains
 
@@ -72,20 +76,31 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(blackHoleBinaryInitialSeparationTidalRadius)                :: self
-    type(inputParameters                            ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
+    type (blackHoleBinaryInitialSeparationTidalRadius)                :: self
+    type (inputParameters                            ), intent(inout) :: parameters
+    class(galacticStructureClass                     ), pointer       :: galacticStructure_
 
-    self=blackHoleBinaryInitialSeparationTidalRadius()
+    !![
+    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
+    !!]
+    self=blackHoleBinaryInitialSeparationTidalRadius(galacticStructure_)
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticStructure_"/>
+    !!]
     return
   end function tidalRadiusConstructorParameters
 
-  function tidalRadiusConstructorInternal() result(self)
+  function tidalRadiusConstructorInternal(galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily tidalRadius} black hole bianry recoil class.
     !!}
     implicit none
-    type(blackHoleBinaryInitialSeparationTidalRadius) :: self
+    type (blackHoleBinaryInitialSeparationTidalRadius)                        :: self
+    class(galacticStructureClass                     ), intent(in   ), target :: galacticStructure_
+    !![
+    <constructorAssign variables="*galacticStructure_"/>
+    !!]
 
     self%finder=rootFinder(                                                             &
             &              rootFunction=tidalRadiusRoot                               , &
@@ -100,15 +115,27 @@ contains
      return
   end function tidalRadiusConstructorInternal
 
+  subroutine tidalRadiusDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily tidalRadius} black hole bianry recoil class.
+    !!}
+    implicit none
+    type(blackHoleBinaryInitialSeparationTidalRadius), intent(inout) :: self
+    
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
+    return
+  end subroutine tidalRadiusDestructor
+
   double precision function tidalRadiusSeparationInitial(self,node,nodeHost)
     !!{
     Returns an initial separation for a binary black holes through tidal disruption.
     !!}
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
-    use :: Galactic_Structure_Options        , only : massTypeGalactic
-    use :: Galacticus_Nodes                  , only : nodeComponentBlackHole          , treeNode
+    use :: Galactic_Structure_Options, only : massTypeGalactic
+    use :: Galacticus_Nodes          , only : nodeComponentBlackHole, treeNode
     implicit none
-    class(blackHoleBinaryInitialSeparationTidalRadius), intent(inout)         :: self
+    class(blackHoleBinaryInitialSeparationTidalRadius), intent(inout), target :: self
     type (treeNode                                   ), intent(inout), target :: nodeHost , node
     class(nodeComponentBlackHole                     ), pointer               :: blackHole
     !$GLC attributes unused :: self
@@ -120,19 +147,20 @@ contains
     ! If the primary black hole has zero mass (i.e. has been ejected), then return immediately.
     if (blackHole%mass() <= 0.0d0) return
     ! Get the half-mass radius of the satellite galaxy.
-    tidalRadiusRadiusHalfMass=Galactic_Structure_Radius_Enclosing_Mass(node,fractionalMass=0.5d0                    ,massType=massTypeGalactic)
+    tidalRadiusRadiusHalfMass=self%galacticStructure_%radiusEnclosingMass(node,massFractional=0.5d0                    ,massType=massTypeGalactic)
     ! Get the mass within the half-mass radius.
-    tidalRadiusMassHalf      =Galactic_Structure_Enclosed_Mass        (node,               tidalRadiusRadiusHalfMass,massType=massTypeGalactic)
+    tidalRadiusMassHalf      =self%galacticStructure_%massEnclosed       (node,               tidalRadiusRadiusHalfMass,massType=massTypeGalactic)
     ! Return zero radius for massless galaxy.
     if (tidalRadiusRadiusHalfMass <= 0.0d0 .or. tidalRadiusMassHalf <= 0.0d0) return
     ! Solve for the radius around the host at which the satellite gets disrupted.
+    self_                        => self
     tidalRadiusNode              => nodeHost
-    tidalRadiusSeparationInitial =  self%finder%find(                                                                              &
-         &                                           rootGuess=Galactic_Structure_Radius_Enclosing_Mass(                           &
-         &                                                                                              nodeHost                 , &
-         &                                                                                              fractionalMass=0.5d0     , &
-         &                                                                                              massType=massTypeGalactic  &
-         &                                                                                             )                           &
+    tidalRadiusSeparationInitial =  self%finder%find(                                                                                 &
+         &                                           rootGuess=self%galacticStructure_%radiusEnclosingMass(                           &
+         &                                                                                                 nodeHost                 , &
+         &                                                                                                 massFractional=0.5d0     , &
+         &                                                                                                 massType=massTypeGalactic  &
+         &                                                                                                )                           &
          &                                          )
     return
   end function tidalRadiusSeparationInitial
@@ -141,17 +169,16 @@ contains
     !!{
     Root function used in solving for the radius of tidal disruption of a satellite galaxy.
     !!}
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options        , only : massTypeGalactic
+    use :: Galactic_Structure_Options, only : massTypeGalactic
     implicit none
     double precision, intent(in   ) :: radius
 
     ! Evaluate the root function.
-    tidalRadiusRoot=+Galactic_Structure_Enclosed_Mass(tidalRadiusNode,radius,massType=massTypeGalactic) &
-         &          /tidalRadiusMassHalf                                                                &
-         &          -(                                                                                  &
-         &            +radius                                                                           &
-         &            /tidalRadiusRadiusHalfMass                                                        &
+    tidalRadiusRoot=+self_%galacticStructure_%massEnclosed(tidalRadiusNode,radius,massType=massTypeGalactic) &
+         &          /tidalRadiusMassHalf                                                                     &
+         &          -(                                                                                       &
+         &            +radius                                                                                &
+         &            /tidalRadiusRadiusHalfMass                                                             &
          &           )**3
     return
   end function tidalRadiusRoot

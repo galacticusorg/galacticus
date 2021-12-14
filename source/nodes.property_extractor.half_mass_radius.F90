@@ -21,6 +21,8 @@
 Contains a module which implements a radiusHalfMass property extractor class.
 !!}
 
+  use :: Galactic_Structure, only : galacticStructureClass
+
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiusHalfMass">
    <description>
@@ -34,7 +36,9 @@ Contains a module which implements a radiusHalfMass property extractor class.
      A half-mass radius property extractor class.
      !!}
      private
+     class(galacticStructureClass), pointer :: galacticStructure_ => null()
    contains
+     final     ::                radiusHalfMassDestructor
      procedure :: extract     => radiusHalfMassExtract
      procedure :: name        => radiusHalfMassName
      procedure :: description => radiusHalfMassDescription
@@ -47,6 +51,7 @@ Contains a module which implements a radiusHalfMass property extractor class.
      Constructors for the ``radiusHalfMass'' output analysis class.
      !!}
      module procedure radiusHalfMassConstructorParameters
+     module procedure radiusHalfMassConstructorInternal
   end interface nodePropertyExtractorRadiusHalfMass
 
 contains
@@ -59,25 +64,59 @@ contains
     implicit none
     type (nodePropertyExtractorRadiusHalfMass)                :: self
     type (inputParameters                    ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
+    class(galacticStructureClass             ), pointer       :: galacticStructure_
 
-    self=nodePropertyExtractorRadiusHalfMass()
+    !![
+    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
+    !!]
+    self=nodePropertyExtractorRadiusHalfMass(galacticStructure_)
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticStructure_"/>
+    !!]
     return
   end function radiusHalfMassConstructorParameters
+
+  function radiusHalfMassConstructorInternal(galacticStructure_) result(self)
+    !!{
+    Internal constructor for the {\normalfont \ttfamily radiusHalfMass} property extractor class.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    type (nodePropertyExtractorRadiusHalfMass)                        :: self
+    class(galacticStructureClass             ), intent(in   ), target :: galacticStructure_
+    !![
+    <constructorAssign variables="*galacticStructure_"/>
+    !!]
+
+    return
+  end function radiusHalfMassConstructorInternal
+  
+  subroutine radiusHalfMassDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily radiusHalfMass} property extractor class.
+    !!}
+    implicit none
+    type(nodePropertyExtractorRadiusHalfMass), intent(inout) :: self
+    
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
+    return
+  end subroutine radiusHalfMassDestructor
 
   double precision function radiusHalfMassExtract(self,node,instance)
     !!{
     Implement a last isolated redshift output analysis.
     !!}
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Radius_Enclosing_Mass
-    use :: Galactic_Structure_Options        , only : massTypeStellar
+    use :: Galactic_Structure_Options, only : massTypeStellar
     implicit none
     class(nodePropertyExtractorRadiusHalfMass), intent(inout)           :: self
     type (treeNode                           ), intent(inout), target   :: node
     type (multiCounter                       ), intent(inout), optional :: instance
     !$GLC attributes unused :: self, instance
 
-    radiusHalfMassExtract=Galactic_Structure_Radius_Enclosing_Mass(node,fractionalMass=0.5d0,massType=massTypeStellar)
+    radiusHalfMassExtract=self%galacticStructure_%radiusEnclosingMass(node,massFractional=0.5d0,massType=massTypeStellar)
     return
   end function radiusHalfMassExtract
 

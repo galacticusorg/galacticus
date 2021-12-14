@@ -119,7 +119,7 @@ contains
     use :: Galacticus_Nodes            , only : nodeComponentBlackHole         , treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    class(blackHoleBinaryInitialSeparationVolonteri2003), intent(inout)         :: self
+    class(blackHoleBinaryInitialSeparationVolonteri2003), intent(inout), target :: self
     type (treeNode                                     ), intent(inout), target :: nodeHost     , node
     class(nodeComponentBlackHole                       ), pointer               :: blackHoleHost, blackHole
 

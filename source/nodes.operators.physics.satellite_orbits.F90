@@ -21,6 +21,8 @@
   Implements a node operator class that propagates satellite halos along their orbits.
   !!}
 
+  use :: Galactic_Structure, only : galacticStructureClass
+
   !![
   <nodeOperator name="nodeOperatorSatelliteOrbit">
    <description>A node operator class that propagates satellite halos along their orbits.</description>
@@ -31,7 +33,9 @@
      A node operator class that propagates satellite halos along their orbits.
      !!}
      private
+     class(galacticStructureClass), pointer :: galacticStructure_ => null()
    contains
+     final     ::                          satelliteOrbitDestructor
      procedure :: differentialEvolution => satelliteOrbitDifferentialEvolution
   end type nodeOperatorSatelliteOrbit
   
@@ -40,6 +44,7 @@
      Constructors for the {\normalfont \ttfamily satelliteOrbit} node operator class.
      !!}
      module procedure satelliteOrbitConstructorParameters
+     module procedure satelliteOrbitConstructorInternal
   end interface nodeOperatorSatelliteOrbit
   
 contains
@@ -50,27 +55,58 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(nodeOperatorSatelliteOrbit)                :: self
-    type(inputParameters           ), intent(inout) :: parameters
+    type (nodeOperatorSatelliteOrbit)                :: self
+    type (inputParameters           ), intent(inout) :: parameters
+    class(galacticStructureClass    ), pointer       :: galacticStructure_
     
-    self=nodeOperatorSatelliteOrbit()
+    !![
+    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
+    !!]
+    self=nodeOperatorSatelliteOrbit(galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticStructure_"/>
     !!]
     return
   end function satelliteOrbitConstructorParameters
+  
+  function satelliteOrbitConstructorInternal(galacticStructure_) result(self)
+    !!{
+    Internal constructor for the {\normalfont \ttfamily satelliteOrbit} node operator class.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    type (nodeOperatorSatelliteOrbit)                        :: self
+    class(galacticStructureClass    ), intent(in   ), target :: galacticStructure_
+    !![
+    <constructorAssign variables="*galacticStructure_"/>
+    !!]
+ 
+    return
+  end function satelliteOrbitConstructorInternal
+  
+  subroutine satelliteOrbitDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily satelliteOrbit} node operator class.
+    !!}
+    implicit none
+    type(nodeOperatorSatelliteOrbit), intent(inout) :: self
+    
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
+    return
+  end subroutine satelliteOrbitDestructor
   
   subroutine satelliteOrbitDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
     !!{
     Perform evolution of a satellite orbit due to its velocity and the acceleration of its host's potential.
     !!}
-    use :: Galacticus_Nodes                  , only : nodeComponentSatellite
-    use :: Galactic_Structure_Accelerations  , only : Galactic_Structure_Acceleration
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Numerical_Constants_Astronomical  , only : gigaYear                        , megaParsec
-    use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus
-    use :: Numerical_Constants_Prefixes      , only : kilo
-    use :: Vectors                           , only : Vector_Magnitude
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite
+    use :: Numerical_Constants_Astronomical, only : gigaYear                       , megaParsec
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Vectors                         , only : Vector_Magnitude
     implicit none
     class           (nodeOperatorSatelliteOrbit), intent(inout), target  :: self
     type            (treeNode                  ), intent(inout)          :: node
@@ -98,9 +134,9 @@ contains
          &                      *velocity   &
          &                     )
     if (radius <= 0.0d0) return ! If radius is non-positive, assume no acceleration.
-    massEnclosedSatellite=Galactic_Structure_Enclosed_Mass(node    ,radius  )
-    massEnclosedHost     =Galactic_Structure_Enclosed_Mass(nodeHost,radius  )
-    acceleration         =Galactic_Structure_Acceleration (nodeHost,position)
+    massEnclosedSatellite=self%galacticStructure_%massEnclosed(node    ,radius  )
+    massEnclosedHost     =self%galacticStructure_%massEnclosed(nodeHost,radius  )
+    acceleration         =self%galacticStructure_%acceleration(nodeHost,position)
     ! Include a factor (1+m_{sat}/m_{host})=m_{sat}/µ (where µ is the reduced mass) to convert from the two-body problem of
     ! satellite and host orbitting their common center of mass to the equivalent one-body problem (since we're solving for the
     ! motion of the satellite relative to the center of the host which is held fixed).

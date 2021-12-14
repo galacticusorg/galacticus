@@ -34,6 +34,7 @@ module Node_Component_Black_Hole_Standard
   use :: Cosmology_Parameters                , only : cosmologyParametersClass
   use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScaleClass
   use :: Hot_Halo_Temperature_Profiles       , only : hotHaloTemperatureProfileClass
+  use :: Galactic_Structure                  , only : galacticStructureClass
   implicit none
   private
   public :: Node_Component_Black_Hole_Standard_Rate_Compute       , Node_Component_Black_Hole_Standard_Scale_Set        , &
@@ -123,7 +124,8 @@ module Node_Component_Black_Hole_Standard
   class(coolingRadiusClass                      ), pointer :: coolingRadius_
   class(hotHaloTemperatureProfileClass          ), pointer :: hotHaloTemperatureProfile_
   class(darkMatterHaloScaleClass                ), pointer :: darkMatterHaloScale_
-  !$omp threadprivate(accretionDisks_,cosmologyParameters_,blackHoleBinaryRecoil_,blackHoleBinaryInitialSeparation_,blackHoleBinaryMerger_,blackHoleBinarySeparationGrowthRate_,coolingRadius_,hotHaloTemperatureProfile_,darkMatterHaloScale_)
+  class(galacticStructureClass                  ), pointer :: galacticStructure_
+  !$omp threadprivate(accretionDisks_,cosmologyParameters_,blackHoleBinaryRecoil_,blackHoleBinaryInitialSeparation_,blackHoleBinaryMerger_,blackHoleBinarySeparationGrowthRate_,coolingRadius_,hotHaloTemperatureProfile_,darkMatterHaloScale_,galacticStructure_)
 
   ! Accretion model parameters.
   ! Enhancement factors for the accretion rate.
@@ -306,6 +308,7 @@ contains
        <objectBuilder class="coolingRadius"                       name="coolingRadius_"                       source="parameters_"/>
        <objectBuilder class="hotHaloTemperatureProfile"           name="hotHaloTemperatureProfile_"           source="parameters_"/>
        <objectBuilder class="darkMatterHaloScale"                 name="darkMatterHaloScale_"                 source="parameters_"/>
+       <objectBuilder class="galacticStructure"                   name="galacticStructure_"                   source="parameters_"/>
        !!]
     end if
     return
@@ -336,6 +339,7 @@ contains
        <objectDestructor name="coolingRadius_"                      />
        <objectDestructor name="hotHaloTemperatureProfile_"          />
        <objectDestructor name="darkMatterHaloScale_"                />
+       <objectDestructor name="galacticStructure_"                  />
        !!]
     end if
     return
@@ -614,9 +618,8 @@ contains
     !!{
     Return true if the given recoil velocity is sufficient to eject a black hole from the halo.
     !!}
-    use :: Galactic_Structure_Options   , only : componentTypeBlackHole
-    use :: Galactic_Structure_Potentials, only : Galactic_Structure_Potential
-    use :: Galacticus_Nodes             , only : treeNode
+    use :: Galactic_Structure_Options, only : componentTypeBlackHole
+    use :: Galacticus_Nodes          , only : treeNode
     implicit none
     type            (treeNode), intent(inout) :: node
     double precision          , intent(in   ) :: recoilVelocity        , radius
@@ -625,12 +628,12 @@ contains
          &                                       potentialHalo         , potentialHaloSelf
 
     ! Compute relevant potentials.
-    potentialCentral=Galactic_Structure_Potential(node,radius                                                                      )
-    potentialHalo   =Galactic_Structure_Potential(node,darkMatterHaloScale_%virialRadius(node)                                     )
+    potentialCentral       =galacticStructure_%potential(node,radius                                                                      )
+    potentialHalo          =galacticStructure_%potential(node,darkMatterHaloScale_%virialRadius(node)                                     )
     if (ignoreCentralBlackHole) then
        ! Compute potential of central black hole to be subtracted off of total value.
-       potentialCentralSelf=Galactic_Structure_Potential(node,radius                                 ,componentType=componentTypeBlackHole)
-       potentialHaloSelf   =Galactic_Structure_Potential(node,darkMatterHaloScale_%virialRadius(node),componentType=componentTypeBlackHole)
+       potentialCentralSelf=galacticStructure_%potential(node,radius                                 ,componentType=componentTypeBlackHole)
+       potentialHaloSelf   =galacticStructure_%potential(node,darkMatterHaloScale_%virialRadius(node),componentType=componentTypeBlackHole)
     else
        ! No correction for central black hole as it is to be included.
        potentialCentralSelf=0.0d0
@@ -653,7 +656,6 @@ contains
     !!}
     use :: Black_Hole_Fundamentals         , only : Black_Hole_Eddington_Accretion_Rate
     use :: Bondi_Hoyle_Lyttleton_Accretion , only : Bondi_Hoyle_Lyttleton_Accretion_Radius, Bondi_Hoyle_Lyttleton_Accretion_Rate
-    use :: Galactic_Structure_Densities    , only : Galactic_Structure_Density
     use :: Galactic_Structure_Options      , only : componentTypeColdHalo                 , componentTypeHotHalo                , componentTypeSpheroid, coordinateSystemCylindrical, &
           &                                         massTypeGaseous
     use :: Galacticus_Nodes                , only : nodeComponentBlackHole                , nodeComponentHotHalo                , nodeComponentSpheroid, treeNode
@@ -693,8 +695,7 @@ contains
        ! Set the position.
        position=[accretionRadius,0.0d0,0.0d0]
        ! Get density of gas at the galactic center.
-       gasDensity=Galactic_Structure_Density(node,position,coordinateSystem=coordinateSystemCylindrical,componentType&
-            &=componentTypeSpheroid,massType =massTypeGaseous)
+       gasDensity=galacticStructure_%density(node,position,coordinateSystem=coordinateSystemCylindrical,componentType=componentTypeSpheroid,massType =massTypeGaseous)
        ! Check if we have a non-negligible gas density.
        if (gasDensity > gasDensityMinimum) then
           ! Get the spheroid component.
@@ -709,8 +710,7 @@ contains
              ! Set the position.
              position=[jeansLength,0.0d0,0.0d0]
              ! Get density of gas at the galactic center.
-             gasDensity=Galactic_Structure_Density(node,position,coordinateSystem=coordinateSystemCylindrical,componentType&
-                  &=componentTypeSpheroid,massType =massTypeGaseous)
+             gasDensity=galacticStructure_%density(node,position,coordinateSystem=coordinateSystemCylindrical,componentType=componentTypeSpheroid,massType =massTypeGaseous)
           end if
           ! Compute the accretion rate.
           accretionRateSpheroid=max(bondiHoyleAccretionEnhancementSpheroid*Bondi_Hoyle_Lyttleton_Accretion_Rate(blackHoleMass&
@@ -753,21 +753,21 @@ contains
           end if
        end select
        ! Get density of gas at the galactic center - scaled by the fraction in the hot accretion mode.
-       gasDensity=                                                                                 &
-            &      hotModeFraction                                                                 &
-            &     *Galactic_Structure_Density(                                                     &
-            &                                 node                                           , &
-            &                                 position                                           , &
-            &                                 coordinateSystem=coordinateSystemCylindrical       , &
-            &                                 componentType   =componentTypeHotHalo              , &
-            &                                 massType        =massTypeGaseous                     &
+       gasDensity=                                                                            &
+            &      hotModeFraction                                                            &
+            &     *galacticStructure_%density(                                                &
+            &                                 node                                          , &
+            &                                 position                                      , &
+            &                                 coordinateSystem=coordinateSystemCylindrical  , &
+            &                                 componentType   =componentTypeHotHalo         , &
+            &                                 massType        =massTypeGaseous                &
             &                                )
        if (coldModeTracked.and.coldModeFraction > 0.0d0)                                           &
             & gasDensity=                                                                          &
             &             gasDensity                                                               &
             &            +coldModeFraction                                                         &
-            &            *Galactic_Structure_Density(                                              &
-            &                                        node                                    , &
+            &            *galacticStructure_%density(                                              &
+            &                                        node                                        , &
             &                                        position                                    , &
             &                                        coordinateSystem=coordinateSystemCylindrical, &
             &                                        componentType   =componentTypeColdHalo      , &

@@ -41,6 +41,7 @@ module Black_Hole_Binary_Initial_Separation
     <description>Computes the initial separation of a newly formed black hole binary black holes.</description>
     <type>double precision</type>
     <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
     <argument>type(treeNode), intent(inout), target :: node, nodeHost</argument>
    </method>
   </functionClass>

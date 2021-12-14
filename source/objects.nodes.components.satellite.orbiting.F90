@@ -29,6 +29,7 @@ module Node_Component_Satellite_Orbiting
   use :: Cosmology_Parameters    , only : cosmologyParametersClass
   use :: Cosmology_Functions     , only : cosmologyFunctionsClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Galactic_Structure      , only : galacticStructureClass
   use :: Virial_Density_Contrast , only : virialDensityContrastClass
   use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
   use :: Kepler_Orbits           , only : keplerOrbit
@@ -135,7 +136,8 @@ module Node_Component_Satellite_Orbiting
   class(cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_
   class(darkMatterHaloScaleClass  ), pointer :: darkMatterHaloScale_
   class(virialOrbitClass          ), pointer :: virialOrbit_
-  !$omp threadprivate(darkMatterHaloScale_,virialOrbit_,darkMatterProfileDMO_,virialDensityContrast_,cosmologyParameters_,cosmologyFunctions_)
+  class(galacticStructureClass    ), pointer :: galacticStructure_
+  !$omp threadprivate(darkMatterHaloScale_,virialOrbit_,darkMatterProfileDMO_,virialDensityContrast_,cosmologyParameters_,cosmologyFunctions_,galacticStructure_)
 
   ! Option controlling whether or not unbound virial orbits are acceptable.
   logical         , parameter :: acceptUnboundOrbits=.false.
@@ -234,6 +236,7 @@ contains
        <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters_"/>
        <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters_"/>
        <objectBuilder class="virialOrbit"           name="virialOrbit_"           source="parameters_"/>
+       <objectBuilder class="galacticStructure"     name="galacticStructure_"     source="parameters_"/>
        !!]
        ! Check that the virial orbit class supports setting of angular coordinates.
        if (.not.virialOrbit_%isAngularlyResolved()) call Galacticus_Error_Report('"orbiting" satellite component requires a virialOrbit class which provides angularly-resolved orbits'//{introspection:location})
@@ -261,6 +264,7 @@ contains
        <objectDestructor name="virialDensityContrast_"/>
        <objectDestructor name="darkMatterHaloScale_"  />
        <objectDestructor name="virialOrbit_"          />
+       <objectDestructor name="galacticStructure_"    />
        !!]
     end if
     return
@@ -512,7 +516,6 @@ contains
     Set the initial bound mass of the satellite.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Galactic_Structure_Enclosed_Masses  , only : Galactic_Structure_Enclosed_Mass
     use :: Galacticus_Error                    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentSatellite             , nodeComponentSatelliteOrbiting, treeNode
     implicit none
@@ -528,9 +531,9 @@ contains
           ! Do nothing. The bound mass of this satellite is set to the node mass by default.
        case (satelliteBoundMassInitializeTypeMaximumRadius  )
           ! Set the initial bound mass of this satellite by integrating the density profile up to a maximum radius.
-          virialRadius =darkMatterHaloScale_%virialRadius  (node                         )
+          virialRadius =darkMatterHaloScale_%virialRadius(node              )
           maximumRadius=satelliteMaximumRadiusOverVirialRadius*virialRadius
-          satelliteMass=Galactic_Structure_Enclosed_Mass   (node,maximumRadius           )
+          satelliteMass=galacticStructure_  %massEnclosed(node,maximumRadius)
           call satellite%boundMassSet(satelliteMass)
        case (satelliteBoundMassInitializeTypeDensityContrast)
           ! Set the initial bound mass of this satellite by assuming a specified density contrast.

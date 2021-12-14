@@ -23,6 +23,8 @@
   Implementation of the extended Schmidt star formation rate surface density law of \cite{shi_extended_2011} for galactic disks.
   !!}
 
+  use :: Galactic_Structure, only : galacticStructureClass
+  
   !![
   <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksExtendedSchmidt">
    <description>
@@ -41,10 +43,11 @@
      Implementation of the extended Schmidt star formation rate surface density law of \cite{shi_extended_2011} for galactic disks.
      !!}
      private
-     integer         (kind_int8) :: lastUniqueID
-     logical                     :: factorsComputed
-     double precision            :: normalization  , exponentGas         , &
-          &                         exponentStars  , hydrogenMassFraction
+     class           (galacticStructureClass), pointer :: galacticStructure_ => null()
+     integer         (kind_int8             )          :: lastUniqueID
+     logical                                           :: factorsComputed
+     double precision                                  :: normalization               , exponentGas         , &
+          &                                               exponentStars               , hydrogenMassFraction
    contains
      !![
      <methods>
@@ -75,7 +78,8 @@ contains
     implicit none
     type            (starFormationRateSurfaceDensityDisksExtendedSchmidt)                :: self
     type            (inputParameters                                    ), intent(inout) :: parameters
-    double precision                                                                     :: normalization, exponentGas, &
+    class           (galacticStructureClass                             ), pointer       :: galacticStructure_
+    double precision                                                                     :: normalization     , exponentGas, &
          &                                                                                  exponentStars
 
     !![
@@ -100,25 +104,28 @@ contains
       <description>The exponent of stellar surface density in the extended Schmidt star formation law.</description>
       <source>parameters</source>
     </inputParameter>
+    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
     !!]
-    self=starFormationRateSurfaceDensityDisksExtendedSchmidt(normalization,exponentGas,exponentStars)
+    self=starFormationRateSurfaceDensityDisksExtendedSchmidt(normalization,exponentGas,exponentStars,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticStructure_"/>
     !!]
     return
   end function extendedSchmidtConstructorParameters
 
-  function extendedSchmidtConstructorInternal(normalization,exponentGas,exponentStars) result(self)
+  function extendedSchmidtConstructorInternal(normalization,exponentGas,exponentStars,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily extendedSchmidt} star formation surface density rate from disks class.
     !!}
     use :: Numerical_Constants_Prefixes, only : giga, mega
     implicit none
-    type            (starFormationRateSurfaceDensityDisksExtendedSchmidt)                :: self
-    double precision                                                     , intent(in   ) :: normalization, exponentGas, &
-         &                                                                                  exponentStars
+    type            (starFormationRateSurfaceDensityDisksExtendedSchmidt)                        :: self
+    double precision                                                     , intent(in   )         :: normalization     , exponentGas, &
+         &                                                                                          exponentStars
+    class           (galacticStructureClass                             ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="normalization, exponentGas, exponentStars"/>
+    <constructorAssign variables="normalization, exponentGas, exponentStars, *galacticStructure_"/>
     !!]
 
     self%lastUniqueID   =-1_kind_int8
@@ -152,6 +159,9 @@ contains
     type(starFormationRateSurfaceDensityDisksExtendedSchmidt), intent(inout) :: self
 
     if (calculationResetEvent%isAttached(self,extendedSchmidtCalculationReset)) call calculationResetEvent%detach(self,extendedSchmidtCalculationReset)
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
     return
   end subroutine extendedSchmidtDestructor
 
@@ -179,10 +189,9 @@ contains
     where $A=${\normalfont \ttfamily [normalization]} and $N_1=${\normalfont \ttfamily
     [exponentGas]}. $N_2=${\normalfont \ttfamily [exponentStars]}.
     !!}
-    use :: Abundances_Structure                , only : abundances
-    use :: Galactic_Structure_Options          , only : componentTypeDisk                 , coordinateSystemCylindrical, massTypeGaseous, massTypeStellar
-    use :: Galactic_Structure_Surface_Densities, only : Galactic_Structure_Surface_Density
-    use :: Galacticus_Nodes                    , only : nodeComponentDisk                 , treeNode
+    use :: Abundances_Structure      , only : abundances
+    use :: Galactic_Structure_Options, only : componentTypeDisk, coordinateSystemCylindrical, massTypeGaseous, massTypeStellar
+    use :: Galacticus_Nodes          , only : nodeComponentDisk, treeNode
     implicit none
     class           (starFormationRateSurfaceDensityDisksExtendedSchmidt), intent(inout) :: self
     type            (treeNode                                           ), intent(inout) :: node
@@ -213,8 +222,8 @@ contains
        return
     end if
     ! Get stallar and gas surface densities.
-    surfaceDensityGas    =Galactic_Structure_Surface_Density(node,[radius,0.0d0,0.0d0],coordinateSystem=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeGaseous)
-    surfaceDensityStellar=Galactic_Structure_Surface_Density(node,[radius,0.0d0,0.0d0],coordinateSystem=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeStellar)
+    surfaceDensityGas    =self%galacticStructure_%surfaceDensity(node,[radius,0.0d0,0.0d0],coordinateSystem=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeGaseous)
+    surfaceDensityStellar=self%galacticStructure_%surfaceDensity(node,[radius,0.0d0,0.0d0],coordinateSystem=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeStellar)
     ! Compute the star formation rate surface density.
     extendedSchmidtRate=+  self%normalization                                                    & ! Normalization of the star formation rate.
          &              *((self%hydrogenMassFraction*surfaceDensityGas    )**self%exponentGas  ) &

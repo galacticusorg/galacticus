@@ -21,6 +21,8 @@
 Contains a module which implements a property extractor class for the orbital adiabatic ratio of disks.
 !!}
 
+  use :: Galactic_Structure, only : galacticStructureClass
+
   !![
   <nodePropertyExtractor name="nodePropertyExtractorAdiabaticRatioOrbitalDisk">
     <description>
@@ -39,7 +41,9 @@ Contains a module which implements a property extractor class for the orbital ad
      A property extractor class for the orbital adiabatic ratio of disks.
      !!}
      private
+     class(galacticStructureClass), pointer :: galacticStructure_ => null()
    contains
+     final     ::                adiabaticRatioOrbitalDiskDestructor
      procedure :: extract     => adiabaticRatioOrbitalDiskExtract
      procedure :: name        => adiabaticRatioOrbitalDiskName
      procedure :: description => adiabaticRatioOrbitalDiskDescription
@@ -52,6 +56,7 @@ Contains a module which implements a property extractor class for the orbital ad
      Constructors for the ``adiabaticRatioOrbitalDisk'' output analysis class.
      !!}
      module procedure adiabaticRatioOrbitalDiskConstructorParameters
+     module procedure adiabaticRatioOrbitalDiskConstructorInternal
   end interface nodePropertyExtractorAdiabaticRatioOrbitalDisk
 
 contains
@@ -62,16 +67,48 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type(nodePropertyExtractorAdiabaticRatioOrbitalDisk)                :: self
-    type(inputParameters                               ), intent(inout) :: parameters
+    type (nodePropertyExtractorAdiabaticRatioOrbitalDisk)                :: self
+    type (inputParameters                               ), intent(inout) :: parameters
+    class(galacticStructureClass                        ), pointer       :: galacticStructure_
 
-    self=nodePropertyExtractorAdiabaticRatioOrbitalDisk()
+    !![
+    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
+    !!]
+    self=nodePropertyExtractorAdiabaticRatioOrbitalDisk(galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticStructure_"/>
     !!]
     return
   end function adiabaticRatioOrbitalDiskConstructorParameters
 
+  function adiabaticRatioOrbitalDiskConstructorInternal(galacticStructure_) result(self)
+    !!{
+    Internal constructor for the {\normalfont \ttfamily adiabaticRatioOrbital} node operator class.
+    !!}
+    implicit none
+    type (nodePropertyExtractorAdiabaticRatioOrbitalDisk)                        :: self
+    class(galacticStructureClass                        ), intent(in   ), target :: galacticStructure_
+    !![
+    <constructorAssign variables="*galacticStructure_"/>
+    !!]
+
+    return
+  end function adiabaticRatioOrbitalDiskConstructorInternal
+
+  subroutine adiabaticRatioOrbitalDiskDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily adiabaticRatioOrbital} node operator class.
+    !!}
+    implicit none
+    type(nodePropertyExtractorAdiabaticRatioOrbitalDisk), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
+    return
+  end subroutine adiabaticRatioOrbitalDiskDestructor
+  
   double precision function adiabaticRatioOrbitalDiskExtract(self,node,instance)
     !!{
     Implement extraction of the orbital adiabatic ratio for disks.
@@ -97,7 +134,7 @@ contains
     disk      => node     %disk       ()
     satellite => node     %satellite  ()
     orbit     =  satellite%virialOrbit()
-    call Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumPericenter,radiusPericenter,velocityPericenter)
+    call Satellite_Orbit_Extremum_Phase_Space_Coordinates(nodeHost,orbit,extremumPericenter,radiusPericenter,velocityPericenter,self%galacticStructure_)
     if (disk%radius() > 0.0d0)                                    &
          & adiabaticRatioOrbitalDiskExtract=+(                    &
          &                                    +  radiusPericenter &

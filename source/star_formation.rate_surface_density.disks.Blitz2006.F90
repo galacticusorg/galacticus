@@ -21,7 +21,8 @@
   Implementation of the \cite{blitz_role_2006} star formation rate surface density law for galactic disks.
   !!}
 
-  use :: Kind_Numbers, only : kind_int8
+  use :: Kind_Numbers      , only : kind_int8
+  use :: Galactic_Structure, only : galacticStructureClass
 
   !![
   <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksBlitz2006">
@@ -58,14 +59,15 @@
      Implementation of the \cite{blitz_role_2006} star formation rate surface density law for galactic disks.
      !!}
      private
-     integer         (kind_int8) :: lastUniqueID
-     logical                     :: factorsComputed
-     double precision            :: heightToRadialScaleDisk  , pressureCharacteristic             , &
-          &                         pressureExponent         , starFormationFrequencyNormalization, &
-          &                         surfaceDensityCritical   , surfaceDensityExponent             , &
-          &                         velocityDispersionDiskGas, radiusDisk                         , &
-          &                         massGas                  , hydrogenMassFraction               , &
-          &                         massStellar
+     class           (galacticStructureClass), pointer :: galacticStructure_        => null()
+     integer         (kind_int8             )          :: lastUniqueID
+     logical                                           :: factorsComputed
+     double precision                                  :: heightToRadialScaleDisk            , pressureCharacteristic             , &
+          &                                               pressureExponent                   , starFormationFrequencyNormalization, &
+          &                                               surfaceDensityCritical             , surfaceDensityExponent             , &
+          &                                               velocityDispersionDiskGas          , radiusDisk                         , &
+          &                                               massGas                            , hydrogenMassFraction               , &
+          &                                               massStellar
    contains
      !![
      <methods>
@@ -95,6 +97,7 @@ contains
     implicit none
     type            (starFormationRateSurfaceDensityDisksBlitz2006)                :: self
     type            (inputParameters                              ), intent(inout) :: parameters
+    class           (galacticStructureClass                       ), pointer       :: galacticStructure_
     double precision                                                               :: velocityDispersionDiskGas          , heightToRadialScaleDisk, &
          &                                                                            surfaceDensityCritical             , surfaceDensityExponent , &
          &                                                                            starFormationFrequencyNormalization, pressureCharacteristic , &
@@ -150,15 +153,17 @@ contains
       <description>The exponent in the scaling relation of molecular hydrogen fraction with disk pressure in the ``Blitz-Rosolowsky2006'' star formation timescale calculation.</description>
       <source>parameters</source>
     </inputParameter>
+    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
     !!]
-    self=starFormationRateSurfaceDensityDisksBlitz2006(velocityDispersionDiskGas,heightToRadialScaleDisk,surfaceDensityCritical,surfaceDensityExponent,starFormationFrequencyNormalization,pressureCharacteristic,pressureExponent)
+    self=starFormationRateSurfaceDensityDisksBlitz2006(velocityDispersionDiskGas,heightToRadialScaleDisk,surfaceDensityCritical,surfaceDensityExponent,starFormationFrequencyNormalization,pressureCharacteristic,pressureExponent,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticStructure_"/>
     !!]
     return
   end function blitz2006ConstructorParameters
 
-  function blitz2006ConstructorInternal(velocityDispersionDiskGas,heightToRadialScaleDisk,surfaceDensityCritical,surfaceDensityExponent,starFormationFrequencyNormalization,pressureCharacteristic,pressureExponent) result(self)
+  function blitz2006ConstructorInternal(velocityDispersionDiskGas,heightToRadialScaleDisk,surfaceDensityCritical,surfaceDensityExponent,starFormationFrequencyNormalization,pressureCharacteristic,pressureExponent,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily blitz2006} star formation surface density rate from disks class.
     !!}
@@ -167,13 +172,14 @@ contains
     use :: Numerical_Constants_Physical    , only : boltzmannsConstant
     use :: Numerical_Constants_Prefixes    , only : giga                   , hecto     , kilo, mega
     implicit none
-    type            (starFormationRateSurfaceDensityDisksBlitz2006)                :: self
-    double precision                                               , intent(in   ) :: velocityDispersionDiskGas          , heightToRadialScaleDisk, &
-         &                                                                            surfaceDensityCritical             , surfaceDensityExponent , &
-         &                                                                            starFormationFrequencyNormalization, pressureCharacteristic , &
-         &                                                                            pressureExponent
+    type            (starFormationRateSurfaceDensityDisksBlitz2006)                        :: self
+    class           (galacticStructureClass                       ), intent(in   ), target :: galacticStructure_
+    double precision                                               , intent(in   )         :: velocityDispersionDiskGas          , heightToRadialScaleDisk, &
+         &                                                                                    surfaceDensityCritical             , surfaceDensityExponent , &
+         &                                                                                    starFormationFrequencyNormalization, pressureCharacteristic , &
+         &                                                                                    pressureExponent
      !![
-     <constructorAssign variables="velocityDispersionDiskGas, heightToRadialScaleDisk, surfaceDensityCritical, surfaceDensityExponent, starFormationFrequencyNormalization, pressureCharacteristic, pressureExponent"/>
+     <constructorAssign variables="velocityDispersionDiskGas, heightToRadialScaleDisk, surfaceDensityCritical, surfaceDensityExponent, starFormationFrequencyNormalization, pressureCharacteristic, pressureExponent, *galacticStructure_"/>
      !!]
 
     self%lastUniqueID   =-1_kind_int8
@@ -208,6 +214,9 @@ contains
     type(starFormationRateSurfaceDensityDisksBlitz2006), intent(inout) :: self
 
     if (calculationResetEvent%isAttached(self,blitz2006CalculationReset)) call calculationResetEvent%detach(self,blitz2006CalculationReset)
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
     return
   end subroutine blitz2006Destructor
 
@@ -230,12 +239,11 @@ contains
     in the galactic disk of {\normalfont \ttfamily node}. The disk is assumed to obey the
     \cite{blitz_role_2006} star formation rule.
     !!}
-    use :: Abundances_Structure                , only : abundances
-    use :: Galactic_Structure_Options          , only : componentTypeDisk                 , coordinateSystemCylindrical, massTypeGaseous, massTypeStellar
-    use :: Galactic_Structure_Surface_Densities, only : Galactic_Structure_Surface_Density
-    use :: Galacticus_Nodes                    , only : nodeComponentDisk                 , treeNode
-    use :: Numerical_Constants_Math            , only : Pi
-    use :: Numerical_Constants_Astronomical        , only : gravitationalConstantGalacticus
+    use :: Abundances_Structure            , only : abundances
+    use :: Galactic_Structure_Options      , only : componentTypeDisk              , coordinateSystemCylindrical, massTypeGaseous, massTypeStellar
+    use :: Galacticus_Nodes                , only : nodeComponentDisk              , treeNode
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (starFormationRateSurfaceDensityDisksBlitz2006), intent(inout) :: self
     type            (treeNode                                     ), intent(inout) :: node
@@ -268,8 +276,8 @@ contains
        return
     end if
     ! Get gas and stellar surface densities.
-    surfaceDensityGas    =Galactic_Structure_Surface_Density(node,[radius,0.0d0,0.0d0],coordinateSystem=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeGaseous)
-    surfaceDensityStellar=Galactic_Structure_Surface_Density(node,[radius,0.0d0,0.0d0],coordinateSystem=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeStellar)
+    surfaceDensityGas    =self%galacticStructure_%surfaceDensity(node,[radius,0.0d0,0.0d0],coordinateSystem=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeGaseous)
+    surfaceDensityStellar=self%galacticStructure_%surfaceDensity(node,[radius,0.0d0,0.0d0],coordinateSystem=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeStellar)
     ! Compute the pressure ratio that Blitz & Rosolowsky (2006) use to compute the molecular fraction.
     pressureRatio=+0.5d0                                   &
          &        *Pi                                      &

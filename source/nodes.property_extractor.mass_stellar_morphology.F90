@@ -21,6 +21,8 @@
 Contains a module which implements a stellar mass-weighted morphology output analysis property extractor class.
 !!}
 
+  use :: Galactic_Structure, only : galacticStructureClass
+
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassStellarMorphology">
    <description>A stellar mass-weighted morphology output analysis property extractor class.</description>
@@ -28,10 +30,12 @@ Contains a module which implements a stellar mass-weighted morphology output ana
   !!]
   type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorMassStellarMorphology
      !!{
-     A stelalr mass output analysis class.
+     A stellar mass output analysis class.
      !!}
      private
+     class(galacticStructureClass), pointer :: galacticStructure_ => null()
    contains
+     final     ::                massStellarMorphologyDestructor
      procedure :: extract     => massStellarMorphologyExtract
      procedure :: type        => massStellarMorphologyType
      procedure :: name        => massStellarMorphologyName
@@ -44,6 +48,7 @@ Contains a module which implements a stellar mass-weighted morphology output ana
      Constructors for the ``massStellarMorphology'' output analysis class.
      !!}
      module procedure massStellarMorphologyConstructorParameters
+     module procedure massStellarMorphologyConstructorInternal
   end interface nodePropertyExtractorMassStellarMorphology
 
 contains
@@ -54,20 +59,53 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(nodePropertyExtractorMassStellarMorphology)                :: self
-    type(inputParameters                           ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
+    type (nodePropertyExtractorMassStellarMorphology)                :: self
+    type (inputParameters                           ), intent(inout) :: parameters
+    class(galacticStructureClass                    ), pointer       :: galacticStructure_
 
-    self=nodePropertyExtractorMassStellarMorphology()
+    !![
+    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
+    !!]
+    self=nodePropertyExtractorMassStellarMorphology(galacticStructure_)
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticStructure_"/>
+    !!]
     return
   end function massStellarMorphologyConstructorParameters
+
+  function massStellarMorphologyConstructorInternal(galacticStructure_) result(self)
+    !!{
+    Internal constructor for the ``massStellarMorphology'' output analysis property extractor class.
+    !!}
+    implicit none
+    type (nodePropertyExtractorMassStellarMorphology)                        :: self
+    class(galacticStructureClass                    ), intent(in   ), target :: galacticStructure_
+    !![
+    <constructorAssign variables="*galacticStructure_"/>
+    !!]
+
+    return
+  end function massStellarMorphologyConstructorInternal
+  
+  subroutine massStellarMorphologyDestructor(self)
+    !!{
+    Destructor for the ``massStellarMorphology'' output analysis property extractor class.
+    !!}
+    implicit none
+    type(nodePropertyExtractorMassStellarMorphology), intent(inout) :: self
+    
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
+    return
+  end subroutine massStellarMorphologyDestructor
 
   double precision function massStellarMorphologyExtract(self,node,instance)
     !!{
     Implement a stellar mass-weighted morphology output analysis.
     !!}
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options        , only : componentTypeDisk               , componentTypeSpheroid, massTypeStellar, radiusLarge
+    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, massTypeStellar, radiusLarge
     implicit none
     class           (nodePropertyExtractorMassStellarMorphology), intent(inout)           :: self
     type            (treeNode                                  ), intent(inout), target   :: node
@@ -75,8 +113,8 @@ contains
     double precision                                                                      :: massStellarDisk, massStellarSpheroid
     !$GLC attributes unused :: self, instance
 
-    massStellarDisk    =Galactic_Structure_Enclosed_Mass(node,radiusLarge,massType=massTypeStellar,componentType=componentTypeDisk    )
-    massStellarSpheroid=Galactic_Structure_Enclosed_Mass(node,radiusLarge,massType=massTypeStellar,componentType=componentTypeSpheroid)
+    massStellarDisk    =self%galacticStructure_%massEnclosed(node,radiusLarge,massType=massTypeStellar,componentType=componentTypeDisk    )
+    massStellarSpheroid=self%galacticStructure_%massEnclosed(node,radiusLarge,massType=massTypeStellar,componentType=componentTypeSpheroid)
     if (massStellarDisk+massStellarSpheroid > 0.0d0) then
        massStellarMorphologyExtract=+  massStellarSpheroid &
             &                       /(                     &
