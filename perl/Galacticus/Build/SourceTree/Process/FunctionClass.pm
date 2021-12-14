@@ -839,11 +839,13 @@ CODE
 	    };
 	    # Add "deepCopy" method.
             my %deepCopyModules;
+            my %deepCopyResetModules;
+            my %deepCopyFinalizeModules;
             if ( $debugging ) {
 		$deepCopyModules{'MPI_Utilities'     } = 1;
 		$deepCopyModules{'ISO_Varying_String'} = 1;
 		$deepCopyModules{'String_Handling'   } = 1;
-		$deepCopyModules{'Display'} = 1;
+		$deepCopyModules{'Display'           } = 1;
             }
 	    $rankMaximum = 0;
             my $deepCopyCode;
@@ -857,7 +859,7 @@ CODE
             @{$linkedListFinalizeVariables} = ();
             $deepCopyResetCode    .= "self%copiedSelf => null()\n";
             $deepCopyResetCode    .= "select type (self)\n";
-            $deepCopyFinalizeCode .= "self%copiedSelf => null()\n";
+	    $deepCopyFinalizeCode .= "self%copiedSelf => null()\n";
             $deepCopyFinalizeCode .= "select type (self)\n";
             $deepCopyCode         .= "select type (self)\n";
 	    foreach my $nonAbstractClass ( @nonAbstractClasses ) {
@@ -1028,17 +1030,27 @@ CODE
                                 # Perform any explicit deep copies.
 				if ( exists($class->{'deepCopy'}->{'deepCopy'}) ) {
 				    my @deepCopies = split(/\s*,\s*/,$class->{'deepCopy'}->{'deepCopy'}->{'variables'});
-				    foreach my $object ( @{$declaration->{'variables'}} ) {
+				    foreach my $object ( @{$declaration->{'variableNames'}} ) {
 					foreach my $deepCopy ( @deepCopies ) {
 					    if ( lc($object) eq lc($deepCopy) ) {
 						$assignments .= "nullify(destination\%".$object.")\n";
 						$assignments .= "allocate(destination\%".$object.",mold=self\%".$object.")\n";
-						if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'function'}) ) {
+						if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'copy'}) ) {
 						    $deepCopyModules{$class->{'deepCopy'}->{'deepCopy'}->{'module'}} = 1
 							if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'module'}) );
-						    $assignments .= "if (associated(self\%".$object.")) call ".$class->{'deepCopy'}->{'deepCopy'}->{'function'}."(self\%".$object.",destination\%".$object.")\n";
+						    $assignments .= "if (associated(self\%".$object.")) call ".$class->{'deepCopy'}->{'deepCopy'}->{'copy'}."(self\%".$object.",destination\%".$object.")\n";
 						} else {
 						    $assignments .= "if (associated(self\%".$object.")) call self\%".$object."\%deepCopy(destination\%".$object.")\n";
+						}
+						if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'reset'}) ) {
+						    $deepCopyResetModules{$class->{'deepCopy'}->{'deepCopy'}->{'module'}} = 1
+							if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'module'}) );
+						    $deepCopyResetCode .= "if (associated(self\%".$object.")) call ".$class->{'deepCopy'}->{'deepCopy'}->{'reset'}."(self\%".$object.")\n";
+						}
+						if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'finalize'}) ) {
+						    $deepCopyFinalizeModules{$class->{'deepCopy'}->{'deepCopy'}->{'module'}} = 1
+							if ( exists($class->{'deepCopy'}->{'deepCopy'}->{'module'}) );
+						    $deepCopyFinalizeCode .= "if (associated(self\%".$object.")) call ".$class->{'deepCopy'}->{'deepCopy'}->{'finalize'}."(self\%".$object.")\n";
 						}
 					    }
 					}
@@ -1471,6 +1483,10 @@ CODE
 		pass        => "yes",
 		code        => $deepCopyFinalizeCode
 	    };
+	    $methods{'deepCopyReset'   }->{'modules'} = join(" ",keys(%deepCopyResetModules   ))
+		if ( scalar(keys(%deepCopyResetModules   )) > 0 );
+	    $methods{'deepCopyFinalize'}->{'modules'} = join(" ",keys(%deepCopyFinalizeModules))
+		if ( scalar(keys(%deepCopyFinalizeModules)) > 0 );
 	    # Add "stateStore" and "stateRestore" method.
 	    my $stateStoreCode;
 	    my $stateRestoreCode;
@@ -1480,12 +1496,13 @@ CODE
 	    my %stateRestoreModules = ( "Display" => 1, "ISO_Varying_String" => 1, "String_Handling" => 1, "ISO_C_Binding" => 1 );
 	    my @outputUnusedVariables;
 	    my @inputUnusedVariables;
-	    my $allocatablesFound = 0;
-	    my $dimensionalsFound = 0;
-	    my $gslStateFileUsed  = 0;
-	    my $stateFileUsed     = 0;
-	    my $labelUsed         = 0;
-	    $rankMaximum          = 0;
+	    my $allocatablesFound      = 0;
+	    my $explicitFunctionsFound = 0;
+	    my $dimensionalsFound      = 0;
+	    my $gslStateFileUsed       = 0;
+	    my $stateFileUsed          = 0;
+	    my $labelUsed              = 0;
+	    $rankMaximum               = 0;
 	    $stateStoreCode   .= &performIO("position=FTell(stateFile)\n");
 	    $stateRestoreCode .= &performIO("position=FTell(stateFile)\n");
 	    $stateStoreCode   .= "call displayIndent(var_str('storing state for \""  .$directive->{'name'}."\" [position: ')//position//']',verbosity=verbosityLevelWorking)\n";
@@ -1762,6 +1779,16 @@ CODE
 		    (my $linkedListInputCode, my $linkedListOutputCode) = &stateStoreLinkedList($nonAbstractClass,$stateLinkedListVariables);
 		    $inputCode  .= $linkedListInputCode;
 		    $outputCode .= $linkedListOutputCode;
+		    # Handle explicit state store functions.
+		    $explicitFunctionsFound = 1
+			if ( exists($nonAbstractClass->{'stateStore'}->{'stateStore'}->{'restore'}) );
+		    (my $stateStoreExplicitInputCode, my $stateStoreExplicitOutputCode, my %stateStoreExplicitModules) = &stateStoreExplicitFunction($nonAbstractClass);
+		    $inputCode  .= $stateStoreExplicitInputCode;
+		    $outputCode .= $stateStoreExplicitOutputCode;
+		    foreach my $module ( keys(%stateStoreExplicitModules) ) {
+			$stateStoreModules  {$module} = 1;
+			$stateRestoreModules{$module} = 1;
+		    }
 		    # Move to the parent class.
 		    $class = ($class->{'extends'} eq $directive->{'name'}) ? undef() : $classes{$class->{'extends'}};
 		}
@@ -2269,6 +2296,9 @@ CODE
 		$stateRestoreCode = ($dimensionalsFound ? "integer(c_size_t), allocatable, dimension(:) :: storedShape\n"  : "").
 		    ($allocatablesFound ? "logical                                      :: wasAllocated\n" : "").
 		    $stateRestoreCode;
+	    }
+	    if ( $explicitFunctionsFound ) {
+		$stateRestoreCode = "logical :: wasAssociated\n".$stateRestoreCode;
 	    }
 	    $stateStoreCode   = " character(len=16) :: label\n".$stateStoreCode
                  if ( $labelUsed );
@@ -3785,6 +3815,38 @@ do while (associated(item_))
 end do
 CODE
     return ($inputCode,$outputCode);
+}
+
+sub stateStoreExplicitFunction {
+    # Create state store/restore instructions for objects with explicit functions.
+    my $nonAbstractClass  = shift();
+    my $inputCode  = "";
+    my $outputCode = "";
+    my %modules;
+    # Handle store.
+    if ( exists($nonAbstractClass->{'stateStore'}->{'stateStore'}->{'variables'}) ) {
+	foreach my $explicitVariable ( split(" ",$nonAbstractClass->{'stateStore'}->{'stateStore'}->{'variables'}) ) {
+	    if ( exists($nonAbstractClass->{'stateStore'}->{'stateStore'}->{'store'  }) ) {
+		$outputCode .= "if (associated(self%".$explicitVariable.")) then\n";
+		$outputCode .= " write (stateFile) .true.\n";
+		$outputCode .= " call ".$nonAbstractClass->{'stateStore'}->{'stateStore'}->{'store'  }."(self%".$explicitVariable.",stateFile,gslStateFile,stateOperationID)\n";
+		$outputCode .= "else\n";
+		$outputCode .= " write (stateFile) .false.\n";
+		$outputCode .= "end if\n";
+	    }
+	    if ( exists($nonAbstractClass->{'stateStore'}->{'stateStore'}->{'restore'}) ) {
+		$inputCode  .= "read (stateFile) wasAssociated\n";
+		$inputCode  .= "if (wasAssociated) then\n";
+		$inputCode  .= " call ".$nonAbstractClass->{'stateStore'}->{'stateStore'}->{'restore'}."(self%".$explicitVariable.",stateFile,gslStateFile,stateOperationID)\n";
+		$inputCode  .= "else\n";
+		$inputCode  .= " nullify(self%".$explicitVariable.")\n";
+		$inputCode  .= "end if\n";
+	    }
+	    $modules{$nonAbstractClass->{'stateStore'}->{'stateStore'}->{'module'}} = 1
+		if ( exists($nonAbstractClass->{'stateStore'}->{'stateStore'}->{'module' }) );   
+	}
+    }
+    return ($inputCode,$outputCode,%modules);
 }
 
 1;
