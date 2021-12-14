@@ -85,6 +85,14 @@ sub Process_InputParametersValidate {
 	    }
 	    # Add module usage.
 	    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses($node->{'parent'},{moduleUse => {ISO_Varying_String => {all => 1}}});
+	    # Add any extra allowed names.
+	    if ( exists($node->{'directive'}->{'extraAllowedNames'}) ) {
+		my @extraAllowedNames = split(" ",$node->{'directive'}->{'extraAllowedNames'});
+		$code .= "allocate(".$variableName."(".scalar(@extraAllowedNames)."))\n";
+		for(my $i=0;$i<scalar(@extraAllowedNames);++$i) {
+		    $code .= $variableName."(".($i+1).")='".$extraAllowedNames[$i]."'\n";
+		}
+	    }
 	    # Generate the validation code.
 	    my $result;
 	    if ( $node->{'parent'}->{'type'} eq "function" ) {
@@ -113,6 +121,7 @@ sub Process_InputParametersValidate {
 		}
 		$code .= $copyLoopOpen."   if (associated(".$_->{'name'}.")) call ".$_->{'name'}."%allowedParameters(".$variableName.",'parameters')\n".$copyLoopClose;
 	    }
+	    # Perform the check.
 	    $code .= "   call ".$source."%checkParameters(".$variableName.(exists($node->{'directive'}->{'multiParameters'}) ? ",".$multiNames : "").")\n";
 	    $code .= "   if (allocated(".$variableName.")) deallocate(".$variableName.")\n";
 	    # Insert new code.
