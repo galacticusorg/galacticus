@@ -748,7 +748,7 @@
        return
     end if
     ! Get the virial radius of the node.
-    self%radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
+    self%radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
     ! Return radius unchanged if larger than the virial radius.
     if (radius >= self%radiusVirial) then
        adiabaticGnedin2004RadiusInitial=radius

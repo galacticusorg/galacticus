@@ -578,7 +578,7 @@ contains
     double precision                                              :: radiusVirial
 
     selfHost     => self%host                        (        )
-    radiusVirial =  darkMatterHaloScale_%virialRadius(selfHost)
+    radiusVirial =  darkMatterHaloScale_%radiusVirial(selfHost)
     Node_Component_Hot_Halo_Standard_Outer_Radius=max(                                      &
          &                                            min(                                  &
          &                                                self%outerRadiusValue()         , &
@@ -778,7 +778,7 @@ contains
      call Node_Component_Hot_Halo_Standard_Cooling_Rate(node)
 
      ! Compute the input mass heating rate from the input energy heating rate.
-     inputMassHeatingRate=rate/darkMatterHaloScale_%virialVelocity(node)**2
+     inputMassHeatingRate=rate/darkMatterHaloScale_%velocityVirial(node)**2
 
      ! Limit the mass heating rate such that it never exceeds the remaining budget.
      massHeatingRate=min(inputMassHeatingRate,massHeatingRateRemaining)
@@ -901,7 +901,7 @@ contains
     if (massRate /= 0.0d0 .and. hotHalo%mass() > 0.0d0) then
        ! Limit the mass expulsion rate to a fraction of the halo dynamical timescale.
        node => hotHalo%hostNode
-       massRateLimited=min(massRate,hotHaloExpulsionRateMaximum*hotHalo%mass()/darkMatterHaloScale_%dynamicalTimescale(node))
+       massRateLimited=min(massRate,hotHaloExpulsionRateMaximum*hotHalo%mass()/darkMatterHaloScale_%timescaleDynamical(node))
        ! Get the rate of change of abundances, chemicals, and angular momentum.
        abundancesRates    =hotHalo%abundances     ()*massRateLimited/hotHalo%mass()
        angularMomentumRate=hotHalo%angularMomentum()*massRateLimited/hotHalo%mass()
@@ -946,7 +946,7 @@ contains
          &                                                                    radiusOuter, radiusVirial
 
     radiusOuter =hotHalo                 %outerRadius (                 )
-    radiusVirial=darkMatterHaloScale_    %virialRadius(node             )
+    radiusVirial=darkMatterHaloScale_    %radiusVirial(node             )
     massOuter   =hotHaloMassDistribution_%enclosedMass(node,radiusOuter )
     massVirial  =hotHaloMassDistribution_%enclosedMass(node,radiusVirial)
     if (massVirial > 0.0d0) then
@@ -1161,7 +1161,7 @@ contains
           end if
           ! Compute the rates of change of chemical masses due to chemical reactions.
           ! Get the temperature of the hot reservoir.
-          temperature=darkMatterHaloScale_%virialTemperature(node)
+          temperature=darkMatterHaloScale_%temperatureVirial(node)
           ! Set the radiation background.
           call radiationCosmicMicrowaveBackground%timeSet(basic%time())
           if (associated(radiationIntergalacticBackground)) then
@@ -1177,7 +1177,7 @@ contains
           ! Scale all chemical masses by their mass in atomic mass units to get a number density.
           call chemicalMasses%massToNumber(chemicalDensities)
           ! Compute factor converting mass of chemicals in (M_Solar/M_Atomic) to number density in cm^-3.
-          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%virialRadius(node))
+          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%radiusVirial(node))
           ! Convert to number density.
           chemicalDensities=chemicalDensities*massToDensityConversion
           ! Compute the chemical reaction rates.
@@ -1202,9 +1202,9 @@ contains
                   &  .and.                                                                                                 &
                   &   hotHalo%mass         () >  0.0d0                                                                     &
                   &  .and.                                                                                                 &
-                  &   outerRadius             <=                                   darkMatterHaloScale_%virialRadius(node) &
+                  &   outerRadius             <=                                   darkMatterHaloScale_%radiusVirial(node) &
                   &  .and.                                                                                                 &
-                  &   outerRadius             > outerRadiusOverVirialRadiusMinimum*darkMatterHaloScale_%virialRadius(node) &
+                  &   outerRadius             > outerRadiusOverVirialRadiusMinimum*darkMatterHaloScale_%radiusVirial(node) &
                   & ) then
                 densityAtOuterRadius=hotHaloMassDistribution_%density(node,outerRadius)
                 massLossRate        =4.0d0*Pi*densityAtOuterRadius*outerRadius**2*outerRadiusGrowthRate
@@ -1214,7 +1214,7 @@ contains
              end if
           else
              ! For isolated halos, the outer radius should grow with the virial radius.
-             call hotHalo%outerRadiusRate(darkMatterHaloScale_%virialRadiusGrowthRate(node),interrupt,interruptProcedure)
+             call hotHalo%outerRadiusRate(darkMatterHaloScale_%radiusVirialGrowthRate(node),interrupt,interruptProcedure)
           end if
        end select
     end if
@@ -1306,7 +1306,7 @@ contains
        end if
        ! The outer radius must be increased as the halo fills up with gas.
        outerRadius =self                %outerRadius (    )
-       radiusVirial=darkMatterHaloScale_%virialRadius(node)
+       radiusVirial=darkMatterHaloScale_%radiusVirial(node)
        if (outerRadius < radiusVirial) then
           basic                => node                    %basic  (                )
           densityAtOuterRadius =  hotHaloMassDistribution_%density(node,outerRadius)
@@ -1342,13 +1342,13 @@ contains
           ! Get required objects.
           basic => node%basic()
           ! Compute coefficient in conversion of mass to density for this node.
-          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%virialRadius(node))/3.0d0
+          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%radiusVirial(node))/3.0d0
           ! Get the abundances of the outflowed material.
           outflowedAbundances    =self%outflowedAbundances()/outflowedMass
           ! Get the hydrogen mass fraction in outflowed gas.
           hydrogenByMass         =outflowedAbundances%hydrogenMassFraction()
           ! Compute the temperature and density of material in the hot halo.
-          temperature            =darkMatterHaloScale_%virialTemperature(node)
+          temperature            =darkMatterHaloScale_%temperatureVirial(node)
           numberDensityHydrogen  =hydrogenByMass*outflowedMass*massToDensityConversion/atomicMassHydrogen
           ! Set the radiation field.
           call radiationCosmicMicrowaveBackground%timeSet(basic%time())
@@ -1454,8 +1454,8 @@ contains
        basic => node%basic()
        ! Get virial properties.
        massVirial    =basic%mass()
-       radiusVirial  =darkMatterHaloScale_%virialRadius  (node)
-       velocityVirial=darkMatterHaloScale_%virialVelocity(node)
+       radiusVirial  =darkMatterHaloScale_%radiusVirial  (node)
+       velocityVirial=darkMatterHaloScale_%velocityVirial(node)
        call    hotHalo%                    massScale(                       massVirial                               *scaleMassRelative  )
        call    hotHalo%           outflowedMassScale(                       massVirial                               *scaleMassRelative  )
        call    hotHalo%          unaccretedMassScale(                       massVirial                               *scaleMassRelative  )
@@ -1869,7 +1869,7 @@ contains
        hotHaloParent => nodeParent%hotHalo(autoCreate=.true.)
        ! Update the outer radius to match the virial radius of the parent halo.
        call hotHalo%outerRadiusSet(                                              &
-            &                      darkMatterHaloScale_%virialRadius(nodeParent) &
+            &                      darkMatterHaloScale_%radiusVirial(nodeParent) &
             &                     )
        ! If the parent node has a hot halo component, then add it to that of this node, and perform other changes needed prior to
        ! promotion.
@@ -1992,7 +1992,7 @@ contains
     ! Get the hosting node.
     node => self%hostNode
     ! Initialize the outer boundary to the virial radius.
-    call self%outerRadiusSet(darkMatterHaloScale_%virialRadius(node))
+    call self%outerRadiusSet(darkMatterHaloScale_%radiusVirial(node))
     ! Record that the spheroid has been initialized.
     call self%isInitializedSet(.true.)
     return
@@ -2036,14 +2036,14 @@ contains
        ! Compute mass of chemicals transferred to the hot halo.
        if (chemicalsCount > 0 .and. hotHalo%outflowedMass() > 0.0d0) then
           ! Compute coefficient in conversion of mass to density for this node.
-          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%virialRadius(node))/3.0d0
+          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(darkMatterHaloScale_%radiusVirial(node))/3.0d0
           ! Get abundance mass fractions of the outflowed material.
           outflowedAbundances= hotHalo%outflowedAbundances() &
                &              /hotHalo%outflowedMass      ()
           ! Get the hydrogen mass fraction in outflowed gas.
           hydrogenByMass=outflowedAbundances%hydrogenMassFraction()
           ! Compute the temperature and density of material in the hot halo.
-          temperature          =darkMatterHaloScale_%virialTemperature(node)
+          temperature          =darkMatterHaloScale_%temperatureVirial(node)
           numberDensityHydrogen=hydrogenByMass*hotHalo%outflowedMass()*massToDensityConversion/atomicMassHydrogen
           ! Set the radiation field.
           basic => node%basic()

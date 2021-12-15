@@ -212,7 +212,7 @@ contains
       ! Return immediately if the specific angular momentum is zero.
       if (specificAngularMomentum <= 0.0d0) return
       ! Find the radius of the component, assuming radius scales linearly with angular momentum.
-      velocity=self%darkMatterHaloScale_%virialVelocity(node)
+      velocity=self%darkMatterHaloScale_%velocityVirial(node)
       radius  =specificAngularMomentum/velocity
       ! Set the component size to new radius and velocity.
       call radiusSet  (node,radius  )

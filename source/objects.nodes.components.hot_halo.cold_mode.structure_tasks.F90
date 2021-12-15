@@ -293,7 +293,7 @@ contains
     positionSpherical                                        =  [radius,0.0d0,0.0d0]
     density                                                  =  Node_Component_Hot_Halo_Cold_Mode_Density_Task(node,positionSpherical,componentType,massType,weightByMass,weightIndexNull)
     xV                                                       = +                           velocity       &
-         &                                                     /darkMatterHaloScale_%virialVelocity(node) &
+         &                                                     /darkMatterHaloScale_%velocityVirial(node) &
          &                                                     /sqrt(2.0d0)
     Node_Component_Hot_Halo_Cold_Mode_Chandrasekhar_Integral = -density              &
          &                                                     *velocityCartesian    &

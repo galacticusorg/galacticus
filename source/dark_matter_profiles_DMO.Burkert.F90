@@ -408,7 +408,7 @@ contains
     darkMatterProfile           => node             %darkMatterProfile(autoCreate=.true.)
     scaleRadius                 =  darkMatterProfile%scale            (                 )
     radiusOverScaleRadius       =  radius                                      /scaleRadius
-    virialRadiusOverScaleRadius =  self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
+    virialRadiusOverScaleRadius =  self%darkMatterHaloScale_%radiusVirial(node)/scaleRadius
     burkertDensity              =  self%densityScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius)*basic%mass()/scaleRadius**3
     return
   end function burkertDensity
@@ -455,7 +455,7 @@ contains
     darkMatterProfile           => node%darkMatterProfile(autoCreate=.true.)
     scaleRadius                 =  darkMatterProfile%scale()
     radiusOverScaleRadius       =  radius                                      /scaleRadius
-    virialRadiusOverScaleRadius =  self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
+    virialRadiusOverScaleRadius =  self%darkMatterHaloScale_%radiusVirial(node)/scaleRadius
     burkertEnclosedMass         =  self%enclosedMassScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius)*basic%mass()
     return
   end function burkertEnclosedMass
@@ -480,7 +480,7 @@ contains
     if (present(status)) status=structureErrorCodeSuccess
     darkMatterProfile   => node%darkMatterProfile(autoCreate=.true.)
     radiusOverScaleRadius            =radius                       /darkMatterProfile%scale()
-    virialRadiusOverScaleRadius      =self%darkMatterHaloScale_%virialRadius(node)/darkMatterProfile%scale()
+    virialRadiusOverScaleRadius      =self%darkMatterHaloScale_%radiusVirial(node)/darkMatterProfile%scale()
     if (radiusOverScaleRadius < radiusSmall) then
        burkertPotential=                                                                          &
             & +(                                                                                  &
@@ -495,7 +495,7 @@ contains
             &     +                                    log (1.0d0+virialRadiusOverScaleRadius**2) &
             &  )                                                                                  &
             & *virialRadiusOverScaleRadius                                                        &
-            & *self%darkMatterHaloScale_%virialVelocity(node)**2
+            & *self%darkMatterHaloScale_%velocityVirial(node)**2
     else
        burkertPotential=                                                                          &
             & +(                                                                                  &
@@ -514,7 +514,7 @@ contains
             &     +                                    log (1.0d0+virialRadiusOverScaleRadius**2) &
             &  )                                                                                  &
             & *virialRadiusOverScaleRadius                                                        &
-            & *self%darkMatterHaloScale_%virialVelocity(node)**2
+            & *self%darkMatterHaloScale_%velocityVirial(node)**2
     end if
     return
   end function burkertPotential
@@ -581,7 +581,7 @@ contains
     darkMatterProfile           => node%darkMatterProfile(autoCreate=.true.)
     scaleRadius                 =  darkMatterProfile%scale()
     radiusOverScaleRadius       =  radius                                      /scaleRadius
-    virialRadiusOverScaleRadius =  self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
+    virialRadiusOverScaleRadius =  self%darkMatterHaloScale_%radiusVirial(node)/scaleRadius
     if (radius > 0.0d0) then
        call self%radialVelocityDispersionTabulate(radiusOverScaleRadius)
        burkertRadialVelocityDispersion=self%burkertRadialVelocityDispersionTable%interpolate(radiusOverScaleRadius)
@@ -596,7 +596,7 @@ contains
          &                                +self%burkertNormalizationFactorPrevious  &
          &                                *virialRadiusOverScaleRadius              &
          &                               )                                          &
-         &                          *self%darkMatterHaloScale_%virialVelocity(node)
+         &                          *self%darkMatterHaloScale_%velocityVirial(node)
     return
   end function burkertRadialVelocityDispersion
 
@@ -666,14 +666,14 @@ contains
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Find the concentration parameter of this halo.
-    concentration=self%darkMatterHaloScale_%virialRadius(node)/darkMatterProfile%scale()
+    concentration=self%darkMatterHaloScale_%radiusVirial(node)/darkMatterProfile%scale()
 
     ! Ensure that the interpolations exist and extend sufficiently far.
     call self%tabulate(concentration)
 
     ! Find the rotation normalization by interpolation.
     burkertRotationNormalization=+self%burkertConcentrationTable%interpolate(concentration,table=burkertConcetrationRotationNormalizationIndex) &
-         &                       /self%darkMatterHaloScale_%virialRadius(node)
+         &                       /self%darkMatterHaloScale_%radiusVirial(node)
     return
   end function burkertRotationNormalization
 
@@ -694,14 +694,14 @@ contains
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
 
     ! Find the concentration parameter of this halo.
-    concentration=self%darkMatterHaloScale_%virialRadius(node)/darkMatterProfile%scale()
+    concentration=self%darkMatterHaloScale_%radiusVirial(node)/darkMatterProfile%scale()
 
     ! Ensure that the interpolations exist and extend sufficiently far.
     call self%tabulate(concentration)
 
     ! Find the energy by interpolation.
     burkertEnergy=self%burkertConcentrationTable%interpolate(concentration,table=burkertConcentrationEnergyIndex) &
-         &        *basic%mass()*self%darkMatterHaloScale_%virialVelocity(node)**2
+         &        *basic%mass()*self%darkMatterHaloScale_%velocityVirial(node)**2
     return
   end function burkertEnergy
 
@@ -933,7 +933,7 @@ contains
     radiusScale=darkMatterProfile%scale()
 
     ! Compute the concentration parameter.
-    concentration=self%darkMatterHaloScale_%virialRadius(node)/radiusScale
+    concentration=self%darkMatterHaloScale_%radiusVirial(node)/radiusScale
 
     ! Get the dimensionless wavenumber.
     waveNumberScaleFree=waveNumber*radiusScale
@@ -991,10 +991,10 @@ contains
     ! Get the scale radius.
     radiusScale=darkMatterProfile%scale()
     ! Get the concentration.
-    concentration=+self%darkMatterHaloScale_%virialRadius  (node) &
+    concentration=+self%darkMatterHaloScale_%radiusVirial  (node) &
          &        /radiusScale
     ! Get the virial velocity.
-    velocityScale=+self%darkMatterHaloScale_%virialVelocity(node)
+    velocityScale=+self%darkMatterHaloScale_%velocityVirial(node)
     ! Compute time scale.
     timeScale=+Mpc_per_km_per_s_To_Gyr                  &
          &    *radiusScale                              &
@@ -1046,10 +1046,10 @@ contains
     ! Get the scale radius.
     radiusScale=darkMatterProfile%scale()
     ! Get the concentration.
-    concentration=+self%darkMatterHaloScale_%virialRadius  (node) &
+    concentration=+self%darkMatterHaloScale_%radiusVirial  (node) &
          &        /radiusScale
     ! Get the virial velocity.
-    velocityScale=+self%darkMatterHaloScale_%virialVelocity(node)
+    velocityScale=+self%darkMatterHaloScale_%velocityVirial(node)
     ! Compute time scale.
     timeScale=+Mpc_per_km_per_s_To_Gyr                  &
          &    *radiusScale                              &
@@ -1204,7 +1204,7 @@ contains
     basic             =>  node                                  %basic            (                 )
     darkMatterProfile =>  node                                  %darkMatterProfile(autoCreate=.true.)
     radiusScale       =   darkMatterProfile                     %scale            (                 )
-    concentration     =  +self             %darkMatterHaloScale_%virialRadius     (           node  ) &
+    concentration     =  +self             %darkMatterHaloScale_%radiusVirial     (           node  ) &
          &               /radiusScale
     radiusMinimumActual=0.0d0
     radiusMaximumActual=concentration
@@ -1308,7 +1308,7 @@ contains
     basic             =>  node                                  %basic                (                 )
     darkMatterProfile =>  node                                  %darkMatterProfile    (autoCreate=.true.)
     radiusScale       =   darkMatterProfile                     %scale                (                 )
-    concentration     =  +self             %darkMatterHaloScale_%virialRadius         (            node )      &
+    concentration     =  +self             %darkMatterHaloScale_%radiusVirial         (            node )      &
          &               /radiusScale
     densityScaleFree  =  +density                                                                              &
          &               *radiusScale                                                                      **3 &

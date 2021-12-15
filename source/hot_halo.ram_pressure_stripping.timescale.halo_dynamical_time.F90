@@ -109,6 +109,6 @@ contains
     class(hotHaloRamPressureTimescaleHaloDynamicalTime), intent(inout) :: self
     type (treeNode                                    ), intent(inout) :: node
 
-    haloDynamicalTimeTimescale=self%darkMatterHaloScale_%dynamicalTimescale(node)
+    haloDynamicalTimeTimescale=self%darkMatterHaloScale_%timescaleDynamical(node)
     return
   end function haloDynamicalTimeTimescale

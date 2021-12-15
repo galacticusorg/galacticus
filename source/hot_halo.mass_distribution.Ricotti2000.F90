@@ -184,7 +184,7 @@ contains
     radiusOuter       =   hotHalo                     %outerRadius      (    )
     mass              =   hotHalo                     %mass             (    )
     radiusScale       =           darkMatterProfile   %scale            (    )
-    radiusVirial      =   self   %darkMatterHaloScale_%virialRadius     (node)
+    radiusVirial      =   self   %darkMatterHaloScale_%radiusVirial     (node)
     concentration     =  +radiusVirial              &
          &               /radiusScale
     b                 =  +(                             &

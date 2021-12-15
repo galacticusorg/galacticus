@@ -108,6 +108,6 @@ contains
     class(hotHaloRamPressureStrippingVirialRadius), intent(inout), target :: self
     type (treeNode                               ), intent(inout), target :: node
 
-    virialRadiusRadiusStripped=self%darkMatterHaloScale_%virialRadius(node)
+    virialRadiusRadiusStripped=self%darkMatterHaloScale_%radiusVirial(node)
     return
   end function virialRadiusRadiusStripped

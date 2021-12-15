@@ -263,14 +263,14 @@ contains
     ! Iterate over density contrasts.    
     do i=1,self%countDensityContrasts
        densityTarget=self%densityContrasts(i)*densityReference
-       if (densityContrastsRoot(radiusTiny*self%darkMatterHaloScale_%virialRadius(node)) < 0.0d0) then
+       if (densityContrastsRoot(radiusTiny*self%darkMatterHaloScale_%radiusVirial(node)) < 0.0d0) then
           ! The target density contrast is not reached even at this tiny radius. This happens in cored density profiles. Return
           ! zero mass and radius.
           radius      =0.0d0
           enclosedMass=0.0d0
        else
           ! The target density is reached, so find the exact radius at which it occurs.
-          radius      =self%finder%find            (rootGuess=self%darkMatterHaloScale_%virialRadius(node))
+          radius      =self%finder%find            (rootGuess=self%darkMatterHaloScale_%radiusVirial(node))
           enclosedMass=self%galacticStructure_%massEnclosed(                                     &
                &                                                               node            , &
                &                                                               radius          , &

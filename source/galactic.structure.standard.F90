@@ -410,7 +410,7 @@ contains
        if (self%radiusEnclosingMassPrevious >= 0.0d0) then
           radiusGuess=self                     %radiusEnclosingMassPrevious
        else
-          radiusGuess=self%darkMatterHaloScale_%virialRadius               (node)
+          radiusGuess=self%darkMatterHaloScale_%radiusVirial               (node)
        end if
        self%radiusEnclosingMassPrevious=self%finderMass%find                       (rootGuess=radiusGuess)
        self%uniqueIDPrevious           =node           %uniqueID                   (                     )
@@ -571,7 +571,7 @@ contains
     if (.not.self%potentialOffsetComputed) then
        componentType_=componentTypeAll
        massType_     =massTypeAll
-       radius_       =self%darkMatterHaloScale_%virialRadius(node)
+       radius_       =self%darkMatterHaloScale_%radiusVirial(node)
        status_       =structureErrorCodeSuccess
        potential     =node%mapDouble0(potentialComponent_,reductionSummation,optimizeFor=optimizeForPotentialSummation)
        if (status_ /= structureErrorCodeSuccess) status=status_
@@ -586,7 +586,7 @@ contains
        !!]
        ! Compute the potential offset such that the total gravitational potential at the virial radius is -V² where V is the
        ! virial velocity.
-       self%potentialOffset        =-potential-self%darkMatterHaloScale_%virialVelocity(node)**2
+       self%potentialOffset        =-potential-self%darkMatterHaloScale_%velocityVirial(node)**2
        self%potentialOffsetComputed=.true.
     end if
     call self%defaults(radius=radius,componentType=componentType,massType=massType)
@@ -691,7 +691,7 @@ contains
     if (self%radiusEnclosingSurfaceDensityPrevious >= 0.0d0) then
        radiusGuess=self                     %radiusEnclosingSurfaceDensityPrevious
     else
-       radiusGuess=self%darkMatterHaloScale_%virialRadius                         (node)
+       radiusGuess=self%darkMatterHaloScale_%radiusVirial                         (node)
     end if
     self%radiusEnclosingSurfaceDensityPrevious=self%finderSurfaceDensity%find(rootGuess=radiusGuess)
     radius=self%radiusEnclosingSurfaceDensityPrevious

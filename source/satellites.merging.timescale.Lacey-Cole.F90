@@ -136,8 +136,8 @@ contains
        nodeHost => node%parent%firstChild
     end if
     ! Get velocity scale.
-    velocityScale=self%darkMatterHaloScale_%virialVelocity(nodeHost)
-    radialScale  =self%darkMatterHaloScale_%virialRadius  (nodeHost)
+    velocityScale=self%darkMatterHaloScale_%velocityVirial(nodeHost)
+    radialScale  =self%darkMatterHaloScale_%radiusVirial  (nodeHost)
     ! Compute radius of orbit with same energy.
     equivalentCircularOrbitRadius=exp(orbit%energy()/velocityScale**2+0.5d0)
     ! Compute orbital circularity.
@@ -187,7 +187,7 @@ contains
     else
        ! Compute dynamical friction timescale.
        laceyCole1993TimeUntilMergingMassDependence=+self%timescaleMultiplier                               &
-            &                                      *self%darkMatterHaloScale_%dynamicalTimescale(nodeHost) &
+            &                                      *self%darkMatterHaloScale_%timescaleDynamical(nodeHost) &
             &                                      *inverseTwoB1                                           &
             &                                      *    massRatio                                          &
             &                                      /log(massRatio)

@@ -236,7 +236,7 @@ contains
     integratorLambdaR2              =integrator(velocityDispersionLambdaRIntegrand2              ,toleranceRelative=1.0d-2)
     allocate(velocityDispersionExtract(self%radiiCount,self%elementCount_))
     radiusVirial                                         =  0.0d0
-    if (self%         virialRadiusIsNeeded) radiusVirial      =  self%darkMatterHaloScale_%virialRadius(node                    )
+    if (self%         virialRadiusIsNeeded) radiusVirial      =  self%darkMatterHaloScale_%radiusVirial(node                    )
     if (self%                 diskIsNeeded) disk              =>                                        node%disk             ()
     if (self%             spheroidIsNeeded) spheroid          =>                                        node%spheroid         ()
     if (self%darkMatterScaleRadiusIsNeeded) darkMatterProfile =>                                        node%darkMatterProfile()

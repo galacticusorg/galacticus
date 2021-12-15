@@ -362,8 +362,8 @@ contains
              self%angularMomentumSpecific=self%radius*self%velocityCircular*factorAngularMomentum
              ! Check that the specific angular momentum is reasonable.
              if (.not.self%warningIssued.and.displayVerbosity() >= verbosityLevelWarn) then
-                radiusVirial  =self%darkMatterHaloScale_%virialRadius  (nodeHost)
-                velocityVirial=self%darkMatterHaloScale_%virialVelocity(nodeHost)
+                radiusVirial  =self%darkMatterHaloScale_%radiusVirial  (nodeHost)
+                velocityVirial=self%darkMatterHaloScale_%velocityVirial(nodeHost)
                 if (angularMomentumSpecific < fractionAngularMomentumSpecificSmall*radiusVirial*velocityVirial) then
                    message=displayMagenta()//'WARNING:'//displayReset()//' the specific angular momentum for node '
                    message=message//nodeHost%index()//' has become very small'//char(10)

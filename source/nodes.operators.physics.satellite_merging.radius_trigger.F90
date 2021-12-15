@@ -215,7 +215,7 @@ contains
          &                                       +                          radiusHalfMassSatellite            &
          &                                       +                          radiusHalfMassCentral            , &
          &                                       +self%                     radiusVirialFraction               &
-         &                                       *self%darkMatterHaloScale_%virialRadius           (nodeHost)  &
+         &                                       *self%darkMatterHaloScale_%radiusVirial           (nodeHost)  &
          &                                      )
     return
   end function satelliteMergingRadiusTriggerRadiusMerge

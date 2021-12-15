@@ -325,7 +325,7 @@ contains
        call Galacticus_Calculations_Reset(     nodeHost)
        ! Compute the separation of the merging pairs (i.e. the virial radius of the primary halo), the density of the
        ! accretion flow at that separation, and the halo mass function.
-       separation      (iHost)=self%darkMatterHaloScale_%virialRadius(nodeHost                   )
+       separation      (iHost)=self%darkMatterHaloScale_%radiusVirial(nodeHost                   )
        density         (iHost)=self%accretionFlows_     %density     (nodeHost ,separation(iHost))
        haloMassFunction(iHost)=self%haloMassFunction_   %differential(self%time,massHost,nodeHost)
        ! Iterate over satellite masses.
@@ -366,8 +366,8 @@ contains
                 distributionFunction=self%virialOrbit_%velocityDistributionFunction(                                                                                  &
                      &                                                                                                                                nodeSatellite , &
                      &                                                                                                                                nodeHost      , &
-                     &                                                              velocityRadialVirial    *self%darkMatterHaloScale_%virialVelocity(nodeHost     ), &
-                     &                                                              velocityTangentialVirial*self%darkMatterHaloScale_%virialVelocity(nodeHost     )  &
+                     &                                                              velocityRadialVirial    *self%darkMatterHaloScale_%velocityVirial(nodeHost     ), &
+                     &                                                              velocityTangentialVirial*self%darkMatterHaloScale_%velocityVirial(nodeHost     )  &
                      &                                                             )
                 ! Accumulate the distribution function, marginal distribution, and moments.
                 velocityDistributionOrbits                  (iHost,iSatellite,iVelocityRadial,iVelocityTangential)= &

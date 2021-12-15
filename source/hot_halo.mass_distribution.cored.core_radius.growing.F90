@@ -187,7 +187,7 @@ contains
     ! Comptue the desired core radius (in units of the virial radius) for a fully populated halo.
     coreRadiusOverVirialRadiusInitial=+self                     %coreRadiusOverScaleRadius       &
          &                            *     darkMatterProfile   %scale                    (    ) &
-         &                            /self%darkMatterHaloScale_%virialRadius             (node)
+         &                            /self%darkMatterHaloScale_%radiusVirial             (node)
     ! Check if the initial core radius and hot gas fraction equal the previously stored values.
     if     (                                                                                        &
          &  .not.                                                                                   &
@@ -226,7 +226,7 @@ contains
     end if
     ! Compute the resulting core radius.
     growingRadius=+self                     %coreRadiusOverVirialRadiusSaved       &
-         &        *self%darkMatterHaloScale_%virialRadius                   (node)
+         &        *self%darkMatterHaloScale_%radiusVirial                   (node)
     return
   end function growingRadius
 

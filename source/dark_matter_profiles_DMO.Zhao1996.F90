@@ -231,7 +231,7 @@ contains
 
     basic                 =>  node %basic                                (                          )
     radiusScale           =   self                      %scaleRadius     (node                      )
-    radiusVirialScaleFree =  +self %darkMatterHaloScale_%virialRadius    (node                      )    &
+    radiusVirialScaleFree =  +self %darkMatterHaloScale_%radiusVirial    (node                      )    &
          &                   /                           radiusScale
     zhao1996Normalization =  +basic                     %mass            (                          )    &
          &                   /self                      %massUnnormalized(node,radiusVirialScaleFree)    &
@@ -463,7 +463,7 @@ contains
     type            (treeNode                    ), intent(inout) :: node
     double precision                                              :: radiusVirial
     
-    radiusVirial                 =+self%darkMatterHaloScale_%virialRadius(node                                        )
+    radiusVirial                 =+self%darkMatterHaloScale_%radiusVirial(node                                        )
     zhao1996RotationNormalization=+self                     %radialMoment(node,moment=2.0d0,radiusMaximum=radiusVirial) &
          &                        /self                     %radialMoment(node,moment=3.0d0,radiusMaximum=radiusVirial)
     return
@@ -520,7 +520,7 @@ contains
          &               rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
          &               rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
          &              )    
-    zhao1996FreefallRadius=finder%find(rootGuess=self%darkMatterHaloScale_%virialRadius(node))
+    zhao1996FreefallRadius=finder%find(rootGuess=self%darkMatterHaloScale_%radiusVirial(node))
     return
   end function zhao1996FreefallRadius
 

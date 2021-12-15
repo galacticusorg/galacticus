@@ -175,7 +175,7 @@ contains
     character       (len=16                             )                        :: label
 
     ! Get the virial radius of the satellite.
-    radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
+    radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
     ! Test whether node is a satellite.
     if (node%isSatellite()) then
        ! Set a pointer to the satellite node.

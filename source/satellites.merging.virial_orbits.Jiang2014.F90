@@ -529,7 +529,7 @@ contains
        call jiang2014Orbit%velocityRadialSet    (velocityRadialInternal    *velocityHost)
        call jiang2014Orbit%velocityTangentialSet(velocityTangentialInternal*velocityHost)
        ! Propagate the orbit to the virial radius under the default density contrast definition.
-       radiusHost=self%darkMatterHaloScale_%virialRadius(host)
+       radiusHost=self%darkMatterHaloScale_%radiusVirial(host)
        foundOrbit=.false.
        if (jiang2014Orbit%radiusApocenter() >= radiusHost .and. jiang2014Orbit%radiusPericenter() <= radiusHost) then
           foundOrbit=.true.

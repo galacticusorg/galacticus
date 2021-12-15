@@ -355,7 +355,7 @@ contains
        call li2020Orbit%velocityTangentialSet(velocityTangentialInternal*velocityHost)
        ! Propagate the orbit to the virial radius under the default density contrast definition.
        if (self%propagateOrbits) then
-          radiusHost=self%darkMatterHaloScale_%virialRadius(host)
+          radiusHost=self%darkMatterHaloScale_%radiusVirial(host)
           foundOrbit=.false.
           if (li2020Orbit%radiusApocenter() >= radiusHost .and. li2020Orbit%radiusPericenter() <= radiusHost) then
              foundOrbit=.true.

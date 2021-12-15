@@ -191,7 +191,7 @@ contains
     basic         => node                      %basic         (    )
     hotHalo       => node                      %hotHalo       (    )
     massVirial    =  basic                     %mass          (    )
-    velocityVirial=  self %darkMatterHaloScale_%virialVelocity(node)
+    velocityVirial=  self %darkMatterHaloScale_%velocityVirial(node)
     call hotHalo%metaPropertyScale(self%energyRadiatedID,unitEnergyRadiated*massVirial*velocityVirial**2*scaleRelative)
     return
   end subroutine coolingEnergyRadiatedDifferentialEvolutionScales

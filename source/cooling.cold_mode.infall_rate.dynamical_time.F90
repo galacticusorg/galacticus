@@ -132,7 +132,7 @@ contains
 
     hotHalo                 =>  node                        %hotHalo              (    )
     dynamicalTimeInfallRate =  +self                        %dynamicalRateFraction       &
-         &                     /self   %darkMatterHaloScale_%dynamicalTimescale   (node) &
+         &                     /self   %darkMatterHaloScale_%timescaleDynamical   (node) &
          &                     *hotHalo                     %massCold             (    )
     return
   end function dynamicalTimeInfallRate

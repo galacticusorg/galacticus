@@ -120,7 +120,7 @@ contains
     type (treeNode                                  ), intent(inout) :: node
 
     ! For this distribution the maximum extent is the virial radius.
-    traceDarkMatterExtent=self%darkMatterHaloScale_%virialRadius(node)
+    traceDarkMatterExtent=self%darkMatterHaloScale_%radiusVirial(node)
     return
   end function traceDarkMatterExtent
 
@@ -156,6 +156,6 @@ contains
     type (treeNode                                  ), pointer       :: nodeHost
 
     nodeHost                          => node                     %parent
-    traceDarkMatterVelocityDispersion =  self%darkMatterHaloScale_%virialVelocity(node)
+    traceDarkMatterVelocityDispersion =  self%darkMatterHaloScale_%velocityVirial(node)
     return
   end function traceDarkMatterVelocityDispersion

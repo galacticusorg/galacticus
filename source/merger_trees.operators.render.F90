@@ -185,7 +185,7 @@ contains
        childIndex     (  iNode) =  node    %firstChild%index   ()
        time           (  iNode) =                                                basic%time()
        expansionFactor(  iNode) =  self    %cosmologyFunctions_ %expansionFactor(basic%time())
-       radiusVirial   (  iNode) =  self    %darkMatterHaloScale_%virialRadius   (node        )
+       radiusVirial   (  iNode) =  self    %darkMatterHaloScale_%radiusVirial   (node        )
        position_      (:,iNode) =  position                     %position       (            )
     end do
     ! Open an HDF5 file.

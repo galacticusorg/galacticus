@@ -391,8 +391,8 @@ contains
           ! Get virial properties of the target halo.
           call basic%massSet(massVirial(i))
           call Galacticus_Calculations_Reset(node)
-          radiusVirial  =self%darkMatterHaloScale_%virialRadius  (node)
-          velocityVirial=self%darkMatterHaloScale_%virialVelocity(node)
+          radiusVirial  =self%darkMatterHaloScale_%radiusVirial  (node)
+          velocityVirial=self%darkMatterHaloScale_%velocityVirial(node)
           ! Determine radial search range.
           separationMinimum=radiusVirial*self%separationMinimum
           separationMaximum=radiusVirial*self%separationMaximum

@@ -232,7 +232,7 @@ contains
          &                                                                                 multiplier_
 
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-    radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
+    radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
     if (radius <= radiusVirial) then
        if (present(multiplier        )) multiplier        =+1.0d0
        if (present(multiplierGradient)) multiplierGradient=+0.0d0
@@ -276,7 +276,7 @@ contains
          &                                                                       concentration
 
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-    radiusVirial      =  self             %darkMatterHaloScale_%virialRadius(node             )
+    radiusVirial      =  self             %darkMatterHaloScale_%radiusVirial(node             )
     darkMatterProfile => node             %darkMatterProfile                (autoCreate=.true.)
     scaleRadius       =  darkMatterProfile%scale                            (                 )
     concentration     =  +radiusVirial                &
@@ -410,7 +410,7 @@ contains
     double precision                                                          :: radiusVirial, radiusDecay
 
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-    radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
+    radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
     if (radius <= radiusVirial) then
        truncatedExponentialEnclosedMass=+self%darkMatterProfileDMO_%enclosedMass(node,radius      )
     else
@@ -514,7 +514,7 @@ contains
        truncatedExponentialRadialVelocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
     else
        if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-       radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
+       radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
        if (radius >= radiusVirial) then
           truncatedExponentialRadialVelocityDispersion=self%radialVelocityDispersionNumerical(node,radius)
        else

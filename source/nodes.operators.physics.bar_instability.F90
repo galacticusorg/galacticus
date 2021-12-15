@@ -210,9 +210,9 @@ contains
     call historyTransferRate%destroy()
     ! Additional external torque.
     if     (                                                                                                                                                                      &
-         &   spheroid%angularMomentum() < (spheroid%massGas()+spheroid%massStellar())*self%darkMatterHaloScale_%virialRadius(node)*self%darkMatterHaloScale_%virialVelocity(node) &
+         &   spheroid%angularMomentum() < (spheroid%massGas()+spheroid%massStellar())*self%darkMatterHaloScale_%radiusVirial(node)*self%darkMatterHaloScale_%velocityVirial(node) &
          &  .and.                                                                                                                                                                 &
-         &   spheroid%radius         () <                                             self%darkMatterHaloScale_%virialRadius(node)                                                &
+         &   spheroid%radius         () <                                             self%darkMatterHaloScale_%radiusVirial(node)                                                &
          & ) then
        call spheroid%angularMomentumRate(+barInstabilitySpecificTorque*(spheroid%massGas()+spheroid%massStellar()),interrupt,functionInterrupt)
     end if

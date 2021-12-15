@@ -131,6 +131,6 @@ contains
          &                              +blackHoleHost%mass()                                &
          &                             )                                                     &
          &                            /2.0d0                                                 &
-         &                            /self%darkMatterHaloScale_%virialVelocity(nodeHost)**2
+         &                            /self%darkMatterHaloScale_%velocityVirial(nodeHost)**2
     return
   end function volonteri2003SeparationInitial

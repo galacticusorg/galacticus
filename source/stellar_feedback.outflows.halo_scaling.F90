@@ -158,7 +158,7 @@ contains
     ! Get the basic component.
     basic => component%hostNode%basic()
     ! Get virial velocity and expansion factor.
-    velocityVirial =self%darkMatterHaloScale_%virialVelocity (component%hostNode  )
+    velocityVirial =self%darkMatterHaloScale_%velocityVirial (component%hostNode  )
     expansionFactor=self%cosmologyFunctions_ %expansionFactor(basic    %time    ())
     ! Compute the velocity factor.
     if (velocityVirial /= self%velocityPrevious) then

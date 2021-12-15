@@ -187,9 +187,9 @@ contains
 
     select case (self%useFormationNode)
     case (.false.)
-       velocityVirial=self%darkMatterHaloScale_%virialVelocity(node              )
+       velocityVirial=self%darkMatterHaloScale_%velocityVirial(node              )
     case (.true. )
-       velocityVirial=self%darkMatterHaloScale_%virialVelocity(node%formationNode)
+       velocityVirial=self%darkMatterHaloScale_%velocityVirial(node%formationNode)
     end select
     basic                  =>  node%basic()
     velocityCutOffIsCutOff =  (                                                                               &

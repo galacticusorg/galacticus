@@ -352,7 +352,7 @@ contains
        call basicWork%massSet(massHalo(iBin))
        ! Compute virial velocity, including the extra factor of Ωₘ^⅙ to correct for incorrect definition of virial density
        ! contrast used by Padmanabhan & Refrigier (2017).
-       velocityVirial               =+darkMatterHaloScaleData%virialVelocity(nodeWork)                &
+       velocityVirial               =+darkMatterHaloScaleData%velocityVirial(nodeWork)                &
             &                        *cosmologyParametersData%OmegaMatter   (        )**(1.0d0/6.0d0)
        massHILogarithmicTarget(iBin)=+alphaFit                                                       &
             &                        *fractionHydrogenCosmic                                         &

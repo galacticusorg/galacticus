@@ -129,7 +129,7 @@ contains
     class           (nodeComponentBasic            ), pointer       :: basic
 
     basic             => node %basic()
-    isothermalDensity =  basic%mass ()/4.0d0/Pi/self%darkMatterHaloScale_%virialRadius(node)/radius**2
+    isothermalDensity =  basic%mass ()/4.0d0/Pi/self%darkMatterHaloScale_%radiusVirial(node)/radius**2
     return
   end function isothermalDensity
 
@@ -165,7 +165,7 @@ contains
     double precision                                                          :: radiusMinimumActual, radiusMaximumActual
 
     radiusMinimumActual=0.0d0
-    radiusMaximumActual=self%darkMatterHaloScale_%virialRadius(node)
+    radiusMaximumActual=self%darkMatterHaloScale_%radiusVirial(node)
     if (present(radiusMinimum)) radiusMinimumActual=radiusMinimum
     if (present(radiusMaximum)) radiusMaximumActual=radiusMaximum
     basic   => node%basic         ()
@@ -173,7 +173,7 @@ contains
        isothermalRadialMoment=+basic%mass()                                 &
             &                 /4.0d0                                        &
             &                 /Pi                                           &
-            &                 /self%darkMatterHaloScale_%virialRadius(node) &
+            &                 /self%darkMatterHaloScale_%radiusVirial(node) &
             &                 *log(                                         &
             &                      +radiusMaximumActual                     &
             &                      /radiusMinimumActual                     &
@@ -182,7 +182,7 @@ contains
        isothermalRadialMoment=+basic%mass()                                 &
             &                 /4.0d0                                        &
             &                 /Pi                                           &
-            &                 /self%darkMatterHaloScale_%virialRadius(node) &
+            &                 /self%darkMatterHaloScale_%radiusVirial(node) &
             &                 /                       (moment-1.0d0)        &
             &                 *(                                            &
             &                   +radiusMaximumActual**(moment-1.0d0)        &
@@ -205,7 +205,7 @@ contains
     class           (nodeComponentBasic            ), pointer       :: basic
 
     basic   => node%basic     ()
-    isothermalEnclosedMass=basic%mass()*(radius/self%darkMatterHaloScale_%virialRadius(node))
+    isothermalEnclosedMass=basic%mass()*(radius/self%darkMatterHaloScale_%radiusVirial(node))
     return
   end function isothermalEnclosedMass
 
@@ -224,12 +224,12 @@ contains
     double precision                                , parameter               :: radiusFractionalMinimum=1.0d-30
     double precision                                                       :: radiusFractional
 
-    radiusFractional      =  radius/self%darkMatterHaloScale_%virialRadius(node)
+    radiusFractional      =  radius/self%darkMatterHaloScale_%radiusVirial(node)
     if (radiusFractional <= 0.0d0) then
        isothermalPotential=0.0d0
        if (present(status)) status=structureErrorCodeInfinite
     else
-       isothermalPotential=log(radiusFractional)*self%darkMatterHaloScale_%virialVelocity(node)**2
+       isothermalPotential=log(radiusFractional)*self%darkMatterHaloScale_%velocityVirial(node)**2
        if (present(status)) status=structureErrorCodeSuccess
     end if
     return
@@ -246,7 +246,7 @@ contains
     double precision                                , intent(in   ) :: radius
     !$GLC attributes unused :: radius
 
-    isothermalCircularVelocity=self%darkMatterHaloScale_%virialVelocity(node)
+    isothermalCircularVelocity=self%darkMatterHaloScale_%velocityVirial(node)
     return
   end function isothermalCircularVelocity
 
@@ -259,7 +259,7 @@ contains
     class(darkMatterProfileDMOIsothermal), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node
 
-    isothermalRadiusCircularVelocityMaximum=self%darkMatterHaloScale_%virialRadius(node)
+    isothermalRadiusCircularVelocityMaximum=self%darkMatterHaloScale_%radiusVirial(node)
     return
   end function isothermalRadiusCircularVelocityMaximum
 
@@ -287,7 +287,7 @@ contains
     double precision                                , intent(in   ) :: radius
     !$GLC attributes unused :: radius
 
-    isothermalRadialVelocityDispersion=self%darkMatterHaloScale_%virialVelocity(node)/sqrt(2.0d0)
+    isothermalRadialVelocityDispersion=self%darkMatterHaloScale_%velocityVirial(node)/sqrt(2.0d0)
     return
   end function isothermalRadialVelocityDispersion
 
@@ -303,7 +303,7 @@ contains
     type            (treeNode                      ), intent(inout) :: node
     double precision                                , intent(in   ) :: specificAngularMomentum
 
-    isothermalRadiusFromSpecificAngularMomentum=specificAngularMomentum/self%darkMatterHaloScale_%virialVelocity(node)
+    isothermalRadiusFromSpecificAngularMomentum=specificAngularMomentum/self%darkMatterHaloScale_%velocityVirial(node)
     return
   end function isothermalRadiusFromSpecificAngularMomentum
 
@@ -315,7 +315,7 @@ contains
     class(darkMatterProfileDMOIsothermal), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node
 
-    isothermalRotationNormalization=2.0d0/self%darkMatterHaloScale_%virialRadius(node)
+    isothermalRotationNormalization=2.0d0/self%darkMatterHaloScale_%radiusVirial(node)
     return
   end function isothermalRotationNormalization
 
@@ -330,7 +330,7 @@ contains
     class(nodeComponentBasic            ), pointer       :: basic
 
     basic            =>       node%basic ()
-    isothermalEnergy =  -0.5d0*basic%mass()*self%darkMatterHaloScale_%virialVelocity(node)**2
+    isothermalEnergy =  -0.5d0*basic%mass()*self%darkMatterHaloScale_%velocityVirial(node)**2
     return
   end function isothermalEnergy
 
@@ -347,7 +347,7 @@ contains
     double precision                                                         :: radiusScale, waveNumberScaleFree
 
     ! Get the scale radius (for which we use the virial radius).
-    radiusScale          =  self%darkMatterHaloScale_%virialRadius(node)
+    radiusScale          =  self%darkMatterHaloScale_%radiusVirial(node)
 
     ! Get the dimensionless wavenumber.
     waveNumberScaleFree=waveNumber*radiusScale
@@ -372,7 +372,7 @@ contains
     type            (treeNode                      ), intent(inout), target :: node
     double precision                                , intent(in   )         :: time
 
-    isothermalFreefallRadius=sqrt(2.0d0/Pi)*self%darkMatterHaloScale_%virialVelocity(node)*time&
+    isothermalFreefallRadius=sqrt(2.0d0/Pi)*self%darkMatterHaloScale_%velocityVirial(node)*time&
          &/Mpc_per_km_per_s_To_Gyr
     return
   end function isothermalFreefallRadius
@@ -392,7 +392,7 @@ contains
     double precision                                , intent(in   )         :: time
     !$GLC attributes unused :: time
 
-    isothermalFreefallRadiusIncreaseRate=sqrt(2.0d0/Pi)*self%darkMatterHaloScale_%virialVelocity(node) &
+    isothermalFreefallRadiusIncreaseRate=sqrt(2.0d0/Pi)*self%darkMatterHaloScale_%velocityVirial(node) &
          & /Mpc_per_km_per_s_To_Gyr
     return
   end function isothermalFreefallRadiusIncreaseRate
@@ -415,7 +415,7 @@ contains
          &                                    /4.0d0                                        &
          &                                    *3.0d0                                        &
          &                                    /Pi                                           &
-         &                                    /self%darkMatterHaloScale_%virialRadius(node) &
+         &                                    /self%darkMatterHaloScale_%radiusVirial(node) &
          &                                    /density                                      &
          &                                   )
     return

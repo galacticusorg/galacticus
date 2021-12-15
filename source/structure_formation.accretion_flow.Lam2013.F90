@@ -179,7 +179,7 @@ contains
     basic                    =>  node                      %basic               (    )
     time                     =   basic                     %time                (    )
     overdensityCritical      =   self %criticalOverdensity_%value               (time)
-    radiusVirial             =   self %darkMatterHaloScale_%virialRadius        (node)
+    radiusVirial             =   self %darkMatterHaloScale_%radiusVirial        (node)
     ! Evaluate the mass in the shell outside the halo virial radius using equation (B4) of Lam et al. (2013).
     if (radius > radiusVirial) then
        massShell             =  +self %cosmologyFunctions_ %matterDensityEpochal(time)                                                                                                     &

@@ -184,8 +184,8 @@ contains
        call Galacticus_Error_Report('unrecognized error code'//{introspection:location})
     end select
     ! Get velocity scale.
-    velocityScale=self%darkMatterHaloScale_%virialVelocity(nodeHost)
-    radialScale  =self%darkMatterHaloScale_%virialRadius  (nodeHost)
+    velocityScale=self%darkMatterHaloScale_%velocityVirial(nodeHost)
+    radialScale  =self%darkMatterHaloScale_%radiusVirial  (nodeHost)
     ! Compute orbital circularity.
     orbitalCircularity= orbit%angularMomentum()                                                             &
          &             /equivalentCircularOrbitRadius                                                       &
@@ -208,7 +208,7 @@ contains
     else
        ! Compute dynamical friction timescale.
        jiang2008TimeUntilMerging=+self%timescaleMultiplier                               &
-            &                    *self%darkMatterHaloScale_%dynamicalTimescale(nodeHost) &
+            &                    *self%darkMatterHaloScale_%timescaleDynamical(nodeHost) &
             &                    *sqrt(equivalentCircularOrbitRadius/radialScale)        &
             &                    *((a*(orbitalCircularity**b)+d)/2.0d0/C)                &
             &                    *          massRatio                                    &

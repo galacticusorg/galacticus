@@ -328,8 +328,8 @@ contains
     class is (nodeComponentSatelliteOrbiting)
        basic                       => node                %basic         (    )
        massSatellite               =  basic               %mass          (    )
-       virialRadius                =  darkMatterHaloScale_%virialRadius  (node)
-       virialVelocity              =  darkMatterHaloScale_%virialVelocity(node)
+       virialRadius                =  darkMatterHaloScale_%radiusVirial  (node)
+       virialVelocity              =  darkMatterHaloScale_%velocityVirial(node)
        virialIntegratedTidalTensor =   virialVelocity/virialRadius*megaParsec/kilo/gigaYear
        virialTidalHeatingNormalized=  (virialVelocity/virialRadius)**2
        call satellite%positionScale                 (                                          &
@@ -531,7 +531,7 @@ contains
           ! Do nothing. The bound mass of this satellite is set to the node mass by default.
        case (satelliteBoundMassInitializeTypeMaximumRadius  )
           ! Set the initial bound mass of this satellite by integrating the density profile up to a maximum radius.
-          virialRadius =darkMatterHaloScale_%virialRadius(node              )
+          virialRadius =darkMatterHaloScale_%radiusVirial(node              )
           maximumRadius=satelliteMaximumRadiusOverVirialRadius*virialRadius
           massSatellite=galacticStructure_  %massEnclosed(node,maximumRadius)
           call satellite%boundMassSet(massSatellite)

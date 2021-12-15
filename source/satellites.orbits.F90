@@ -113,7 +113,7 @@ contains
             &            rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive   , &
             &            rangeExpandType              =rangeExpandMultiplicative         &
             &           )
-       Satellite_Orbit_Equivalent_Circular_Orbit_Radius=finder%find(rootGuess=darkMatterHaloScale_%virialRadius(nodeHost))
+       Satellite_Orbit_Equivalent_Circular_Orbit_Radius=finder%find(rootGuess=darkMatterHaloScale_%radiusVirial(nodeHost))
        if (present(errorCode)) errorCode=errorCodeSuccess
     end if
     return

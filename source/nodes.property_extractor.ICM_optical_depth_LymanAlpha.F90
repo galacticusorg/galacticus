@@ -125,7 +125,7 @@ contains
     !# <referenceConstruct object="radiation_" constructor="radiationFieldCosmicMicrowaveBackground(self%cosmologyFunctions_)"/>
     ! Compute luminosity and temperature.
     integrator_                     =integrator           (integrandOpticalDepth,toleranceRelative                           =1.0d-3)
-    icmOpticalDepthLymanAlphaExtract=integrator_%integrate(0.0d0                ,self%darkMatterHaloScale_%virialRadius(node)       )    
+    icmOpticalDepthLymanAlphaExtract=integrator_%integrate(0.0d0                ,self%darkMatterHaloScale_%radiusVirial(node)       )    
     !# <objectDestructor name="radiation_"/>
     return
 

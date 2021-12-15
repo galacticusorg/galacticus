@@ -1228,8 +1228,8 @@ contains
                   &                 spheroid%massStellar()                    &
                   &                +spheroid%massGas    ()                    &
                   &               )                                           &
-                  &               * darkMatterHaloScale_%virialRadius  (node) &
-                  &               * darkMatterHaloScale_%virialVelocity(node)
+                  &               * darkMatterHaloScale_%radiusVirial  (node) &
+                  &               * darkMatterHaloScale_%velocityVirial(node)
              if     (                                                                          &
                   &   spheroid%angularMomentum() > angularMomentumMaximum*angularMomentumScale &
                   &  .or.                                                                      &

@@ -606,16 +606,16 @@ contains
     allocate(velocityPhysical(countRadii))
     allocate(densityPhysical (countRadii))
     radiusPhysical  =+radiusOriginal                                                          &
-         &           * self_%darkMatterHaloScale_%virialRadius(node)/radiusVirialOriginal
+         &           * self_%darkMatterHaloScale_%radiusVirial(node)/radiusVirialOriginal
     velocityPhysical=+velocityOriginal                                                        &
-         &           * self_%darkMatterHaloScale_%virialRadius(node)/radiusVirialOriginal     &
+         &           * self_%darkMatterHaloScale_%radiusVirial(node)/radiusVirialOriginal     &
          &           * self_%timeNowScaled                          /basic%time        ()     &
          &           *megaParsec                                                              &
          &           /gigaYear                                                                &
          &           /kilo
     densityPhysical =+densityOriginal                                                         &
          &           * basic%mass                             (    )/massVirialOriginal       &
-         &           /(self_%darkMatterHaloScale_%virialRadius(node)/radiusVirialOriginal)**3
+         &           /(self_%darkMatterHaloScale_%radiusVirial(node)/radiusVirialOriginal)**3
     ! Build interpolators into the infall stream.
     if (allocated(self%interpolatorDensityPhysical )) deallocate(self%interpolatorDensityPhysical )
     if (allocated(self%interpolatorVelocityPhysical)) deallocate(self%interpolatorVelocityPhysical)
@@ -663,7 +663,7 @@ contains
     end do
     ! Check that the numerical solution matches the analytic solution in the single stream region.
     radiusSplashbackPhysical=+self                     %radiusSplashBackOriginal       &
-         &                   *self%darkMatterHaloScale_%virialRadius            (node) &
+         &                   *self%darkMatterHaloScale_%radiusVirial            (node) &
          &                   /                          radiusVirialOriginal
     do i=iVirial+1,countRadii-1
        if     (                                                                                                                             &

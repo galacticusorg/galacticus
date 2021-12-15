@@ -170,10 +170,10 @@ contains
        darkMatterProfileChild =>  node                  %firstChild           %darkMatterProfile(               )
        energyScale            =  +gravitationalConstantGalacticus                                                    &
             &                    *basic                                       %mass             (               )**2 &
-            &                    /self                  %darkMatterHaloScale_ %virialRadius     (node           )
+            &                    /self                  %darkMatterHaloScale_ %radiusVirial     (node           )
        energyScaleChild       =  +gravitationalConstantGalacticus                                                    &
             &                    *basicChild                                  %mass             (               )**2 &
-            &                    /self                  %darkMatterHaloScale_ %virialRadius     (node%firstChild)
+            &                    /self                  %darkMatterHaloScale_ %radiusVirial     (node%firstChild)
        energyPerturbation     =  +self                  %darkMatterProfileDMO_%energy           (node%firstChild)
        radiusScaleOriginal    =  +darkMatterProfileChild                      %scale            (               )
        call darkMatterProfileChild%scaleSet(self%darkMatterProfileScaleRadius_%radius           (node%firstChild))

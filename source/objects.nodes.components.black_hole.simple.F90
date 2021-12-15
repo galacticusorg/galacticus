@@ -325,7 +325,7 @@ contains
           if (blackHoleHeatsHotHalo) then
              ! Compute jet coupling efficiency based on whether halo is cooling quasistatically.
              coolingRadiusFractional=+coolingRadius_      %      radius(node) &
-                  &                  /darkMatterHaloScale_%virialRadius(node)
+                  &                  /darkMatterHaloScale_%radiusVirial(node)
              if      (coolingRadiusFractional < coolingRadiusFractionalTransitionMinimum) then
                 couplingEfficiency=1.0d0
              else if (coolingRadiusFractional > coolingRadiusFractionalTransitionMaximum) then

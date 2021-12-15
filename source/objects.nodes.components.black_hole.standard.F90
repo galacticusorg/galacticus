@@ -629,11 +629,11 @@ contains
 
     ! Compute relevant potentials.
     potentialCentral       =galacticStructure_%potential(node,radius                                                                      )
-    potentialHalo          =galacticStructure_%potential(node,darkMatterHaloScale_%virialRadius(node)                                     )
+    potentialHalo          =galacticStructure_%potential(node,darkMatterHaloScale_%radiusVirial(node)                                     )
     if (ignoreCentralBlackHole) then
        ! Compute potential of central black hole to be subtracted off of total value.
        potentialCentralSelf=galacticStructure_%potential(node,radius                                 ,componentType=componentTypeBlackHole)
-       potentialHaloSelf   =galacticStructure_%potential(node,darkMatterHaloScale_%virialRadius(node),componentType=componentTypeBlackHole)
+       potentialHaloSelf   =galacticStructure_%potential(node,darkMatterHaloScale_%radiusVirial(node),componentType=componentTypeBlackHole)
     else
        ! No correction for central black hole as it is to be included.
        potentialCentralSelf=0.0d0
@@ -1109,7 +1109,7 @@ contains
     double precision                          :: coolingRadiusFractional                       , x
 
     coolingRadiusFractional=+coolingRadius_      %      radius(node) &
-         &                  /darkMatterHaloScale_%virialRadius(node)
+         &                  /darkMatterHaloScale_%radiusVirial(node)
     if      (coolingRadiusFractional < coolingRadiusFractionalTransitionMinimum) then
        Hot_Mode_Fraction=1.0d0
     else if (coolingRadiusFractional > coolingRadiusFractionalTransitionMaximum) then

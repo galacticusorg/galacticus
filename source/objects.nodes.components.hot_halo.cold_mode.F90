@@ -329,9 +329,9 @@ contains
                &  .and.                                                                                               &
                &   gasMass               >  0.0d0                                                                     &
                &  .and.                                                                                               &
-               &   outerRadius           <=                                   darkMatterHaloScale_%virialRadius(node) &
+               &   outerRadius           <=                                   darkMatterHaloScale_%radiusVirial(node) &
                &  .and.                                                                                               &
-               &   outerRadius           > outerRadiusOverVirialRadiusMinimum*darkMatterHaloScale_%virialRadius(node) &
+               &   outerRadius           > outerRadiusOverVirialRadiusMinimum*darkMatterHaloScale_%radiusVirial(node) &
                & ) then
              ! The ram pressure stripping radius is within the outer radius. Remove mass from the cold mode halo at the appropriate rate.
              densityAtOuterRadius=galacticStructure_%density(node,[outerRadius,0.0d0,0.0d0],coordinateSystemSpherical,componentTypeColdHalo,massTypeGaseous)
@@ -389,9 +389,9 @@ contains
        massReturnRate=0.0d0
        if (.not.starveSatellites.or..not.node%isSatellite()) then
           outflowedMass            =self%outflowedMass()
-          massReturnRate           =hotHaloOutflowReturnRate*outflowedMass                  /darkMatterHaloScale_%dynamicalTimescale(node)
-          angularMomentumReturnRate=hotHaloOutflowReturnRate*self%outflowedAngularMomentum()/darkMatterHaloScale_%dynamicalTimescale(node)
-          abundancesReturnRate     =hotHaloOutflowReturnRate*self%outflowedAbundances     ()/darkMatterHaloScale_%dynamicalTimescale(node)
+          massReturnRate           =hotHaloOutflowReturnRate*outflowedMass                  /darkMatterHaloScale_%timescaleDynamical(node)
+          angularMomentumReturnRate=hotHaloOutflowReturnRate*self%outflowedAngularMomentum()/darkMatterHaloScale_%timescaleDynamical(node)
+          abundancesReturnRate     =hotHaloOutflowReturnRate*self%outflowedAbundances     ()/darkMatterHaloScale_%timescaleDynamical(node)
           call self%           outflowedMassRate(-           massReturnRate,interrupt,interruptProcedure)
           call self%                massColdRate(+           massReturnRate,interrupt,interruptProcedure)
           call self%outflowedAngularMomentumRate(-angularMomentumReturnRate,interrupt,interruptProcedure)
@@ -401,7 +401,7 @@ contains
        end if
        ! The outer radius must be increased as the halo fills up with gas.
        outerRadius =self%outerRadius()
-       radiusVirial=darkMatterHaloScale_%virialRadius(node)
+       radiusVirial=darkMatterHaloScale_%radiusVirial(node)
        if (outerRadius < radiusVirial) then
           densityAtOuterRadius=galacticStructure_%density(node,[outerRadius,0.0d0,0.0d0],coordinateSystemSpherical,componentTypeColdHalo,massTypeGaseous)
           ! If the outer radius and density are non-zero we can expand the outer radius at a rate determined by the current
@@ -425,7 +425,7 @@ contains
           ! Otherwise, if we have a positive rate of mass return, simply grow the radius at the virial velocity.
           else if (massReturnRate > 0.0d0) then
              ! Force some growth here so the radius is not trapped at zero.
-             call self%outerRadiusRate(darkMatterHaloScale_%virialVelocity(node)*kilo*gigaYear/megaParsec)
+             call self%outerRadiusRate(darkMatterHaloScale_%velocityVirial(node)*kilo*gigaYear/megaParsec)
           end if
        end if
     class default
@@ -467,8 +467,8 @@ contains
        basic => node%basic()
        ! Get virial properties.
        massVirial    =basic%mass()
-       radiusVirial  =darkMatterHaloScale_%virialRadius  (node)
-       velocityVirial=darkMatterHaloScale_%virialVelocity(node)
+       radiusVirial  =darkMatterHaloScale_%radiusVirial  (node)
+       velocityVirial=darkMatterHaloScale_%velocityVirial(node)
        call    hotHalo%           massColdScale(               massVirial                            *scaleMassRelative)
        call    hotHalo%     abundancesColdScale(unitAbundances*massVirial                            *scaleMassRelative)
        call    hotHalo%angularMomentumColdScale(               massVirial*radiusVirial*velocityVirial*scaleMassRelative)

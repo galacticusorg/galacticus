@@ -132,8 +132,8 @@ contains
 
     allocate(virialPropertiesExtract(2))
     virialPropertiesExtract=[                                                &
-         &                   self%darkMatterHaloScale_%virialRadius  (node), &
-         &                   self%darkMatterHaloScale_%virialVelocity(node)  &
+         &                   self%darkMatterHaloScale_%radiusVirial  (node), &
+         &                   self%darkMatterHaloScale_%velocityVirial(node)  &
          &                  ]
     return
   end function virialPropertiesExtract

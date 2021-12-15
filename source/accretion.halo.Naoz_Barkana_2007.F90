@@ -386,7 +386,7 @@ contains
        ! Adjust the rate to allow mass to flow back-and-forth from accreted to unaccreted reservoirs if the current mass fraction
        ! differs from that expected given the filtering mass.
        growthRate                  =+self                     %rateAdjust               &
-            &                       /self%darkMatterHaloScale_%dynamicalTimescale(node)
+            &                       /self%darkMatterHaloScale_%timescaleDynamical(node)
        filteredFraction            =+self                     %filteredFraction  (node)
        fractionAccreted            =+  hotHalo                %          mass    (    ) &
             &                       /(                                                  &
@@ -475,7 +475,7 @@ contains
        ! Adjust the rate to allow mass to flow back-and-forth from accreted to unaccreted reservoirs if the current mass fraction
        ! differs from that expected given the filtering mass.
        growthRate                        =+self                     %rateAdjust               &
-            &                             /self%darkMatterHaloScale_%dynamicalTimescale(node)
+            &                             /self%darkMatterHaloScale_%timescaleDynamical(node)
        filteredFraction                  =+self                     %filteredFraction  (node)
        fractionAccreted                  =+  hotHalo                %          mass    (    ) &
             &                             /(                                                  &

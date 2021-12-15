@@ -221,9 +221,9 @@ contains
              countProgress=countProgress+1          
               call basic%massSet(max(mass(iMass),mass(jMass)))
               call Galacticus_Calculations_Reset(node)
-              radiusVirial                                         =+  self%darkMatterHaloScale_      %virialRadius                    (           node                                             )
+              radiusVirial                                         =+  self%darkMatterHaloScale_      %radiusVirial                    (           node                                             )
               radiusVirialLagrangian                               =+(                                                                                                                                &
-                   &                                                  +self%darkMatterHaloScale_      %meanDensity                     (           node                                             ) &
+                   &                                                  +self%darkMatterHaloScale_      %densityMean                     (           node                                             ) &
                    &                                                  /self%cosmologyFunctions_       %matterDensityEpochal            (           epochTime                               (iOutput)) &
                    &                                                 )**(1.0d0/3.0d0)                                                                                                                 &
                    &                                                *radiusVirial

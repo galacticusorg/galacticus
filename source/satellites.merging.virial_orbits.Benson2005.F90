@@ -236,7 +236,7 @@ contains
        call benson2005Orbit%velocityRadialSet    (velocityRadialInternal    *velocityHost)
        call benson2005Orbit%velocityTangentialSet(velocityTangentialInternal*velocityHost)
        ! Propagate the orbit to the virial radius under the default density contrast definition.
-       radiusHost=self%darkMatterHaloScale_%virialRadius(host)
+       radiusHost=self%darkMatterHaloScale_%radiusVirial(host)
        if (benson2005Orbit%radiusApocenter() >= radiusHost .and. benson2005Orbit%radiusPericenter() <= radiusHost) then
           foundOrbit=.true.
           call benson2005Orbit%propagate(radiusHost  ,infalling=.true.)

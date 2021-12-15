@@ -132,7 +132,7 @@ program Test_Dark_Matter_Profiles_Heated
   call basic    %timeSet                  (time           )
   call basic    %timeLastIsolatedSet      (time           )
   call satellite%tidalHeatingNormalizedSet(heatingSpecific)
-  radiusVirial=darkMatterHaloScale_%virialRadius(node)
+  radiusVirial=darkMatterHaloScale_%radiusVirial(node)
   ! Compute the characteristic radius for heating.
   radiusHeated=sqrt(gravitationalConstantGalacticus*massVirial/2.0d0/heatingSpecific/radiusVirial)
   ! Compute initial radius, enclosed mass, and density for a variety of radii and compare to the analytic solutions.

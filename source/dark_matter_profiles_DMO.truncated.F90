@@ -210,7 +210,7 @@ contains
     double precision                                                         :: radiusVirial      , x_
 
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-    radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
+    radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
     if      (radius <= radiusVirial*self%radiusFractionalTruncateMinimum) then
        if (present(x                 )) x                 =+0.0d0
        if (present(multiplier        )) multiplier        =+1.0d0
@@ -306,7 +306,7 @@ contains
     double precision                                                       :: radiusVirial, radiusTruncateMinimum
 
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-    radiusVirial         =self%darkMatterHaloScale_%virialRadius(node)
+    radiusVirial         =self%darkMatterHaloScale_%radiusVirial(node)
     radiusTruncateMinimum=radiusVirial*self%radiusFractionalTruncateMinimum
     if (self%enclosedMassTruncateMinimumPrevious < 0.0d0) then
        self%enclosedMassTruncateMinimumPrevious=self%enclosedMass(node,radiusTruncateMinimum)
@@ -350,7 +350,7 @@ contains
     double precision                                               :: radiusVirial, radiusTruncateMinimum
 
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-    radiusVirial         =self%darkMatterHaloScale_%virialRadius(node)
+    radiusVirial         =self%darkMatterHaloScale_%radiusVirial(node)
     radiusTruncateMinimum=radiusVirial*self%radiusFractionalTruncateMinimum
     if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough .or. radius <= radiusTruncateMinimum) then
        truncatedEnclosedMass=+self%darkMatterProfileDMO_%enclosedMass                   (node,radius                      )
@@ -429,7 +429,7 @@ contains
        truncatedRadialVelocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
     else
        if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-       radiusVirial         =self%darkMatterHaloScale_%virialRadius(node)
+       radiusVirial         =self%darkMatterHaloScale_%radiusVirial(node)
        radiusTruncateMinimum=radiusVirial*self%radiusFractionalTruncateMinimum
        if (radius >= radiusTruncateMinimum) then
           truncatedRadialVelocityDispersion=self%radialVelocityDispersionNumerical(node,radius)

@@ -511,10 +511,10 @@ contains
          &                                                  temperature
 
     ! Compute coefficient in conversion of mass to density for this node.
-    massToDensityConversion=Chemicals_Mass_To_Density_Conversion(self%darkMatterHaloScale_%virialRadius(node))/3.0d0
+    massToDensityConversion=Chemicals_Mass_To_Density_Conversion(self%darkMatterHaloScale_%radiusVirial(node))/3.0d0
     ! Compute the temperature and density of accreting material, assuming accreted has is at the virial temperature and that the
     ! overdensity is one third of the mean overdensity of the halo.
-    temperature          =  self%darkMatterHaloScale_%virialTemperature(node)
+    temperature          =  self%darkMatterHaloScale_%temperatureVirial(node)
     numberDensityHydrogen=  hydrogenByMassPrimordial*(self%cosmologyParameters_%OmegaBaryon()/self%cosmologyParameters_%OmegaMatter())*self%accretionHaloTotal_%accretedMass(node)*massToDensityConversion/atomicMassHydrogen
     ! Set the radiation field.
     basic => node%basic()
@@ -535,7 +535,7 @@ contains
     class(accretionHaloSimple), intent(inout) :: self
     type (treeNode           ), intent(inout) :: node
 
-    simpleVelocityScale=self%darkMatterHaloScale_%virialVelocity(node)
+    simpleVelocityScale=self%darkMatterHaloScale_%velocityVirial(node)
     return
   end function simpleVelocityScale
 

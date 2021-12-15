@@ -196,7 +196,7 @@ contains
                &            )                                                &
                &           /(                                                &
                &              4.0d0                                          &
-               &             *  darkMatterHaloScale_%virialVelocity(node)**2 &
+               &             *  darkMatterHaloScale_%velocityVirial(node)**2 &
                &            )
           ! Places a new black hole in the center of the galaxy in case there is no central one.
           if     (                                                       &
@@ -255,7 +255,7 @@ contains
                      &            )                                              &
                      &           /(                                              &
                      &              4.0d0                                        &
-                     &             *darkMatterHaloScale_%virialVelocity(node)**2 &
+                     &             *darkMatterHaloScale_%velocityVirial(node)**2 &
                      &            )
                 ! Search for a third black hole.
                 do iInstance=2,instanceCount
@@ -493,11 +493,11 @@ contains
 
     ! Compute relevant potentials.
     potentialCentral       =galacticStructure_%potential(node,radius                                                                      )
-    potentialHalo          =galacticStructure_%potential(node,darkMatterHaloScale_%virialRadius(node)                                     )
+    potentialHalo          =galacticStructure_%potential(node,darkMatterHaloScale_%radiusVirial(node)                                     )
     if (ignoreCentralBlackHole) then
        ! Compute potential of central black hole to be subtracted off of total value.
        potentialCentralSelf=galacticStructure_%potential(node,radius                                 ,componentType=componentTypeBlackHole)
-       potentialHaloSelf   =galacticStructure_%potential(node,darkMatterHaloScale_%virialRadius(node),componentType=componentTypeBlackHole)
+       potentialHaloSelf   =galacticStructure_%potential(node,darkMatterHaloScale_%radiusVirial(node),componentType=componentTypeBlackHole)
     else
        ! No correction for central black hole as it is to be included.
        potentialCentralSelf=0.0d0

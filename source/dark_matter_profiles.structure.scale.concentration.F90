@@ -288,16 +288,16 @@ contains
                   &        *self%darkMatterProfileConcentration_%concentrationMean(concentrationState_(concentrationStateCount)%nodeWork             ) &
                   &        /self%darkMatterProfileConcentration_%concentrationMean(                                             node                 )
           end if
-          concentrationRadius=+self%darkMatterHaloScaleDefinition%virialRadius (concentrationState_(concentrationStateCount)%nodeWork) &
+          concentrationRadius=+self%darkMatterHaloScaleDefinition%radiusVirial (concentrationState_(concentrationStateCount)%nodeWork) &
                &              /                                   concentration
           call concentrationState_(concentrationStateCount)%nodeWork%destroy()
           deallocate(concentrationState_(concentrationStateCount)%nodeWork)
        else
-          concentrationRadius=+self%darkMatterHaloScale_%virialRadius(node) &
+          concentrationRadius=+self%darkMatterHaloScale_%radiusVirial(node) &
                &              /concentrationState_(concentrationStateCount)%concentrationOriginal
        end if
     else
-       concentrationRadius=+self%darkMatterHaloScale_%virialRadius(node) &
+       concentrationRadius=+self%darkMatterHaloScale_%radiusVirial(node) &
             &              /concentrationState_(concentrationStateCount)%concentrationOriginal
     end if
     ! Release stack.
@@ -325,7 +325,7 @@ contains
     call concentrationState_(concentrationStateCount)%basic%massSet(massDefinitionTrial)
     call Galacticus_Calculations_Reset(concentrationState_(concentrationStateCount)%nodeWork)
     ! Get outer radius for this trial definition mass.
-    radiusOuterDefinition=concentrationState_(concentrationStateCount)%self%darkMatterHaloScaleDefinition%virialRadius(concentrationState_(concentrationStateCount)%nodeWork)
+    radiusOuterDefinition=concentrationState_(concentrationStateCount)%self%darkMatterHaloScaleDefinition%radiusVirial(concentrationState_(concentrationStateCount)%nodeWork)
     ! Get concentration for this a trial definition mass.
     if (concentrationState_(concentrationStateCount)%self%useMeanConcentration) then
        ! We are simply using the mean concentration-mass relation here.

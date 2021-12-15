@@ -685,9 +685,9 @@ contains
              peakHeightMassFunction                     (iMass,iOutput)=+0.0d0
           end if
           biasHalo                                      (iMass,iOutput)=darkMatterHaloBias_                %bias                           (                                                                                               node=tree%nodeBase)
-          velocityVirial                                (iMass,iOutput)=darkMatterHaloScale_               %virialVelocity                 (                                                                                               node=tree%nodeBase)
-          temperatureVirial                             (iMass,iOutput)=darkMatterHaloScale_               %virialTemperature              (                                                                                               node=tree%nodeBase)
-          radiusVirial                                  (iMass,iOutput)=darkMatterHaloScale_               %virialRadius                   (                                                                                               node=tree%nodeBase)
+          velocityVirial                                (iMass,iOutput)=darkMatterHaloScale_               %velocityVirial                 (                                                                                               node=tree%nodeBase)
+          temperatureVirial                             (iMass,iOutput)=darkMatterHaloScale_               %temperatureVirial              (                                                                                               node=tree%nodeBase)
+          radiusVirial                                  (iMass,iOutput)=darkMatterHaloScale_               %radiusVirial                   (                                                                                               node=tree%nodeBase)
           velocityMaximum                               (iMass,iOutput)=darkMatterProfileDMO_              %circularVelocityMaximum        (                                                                                               node=tree%nodeBase)
           darkMatterProfileRadiusScale                  (iMass,iOutput)=darkMatterProfileHalo              %scale                          (                                                                                                                 )
           if (self%includeMassAccretionRate) &

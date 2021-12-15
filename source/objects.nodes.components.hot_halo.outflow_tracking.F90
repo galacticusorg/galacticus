@@ -147,8 +147,8 @@ contains
     select type (hotHalo)
     class is (nodeComponentHotHaloOutflowTracking)
        ! Add the rate of abundances return from the outflowed component.
-       massReturnRate      =hotHaloOutflowReturnRate*hotHalo%outflowedMass      ()/darkMatterHaloScale_%dynamicalTimescale(node)
-       abundancesReturnRate=hotHaloOutflowReturnRate*hotHalo%outflowedAbundances()/darkMatterHaloScale_%dynamicalTimescale(node)
+       massReturnRate      =hotHaloOutflowReturnRate*hotHalo%outflowedMass      ()/darkMatterHaloScale_%timescaleDynamical(node)
+       abundancesReturnRate=hotHaloOutflowReturnRate*hotHalo%outflowedAbundances()/darkMatterHaloScale_%timescaleDynamical(node)
        call hotHalo%trackedOutflowMassRate      (      massReturnRate)
        call hotHalo%trackedOutflowAbundancesRate(abundancesReturnRate)
     end select

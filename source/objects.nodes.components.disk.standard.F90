@@ -978,8 +978,8 @@ contains
                   &                 disk%massStellar()                        &
                   &                +disk%massGas    ()                        &
                   &               )                                           &
-                  &               * darkMatterHaloScale_%virialRadius  (node) &
-                  &               * darkMatterHaloScale_%virialVelocity(node)
+                  &               * darkMatterHaloScale_%radiusVirial  (node) &
+                  &               * darkMatterHaloScale_%velocityVirial(node)
              if     (                                                                      &
                   &   disk%angularMomentum() > angularMomentumMaximum*angularMomentumScale &
                   &  .or.                                                                  &

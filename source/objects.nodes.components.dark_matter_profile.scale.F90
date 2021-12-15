@@ -123,7 +123,7 @@ contains
        if     (                                                                      &
             &   darkMatterProfile%scale() <= 0.0d0                                   &
             &  .or.                                                                  &
-            &   darkMatterProfile%scale() >  darkMatterHaloScale_%virialRadius(node) &
+            &   darkMatterProfile%scale() >  darkMatterHaloScale_%radiusVirial(node) &
             & ) then
           node%isPhysicallyPlausible=.false.
           node%isSolvable           =.false.

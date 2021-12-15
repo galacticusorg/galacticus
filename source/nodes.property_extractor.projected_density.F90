@@ -211,7 +211,7 @@ contains
 
     allocate(projectedDensityExtract(self%radiiCount,self%elementCount_))
     radiusVirial                                         =  0.0d0
-    if (self%         virialRadiusIsNeeded) radiusVirial      =  self%darkMatterHaloScale_%virialRadius(node                    )
+    if (self%         virialRadiusIsNeeded) radiusVirial      =  self%darkMatterHaloScale_%radiusVirial(node                    )
     if (self%                 diskIsNeeded) disk              =>                                        node%disk             ()
     if (self%             spheroidIsNeeded) spheroid          =>                                        node%spheroid         ()
     if (self%darkMatterScaleRadiusIsNeeded) darkMatterProfile =>                                        node%darkMatterProfile()
@@ -246,7 +246,7 @@ contains
                &   weightIndex   =self%radii(i)%weightByIndex      &
                &  )
        end select
-       radiusOuter                        =self       %darkMatterHaloScale_%virialRadius(node                              )       
+       radiusOuter                        =self       %darkMatterHaloScale_%radiusVirial(node                              )       
        projectedDensityExtract       (i,1)=integrator_                     %integrate   (projectedDensityRadius,radiusOuter)
        if (self%includeRadii)                                                                                                &
             & projectedDensityExtract(i,2)=                                              projectedDensityRadius

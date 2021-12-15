@@ -270,8 +270,8 @@ contains
       spin => node%spin()
       select case (self%radiusFixed)
       case (radiusFixedVirial    )
-         velocity             =  +self %darkMatterHaloScale_ %virialVelocity         (node                           )
-         radius               =  +self %darkMatterHaloScale_ %virialRadius           (node                           ) &
+         velocity             =  +self %darkMatterHaloScale_ %velocityVirial         (node                           )
+         radius               =  +self %darkMatterHaloScale_ %radiusVirial           (node                           ) &
               &                  *self                       %factor                                                   &
               &                  *spin                       %angularMomentum        (                               ) &
               &                  /Dark_Matter_Halo_Angular_Momentum_Scale            (node,self%darkMatterProfileDMO_)

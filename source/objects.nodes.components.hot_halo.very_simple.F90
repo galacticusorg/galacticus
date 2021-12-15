@@ -279,7 +279,7 @@ contains
     implicit none
     class(nodeComponentHotHaloVerySimple), intent(inout) :: self
 
-    Node_Component_Hot_Halo_Very_Simple_Outer_Radius=darkMatterHaloScale_%virialRadius(self%hostNode)
+    Node_Component_Hot_Halo_Very_Simple_Outer_Radius=darkMatterHaloScale_%radiusVirial(self%hostNode)
     return
   end function Node_Component_Hot_Halo_Very_Simple_Outer_Radius
 

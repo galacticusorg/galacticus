@@ -188,7 +188,7 @@ module Dark_Matter_Profiles_DMO
      if (node%uniqueID()     == uniqueIDPrevious) then
         radiusGuess     =radiusPrevious
      else
-        radiusGuess     =self%darkMatterHaloScale_%virialRadius(node)
+        radiusGuess     =self%darkMatterHaloScale_%radiusVirial(node)
         uniqueIDPrevious=node                     %uniqueID    (    )
      end if
      darkMatterProfileDMOSelf  => self

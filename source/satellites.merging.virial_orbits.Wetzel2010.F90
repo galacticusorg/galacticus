@@ -327,7 +327,7 @@ contains
        call wetzel2010Orbit%eccentricitySet    (sqrt(1.0d0-circularity**2)      )
        call wetzel2010Orbit%radiusPericenterSet(pericentricRadius*radiusHostSelf)
        ! Propagate the orbit to the virial radius under the default density contrast definition.
-       radiusHost=self%darkMatterHaloScale_%virialRadius(host)
+       radiusHost=self%darkMatterHaloScale_%radiusVirial(host)
        if (wetzel2010Orbit%radiusApocenter() >= radiusHost .and. wetzel2010Orbit%radiusPericenter() <= radiusHost) then
           foundOrbit=.true.
           call wetzel2010Orbit%propagate(radiusHost  ,infalling=.true.)

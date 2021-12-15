@@ -342,7 +342,7 @@ contains
             &             *basicSibling             %mass        (         )   &
             &             *massUnresolved                                      &
             &             /0.5d0                                               &
-            &             /self%darkMatterHaloScale_%virialRadius(nodeChild)   &
+            &             /self%darkMatterHaloScale_%radiusVirial(nodeChild)   &
             &             *self%unresolvedEnergy                               &
             &             *(                                                   &
             &               +1.0d0                                             &

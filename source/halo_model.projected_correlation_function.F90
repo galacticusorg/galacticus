@@ -317,7 +317,7 @@ contains
       call darkMatterProfileHalo%scaleSet(darkMatterProfileScaleRadius_%radius(node))
       ! Return zero if we're more than some maximum factor above the virial wavenumber for this halo. This avoids attempting to
       ! integrate rapidly oscillating Fourier profiles.
-      wavenumberMaximum=virialWavenumberMultiplierMaximum/(darkMatterHaloScale_%virialRadius(node)/expansionFactor)
+      wavenumberMaximum=virialWavenumberMultiplierMaximum/(darkMatterHaloScale_%radiusVirial(node)/expansionFactor)
       if (waveNumber(iWavenumber) > wavenumberMaximum) then
          powerSpectrumOneHaloIntegrand=0.0d0
       else
@@ -398,7 +398,7 @@ contains
       call darkMatterProfileHalo%scaleSet(darkMatterProfileScaleRadius_%radius(node))
       ! Return zero if we're more than some maximum factor above the virial wavenumber for this halo. This avoids attempting to
       ! integrate rapidly oscillating Fourier profiles.
-      wavenumberMaximum=virialWavenumberMultiplierMaximum/(darkMatterHaloScale_%virialRadius(node)/expansionFactor)
+      wavenumberMaximum=virialWavenumberMultiplierMaximum/(darkMatterHaloScale_%radiusVirial(node)/expansionFactor)
       if (waveNumber(iWavenumber) > wavenumberMaximum) then
          powerSpectrumTwoHaloIntegrand=0.0d0
       else

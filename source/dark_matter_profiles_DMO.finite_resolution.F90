@@ -467,7 +467,7 @@ contains
     type            (treeNode                            ), intent(inout) :: node
     double precision                                                      :: radiusVirial
 
-    radiusVirial                         =+self%darkMatterHaloScale_%virialRadius(node                                                           )
+    radiusVirial                         =+self%darkMatterHaloScale_%radiusVirial(node                                                           )
     finiteResolutionRotationNormalization=+self                     %radialMoment(node,moment=2.0d0,radiusMinimum=0.0d0,radiusMaximum=radiusVirial) &
          &                                /self                     %radialMoment(node,moment=3.0d0,radiusMinimum=0.0d0,radiusMaximum=radiusVirial)
     return

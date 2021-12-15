@@ -160,7 +160,7 @@ contains
     end if
     ! For zero density or radius, return the halo dynamical time (the timescale should be irrelevant in such cases anyway).
     if (radiusOuter <= 0.0d0 .or. surfaceDensityOuter <= 0.0d0) then
-       ramPressureAccelerationTimescale=self%darkMatterHaloScale_%dynamicalTimescale(node)
+       ramPressureAccelerationTimescale=self%darkMatterHaloScale_%timescaleDynamical(node)
        return
     end if
     ! Find the hosting node.
@@ -180,7 +180,7 @@ contains
          &                                     )                                             , &
          &                                +radiusOuter                                         &
          &                                /velocityStrippingMaximum                            &
-         &                                /self%darkMatterHaloScale_%virialVelocity(nodeHost)  &
+         &                                /self%darkMatterHaloScale_%velocityVirial(nodeHost)  &
          &                               )
     return
   end function ramPressureAccelerationTimescale

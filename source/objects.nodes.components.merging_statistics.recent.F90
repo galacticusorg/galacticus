@@ -246,7 +246,7 @@ contains
           case (nodeRecentMajorMergerIntervalTypeAbsolute)
              recentTimeInterval=nodeRecentMajorMergerInterval
           case (nodeRecentMajorMergerIntervalTypeDynamical)
-             recentTimeInterval=nodeRecentMajorMergerInterval*darkMatterHaloScale_%dynamicalTimescale(node)
+             recentTimeInterval=nodeRecentMajorMergerInterval*darkMatterHaloScale_%timescaleDynamical(node)
           case default
              call Galacticus_Error_Report('unrecognized time interval type'//{introspection:location})
           end select

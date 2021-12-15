@@ -485,7 +485,7 @@ contains
       errorSpinIndependent1D       =+errorSpinIndependent                                        &
            &                        /sqrt(3.0d0)
       ! Get the outer radius of the halo.
-      radiusHalo                   =+self%darkMatterHaloScale_ %virialRadius(node           )
+      radiusHalo                   =+self%darkMatterHaloScale_ %radiusVirial(node           )
       ! Get the density at the edge of the halo.
       densityOuterRadius           =+self%darkMatterProfileDMO_%density     (node,radiusHalo)
       ! Find the ratio of the mean interior density in the halo to the density at the halo outer radius.

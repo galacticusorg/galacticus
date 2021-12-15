@@ -34,55 +34,55 @@ module Dark_Matter_Halo_Scales
    <descriptiveName>Dark Matter Halo Scales</descriptiveName>
    <description>Class providing dark matter halo scales.</description>
    <default>virialDensityContrastDefinition</default>
-   <method name="dynamicalTimescale" >
+   <method name="timescaleDynamical" >
     <description>The characteristic dynamical timescale of a dark matter halo.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
-   <method name="virialVelocity" >
+   <method name="velocityVirial" >
     <description>The virial velocity of a dark matter halo</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
-   <method name="virialVelocityGrowthRate" >
+   <method name="velocityVirialGrowthRate" >
     <description>The growth rate of the virial velocity of a dark matter halo.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
-   <method name="virialTemperature" >
+   <method name="temperatureVirial" >
     <description>The virial temperature of a dark matter halo</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
-   <method name="virialRadius" >
+   <method name="radiusVirial" >
     <description>The virial radius of a dark matter halo.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
-   <method name="virialRadiusGradientLogarithmicMass" >
+   <method name="radiusVirialGradientLogarithmicMass" >
     <description>The logarithmic gradient of virial radius of a dark matter halo with halo mass at fixed epoch.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
-   <method name="virialRadiusGrowthRate" >
+   <method name="radiusVirialGrowthRate" >
     <description>The growth rate of the virial radius of a dark matter halo.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
-   <method name="meanDensity" >
+   <method name="densityMean" >
     <description>The mean density of a dark matter halo.</description>
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
    </method>
-   <method name="meanDensityGrowthRate" >
+   <method name="densityMeanGrowthRate" >
     <description>The growth rate of the mean density of a dark matter halo.</description>
     <type>double precision</type>
     <pass>yes</pass>

@@ -131,9 +131,9 @@ contains
          & ) return
     ! Return if the spheroid has excessive angular momentum or radius.
     if     (                                                                                                                                                                      &
-         &   spheroid%angularMomentum() > (spheroid%massGas()+spheroid%massStellar())*self%darkMatterHaloScale_%virialRadius(node)*self%darkMatterHaloScale_%virialVelocity(node) &
+         &   spheroid%angularMomentum() > (spheroid%massGas()+spheroid%massStellar())*self%darkMatterHaloScale_%radiusVirial(node)*self%darkMatterHaloScale_%velocityVirial(node) &
          &  .or.                                                                                                                                                                  &
-         &   spheroid%radius         () >                                             self%darkMatterHaloScale_%virialRadius(node)                                                &
+         &   spheroid%radius         () >                                             self%darkMatterHaloScale_%radiusVirial(node)                                                &
          & ) return
     tidalField =self%satelliteTidalField_%tidalTensorRadial(node)
     tidalTorque=+abs(tidalField)              &

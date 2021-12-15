@@ -184,7 +184,7 @@ contains
     darkMatterHaloProfile => node%darkMatterProfile()
     ! Find the shock and outer radii.
     radiusShock         =+self                        %shockRadius                         &
-         &               *self   %darkMatterHaloScale_%virialRadius(node                 )
+         &               *self   %darkMatterHaloScale_%radiusVirial(node                 )
     radiusOuter         =+hotHalo                     %outerRadius (                     )
     ! Find the density normalization.
     radiusDarkMatter    =+radiusShock                                                         &
@@ -225,7 +225,7 @@ contains
     darkMatterHaloProfile => node%darkMatterProfile()
     ! Find the shock radius.
     radiusShock         =+self                     %shockRadius                    &
-         &               *self%darkMatterHaloScale_%virialRadius(node            )
+         &               *self%darkMatterHaloScale_%radiusVirial(node            )
     ! Compute the log slope of density.
     patejLoeb2015DensityLogSlope=+3.0d0                                                       &
          &                       *(self%gamma-1.0d0)                                          &
@@ -261,7 +261,7 @@ contains
     darkMatterHaloProfile => node%darkMatterProfile()
     ! Find the shock, outer, and scale radii.
     radiusShock              =+self                     %shockRadius                         &
-         &                    *self%darkMatterHaloScale_%virialRadius(node                 )
+         &                    *self%darkMatterHaloScale_%radiusVirial(node                 )
     radiusOuter              =     hotHalo              %outerRadius (                     )
     radiusScale              =     darkMatterHaloProfile%scale       (                     )
     ! Find the density normalization.
@@ -314,7 +314,7 @@ contains
     darkMatterHaloProfile => node%darkMatterProfile()
     ! Find the shock, outer, and scale radii.
     radiusShock         =+self                     %shockRadius                         &
-         &               *self%darkMatterHaloScale_%virialRadius(node                 )
+         &               *self%darkMatterHaloScale_%radiusVirial(node                 )
     radiusOuter         =     hotHalo              %outerRadius (                     )
     radiusScale         =     darkMatterHaloProfile%scale       (                     )
     ! Find the density normalization.

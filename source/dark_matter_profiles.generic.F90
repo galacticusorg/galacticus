@@ -224,7 +224,7 @@ contains
     end if
        ! Find the range of radii at which to compute the enclosed mass, and construct the arrays.
        call self%solverSet  (node)
-       radiusVirial =self%darkMatterHaloScale_%virialRadius(node)
+       radiusVirial =self%darkMatterHaloScale_%radiusVirial(node)
        !! Set an initial range of radii that brackets the requested radii.
        if (radiusLower <= 0.0d0) then
           radiusMinimum=max(0.5d0*radiusUpper,radiusVirial*radiusVirialFractionSmall)
@@ -335,7 +335,7 @@ contains
     end if
     call self%solverSet  (node)
     radiusMaximum             =  +radiusMaximumFactor                          &
-         &                       *self%darkMatterHaloScale_%virialRadius(node)
+         &                       *self%darkMatterHaloScale_%radiusVirial(node)
     genericPotentialNumerical =   integrator_%integrate(               &
          &                                              radius       , &
          &                                              radiusMaximum  &
@@ -465,7 +465,7 @@ contains
        end if
        ! Find the range of radii at which to compute the velocity dispersion, and construct the arrays.
        call self%solverSet  (node)
-       radiusVirial =self%darkMatterHaloScale_%virialRadius(node)
+       radiusVirial =self%darkMatterHaloScale_%radiusVirial(node)
        !! Set an initial range of radii that brackets the requested radius, but avoids tiny radii.
        radiusMinimum=max(0.5d0*radius,radiusTinyFactor*radiusVirial)
        radiusMaximum=    2.0d0*radius
@@ -606,7 +606,7 @@ contains
     double precision                                                    :: radiusMinimumActual, radiusMaximumActual
 
     radiusMinimumActual=0.0d0
-    radiusMaximumActual=self%darkMatterHaloScale_%virialRadius(node)
+    radiusMaximumActual=self%darkMatterHaloScale_%radiusVirial(node)
     if (present(radiusMinimum)) radiusMinimumActual=radiusMinimum
     if (present(radiusMaximum)) radiusMaximumActual=radiusMaximum
     integrator_=integrator(integrandRadialMoment,toleranceRelative=1.0d-3)
@@ -643,7 +643,7 @@ contains
     type            (treeNode                ), intent(inout) :: node
     double precision                                          :: radiusVirial
 
-    radiusVirial                         =+self%darkMatterHaloScale_%virialRadius         (                            &
+    radiusVirial                         =+self%darkMatterHaloScale_%radiusVirial         (                            &
          &                                                                                               node          &
          &                                                                                )
     genericRotationNormalizationNumerical=+self                     %enclosedMass         (                            &
@@ -674,7 +674,7 @@ contains
     type            (integrator              )                        :: integrator_
     double precision                                                  :: radiusVirial
 
-    radiusVirial          =+self       %darkMatterHaloScale_%virialRadius(node                                              )
+    radiusVirial          =+self       %darkMatterHaloScale_%radiusVirial(node                                              )
     integrator_           = integrator                                   (integrandFourierTransform,toleranceRelative=1.0d-3)
     genericKSpaceNumerical=+integrator_%integrate                        (0.0d0                    ,radiusVirial            ) &
          &                 /self                            %enclosedMass(node                     ,radiusVirial            )
@@ -725,7 +725,7 @@ contains
     integratorPotential=integrator(integrandEnergyPotential,toleranceRelative=1.0d-3)
     integratorKinetic  =integrator(integrandEnergyKinetic  ,toleranceRelative=1.0d-3)
     integratorPressure =integrator(integrandPseudoPressure ,toleranceRelative=1.0d-3)
-    radiusVirial          =+self%darkMatterHaloScale_%virialRadius(node)
+    radiusVirial          =+self%darkMatterHaloScale_%radiusVirial(node)
     radiusLarge           =+multiplierRadius                                          &
          &                 *radiusVirial
     energyPotential       =+integratorPotential%integrate(0.0d0       ,radiusVirial)
@@ -849,7 +849,7 @@ contains
          &                    rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
          &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
          &                   )
-    genericFreefallRadiusNumerical=finder%find(rootGuess=self%darkMatterHaloScale_%virialRadius(node))
+    genericFreefallRadiusNumerical=finder%find(rootGuess=self%darkMatterHaloScale_%radiusVirial(node))
     call self%solverUnset(   )
     return
   end function genericFreefallRadiusNumerical
@@ -950,7 +950,7 @@ contains
          &                    rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative, &
          &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive  &
          &                   )
-    genericRadiusEnclosingDensityNumerical=finder%find(rootGuess=self%darkMatterHaloScale_%virialRadius(node))
+    genericRadiusEnclosingDensityNumerical=finder%find(rootGuess=self%darkMatterHaloScale_%radiusVirial(node))
     call self%solverUnset(   )
     return
   end function genericRadiusEnclosingDensityNumerical
@@ -996,7 +996,7 @@ contains
          &                    rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
          &                    rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
          &                   )
-    genericRadiusEnclosingMassNumerical=finder%find(rootRange=[0.0d0,self%darkMatterHaloScale_%virialRadius(node)])
+    genericRadiusEnclosingMassNumerical=finder%find(rootRange=[0.0d0,self%darkMatterHaloScale_%radiusVirial(node)])
     call self%solverUnset(   )
     return
   end function genericRadiusEnclosingMassNumerical
@@ -1044,36 +1044,36 @@ contains
     basic => node%basic()
     if     (                                                                                                        &
          &   Values_Agree(                                                                                          &
-         &                       +rootCircularVelocityMaximum(1.0d+0*self%darkMatterHaloScale_%virialRadius(node)), &
+         &                       +rootCircularVelocityMaximum(1.0d+0*self%darkMatterHaloScale_%radiusVirial(node)), &
          &                       +0.0d0                                                                           , &
          &                absTol=+toleranceRelative                                                                 &
          &                       *basic%mass                 (                                                   )  &
          &                )                                                                                         &
          &  .and. &
          &   Values_Agree(                                                                                          &
-         &                       +rootCircularVelocityMaximum(3.0d-1*self%darkMatterHaloScale_%virialRadius(node)), &
+         &                       +rootCircularVelocityMaximum(3.0d-1*self%darkMatterHaloScale_%radiusVirial(node)), &
          &                       +0.0d0                                                                           , &
          &                absTol=+toleranceRelative                                                                 &
          &                       *basic%mass                 (                                                   )  &
          &                )                                                                                         &
          &  .and. &
          &   Values_Agree(                                                                                          &
-         &                       +rootCircularVelocityMaximum(1.0d-1*self%darkMatterHaloScale_%virialRadius(node)), &
+         &                       +rootCircularVelocityMaximum(1.0d-1*self%darkMatterHaloScale_%radiusVirial(node)), &
          &                       +0.0d0                                                                           , &
          &                absTol=+toleranceRelative                                                                 &
          &                       *basic%mass                 (                                                   )  &
          &                )                                                                                         &
          &  .and. &
          &   Values_Agree(                                                                                          &
-         &                       +rootCircularVelocityMaximum(3.0d-2*self%darkMatterHaloScale_%virialRadius(node)), &
+         &                       +rootCircularVelocityMaximum(3.0d-2*self%darkMatterHaloScale_%radiusVirial(node)), &
          &                       +0.0d0                                                                           , &
          &                absTol=+toleranceRelative                                                                 &
          &                       *basic%mass                 (                                                   )  &
          &                )                                                                                         &
          & ) then
-       genericRadiusCircularVelocityMaximumNumerical=                      self%darkMatterHaloScale_%virialRadius(node)
+       genericRadiusCircularVelocityMaximumNumerical=                      self%darkMatterHaloScale_%radiusVirial(node)
     else
-       genericRadiusCircularVelocityMaximumNumerical=finder%find(rootGuess=self%darkMatterHaloScale_%virialRadius(node))
+       genericRadiusCircularVelocityMaximumNumerical=finder%find(rootGuess=self%darkMatterHaloScale_%radiusVirial(node))
     end if
     call self%solverUnset(   )
     return
@@ -1135,7 +1135,7 @@ contains
          &                                       rangeExpandUpwardSignExpect  =rangeExpandSignExpectPositive, &
          &                                       rangeExpandDownwardSignExpect=rangeExpandSignExpectNegative  &
          &                                      )
-    genericRadiusFromSpecificAngularMomentumNumerical=finder%find(rootRange=[0.0d0,self%darkMatterHaloScale_%virialRadius(node)])
+    genericRadiusFromSpecificAngularMomentumNumerical=finder%find(rootRange=[0.0d0,self%darkMatterHaloScale_%radiusVirial(node)])
     call self%solverUnset(   )
     return
   end function genericRadiusFromSpecificAngularMomentumNumerical

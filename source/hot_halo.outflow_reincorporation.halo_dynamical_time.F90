@@ -121,6 +121,6 @@ contains
     hotHalo               =>  node   %hotHalo                                (    )
     haloDynamicalTimeRate =  +hotHalo%outflowedMass                          (    )  &
          &                   *self   %multiplier                                     &
-         &                   /self   %darkMatterHaloScale_%dynamicalTimescale(node)
+         &                   /self   %darkMatterHaloScale_%timescaleDynamical(node)
     return
   end function haloDynamicalTimeRate

@@ -155,8 +155,8 @@ contains
        nodeHost => node%parent%firstChild
     end if
     ! Get velocity scale.
-    velocityScale=self%darkMatterHaloScale_%virialVelocity(nodeHost)
-    radialScale  =self%darkMatterHaloScale_%virialRadius  (nodeHost)
+    velocityScale=self%darkMatterHaloScale_%velocityVirial(nodeHost)
+    radialScale  =self%darkMatterHaloScale_%radiusVirial  (nodeHost)
     ! Get the equivalent circular orbit.
     equivalentCircularOrbitRadius=Satellite_Orbit_Equivalent_Circular_Orbit_Radius(nodeHost,orbit,self%darkMatterHaloScale_,self%darkMatterProfileDMO_,self%galacticStructure_,errorCode)
     ! Check error codes.
@@ -198,7 +198,7 @@ contains
        ! Compute dynamical friction timescale.
        expArgument=min(expArgumentMaximum,c*orbitalCircularity)
        boylanKolchin2008TimeUntilMerging=+self%timescaleMultiplier                               &
-            &                            *self%darkMatterHaloScale_%dynamicalTimescale(nodeHost) &
+            &                            *self%darkMatterHaloScale_%timescaleDynamical(nodeHost) &
             &                            *A                                                      &
             &                            *          massRatio**b                                 &
             &                            /log(1.0d0+massRatio   )                                &

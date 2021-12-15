@@ -206,7 +206,7 @@ contains
     call fixedOrbit%velocityRadialSet    (self%velocityRadial    *velocityHost)
     call fixedOrbit%velocityTangentialSet(self%velocityTangential*velocityHost)
     ! Propagate the orbit to the virial radius under the default density contrast definition.
-    radiusHost=self%darkMatterHaloScale_%virialRadius(host)
+    radiusHost=self%darkMatterHaloScale_%radiusVirial(host)
     if (fixedOrbit%radiusApocenter() >= radiusHost .and. fixedOrbit%radiusPericenter() <= radiusHost) then
        call fixedOrbit%propagate(radiusHost,infalling=.true.)
        call fixedOrbit%massesSet(min(basic%mass(),basicHost%mass()),basicHost%mass())

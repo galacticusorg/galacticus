@@ -2029,12 +2029,12 @@ contains
                   &  .and.                                                                   &
                   &     nodes(iNode)%scaleRadius                                             &
                   &   <                                                                      &
-                  &     self%darkMatterHaloScale_%virialRadius(nodeList(iIsolatedNode)%node) &
+                  &     self%darkMatterHaloScale_%radiusVirial(nodeList(iIsolatedNode)%node) &
                   &    /self%presetScaleRadiiConcentrationMinimum                            &
                   &  .and.                                                                   &
                   &     nodes(iNode)%scaleRadius                                             &
                   &   >                                                                      &
-                  &     self%darkMatterHaloScale_%virialRadius(nodeList(iIsolatedNode)%node) &
+                  &     self%darkMatterHaloScale_%radiusVirial(nodeList(iIsolatedNode)%node) &
                   &    /self%presetScaleRadiiConcentrationMaximum                            &
                   & ) then
                 ! We do, so simply use them to set the scale radii in tree nodes.
@@ -2051,9 +2051,9 @@ contains
                 call finder%rangeExpand    (                                                                                   &
                      &                      rangeExpandDownward          =0.5d0                                              , &
                      &                      rangeExpandUpward            =2.0d0                                              , &
-                     &                      rangeDownwardLimit           = self%darkMatterHaloScale_%virialRadius(readNode)    &
+                     &                      rangeDownwardLimit           = self%darkMatterHaloScale_%radiusVirial(readNode)    &
                      &                                                    /self%presetScaleRadiiConcentrationMaximum         , &
-                     &                      rangeUpwardLimit             = self%darkMatterHaloScale_%virialRadius(readNode)    &
+                     &                      rangeUpwardLimit             = self%darkMatterHaloScale_%radiusVirial(readNode)    &
                      &                                                    /self%presetScaleRadiiConcentrationMinimum         , &
                      &                      rangeExpandDownwardSignExpect=rangeExpandSignExpectPositive                      , &
                      &                      rangeExpandUpwardSignExpect  =rangeExpandSignExpectNegative                      , &
@@ -2063,9 +2063,9 @@ contains
                 if (status == errorStatusSuccess) then
                    call darkMatterProfile%scaleSet(radiusScale)
                    ! Check for scale radii exceeding the virial radius.
-                   if (radiusScale        > self%darkMatterHaloScale_%virialRadius(readNode)) excessiveScaleRadii   =.true.
+                   if (radiusScale        > self%darkMatterHaloScale_%radiusVirial(readNode)) excessiveScaleRadii   =.true.
                    ! Check for half-mass radii exceeding the virial radius.
-                   if (readRadiusHalfMass > self%darkMatterHaloScale_%virialRadius(readNode)) excessiveHalfMassRadii=.true.
+                   if (readRadiusHalfMass > self%darkMatterHaloScale_%radiusVirial(readNode)) excessiveHalfMassRadii=.true.
                    useFallbackScaleMethod=.false.
                 else
                    if (self%scaleRadiiFailureIsFatal) then
@@ -2080,7 +2080,7 @@ contains
                     write (label,'(i16)') readNode%index()
                    message="      node index: "//trim(label)
                    call displayMessage(message,messageVerbosity)
-                   write (label,'(e12.6)') self%darkMatterHaloScale_%virialRadius(readNode)
+                   write (label,'(e12.6)') self%darkMatterHaloScale_%radiusVirial(readNode)
                    message="   virial radius: "//trim(label)
                    call displayMessage(message,messageVerbosity)
                    write (label,'(e12.6)') readRadiusHalfMass
@@ -2102,9 +2102,9 @@ contains
              radiusScale=max(                                                                                                         &
                   &          min(                                                                                                     &
                   &              self%darkMatterProfileScaleRadius_%radius      (readNode)                                          , &
-                  &              self%darkMatterHaloScale_         %virialRadius(readNode)/self%presetScaleRadiiConcentrationMinimum  &
+                  &              self%darkMatterHaloScale_         %radiusVirial(readNode)/self%presetScaleRadiiConcentrationMinimum  &
                   &             )                                                                                                   , &
-                  &              self%darkMatterHaloScale_         %virialRadius(readNode)/self%presetScaleRadiiConcentrationMaximum  &
+                  &              self%darkMatterHaloScale_         %radiusVirial(readNode)/self%presetScaleRadiiConcentrationMaximum  &
                   &         )
              call darkMatterProfile%scaleSet(radiusScale)
           end if
@@ -2574,7 +2574,7 @@ contains
                    ! Propagate to the virial radius.
                    radiusPericenter=orbit               %radiusPericenter(              )
                    radiusApocenter =orbit               %radiusApocenter (              )
-                   radiusVirial    =self%darkMatterHaloScale_%virialRadius    (orbitalPartner)
+                   radiusVirial    =self%darkMatterHaloScale_%radiusVirial    (orbitalPartner)
                    ! Check if the orbit intersects the virial radius.
                    if     (                                                                      &
                         &    radiusVirial >= radiusPericenter                                    &
@@ -4161,7 +4161,7 @@ contains
              ! Propagate orbit to the virial radius.
              radiusPericenter     =  orbit               %radiusPericenter   (        )
              radiusApocenter      =  orbit               %radiusApocenter    (        )
-             radiusVirial         =  self%darkMatterHaloScale_%virialRadius       (nodeHost)
+             radiusVirial         =  self%darkMatterHaloScale_%radiusVirial       (nodeHost)
              ! Check if the orbit intersects the virial radius.
              if     (                                                                      &
                   &    radiusVirial >= radiusPericenter                                    &

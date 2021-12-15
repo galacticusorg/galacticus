@@ -119,6 +119,6 @@ contains
     type (treeNode                                       ), intent(inout) :: node
 
     virialFractionRadius=+self                     %coreRadiusOverVirialRadius       &
-         &               *self%darkMatterHaloScale_%virialRadius              (node)
+         &               *self%darkMatterHaloScale_%radiusVirial              (node)
     return
   end function virialFractionRadius

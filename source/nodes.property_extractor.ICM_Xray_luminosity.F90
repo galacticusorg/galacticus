@@ -154,7 +154,7 @@ contains
     !!]
     ! Compute luminosity and temperature.
     integratorLuminosity    =integrator                     (integrandLuminosityXray ,toleranceRelative                           =1.0d-3)
-    icmXRayLuminosityExtract=integratorLuminosity %integrate(0.0d0                   ,self%darkMatterHaloScale_%virialRadius(node)       )
+    icmXRayLuminosityExtract=integratorLuminosity %integrate(0.0d0                   ,self%darkMatterHaloScale_%radiusVirial(node)       )
     !![
     <objectDestructor name="radiation_"/>
     !!]

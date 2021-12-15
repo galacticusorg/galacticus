@@ -177,8 +177,8 @@ contains
     ! Compute luminosity and temperature.
     integratorTotal =integrator                (integrandLuminosityTotal ,toleranceRelative                           =1.0d-3)
     integratorInBand=integrator                (integrandLuminosityInBand,toleranceRelative                           =1.0d-3)
-    luminosityTotal =integratorTotal %integrate(0.0d0                    ,self%darkMatterHaloScale_%virialRadius(node)       )
-    luminosityInBand=integratorInBand%integrate(0.0d0                    ,self%darkMatterHaloScale_%virialRadius(node)       )
+    luminosityTotal =integratorTotal %integrate(0.0d0                    ,self%darkMatterHaloScale_%radiusVirial(node)       )
+    luminosityInBand=integratorInBand%integrate(0.0d0                    ,self%darkMatterHaloScale_%radiusVirial(node)       )
     if (luminosityTotal > 0.0d0) then
        icmCoolingPowerInBandExtract=+luminosityInBand &
             &                       /luminosityTotal

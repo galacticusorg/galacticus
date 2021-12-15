@@ -213,8 +213,8 @@ contains
             &                       /megaParsec
     else
        ! No well-defined half mass radius exists in the satellite. Use the virial orbital frequency instead.
-       orbitalFrequencySatellite =  +self%darkMatterHaloScale_%virialVelocity(node) &
-            &                       /self%darkMatterHaloScale_%virialRadius  (node) &
+       orbitalFrequencySatellite =  +self%darkMatterHaloScale_%velocityVirial(node) &
+            &                       /self%darkMatterHaloScale_%radiusVirial  (node) &
             &                       *gigaYear                                       &
             &                       *kilo                                           &
             &                       /megaParsec

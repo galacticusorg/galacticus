@@ -188,8 +188,8 @@ program Test_Dark_Matter_Profiles_Generic
   call basic_            %timeSet            (cosmologyFunctions_%cosmicTime(1.0d0))
   call basic_            %timeLastIsolatedSet(cosmologyFunctions_%cosmicTime(1.0d0))
   call basic_            %massSet            (massVirial                           )
-  radiusVirial =+darkMatterHaloScale_%virialRadius      (node_)
-  timeDynamical=+darkMatterHaloScale_%dynamicalTimescale(node_)
+  radiusVirial =+darkMatterHaloScale_%radiusVirial      (node_)
+  timeDynamical=+darkMatterHaloScale_%timescaleDynamical(node_)
   radiusScale  =+radiusVirial &
        &        /concentration
   call darkMatterProfile_%scaleSet(radiusScale )

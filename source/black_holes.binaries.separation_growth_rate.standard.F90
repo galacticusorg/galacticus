@@ -232,13 +232,13 @@ contains
        velocityDispersionDarkMatter=self%galacticStructure_%velocityDispersion(                                                                           &
             &                                                                                                                node,                        &
             &                                                                  blackHole                     %radialPosition(    ),                       &
-            &                                                                  self     %darkMatterHaloScale_%virialRadius  (node)*outerRadiusMultiplier, &
+            &                                                                  self     %darkMatterHaloScale_%radiusVirial  (node)*outerRadiusMultiplier, &
             &                                                                  componentTypeDarkHalo                                                    , &
             &                                                                  massTypeDark                                                               &
             &                                                                 )
     else
        velocityDispersionSpheroid  =spheroid                     %velocity      (    )
-       velocityDispersionDarkMatter=self    %darkMatterHaloScale_%virialVelocity(node)
+       velocityDispersionDarkMatter=self    %darkMatterHaloScale_%velocityVirial(node)
     end if
     ! Compute the separation growth rate due to emission of gravitational waves.
     rateGravitationalWaves=-(                                        &

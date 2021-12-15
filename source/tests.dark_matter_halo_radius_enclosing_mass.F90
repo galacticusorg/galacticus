@@ -151,7 +151,7 @@ program Test_Dark_Matter_Halo_Radius_Enclosing_Mass
   call basic    %timeLastIsolatedSet      (time             )
   call satellite%tidalHeatingNormalizedSet(heatingSpecific  )
   ! Get the virial raidus.
-  radiusVirial=darkMatterHaloScale_%virialRadius(node)
+  radiusVirial=darkMatterHaloScale_%radiusVirial(node)
   ! Compute scale radius.
   radiusScale =radiusVirial/concentration
   call dmProfile%scaleSet(radiusScale)

@@ -136,7 +136,7 @@ program Test_Dark_Matter_Profiles_Tidal_Tracks
   call basic_    %timeLastIsolatedSet(cosmologyFunctions_%cosmicTime(1.0d0))
   call basic_    %massSet            (massVirial                           )
   call satellite_%boundMassSet       (massVirial                           )
-  radiusVirial =+darkMatterHaloScale_%virialRadius(node_)
+  radiusVirial =+darkMatterHaloScale_%radiusVirial(node_)
   radiusScale  =+radiusVirial &
        &        /concentration
   call darkMatterProfile_%scaleSet(radiusScale)

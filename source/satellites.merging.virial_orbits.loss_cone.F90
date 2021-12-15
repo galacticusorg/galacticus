@@ -408,7 +408,7 @@ contains
        call orbit%velocityRadialSet    (velocityRadialInternal    *velocityHost)
        call orbit%velocityTangentialSet(velocityTangentialInternal*velocityHost)
        ! Propagate the orbit to the virial radius under the default density contrast definition.
-       radiusHost=self%darkMatterHaloScale_%virialRadius(host)
+       radiusHost=self%darkMatterHaloScale_%radiusVirial(host)
        if (orbit%radiusApocenter() >= radiusHost .and. orbit%radiusPericenter() <= radiusHost) then
           foundOrbit     =  .true.
           basicHost      => host%basic()
@@ -922,8 +922,8 @@ contains
        call basicHost%timeLastIsolatedSet(self%time    )
        call Galacticus_Calculations_Reset(     nodeHost)
        ! Compute host virial properties.
-       radiusVirialHost  =darkMatterHaloScale_%virialRadius  (nodeHost)
-       velocityVirialHost=darkMatterHaloScale_%virialVelocity(nodeHost)
+       radiusVirialHost  =darkMatterHaloScale_%radiusVirial  (nodeHost)
+       velocityVirialHost=darkMatterHaloScale_%velocityVirial(nodeHost)
        ! Compute the environmental boost factor for velocity dispersion.
        timeEvaluate_      =+                                                                                                                                 self%time
        factorEnvironmental=+integratorEnvironment          %integrate(overdensityLimitLower*cosmologicalMassVariance_%rootVariance(mass=massEnvironment,time=self%time),haloEnvironment_%overdensityLinearMaximum()) &
@@ -1030,7 +1030,7 @@ contains
                            &                     -timeAlongOrbit(1.0d0               ,radiusApocenterVirial,radiusPericenterVirial,velocityTangentialVirial) &
                            &                    )
                       timeOfFlight=+                     timeOfFlightVirial           &
-                           &       *darkMatterHaloScale_%dynamicalTimescale(nodeHost)
+                           &       *darkMatterHaloScale_%timescaleDynamical(nodeHost)
                       timeEvaluate=+self%time                                         &
                            &       -     timeOfFlight
                       ! Skip orbits where the evaluation time is prior to the Big Bang.
@@ -1044,7 +1044,7 @@ contains
                       radiusEvaluateComoving    =+radiusEvaluate                                    &
                            &                     /cosmologyFunctions_%expansionFactor(timeEvaluate)                      
                       radiusEvaluateLagrangian  =(                                                                                              &
-                           &                      + darkMatterHaloScale_        %meanDensity              (                      nodeHost     ) &
+                           &                      + darkMatterHaloScale_        %densityMean              (                      nodeHost     ) &
                            &                      / cosmologyFunctions_         %matterDensityEpochal     (                      self    %time) &
                            &                      *radiusVirialHost**3                                                                          &
                            &                      +(                                                                                            &

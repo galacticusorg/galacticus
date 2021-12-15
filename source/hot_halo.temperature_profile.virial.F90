@@ -111,7 +111,7 @@ contains
     double precision                                 , intent(in   ) :: radius
     !$GLC attributes unused :: radius
 
-    virialTemperature=self%darkMatterHaloScale_%virialTemperature(node)
+    virialTemperature=self%darkMatterHaloScale_%temperatureVirial(node)
     return
   end function virialTemperature
 

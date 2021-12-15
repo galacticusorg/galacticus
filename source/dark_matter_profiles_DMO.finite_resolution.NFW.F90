@@ -351,7 +351,7 @@ contains
        self%densityRadiusPrevious =       radius
        if (self%densityNormalizationPrevious < 0.0d0) then
           basic                             =>  node %basic                            (    )
-          concentration                     =   self %darkMatterHaloScale_%virialRadius(node)/darkMatterProfile%scale()
+          concentration                     =   self %darkMatterHaloScale_%radiusVirial(node)/darkMatterProfile%scale()
           self%densityNormalizationPrevious =  +basic                     %mass        (    )    &
                &                               /darkMatterProfile         %scale       (    )**3 &
                &                               /(                                                &
@@ -408,7 +408,7 @@ contains
        self%enclosedMassRadiusPrevious =       radius
        if (self%massNormalizationPrevious < 0.0d0) then
           basic                          =>  node %basic                            (    )
-          concentration                  =   self %darkMatterHaloScale_%virialRadius(node)/darkMatterProfile%scale()
+          concentration                  =   self %darkMatterHaloScale_%radiusVirial(node)/darkMatterProfile%scale()
           self%massNormalizationPrevious =  +basic                     %mass        (    ) &
                &                            /(                                             &
                &                              -          concentration                     &
@@ -447,12 +447,12 @@ contains
     if (     density    /= self%radiusEnclosingDensityDensityPrevious) then
        basic                                      =>  node%basic                                       (    )
        darkMatterProfile                          =>  node%darkMatterProfile                           (    )
-       concentration                              =  self%darkMatterHaloScale_%virialRadius            (node)/darkMatterProfile%scale()
+       concentration                              =  self%darkMatterHaloScale_%radiusVirial            (node)/darkMatterProfile%scale()
        lengthResolutionScaleFree                  =  self                     %lengthResolutionPhysical(node)/darkMatterProfile%scale()
        self%radiusEnclosingDensityDensityPrevious =                            density
        if (self%massNormalizationPrevious < 0.0d0) then
           basic                          =>  node %basic                            (    )
-          concentration                  =   self %darkMatterHaloScale_%virialRadius(node)/darkMatterProfile%scale()
+          concentration                  =   self %darkMatterHaloScale_%radiusVirial(node)/darkMatterProfile%scale()
           self%massNormalizationPrevious =  +basic                     %mass        (    ) &
                &                            /(                                             &
                &                              -          concentration                     &
@@ -633,12 +633,12 @@ contains
     if (     mass       /= self%radiusEnclosingMassMassPrevious) then
        basic                                =>  node%basic                                       (    )
        darkMatterProfile                    =>  node%darkMatterProfile                           (    )
-       concentration                        =  self%darkMatterHaloScale_%virialRadius            (node)/darkMatterProfile%scale()
+       concentration                        =  self%darkMatterHaloScale_%radiusVirial            (node)/darkMatterProfile%scale()
        lengthResolutionScaleFree            =  self                     %lengthResolutionPhysical(node)/darkMatterProfile%scale()
        self%radiusEnclosingMassMassPrevious =                            mass
        if (self%massNormalizationPrevious < 0.0d0) then
           basic                          =>  node %basic                            (    )
-          concentration                  =   self %darkMatterHaloScale_%virialRadius(node)/darkMatterProfile%scale()
+          concentration                  =   self %darkMatterHaloScale_%radiusVirial(node)/darkMatterProfile%scale()
           self%massNormalizationPrevious =  +basic                     %mass        (    ) &
                &                            /(                                             &
                &                              -          concentration                     &
@@ -786,11 +786,11 @@ contains
     if (self%energyPrevious > 0.0d0) then
        basic                     =>  node%basic                                       (    )
        darkMatterProfile         =>  node%darkMatterProfile                           (    )
-       concentration             =  self%darkMatterHaloScale_%virialRadius            (node)/darkMatterProfile%scale()
+       concentration             =  self%darkMatterHaloScale_%radiusVirial            (node)/darkMatterProfile%scale()
        lengthResolutionScaleFree =  self                     %lengthResolutionPhysical(node)/darkMatterProfile%scale()
        if (self%massNormalizationPrevious < 0.0d0) then
           basic                          =>  node %basic                            (    )
-          concentration                  =   self %darkMatterHaloScale_%virialRadius(node)/darkMatterProfile%scale()
+          concentration                  =   self %darkMatterHaloScale_%radiusVirial(node)/darkMatterProfile%scale()
           self%massNormalizationPrevious =  +basic                     %mass        (    ) &
                &                            /(                                             &
                &                              -          concentration                     &
@@ -1076,7 +1076,7 @@ contains
        basic                        =>  node%basic                                        (    )
        darkMatterProfile            =>  node%darkMatterProfile                            (    )
        radiusScaleFree              =                             radius                        /darkMatterProfile%scale()
-       concentration                =   self%darkMatterHaloScale_%virialRadius            (node)/darkMatterProfile%scale()
+       concentration                =   self%darkMatterHaloScale_%radiusVirial            (node)/darkMatterProfile%scale()
        lengthResolutionScaleFree    =   self                     %lengthResolutionPhysical(node)/darkMatterProfile%scale()
        self%potentialRadiusPrevious =                             radius
        self%potentialPrevious       =  -gravitationalConstantGalacticus                                                                                          &
@@ -1160,7 +1160,7 @@ contains
        basic                                       =>  node%basic                                       (    )
        darkMatterProfile                           =>  node%darkMatterProfile                           (    )
        radiusScaleFree                             =                            radius                        /darkMatterProfile%scale()
-       concentration                               =  self%darkMatterHaloScale_%virialRadius            (node)/darkMatterProfile%scale()
+       concentration                               =  self%darkMatterHaloScale_%radiusVirial            (node)/darkMatterProfile%scale()
        lengthResolutionScaleFree                   =  self                     %lengthResolutionPhysical(node)/darkMatterProfile%scale()
        self%velocityDispersionRadialRadiusPrevious =                            radius
        ! Compute the effective radius. In the core of the profile the velocity dispersion must become constant. Therefore, we

@@ -222,8 +222,8 @@ contains
        call basic%massSet(massHaloInfinitePrevious)
        call basic%timeSet(time                    )
        ! Get the radius of the halo.
-       radiusHalo                             =+self%darkMatterHaloScale_%virialRadius                       (nodeWork)
-       gradientRadiusHaloMass                 =+self%darkMatterHaloScale_%virialRadiusGradientLogarithmicMass(nodeWork) &
+       radiusHalo                             =+self%darkMatterHaloScale_%radiusVirial                       (nodeWork)
+       gradientRadiusHaloMass                 =+self%darkMatterHaloScale_%radiusVirialGradientLogarithmicMass(nodeWork) &
             &                                  *radiusHalo                                                              &
             &                                  /massHaloInfinitePrevious
        ! Compute friends-of-friends fractional accuracy parameter (Lsize from More et al. 2011).

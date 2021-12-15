@@ -147,8 +147,8 @@ contains
     spinBullock =  +spin                     %angularMomentum(    ) &
          &         /sqrt(2.0d0)                                     &
          &         /basic                    %mass           (    ) &
-         &         /self%darkMatterHaloScale_%virialRadius   (node) &
-         &         /self%darkMatterHaloScale_%virialVelocity (node)
+         &         /self%darkMatterHaloScale_%radiusVirial   (node) &
+         &         /self%darkMatterHaloScale_%velocityVirial (node)
     spinBullockExtract(1) =   spinBullock
     if (self%vectorSpinAvailable) then
        spinVectorUnit          =  +spin%angularMomentumVector() &

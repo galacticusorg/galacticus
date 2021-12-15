@@ -268,7 +268,7 @@ contains
        densityContrastProperties=reshape(self%densityContrastExtractor_%extract     (node,time,instance),[2])
        radiusOuter              =             densityContrastProperties             (1                 )
     else
-       radiusOuter              =        self%darkMatterHaloScale_     %virialRadius(node              )
+       radiusOuter              =        self%darkMatterHaloScale_     %radiusVirial(node              )
     end if
     ! Find the angular diameter distance to use.
     if (self%useFixedDistance) then

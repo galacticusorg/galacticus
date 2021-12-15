@@ -171,8 +171,8 @@ contains
             &                   0.0d0                  &
             &                  ]
        ! Compute the characteristic angular momentum of this halo.
-       angularMomentumPrevious=+self           %darkMatterHaloScale_%virialRadius  (nodeProgenitor) &
-            &                  *self           %darkMatterHaloScale_%virialVelocity(nodeProgenitor) &
+       angularMomentumPrevious=+self           %darkMatterHaloScale_%radiusVirial  (nodeProgenitor) &
+            &                  *self           %darkMatterHaloScale_%velocityVirial(nodeProgenitor) &
             &                  *basicProgenitor                     %mass          (              )
        ! Walk up through descendents.
        do while (associated(nodeProgenitor))
@@ -180,8 +180,8 @@ contains
           basicProgenitor => nodeProgenitor%basic(                 )
           spinProgenitor  => nodeProgenitor%spin (autoCreate=.true.)
           ! Compute the characteristic angular momentum of this halo.
-          angularMomentumCurrent=+self           %darkMatterHaloScale_%virialRadius  (nodeProgenitor) &
-               &                 *self           %darkMatterHaloScale_%virialVelocity(nodeProgenitor) &
+          angularMomentumCurrent=+self           %darkMatterHaloScale_%radiusVirial  (nodeProgenitor) &
+               &                 *self           %darkMatterHaloScale_%velocityVirial(nodeProgenitor) &
                &                 *basicProgenitor                     %mass          (              )
           ! Perform the random walk in each dimension for the angular momentum vector.
           do i=1,3

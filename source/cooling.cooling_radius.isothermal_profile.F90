@@ -259,7 +259,7 @@ contains
       ! Get the cooling radius.
        radiusCooling=self                     %      radius(node)
        ! Get the virial radius.
-       radiusVirial =self%darkMatterHaloScale_%virialRadius(node)
+       radiusVirial =self%darkMatterHaloScale_%radiusVirial(node)
        ! Check if cooling radius has reached virial radius.
        if (radiusCooling >= radiusVirial) then
           self%radiusGrowthRateStored=0.0d0
@@ -313,7 +313,7 @@ contains
           ! Scale all chemical masses by their mass in atomic mass units to get a number density.
           call chemicalMasses%massToNumber(chemicalDensities)
           ! Compute factor converting mass of chemicals in (M_Solar/M_Atomic) to number density in cm^-3.
-          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(self%darkMatterHaloScale_%virialRadius(node))
+          massToDensityConversion=Chemicals_Mass_To_Density_Conversion(self%darkMatterHaloScale_%radiusVirial(node))
           ! Convert to number density.
           chemicalDensities=chemicalDensities*massToDensityConversion
        end if
@@ -321,7 +321,7 @@ contains
        basic => node%basic()
        call self%radiation%timeSet(basic%time())
        ! Get the virial radius.
-       radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
+       radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
        ! Compute density, temperature and abundances.
        density     =self%hotHaloMassDistribution_  %density    (node,radiusVirial)
        temperature =self%hotHaloTemperatureProfile_%temperature(node,radiusVirial)

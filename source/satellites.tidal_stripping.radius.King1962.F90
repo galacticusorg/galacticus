@@ -224,7 +224,7 @@ contains
 
     ! Test for a satellite node.
     if (.not.node%isSatellite()) then
-       king1962Radius=self%darkMatterHaloScale_%virialRadius(node)
+       king1962Radius=self%darkMatterHaloScale_%radiusVirial(node)
        return
     end if
     ! Get required quantities from satellite and host nodes.
@@ -310,7 +310,7 @@ contains
        ! the virial radius. Otherwise, solve for the radius enclosing the current bound mass.
        basic => node%basic()
        if (massSatellite > basic%mass()) then
-          king1962Radius=self%darkMatterHaloScale_%virialRadius       (node                                                            )
+          king1962Radius=self%darkMatterHaloScale_%radiusVirial       (node                                                            )
        else
           king1962Radius=self%galacticStructure_  %radiusEnclosingMass(node,massSatellite*self%fractionDarkMatter,massType=massTypeDark)
        end if

@@ -474,7 +474,7 @@ contains
           ! Force the energy distribution tables to be rebuilt.
           particularEnergyDistributionInitialized=.false.
           ! Determine the virial radius.
-          radiusVirial  =+self%darkMatterHaloScale_%virialRadius(node)
+          radiusVirial  =+self%darkMatterHaloScale_%radiusVirial(node)
           ! Determine the truncation radius.
           radiusTruncate=+self%radiusTruncateOverRadiusVirial &
                &         *radiusVirial

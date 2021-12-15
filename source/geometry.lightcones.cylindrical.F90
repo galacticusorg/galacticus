@@ -349,7 +349,7 @@ contains
        call basic%massSet            (self%massHaloLens)
        call basic%timeSet            (self%timeLens    )
        call basic%timeLastIsolatedSet(self%timeLens    )
-       self %radiusVirialComovingLens =  +self    %darkMatterHaloScale_%virialRadius   (                                                     node              ) &
+       self %radiusVirialComovingLens =  +self    %darkMatterHaloScale_%radiusVirial   (                                                     node              ) &
             &                            /self    %cosmologyFunctions_ %expansionFactor(                                                     self%timeLens     )
        self %correlationLensMaximum   =  +self%correlationFunctionTwoPoint_%correlation(self%radiusVirialComovingLens,self%timeLens) &
             &                            *self%darkMatterHaloBias_         %bias       (node                                       )

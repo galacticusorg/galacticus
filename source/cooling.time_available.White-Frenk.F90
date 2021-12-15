@@ -139,13 +139,13 @@ contains
        whiteFrenk1991TimeAvailable =  basic%time ()
     else if (self%ageFactor == 0.0d0) then
        ! Time available equals the halo dynamical time.
-       whiteFrenk1991TimeAvailable =  self%darkMatterHaloScale_%dynamicalTimescale(node)
+       whiteFrenk1991TimeAvailable =  self%darkMatterHaloScale_%timescaleDynamical(node)
     else
        ! Time is interpolated between age of Universe and dynamical time. Do the interpolation.
        basic                       =>  node%basic()
        whiteFrenk1991TimeAvailable =  +exp(                                                                                 &
             &                              +log(basic                     %time              (    ))*       self%ageFactor  &
-            &                              +log(self %darkMatterHaloScale_%dynamicalTimescale(node))*(1.0d0-self%ageFactor) &
+            &                              +log(self %darkMatterHaloScale_%timescaleDynamical(node))*(1.0d0-self%ageFactor) &
             &                             )
     end if
     return

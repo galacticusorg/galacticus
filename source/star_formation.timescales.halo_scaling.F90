@@ -204,7 +204,7 @@ contains
     if (.not.self%timescaleComputed) then
        ! Get virial velocity and expansion factor.
        basic           => component%hostNode%basic                               (                    )
-       velocityVirial  =  self              %darkMatterHaloScale_%virialVelocity (component%hostNode  )
+       velocityVirial  =  self              %darkMatterHaloScale_%velocityVirial (component%hostNode  )
        expansionFactor =  self              %cosmologyFunctions_ %expansionFactor(basic    %time    ())
        ! Compute the velocity factor.
        if (velocityVirial /= self%velocityPrevious) then
