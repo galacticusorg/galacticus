@@ -329,7 +329,7 @@ contains
     integer                             , intent(inout)          :: status
     class           (nodeComponentDisk )               , pointer :: disk
     double precision                    , save                   :: fractionalErrorMaximum=0.0d0
-    double precision                                             :: diskMass                    , fractionalError
+    double precision                                             :: massDisk                    , fractionalError
     character       (len=20            )                         :: valueString
     type            (varying_string    ), save                   :: message
     !$omp threadprivate(message)
@@ -373,9 +373,9 @@ contains
           end if
           !$omp end critical (Very_Simple_Disk_Post_Evolve_Check)
           ! Get the total mass of the disk material
-          diskMass= disk%massGas    () &
+          massDisk= disk%massGas    () &
                &   +disk%massStellar()
-          if (diskMass == 0.0d0) then
+          if (massDisk == 0.0d0) then
              call disk%        massStellarSet(                  0.0d0)
              call disk%  abundancesStellarSet(         zeroAbundances)
              call disk%luminositiesStellarSet(zeroStellarLuminosities)

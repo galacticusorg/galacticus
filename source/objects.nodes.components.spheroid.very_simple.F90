@@ -303,7 +303,7 @@ contains
     integer                                 , intent(inout)          :: status
     class           (nodeComponentSpheroid )               , pointer :: spheroid
     double precision                        , save                   :: fractionalErrorMaximum  =0.0d0
-    double precision                                                 :: spheroidMass                  , fractionalError
+    double precision                                                 :: massSpheroid                  , fractionalError
     character       (len=20                )                         :: valueString
     type            (varying_string        ), save                   :: message
     !$omp threadprivate(message)
@@ -347,9 +347,9 @@ contains
           end if
           !$omp end critical (Very_Simple_Spheroid_Post_Evolve_Check)
           ! Get the total mass of the spheroid material
-          spheroidMass=+spheroid%massGas    () &
+          massSpheroid=+spheroid%massGas    () &
                &       +spheroid%massStellar()
-          if (spheroidMass == 0.0d0) then
+          if (massSpheroid == 0.0d0) then
              call spheroid%        massStellarSet(                  0.0d0)
              call spheroid%  abundancesStellarSet(         zeroAbundances)
              call spheroid%luminositiesStellarSet(zeroStellarLuminosities)

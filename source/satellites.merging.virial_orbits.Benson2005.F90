@@ -162,7 +162,7 @@ contains
     class           (virialOrbitBenson2005), intent(inout), target :: self
     type            (treeNode             ), intent(inout)         :: host                   , node
     logical                                , intent(in   )         :: acceptUnboundOrbits
-    class           (nodeComponentBasic   ), pointer               :: hostBasic              , basic
+    class           (nodeComponentBasic   ), pointer               :: basicHost              , basic
     double precision                       , parameter             :: pMax                   =1.96797d0                              , &
          &                                                            velocityMax            =3.00000d0
     double precision                       , parameter             :: a                   (9)=[                                        &
@@ -181,11 +181,11 @@ contains
 
     ! Get basic components.
     basic     => node%basic()
-    hostBasic => host%basic()
+    basicHost => host%basic()
     ! Find mass, radius, and velocity in the host corresponding to the Benson (2005) virial density contrast definition.
     massHost     =Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
          &                                                                   host                                                                                                , &
-         &                                                                   self%virialDensityContrastDefinition_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()), &
+         &                                                                   self%virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()), &
          &                                                                   radiusHostSelf                                                                                      , &
          &                                                                   velocityHost                                                                                        , &
          &                                            cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
@@ -240,7 +240,7 @@ contains
        if (benson2005Orbit%radiusApocenter() >= radiusHost .and. benson2005Orbit%radiusPericenter() <= radiusHost) then
           foundOrbit=.true.
           call benson2005Orbit%propagate(radiusHost  ,infalling=.true.)
-          call benson2005Orbit%massesSet(basic%mass(),hostBasic%mass())
+          call benson2005Orbit%massesSet(basic%mass(),basicHost%mass())
        end if
     end do
     return
@@ -267,15 +267,15 @@ contains
     implicit none
     class           (virialOrbitBenson2005), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node                             , host
-    class           (nodeComponentBasic   ), pointer       :: hostBasic
+    class           (nodeComponentBasic   ), pointer       :: basicHost
     ! The mean magnitude of tangential velocity. This was by numerical integration over the velocity distribution fitting function.
     double precision                       , parameter     :: velocityTangentialMean=0.748205d0
     double precision                                       :: massHost                         , radiusHost, &
          &                                                    velocityHost
     !$GLC attributes unused :: node
 
-    hostBasic                                 =>  host%basic()
-    massHost                                  =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrastDefinition_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%darkMatterProfileDMO_,self%virialDensityContrast_)
+    basicHost                                 =>  host%basic()
+    massHost                                  =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%darkMatterProfileDMO_,self%virialDensityContrast_)
     benson2005VelocityTangentialMagnitudeMean =  +velocityTangentialMean &
          &                                       *velocityHost
     return
@@ -306,19 +306,19 @@ contains
     implicit none
     class           (virialOrbitBenson2005), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node        , host
-    class           (nodeComponentBasic   ), pointer       :: basic       , hostBasic
+    class           (nodeComponentBasic   ), pointer       :: basic       , basicHost
     double precision                                       :: massHost    , radiusHost, &
          &                                                    velocityHost
 
     basic                                  =>  node%basic()
-    hostBasic                              =>  host%basic()
-    massHost                               =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrastDefinition_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%darkMatterProfileDMO_,self%virialDensityContrast_)
+    basicHost                              =>  host%basic()
+    massHost                               =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%darkMatterProfileDMO_,self%virialDensityContrast_)
     benson2005AngularMomentumMagnitudeMean =  +self%velocityTangentialMagnitudeMean(node,host) &
          &                                    *radiusHost                                      &
          &                                    /(                                               & ! Account for reduced mass.
          &                                      +1.0d0                                         &
          &                                      +basic    %mass()                              &
-         &                                      /hostBasic%mass()                              &
+         &                                      /basicHost%mass()                              &
          &                                     )
     return
   end function benson2005AngularMomentumMagnitudeMean
@@ -348,15 +348,15 @@ contains
     implicit none
     class           (virialOrbitBenson2005), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node                                  , host
-    class           (nodeComponentBasic   ), pointer       :: hostBasic
+    class           (nodeComponentBasic   ), pointer       :: basicHost
     ! The root mean squared total velocity. This was by numerical integration over the velocity distribution fitting function.
     double precision                       , parameter     :: velocityTotalRootMeanSquared=1.25534d0
     double precision                                       :: massHost                              , radiusHost, &
          &                                                    velocityHost
     !$GLC attributes unused :: node
 
-    hostBasic                              =>  host%basic()
-    massHost                               =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrastDefinition_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%darkMatterProfileDMO_,self%virialDensityContrast_)
+    basicHost                              =>  host%basic()
+    massHost                               =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%darkMatterProfileDMO_,self%virialDensityContrast_)
     benson2005VelocityTotalRootMeanSquared =  +velocityTotalRootMeanSquared &
          &                                    *velocityHost
     return
@@ -372,19 +372,19 @@ contains
     implicit none
     class           (virialOrbitBenson2005), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node        , host
-    class           (nodeComponentBasic   ), pointer       :: basic       , hostBasic
+    class           (nodeComponentBasic   ), pointer       :: basic       , basicHost
     double precision                                       :: massHost    , radiusHost, &
          &                                                    velocityHost
 
     basic                =>  node%basic()
-    hostBasic            =>  host%basic()
-    massHost             =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrastDefinition_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%darkMatterProfileDMO_,self%virialDensityContrast_)
+    basicHost            =>  host%basic()
+    massHost             =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%darkMatterProfileDMO_,self%virialDensityContrast_)
     benson2005EnergyMean =  +0.5d0                                           &
          &                  *self%velocityTotalRootMeanSquared(node,host)**2 &
          &                  /(                                               & ! Account for reduced mass.
          &                    +1.0d0                                         &
          &                    +basic    %mass()                              &
-         &                    /hostBasic%mass()                              &
+         &                    /basicHost%mass()                              &
          &                   )                                               &
          &                  -gravitationalConstantGalacticus                 &
          &                  *massHost                                        &

@@ -238,7 +238,7 @@ contains
     class           (virialOrbitWetzel2010     ), intent(inout), target :: self
     type            (treeNode                  ), intent(inout)         :: host                                  , node
     logical                                     , intent(in   )         :: acceptUnboundOrbits
-    class           (nodeComponentBasic        ), pointer               :: hostBasic                             , basic
+    class           (nodeComponentBasic        ), pointer               :: basicHost                             , basic
     class           (virialDensityContrastClass), pointer               :: virialDensityContrastDefinition_
     double precision                            , parameter             :: circularityMaximum              =1.0d0, circularityMinimum    =0.0d0
     double precision                            , parameter             :: redshiftMaximum                 =5.0d0, expansionFactorMinimum=1.0d0/(1.0d0+redshiftMaximum)
@@ -255,7 +255,7 @@ contains
 
     ! Set masses and radius of the orbit.
     basic                => node%basic         ()
-    hostBasic            => host%basic         ()
+    basicHost            => host%basic         ()
     ! Find virial density contrast under Wetzel (2010) definition.
     !![
     <referenceAcquire target="virialDensityContrastDefinition_" source="self%densityContrastDefinition()"/>
@@ -263,7 +263,7 @@ contains
     ! Find mass, radius, and velocity in the host corresponding to the Wetzel (2010) virial density contrast definition.
     massHost     =Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
          &                                                                   host                                                                                                , &
-         &                                                                   self%virialDensityContrastDefinition_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()), &
+         &                                                                   self%virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()), &
          &                                                                   radiusHost                                                                                          , &
          &                                                                   velocityHost                                                                                        , &
          &                                            cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
@@ -331,7 +331,7 @@ contains
        if (wetzel2010Orbit%radiusApocenter() >= radiusHost .and. wetzel2010Orbit%radiusPericenter() <= radiusHost) then
           foundOrbit=.true.
           call wetzel2010Orbit%propagate(radiusHost  ,infalling=.true.)
-          call wetzel2010Orbit%massesSet(basic%mass(),hostBasic%mass())
+          call wetzel2010Orbit%massesSet(basic%mass(),basicHost%mass())
        end if
     end do
     return
@@ -414,15 +414,15 @@ contains
     implicit none
     class           (virialOrbitWetzel2010), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node        , host
-    class           (nodeComponentBasic   ), pointer       :: basic       , hostBasic
+    class           (nodeComponentBasic   ), pointer       :: basic       , basicHost
     double precision                                       :: massHost    , radiusHost, &
          &                                                    velocityHost
 
     basic                                  =>  node%basic()
-    hostBasic                              =>  host%basic()
+    basicHost                              =>  host%basic()
     massHost                               =   Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
          &                                                                                                host                                                                                                , &
-         &                                                                                                self%virialDensityContrastDefinition_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()), &
+         &                                                                                                self%virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()), &
          &                                                                                                radiusHost                                                                                          , &
          &                                                                                                velocityHost                                                                                        , &
          &                                                                         cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
@@ -435,7 +435,7 @@ contains
          &                                    /(                                               & ! Account for reduced mass.
          &                                      +1.0d0                                         &
          &                                      +basic    %mass()                              &
-         &                                      /hostBasic%mass()                              &
+         &                                      /basicHost%mass()                              &
          &                                     )
     return
   end function wetzel2010AngularMomentumMagnitudeMean
@@ -481,15 +481,15 @@ contains
     implicit none
     class           (virialOrbitWetzel2010), intent(inout) :: self
     type            (treeNode             ), intent(inout) :: node        , host
-    class           (nodeComponentBasic   ), pointer       :: basic       , hostBasic
+    class           (nodeComponentBasic   ), pointer       :: basic       , basicHost
     double precision                                       :: massHost    , radiusHost, &
          &                                                    velocityHost
 
     basic                =>  node%basic()
-    hostBasic            =>  host%basic()
+    basicHost            =>  host%basic()
     massHost             =   Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
          &                                                                              host                                                                                                , &
-         &                                                                              self%virialDensityContrastDefinition_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()), &
+         &                                                                              self%virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()), &
          &                                                                              radiusHost                                                                                          , &
          &                                                                              velocityHost                                                                                        , &
          &                                                       cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
@@ -502,7 +502,7 @@ contains
          &                  /(                                               & ! Account for reduced mass.
          &                    +1.0d0                                         &
          &                    +basic    %mass()                              &
-         &                    /hostBasic%mass()                              &
+         &                    /basicHost%mass()                              &
          &                   )                                               &
          &                  -gravitationalConstantGalacticus                 &
          &                  *massHost                                        &

@@ -94,9 +94,9 @@ program Test_Hearin2021_Stochastic_MAH
   treeEarly %initializedUntil          =  0.0d0
   treeEarly %event                     => null()
   treeEarly %firstTree                 => treeEarly
-  treeEarly %baseNode                  => treeNode                (                 )
-  treeEarly %baseNode        %hostTree => treeEarly
-  basicEarly                           => treeEarly%baseNode%basic(autoCreate=.true.)
+  treeEarly %nodeBase                  => treeNode                (                 )
+  treeEarly %nodeBase        %hostTree => treeEarly
+  basicEarly                           => treeEarly%nodeBase%basic(autoCreate=.true.)
   allocate(randomNumberGeneratorGSL :: treeEarly%randomNumberGenerator_)
   select type (randomNumberGenerator_ => treeEarly%randomNumberGenerator_)
   type is (randomNumberGeneratorGSL)
@@ -109,9 +109,9 @@ program Test_Hearin2021_Stochastic_MAH
   treeLate  %initializedUntil          =  0.0d0
   treeLate  %event                     => null()
   treeLate  %firstTree                 => treeLate
-  treeLate  %baseNode                  => treeNode                (                 )
-  treeLate  %baseNode        %hostTree => treeLate
-  basicLate                            => treeLate %baseNode%basic(autoCreate=.true.)
+  treeLate  %nodeBase                  => treeNode                (                 )
+  treeLate  %nodeBase        %hostTree => treeLate
+  basicLate                            => treeLate %nodeBase%basic(autoCreate=.true.)
   allocate(randomNumberGeneratorGSL :: treeLate %randomNumberGenerator_)
   select type (randomNumberGenerator_ => treeLate %randomNumberGenerator_)
   type is (randomNumberGeneratorGSL)
@@ -162,8 +162,8 @@ program Test_Hearin2021_Stochastic_MAH
   do i=1,countTimes
      read (referenceFile,*) timeLogarithmic,massEarlyTarget(i),massLateTarget(i)
      time                 =10.0d0**timeLogarithmic
-     massEarlyRecovered(i)=log10(darkMatterHaloMassAccretionHistoryEarlyForming_%mass(treeEarly%baseNode,time))
-     massLateRecovered (i)=log10(darkMatterHaloMassAccretionHistoryLateForming_ %mass(treeLate %baseNode,time))
+     massEarlyRecovered(i)=log10(darkMatterHaloMassAccretionHistoryEarlyForming_%mass(treeEarly%nodeBase,time))
+     massLateRecovered (i)=log10(darkMatterHaloMassAccretionHistoryLateForming_ %mass(treeLate %nodeBase,time))
   end do
   call Assert('mass accretion history (early-forming)',massEarlyTarget,massEarlyRecovered,relTol=1.0d-6)
   call Assert('mass accretion history (late-forming)' ,massLateTarget ,massLateRecovered ,relTol=1.0d-6)

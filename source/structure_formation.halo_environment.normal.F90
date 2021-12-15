@@ -272,13 +272,13 @@ contains
     <optionalArgument name="presentDay" defaultsTo=".false." />
     !!]
 
-    if (node%hostTree%baseNode%uniqueID() /= self%uniqueIDPrevious) then
-       self%uniqueIDPrevious=node%hostTree%baseNode%uniqueID()
+    if (node%hostTree%nodeBase%uniqueID() /= self%uniqueIDPrevious) then
+       self%uniqueIDPrevious=node%hostTree%nodeBase%uniqueID()
        if (node%hostTree%properties%exists(self%propertyName)) then
           self%overdensityPrevious=node%hostTree%properties%value(self%propertyName)
        else
           ! Choose an overdensity.
-          basic    => node%hostTree%baseNode        %basic       (                      )
+          basic    => node%hostTree%nodeBase        %basic       (                      )
           variance =  self%cosmologicalMassVariance_%rootVariance(basic%mass(),self%time)**2
           if (variance > self%variance) then
              ! The variance on the mass scale of the tree exceeds that of the environment. Therefore, the overdensity is

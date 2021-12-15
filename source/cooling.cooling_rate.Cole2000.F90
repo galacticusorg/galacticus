@@ -43,7 +43,7 @@
      Implementation of cooling rate class for the \cite{cole_hierarchical_2000} cooling rate calculation.
      !!}
      private
-     class(coolingInfallRadiusClass    ), pointer :: coolingInfallRadius_ => null()
+     class(coolingInfallRadiusClass    ), pointer :: coolingInfallRadius_     => null()
      class(hotHaloMassDistributionClass), pointer :: hotHaloMassDistribution_ => null()
    contains
      final     ::         cole2000Destructor

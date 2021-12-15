@@ -456,7 +456,7 @@ contains
     class           (nodeComponentSpin  )               , pointer :: spin
     double precision                     , parameter              :: angularMomentumTolerance=1.0d-2
     double precision                     , save                   :: fractionalErrorMaximum  =0.0d+0
-    double precision                                              :: diskMass                       , fractionalError, &
+    double precision                                              :: massDisk                       , fractionalError, &
          &                                                           specificAngularMomentum
     character       (len=20             )                         :: valueString
     type            (varying_string     ), save                   :: message
@@ -503,9 +503,9 @@ contains
           end if
           !$omp end critical (Standard_Disk_Post_Evolve_Check)
           ! Get the specific angular momentum of the disk material
-          diskMass= disk%massGas    () &
+          massDisk= disk%massGas    () &
                &   +disk%massStellar()
-          if (diskMass == 0.0d0) then
+          if (massDisk == 0.0d0) then
              specificAngularMomentum=0.0d0
              call disk%        massStellarSet(                  0.0d0)
              call disk%  abundancesStellarSet(         zeroAbundances)
@@ -519,7 +519,7 @@ contains
              call luminositiesStellar%reset()
              call disk%luminositiesStellarSet(luminositiesStellar)
           else
-             specificAngularMomentum=disk%angularMomentum()/diskMass
+             specificAngularMomentum=disk%angularMomentum()/massDisk
              if (specificAngularMomentum < 0.0d0) specificAngularMomentum=disk%radius()*disk%velocity()
           end if
           ! Reset the gas, abundances and angular momentum of the disk.
@@ -560,14 +560,14 @@ contains
           end if
           !$omp end critical (Standard_Disk_Post_Evolve_Check)
           ! Get the specific angular momentum of the disk material
-          diskMass= disk%massGas    () &
+          massDisk= disk%massGas    () &
                &   +disk%massStellar()
-          if (diskMass == 0.0d0) then
+          if (massDisk == 0.0d0) then
              specificAngularMomentum=0.0d0
              call disk%      massGasSet(         0.0d0)
              call disk%abundancesGasSet(zeroAbundances)
           else
-             specificAngularMomentum=disk%angularMomentum()/diskMass
+             specificAngularMomentum=disk%angularMomentum()/massDisk
              if (specificAngularMomentum < 0.0d0) specificAngularMomentum=disk%radius()*disk%velocity()
           end if
           ! Reset the stellar, abundances and angular momentum of the disk.
@@ -1078,7 +1078,7 @@ contains
     procedure       (Node_Component_Disk_Standard_Radius_Solve    ), intent(  out), pointer :: Radius_Get                     , Velocity_Get
     procedure       (Node_Component_Disk_Standard_Radius_Solve_Set), intent(  out), pointer :: Radius_Set                     , Velocity_Set
     class           (nodeComponentDisk                            )               , pointer :: disk
-    double precision                                                                        :: angularMomentum                , diskMass    , &
+    double precision                                                                        :: angularMomentum                , massDisk    , &
          &                                                                                     specificAngularMomentumMean
 
     ! Determine if node has an active disk component supported by this module.
@@ -1093,10 +1093,10 @@ contains
           angularMomentum=disk%angularMomentum()
           if (angularMomentum >= 0.0d0) then
              ! Compute the specific angular momentum at the scale radius, assuming a flat rotation curve.
-             diskMass= disk%massGas    () &
+             massDisk= disk%massGas    () &
                   &   +disk%massStellar()
-             if (diskMass > 0.0d0) then
-                specificAngularMomentumMean=angularMomentum/diskMass
+             if (massDisk > 0.0d0) then
+                specificAngularMomentumMean=angularMomentum/massDisk
              else
                 specificAngularMomentumMean=0.0d0
              end if
@@ -1112,7 +1112,7 @@ contains
                   &                                    specificAngularMomentum**2                      &
                   &                                   -diskRadiusSolverFlatVsSphericalFactor           &
                   &                                   *gravitationalConstantGalacticus                 &
-                  &                                   *diskMass                                        &
+                  &                                   *massDisk                                        &
                   &                                   *Node_Component_Disk_Standard_Radius_Solve(node) &
                   &                                  )                                                 &
                   )

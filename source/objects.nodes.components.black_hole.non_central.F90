@@ -330,9 +330,9 @@ contains
     type            (treeNode              ), intent(inout), target  :: node
     class           (nodeComponentBlackHole)               , pointer :: blackHole1      , blackHole2        , &
          &                                                              blackHolePrimary, blackHoleSecondary
-    double precision                                                 :: blackHoleMassNew, blackHoleSpinNew  , &
+    double precision                                                 :: massBlackHoleNew, spinBlackHoleNew  , &
          &                                                              massBlackHole1  , massBlackHole2    , &
-         &                                                              recoilVelocity  , spinBlackHole1    , &
+         &                                                              velocityRecoil  , spinBlackHole1    , &
          &                                                              spinBlackHole2
 
     ! Get the black holes.
@@ -343,8 +343,8 @@ contains
          &                            blackHole1%mass(), &
          &                            blackHole2%spin(), &
          &                            blackHole1%spin(), &
-         &                            blackHoleMassNew , &
-         &                            blackHoleSpinNew   &
+         &                            massBlackHoleNew , &
+         &                            spinBlackHoleNew   &
          &                           )
     ! Check which black hole is more massive in order to compute an appropriate recoil velocity.
     if (blackHole1%mass() >= blackHole2%mass()) then
@@ -359,15 +359,15 @@ contains
     spinBlackHole1=blackHolePrimary  %spin()
     spinBlackHole2=blackHoleSecondary%spin()
     ! Calculate the recoil velocity of the binary black hole and check wether it escapes the galaxy
-    recoilVelocity=blackHoleBinaryRecoil_%velocity(blackHolePrimary,blackHoleSecondary)
+    velocityRecoil=blackHoleBinaryRecoil_%velocity(blackHolePrimary,blackHoleSecondary)
     ! Compare the recoil velocity to the potential and determine wether the binary is ejected or stays in the galaxy.
-    if (Node_Component_Black_Hole_Noncentral_Recoil_Escapes(node,recoilVelocity,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
-       blackHoleMassNew=blackHole1%massSeed()
-       blackHoleSpinNew=blackHole1%spinSeed()
+    if (Node_Component_Black_Hole_Noncentral_Recoil_Escapes(node,velocityRecoil,radius=0.0d0,ignoreCentralBlackHole=.true.)) then
+       massBlackHoleNew=blackHole1%massSeed()
+       spinBlackHoleNew=blackHole1%spinSeed()
     end if
     ! Set the mass and spin of the central black hole.
-    call blackHole1%massSet(blackHoleMassNew)
-    call blackHole1%spinSet(blackHoleSpinNew)
+    call blackHole1%massSet(massBlackHoleNew)
+    call blackHole1%spinSet(spinBlackHoleNew)
     ! Remove the merging black hole from the list.
     call node%blackHoleRemove(mergingInstance)
     return
@@ -478,7 +478,7 @@ contains
     return
   end subroutine Node_Component_Black_Hole_Noncentral_Triple_Interaction
 
-  logical function Node_Component_Black_Hole_Noncentral_Recoil_Escapes(node,recoilVelocity,radius,ignoreCentralBlackHole)
+  logical function Node_Component_Black_Hole_Noncentral_Recoil_Escapes(node,velocityRecoil,radius,ignoreCentralBlackHole)
     !!{
     Return true if the given recoil velocity is sufficient to eject a black hole from the halo.
     !!}
@@ -486,7 +486,7 @@ contains
     use :: Galacticus_Nodes          , only : treeNode
     implicit none
     type            (treeNode), intent(inout) :: node
-    double precision          , intent(in   ) :: recoilVelocity        , radius
+    double precision          , intent(in   ) :: velocityRecoil        , radius
     logical                   , intent(in   ) :: ignoreCentralBlackHole
     double precision                          :: potentialCentral      , potentialCentralSelf, &
          &                                       potentialHalo         , potentialHaloSelf
@@ -505,7 +505,7 @@ contains
     end if
     ! Evaluate the escape condition.
     Node_Component_Black_Hole_Noncentral_Recoil_Escapes= &
-         &  +0.5d0*recoilVelocity      **2               &
+         &  +0.5d0*velocityRecoil      **2               &
          &  +      potentialCentral                      &
          &  -      potentialCentralSelf                  &
          & >                                             &

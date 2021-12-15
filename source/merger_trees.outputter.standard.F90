@@ -259,7 +259,7 @@ contains
     currentTree => tree
     do while (associated(currentTree))
        ! Get the base node of the tree.
-       node => currentTree%baseNode
+       node => currentTree%nodeBase
        ! Skip empty trees.
        if (associated(node)) then
           ! Initialize output buffers.

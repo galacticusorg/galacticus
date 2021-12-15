@@ -137,7 +137,7 @@ contains
     treeCurrent => tree
     do while (associated(treeCurrent))
        ! Dump the tree.
-       basicBase => treeCurrent%baseNode%basic()
+       basicBase => treeCurrent%nodeBase%basic()
        if     (                                                                   &
             &   basicBase%mass() >= self%massMinimum                              &
             &  .and.                                                              &

@@ -66,7 +66,7 @@ contains
     implicit none
     class           (mergerTreeOperatorDeforest), intent(inout), target :: self
     type            (mergerTree                ), intent(inout), target :: tree
-    type            (treeNode                  ), pointer               :: baseNode       , nodeNext
+    type            (treeNode                  ), pointer               :: nodeBase       , nodeNext
     type            (mergerTree                ), pointer               :: currentTree
     class           (nodeComponentBasic        ), pointer               :: basic
     double precision                                                    :: massRootMaximum
@@ -80,7 +80,7 @@ contains
     massRootMaximumIndex =  -1
     do while (associated(currentTree))
        treeIndex=treeIndex+1
-       basic => currentTree%baseNode%basic()
+       basic => currentTree%nodeBase%basic()
        if (basic%mass() > massRootMaximum) then
           massRootMaximum     =basic    %mass()
           massRootMaximumIndex=treeIndex
@@ -95,11 +95,11 @@ contains
        treeIndex=treeIndex+1
        if (treeIndex /= massRootMaximumIndex) then
           ! Get root node of the tree.
-          baseNode => currentTree%baseNode%firstChild
-          do while (associated(baseNode))
-             nodeNext => baseNode%sibling
-             call baseNode%destroyBranch()
-             baseNode => nodeNext
+          nodeBase => currentTree%nodeBase%firstChild
+          do while (associated(nodeBase))
+             nodeNext => nodeBase%sibling
+             call nodeBase%destroyBranch()
+             nodeBase => nodeNext
           end do
        end if
        ! Move to the next tree.

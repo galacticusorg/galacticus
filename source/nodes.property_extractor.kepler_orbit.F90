@@ -64,7 +64,7 @@ contains
     use :: Kepler_Orbits                   , only : keplerOrbitMasses        , keplerOrbitSpecificReducedMass, keplerOrbitRadius          , keplerOrbitTheta            , &
          &                                          keplerOrbitPhi           , keplerOrbitEpsilon            , keplerOrbitRadiusPericenter, keplerOrbitRadiusApocenter  , &
          &                                          keplerOrbitVelocityRadial, keplerOrbitVelocityTangential , keplerOrbitEnergy          , keplerOrbitAngularMomentum  , &
-         &                                          keplerOrbitEccentricity  , keplerOrbitSemiMajorAxis      , keplerOrbitHostMass        , enumerationKeplerOrbitEncode
+         &                                          keplerOrbitEccentricity  , keplerOrbitSemiMajorAxis      , keplerOrbitMassHost        , enumerationKeplerOrbitEncode
     implicit none
     class    (nodePropertyExtractorKeplerOrbit), intent(inout)               :: self
     type     (varying_string                  ), intent(in   ), dimension(:) :: properties
@@ -84,7 +84,7 @@ contains
        select case (self%propertyIDs(i))
        case (keplerOrbitMasses             )
           call Galacticus_Error_Report('"masses" property is unsupported'//{introspection:location})
-       case (keplerOrbitHostMass           )
+       case (keplerOrbitMassHost           )
           self%names_       (i)=prefix//'HostMass'
           self%descriptions_(i)='The mass of the host system [M☉].'
           self%unitsInSI_   (i)=massSolar
@@ -164,7 +164,7 @@ contains
     !!{
     Extract properties from a {\normalfont \ttfamily keplerOrbit} object.
     !!}
-    use :: Kepler_Orbits, only : keplerOrbitHostMass      , keplerOrbitSpecificReducedMass, keplerOrbitRadius          , keplerOrbitTheta          , &
+    use :: Kepler_Orbits, only : keplerOrbitMassHost      , keplerOrbitSpecificReducedMass, keplerOrbitRadius          , keplerOrbitTheta          , &
          &                       keplerOrbitPhi           , keplerOrbitEpsilon            , keplerOrbitRadiusPericenter, keplerOrbitRadiusApocenter, &
          &                       keplerOrbitVelocityRadial, keplerOrbitVelocityTangential , keplerOrbitEnergy          , keplerOrbitAngularMomentum, &
          &                       keplerOrbitEccentricity  , keplerOrbitSemiMajorAxis
@@ -179,8 +179,8 @@ contains
        ! Orbit is defined - extract required properties.
        do i=1,self%count_
           select case (self%propertyIDs(i))
-          case (keplerOrbitHostMass           )
-             keplerOrbitExtractFromOrbit(i)=orbit%hostMass           ()
+          case (keplerOrbitMassHost           )
+             keplerOrbitExtractFromOrbit(i)=orbit%massHost           ()
           case (keplerOrbitSpecificReducedMass)
              keplerOrbitExtractFromOrbit(i)=orbit%specificReducedMass()
           case (keplerOrbitRadius             )

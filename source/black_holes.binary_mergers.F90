@@ -40,8 +40,8 @@ module Black_Hole_Binary_Mergers
     <description>The the properties of the black hole resulting from a binary merger.</description>
     <type>void</type>
     <pass>yes</pass>
-    <argument>double precision, intent(in   ) :: blackHoleMassA    , blackHoleMassB, blackHoleSpinA    , blackHoleSpinB</argument>
-    <argument>double precision, intent(  out) :: blackHoleMassFinal                , blackHoleSpinFinal</argument>
+    <argument>double precision, intent(in   ) :: massBlackHoleA    , massBlackHoleB, spinBlackHoleA    , spinBlackHoleB</argument>
+    <argument>double precision, intent(  out) :: massBlackHoleFinal                , spinBlackHoleFinal</argument>
    </method>
   </functionClass>
   !!]

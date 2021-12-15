@@ -133,7 +133,7 @@ contains
     treeDidEvolve =  .true.
     currentTree   => tree
     do while (associated(currentTree))
-       if (associated(currentTree%baseNode)) then
+       if (associated(currentTree%nodeBase)) then
           !$ if (present(initializationLock)) call OMP_Set_Lock  (initializationLock)
           call self%mergerTreeInitializor_%initialize(currentTree,timeEnd)
           !$ if (present(initializationLock)) call OMP_Unset_Lock(initializationLock)

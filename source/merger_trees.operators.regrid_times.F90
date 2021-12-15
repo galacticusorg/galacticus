@@ -363,7 +363,7 @@ contains
        ! Dump the intermediate tree if required.
        if (self%dumpTrees) then
           allocate(highlightNodes(nodeIndex-firstNewNode+2))
-          highlightNodes(1)=currentTree%baseNode%index()
+          highlightNodes(1)=currentTree%nodeBase%index()
           do nodeIndex=1,nodeIndex-firstNewNode+1
              highlightNodes(nodeIndex+1)=firstNewNode+nodeIndex-1
           end do

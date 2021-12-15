@@ -95,11 +95,11 @@ contains
     self%nodePrevious => self%node
     ! If the node is currently pointing to the base node of the tree, then attempt to move to the next tree (if we are spanning
     ! forests) - if this fails the tree walk is complete.
-    if (associated(self%node,self%tree%baseNode)) then
+    if (associated(self%node,self%tree%nodeBase)) then
        if (self%spanForest) then
           do while (associated(self%tree))
              self%tree => self%tree%nextTree
-             if (associated(self%tree).and.associated(self%tree%baseNode)) exit
+             if (associated(self%tree).and.associated(self%tree%nodeBase)) exit
           end do
        else
           self%tree => null()
@@ -117,8 +117,8 @@ contains
     end if
     ! If the node is currently null, set to the base node of the tree.
     if (.not.associated(self%node)) then
-       if (associated(self%tree%baseNode)) then
-          self%node => self%tree%baseNode
+       if (associated(self%tree%nodeBase)) then
+          self%node => self%tree%nodeBase
        else
           self%nodesRemain_ =  .false.
           node              => null()

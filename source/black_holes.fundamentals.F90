@@ -75,18 +75,18 @@ module Black_Hole_Fundamentals
 
 contains
 
-  double precision function Black_Hole_ISCO_Radius_Spin(blackHoleSpin,orbit)
+  double precision function Black_Hole_ISCO_Radius_Spin(spinBlackHole,orbit)
     !!{
     Returns the radius (in gravitational units and for a prograde or retorgrade orbit) of the innermost stable
-    circular orbit for a black hole with spin {\normalfont \ttfamily blackHoleSpin}.
+    circular orbit for a black hole with spin {\normalfont \ttfamily spinBlackHole}.
     !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
-    double precision      , intent(in   )           :: blackHoleSpin
+    double precision      , intent(in   )           :: spinBlackHole
     integer               , intent(in   ), optional :: orbit
     integer         , save                          :: orbitPrevious
-    double precision, save                          :: blackHoleSpinPrevious=2.0d0, radiusISCOPrevious
-    !$omp threadprivate(orbitPrevious,blackHoleSpinPrevious,radiusISCOPrevious)
+    double precision, save                          :: spinBlackHolePrevious=2.0d0, radiusISCOPrevious
+    !$omp threadprivate(orbitPrevious,spinBlackHolePrevious,radiusISCOPrevious)
     integer                                         :: orbitActual
     double precision                                :: A1Factor                   , A2Factor
 
@@ -98,13 +98,13 @@ contains
     end if
 
     ! Check if we're being called with the same spin and orbit as the last time.
-    if (orbitActual == orbitPrevious .and. blackHoleSpin == blackHoleSpinPrevious) then
+    if (orbitActual == orbitPrevious .and. spinBlackHole == spinBlackHolePrevious) then
        ! We are, so just return our previously computed radius.
        Black_Hole_ISCO_Radius_Spin=radiusISCOPrevious
     else
        ! We are not, so compute the radius of the innermost stable circular orbit in units of the gravitational radius.
-       A1Factor=A1(blackHoleSpin)
-       A2Factor=A2(blackHoleSpin)
+       A1Factor=A1(spinBlackHole)
+       A2Factor=A2(spinBlackHole)
        select case (orbitActual)
        case (orbitPrograde)
           Black_Hole_ISCO_Radius_Spin=3.0d0+A2Factor-sqrt((3.0d0-A1Factor)*(3.0d0+A1Factor+2.0d0*A2Factor))
@@ -115,7 +115,7 @@ contains
           call Galacticus_Error_Report('unrecognized orbit parameter'//{introspection:location})
        end select
        orbitPrevious        =orbitActual
-       blackHoleSpinPrevious=blackHoleSpin
+       spinBlackHolePrevious=spinBlackHole
        radiusISCOPrevious   =Black_Hole_ISCO_Radius_Spin
     end if
     return
@@ -148,7 +148,7 @@ contains
     class           (nodeComponentBlackHole), intent(inout)           :: blackHole
     integer                                 , intent(in   ), optional :: orbit        , units
     integer                                                           :: orbitActual  , unitsActual
-    double precision                                                  :: blackHoleSpin
+    double precision                                                  :: spinBlackHole
 
     ! Determine what system of units to use.
     if (present(units)) then
@@ -165,10 +165,10 @@ contains
     end if
 
     ! Get the black hole spin.
-    blackHoleSpin=blackHole%spin()
+    spinBlackHole=blackHole%spin()
 
     ! Compute the radius of the innermost stable circular orbit in units of the gravitational radius.
-    Black_Hole_ISCO_Radius_Node=Black_Hole_ISCO_Radius_Spin(blackHoleSpin,orbitActual)
+    Black_Hole_ISCO_Radius_Node=Black_Hole_ISCO_Radius_Spin(spinBlackHole,orbitActual)
 
     ! Convert to physical units if necessary.
     if (unitsActual == unitsPhysical) Black_Hole_ISCO_Radius_Node=Black_Hole_ISCO_Radius_Node*Black_Hole_Gravitational_Radius(blackHole)
@@ -186,7 +186,7 @@ contains
     class           (nodeComponentBlackHole), intent(inout)           :: blackHole
     integer                                 , intent(in   ), optional :: orbit        , units
     integer                                                           :: unitsActual
-    double precision                                                  :: blackHoleSpin
+    double precision                                                  :: spinBlackHole
 
     ! Determine what system of units to use.
     if (present(units)) then
@@ -196,10 +196,10 @@ contains
     end if
 
     ! Get the black hole spin.
-    blackHoleSpin=blackHole%spin()
+    spinBlackHole=blackHole%spin()
 
     ! Get the dimensionless ISCO energy.
-    Black_Hole_ISCO_Specific_Energy_Node=Black_Hole_ISCO_Specific_Energy_Spin(blackHoleSpin,orbit)
+    Black_Hole_ISCO_Specific_Energy_Node=Black_Hole_ISCO_Specific_Energy_Spin(spinBlackHole,orbit)
 
     ! Convert to physical units if necessary.
     if (unitsActual == unitsPhysical) Black_Hole_ISCO_Specific_Energy_Node=Black_Hole_ISCO_Specific_Energy_Node&
@@ -207,13 +207,13 @@ contains
     return
   end function Black_Hole_ISCO_Specific_Energy_Node
 
-  double precision function Black_Hole_ISCO_Specific_Energy_Spin(blackHoleSpin,orbit)
+  double precision function Black_Hole_ISCO_Specific_Energy_Spin(spinBlackHole,orbit)
     !!{
     Returns the specific energy (in physical or gravitational units and for a prograde or retorgrade orbit) of the innermost
-    stable circular orbit for a black hole of given {\normalfont \ttfamily blackHoleSpin}.
+    stable circular orbit for a black hole of given {\normalfont \ttfamily spinBlackHole}.
     !!}
     implicit none
-    double precision           , intent(inout)           :: blackHoleSpin
+    double precision           , intent(inout)           :: spinBlackHole
     integer                    , intent(in   ), optional :: orbit
     ! Maximum spin above which we use series solution.
     double precision, parameter                          :: maximumSpin        =0.99999d0
@@ -222,15 +222,15 @@ contains
     double precision                                     :: blackHoleIscoRadius
 
     ! Get black hole ISCO radius.
-    blackHoleIscoRadius=Black_Hole_ISCO_Radius(blackHoleSpin,orbit)
+    blackHoleIscoRadius=Black_Hole_ISCO_Radius(spinBlackHole,orbit)
 
     ! Compute the specific energy in gravitational units.
-    if (blackHoleSpin >= maximumSpin) then
-       Black_Hole_ISCO_Specific_Energy_Spin=coefficientZeroth+coefficientFirst*(1.0d0-blackHoleSpin)**(1.0d0/3.0d0)
+    if (spinBlackHole >= maximumSpin) then
+       Black_Hole_ISCO_Specific_Energy_Spin=coefficientZeroth+coefficientFirst*(1.0d0-spinBlackHole)**(1.0d0/3.0d0)
     else
-       Black_Hole_ISCO_Specific_Energy_Spin=(blackHoleIscoRadius**2-2.0d0*blackHoleIscoRadius+blackHoleSpin &
+       Black_Hole_ISCO_Specific_Energy_Spin=(blackHoleIscoRadius**2-2.0d0*blackHoleIscoRadius+spinBlackHole &
             &*sqrt(blackHoleIscoRadius))/blackHoleIscoRadius/sqrt(blackHoleIscoRadius**2-3.0d0*blackHoleIscoRadius+2.0d0 &
-            &*blackHoleSpin*sqrt(blackHoleIscoRadius))
+            &*spinBlackHole*sqrt(blackHoleIscoRadius))
     end if
 
     return
@@ -251,7 +251,7 @@ contains
     ! Coefficients in the expansion of ISCO energy with spin close to maximal spin.
     double precision                        , parameter                          :: coefficientFirst   =1.832972849d0, coefficientZeroth=1.154700538d0
     integer                                                                      :: orbitActual                      , unitsActual
-    double precision                                                             :: blackHoleIscoRadius              , blackHoleSpin
+    double precision                                                             :: blackHoleIscoRadius              , spinBlackHole
 
     ! Determine what system of units to use.
     if (present(units)) then
@@ -268,16 +268,16 @@ contains
     end if
 
     ! Get black hole spin and ISCO radius.
-    blackHoleSpin      =blackHole%spin()
+    spinBlackHole      =blackHole%spin()
     blackHoleIscoRadius=Black_Hole_ISCO_Radius(blackHole,units=unitsGravitational,orbit=orbitActual)
 
     ! Compute the specific angular momentum in gravitational units.
-    if (blackHoleSpin > maximumSpin) then
-       Black_Hole_ISCO_Specific_Angular_Momentum=coefficientZeroth+coefficientFirst*(1.0d0-blackHoleSpin)**(1.0d0/3.0d0)
+    if (spinBlackHole > maximumSpin) then
+       Black_Hole_ISCO_Specific_Angular_Momentum=coefficientZeroth+coefficientFirst*(1.0d0-spinBlackHole)**(1.0d0/3.0d0)
     else
-       Black_Hole_ISCO_Specific_Angular_Momentum=sqrt(blackHoleIscoRadius)*(blackHoleIscoRadius**2-2.0d0*blackHoleSpin &
-            &*sqrt(blackHoleIscoRadius)+blackHoleSpin**2)/blackHoleIscoRadius/sqrt(blackHoleIscoRadius**2-3.0d0 &
-            &*blackHoleIscoRadius+2.0d0*blackHoleSpin*sqrt(blackHoleIscoRadius))
+       Black_Hole_ISCO_Specific_Angular_Momentum=sqrt(blackHoleIscoRadius)*(blackHoleIscoRadius**2-2.0d0*spinBlackHole &
+            &*sqrt(blackHoleIscoRadius)+spinBlackHole**2)/blackHoleIscoRadius/sqrt(blackHoleIscoRadius**2-3.0d0 &
+            &*blackHoleIscoRadius+2.0d0*spinBlackHole*sqrt(blackHoleIscoRadius))
     end if
 
     ! Convert to physical units if necessary.
@@ -312,7 +312,7 @@ contains
     double precision                        , intent(in   )           :: radius
     integer                                 , intent(in   ), optional :: units
     integer                                                           :: unitsActual
-    double precision                                                  :: blackHoleSpin, radiusDimensionless
+    double precision                                                  :: spinBlackHole, radiusDimensionless
 
     ! Determine what system of units to use.
     if (present(units)) then
@@ -333,20 +333,20 @@ contains
     end select
 
     ! Get the black hole spin.
-    blackHoleSpin=blackHole%spin()
+    spinBlackHole=blackHole%spin()
 
-    Black_Hole_Frame_Dragging_Frequency_Node=Black_Hole_Frame_Dragging_Frequency_Spin(blackHoleSpin,radiusDimensionless)
+    Black_Hole_Frame_Dragging_Frequency_Node=Black_Hole_Frame_Dragging_Frequency_Spin(spinBlackHole,radiusDimensionless)
     return
   end function Black_Hole_Frame_Dragging_Frequency_Node
 
-  double precision function Black_Hole_Frame_Dragging_Frequency_Spin(blackHoleSpin,radius)
+  double precision function Black_Hole_Frame_Dragging_Frequency_Spin(spinBlackHole,radius)
     !!{
     Returns the frame-dragging angular velocity in the Kerr metric.
     !!}
     implicit none
-    double precision, intent(in   ) :: blackHoleSpin, radius
+    double precision, intent(in   ) :: spinBlackHole, radius
 
-    Black_Hole_Frame_Dragging_Frequency_Spin=2.0d0*blackHoleSpin/Black_Hole_Metric_A_Factor_Spin(blackHoleSpin,radius)/radius**3
+    Black_Hole_Frame_Dragging_Frequency_Spin=2.0d0*spinBlackHole/Black_Hole_Metric_A_Factor_Spin(spinBlackHole,radius)/radius**3
     return
   end function Black_Hole_Frame_Dragging_Frequency_Spin
 
@@ -361,7 +361,7 @@ contains
     double precision                        , intent(in   )           :: radius
     integer                                 , intent(in   ), optional :: units
     integer                                                           :: unitsActual
-    double precision                                                  :: blackHoleSpin, radiusDimensionless
+    double precision                                                  :: spinBlackHole, radiusDimensionless
 
     ! Determine what system of units to use.
     if (present(units)) then
@@ -382,20 +382,20 @@ contains
     end select
 
     ! Get the black hole spin.
-    blackHoleSpin=blackHole%spin()
+    spinBlackHole=blackHole%spin()
 
-    Black_Hole_Metric_A_Factor_Node=Black_Hole_Metric_A_Factor_Spin(blackHoleSpin,radiusDimensionless)
+    Black_Hole_Metric_A_Factor_Node=Black_Hole_Metric_A_Factor_Spin(spinBlackHole,radiusDimensionless)
     return
   end function Black_Hole_Metric_A_Factor_Node
 
-  double precision function Black_Hole_Metric_A_Factor_Spin(blackHoleSpin,radius)
+  double precision function Black_Hole_Metric_A_Factor_Spin(spinBlackHole,radius)
     !!{
-    Returns the $\mathcal{A}$ factor appearing in the Kerr metric for spin {\normalfont \ttfamily blackHoleSpin}.
+    Returns the $\mathcal{A}$ factor appearing in the Kerr metric for spin {\normalfont \ttfamily spinBlackHole}.
     !!}
     implicit none
-    double precision, intent(in   ) :: blackHoleSpin, radius
+    double precision, intent(in   ) :: spinBlackHole, radius
 
-    Black_Hole_Metric_A_Factor_Spin=1.0d0+blackHoleSpin/radius**2+2.0d0*blackHoleSpin**2/radius**3
+    Black_Hole_Metric_A_Factor_Spin=1.0d0+spinBlackHole/radius**2+2.0d0*spinBlackHole**2/radius**3
     return
   end function Black_Hole_Metric_A_Factor_Spin
 
@@ -410,7 +410,7 @@ contains
     double precision                        , intent(in   )           :: radius
     integer                                 , intent(in   ), optional :: units
     integer                                                           :: unitsActual
-    double precision                                                  :: blackHoleSpin, radiusDimensionless
+    double precision                                                  :: spinBlackHole, radiusDimensionless
 
     ! Determine what system of units to use.
     if (present(units)) then
@@ -431,20 +431,20 @@ contains
     end select
 
     ! Get the black hole spin.
-    blackHoleSpin=blackHole%spin()
+    spinBlackHole=blackHole%spin()
 
-    Black_Hole_Metric_D_Factor_Node=Black_Hole_Metric_D_Factor_Spin(blackHoleSpin,radiusDimensionless)
+    Black_Hole_Metric_D_Factor_Node=Black_Hole_Metric_D_Factor_Spin(spinBlackHole,radiusDimensionless)
     return
   end function Black_Hole_Metric_D_Factor_Node
 
-  double precision function Black_Hole_Metric_D_Factor_Spin(blackHoleSpin,radius)
+  double precision function Black_Hole_Metric_D_Factor_Spin(spinBlackHole,radius)
     !!{
-    Returns the $\mathcal{D}$ factor appearing in the Kerr metric for spin {\normalfont \ttfamily blackHoleSpin}.
+    Returns the $\mathcal{D}$ factor appearing in the Kerr metric for spin {\normalfont \ttfamily spinBlackHole}.
     !!}
     implicit none
-    double precision, intent(in   ) :: blackHoleSpin, radius
+    double precision, intent(in   ) :: spinBlackHole, radius
 
-    Black_Hole_Metric_D_Factor_Spin=1.0d0-2.0d0/radius+(blackHoleSpin/radius)**2
+    Black_Hole_Metric_D_Factor_Spin=1.0d0-2.0d0/radius+(spinBlackHole/radius)**2
     return
   end function Black_Hole_Metric_D_Factor_Spin
 
@@ -458,7 +458,7 @@ contains
     implicit none
     class           (nodeComponentBlackHole), intent(inout), pointer  :: blackHole
     integer                                 , intent(in   ), optional :: units
-    double precision                                                  :: blackHoleSpin, radiusDimensionless
+    double precision                                                  :: spinBlackHole, radiusDimensionless
     integer                                                           :: unitsActual
 
     ! Determine what system of units to use.
@@ -469,9 +469,9 @@ contains
     end if
 
     ! Get the black hole spin.
-    blackHoleSpin=blackHole%spin()
+    spinBlackHole=blackHole%spin()
 
-    radiusDimensionless=Black_Hole_Horizon_Radius_Spin(blackHoleSpin)
+    radiusDimensionless=Black_Hole_Horizon_Radius_Spin(spinBlackHole)
     select case (unitsActual)
     case (unitsGravitational)
        Black_Hole_Horizon_Radius_Node=radiusDimensionless
@@ -484,15 +484,15 @@ contains
     return
   end function Black_Hole_Horizon_Radius_Node
 
-  double precision function Black_Hole_Horizon_Radius_Spin(blackHoleSpin)
+  double precision function Black_Hole_Horizon_Radius_Spin(spinBlackHole)
     !!{
     Return the radius of the horizon for a Kerr metric with dimensionless angular momentum {\normalfont \ttfamily j}.
     The radius is in units of the gravitational radius.
     !!}
     implicit none
-    double precision, intent(in   ) :: blackHoleSpin
+    double precision, intent(in   ) :: spinBlackHole
 
-    Black_Hole_Horizon_Radius_Spin=1.0d0+sqrt(1.0d0-blackHoleSpin**2)
+    Black_Hole_Horizon_Radius_Spin=1.0d0+sqrt(1.0d0-spinBlackHole**2)
     return
   end function Black_Hole_Horizon_Radius_Spin
 
@@ -506,7 +506,7 @@ contains
     class           (nodeComponentBlackHole), intent(inout)           :: blackHole
     integer                                 , intent(in   ), optional :: units
     double precision                        , intent(in   ), optional :: theta
-    double precision                                                  :: blackHoleSpin, radiusDimensionless
+    double precision                                                  :: spinBlackHole, radiusDimensionless
     integer                                                           :: unitsActual
 
     ! Determine what system of units to use.
@@ -517,10 +517,10 @@ contains
     end if
 
     ! Get the black hole spin.
-    blackHoleSpin=blackHole%spin()
+    spinBlackHole=blackHole%spin()
 
     ! Get the dimensionless static radius.
-    radiusDimensionless=Black_Hole_Static_Radius_Spin(blackHoleSpin,theta)
+    radiusDimensionless=Black_Hole_Static_Radius_Spin(spinBlackHole,theta)
 
     ! Convert to the appropriate units.
     select case (unitsActual)
@@ -535,13 +535,13 @@ contains
     return
   end function Black_Hole_Static_Radius_Node
 
-  double precision function Black_Hole_Static_Radius_Spin(blackHoleSpin,theta)
+  double precision function Black_Hole_Static_Radius_Spin(spinBlackHole,theta)
     !!{
-    Return the radius of the static limit for a Kerr metric for a black hole of given {\normalfont \ttfamily blackHoleSpin} and angle {\normalfont \ttfamily theta}.
+    Return the radius of the static limit for a Kerr metric for a black hole of given {\normalfont \ttfamily spinBlackHole} and angle {\normalfont \ttfamily theta}.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    double precision, intent(in   )           :: blackHoleSpin
+    double precision, intent(in   )           :: spinBlackHole
     double precision, intent(in   ), optional :: theta
     double precision                          :: thetaActual
 
@@ -553,29 +553,29 @@ contains
        thetaActual=Pi/2.0d0
     end if
 
-    Black_Hole_Static_Radius_Spin=1.0d0+sqrt(1.0d0-(blackHoleSpin*cos(thetaActual))**2)
+    Black_Hole_Static_Radius_Spin=1.0d0+sqrt(1.0d0-(spinBlackHole*cos(thetaActual))**2)
     return
   end function Black_Hole_Static_Radius_Spin
 
-  double precision function A1(blackHoleSpin)
+  double precision function A1(spinBlackHole)
     !!{
-    Return the function $A_1(j)$ that appears in the Kerr metric with spin {\normalfont \ttfamily blackHoleSpin}.
+    Return the function $A_1(j)$ that appears in the Kerr metric with spin {\normalfont \ttfamily spinBlackHole}.
     !!}
     implicit none
-    double precision, intent(in   ) :: blackHoleSpin
+    double precision, intent(in   ) :: spinBlackHole
 
-    A1=1.0d0+((1.0d0-blackHoleSpin**2)**(1.0d0/3.0d0))*((1.0d0+blackHoleSpin)**(1.0d0/3.0d0)+(1.0d0-blackHoleSpin)**(1.0d0/3.0d0))
+    A1=1.0d0+((1.0d0-spinBlackHole**2)**(1.0d0/3.0d0))*((1.0d0+spinBlackHole)**(1.0d0/3.0d0)+(1.0d0-spinBlackHole)**(1.0d0/3.0d0))
     return
   end function A1
 
-  double precision function A2(blackHoleSpin)
+  double precision function A2(spinBlackHole)
     !!{
-    Return the function $A_2(j)$ that appears in the Kerr metric with spin {\normalfont \ttfamily blackHoleSpin}.
+    Return the function $A_2(j)$ that appears in the Kerr metric with spin {\normalfont \ttfamily spinBlackHole}.
     !!}
     implicit none
-    double precision, intent(in   ) :: blackHoleSpin
+    double precision, intent(in   ) :: spinBlackHole
 
-    A2=sqrt(3.0d0*blackHoleSpin**2+A1(blackHoleSpin)**2)
+    A2=sqrt(3.0d0*spinBlackHole**2+A1(spinBlackHole)**2)
     return
   end function A2
 
@@ -586,17 +586,17 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentBlackHole
     implicit none
     class           (nodeComponentBlackHole), intent(inout) :: blackHole
-    double precision                                        :: blackHoleSpin
+    double precision                                        :: spinBlackHole
 
     ! Get the black hole spin.
-    blackHoleSpin=blackHole%spin()
+    spinBlackHole=blackHole%spin()
 
     ! Get the spin down function.
-    Black_Hole_Rotational_Energy_Spin_Down_Node=Black_Hole_Rotational_Energy_Spin_Down_Spin(blackHoleSpin)
+    Black_Hole_Rotational_Energy_Spin_Down_Node=Black_Hole_Rotational_Energy_Spin_Down_Spin(spinBlackHole)
     return
   end function Black_Hole_Rotational_Energy_Spin_Down_Node
 
-  double precision function Black_Hole_Rotational_Energy_Spin_Down_Spin(blackHoleSpin)
+  double precision function Black_Hole_Rotational_Energy_Spin_Down_Spin(spinBlackHole)
     !!{
     Computes the spin down rate of a black hole due to extraction of rotational energy. Specifically, it returns the factor $S$
     in the relation:
@@ -610,7 +610,7 @@ contains
     for black hole spin $j$. This result is derived as follows. Starting from equation~(9) in \cite{benson_maximum_2009}:
     \begin{equation}
      M_{\bullet,\mathrm{irr}} = \frac{1}{2} M_\bullet \left[ (1+\sqrt{1-j^2})^2 + j^2 \right]^{1/2},
-     \label{eq:blackHoleMassIrreducible}
+     \label{eq:massBlackHoleIrreducible}
     \end{equation}
     which we can rearrange to get
     \begin{equation}
@@ -640,7 +640,7 @@ contains
     \begin{equation}
      s_\mathrm{jet} = \frac{M_\bullet}{\dot{M}_{\bullet,0}} \frac{\mathrm{d}j}{\mathrm{d}t}.
     \end{equation}
-    Using equations~(\ref{eq:blackHoleMassIrreducible}) and (\ref{eq:blackHoleJetSpinDownRate}) the above becomes
+    Using equations~(\ref{eq:massBlackHoleIrreducible}) and (\ref{eq:blackHoleJetSpinDownRate}) the above becomes
     \begin{equation}
       s_\mathrm{jet} = - \frac{P_\mathrm{jet}}{\dot{M}_{\bullet,0} \mathrm{c}^2} \left[ (1+\sqrt{1-j^2})^2 + j^2 \right] \frac{(1-j^2)^{1/2}}{j},
     \end{equation}
@@ -648,18 +648,18 @@ contains
     $\dot{M}_{\bullet,0} \mathrm{c}^2$ in the denominator} of \cite{benson_maximum_2009}.
     !!}
     implicit none
-    double precision, intent(in   ) :: blackHoleSpin
-    double precision, parameter     :: blackHoleSpinMinimum      =5.0d-8
-    double precision, parameter     :: blackHoleSpinSeriesMinimum=1.0d-20
+    double precision, intent(in   ) :: spinBlackHole
+    double precision, parameter     :: spinBlackHoleMinimum      =5.0d-8
+    double precision, parameter     :: spinBlackHoleSeriesMinimum=1.0d-20
 
-    if (blackHoleSpin > blackHoleSpinMinimum) then
+    if (spinBlackHole > spinBlackHoleMinimum) then
        ! Full solution.
-       Black_Hole_Rotational_Energy_Spin_Down_Spin=((1.0d0+sqrt(1.0d0-blackHoleSpin**2))**2+blackHoleSpin**2)*sqrt(1.0d0&
-            &-blackHoleSpin**2)/blackHoleSpin
+       Black_Hole_Rotational_Energy_Spin_Down_Spin=((1.0d0+sqrt(1.0d0-spinBlackHole**2))**2+spinBlackHole**2)*sqrt(1.0d0&
+            &-spinBlackHole**2)/spinBlackHole
     else
-       if (blackHoleSpin > blackHoleSpinSeriesMinimum) then
+       if (spinBlackHole > spinBlackHoleSeriesMinimum) then
           ! Series solution.
-          Black_Hole_Rotational_Energy_Spin_Down_Spin=4.0d0/blackHoleSpin-3.0d0*blackHoleSpin-0.25d0*(blackHoleSpin**3)
+          Black_Hole_Rotational_Energy_Spin_Down_Spin=4.0d0/spinBlackHole-3.0d0*spinBlackHole-0.25d0*(spinBlackHole**3)
        else
           ! Series diverges as spin tends to zero. Simply set to zero below some low spin. Rotational energy is zero close to zero
           ! spin so this should not cause a problem.

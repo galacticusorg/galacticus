@@ -130,7 +130,7 @@ contains
      </description>
     !!]
     ! Compute a density contrast.
-    node            => tree                       %baseNode
+    node            => tree                       %nodeBase
     basic           => node                       %basic          (                         )
     densityContrast =  self%virialDensityContrast_%densityContrast(basic%mass(),basic%time())
     !![
@@ -143,7 +143,7 @@ contains
        do while (didPruning)
           didPruning=.false.
           ! Get root node of the tree.
-          node  => treeCurrent%baseNode
+          node  => treeCurrent%nodeBase
           basic => node       %basic   ()
           ! Check if the tree has any baryons.
           if (.not.self%accretionHalo_%branchHasBaryons(node)) then
@@ -165,7 +165,7 @@ contains
                    didPruning=.true.
                    ! Set the tree walker back to the base node so that it exits - we've changed the tree structure so need to
                    ! begin the walk again.
-                   call treeWalker%setNode(treeCurrent%baseNode)
+                   call treeWalker%setNode(treeCurrent%nodeBase)
                    ! Decouple from other nodes.
                    call Merger_Tree_Prune_Unlink_Parent(node,node%parent,.not.self%accretionHalo_%branchHasBaryons(node%parent),.true.)
                    ! Clean the branch.

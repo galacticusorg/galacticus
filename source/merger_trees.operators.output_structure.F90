@@ -156,7 +156,7 @@ contains
           countNodes=countNodes+1
        end do
        ! Determine the number of properties for output.
-       basic                  => treeCurrent%baseNode%basic()
+       basic                  => treeCurrent%nodeBase%basic()
        countPropertiesDouble  =  0
        countPropertiesInteger =  0
        select type (extractor_ => self%nodePropertyExtractor_)

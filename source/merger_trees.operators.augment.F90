@@ -341,7 +341,7 @@ contains
              basic                          => node                                   %basic()
              ! Initialize the current best-known tree to null.
              treeBestWorstFit               =      3.000d0
-             treeBest%baseNode              => null()
+             treeBest%nodeBase              => null()
              treeBestOverride               = .false.
              treeBestHasNodeAboveResolution = .false.
              newRescale                     = .false.
@@ -408,7 +408,7 @@ contains
                 attemptsRemaining                                                          =attemptsRemaining-1
                 if (treeBestOverride .and. treeBuilt /= treeBuildSuccess) attemptsRemaining=attemptsRemaining+1
                 ! If all attempts have been used but no match has been found, insert the best tree on next pass through loop.
-                if (attemptsRemaining == 1 .and. associated(treeBest%baseNode)) treeBestOverride=.true.
+                if (attemptsRemaining == 1 .and. associated(treeBest%nodeBase)) treeBestOverride=.true.
                 ! If the new tree contains nodes above the mass cut-off, decrement the number of remaining retries.
                 if (treeNewHasNodeAboveResolution) then
                    massCutoffAttemptsRemaining=massCutoffAttemptsRemaining-1
@@ -438,10 +438,10 @@ contains
                 !$omp end critical (Augment_Statistics)
              end if
              ! Clean up the best tree if one exists.
-             if (associated(treeBest%baseNode)) then
-                call treeBest%baseNode%destroyBranch()
-                deallocate(treeBest%baseNode)
-                treeBest%baseNode => null()
+             if (associated(treeBest%nodeBase)) then
+                call treeBest%nodeBase%destroyBranch()
+                deallocate(treeBest%nodeBase)
+                treeBest%nodeBase => null()
              end if
              ! Move on to the next node.
              i=i+1
@@ -474,10 +474,10 @@ contains
     logical                                        , intent(inout)          :: treeNewHasNodeAboveResolution, treeBestHasNodeAboveResolution, &
          &                                                                     newRescale
     type            (mergerTree                   ), intent(inout)          :: treeBest
-    type            (treeNode                     ), pointer                :: baseNode                     , childNode                     , &
+    type            (treeNode                     ), pointer                :: nodeBase                     , childNode                     , &
          &                                                                     primaryProgenitorNode
-    class           (nodeComponentBasic           ), pointer                :: basic                        , baseBasic                     , &
-         &                                                                     childBasic
+    class           (nodeComponentBasic           ), pointer                :: basic                        , basicBase                     , &
+         &                                                                     basicChild
     type            (mergerTree                   )                         :: newTree
     double precision                                                        :: timeEarliest                 , timeFirstChild                , &
          &                                                                     massInChildren               , newTreeBaseMass
@@ -496,8 +496,8 @@ contains
     if (associated(primaryProgenitorNode)) then
        ! Detect if the primary progenitor is a clone.
        basic                    => node                 %basic()
-       childBasic               => primaryProgenitorNode%basic()
-       primaryProgenitorIsClone =  Values_Agree(basic%time(),childBasic%time(),relTol=1.0d-5)
+       basicChild               => primaryProgenitorNode%basic()
+       primaryProgenitorIsClone =  Values_Agree(basic%time(),basicChild%time(),relTol=1.0d-5)
        ! Remove cloned primary progenitor from the tree.
        if (primaryProgenitorIsClone) node%firstChild => primaryProgenitorNode%sibling
     end if
@@ -508,8 +508,8 @@ contains
        timeEarliest =  timeEarliestIn
     else if (associated(node%firstChild)) then
        ! The node has children - set the limit time to the time at which the children exist.
-       childBasic   => node      %firstChild%basic()
-       timeEarliest =  childBasic%           time ()
+       basicChild   => node      %firstChild%basic()
+       timeEarliest =  basicChild%           time ()
     else if (allocated(self%timeSnapshots)) then
        if (size(self%timeSnapshots) == 1) then
           ! Only one snapshot time is given, use the earliest time.
@@ -569,10 +569,10 @@ contains
          &                                                               0.0d0  ,                   &
          &                                                          huge(0.0d0)                     &
          &                                                         )
-    baseNode                       => treeNode                     (node%index(),newTree          )
-    baseBasic                      => baseNode%basic               (             autoCreate=.true.)
+    nodeBase                       => treeNode                     (node%index(),newTree          )
+    basicBase                      => nodeBase%basic               (             autoCreate=.true.)
     basic                          => node    %basic               (                              )
-    newTree%baseNode               => baseNode
+    newTree%nodeBase               => nodeBase
     newTree%randomNumberGenerator_ => node%hostTree%randomNumberGenerator_
     !$omp atomic
     augmentNewTreeIndex =  augmentNewTreeIndex+1
@@ -580,13 +580,13 @@ contains
     ! Determine the mass to use for the base mass of the new tree. This will be the mass of the node in the original tree if this
     ! exceeds the scale mass of the child nodes, otherwise, set to the scaled mass of the child nodes.
     newTreeBaseMass=max(basic%mass(),massInChildren)
-    call baseBasic  %                    timeSet        (basic          %time())
-    call baseBasic  %                    massSet        (newTreeBaseMass       )
+    call basicBase  %                    timeSet        (basic          %time())
+    call basicBase  %                    massSet        (newTreeBaseMass       )
     call self       %mergerTreeBuilder_ %timeEarliestSet(timeEarliest          )
     call self       %mergerTreeBuilder_ %build          (newTree               )
     call pruneByTime%operatePreEvolution                (newTree               )
     ! Assert that the new tree has some branches.
-    if (.not.(extendingEndNode.or.associated(newTree%baseNode%firstChild))) then
+    if (.not.(extendingEndNode.or.associated(newTree%nodeBase%firstChild))) then
        message="proposed tree has no branches - check cut off mass settings"//char(10)
        write (label,'(e16.8)') newTreeBaseMass
        message=message//"   tree root mass = "//trim(label)//char(10)
@@ -618,7 +618,7 @@ contains
          &                         )
     ! Determine whether to use stored best tree, newly created tree, or reject the tree.
     if     (                                          &
-         &   associated(treeBest%baseNode)            &
+         &   associated(treeBest%nodeBase)            &
          &  .and.                                     &
          &   treeAccepted /= treeBuildSuccess         &
          &  .and.                                     &
@@ -643,14 +643,14 @@ contains
        !     forced.
        !
        ! Clean up the newly created tree, and replace it with the best tree.
-       if (associated(newTree%baseNode)) then
-          call newTree%baseNode%destroyBranch()
-          deallocate(newTree%baseNode)
+       if (associated(newTree%nodeBase)) then
+          call newTree%nodeBase%destroyBranch()
+          deallocate(newTree%nodeBase)
        end if
-       newTree%baseNode => treeBest%baseNode
+       newTree%nodeBase => treeBest%nodeBase
        ! Reset the best tree.
        treeBestWorstFit  =  3.0d0
-       treeBest%baseNode => null()
+       treeBest%nodeBase => null()
        ! Test for acceptance of the best tree.
        if     (                                                 &
             &   self%acceptTree(                                &
@@ -681,17 +681,17 @@ contains
        ! If the newly created tree was acceptable, use it.
        augmentBuildTreeFromNode=treeBuildSuccess
        ! Clean up any previously stored best tree.
-       if (associated(treeBest%baseNode)) then
-          call treeBest%baseNode%destroyBranch()
-          deallocate(treeBest%baseNode)
+       if (associated(treeBest%nodeBase)) then
+          call treeBest%nodeBase%destroyBranch()
+          deallocate(treeBest%nodeBase)
        end if
        treeBestWorstFit  =  3.0d0
-       treeBest%baseNode => null()
+       treeBest%nodeBase => null()
     else
        ! The newly created tree was unacceptable, clean it up and return the failure code.
-       if (associated(newTree%baseNode)) then
-          call newTree%baseNode%destroyBranch()
-          deallocate(newTree%baseNode)
+       if (associated(newTree%nodeBase)) then
+          call newTree%nodeBase%destroyBranch()
+          deallocate(newTree%nodeBase)
        end if
        augmentBuildTreeFromNode=treeAccepted
     end if
@@ -887,7 +887,7 @@ contains
             &                         )
     end if
     ! Determine if the tree is accepted.
-    if (treeBestOverride .and. associated(tree%baseNode)) then
+    if (treeBestOverride .and. associated(tree%nodeBase)) then
        treeAccepted=      nodeMassesAgree                                 &
             &       .and.                                                 &
             &             nodeChildCount                <= endNodesSorted
@@ -982,27 +982,27 @@ contains
        if (treeCurrentWorstFit < treeBestWorstFit) then
           newTreeBest = .true.
           ! Current tree is better than the current best tree. Replace the best tree with the current tree.
-          if (associated(treeBest%baseNode)) then
-             call treeBest%baseNode%destroyBranch()
-             deallocate(treeBest%baseNode)
+          if (associated(treeBest%nodeBase)) then
+             call treeBest%nodeBase%destroyBranch()
+             deallocate(treeBest%nodeBase)
           end if
-          treeBest                      %baseNode          => tree                         %baseNode
-          tree                          %baseNode          => null()
-          treeBest                      %baseNode%hostTree => treeBest
+          treeBest                      %nodeBase          => tree                         %nodeBase
+          tree                          %nodeBase          => null()
+          treeBest                      %nodeBase%hostTree => treeBest
           treeBestWorstFit                                 =  treeCurrentWorstFit
           treeBestHasNodeAboveResolution                   =  treeNewHasNodeAboveResolution
           treeWalker                                       =  mergerTreeWalkerIsolatedNodes         (treeBest)
           do while (treeWalker%next(nodeCurrent))
              nodeCurrent%event    => null()
-             nodeCurrent%hostTree => treeBest%baseNode%hostTree
+             nodeCurrent%hostTree => treeBest%nodeBase%hostTree
           end do
        end if
     else
        ! Tree is not acceptable or better than the current best tree - destroy it.
        call self%nonOverlapReinsert(nodeNonOverlapFirst)
-       if (associated(tree%baseNode)) then
-          call tree%baseNode%destroyBranch()
-          deallocate(tree%baseNode)
+       if (associated(tree%nodeBase)) then
+          call tree%nodeBase%destroyBranch()
+          deallocate(tree%nodeBase)
        end if
     end if
     ! Return a suitable status code based on tree acceptance criteria.
@@ -1057,7 +1057,7 @@ contains
     ! Overlap the base node of the tree with the node in the original tree.
     call augmentExtendByOverLap(                            &
          &                      node                      , &
-         &                      tree%baseNode             , &
+         &                      tree%nodeBase             , &
          &                      keepTop           =.false., &
          &                      exchangeProperties=.false.  &
          &                     )

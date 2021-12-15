@@ -240,7 +240,7 @@ contains
     !$omp end critical(mergerTreeConstructBuildMassesFixedDeepCopyReset)
     call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
     node          => treeNode      (hostTree  =tree  )
-    tree%baseNode => node
+    tree%nodeBase => node
     basic         => node    %basic(autoCreate=.true.)
     call basic%timeSet            (time)
     call basic%timeLastIsolatedSet(time)

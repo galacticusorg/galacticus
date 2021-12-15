@@ -219,7 +219,7 @@ contains
     ! Write basic tree information.
     treeCurrent => tree
     do while (associated(treeCurrent))
-       write (fileUnit) treeCurrent%index,treeCurrent%volumeWeight,treeCurrent%initializedUntil,nodeArrayPosition(treeCurrent%baseNode%uniqueID(),nodeIndices)
+       write (fileUnit) treeCurrent%index,treeCurrent%volumeWeight,treeCurrent%initializedUntil,nodeArrayPosition(treeCurrent%nodeBase%uniqueID(),nodeIndices)
        treeCurrent => treeCurrent%nextTree
     end do
     ! Output nodes.
@@ -360,7 +360,7 @@ contains
           nodes(iNode)%node => treeNode(hostTree=treeCurrent)
        end do
        ! Assign the tree base node.
-       treeCurrent%baseNode => nodes(nodeArrayIndex)%node
+       treeCurrent%nodeBase => nodes(nodeArrayIndex)%node
        ! Ensure tree events are nullified.
        treeCurrent%event => null()
        ! Set pointer to the first tree in the forest.

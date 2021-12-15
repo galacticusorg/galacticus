@@ -644,7 +644,7 @@ contains
        ! Initialize primary progenitor masses to zero.
        primaryProgenitorMass=0.0d0
        ! Get root node of the tree.
-       node => treeCurrent%baseNode
+       node => treeCurrent%nodeBase
        ! Accumulate normalization for subhalo mass function.
        if (self%extendedStatistics) then
           basic => node%basic()
@@ -959,7 +959,7 @@ contains
                          descendentNode => descendentNode%parent
                       end do
                       if (depthHierarchy > 0 .and. depthHierarchy <= self%subhaloHierarchyDepth) then
-                         basicParent => treeCurrent%baseNode%basic()
+                         basicParent => treeCurrent%nodeBase%basic()
                          weights2D     =self%binWeights2D(                                           &
                               &                           basicParent%mass()                       , &
                               &                           basicParent%time()                       , &

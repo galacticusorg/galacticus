@@ -293,7 +293,7 @@ contains
                 message=message//trim(joinString)//'negative spheroid mass'
                 joinString=", "
              end if
-             message=message//' (radius:mass:spheroidMass='//trim(dataString)//')'
+             message=message//' (radius:mass:massSpheroid='//trim(dataString)//')'
              call displayMessage(message)
              errorCondition=.true.
           end if
@@ -323,7 +323,7 @@ contains
                 message=message//trim(joinString)//'negative spheroid mass'
                 joinString=", "
              end if
-             message=message//' (radius:mass:spheroidMass='//trim(dataString)//')'
+             message=message//' (radius:mass:massSpheroid='//trim(dataString)//')'
              call displayMessage(message)
              errorCondition=.true.
           end if

@@ -169,7 +169,7 @@ contains
     class           (virialOrbitFixed  ), intent(inout), target :: self
     type            (treeNode          ), intent(inout)         :: host               , node
     logical                             , intent(in   )         :: acceptUnboundOrbits
-    class           (nodeComponentBasic), pointer               :: hostBasic          , basic
+    class           (nodeComponentBasic), pointer               :: basicHost          , basic
     double precision                                            :: velocityHost       , massHost     , &
          &                                                         radiusHost         , massSatellite
     type            (varying_string    )                        :: message
@@ -180,11 +180,11 @@ contains
     call fixedOrbit%reset()
     ! Get required objects.
     basic     => node%basic()
-    hostBasic => host%basic()
+    basicHost => host%basic()
     ! Find mass, radius, and velocity in the host corresponding to the our virial density contrast definition.
     massHost     =Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
          &                                                                   host                                                                                                , &
-         &                                                                   self%virialDensityContrastDefinition_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()), &
+         &                                                                   self%virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()), &
          &                                                                   radiusHost                                                                                          , &
          &                                                                   velocityHost                                                                                        , &
          &                                            cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
@@ -209,7 +209,7 @@ contains
     radiusHost=self%darkMatterHaloScale_%virialRadius(host)
     if (fixedOrbit%radiusApocenter() >= radiusHost .and. fixedOrbit%radiusPericenter() <= radiusHost) then
        call fixedOrbit%propagate(radiusHost,infalling=.true.)
-       call fixedOrbit%massesSet(min(basic%mass(),hostBasic%mass()),hostBasic%mass())
+       call fixedOrbit%massesSet(min(basic%mass(),basicHost%mass()),basicHost%mass())
     else
        call displayVerbositySet(verbosityLevelStandard)
        call displayIndent('Satellite node')
@@ -254,15 +254,15 @@ contains
     implicit none
     class           (virialOrbitFixed  ), intent(inout) :: self
     type            (treeNode          ), intent(inout) :: node        , host
-    class           (nodeComponentBasic), pointer       :: hostBasic
+    class           (nodeComponentBasic), pointer       :: basicHost
     double precision                                    :: massHost    , radiusHost, &
          &                                                 velocityHost
     !$GLC attributes unused :: node
 
-    hostBasic                            =>  host%basic()
+    basicHost                            =>  host%basic()
     massHost                             =   Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
          &                                                                                              host                                                                                                , &
-         &                                                                                              self%virialDensityContrastDefinition_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()), &
+         &                                                                                              self%virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()), &
          &                                                                                              radiusHost                                                                                          , &
          &                                                                                              velocityHost                                                                                        , &
          &                                                                       cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
@@ -300,15 +300,15 @@ contains
     implicit none
     class           (virialOrbitFixed  ), intent(inout) :: self
     type            (treeNode          ), intent(inout) :: node        , host
-    class           (nodeComponentBasic), pointer       :: basic       , hostBasic
+    class           (nodeComponentBasic), pointer       :: basic       , basicHost
     double precision                                    :: massHost    , radiusHost, &
          &                                                 velocityHost
 
     basic                             =>  node%basic()
-    hostBasic                         =>  host%basic()
+    basicHost                         =>  host%basic()
     massHost                          =   Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
          &                                                                                           host                                                                                                , &
-         &                                                                                           self%virialDensityContrastDefinition_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()), &
+         &                                                                                           self%virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()), &
          &                                                                                           radiusHost                                                                                          , &
          &                                                                                           velocityHost                                                                                        , &
          &                                                                    cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
@@ -321,7 +321,7 @@ contains
          &                               /(                                               & ! Account for reduced mass.
          &                                 +1.0d0                                         &
          &                                 +basic    %mass()                              &
-         &                                 /hostBasic%mass()                              &
+         &                                 /basicHost%mass()                              &
          &                                )
     return
   end function fixedAngularMomentumMagnitudeMean
@@ -351,15 +351,15 @@ contains
     implicit none
     class           (virialOrbitFixed  ), intent(inout) :: self
     type            (treeNode          ), intent(inout) :: node, host
-    class           (nodeComponentBasic), pointer       :: hostBasic
+    class           (nodeComponentBasic), pointer       :: basicHost
     double precision                                    :: massHost    , radiusHost, &
          &                                                 velocityHost
     !$GLC attributes unused :: node
 
-    hostBasic                         =>  host%basic()
+    basicHost                         =>  host%basic()
     massHost                          =   Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
          &                                                                                           host                                                                                                , &
-         &                                                                                           self%virialDensityContrastDefinition_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()), &
+         &                                                                                           self%virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()), &
          &                                                                                           radiusHost                                                                                          , &
          &                                                                                           velocityHost                                                                                        , &
          &                                                                    cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
@@ -385,15 +385,15 @@ contains
     implicit none
     class           (virialOrbitFixed  ), intent(inout) :: self
     type            (treeNode          ), intent(inout) :: node        , host
-    class           (nodeComponentBasic), pointer       :: basic       , hostBasic
+    class           (nodeComponentBasic), pointer       :: basic       , basicHost
     double precision                                    :: massHost    , radiusHost, &
          &                                                 velocityHost
 
     basic           =>  node%basic()
-    hostBasic       =>  host%basic()
+    basicHost       =>  host%basic()
     massHost        =   Dark_Matter_Profile_Mass_Definition(                                                                                                                             &
          &                                                                         host                                                                                                , &
-         &                                                                         self%virialDensityContrastDefinition_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()), &
+         &                                                                         self%virialDensityContrastDefinition_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()), &
          &                                                                         radiusHost                                                                                          , &
          &                                                                         velocityHost                                                                                        , &
          &                                                  cosmologyParameters_  =self%cosmologyParameters_                                                                           , &
@@ -406,7 +406,7 @@ contains
          &             /(                                               & ! Account for reduced mass.
          &               +1.0d0                                         &
          &               +basic    %mass()                              &
-         &               /hostBasic%mass()                              &
+         &               /basicHost%mass()                              &
          &              )                                               &
          &             -gravitationalConstantGalacticus                 &
          &             *massHost                                        &

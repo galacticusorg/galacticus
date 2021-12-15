@@ -582,19 +582,19 @@ contains
     implicit none
     class           (virialOrbitLossCone), intent(inout) :: self
     type            (treeNode           ), intent(inout) :: node        , host
-    class           (nodeComponentBasic ), pointer       :: basic       , hostBasic
+    class           (nodeComponentBasic ), pointer       :: basic       , basicHost
     double precision                                     :: massHost    , radiusHost, &
          &                                                  velocityHost
 
     basic                                =>  node%basic()
-    hostBasic                            =>  host%basic()
-    massHost                             =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%darkMatterProfileDMO_,self%virialDensityContrast_)
+    basicHost                            =>  host%basic()
+    massHost                             =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%darkMatterProfileDMO_,self%virialDensityContrast_)
     lossConeAngularMomentumMagnitudeMean =  +self%velocityTangentialMagnitudeMean(node,host) &
          &                                  *radiusHost                                      &
          &                                  /(                                               & ! Account for reduced mass.
          &                                    +1.0d0                                         &
          &                                    +basic    %mass()                              &
-         &                                    /hostBasic%mass()                              &
+         &                                    /basicHost%mass()                              &
          &                                   )
     return
   end function lossConeAngularMomentumMagnitudeMean
@@ -655,19 +655,19 @@ contains
     implicit none
     class           (virialOrbitLossCone), intent(inout) :: self
     type            (treeNode           ), intent(inout) :: node        , host
-    class           (nodeComponentBasic ), pointer       :: basic       , hostBasic
+    class           (nodeComponentBasic ), pointer       :: basic       , basicHost
     double precision                                     :: massHost    , radiusHost, &
          &                                                  velocityHost
 
     basic              =>  node%basic()
-    hostBasic          =>  host%basic()
-    massHost           =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(hostBasic%mass(),hostBasic%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%darkMatterProfileDMO_,self%virialDensityContrast_)
+    basicHost          =>  host%basic()
+    massHost           =   Dark_Matter_Profile_Mass_Definition(host,self%virialDensityContrast_%densityContrast(basicHost%mass(),basicHost%timeLastIsolated()),radiusHost,velocityHost,self%cosmologyParameters_,self%cosmologyFunctions_,self%darkMatterProfileDMO_,self%virialDensityContrast_)
     lossConeEnergyMean =  +0.5d0                                           &
          &                *self%velocityTotalRootMeanSquared(node,host)**2 &
          &                /(                                               & ! Account for reduced mass.
          &                  +1.0d0                                         &
          &                  +basic    %mass()                              &
-         &                  /hostBasic%mass()                              &
+         &                  /basicHost%mass()                              &
          &                 )                                               &
          &                -gravitationalConstantGalacticus                 &
          &                *massHost                                        &
@@ -916,7 +916,7 @@ contains
        nodeHost_          => nodeHost
        basicHost          => nodeHost%basic(autoCreate=.true.)
        nodeHost %hostTree => tree
-       tree     %baseNode => nodeHost
+       tree     %nodeBase => nodeHost
        call basicHost%massSet            (     massHost)
        call basicHost%timeSet            (self%time    )
        call basicHost%timeLastIsolatedSet(self%time    )

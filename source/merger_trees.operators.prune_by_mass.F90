@@ -118,7 +118,7 @@ contains
        do while (didPruning)
           didPruning=.false.
           ! Get root node of the tree.
-          node  => currentTree%baseNode
+          node  => currentTree%nodeBase
           basic => node       %basic   ()
           if (basic%mass() < self%massThreshold) then
              ! Entire tree is below threshold. Destroy all but this base node. (Leaving just
@@ -151,7 +151,7 @@ contains
                    didPruning=.true.
                    ! Set the tree walker back to the base node so that it exits - we've changed the tree structure so need to
                    ! begin the walk again.
-                   call treeWalker%setNode(currentTree%baseNode)
+                   call treeWalker%setNode(currentTree%nodeBase)
                    ! Decouple from other nodes.
                    basicParent => node%parent%basic()
                    call Merger_Tree_Prune_Unlink_Parent(node,node%parent,basicParent%mass() < self%massThreshold,self%preservePrimaryProgenitor)

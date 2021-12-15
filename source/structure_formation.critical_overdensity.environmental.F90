@@ -148,7 +148,7 @@ contains
     if (.not.present(node)) call Galacticus_Error_Report('"node" must be provided to give access to environment'//{introspection:location})
     ! Get the critical overdensity at zero environmental overdensity and scale by some power of the linear growth factor.
     environmentalValue   =  +  self%criticalOverdensity_         %value            (time,expansionFactor,collapsing,mass,node                  )
-    basic                =>    node%hostTree            %baseNode%basic            (                                                           )
+    basic                =>    node%hostTree            %nodeBase%basic            (                                                           )
     if (basic%mass() < self%massEnvironment) then
        environmentalValue=  +environmentalValue                                                                                                  &
             &               *  self%linearGrowth_                %value            (time,expansionFactor,collapsing                            ) &
@@ -178,7 +178,7 @@ contains
     !!]
 
     if (.not.present(node)) call Galacticus_Error_Report('"node" must be provided to give access to environment'//{introspection:location})
-    basic => node%hostTree%baseNode%basic()
+    basic => node%hostTree%nodeBase%basic()
     if (basic%mass() < self%massEnvironment) then
        environmentalGradientTime=+   self%criticalOverdensity_%gradientTime                        (time,expansionFactor ,collapsing,mass,node                  ) &
             &                    *   self%linearGrowth_       %value                               (time,expansionFactor ,collapsing                            ) &
@@ -217,7 +217,7 @@ contains
     class           (nodeComponentBasic              ), pointer                 :: basic
 
     if (.not.present(node)) call Galacticus_Error_Report('"node" must be provided to give access to environment'//{introspection:location})
-    basic => node%hostTree%baseNode%basic()
+    basic => node%hostTree%nodeBase%basic()
     if (basic%mass() < self%massEnvironment) then
        environmentalGradientMass=  +self%criticalOverdensity_%gradientMass     (time,expansionFactor,collapsing,mass,node                  ) &
             &                    *  self%linearGrowth_       %value            (time,expansionFactor,collapsing                            ) &

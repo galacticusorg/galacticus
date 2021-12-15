@@ -431,7 +431,7 @@ contains
     double precision                       , parameter              :: massTolerance           =1.0d+0
     double precision                       , save                   :: fractionalErrorMaximum  =0.0d+0
     double precision                                                :: fractionalError                , specificAngularMomentum, &
-         &                                                             spheroidMass
+         &                                                             massSpheroid
     character       (len=20               )                         :: valueString
     type            (varying_string       ), save                   :: message
     !$omp threadprivate(message)
@@ -477,9 +477,9 @@ contains
           end if
           !$omp end critical (Standard_Spheroid_Post_Evolve_Check)
           ! Get the specific angular momentum of the spheroid material
-          spheroidMass= spheroid%massGas    () &
+          massSpheroid= spheroid%massGas    () &
                &       +spheroid%massStellar()
-          if (spheroidMass == 0.0d0) then
+          if (massSpheroid == 0.0d0) then
              specificAngularMomentum=0.0d0
              call spheroid%        massStellarSet(                  0.0d0)
              call spheroid%  abundancesStellarSet(         zeroAbundances)
@@ -493,7 +493,7 @@ contains
              call luminositiesStellar%reset()
              call spheroid%luminositiesStellarSet(luminositiesStellar)
           else
-             specificAngularMomentum=spheroid%angularMomentum()/spheroidMass
+             specificAngularMomentum=spheroid%angularMomentum()/massSpheroid
           end if
           ! Reset the gas, abundances and angular momentum of the spheroid.
           call spheroid%        massGasSet(                                                      0.0d0)
@@ -533,14 +533,14 @@ contains
           end if
           !$omp end critical (Standard_Spheroid_Post_Evolve_Check)
           ! Get the specific angular momentum of the spheroid material
-          spheroidMass= spheroid%massGas    () &
+          massSpheroid= spheroid%massGas    () &
                &       +spheroid%massStellar()
-          if (spheroidMass == 0.0d0) then
+          if (massSpheroid == 0.0d0) then
              specificAngularMomentum=0.0d0
              call spheroid%      massGasSet(         0.0d0)
              call spheroid%abundancesGasSet(zeroAbundances)
           else
-             specificAngularMomentum=spheroid%angularMomentum()/spheroidMass
+             specificAngularMomentum=spheroid%angularMomentum()/massSpheroid
           end if
           ! Reset the stellar, abundances and angular momentum of the spheroid.
           call spheroid%        massStellarSet(                                 0.0d0)
@@ -869,7 +869,7 @@ contains
     type            (history              )                :: historyDisk                   , historySpheroid                , &
          &                                                    history_
     double precision                                       :: angularMomentum               , diskSpecificAngularMomentum    , &
-         &                                                    spheroidMass                  , spheroidSpecificAngularMomentum, &
+         &                                                    massSpheroid                  , spheroidSpecificAngularMomentum, &
          &                                                    radiusRemnant                 ,velocityCircularRemnant         , &
          &                                                    angularMomentumSpecificRemnant
     integer                                                :: destinationGasSatellite       , destinationGasHost             , &
@@ -1066,9 +1066,9 @@ contains
             & call spheroidHost%angularMomentumSet(0.0d0)
 
        ! Get specific angular momentum of the spheroid material.
-       spheroidMass=spheroid%massGas()+spheroid%massStellar()
-       if (spheroidMass > 0.0d0) then
-          spheroidSpecificAngularMomentum=spheroid%angularMomentum()/spheroidMass
+       massSpheroid=spheroid%massGas()+spheroid%massStellar()
+       if (massSpheroid > 0.0d0) then
+          spheroidSpecificAngularMomentum=spheroid%angularMomentum()/massSpheroid
 
           ! Move the gas component of the standard spheroid to the host.
           select case (destinationGasSatellite)
@@ -1324,7 +1324,7 @@ contains
     procedure       (Node_Component_Spheroid_Standard_Radius_Solve    ), intent(  out), pointer :: Radius_Get                     , Velocity_Get
     class           (nodeComponentSpheroid                            )               , pointer :: spheroid
     double precision                                                                            :: angularMomentum                , specificAngularMomentumMean, &
-         &                                                                                         spheroidMass
+         &                                                                                         massSpheroid
 
     ! Determine if node has an active disk component supported by this module.
     componentActive=.false.
@@ -1337,9 +1337,9 @@ contains
           angularMomentum=spheroid%angularMomentum()
           if (angularMomentum >= 0.0d0) then
              ! Compute the specific angular momentum at the scale radius, assuming a flat rotation curve.
-             spheroidMass=spheroid%massGas()+spheroid%massStellar()
-             if (spheroidMass > 0.0d0) then
-                specificAngularMomentumMean=angularMomentum/spheroidMass
+             massSpheroid=spheroid%massGas()+spheroid%massStellar()
+             if (massSpheroid > 0.0d0) then
+                specificAngularMomentumMean=angularMomentum/massSpheroid
              else
                 specificAngularMomentumMean=0.0d0
              end if

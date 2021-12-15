@@ -1105,10 +1105,10 @@ contains
          &                                                                       chemicalDensities
     !$omp threadprivate(chemicalMasses,chemicalDensities,chemicalDensitiesRates,chemicalMassesRates,chemicalsCoolingRate)
     double precision                                                          :: angularMomentumAccretionRate, temperature            , &
-         &                                                                       densityAtOuterRadius        , failedMassAccretionRate, &
+         &                                                                       densityAtOuterRadius        , rateAccretionMassFailed, &
          &                                                                       massLossRate                , massToDensityConversion, &
          &                                                                       outerRadius                 , outerRadiusGrowthRate  , &
-         &                                                                       massAccretionRate
+         &                                                                       rateAccretionMass
 
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
@@ -1125,13 +1125,13 @@ contains
        ! relevant mode later when reaccreted. Negative accretion is allowed here as (for example) we may need to record the amount
        ! of negative accretion during periods where a halo is declining in mass, such that this loss of mass must be accounted for
        ! when the halo starts growing again before we allow gas to actually accrete into the hot component.
-       massAccretionRate      =accretionHalo_%accretionRate      (node,accretionModeHot  )
-       failedMassAccretionRate=accretionHalo_%failedAccretionRate(node,accretionModeTotal)
+       rateAccretionMass      =accretionHalo_%      accretionRate(node,accretionModeHot  )
+       rateAccretionMassFailed=accretionHalo_%failedAccretionRate(node,accretionModeTotal)
        ! Get the basic component.
        basic => node%basic()
        ! Apply accretion rates.
-       call hotHalo%          massRate(      massAccretionRate,interrupt,interruptProcedure)
-       call hotHalo%unaccretedMassRate(failedMassAccretionRate,interrupt,interruptProcedure)
+       call hotHalo%          massRate(rateAccretionMass      ,interrupt,interruptProcedure)
+       call hotHalo%unaccretedMassRate(rateAccretionMassFailed,interrupt,interruptProcedure)
        ! Next compute the cooling rate in this halo.
        call Node_Component_Hot_Halo_Standard_Cooling_Rate(node)
        ! Pipe the cooling rate to which ever component claimed it.
@@ -1143,7 +1143,7 @@ contains
           ! Compute the rate of accretion of angular momentum.
           spin                         =>  node %spin                     ()
           angularMomentumAccretionRate =  +spin %angularMomentumGrowthRate() &
-               &                          *      massAccretionRate           &
+               &                          *      rateAccretionMass           &
                &                          /basic%accretionRate            ()
              if (hotHaloAngularMomentumAlwaysGrows) angularMomentumAccretionRate=abs(angularMomentumAccretionRate)
           call hotHalo%angularMomentumRate(angularMomentumAccretionRate,interrupt,interruptProcedure)
@@ -1494,7 +1494,7 @@ contains
     class           (nodeComponentSpin   )               , pointer :: spin
     class           (nodeEvent           )               , pointer :: event
     double precision                                               :: angularMomentum        , failedMass, &
-         &                                                            hotHaloMass
+         &                                                            massHotHalo
 
     ! If the node has a child or the standard hot halo is not active, then return immediately.
     if (associated(node%firstChild).or..not.defaultHotHaloComponent%standardIsActive()) return
@@ -1519,18 +1519,18 @@ contains
     select type (currentHotHaloComponent)
     type is (nodeComponentHotHalo)
       ! Get the mass of hot gas accreted and the mass that failed to accrete.
-       hotHaloMass=accretionHalo_%accretedMass      (node,accretionModeHot  )
+       massHotHalo=accretionHalo_%accretedMass      (node,accretionModeHot  )
        failedMass =accretionHalo_%failedAccretedMass(node,accretionModeTotal)
        ! If either is non-zero, then create a hot halo component and add these masses to it.
-       if (hotHaloMass > 0.0d0 .or. failedMass > 0.0d0) then
+       if (massHotHalo > 0.0d0 .or. failedMass > 0.0d0) then
           call Node_Component_Hot_Halo_Standard_Create(node)
           hotHalo => node%hotHalo()
           basic   => node%basic  ()
           spin    => node%spin   ()
-          call hotHalo%           massSet(hotHaloMass)
+          call hotHalo%           massSet(massHotHalo)
           call hotHalo% unaccretedMassSet( failedMass)
           ! Also add the appropriate angular momentum.
-          angularMomentum=hotHaloMass*spin%angularMomentum()/basic%mass()
+          angularMomentum=massHotHalo*spin%angularMomentum()/basic%mass()
           call hotHalo%angularMomentumSet(angularMomentum   )
           ! Add the appropriate abundances.
           call hotHalo%abundancesSet(accretionHalo_%accretedMassMetals   (node,accretionModeHot))

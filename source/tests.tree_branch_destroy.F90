@@ -45,7 +45,7 @@ program Tests_Tree_Branch_Destroy
   do iNode=1,5
      nodes(iNode)%node => treeNode()
   end do
-  tree%baseNode => nodes(1)%node
+  tree%nodeBase => nodes(1)%node
   tree%event    => null()
 
   ! Set indices of nodes.

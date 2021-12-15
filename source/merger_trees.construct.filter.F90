@@ -125,7 +125,7 @@ contains
     tree => self%mergerTreeConstructor_%construct(treeNumber,finished)
     if (associated(tree)) then
        ! Apply any tree initialization operators.
-       call self%nodeOperator_%nodeTreeInitialize(tree%baseNode)
+       call self%nodeOperator_%nodeTreeInitialize(tree%nodeBase)
        if (.not.self%mergerTreeFilter_%passes(tree)) then
           call tree%destroy()
           deallocate(tree)

@@ -329,11 +329,11 @@ contains
     type            (keplerOrbit           ), intent(inout)         :: orbit
     type            (treeNode              ), intent(inout)         :: currentHost
     class           (galacticStructureClass), intent(inout), target :: galacticStructure_
-    double precision                                                :: potentialHost                               , radiusVirialOriginal, &
+    double precision                                                :: potentialHost         , radiusVirialOriginal, &
          &                                                             velocityVirialOriginal
 
     ! Compute the properties of the initial orbit, and the current potential.
-    radiusVirialOriginal  =gravitationalConstantGalacticus*orbit%hostMass()/orbit%velocityScale()**2
+    radiusVirialOriginal  =gravitationalConstantGalacticus*orbit%massHost()/orbit%velocityScale()**2
     velocityVirialOriginal=                                                 orbit%velocityScale()
     potentialHost         =galacticStructure_%potential(currentHost,radiusVirialOriginal)
     ! Create a new orbit with an adjusted energy.

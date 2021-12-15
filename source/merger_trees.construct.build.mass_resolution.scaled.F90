@@ -113,14 +113,14 @@ contains
     implicit none
     class(mergerTreeMassResolutionScaled), intent(inout) :: self
     type (mergerTree                    ), intent(in   ) :: tree
-    class(nodeComponentBasic            ), pointer       :: baseBasic
+    class(nodeComponentBasic            ), pointer       :: basicBase
 
-    baseBasic        => tree%baseNode%basic()
+    basicBase        => tree%nodeBase%basic()
     scaledResolution =  max(                                                    &
          &                      self%massResolutionMinimum                    , &
          &                  min(                                                &
          &                      self%massResolutionMaximum                    , &
-         &                      self%massResolutionFractional*baseBasic%mass()  &
+         &                      self%massResolutionFractional*basicBase%mass()  &
          &                     )                                                &
          &                 )
     return

@@ -776,7 +776,7 @@ contains
     type (treeNode                                              ), intent(inout) :: node
     class(nodeComponentBasic                                    ), pointer       :: basic
 
-    basic                           => node %hostTree%baseNode%basic()
+    basic                           => node %hostTree%nodeBase%basic()
     hearin2021StochasticTimeMaximum =  basic%                  time ()
     return
   end function hearin2021StochasticTimeMaximum

@@ -126,7 +126,7 @@ contains
           end if
        end if
     else
-       self%node => self%tree%baseNode
+       self%node => self%tree%nodeBase
     end if
     node => self%node
     return

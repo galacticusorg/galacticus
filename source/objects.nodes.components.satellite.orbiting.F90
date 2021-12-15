@@ -319,7 +319,7 @@ contains
          &                                                                tidalHeatingNormalizedScaleFractional   =1.0d-2
     double precision                                                   :: virialRadius                                   , virialVelocity              , &
          &                                                                virialIntegratedTidalTensor                    , virialTidalHeatingNormalized, &
-         &                                                                satelliteMass
+         &                                                                massSatellite
 
     ! Get the satellite component.
     satellite => node%satellite()
@@ -327,7 +327,7 @@ contains
     select type (satellite)
     class is (nodeComponentSatelliteOrbiting)
        basic                       => node                %basic         (    )
-       satelliteMass               =  basic               %mass          (    )
+       massSatellite               =  basic               %mass          (    )
        virialRadius                =  darkMatterHaloScale_%virialRadius  (node)
        virialVelocity              =  darkMatterHaloScale_%virialVelocity(node)
        virialIntegratedTidalTensor =   virialVelocity/virialRadius*megaParsec/kilo/gigaYear
@@ -343,7 +343,7 @@ contains
             &                                        *                 velocityScaleFractional &
             &                                       )
        call satellite%boundMassScale                (                                          &
-            &                                        +satelliteMass                            &
+            &                                        +massSatellite                            &
             &                                        *                boundMassScaleFractional &
             &                                       )
        call satellite%tidalTensorPathIntegratedScale(                                          &
@@ -522,7 +522,7 @@ contains
     class           (nodeComponentSatellite), intent(inout) :: satellite
     type            (treeNode              ), intent(inout) :: node
     double precision                                        :: virialRadius , maximumRadius, &
-         &                                                     satelliteMass
+         &                                                     massSatellite
 
     select type (satellite)
     class is (nodeComponentSatelliteOrbiting)
@@ -533,11 +533,11 @@ contains
           ! Set the initial bound mass of this satellite by integrating the density profile up to a maximum radius.
           virialRadius =darkMatterHaloScale_%virialRadius(node              )
           maximumRadius=satelliteMaximumRadiusOverVirialRadius*virialRadius
-          satelliteMass=galacticStructure_  %massEnclosed(node,maximumRadius)
-          call satellite%boundMassSet(satelliteMass)
+          massSatellite=galacticStructure_  %massEnclosed(node,maximumRadius)
+          call satellite%boundMassSet(massSatellite)
        case (satelliteBoundMassInitializeTypeDensityContrast)
           ! Set the initial bound mass of this satellite by assuming a specified density contrast.
-          satelliteMass=Dark_Matter_Profile_Mass_Definition(                                                 &
+          massSatellite=Dark_Matter_Profile_Mass_Definition(                                                 &
                &                                                                   node                    , &
                &                                                                   satelliteDensityContrast, &
                &                                            cosmologyParameters_  =cosmologyParameters_    , &
@@ -545,7 +545,7 @@ contains
                &                                            darkMatterProfileDMO_ =darkMatterProfileDMO_   , &
                &                                            virialDensityContrast_=virialDensityContrast_    &
                &                                           )
-          call satellite%boundMassSet(satelliteMass)
+          call satellite%boundMassSet(massSatellite)
        case default
           call Galacticus_Error_Report('type of method to initialize the bound mass of satellites can not be recognized. Available options are "basicMass", "maximumRadius", "densityContrast"'//{introspection:location})
        end select

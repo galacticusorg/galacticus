@@ -318,7 +318,7 @@ contains
        nodeHost           => treeNode      (                 )
        basicHost          => nodeHost%basic(autoCreate=.true.)
        nodeHost %hostTree => tree
-       tree     %baseNode => nodeHost
+       tree     %nodeBase => nodeHost
        call basicHost%massSet            (     massHost)
        call basicHost%timeSet            (self%time    )
        call basicHost%timeLastIsolatedSet(self%time    )

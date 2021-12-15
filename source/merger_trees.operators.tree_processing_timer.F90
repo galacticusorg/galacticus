@@ -180,7 +180,7 @@ contains
     real                                                                 :: time
     
     ! Record the mass and ID of the tree.
-    node        => tree %baseNode
+    node        => tree %nodeBase
     basic       => node %basic   ()
     self%mass   =  basic%mass    ()
     self%treeID =  tree %index

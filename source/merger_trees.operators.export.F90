@@ -236,7 +236,7 @@ contains
        ! Find "snapshot" numbers for nodes - relevant only for IRATE output format.
        if (self%snapshotsRequired) then
           call allocateArray(snapshotTime,[snapshotCountIncrement])
-          node                        => treeCurrent%baseNode
+          node                        => treeCurrent%nodeBase
           basic                       => node       %basic   ()
           snapshotCount               =  1
           snapshotTime(snapshotCount) =  basic      %time    ()

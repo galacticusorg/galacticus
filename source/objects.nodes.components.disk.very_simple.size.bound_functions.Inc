@@ -44,7 +44,7 @@ double precision function Node_Component_Disk_Very_Simple_Size_Enclosed_Mass(sel
   class           (nodeComponentDiskVerySimpleSize), intent(inout) :: self
   integer                                          , intent(in   ) :: componentType   , massType        , weightBy, weightIndex
   double precision                                 , intent(in   ) :: radius
-  double precision                                                 :: diskRadius      , fractionalRadius
+  double precision                                                 :: radiusDisk      , fractionalRadius
   type            (stellarLuminosities            ), save          :: luminositiesDisk
   !$omp threadprivate(luminositiesDisk)
 
@@ -74,9 +74,9 @@ double precision function Node_Component_Disk_Very_Simple_Size_Enclosed_Mass(sel
   ! Return if the total mass was requested.
   if (radius                                     >= radiusLarge) return
   ! Compute the actual mass.
-  diskRadius=self%radius()
-  if (diskRadius > 0.0d0) then
-     fractionalRadius=radius/diskRadius
+  radiusDisk=self%radius()
+  if (radiusDisk > 0.0d0) then
+     fractionalRadius=radius/radiusDisk
      Node_Component_Disk_Very_Simple_Size_Enclosed_Mass=                         &
           & +Node_Component_Disk_Very_Simple_Size_Enclosed_Mass                  &
           & *diskMassDistribution%massEnclosedBySphere(fractionalRadius)

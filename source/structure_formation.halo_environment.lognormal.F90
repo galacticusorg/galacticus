@@ -186,8 +186,8 @@ contains
     <optionalArgument name="presentDay" defaultsTo=".false." />
     !!]
 
-    if (node%hostTree%baseNode%uniqueID() /= uniqueIDPrevious) then
-       uniqueIDPrevious=node%hostTree%baseNode%uniqueID()
+    if (node%hostTree%nodeBase%uniqueID() /= uniqueIDPrevious) then
+       uniqueIDPrevious=node%hostTree%nodeBase%uniqueID()
        if (node%hostTree%properties%exists('haloEnvironmentOverdensity')) then
           overdensityPrevious=node%hostTree%properties%value('haloEnvironmentOverdensity')
        else

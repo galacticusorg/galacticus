@@ -145,7 +145,7 @@ contains
     ! If sizes are to be scaled by mass, find the range of masses in the tree. If edges are set to time intervals, find minimum
     ! and maximum times in tree.
     if (scaleNodesByLogMassActual.or.edgeLengthsToTimesActual) then
-       basic           =>                          tree%baseNode%basic()
+       basic           =>                          tree%nodeBase%basic()
        nodeMassMinimum =                           basic        %mass ()
        nodeMassMaximum =                           basic        %mass ()
        timeMinimum     =                           basic        %time ()

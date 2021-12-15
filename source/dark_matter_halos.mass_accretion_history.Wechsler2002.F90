@@ -163,23 +163,23 @@ contains
     class           (darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout), target :: self
     type            (treeNode                                      ), intent(inout), target :: node
     double precision                                                , intent(in   )         :: mass
-    class           (nodeComponentBasic                            ), pointer               :: baseBasic
+    class           (nodeComponentBasic                            ), pointer               :: basicBase
     double precision                                                                        :: expansionFactor                   , expansionFactorBase, &
          &                                                                                     mergerTreeFormationExpansionFactor
 
-    baseBasic => node%basic()
+    basicBase => node%basic()
     select case (self%formationRedshiftCompute)
     case (.true.)
        ! Compute the expansion factor at formation.
-       mergerTreeFormationExpansionFactor=self%expansionFactorAtFormation(baseBasic%mass(),node)
+       mergerTreeFormationExpansionFactor=self%expansionFactorAtFormation(basicBase%mass(),node)
     case (.false.)
        ! Use the specified formation redshift.
        mergerTreeFormationExpansionFactor=self%cosmologyFunctions_%expansionFactorFromRedshift(self%formationRedshift)
     end select
     ! Get the expansion factor at the tree base.
-    expansionFactorBase=self%cosmologyFunctions_%expansionFactor(baseBasic%time())
+    expansionFactorBase=self%cosmologyFunctions_%expansionFactor(basicBase%time())
     ! Compute the expansion factor for the current node.
-    expansionFactor=expansionFactorBase/(1.0d0-0.5d0*log(mass/baseBasic%mass())/mergerTreeFormationExpansionFactor)
+    expansionFactor=expansionFactorBase/(1.0d0-0.5d0*log(mass/basicBase%mass())/mergerTreeFormationExpansionFactor)
     ! Find the time corresponding to this expansion factor.
     wechsler2002Time=self%cosmologyFunctions_%cosmicTime(expansionFactor)
     return
@@ -195,25 +195,25 @@ contains
     class           (darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout) :: self
     type            (treeNode                                      ), intent(inout) :: node
     double precision                                                , intent(in   ) :: time
-    class           (nodeComponentBasic                            ), pointer       :: baseBasic
+    class           (nodeComponentBasic                            ), pointer       :: basicBase
     double precision                                                                :: expansionFactor                   , expansionFactorBase, &
          &                                                                             mergerTreeFormationExpansionFactor
 
-    baseBasic => node%basic()
+    basicBase => node%basic()
     select case (self%formationRedshiftCompute)
     case (.true.)
        ! Compute the expansion factor at formation.
-       mergerTreeFormationExpansionFactor=self%expansionFactorAtFormation(baseBasic%mass(),node)
+       mergerTreeFormationExpansionFactor=self%expansionFactorAtFormation(basicBase%mass(),node)
     case (.false.)
        ! Use the specified formation redshift.
        mergerTreeFormationExpansionFactor=self%cosmologyFunctions_%expansionFactorFromRedshift(self%formationRedshift)
     end select
     ! Get the expansion factor at the tree base.
-    expansionFactorBase=self%cosmologyFunctions_%expansionFactor(baseBasic%time())
+    expansionFactorBase=self%cosmologyFunctions_%expansionFactor(basicBase%time())
     ! Get the expansion factor at the current time.
     expansionFactor    =self%cosmologyFunctions_%expansionFactor(          time  )
     ! Compute the mass accretion rate.
-    wechsler2002MassAccretionRate=+baseBasic%mass()                                        &
+    wechsler2002MassAccretionRate=+basicBase%mass()                                        &
          &                        *2.0d0                                                   &
          &                        *mergerTreeFormationExpansionFactor                      &
          &                        *expansionFactorBase                                     &

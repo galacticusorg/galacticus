@@ -334,13 +334,13 @@ contains
     currentTree               => tree
     do while (associated(currentTree))
        ! Skip empty trees.
-       if (associated(currentTree%baseNode)) then
+       if (associated(currentTree%nodeBase)) then
           ! Initialize the tree if necessary.
           !$ if (present(initializationLock)) call OMP_Set_Lock  (initializationLock)
           call self%mergerTreeInitializor_%initialize(currentTree,timeEnd)
           !$ if (present(initializationLock)) call OMP_Unset_Lock(initializationLock)
           ! Check that the output time is not after the end time of this tree.
-          basicBase => currentTree%baseNode%basic()
+          basicBase => currentTree%nodeBase%basic()
           if (timeEnd > basicBase%time()) then
              ! Final time is exceeded. Check if by a significant factor.
              if (timeEnd > basicBase%time()*(1.0d0+timeTolerance)) then
@@ -357,7 +357,7 @@ contains
              else
                 ! Not exceeded by a significant factor (can happen due to approximation errors). Unless there is an event
                 ! associated with this node at the current time, simply reset to actual time requested.
-                event => currentTree%baseNode%event
+                event => currentTree%nodeBase%event
                 do while (associated(event))
                    if (event%time == basicBase%time()) then
                       vMessage=          'requested time exceeds the final time in the tree by a small factor'  //char(10)
@@ -439,9 +439,9 @@ contains
           currentTree => tree
           treesLoop: do while (associated(currentTree))
              ! Skip empty trees.
-             if (associated(currentTree%baseNode)) then
+             if (associated(currentTree%nodeBase)) then
                 ! Find the final time in this tree.
-                node            => currentTree%baseNode
+                node            => currentTree%nodeBase
                 basic           => node       %basic   ()
                 finalTimeInTree =  basic      %time    ()
                 ! Report on current tree if deadlocked.
@@ -451,7 +451,7 @@ contains
                    call displayIndent(vMessage)
                 end if
                 ! Point to the base of the tree.
-                node => currentTree%baseNode
+                node => currentTree%nodeBase
                 ! Get the basic component of the node.
                 basic => node%basic()
                 ! Tree walk loop: Walk to each node in the tree and consider whether or not to evolve it.
@@ -810,7 +810,7 @@ contains
     treeEvent_ => node%hostTree%event
     do while (associated(treeEvent_))
        if (max(treeEvent_%time,timeNode) <= evolveToTime) then
-          if (present(nodeLock)) nodeLock => node%hostTree%baseNode
+          if (present(nodeLock)) nodeLock => node%hostTree%nodeBase
           if (present(lockType)) then
              lockType =  "tree event ("
              lockType=lockType//treeEvent_%ID//")"
@@ -820,7 +820,7 @@ contains
        if (report) then
           message="tree event ("
           message=message//treeEvent_%ID//"): "
-          call Evolve_To_Time_Report(char(message),evolveToTime,node%hostTree%baseNode%index())
+          call Evolve_To_Time_Report(char(message),evolveToTime,node%hostTree%nodeBase%index())
        end if
        treeEvent_ => treeEvent_%next
     end do
@@ -1067,7 +1067,7 @@ contains
     ! If no deadlock list exists, simply return.
     if (.not.associated(self%deadlockHeadNode)) return
     ! Begin tree.
-    deadlockFileName=var_str('galacticusDeadlockTree_')//self%deadlockHeadNode%node%hostTree%baseNode%uniqueID()//'.gv'
+    deadlockFileName=var_str('galacticusDeadlockTree_')//self%deadlockHeadNode%node%hostTree%nodeBase%uniqueID()//'.gv'
     open(newUnit=treeUnit,file=char(deadlockFileName),status='unknown',form='formatted')
     write (treeUnit,*) 'digraph Tree {'
     ! Find any nodes that cause a lock but which are not in our list.

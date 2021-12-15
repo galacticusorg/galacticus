@@ -158,11 +158,11 @@ contains
     ! Get the mass resolution for this tree.
     massResolution =  self%       mergerTreeMassResolution_%resolution(tree)
     ! Extract the base node properties.
-    nodeCurrent    => tree                                 %baseNode
+    nodeCurrent    => tree                                 %nodeBase
     basic          => nodeCurrent                          %basic     (    )
     indexNode      =  nodeCurrent                          %index     (    )
     ! Begin building. Steo backward in time, creating nodes until a sufficiently low mass has been reached.
-    nodeCurrent    => tree                                 %baseNode
+    nodeCurrent    => tree                                 %nodeBase
     massNode       =  basic                                %mass      (    )
     timeNode       =  basic                                %time      (    )
     do while (massNode > massResolution .and. timeNode > self%timeEarliest)
@@ -174,7 +174,7 @@ contains
        massNode  =  +      massNode             &
             &       *self%massHaloDeclineFactor
        ! Find the time corresponding to this mass.
-       timeNode  =  +self%darkMatterHaloMassAccretionHistory_%time(tree%baseNode,massNode)
+       timeNode  =  +self%darkMatterHaloMassAccretionHistory_%time(tree%nodeBase,massNode)
        ! Set the properties of the new node.
        call basic%            massSet(massNode)
        call basic%            timeSet(timeNode)

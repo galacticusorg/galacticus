@@ -631,14 +631,14 @@ contains
     ! Build an integrator.
     integrator_=integrator(subhaloMassFunctionIntegrand,toleranceRelative=1.0d-3,integrationRule=GSL_Integ_Gauss15)
     ! Create a node object, assume zero environmental overdensity.
-    tree%baseNode          => treeNode()
-    tree%baseNode%hostTree => tree
+    tree%nodeBase          => treeNode()
+    tree%nodeBase%hostTree => tree
     call tree                   %properties%initialize(                               )
     if (haloEnvironment_%overdensityIsSettable())                                       &
-         & call haloEnvironment_%overdensityLinearSet (tree%baseNode,overdensity=0.0d0)
+         & call haloEnvironment_%overdensityLinearSet (tree%nodeBase,overdensity=0.0d0)
     ! Get the basic and dark matter profile components.
-    basic                 => tree%baseNode%basic            (autoCreate=.true.)
-    darkMatterProfileHalo => tree%baseNode%darkMatterProfile(autoCreate=.true.)
+    basic                 => tree%nodeBase%basic            (autoCreate=.true.)
+    darkMatterProfileHalo => tree%nodeBase%darkMatterProfile(autoCreate=.true.)
     ! Iterate over all output times.    
     do iOutput=outputCount,1,-1
        ! Compute characteristic densities.
@@ -651,11 +651,11 @@ contains
        !$omp do
        do iMass=1,massCount
           ! Reset calculations.
-          call Galacticus_Calculations_Reset(tree%baseNode)
+          call Galacticus_Calculations_Reset(tree%nodeBase)
           ! Set the mass in the node.
           call basic                %massSet (massHalo                            (iMass        ))
           ! Set the node scale radius.
-          call darkMatterProfileHalo%scaleSet(darkMatterProfileScaleRadius_%radius(tree%baseNode))
+          call darkMatterProfileHalo%scaleSet(darkMatterProfileScaleRadius_%radius(tree%nodeBase))
           ! Compute bin interval.
           massHaloBinMinimum=massHalo(iMass)*exp(-0.5*massHaloLogarithmicInterval)
           massHaloBinMaximum=massHalo(iMass)*exp(+0.5*massHaloLogarithmicInterval)
@@ -668,11 +668,11 @@ contains
           else
              peakHeight                                 (iMass,iOutput)=+0.0d0
           end if
-          massFunctionDifferentialLogarithmicBinAveraged(iMass,iOutput)=+haloMassFunction_                 %integrated                     (massLow=massHaloBinMinimum       ,massHigh=massHaloBinMaximum       ,time=outputTimes(iOutput),node=tree%baseNode)    &
+          massFunctionDifferentialLogarithmicBinAveraged(iMass,iOutput)=+haloMassFunction_                 %integrated                     (massLow=massHaloBinMinimum       ,massHigh=massHaloBinMaximum       ,time=outputTimes(iOutput),node=tree%nodeBase)    &
                &                                                        /massHaloLogarithmicInterval
-          massFunctionDifferential                      (iMass,iOutput)=+haloMassFunction_                 %differential                   (mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput),node=tree%baseNode)
-          massFunctionCumulative                        (iMass,iOutput)=+haloMassFunction_                 %integrated                     (massLow=massHalo          (iMass),massHigh=haloMassEffectiveInfinity,time=outputTimes(iOutput),node=tree%baseNode)
-          massFunctionMassFraction                      (iMass,iOutput)=+haloMassFunction_                 %massFraction                   (massLow=massHalo          (iMass),massHigh=haloMassEffectiveInfinity,time=outputTimes(iOutput),node=tree%baseNode)
+          massFunctionDifferential                      (iMass,iOutput)=+haloMassFunction_                 %differential                   (mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput),node=tree%nodeBase)
+          massFunctionCumulative                        (iMass,iOutput)=+haloMassFunction_                 %integrated                     (massLow=massHalo          (iMass),massHigh=haloMassEffectiveInfinity,time=outputTimes(iOutput),node=tree%nodeBase)
+          massFunctionMassFraction                      (iMass,iOutput)=+haloMassFunction_                 %massFraction                   (massLow=massHalo          (iMass),massHigh=haloMassEffectiveInfinity,time=outputTimes(iOutput),node=tree%nodeBase)
           if (massFunctionDifferential(iMass,iOutput) > 0.0d0) then
              peakHeightMassFunction                     (iMass,iOutput)=+massHalo                                                          (                           iMass                                                                                 )**2 &
                   &                                                     *massFunctionDifferential                                          (                           iMass                                    ,                 iOutput                    )    &
@@ -684,17 +684,17 @@ contains
           else
              peakHeightMassFunction                     (iMass,iOutput)=+0.0d0
           end if
-          biasHalo                                      (iMass,iOutput)=darkMatterHaloBias_                %bias                           (                                                                                               node=tree%baseNode)
-          velocityVirial                                (iMass,iOutput)=darkMatterHaloScale_               %virialVelocity                 (                                                                                               node=tree%baseNode)
-          temperatureVirial                             (iMass,iOutput)=darkMatterHaloScale_               %virialTemperature              (                                                                                               node=tree%baseNode)
-          radiusVirial                                  (iMass,iOutput)=darkMatterHaloScale_               %virialRadius                   (                                                                                               node=tree%baseNode)
-          velocityMaximum                               (iMass,iOutput)=darkMatterProfileDMO_              %circularVelocityMaximum        (                                                                                               node=tree%baseNode)
+          biasHalo                                      (iMass,iOutput)=darkMatterHaloBias_                %bias                           (                                                                                               node=tree%nodeBase)
+          velocityVirial                                (iMass,iOutput)=darkMatterHaloScale_               %virialVelocity                 (                                                                                               node=tree%nodeBase)
+          temperatureVirial                             (iMass,iOutput)=darkMatterHaloScale_               %virialTemperature              (                                                                                               node=tree%nodeBase)
+          radiusVirial                                  (iMass,iOutput)=darkMatterHaloScale_               %virialRadius                   (                                                                                               node=tree%nodeBase)
+          velocityMaximum                               (iMass,iOutput)=darkMatterProfileDMO_              %circularVelocityMaximum        (                                                                                               node=tree%nodeBase)
           darkMatterProfileRadiusScale                  (iMass,iOutput)=darkMatterProfileHalo              %scale                          (                                                                                                                 )
           if (self%includeMassAccretionRate) &
-               & massAccretionRate                      (iMass,iOutput)=darkMatterHaloMassAccretionHistory_%massAccretionRate              (                                                                     time=outputTimes(iOutput),node=tree%baseNode)
+               & massAccretionRate                      (iMass,iOutput)=darkMatterHaloMassAccretionHistory_%massAccretionRate              (                                                                     time=outputTimes(iOutput),node=tree%nodeBase)
           ! Compute alternate mass definitions for halos.
           do iAlternate=1,size(self%virialDensityContrasts)
-             massAlternate(iAlternate,iMass,iOutput)=Dark_Matter_Profile_Mass_Definition(tree%baseNode,virialDensityContrasts(iAlternate)%virialDensityContrast_%densityContrast(mass=massHalo(iMass),time=outputTimes(iOutput)),radius=radiusAlternate(iAlternate,iMass,iOutput),cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_,darkMatterProfileDMO_=darkMatterProfileDMO_,virialDensityContrast_=virialDensityContrast_)
+             massAlternate(iAlternate,iMass,iOutput)=Dark_Matter_Profile_Mass_Definition(tree%nodeBase,virialDensityContrasts(iAlternate)%virialDensityContrast_%densityContrast(mass=massHalo(iMass),time=outputTimes(iOutput)),radius=radiusAlternate(iAlternate,iMass,iOutput),cosmologyParameters_=cosmologyParameters_,cosmologyFunctions_=cosmologyFunctions_,darkMatterProfileDMO_=darkMatterProfileDMO_,virialDensityContrast_=virialDensityContrast_)
           end do
           ! Integrate the unevolved subhalo mass function over the halo mass function to get the total subhalo mass function.
           if (self%includeUnevolvedSubhaloMassFunction)                                                                                   &
@@ -878,7 +878,7 @@ contains
       mass=exp(logMass)
       ! Return the differential halo mass function multiplied by the integrated unevolved subhalo mass function in such hosts.
       subhaloMassFunctionIntegrand=+                                                                                                          mass                     &
-           &                       *haloMassFunction_            %differential(outputTimes(iOutput)                                          ,mass,node=tree%baseNode) &
+           &                       *haloMassFunction_            %differential(outputTimes(iOutput)                                          ,mass,node=tree%nodeBase) &
            &                       *unevolvedSubhaloMassFunction_%integrated  (outputTimes(iOutput),massHalo(iMass),haloMassEffectiveInfinity,mass                   )
       return
     end function subhaloMassFunctionIntegrand

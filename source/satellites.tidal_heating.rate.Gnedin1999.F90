@@ -160,17 +160,17 @@ contains
     type            (treeNode                           ), pointer       :: nodeHost
     class           (nodeComponentBasic                 ), pointer       :: basic
     double precision                                     , dimension(3)  :: position                 , velocity
-    double precision                                                     :: satelliteMass            , velocityCircularSatellite, &
+    double precision                                                     :: massSatellite            , velocityCircularSatellite, &
          &                                                                  radius                   , speed                    , &
          &                                                                  timescaleShock           , heatingRateNormalized    , &
          &                                                                  orbitalFrequencySatellite, radiusHalfMassSatellite  , &
-         &                                                                  satelliteHalfMass        , fractionDarkMatter
+         &                                                                  massHalfSatellite        , fractionDarkMatter
     type            (tensorRank2Dimension3Symmetric     )                :: tidalTensor              , tidalTensorPathIntegrated
     
     ! Construct required properties of satellite and host.
     nodeHost                  => node     %mergesWith               (        )
     satellite                 => node     %satellite                (        )
-    satelliteMass             =  satellite%boundMass                (        )
+    massSatellite             =  satellite%boundMass                (        )
     position                  =  satellite%position                 (        )
     velocity                  =  satellite%velocity                 (        )
     tidalTensorPathIntegrated =  satellite%tidalTensorPathIntegrated(        )
@@ -186,15 +186,15 @@ contains
     tidalTensor              =  self%galacticStructure_%tidalTensor(nodeHost,position)
     ! Find the orbital frequency at the half mass radius of the satellite.
     basic                    => node%basic()
-    satelliteHalfMass        =  +0.50d0             &
+    massHalfSatellite        =  +0.50d0             &
          &                      *fractionDarkMatter &
          &                      *min(               &
-         &                           satelliteMass, &
+         &                           massSatellite, &
          &                           basic%mass()   &
          &                      )
     radiusHalfMassSatellite  =  self%galacticStructure_%radiusEnclosingMass(                                            &
          &                                                                   node                                     , &
-         &                                                                   mass                   =satelliteHalfMass, &
+         &                                                                   mass                   =massHalfSatellite, &
          &                                                                   componentType          =componentTypeAll , &
          &                                                                   massType               =massTypeDark       &
          &                                                                  )

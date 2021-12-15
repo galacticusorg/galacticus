@@ -75,7 +75,7 @@ program Tests_Bug745815
   nodes(3)%node%firstSatellite => nodes(5)%node
 
   ! Set the base node of our tree.
-  tree%baseNode => nodes(1)%node
+  tree%nodeBase => nodes(1)%node
 
   ! Walk the tree, with satellites.
   nodeFound=.false.

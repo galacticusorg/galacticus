@@ -1288,7 +1288,7 @@ contains
                   &      )
           end if
           ! Apply any tree initialization operators.
-          call self%nodeOperator_%nodeTreeInitialize(tree%baseNode)
+          call self%nodeOperator_%nodeTreeInitialize(tree%nodeBase)
           ! Assign named properties.
           if     (                                    &
                &   size(self%presetNamedReals   ) > 0 &
@@ -1802,8 +1802,8 @@ contains
                 nodeList(iIsolatedNode)%node%parent  => null()
                 ! Find a tree to attach this base node to. Begin with the original tree passed to us.
                 treeCurrent => tree
-                ! Check if its baseNode is already assigned.
-                do while (associated(treeCurrent%baseNode))
+                ! Check if its nodeBase is already assigned.
+                do while (associated(treeCurrent%nodeBase))
                    ! While it is, create the next tree (unless it already exists), then step to it.
                    if (.not.associated(treeCurrent%nextTree)) then
                       allocate(treeCurrent%nextTree)
@@ -1821,7 +1821,7 @@ contains
                 end do
                 ! Assign this node as the base node of the current tree.
                 treeCurrent   %firstTree        => tree
-                treeCurrent   %baseNode         => nodeList(iIsolatedNode)%node
+                treeCurrent   %nodeBase         => nodeList(iIsolatedNode)%node
                 if (self%treeIndexToRootNodeIndex) then
                    treeCurrent%index            =  nodes   (iNode        )%nodeIndex
                 else

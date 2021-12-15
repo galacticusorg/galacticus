@@ -67,7 +67,7 @@ module Galacticus_Nodes
      integer         (kind=kind_int8            )                  :: index
      type            (hdf5Object                )                  :: hdf5Group
      double precision                                              :: volumeWeight                    , initializedUntil
-     type            (treeNode                  ), pointer         :: baseNode               => null()
+     type            (treeNode                  ), pointer         :: nodeBase               => null()
      type            (mergerTree                ), pointer         :: nextTree               => null(), firstTree        => null()
      type            (universe                  ), pointer         :: hostUniverse           => null()
      type            (treeEvent                 ), pointer, public :: event                  => null()
@@ -1486,9 +1486,9 @@ module Galacticus_Nodes
     select type (tree)
     type is (mergerTree)
        ! Destroy all nodes.
-       if (associated(tree%baseNode)) then
-          call tree%baseNode%destroyBranch()
-          deallocate(tree%baseNode)
+       if (associated(tree%nodeBase)) then
+          call tree%nodeBase%destroyBranch()
+          deallocate(tree%nodeBase)
        end if
        ! Destroy the HDF5 group associated with this tree.
        call tree%hdf5Group%destroy()
@@ -1522,7 +1522,7 @@ module Galacticus_Nodes
     Merger_Tree_Node_Get => null()
     treeCurrent => tree
     do while (associated(treeCurrent))
-       node => treeCurrent%baseNode
+       node => treeCurrent%nodeBase
        do while (associated(node))
           if (node%index() == nodeIndex) then
              Merger_Tree_Node_Get => node
@@ -1606,7 +1606,7 @@ module Galacticus_Nodes
     Merger_Tree_Earliest_Time =  timeInfinity
     treeCurrent               => self
     do while (associated(treeCurrent))
-       node => treeCurrent%baseNode
+       node => treeCurrent%nodeBase
        do while (associated(node))
           if (.not.associated(node%firstChild)) then
              basic                     =>                               node %basic()
@@ -1633,7 +1633,7 @@ module Galacticus_Nodes
     Merger_Tree_Earliest_Time_Evolving =  timeInfinity
     treeCurrent                        => self
     do while (associated(treeCurrent))
-       node => treeCurrent%baseNode
+       node => treeCurrent%nodeBase
        do while (associated(node))
           if (.not.associated(node%firstChild).and.(associated(node%parent).or..not.associated(node%firstSatellite))) then
              basic                              =>                                        node %basic()
@@ -1653,14 +1653,14 @@ module Galacticus_Nodes
     implicit none
     class           (mergerTree        ), intent(inout), target :: self
     type            (mergerTree        ), pointer               :: treeCurrent
-    class           (nodeComponentBasic), pointer               :: baseBasic
+    class           (nodeComponentBasic), pointer               :: basicBase
 
     Merger_Tree_Latest_Time =  -1.0d0
     treeCurrent             => self
     do while (associated(treeCurrent))
-       if (associated(treeCurrent%baseNode)) then
-          baseBasic               =>                             treeCurrent%baseNode%basic()
-          Merger_Tree_Latest_Time =  max(Merger_Tree_Latest_Time,baseBasic  %time          ())
+       if (associated(treeCurrent%nodeBase)) then
+          basicBase               =>                             treeCurrent%nodeBase%basic()
+          Merger_Tree_Latest_Time =  max(Merger_Tree_Latest_Time,basicBase  %time          ())
        end if
        treeCurrent => treeCurrent%nextTree
     end do

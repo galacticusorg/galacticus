@@ -178,7 +178,7 @@ contains
     call Node_Components_Thread_Initialize(self%parameters)
     ! Build a node and components.
     node     => treeNode         (                 )
-    tree    %baseNode => node
+    tree    %nodeBase => node
     node%hostTree => tree
     disk     => node    %disk    (autoCreate=.true.)
     spheroid => node    %spheroid(autoCreate=.true.)

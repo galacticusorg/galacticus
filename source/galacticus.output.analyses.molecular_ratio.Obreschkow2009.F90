@@ -186,15 +186,15 @@ contains
     double precision                                            , intent(in   ) :: massISM
     type            (treeNode                                  ), intent(inout) :: node
     class           (nodeComponentDisk                         ), pointer       :: disk
-    double precision                                                            :: massStellar          , diskRadius    , &
+    double precision                                                            :: massStellar          , radiusDisk    , &
          &                                                                         molecularRatioCentral
 
     ! Get disk properties.
     disk        => node%disk       ()
     massStellar =  disk%massStellar()
-    diskRadius  =  disk%radius     ()
+    radiusDisk  =  disk%radius     ()
     ! Get the molecular to atomic mass ratio (H₂/HI).
-    if (diskRadius <= 0.0d0 .or. massStellar < 0.0d0) then
+    if (radiusDisk <= 0.0d0 .or. massStellar < 0.0d0) then
        obreschkow2009Ratio=1.0d0
     else
        molecularRatioCentral   &
@@ -208,7 +208,7 @@ contains
             &     +self%fSigma &
             &     *massStellar &
             &    )             &
-            &   /diskRadius**4 &
+            &   /radiusDisk**4 &
             &  )**self%beta
        if (molecularRatioCentral > 0.0d0) then
           ! Find the H₂/HI ratio using eqn. (15) of Obreschkow et al. (2009).

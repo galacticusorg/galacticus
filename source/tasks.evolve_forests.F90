@@ -377,8 +377,8 @@ contains
     type            (mergerTreeWalkerAllNodes     )                           , save :: treeWalkerAll
     !$omp threadprivate(currentTree,previousTree,treeWalkerAll)
     type            (treeNode                     ), pointer                  , save :: satelliteNode
-    class           (nodeComponentBasic           ), pointer                  , save :: baseNodeBasic
-    !$omp threadprivate(satelliteNode,baseNodeBasic,treeIsFinished,evolutionIsEventLimited,success,removeTree,suspendTree,treeDidEvolve)
+    class           (nodeComponentBasic           ), pointer                  , save :: basicNodeBase
+    !$omp threadprivate(satelliteNode,basicNodeBase,treeIsFinished,evolutionIsEventLimited,success,removeTree,suspendTree,treeDidEvolve)
     type            (universeEvent                ), pointer                  , save :: event_
     !$omp threadprivate(event_)
     ! Variables used in processing individual forests in parallel.
@@ -515,18 +515,18 @@ contains
           singleForestEvolveTime : if (OMP_Get_Thread_Num() == 0 .or. .not.self%evolveSingleForest) then
              ! If this is a new tree, perform any pre-evolution tasks on it.
              if (treeIsNew) then
-                call evolveForestsNodeOperator_      %nodeTreeInitialize (tree%baseNode)
+                call evolveForestsNodeOperator_      %nodeTreeInitialize (tree%nodeBase)
                 call evolveForestsMergerTreeOperator_%operatePreEvolution(tree         )
                 message="Evolving tree number "
              else
                 message="Resuming tree number "
              end if
              ! Display a message.
-             message=message//tree%index//" {"//tree%baseNode%index()//"}"
+             message=message//tree%index//" {"//tree%nodeBase%index()//"}"
              call displayIndent(message)
              ! Determine if this will be the final forest evolved by multiple threads.
              if (self%evolveSingleForest) then
-                basic =>tree%baseNode%basic()
+                basic =>tree%nodeBase%basic()
                 if (basic%mass() < self%evolveSingleForestMassMinimum) disableSingleForestEvolution=.true.
              end if
              ! Get the next time to which the tree should be evolved.
@@ -610,7 +610,7 @@ contains
                                !![
                                <referenceCountIncrement owner="branchNew%branch" object="randomNumberGenerator_"/>
                                !!]
-                               branchNew%branch%baseNode   => node
+                               branchNew%branch%nodeBase   => node
                                branchNew       %nodeParent => node%parent
                                node            %hostTree   => branchNew%branch
                                if (associated(branchList_)) then
@@ -631,16 +631,16 @@ contains
                          countBranch =  0
                          do while (associated(branchNew))
                             countBranch             =  countBranch                        +1
-                            basic                   => branchNew  %branch%baseNode%basic()
+                            basic                   => branchNew  %branch%nodeBase%basic()
                             massBranch(countBranch) =  basic                      %mass ()
                             branchNew               => branchNew                  %next
                          end do
                          rankBranch=sortIndex(massBranch)
                          ! Process trees.
                          currentTree => tree
-                         if (associated(currentTree%baseNode)) then
+                         if (associated(currentTree%nodeBase)) then
                             do while (associated(currentTree))
-                               basic => currentTree%baseNode%basic()
+                               basic => currentTree%nodeBase%basic()
                                call evolveForestsMergerTreeInitializor_%initialize(currentTree,basic%time())
                                currentTree => currentTree%nextTree
                             end do
@@ -666,8 +666,8 @@ contains
                          do i=1,rankBranch(countBranch+1-iBranch)-1
                             branchNew => branchNew%next
                          end do
-                         branchNew%branch%baseNode%parent =>                           null ()
-                         basic                            => branchNew%branch%baseNode%basic()
+                         branchNew%branch%nodeBase%parent =>                           null ()
+                         basic                            => branchNew%branch%nodeBase%basic()
                          call evolveForestsMergerTreeEvolver_%evolve(                                        &
                               &                                          branchNew    %branch              , &
                               &                                      min(                                    &
@@ -693,9 +693,9 @@ contains
                       ! Clean up.
                       branchNew => branchList_
                       do while (associated(branchNew))
-                         branchNew%branch%baseNode%hostTree => branchNew%nodeParent%hostTree
-                         branchNew%branch%baseNode%parent   => branchNew%nodeParent
-                         branchNew%branch%baseNode          => null()
+                         branchNew%branch%nodeBase%hostTree => branchNew%nodeParent%hostTree
+                         branchNew%branch%nodeBase%parent   => branchNew%nodeParent
+                         branchNew%branch%nodeBase          => null()
                          call branchNew%branch%destroy()
                          branchNext => branchNew%next
                          deallocate(branchNew)
@@ -733,14 +733,14 @@ contains
                 currentTree  => tree
                 do while (associated(currentTree))
                    ! Skip empty trees.
-                   if (associated(currentTree%baseNode)) then
-                      baseNodeBasic => currentTree%baseNode%basic()
-                      removeTree    =   .not.associated(currentTree%baseNode%firstChild) &
+                   if (associated(currentTree%nodeBase)) then
+                      basicNodeBase => currentTree%nodeBase%basic()
+                      removeTree    =   .not.associated(currentTree%nodeBase%firstChild) &
                            &           .and.                                             &
-                           &            (baseNodeBasic%time() < evolveToTime)
+                           &            (basicNodeBase%time() < evolveToTime)
                       if (removeTree) then
                          ! Does the node have attached satellites which are about to merge?
-                         satelliteNode => currentTree%baseNode%firstSatellite
+                         satelliteNode => currentTree%nodeBase%firstSatellite
                          do while (associated(satelliteNode))
                             if (associated(satelliteNode%mergeTarget)) then
                                removeTree=.false.
@@ -749,7 +749,7 @@ contains
                             satelliteNode => satelliteNode%sibling
                          end do
                          ! Does the node have attached events?
-                         if (associated(currentTree%baseNode%event)) removeTree=.false.
+                         if (associated(currentTree%nodeBase%event)) removeTree=.false.
                       end if
                    else
                       ! No need to remove already empty trees.
@@ -757,7 +757,7 @@ contains
                    end if
                    if (removeTree) then
                       message="Removing remnant tree "
-                      message=message//currentTree%index//" {"//currentTree%baseNode%index()//"}"
+                      message=message//currentTree%index//" {"//currentTree%nodeBase%index()//"}"
                       call displayMessage(message,verbosityLevelInfo)
                       if (.not.associated(previousTree)) then
                          nextTree    => currentTree%nextTree
@@ -1014,7 +1014,7 @@ contains
     class  (taskEvolveForests)         , intent(inout) :: self
     type   (mergerTree       ), pointer, intent(inout) :: tree
     type   (mergerTree       ), pointer                :: treeCurrent     , branchNext
-    integer(kind_int8        )                         :: baseNodeUniqueID
+    integer(kind_int8        )                         :: uniqueIDNodeBase
     type   (varying_string   )                         :: fileName
 
 #ifdef USEMPI
@@ -1023,9 +1023,9 @@ contains
     ! If the tree is to be suspended to file do so now.
     if (.not.self%suspendToRAM) then
        ! Make a copy of the unique ID of the base node.
-       baseNodeUniqueID=tree%baseNode%uniqueID()
+       uniqueIDNodeBase=tree%nodeBase%uniqueID()
        ! Generate a suitable file name.
-       fileName=self%suspendPath//'/suspendedTree_'//baseNodeUniqueID
+       fileName=self%suspendPath//'/suspendedTree_'//uniqueIDNodeBase
        ! Store the tree to file.
        call mergerTreeStateStore(tree,char(fileName),snapshot=.false.,append=.false.)
        ! Destroy the tree(s).
@@ -1036,7 +1036,7 @@ contains
           treeCurrent => branchNext
        end do
        ! Set the tree index to the base node unique ID so that we can resume from the correct file.
-       tree%index=baseNodeUniqueID
+       tree%index=uniqueIDNodeBase
     end if
     !$omp critical(universeTransform)
     call self%universeProcessed%pushTree(tree)

@@ -192,7 +192,7 @@ contains
     double precision                                    , parameter             :: massComponentMinimum=1.0d-30
     double precision                                                            :: massComponent                  , factorDarkMatterDiskHost         , &
          &                                                                         radiusHalfMassDiskHost         , factorDarkMatterSpheroidHost     , &
-         &                                                                         hostSpheroidHalfMassRadius     , factorDarkMatterDiskSatellite    , &
+         &                                                                         radiusHalfMassSpheroidHost     , factorDarkMatterDiskSatellite    , &
          &                                                                         radiusHalfMassDiskSatellite    , factorDarkMatterSpheroidSatellite, &
          &                                                                         radiusHalfMassSpheroidSatellite
     integer                                                                     :: destinationGasSatellite        , destinationGasHost               , &
@@ -214,11 +214,11 @@ contains
     ! of the remnant from its mass and radius.
     massComponent                  =+spheroidHost     %massStellar   () &
          &                          +spheroidHost     %massGas       ()
-    hostSpheroidHalfMassRadius     =+spheroidHost     %halfMassRadius()
-    if (hostSpheroidHalfMassRadius > 0.0d0 .and. massComponent > massComponentMinimum) then
+    radiusHalfMassSpheroidHost     =+spheroidHost     %halfMassRadius()
+    if (radiusHalfMassSpheroidHost > 0.0d0 .and. massComponent > massComponentMinimum) then
        factorDarkMatterSpheroidHost     =+spheroidHost%angularMomentum()                                        &
             &                            /massComponent**1.5d0                                                  &
-            &                            /sqrt(gravitationalConstantGalacticus*hostSpheroidHalfMassRadius     )
+            &                            /sqrt(gravitationalConstantGalacticus*radiusHalfMassSpheroidHost     )
     else
        factorDarkMatterSpheroidHost     =+0.0d0
     end if
@@ -256,7 +256,7 @@ contains
     select case (destinationGasHost)
     case (destinationMergerSpheroid)
        massSpheroidHost      =spheroidHost%massGas()                             +diskHost%massGas()
-       radiusHost            =spheroidHost%massGas()*hostSpheroidHalfMassRadius  +diskHost%massGas()*radiusHalfMassDiskHost
+       radiusHost            =spheroidHost%massGas()*radiusHalfMassSpheroidHost  +diskHost%massGas()*radiusHalfMassDiskHost
        factorAngularMomentum =spheroidHost%massGas()*factorDarkMatterSpheroidHost+diskHost%massGas()*factorDarkMatterDiskHost
        massGasSpheroidRemnant=spheroidHost%massGas()                             +diskHost%massGas()
        massSpheroidRemnant   =spheroidHost%massGas()                             +diskHost%massGas()
@@ -268,7 +268,7 @@ contains
        massSpheroidRemnant   =0.0d0
     case (destinationMergerUnmoved)
        massSpheroidHost      =spheroidHost%massGas()
-       radiusHost            =spheroidHost%massGas()*hostSpheroidHalfMassRadius
+       radiusHost            =spheroidHost%massGas()*radiusHalfMassSpheroidHost
        factorAngularMomentum =spheroidHost%massGas()*factorDarkMatterSpheroidHost
        massGasSpheroidRemnant=spheroidHost%massGas()
        massSpheroidRemnant   =spheroidHost%massGas()
@@ -278,7 +278,7 @@ contains
     select case (destinationStarsHost)
     case (destinationMergerSpheroid)
        massSpheroidHost     =massSpheroidHost     +spheroidHost%massStellar()                             +diskHost%massStellar()
-       radiusHost           =radiusHost           +spheroidHost%massStellar()*hostSpheroidHalfMassRadius  +diskHost%massStellar()*radiusHalfMassDiskHost
+       radiusHost           =radiusHost           +spheroidHost%massStellar()*radiusHalfMassSpheroidHost  +diskHost%massStellar()*radiusHalfMassDiskHost
        factorAngularMomentum=factorAngularMomentum+spheroidHost%massStellar()*factorDarkMatterSpheroidHost+diskHost%massStellar()*factorDarkMatterDiskHost
        massSpheroidRemnant  =massSpheroidRemnant  +spheroidHost%massStellar()                             +diskHost%massStellar()
     case (destinationMergerDisk)
@@ -287,7 +287,7 @@ contains
        factorAngularMomentum=factorAngularMomentum
     case (destinationMergerUnmoved)
        massSpheroidHost     =massSpheroidHost     +spheroidHost%massStellar()
-       radiusHost           =radiusHost           +spheroidHost%massStellar()*hostSpheroidHalfMassRadius
+       radiusHost           =radiusHost           +spheroidHost%massStellar()*radiusHalfMassSpheroidHost
        factorAngularMomentum=factorAngularMomentum+spheroidHost%massStellar()*factorDarkMatterSpheroidHost
        massSpheroidRemnant  =massSpheroidRemnant  +spheroidHost%massStellar()
     case default

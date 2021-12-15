@@ -297,7 +297,7 @@ contains
        tree%index            =  int(treeNumber)
        tree%initializedUntil =  0.0d0
        tree%firstTree        => tree
-       tree%baseNode         => null()
+       tree%nodeBase         => null()
        tree%event            => null()
        call tree%properties%initialize()
        ! Restart the random number sequence.
@@ -332,8 +332,8 @@ contains
           !$omp end critical (FoX_DOM_Access)
           ! Assign the tree root node if this node has no parent.
           if (.not.associated(nodeArray(i)%node%parent)) then
-             if (associated(tree%baseNode)) call Galacticus_Error_Report('multiple root nodes found in the tree'//{introspection:location})
-             tree%baseNode => nodeArray(i)%node
+             if (associated(tree%nodeBase)) call Galacticus_Error_Report('multiple root nodes found in the tree'//{introspection:location})
+             tree%nodeBase => nodeArray(i)%node
           end if
           ! Build components.
           call nodeArray(i)%node%componentBuilder(nodeDefinition)
@@ -345,7 +345,7 @@ contains
        ! Destroy the node array.
        deallocate(nodeArray)
        ! Check that we found a root node.
-       if (.not.associated(tree%baseNode)) call Galacticus_Error_Report('no root node was found'//{introspection:location})
+       if (.not.associated(tree%nodeBase)) call Galacticus_Error_Report('no root node was found'//{introspection:location})
     else
        nullify(tree)
     end if

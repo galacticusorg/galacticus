@@ -384,7 +384,7 @@ contains
     type            (treeNode            ), intent(inout), pointer :: node
     class           (nodeComponentHotHalo)               , pointer :: hotHaloCurrent, hotHalo
     class           (nodeEvent           )               , pointer :: event
-    double precision                                               :: hotHaloMass   , failedHotHaloMass
+    double precision                                               :: massHotHalo   , massFailedHotHalo
 
     ! If the very simple hot halo is not active, then return immediately.
     if (associated(node%firstChild).or..not.defaultHotHaloComponent%verySimpleIsActive()) return
@@ -411,14 +411,14 @@ contains
     select type (hotHaloCurrent)
     type is (nodeComponentHotHalo)
        ! Get the mass of hot gas accreted and the mass that failed to accrete.
-       hotHaloMass      =accretionHalo_%accretedMass      (node,accretionModeTotal)
-       failedHotHaloMass=accretionHalo_%failedAccretedMass(node,accretionModeTotal)
+       massHotHalo      =accretionHalo_%accretedMass      (node,accretionModeTotal)
+       massFailedHotHalo=accretionHalo_%failedAccretedMass(node,accretionModeTotal)
        ! If either is non-zero, then create a hot halo component and add these masses to it.
-       if (hotHaloMass > 0.0d0 .or. failedHotHaloMass > 0.0d0) then
+       if (massHotHalo > 0.0d0 .or. massFailedHotHalo > 0.0d0) then
           call Node_Component_Hot_Halo_Very_Simple_Create(node)
           hotHalo => node%hotHalo()
-          call hotHalo%          massSet(      hotHaloMass)
-          call hotHalo%unaccretedMassSet(failedHotHaloMass)
+          call hotHalo%          massSet(      massHotHalo)
+          call hotHalo%unaccretedMassSet(massFailedHotHalo)
           call hotHalo%    abundancesSet(   zeroAbundances)
        end if
     end select

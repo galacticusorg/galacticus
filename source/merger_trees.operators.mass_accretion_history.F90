@@ -199,7 +199,7 @@ contains
     do while (associated(treeCurrent))
        ! Count up number of entries expected for accretion history.
        accretionHistoryCount =  0
-       node                  => treeCurrent%baseNode
+       node                  => treeCurrent%nodeBase
        do while (associated(node))
           accretionHistoryCount =  accretionHistoryCount           +1
           node                  => node                 %firstChild
@@ -213,7 +213,7 @@ contains
        if (self%includeSpinVector) call allocateArray(nodeSpinVector     ,[int(accretionHistoryCount),3])
        ! Extract accretion history.
        accretionHistoryCount =  0
-       node                  => treeCurrent%baseNode
+       node                  => treeCurrent%nodeBase
        do while (associated(node))
           accretionHistoryCount                                               =  accretionHistoryCount+1
           basic                                                               =>                                          node%basic      (                 )

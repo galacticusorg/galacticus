@@ -163,7 +163,7 @@ contains
        else
           ! Entire tree can be pruned. Destroy all but this base node. (Leaving just
           ! the base node makes the tree inert - i.e. it can not do anything.)
-          node => treeCurrent%baseNode%firstChild
+          node => treeCurrent%nodeBase%firstChild
           do while (associated(node))
              nodePrevious => node%sibling
              call Merger_Tree_Prune_Clean_Branch(node)
