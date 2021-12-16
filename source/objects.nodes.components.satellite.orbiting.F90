@@ -40,6 +40,7 @@ module Node_Component_Satellite_Orbiting
   public :: Node_Component_Satellite_Orbiting_Scale_Set        , Node_Component_Satellite_Orbiting_Create             , &
        &    Node_Component_Satellite_Orbiting_Pre_Host_Change  , Node_Component_Satellite_Orbiting_Initialize         , &
        &    Node_Component_Satellite_Orbiting_Thread_Initialize, Node_Component_Satellite_Orbiting_Thread_Uninitialize, &
+       &    Node_Component_Satellite_Orbiting_State_Store      , Node_Component_Satellite_Orbiting_State_Restore      , &
        &    Node_Component_Satellite_Orbiting_Tree_Initialize
   
   !![
@@ -552,5 +553,51 @@ contains
     end select
     return
   end subroutine Node_Component_Satellite_Orbiting_Bound_Mass_Initialize
+
+  !![
+  <galacticusStateStoreTask>
+   <unitName>Node_Component_Satellite_Orbiting_State_Store</unitName>
+  </galacticusStateStoreTask>
+  !!]
+  subroutine Node_Component_Satellite_Orbiting_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentSatellite -> orbiting',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="darkMatterHaloScale_ virialOrbit_ darkMatterProfileDMO_ virialDensityContrast_ cosmologyParameters_ cosmologyFunctions_ galacticStructure_"/>
+    !!]
+    return
+  end subroutine Node_Component_Satellite_Orbiting_State_Store
+
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>Node_Component_Satellite_Orbiting_State_Restore</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
+  subroutine Node_Component_Satellite_Orbiting_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentSatellite -> orbiting',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="darkMatterHaloScale_ virialOrbit_ darkMatterProfileDMO_ virialDensityContrast_ cosmologyParameters_ cosmologyFunctions_ galacticStructure_"/>
+    !!]
+    return
+  end subroutine Node_Component_Satellite_Orbiting_State_Restore
 
 end module Node_Component_Satellite_Orbiting

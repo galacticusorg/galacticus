@@ -70,6 +70,7 @@ contains
     use :: Display            , only : displayGreen              , displayReset
     use :: Galacticus_Error   , only : Galacticus_Error_Report
     use :: Galacticus_Nodes   , only : treeNode
+    use :: ISO_Varying_String , only : varying_string            , operator(//), assignment(=)
     use :: Satellite_Promotion, only : Satellite_Move_To_New_Host
     use :: String_Handling    , only : operator(//)
     implicit none

@@ -32,7 +32,8 @@ module Hot_Halo_Mass_Distributions
        &    hotHaloMassDistributionEnclosedMass         , hotHaloMassDistributionRotationCurveGradient  , &
        &    hotHaloMassDistributionAcceleration         , hotHaloMassDistributionAccelerationTidalTensor, &
        &    hotHaloMassDistributionChandrasekharIntegral, hotHaloMassDistributionThreadInitialize       , &
-       &    hotHaloMassDistributionThreadUninitialize
+       &    hotHaloMassDistributionThreadUninitialize   , hotHaloMassDistributionDefaultStateStore      , &
+       &    hotHaloMassDistributionDefaultStateRestore
 
   !![
   <functionClass>
@@ -370,5 +371,51 @@ module Hot_Halo_Mass_Distributions
     hotHaloMassDistributionDensity=max(hotHaloMassDistribution_%density(node,positionSpherical(1)),0.0d0)
     return
   end function hotHaloMassDistributionDensity
+
+  !![
+  <galacticusStateStoreTask>
+   <unitName>hotHaloMassDistributionDefaultStateStore</unitName>
+  </galacticusStateStoreTask>
+  !!]
+  subroutine hotHaloMassDistributionDefaultStateStore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentDisk -> verySimple',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="hotHaloMassDistribution_ hotHaloTemperatureProfile_"/>
+    !!]
+    return
+  end subroutine hotHaloMassDistributionDefaultStateStore
+
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>hotHaloMassDistributionDefaultStateRestore</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
+  subroutine hotHaloMassDistributionDefaultStateRestore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentDisk -> verySimple',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="hotHaloMassDistribution_ hotHaloTemperatureProfile_"/>
+    !!]
+    return
+  end subroutine hotHaloMassDistributionDefaultStateRestore
 
 end module Hot_Halo_Mass_Distributions

@@ -32,10 +32,11 @@ module Node_Component_Basic_Standard_Extended
   use :: Virial_Density_Contrast , only : virialDensityContrastClass
   implicit none
   private
-  public :: Node_Component_Basic_Standard_Extended_Initialize, Node_Component_Basic_Standard_Extended_Node_Merger , &
-       &    Node_Component_Basic_Standard_Extended_Scale_Set , Node_Component_Basic_Extended_Bindings             , &
-       &    Node_Component_Basic_Extended_Thread_Initialize  , Node_Component_Basic_Extended_Thread_Uninitialize  , &
-       &    Node_Component_Basic_Standard_Extended_Rate_Compute
+  public :: Node_Component_Basic_Standard_Extended_Initialize  , Node_Component_Basic_Standard_Extended_Node_Merger , &
+       &    Node_Component_Basic_Standard_Extended_Scale_Set   , Node_Component_Basic_Extended_Bindings             , &
+       &    Node_Component_Basic_Extended_Thread_Initialize    , Node_Component_Basic_Extended_Thread_Uninitialize  , &
+       &    Node_Component_Basic_Standard_Extended_Rate_Compute, Node_Component_Basic_Extended_State_Store          , &
+       &    Node_Component_Basic_Extended_State_Restore
 
   !![
   <component>
@@ -502,5 +503,51 @@ contains
     call basic%radiusTurnaroundGrowthRateSet(basicParent%radiusTurnaroundGrowthRate())
     return
   end subroutine nodePromotion
+
+  !![
+  <galacticusStateStoreTask>
+   <unitName>Node_Component_Basic_Extended_State_Store</unitName>
+  </galacticusStateStoreTask>
+  !!]
+  subroutine Node_Component_Basic_Extended_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentBasic -> extended',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="cosmologyParameters_ cosmologyFunctions_ darkMatterProfileDMO_"/>
+    !!]
+    return
+  end subroutine Node_Component_Basic_Extended_State_Store
+
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>Node_Component_Basic_Extended_State_Restore</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
+  subroutine Node_Component_Basic_Extended_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentBasic -> extended',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="cosmologyParameters_ cosmologyFunctions_ darkMatterProfileDMO_"/>
+    !!]
+    return
+  end subroutine Node_Component_Basic_Extended_State_Restore
 
 end module Node_Component_Basic_Standard_Extended

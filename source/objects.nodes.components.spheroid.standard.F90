@@ -1512,7 +1512,7 @@ contains
    <unitName>Node_Component_Spheroid_Standard_State_Store</unitName>
   </galacticusStateStoreTask>
   !!]
-  subroutine Node_Component_Spheroid_Standard_State_Store(stateFile,gslStateFile,stateOperatorID)
+  subroutine Node_Component_Spheroid_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
     !!{
     Write the tablulation state to file.
     !!}
@@ -1521,11 +1521,12 @@ contains
     use            :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
     implicit none
     integer          , intent(in   ) :: stateFile
-    integer(c_size_t), intent(in   ) :: stateOperatorID
+    integer(c_size_t), intent(in   ) :: stateOperationID
     type   (c_ptr   ), intent(in   ) :: gslStateFile
 
     call displayMessage('Storing state for: componentSpheroid -> standard',verbosity=verbosityLevelInfo)
     !![
+    <stateStore variables="spheroidMassDistribution stellarPopulationProperties_ darkMatterHaloScale_ starFormationHistory_ mergerMassMovements_ mergerRemnantSize_"/>
     <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
      <description>Internal file I/O in gfortran can be non-thread safe.</description>
     </workaround>
@@ -1534,11 +1535,9 @@ contains
     !$omp critical(gfortranInternalIO)
 #endif
     write (stateFile) spheroidAngularMomentumAtScaleRadius
-    write (stateFile) associated(spheroidMassDistribution)
 #ifdef THREADSAFEIO
     !$omp end critical(gfortranInternalIO)
 #endif
-    if (associated(spheroidMassDistribution)) call spheroidMassDistribution%stateStore(stateFile,gslStateFile,stateOperatorID)
     return
   end subroutine Node_Component_Spheroid_Standard_State_Store
 
@@ -1552,28 +1551,24 @@ contains
     Retrieve the tabulation state from the file.
     !!}
     use            :: Display                              , only : displayMessage          , verbosityLevelInfo
-    use            :: Galacticus_Error                     , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding                        , only : c_ptr                   , c_size_t
     use            :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
     implicit none
     integer          , intent(in   ) :: stateFile
     integer(c_size_t), intent(in   ) :: stateOperationID
     type   (c_ptr   ), intent(in   ) :: gslStateFile
-    logical                          :: wasAllocated
 
     call displayMessage('Retrieving state for: componentSpheroid -> standard',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="spheroidMassDistribution stellarPopulationProperties_ darkMatterHaloScale_ starFormationHistory_ mergerMassMovements_ mergerRemnantSize_"/>
+    !!]
 #ifdef THREADSAFEIO
     !$omp critical(gfortranInternalIO)
 #endif
     read (stateFile) spheroidAngularMomentumAtScaleRadius
-    read (stateFile) wasAllocated
 #ifdef THREADSAFEIO
     !$omp end critical(gfortranInternalIO)
 #endif
-    if (wasAllocated) then
-       if (.not.associated(spheroidMassDistribution)) call Galacticus_Error_Report('spheroidMassDistribution was stored, but is now not allocated'//{introspection:location})
-       call spheroidMassDistribution%stateRestore(stateFile,gslStateFile,stateOperationID)
-    end if
     return
   end subroutine Node_Component_Spheroid_Standard_State_Retrieve
 

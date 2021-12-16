@@ -35,7 +35,6 @@ program Test_NFW96_Concentration_Dark_Energy
   use :: Display                             , only : displayVerbositySet                                         , verbosityLevelStandard
   use :: Events_Hooks                        , only : eventsHooksInitialize
   use :: Functions_Global_Utilities          , only : Functions_Global_Set
-  use :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
   use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize                                , nodeComponentBasic                   , treeNode
   use :: ISO_Varying_String                  , only : assignment(=)                                               , char                                 , operator(//)                       , varying_string              , &
        &                                              var_str
@@ -236,5 +235,4 @@ program Test_NFW96_Concentration_Dark_Energy
   call Unit_Tests_Finish                  ()
   call Node_Components_Thread_Uninitialize()
   call Node_Components_Uninitialize       ()
-  call Galacticus_Function_Classes_Destroy()
 end program Test_NFW96_Concentration_Dark_Energy

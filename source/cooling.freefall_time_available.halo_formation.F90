@@ -57,8 +57,9 @@ contains
     Constructor for the haloFormation freefall time available class which builds the object from a parameter set.
     !!}
     use :: Galacticus_Error, only : Galacticus_Component_List    , Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : defaultFormationTimeComponent
-    use :: Input_Parameters, only : inputParameters
+    use :: Galacticus_Nodes  , only : defaultFormationTimeComponent
+    use :: Input_Parameters  , only : inputParameters
+    use :: ISO_Varying_String, only : operator(//)
     implicit none
     type(freefallTimeAvailableHaloFormation)                :: self
     type(inputParameters                   ), intent(inout) :: parameters

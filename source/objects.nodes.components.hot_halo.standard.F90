@@ -48,6 +48,7 @@ module Node_Component_Hot_Halo_Standard
        &    Node_Component_Hot_Halo_Standard_Node_Merger , Node_Component_Hot_Halo_Standard_Thread_Uninitialize, &
        &    Node_Component_Hot_Halo_Standard_Post_Step   , Node_Component_Hot_Halo_Standard_Formation          , &
        &    Node_Component_Hot_Halo_Standard_Rate_Compute, Node_Component_Hot_Halo_Standard_Pre_Evolve         , &
+       &    Node_Component_Hot_Halo_Standard_State_Store , Node_Component_Hot_Halo_Standard_State_Restore      , &
        &    Node_Component_Hot_Halo_Standard_Reset
 
   !![
@@ -2091,5 +2092,51 @@ contains
 
     return
   end subroutine Node_Component_Hot_Halo_Standard_Formation
+
+  !![
+  <galacticusStateStoreTask>
+   <unitName>Node_Component_Hot_Halo_Standard_State_Store</unitName>
+  </galacticusStateStoreTask>
+  !!]
+  subroutine Node_Component_Hot_Halo_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentHotHalo -> standard',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="cosmologyFunctions_ darkMatterHaloScale_ coolingSpecificAngularMomentum_ coolingInfallRadius_ hotHaloMassDistribution_ accretionHalo_ chemicalReactionRate_ chemicalState_ hotHaloRamPressureStripping_ hotHaloRamPressureTimescale_ coolingRate_ cosmologyParameters_ hotHaloOutflowReincorporation_ galacticStructure_"/>
+    !!]
+    return
+  end subroutine Node_Component_Hot_Halo_Standard_State_Store
+
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>Node_Component_Hot_Halo_Standard_State_Restore</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
+  subroutine Node_Component_Hot_Halo_Standard_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentHotHalo -> standard',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="cosmologyFunctions_ darkMatterHaloScale_ coolingSpecificAngularMomentum_ coolingInfallRadius_ hotHaloMassDistribution_ accretionHalo_ chemicalReactionRate_ chemicalState_ hotHaloRamPressureStripping_ hotHaloRamPressureTimescale_ coolingRate_ cosmologyParameters_ hotHaloOutflowReincorporation_ galacticStructure_"/>
+    !!]
+    return
+  end subroutine Node_Component_Hot_Halo_Standard_State_Restore
 
 end module Node_Component_Hot_Halo_Standard

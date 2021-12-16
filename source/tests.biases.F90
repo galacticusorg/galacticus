@@ -35,7 +35,6 @@ program Test_Biases
   use :: File_Utilities                      , only : Count_Lines_in_File
   use :: Functions_Global_Utilities          , only : Functions_Global_Set
   use :: Galacticus_Calculations_Resets      , only : Galacticus_Calculations_Reset
-  use :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
   use :: Galacticus_Nodes                    , only : nodeClassHierarchyInitialize            , nodeComponentBasic                                          , treeNode
   use :: Galacticus_Paths                    , only : galacticusPath                          , pathTypeExec
   use :: ISO_Varying_String                  , only : assignment(=)                           , char                                                        , operator(//)                       , operator(==)                , &
@@ -366,7 +365,6 @@ program Test_Biases
      !!]
      call Node_Components_Thread_Uninitialize()
      call Node_Components_Uninitialize       ()
-     call Galacticus_Function_Classes_Destroy()
   end do
   ! End unit tests.
   call Unit_Tests_End_Group()

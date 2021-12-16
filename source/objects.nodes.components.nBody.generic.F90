@@ -89,7 +89,7 @@ module Node_Component_NBody_Generic
   !!]
   
   ! Property names.
-  type   (varying_string), allocatable, dimension(:) :: propertyNamesReal        , propertyNamesInteger
+  type(varying_string), allocatable, dimension(:) :: propertyNamesReal, propertyNamesInteger
 
 contains
 

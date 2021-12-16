@@ -26,25 +26,24 @@ program Galacticus
   !!{
   The main {\normalfont \scshape Galacticus} program.
   !!}
-  use    :: Display_Verbosity                   , only : displayVerbositySetFromParameters
-  use    :: Events_Hooks                        , only : eventsHooksInitialize
-  use    :: Functions_Global_Utilities          , only : Functions_Global_Set
-  use    :: Galacticus_Banner                   , only : Galacticus_Banner_Show
-  use    :: Galacticus_Error                    , only : Galacticus_Error_Handler_Register        , Galacticus_Error_Report
-  use    :: Galacticus_Error_Wait               , only : Galacticus_Error_Wait_Set_From_Parameters
-  use    :: Galacticus_Function_Classes_Destroys, only : Galacticus_Function_Classes_Destroy
-  use    :: Galacticus_Output_Open              , only : Galacticus_Output_Close_File             , Galacticus_Output_Open_File
-  use    :: ISO_Varying_String                  , only : assignment(=)                            , varying_string
-  use    :: Input_Parameters                    , only : inputParameter                           , inputParameters
+  use    :: Display_Verbosity         , only : displayVerbositySetFromParameters
+  use    :: Events_Hooks              , only : eventsHooksInitialize
+  use    :: Functions_Global_Utilities, only : Functions_Global_Set
+  use    :: Galacticus_Banner         , only : Galacticus_Banner_Show
+  use    :: Galacticus_Error          , only : Galacticus_Error_Handler_Register        , Galacticus_Error_Report
+  use    :: Galacticus_Error_Wait     , only : Galacticus_Error_Wait_Set_From_Parameters
+  use    :: Galacticus_Output_Open    , only : Galacticus_Output_Close_File             , Galacticus_Output_Open_File
+  use    :: ISO_Varying_String        , only : assignment(=)                            , varying_string
+  use    :: Input_Parameters          , only : inputParameter                           , inputParameters
 #ifdef USEMPI
-  use    :: MPI                                 , only : MPI_Comm_World                           , MPI_Thread_Multiple        , MPI_Thread_Single
+  use    :: MPI                       , only : MPI_Comm_World                           , MPI_Thread_Multiple        , MPI_Thread_Single
 #endif
 #ifdef USEMPI
-  use    :: MPI_Utilities                       , only : mpiFinalize                              , mpiInitialize
+  use    :: MPI_Utilities             , only : mpiFinalize                              , mpiInitialize
 #endif
-  !$ use :: OMP_Lib                             , only : OMP_Get_Max_Threads                      , OMP_Set_Nested
-  use    :: System_Limits                       , only : System_Limits_Set
-  use    :: Tasks                               , only : task                                     , taskClass                  , taskDoDestroy
+  !$ use :: OMP_Lib                   , only : OMP_Get_Max_Threads                      , OMP_Set_Nested
+  use    :: System_Limits             , only : System_Limits_Set
+  use    :: Tasks                     , only : task                                     , taskClass
   implicit none
 #ifdef USEMPI
   integer                                         :: status
@@ -71,7 +70,6 @@ program Galacticus
   parameterFile=parameterFileCharacter
   ! Open the parameter file.
   parameters=inputParameters(parameterFile)
-  call parameters%markGlobal()
   ! Tell OpenMP that nested parallelism is allowed.
   !$ call OMP_Set_Nested(.true.)
   ! Initialize event hooks.
@@ -99,8 +97,6 @@ program Galacticus
   !![
   <objectDestructor name="task_"/>
   !!]
-  call taskDoDestroy()
-  call Galacticus_Function_Classes_Destroy()
   ! Finalize MPI.
 #ifdef USEMPI
   call MPI_Barrier(MPI_Comm_World,status)

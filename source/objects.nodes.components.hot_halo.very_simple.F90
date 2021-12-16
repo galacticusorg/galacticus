@@ -33,6 +33,7 @@ module Node_Component_Hot_Halo_Very_Simple
   public :: Node_Component_Hot_Halo_Very_Simple_Reset            , Node_Component_Hot_Halo_Very_Simple_Rate_Compute       , &
        &    Node_Component_Hot_Halo_Very_Simple_Scale_Set        , Node_Component_Hot_Halo_Very_Simple_Tree_Initialize    , &
        &    Node_Component_Hot_Halo_Very_Simple_Thread_Initialize, Node_Component_Hot_Halo_Very_Simple_Thread_Uninitialize, &
+       &    Node_Component_Hot_Halo_Very_Simple_State_Store      , Node_Component_Hot_Halo_Very_Simple_State_Restore      , &
        &    Node_Component_Hot_Halo_Very_Simple_Node_Merger
 
   !![
@@ -664,5 +665,51 @@ contains
     hotHalo => node%hotHalo(autoCreate=.true.)
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Create
+
+  !![
+  <galacticusStateStoreTask>
+   <unitName>Node_Component_Hot_Halo_Very_Simple_State_Store</unitName>
+  </galacticusStateStoreTask>
+  !!]
+  subroutine Node_Component_Hot_Halo_Very_Simple_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentHotHalo -> verySimple',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="darkMatterHaloScale_ coolingRate_ accretionHalo_"/>
+    !!]
+    return
+  end subroutine Node_Component_Hot_Halo_Very_Simple_State_Store
+
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>Node_Component_Hot_Halo_Very_Simple_State_Restore</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
+  subroutine Node_Component_Hot_Halo_Very_Simple_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentHotHalo -> verySimple',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="darkMatterHaloScale_ coolingRate_ accretionHalo_"/>
+    !!]
+    return
+  end subroutine Node_Component_Hot_Halo_Very_Simple_State_Restore
 
 end module Node_Component_Hot_Halo_Very_Simple

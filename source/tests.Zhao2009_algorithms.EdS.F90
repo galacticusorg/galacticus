@@ -39,7 +39,6 @@ program Test_Zhao2009_Flat
   use :: Events_Hooks                             , only : eventsHooksInitialize
   use :: File_Utilities                           , only : Count_Lines_in_File
   use :: Functions_Global_Utilities               , only : Functions_Global_Set
-  use :: Galacticus_Function_Classes_Destroys     , only : Galacticus_Function_Classes_Destroy
   use :: Galacticus_Nodes                         , only : nodeClassHierarchyInitialize                                , nodeComponentBasic                     , treeNode
   use :: Galacticus_Paths                         , only : galacticusPath                                              , pathTypeExec
   use :: ISO_Varying_String                       , only : assignment(=)                                               , char                                   , operator(//)                       , varying_string              , &
@@ -269,5 +268,4 @@ program Test_Zhao2009_Flat
   call Unit_Tests_Finish                  ()
   call Node_Components_Thread_Uninitialize()
   call Node_Components_Uninitialize       ()
-  call Galacticus_Function_Classes_Destroy()
 end program Test_Zhao2009_Flat

@@ -41,7 +41,8 @@ module Node_Component_Black_Hole_Standard
        &    Node_Component_Black_Hole_Standard_Thread_Uninitialize, Node_Component_Black_Hole_Standard_Output_Properties, &
        &    Node_Component_Black_Hole_Standard_Output_Names       , Node_Component_Black_Hole_Standard_Output_Count     , &
        &    Node_Component_Black_Hole_Standard_Output             , Node_Component_Black_Hole_Standard_Initialize       , &
-       &    Node_Component_Black_Hole_Standard_Post_Evolve        , Node_Component_Black_Hole_Standard_Thread_Initialize
+       &    Node_Component_Black_Hole_Standard_Post_Evolve        , Node_Component_Black_Hole_Standard_Thread_Initialize, &
+       &    Node_Component_Black_Hole_Standard_State_Store        , Node_Component_Black_Hole_Standard_State_Restore
 
   !![
   <component>
@@ -1199,5 +1200,51 @@ contains
     Node_Component_Black_Hole_Standard_Seed_Mass=blackHoleSeedMass
     return
   end function Node_Component_Black_Hole_Standard_Seed_Mass
+
+  !![
+  <galacticusStateStoreTask>
+   <unitName>Node_Component_Black_Hole_Standard_State_Store</unitName>
+  </galacticusStateStoreTask>
+  !!]
+  subroutine Node_Component_Black_Hole_Standard_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentBlackHole -> standard',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="accretionDisks_ cosmologyParameters_ blackHoleBinaryRecoil_ blackHoleBinaryInitialSeparation_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_ coolingRadius_ hotHaloTemperatureProfile_ darkMatterHaloScale_ galacticStructure_"/>
+    !!]
+    return
+  end subroutine Node_Component_Black_Hole_Standard_State_Store
+
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>Node_Component_Black_Hole_Standard_State_Restore</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
+  subroutine Node_Component_Black_Hole_Standard_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentBlackHole -> standard',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="accretionDisks_ cosmologyParameters_ blackHoleBinaryRecoil_ blackHoleBinaryInitialSeparation_ blackHoleBinaryMerger_ blackHoleBinarySeparationGrowthRate_ coolingRadius_ hotHaloTemperatureProfile_ darkMatterHaloScale_ galacticStructure_"/>
+    !!]
+    return
+  end subroutine Node_Component_Black_Hole_Standard_State_Restore
 
 end module Node_Component_Black_Hole_Standard

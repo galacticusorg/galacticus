@@ -30,7 +30,6 @@ program Test_Hearin2021_MAH
   use :: Events_Hooks                             , only : eventsHooksInitialize
   use :: File_Utilities                           , only : Count_Lines_in_File
   use :: Functions_Global_Utilities               , only : Functions_Global_Set
-  use :: Galacticus_Function_Classes_Destroys     , only : Galacticus_Function_Classes_Destroy
   use :: Galacticus_Paths                         , only : galacticusPath                              , pathTypeExec
   use :: Galacticus_Nodes                         , only : nodeClassHierarchyInitialize                , nodeComponentBasic               , treeNode
   use :: Input_Parameters                         , only : inputParameters
@@ -112,5 +111,4 @@ program Test_Hearin2021_MAH
   call Unit_Tests_Finish                  ()
   call Node_Components_Thread_Uninitialize()
   call Node_Components_Uninitialize       ()
-  call Galacticus_Function_Classes_Destroy()
 end program Test_Hearin2021_MAH

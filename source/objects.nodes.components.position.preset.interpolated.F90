@@ -29,9 +29,10 @@ module Node_Component_Position_Preset_Interpolated
   !!}
   implicit none
   private
-  public :: threadInitialize    , threadUninitialize , &
-       &    computeInterpolation, rateCompute        , &
-       &    initialize
+  public :: threadInitialize                                   , threadUninitialize                               , &
+       &    computeInterpolation                               , rateCompute                                      , &
+       &    initialize                                         , nodeComponentPositionPresetInterpolatedStateStore, &
+       &    nodeComponentPositionPresetInterpolatedStateRestore
   
   !![
   <component>
@@ -655,5 +656,53 @@ contains
     end if
     return
   end subroutine rateCompute
+
+  !![
+  <galacticusStateStoreTask>
+   <unitName>nodeComponentPositionPresetInterpolatedStateStore</unitName>
+  </galacticusStateStoreTask>
+  !!]
+  subroutine nodeComponentPositionPresetInterpolatedStateStore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display                                         , only : displayMessage     , verbosityLevelInfo
+    use            :: Node_Component_Position_Preset_Interpolated_Data, only : cosmologyFunctions_
+    use, intrinsic :: ISO_C_Binding                                   , only : c_ptr              , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentPosition -> presetInterpolated',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="cosmologyFunctions_"/>
+    !!]
+    return
+  end subroutine nodeComponentPositionPresetInterpolatedStateStore
+
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>nodeComponentPositionPresetInterpolatedStateRestore</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
+  subroutine nodeComponentPositionPresetInterpolatedStateRestore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display                                         , only : displayMessage     , verbosityLevelInfo
+    use            :: Node_Component_Position_Preset_Interpolated_Data, only : cosmologyFunctions_
+    use, intrinsic :: ISO_C_Binding                                   , only : c_ptr              , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentPosition -> presetInterpolated',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="cosmologyFunctions_"/>
+    !!]
+    return
+  end subroutine nodeComponentPositionPresetInterpolatedStateRestore
 
 end module Node_Component_Position_Preset_Interpolated

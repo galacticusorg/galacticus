@@ -31,7 +31,8 @@ module Node_Component_Dark_Matter_Profile_Scale_Shape
   private
   public :: Node_Component_Dark_Matter_Profile_Scale_Shape_Rate_Compute, Node_Component_Dark_Matter_Profile_Scale_Shape_Tree_Initialize, &
        &    Node_Component_Dark_Matter_Profile_Scale_Shape_Scale_Set   , Node_Component_Dark_Matter_Profile_Scale_Shape_Initialize     , &
-       &    Node_Component_Dark_Matter_Profile_Scale_Shape_Thread_Init , Node_Component_Dark_Matter_Profile_Scale_Shape_Thread_Uninit
+       &    Node_Component_Dark_Matter_Profile_Scale_Shape_Thread_Init , Node_Component_Dark_Matter_Profile_Scale_Shape_Thread_Uninit  , &
+       &    Node_Component_Dark_Matter_Profile_Scale_Shape_State_Store , Node_Component_Dark_Matter_Profile_Scale_Shape_State_Restore
 
   !![
   <component>
@@ -295,5 +296,51 @@ contains
     end select
     return
   end subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_Scale_Set
+
+  !![
+  <galacticusStateStoreTask>
+   <unitName>Node_Component_Dark_Matter_Profile_Scale_Shape_State_Store</unitName>
+  </galacticusStateStoreTask>
+  !!]
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentDarkMatterProfile -> scaleShape',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="darkMatterProfileShape_"/>
+    !!]
+    return
+  end subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_State_Store
+
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>Node_Component_Dark_Matter_Profile_Scale_Shape_State_Restore</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
+  subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentDarkMatterProfile -> scaleShape',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="darkMatterProfileShape_"/>
+    !!]
+    return
+  end subroutine Node_Component_Dark_Matter_Profile_Scale_Shape_State_Restore
 
 end module Node_Component_Dark_Matter_Profile_Scale_Shape

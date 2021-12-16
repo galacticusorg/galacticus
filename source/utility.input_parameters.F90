@@ -32,7 +32,7 @@ module Input_Parameters
   use :: Kind_Numbers      , only : kind_int8
   use :: String_Handling   , only : char
   private
-  public :: inputParameters, inputParameter, inputParameterList, globalParameters
+  public :: inputParameters, inputParameter, inputParameterList
   
   !![
   <generic identifier="Type">
@@ -117,8 +117,6 @@ module Input_Parameters
      <methods>
        <method description="Build a tree of {\normalfont \ttfamily inputParameter} objects from the structure of an XML parameter file." method="buildTree" />
        <method description="Resolve references in the tree of {\normalfont \ttfamily inputParameter} objects." method="resolveReferences" />
-       <method description="Mark an input parameter set as the global set." method="markGlobal" />
-       <method description="Return true if these parameters are the global set." method="isGlobal" />
        <method description="Open an output group for parameters in the given HDF5 object." method="parametersGroupOpen" />
        <method description="Copy the HDF5 output group for parameters from another parameters object." method="parametersGroupCopy" />
        <method description="Check that a given parameter name is a valid name, aborting if not." method="validateName" />
@@ -140,8 +138,6 @@ module Input_Parameters
      procedure :: buildTree           => inputParametersBuildTree
      procedure :: resolveReferences   => inputParametersResolveReferences
      procedure :: destroy             => inputParametersDestroy
-     procedure :: markGlobal          => inputParametersMarkGlobal
-     procedure :: isGlobal            => inputParametersIsGlobal
      procedure :: parametersGroupOpen => inputParametersParametersGroupOpen
      procedure :: parametersGroupCopy => inputParametersParametersGroupCopy
      procedure :: validateName        => inputParametersValidateName
@@ -210,11 +206,8 @@ module Input_Parameters
   </enumeration>
   !!]
 
-  ! Pointer to the global input parameters.
-  type   (inputParameters), pointer   :: globalParameters       => null()
-
   ! Maximum length allowed for parameter entries.
-  integer                 , parameter :: parameterLengthMaximum =  1024
+  integer, parameter :: parameterLengthMaximum=1024
 
   ! Interface to the (auto-generated) knownParameterNames() function.
   interface
@@ -1049,32 +1042,6 @@ contains
     if (warningsFound .and. verbose) call displayUnindent('')
     return
   end subroutine inputParametersCheckParameters
-
-  subroutine inputParametersMarkGlobal(self)
-    !!{
-    Mark an {\normalfont \ttfamily inputParameters} object as the global input parameters.
-    !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(inputParameters), intent(inout), target :: self
-
-    ! Mark as global.
-    self%global=.true.
-    ! Set global parameters pointer.
-    globalParameters => self
-    return
-  end subroutine inputParametersMarkGlobal
-
-  logical function inputParametersIsGlobal(self)
-    !!{
-    Return true if an {\normalfont \ttfamily inputParameters} object is the global input parameter set.
-    !!}
-    implicit none
-    class(inputParameters), intent(in   ), target :: self
-
-    inputParametersIsGlobal=self%global
-    return
-  end function inputParametersIsGlobal
 
   subroutine inputParametersParametersGroupOpen(self,outputGroup)
     !!{

@@ -27,9 +27,9 @@ module Dark_Matter_Profile_Structure_Tasks
   !!}
   use :: Dark_Matter_Profiles, only : darkMatterProfileClass
   private
-  public :: Dark_Matter_Profile_Enclosed_Mass_Task               , Dark_Matter_Profile_Density_Task                       , Dark_Matter_Profile_Rotation_Curve_Task, Dark_Matter_Profile_Potential_Task             , &
-       &    Dark_Matter_Profile_Rotation_Curve_Gradient_Task     , Dark_Matter_Profile_Acceleration_Task                  , Dark_Matter_Profile_Tidal_Tensor_Task  , Dark_Matter_Profile_Chandrasekhar_Integral_Task, &
-       &    Dark_Matter_Profile_Structure_Tasks_Thread_Initialize, Dark_Matter_Profile_Structure_Tasks_Thread_Uninitialize
+  public :: Dark_Matter_Profile_Enclosed_Mass_Task               , Dark_Matter_Profile_Density_Task                       , Dark_Matter_Profile_Rotation_Curve_Task        , Dark_Matter_Profile_Potential_Task               , &
+       &    Dark_Matter_Profile_Rotation_Curve_Gradient_Task     , Dark_Matter_Profile_Acceleration_Task                  , Dark_Matter_Profile_Tidal_Tensor_Task          , Dark_Matter_Profile_Chandrasekhar_Integral_Task  , &
+       &    Dark_Matter_Profile_Structure_Tasks_Thread_Initialize, Dark_Matter_Profile_Structure_Tasks_Thread_Uninitialize, Dark_Matter_Profile_Structure_Tasks_State_Store, Dark_Matter_Profile_Structure_Tasks_State_Restore
 
   class(darkMatterProfileClass), pointer  :: darkMatterProfile_
   !$omp threadprivate(darkMatterProfile_)
@@ -351,5 +351,51 @@ contains
     if (present(status).and.statusLocal /= structureErrorCodeSuccess) status=structureErrorCodeSuccess
     return
   end function Dark_Matter_Profile_Potential_Task
+
+  !![
+  <galacticusStateStoreTask>
+   <unitName>Dark_Matter_Profile_Structure_Tasks_State_Store</unitName>
+  </galacticusStateStoreTask>
+  !!]
+  subroutine Dark_Matter_Profile_Structure_Tasks_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentDisk -> verySimple',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="darkMatterProfile_"/>
+    !!]
+    return
+  end subroutine Dark_Matter_Profile_Structure_Tasks_State_Store
+
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>Dark_Matter_Profile_Structure_Tasks_State_Restore</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
+  subroutine Dark_Matter_Profile_Structure_Tasks_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentDisk -> verySimple',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="darkMatterProfile_"/>
+    !!]
+    return
+  end subroutine Dark_Matter_Profile_Structure_Tasks_State_Restore
 
 end module Dark_Matter_Profile_Structure_Tasks

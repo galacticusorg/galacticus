@@ -73,7 +73,7 @@ module Node_Component_Disk_Very_Simple_Size
   !!]
 
   ! Parameters controlling the physical implementation.
-  double precision                                  :: diskMassToleranceAbsolute
+  double precision :: diskMassToleranceAbsolute
 
 contains
 
@@ -323,18 +323,8 @@ contains
 
     call displayMessage('Storing state for: componentDisk -> standard',verbosity=verbosityLevelInfo)
     !![
-    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-     <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    </workaround>
+    <stateStore variables="diskMassDistribution"/>
     !!]
-#ifdef THREADSAFEIO
-    !$omp critical(gfortranInternalIO)
-#endif
-    write (stateFile) associated(diskMassDistribution)
-#ifdef THREADSAFEIO
-    !$omp end critical(gfortranInternalIO)
-#endif
-    if (associated(diskMassDistribution)) call diskMassDistribution%stateStore(stateFile,gslStateFile,stateOperationID)
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_State_Store
 
@@ -348,32 +338,17 @@ contains
     Retrieve the tabulation state from the file.
     !!}
     use            :: Display                                  , only : displayMessage         , verbosityLevelInfo
-    use            :: Galacticus_Error                         , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding                            , only : c_ptr                  , c_size_t
     use            :: Node_Component_Disk_Very_Simple_Size_Data, only : diskMassDistribution
     implicit none
     integer          , intent(in   ) :: stateFile
     integer(c_size_t), intent(in   ) :: stateOperationID
     type   (c_ptr   ), intent(in   ) :: gslStateFile
-    logical                          :: wasAllocated
 
     call displayMessage('Retrieving state for: componentDisk -> standard',verbosity=verbosityLevelInfo)
     !![
-    <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">
-     <description>Internal file I/O in gfortran can be non-thread safe.</description>
-    </workaround>
+    <stateRestore variables="diskMassDistribution"/>
     !!]
-#ifdef THREADSAFEIO
-    !$omp critical(gfortranInternalIO)
-#endif
-    read (stateFile) wasAllocated
-#ifdef THREADSAFEIO
-    !$omp end critical(gfortranInternalIO)
-#endif
-    if (wasAllocated) then
-       if (.not.associated(diskMassDistribution)) call Galacticus_Error_Report('diskMassDistribution was stored, but is now not allocated'//{introspection:location})
-       call diskMassDistribution%stateRestore(stateFile,gslStateFile,stateOperationID)
-    end if
     return
   end subroutine Node_Component_Disk_Very_Simple_Size_State_Retrieve
 

@@ -36,7 +36,8 @@ module Node_Component_Hot_Halo_Cold_Mode
   public :: Node_Component_Hot_Halo_Cold_Mode_Initialize       , Node_Component_Hot_Halo_Cold_Mode_Rate_Compute       , &
        &    Node_Component_Hot_Halo_Cold_Mode_Scale_Set        , Node_Component_Hot_Halo_Cold_Mode_Tree_Initialize    , &
        &    Node_Component_Hot_Halo_Cold_Mode_Node_Merger      , Node_Component_Hot_Halo_Cold_Mode_Formation          , &
-       &    Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize, Node_Component_Hot_Halo_Cold_Mode_Thread_Uninitialize
+       &    Node_Component_Hot_Halo_Cold_Mode_Thread_Initialize, Node_Component_Hot_Halo_Cold_Mode_Thread_Uninitialize, &
+       &    Node_Component_Hot_Halo_Cold_Mode_State_Store      , Node_Component_Hot_Halo_Cold_Mode_State_Restore
 
   !![
   <component>
@@ -818,5 +819,51 @@ contains
     end select
     return
   end subroutine Node_Component_Hot_Halo_Cold_Mode_Formation
+
+  !![
+  <galacticusStateStoreTask>
+   <unitName>Node_Component_Hot_Halo_Cold_Mode_State_Store</unitName>
+  </galacticusStateStoreTask>
+  !!]
+  subroutine Node_Component_Hot_Halo_Cold_Mode_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentHotHalo -> coldMode',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="accretionHalo_ coldModeInfallRate_ cosmologyParameters_ galacticStructure_"/>
+    !!]
+    return
+  end subroutine Node_Component_Hot_Halo_Cold_Mode_State_Store
+
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>Node_Component_Hot_Halo_Cold_Mode_State_Restore</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
+  subroutine Node_Component_Hot_Halo_Cold_Mode_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentHotHalo -> coldMode',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="accretionHalo_ coldModeInfallRate_ cosmologyParameters_ galacticStructure_"/>
+    !!]
+    return
+  end subroutine Node_Component_Hot_Halo_Cold_Mode_State_Restore
 
 end module Node_Component_Hot_Halo_Cold_Mode
