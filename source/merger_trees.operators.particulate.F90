@@ -120,7 +120,7 @@
   double precision                                             :: particulateEnergy                , particulateRadiusTruncate, &
        &                                                          particulateHeight                , particulateRadius        , &
        &                                                          particulateLengthSoftening
-  !$omp threadprivate(particulateSelf,particulateRadiusDistribution,particulateEnergyDistribution,particularEnergyDistributionInitialized,particulateEnergy,particulateHeight,particulateRadius)
+  !$omp threadprivate(particulateSelf,particulateNode,particulateRadiusDistribution,particulateEnergyDistribution,particularEnergyDistributionInitialized,particulateSofteningKernel,particulateEnergy,particulateRadiusTruncate,particulateHeight,particulateRadius,particulateLengthSoftening)
 
 contains
 
@@ -510,7 +510,7 @@ contains
           counter             =0
           positionRandomOffset=0.0d0
           velocityRandomOffset=0.0d0
-          !$omp parallel private(i,j,positionSpherical,positionCartesian,velocitySpherical,velocityCartesian,energy,energyPotential,speed,speedEscape,speedPrevious,distributionFunction,distributionFunctionMaximum,keepSample,radiusEnergy,positionVector,velocityVector,randomDeviates)
+          !$omp parallel private(i,j,positionSpherical,positionCartesian,velocitySpherical,velocityCartesian,energy,energyPotential,speed,speedEscape,speedPrevious,distributionFunction,distributionFunctionMaximum,keepSample,radiusEnergy,positionVector,velocityVector,randomDeviates) copyin(particulateNode,particulateRadiusTruncate,particulateLengthSoftening,particulateSofteningKernel)
           call Node_Components_Thread_Initialize(self%parameters)
           allocate(particulateSelf,mold=self)
           !$omp critical(mergerTreeOperatorsParticulateDeepCopy)
@@ -639,10 +639,10 @@ contains
                    call Galacticus_Error_Report(message//{introspection:location})
                 end if
                 !$omp critical (mergerTreeOperatorParticulateSample)
-                   keepSample=  +tree%randomNumberGenerator_%uniformSample() &
-                     &         <                                             &
-                     &          +distributionFunction                        &
-                     &          /distributionFunctionMaximum
+                keepSample=  +tree%randomNumberGenerator_%uniformSample() &
+                     &      <                                             &
+                     &       +distributionFunction                        &
+                     &       /distributionFunctionMaximum
                 !$omp end critical (mergerTreeOperatorParticulateSample)
              end do
              ! Choose a velocity vector in spherical coordinates with velocity chosen to give the required kinetic energy.
