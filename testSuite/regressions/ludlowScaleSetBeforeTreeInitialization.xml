@@ -353,7 +353,7 @@
     </nodePropertyExtractor>
     <nodePropertyExtractor value="satelliteVirialOrbit">
       <properties value="
-                         hostMass
+                         massHost
                          specificReducedMass
                          radius
                          theta
