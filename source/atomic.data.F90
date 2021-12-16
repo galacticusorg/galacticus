@@ -41,28 +41,26 @@ module Atomic_Data
   end type atomicData
 
   ! Flag indicating if module has been initialized.
-  logical                                                 :: atomicDataInitialized =.false.
+  logical                                                                   :: atomicDataInitialized =.false.
 
   ! Array used to store atomic data.
-  type            (atomicData), allocatable, dimension(:) :: atoms
+  type            (atomicData), allocatable, dimension(:                  ) :: atoms
 
   ! Metal mass normalizations.
-  double precision            , allocatable, dimension(:) :: metalMassNormalization
+  double precision            , allocatable, dimension(:                  ) :: metalMassNormalization
 
   ! Array used to index atomic data by atomic number.
-  integer                     , allocatable, dimension(:) :: atomicNumberIndex
-  integer                                                 :: atomicNumberMaximum
+  integer                     , allocatable, dimension(:                  ) :: atomicNumberIndex
+  integer                                                                   :: atomicNumberMaximum
 
   ! Abundance pattern information.
-  integer                     , parameter                 :: abundancePatternCount =1
-  character(len=*), parameter, dimension(abundancePatternCount) :: abundancePatternFiles=                                   &
-       &                                                            ["abundances/Solar_Composition_Cloudy_08.00.xml"], &
-       &                                                           abundancePatternNames=                                   &
-       &                                                            ["solar"]
+  integer                     , parameter                                   :: abundancePatternCount =1
+  character       (len=*     ), parameter, dimension(abundancePatternCount) :: abundancePatternFiles=["abundances/Solar_Composition_Cloudy_08.00.xml"], &
+       &                                                                       abundancePatternNames=["solar"]
 
   ! Mass normalization options.
-  integer, parameter, public :: normalizationTotal =0
-  integer, parameter, public :: normalizationMetals=1
+  integer                     , parameter, public                           :: normalizationTotal   =0
+  integer                     , parameter, public                           :: normalizationMetals  =1
 
 contains
 
@@ -214,6 +212,7 @@ contains
     character       (len=100    )                            :: abundanceType
 
     ! Check if module is initialized.
+    !$omp critical(atomicDataInitialize)
     if (.not.atomicDataInitialized) then
 
        ! Read in the atomic data.
@@ -311,7 +310,7 @@ contains
        ! Mark module as initialized.
        atomicDataInitialized=.true.
     end if
-
+    !$omp end critical(atomicDataInitialize)
     return
   end subroutine Atomic_Data_Initialize
 
