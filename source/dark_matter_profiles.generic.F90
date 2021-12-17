@@ -939,8 +939,8 @@ contains
     type            (rootFinder              )                        :: finder
 
     call self%solverSet  (node)
-    genericDensity =  density
-    finder      =  rootFinder(                                                             &
+    genericDensity=density
+    finder        =rootFinder(                                                             &
          &                    rootFunction                 =rootDensity                  , &
          &                    toleranceAbsolute            =toleranceAbsolute            , &
          &                    toleranceRelative            =toleranceRelative            , &
@@ -963,11 +963,11 @@ contains
     implicit none
     double precision, intent(in   ) :: radius
 
-    rootDensity=+3.0d0                                           &
+    rootDensity=+3.0d0                                                                         &
          &      *solvers(solversCount)%self%enclosedMass(solvers(solversCount)%node,radius)    &
-         &      /4.0d0                                           &
-         &      /Pi                                              &
-         &      /                                     radius **3 &
+         &      /4.0d0                                                                         &
+         &      /Pi                                                                            &
+         &      /                                                                   radius **3 &
          &      -genericDensity
     return
   end function rootDensity
