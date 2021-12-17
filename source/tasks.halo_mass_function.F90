@@ -673,14 +673,16 @@ contains
           massFunctionDifferential                      (iMass,iOutput)=+haloMassFunction_                 %differential                   (mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput),node=tree%nodeBase)
           massFunctionCumulative                        (iMass,iOutput)=+haloMassFunction_                 %integrated                     (massLow=massHalo          (iMass),massHigh=haloMassEffectiveInfinity,time=outputTimes(iOutput),node=tree%nodeBase)
           massFunctionMassFraction                      (iMass,iOutput)=+haloMassFunction_                 %massFraction                   (massLow=massHalo          (iMass),massHigh=haloMassEffectiveInfinity,time=outputTimes(iOutput),node=tree%nodeBase)
-          if (massFunctionDifferential(iMass,iOutput) > 0.0d0) then
+          if     (                                                 &
+               &   massFunctionDifferential(iMass,iOutput) > 0.0d0 &
+               &  .and.                                            &
+               &   densityFieldRootVariance(iMass,iOutput) > 0.0d0 &
+               & ) then
              peakHeightMassFunction                     (iMass,iOutput)=+massHalo                                                          (                           iMass                                                                                 )**2 &
                   &                                                     *massFunctionDifferential                                          (                           iMass                                    ,                 iOutput                    )    &
                   &                                                     /cosmologyParameters_              %densityCritical                (                                                                                                                 )    &
                   &                                                     /cosmologyParameters_              %OmegaMatter                    (                                                                                                                 )    &
-                  &                                                     /abs(                                                                                                                                                                                     &
-                  &                                                          cosmologicalMassVariance_     %rootVarianceLogarithmicGradient(mass   =massHalo          (iMass)                                   ,time=outputTimes(iOutput)                   )    &
-                  &                                                         )
+                  &                                                     /abs(densityFieldRootVariance                                      (                           iMass                                    ,                 iOutput                    ))
           else
              peakHeightMassFunction                     (iMass,iOutput)=+0.0d0
           end if
