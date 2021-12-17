@@ -410,40 +410,38 @@ contains
 
     ! Open the HDF5 file for output.
     !$ call hdf5Access%set     (                                                            )
-    call    outputFile%openFile(char(self%outputFileName),overWrite=.false.,readOnly=.false.)
-    ! Check if the Gadget header has already been created.
-    if (.not.outputFile%hasGroup('Header')) then
-       header=outputFile%openGroup('Header','Group containing Gadget metadata.')
-       ! Particle properties.
-       call header%writeAttribute(       1                                    ,'NumFilesPerSnapshot'   )
-       call header%writeAttribute(spread(0                               ,1,6),'NumPart_ThisFile'      )
-       call header%writeAttribute(spread(0                               ,1,6),'NumPart_Total_HighWord')
-       call header%writeAttribute(spread(0                               ,1,6),'NumPart_Total'         )
-       call header%writeAttribute(spread(self%massParticle/unitGadgetMass,1,6),'MassTable'             )
-       ! Time.
-       call header%writeAttribute(                                                                                              self%timeSnapshot  ,'Time'    )
-       call header%writeAttribute(self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%timeSnapshot)),'Redshift')
-       ! Cosmology.
-       if (self%nonCosmological) then
-          call header%writeAttribute(1.0d0                                                        ,'HubbleParam')
-          call header%writeAttribute(0.0d0                                                        ,'Omega0'     )
-          call header%writeAttribute(0.0d0                                                        ,'OmegaLambda')
-       else
-          call header%writeAttribute(self%cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH),'HubbleParam')
-          call header%writeAttribute(self%cosmologyParameters_%OmegaMatter    (                  ),'Omega0'     )
-          call header%writeAttribute(self%cosmologyParameters_%OmegaDarkEnergy(                  ),'OmegaLambda')
-       end if
-       call header%writeAttribute(0.0d0,'BoxSize'         )
-       ! Flags.
-       call header%writeAttribute(0    ,'Flag_Cooling'    )
-       call header%writeAttribute(0    ,'Flag_Sfr'        )
-       call header%writeAttribute(0    ,'Flag_Feedback'   )
-       call header%writeAttribute(0    ,'Flag_StellarAge' )
-       call header%writeAttribute(0    ,'FlagMetals'      )
-       call header%writeAttribute(0    ,'Flag_Entropy_ICs')
-       call header%close()
+    call    outputFile%openFile(char(self%outputFileName),overWrite=.true.,readOnly=.false.)
+    ! Create the header.
+    header=outputFile%openGroup('Header','Group containing Gadget metadata.')
+    ! Particle properties.
+    call header%writeAttribute(       1                                    ,'NumFilesPerSnapshot'   )
+    call header%writeAttribute(spread(0                               ,1,6),'NumPart_ThisFile'      )
+    call header%writeAttribute(spread(0                               ,1,6),'NumPart_Total_HighWord')
+    call header%writeAttribute(spread(0                               ,1,6),'NumPart_Total'         )
+    call header%writeAttribute(spread(self%massParticle/unitGadgetMass,1,6),'MassTable'             )
+    ! Time.
+    call header%writeAttribute(                                                                                              self%timeSnapshot  ,'Time'    )
+    call header%writeAttribute(self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%timeSnapshot)),'Redshift')
+    ! Cosmology.
+    if (self%nonCosmological) then
+       call header%writeAttribute(1.0d0                                                        ,'HubbleParam')
+       call header%writeAttribute(0.0d0                                                        ,'Omega0'     )
+       call header%writeAttribute(0.0d0                                                        ,'OmegaLambda')
+    else
+       call header%writeAttribute(self%cosmologyParameters_%HubbleConstant (hubbleUnitsLittleH),'HubbleParam')
+       call header%writeAttribute(self%cosmologyParameters_%OmegaMatter    (                  ),'Omega0'     )
+       call header%writeAttribute(self%cosmologyParameters_%OmegaDarkEnergy(                  ),'OmegaLambda')
     end if
-    call    outputFile%close()
+    call header%writeAttribute(0.0d0,'BoxSize'         )
+    ! Flags.
+    call header%writeAttribute(0    ,'Flag_Cooling'    )
+    call header%writeAttribute(0    ,'Flag_Sfr'        )
+    call header%writeAttribute(0    ,'Flag_Feedback'   )
+    call header%writeAttribute(0    ,'Flag_StellarAge' )
+    call header%writeAttribute(0    ,'FlagMetals'      )
+    call header%writeAttribute(0    ,'Flag_Entropy_ICs')
+    call header%close()
+    call outputFile%close()
     !$ call hdf5Access%unset()
     ! Iterate over nodes.
     firstNode =.true.
@@ -711,7 +709,7 @@ contains
           particleVelocity=particleVelocity/unitGadgetVelocity
           ! Accumulate the particle data to file.
           !$ call hdf5Access%set     (                                                                                      )
-          call    outputFile%openFile(char(self%outputFileName),overWrite=.true.,readOnly=.false.,objectsOverwritable=.true.)
+          call    outputFile%openFile(char(self%outputFileName),overWrite=.false.,readOnly=.false.,objectsOverwritable=.true.)
           ! Get current count of particles in file.
           header=outputFile%openGroup('Header','Group containing Gadget metadata.')
           call header%readAttributeStatic('NumPart_Total',particleCounts)
