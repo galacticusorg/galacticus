@@ -163,9 +163,6 @@ contains
     end if
     ! Build file if necessary.
     if (buildFile) then
-       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       call File_Unlock(                    self%fileLock                     )
-       call File_Lock  (char(self%fileName),self%fileLock,lockIsShared=.false.)
        ! Initialize RecFast.
        call Interface_RecFast_Initialize(recfastPath,recfastVersion)
        ! Build RecFast parameter file.
