@@ -278,7 +278,7 @@ contains
 
     lockIsShared_=0
     if (present(lockIsShared).and.lockIsShared) lockIsShared_=1
-    ! Even is using OFD locks we must lock per OpenMP thread since POSIX file locks, since we may have the file open multiple
+    ! Even if using OFD locks we must lock per OpenMP thread since POSIX file locks, since we may have the file open multiple
     ! times with different "descriptions" (see https://www.gnu.org/software/libc/manual/html_node/Open-File-Description-Locks.html).
     if (.not.posixOpenMPFileLockInitialized) then
        !$omp critical(ofdOpenMPInitialize)
@@ -355,7 +355,7 @@ contains
     end if
     ! First unlock the file.
     call funlock_C(lock%lockDescriptorC)
-    ! Even is using OFD locks we must lock per OpenMP thread since POSIX file locks, since we may have the file open multiple
+    ! Even if using OFD locks we must lock per OpenMP thread since POSIX file locks, since we may have the file open multiple
     ! times with different "descriptions" (see https://www.gnu.org/software/libc/manual/html_node/Open-File-Description-Locks.html).
     ! Release that lock now, if this thread has no more file locks.
     posixOpenMPFileLockCount=posixOpenMPFileLockCount-1
