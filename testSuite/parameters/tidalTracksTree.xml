@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Tree initial conditions for an orbiting subhalo model based on Errani and Navarro (2020) -->
+<tree>
+  <node>
+    <index>1</index>
+    <parent>2</parent>
+    <firstChild>-1</firstChild>
+    <firstSatellite>3</firstSatellite>
+    <sibling>-1</sibling>
+    <basic>
+      <time>1.0</time>
+      <mass>3.7e12</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>50.0e-3</scale>
+    </darkMatterProfile>
+  </node>
+  <node>
+    <index>2</index>
+    <parent>-1</parent>
+    <firstChild>1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>61.00</time>
+      <mass>3.7e12</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>50.0e-3</scale>
+    </darkMatterProfile>
+  </node>
+  <node>
+    <index>3</index>
+    <parent>1</parent>
+    <firstChild>-1</firstChild>
+    <sibling>-1</sibling>
+    <basic>
+      <time>1.00</time>
+      <mass>3.0e6</mass>
+    </basic>
+    <darkMatterProfile>
+      <scale>0.3519e-3</scale>
+    </darkMatterProfile>
+    <satellite>
+      <!-- Start the satellite at apocenter, 200kpc (as per Errani and Navarro 2020) -->
+      <!-- Mass within r_max should be 1.0e6 -->
+      <!-- r_max is 0.76 kpc ==> r_s = 0.3519 kpc -->      
+      <!-- V_max is 2.4 km/s -->
+      <!-- This corresponds to a concentration of 10.067 -->
+      <!-- Velocity should be chosen to achieved the desired pericenter radius -->
+      <position>200.0e-3</position>
+      <position>0.0e-3</position>
+      <position>0.0e-3</position>
+      <velocity>0.0</velocity>
+      <velocity>50.0</velocity>
+      <velocity>0.0</velocity>
+      <mergeTime>-1.0</mergeTime>
+      <destructionTime>-1.0</destructionTime>
+      <boundMass>3.0e6</boundMass>
+      <virialOrbit>
+	<massHost>3.7e12</massHost>
+	<massSatellite>3.0e6</massSatellite>
+	<radius>200.0e-3</radius>
+	<velocityRadial>0.0</velocityRadial>
+	<velocityTangential>200.0</velocityTangential>
+      </virialOrbit>
+    </satellite>
+  </node>
+</tree>

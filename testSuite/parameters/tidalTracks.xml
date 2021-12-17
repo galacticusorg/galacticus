@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Orbiting subhalo model using an NFW profile matched to a simulation from Errani and Navarro (2020) -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Random number generation -->
+  <randomNumberGenerator value="GSL">
+    <seed value="8122"/>
+  </randomNumberGenerator>
+
+  <!-- Task -->
+  <task value="evolveForests"/>
+
+  <!-- Component selection -->
+  <componentBasic             value="standard" />
+  <componentBlackHole         value="null"     />
+  <componentDarkMatterProfile value="scale"    />
+  <componentDisk              value="null"     />
+  <componentHotHalo           value="null"     />
+  <componentSatellite         value="orbiting" />
+  <componentSpheroid          value="null"     />
+  <componentSpin              value="null"     />
+
+  <!-- Dark matter properties -->
+  <darkMatterParticle value="CDM"/>
+
+  <!-- Cosmological parameters -->
+  <cosmologyFunctions  value="staticUniverse"/>
+  <cosmologyParameters value="simple"         >
+    <!-- Matched to Errani and Navarro (2020) -->
+    <HubbleConstant  value="67.000000"/>
+    <OmegaMatter     value=" 0.320000"/>
+    <OmegaDarkEnergy value=" 0.680000"/>
+    <OmegaBaryon     value=" 0.050000"/>
+    <temperatureCMB  value=" 2.725480"/>
+  </cosmologyParameters>
+
+  <!-- Structure formation options -->
+  <linearGrowth          value="collisionlessMatter"/>
+  <virialDensityContrast value="fixed">
+    <!-- Definition used by Errani and Navarro (2020) -->
+    <densityContrastValue value="200.0"   />
+    <densityType          value="critical"/>
+  </virialDensityContrast>
+
+  <!-- Merger tree building options --> 
+  <mergerTreeConstructor value="fullySpecified">
+    <fileName value="testSuite/parameters/tidalTracksTree.xml"/>
+  </mergerTreeConstructor>
+
+  <!-- Substructure hierarchy options -->
+  <mergerTreeNodeMerger value="singleLevelHierarchy"/>
+
+  <!-- Dark matter halo structure options -->
+  <darkMatterProfile        value="darkMatterOnly"  />
+  <darkMatterProfileDMO     value="multiple"           >
+    <darkMatterProfileDMOHost     value="isothermal" />
+    <darkMatterProfileDMOSatellite     value="heated"           >
+      <nonAnalyticSolver            value="numerical"       />
+      <darkMatterProfileDMO value="truncatedExponential">
+    	<nonAnalyticSolver          value="numerical"       />
+    	<radiusFractionalDecay value="1.0"/> <!-- Truncate beyond 10 r_s ~ 1 r_vir -->
+    	<alpha value="1.0"/>
+    	<beta  value="3.0"/>
+    	<gamma value="1.0"/>
+        <darkMatterProfileDMO value="NFW"             />
+      </darkMatterProfileDMO>
+    </darkMatterProfileDMOSatellite>
+  </darkMatterProfileDMO>
+  <darkMatterProfileHeating     value="tidal"  >
+    <coefficientSecondOrder    value="+0.406"/>
+    <correlationVelocityRadius value="-0.333"/>
+  </darkMatterProfileHeating>
+  <darkMatterProfileConcentration value="fixed" >
+    <concentration value="8.00"/>
+  </darkMatterProfileConcentration>
+
+  <!-- Halo accretion options -->
+  <accretionHalo                  value="zero"/>
+
+  <!-- Hot halo gas model options -->
+  <hotHaloMassDistribution        value="null"/>
+
+  <!-- Galactic structure solver options -->
+  <galacticStructureSolver        value="null"/>
+
+  <!-- Galaxy mergers -->
+  <mergerMassMovements            value="null"/>
+  <mergerRemnantSize              value="null"/>
+
+  <!-- Satellite orbit options -->
+  <virialOrbit value="spinCorrelated">
+    <alpha             value="0.47263"  /> <!-- Best fit value from Benson, Behrens, & Lu (2020) -->
+    <virialOrbit value="jiang2014" >
+      <!-- Best fit value from Benson, Behrens, & Lu (2020) -->
+      <bRatioHigh             value="+2.88333 +4.06371 +3.86726"/>
+      <bRatioIntermediate     value="+1.05361 +1.56868 +2.89027"/>
+      <bRatioLow              value="+0.07432 +0.54554 +1.04721"/>
+      <gammaRatioHigh         value="+0.07124 +0.04737 -0.01913"/>
+      <gammaRatioIntermediate value="+0.10069 +0.07821 +0.04231"/>
+      <gammaRatioLow          value="+0.10866 +0.11260 +0.11698"/>
+      <muRatioHigh            value="+1.10168 +1.09639 +1.09819"/>
+      <muRatioIntermediate    value="+1.18205 +1.19573 +1.24581"/>
+      <muRatioLow             value="+1.22053 +1.22992 +1.25528"/>
+      <sigmaRatioHigh         value="+0.09244 +0.14335 +0.21079"/>
+      <sigmaRatioIntermediate value="+0.07397 +0.09590 +0.10941"/>
+      <sigmaRatioLow          value="+0.07458 +0.09040 +0.06981"/>
+    </virialOrbit>
+  </virialOrbit>
+  <satelliteOrbitStoreOrbitalParameters value="true"/>
+
+  <!-- Orbiting model of satellites -->
+  <satelliteDynamicalFriction value="chandrasekhar1943">
+    <logarithmCoulomb value="1.53"/>
+  </satelliteDynamicalFriction>
+  <satelliteTidalHeatingRate  value="gnedin1999"       >
+    <epsilon          value="0.33"/>
+    <gamma            value="1.50"/>
+  </satelliteTidalHeatingRate>
+  <satelliteTidalStripping    value="zentner2005"      >
+    <efficiency       value="2.86"/>
+  </satelliteTidalStripping>
+
+  <!-- Node evolution and physics -->
+  <nodeOperator value="multi">
+    <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
+    <nodeOperator value="darkMatterProfileScaleInterpolate"/>
+    <!-- Subhalo orbits -->
+    <nodeOperator value="satelliteOrbit"                   />
+    <nodeOperator value="satelliteDynamicalFriction"       />
+    <nodeOperator value="satelliteTidalMassLoss"           />
+    <nodeOperator value="satelliteTidalHeating"            />
+    <nodeOperator value="satelliteMergingRadiusTrigger"     >
+      <radiusVirialFraction      value="0.01"/>
+    </nodeOperator>
+    <nodeOperator value="satelliteDestructionMassThreshold" >
+      <massDestruction           value="0.0e+0"/>
+      <massDestructionFractional value="1.0e-6"/>
+    </nodeOperator>
+  </nodeOperator>
+  
+  <!-- Tree evolution -->
+  <mergerTreeEvolver       value="standard" >
+    <timestepHostAbsolute             value="1.00"/>
+    <timestepHostRelative             value="0.00"/>
+    <fractionTimestepSatelliteMinimum value="0.75"/>
+    <backtrackToSatellites            value="true"/>
+  </mergerTreeEvolver>
+  <mergerTreeNodeEvolver value="standard">
+    <odeToleranceAbsolute value="0.01"  />
+    <odeToleranceRelative value="0.01"  />
+    <reuseODEStepSize     value="false" />
+  </mergerTreeNodeEvolver>
+  <mergerTreeEvolveTimestep value="multi">
+    <mergerTreeEvolveTimestep value="simple"               >
+      <timeStepAbsolute          value="1.000"/>
+      <timeStepRelative          value="0.000"/>
+    </mergerTreeEvolveTimestep>
+    <mergerTreeEvolveTimestep value="satellite"            >
+      <timeOffsetMaximumAbsolute value="0.010"/>
+      <timeOffsetMaximumRelative value="0.001"/>
+    </mergerTreeEvolveTimestep>
+    <mergerTreeEvolveTimestep value="satelliteDestruction"/>
+  </mergerTreeEvolveTimestep>
+
+  <!-- Output options -->
+  <galacticusOutputFileName value="testSuite/outputs/tidalTracks.hdf5"/>
+  <hdf5UseLatestFormat value="true"/>
+  <mergerTreeOutputter value="standard">
+    <outputReferences value="false"/>
+  </mergerTreeOutputter>  
+  <outputTimes value="uniformSpacingInTime">
+    <timeMinimum value="1.0"/>
+    <timeMaximum value="61.0"/>
+    <countTimes  value="601" />
+  </outputTimes>
+  <nodePropertyExtractor value="multi">
+    <nodePropertyExtractor value="velocityMaximum"      />
+    <nodePropertyExtractor value="radiusVelocityMaximum"/>
+  </nodePropertyExtractor>
+
+</parameters>
