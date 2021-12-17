@@ -710,8 +710,8 @@ contains
           particlePosition=particlePosition/unitGadgetLength
           particleVelocity=particleVelocity/unitGadgetVelocity
           ! Accumulate the particle data to file.
-          !$ call hdf5Access%set     (                                                                                       )
-          call    outputFile%openFile(char(self%outputFileName),overWrite=.false.,readOnly=.false.,objectsOverwritable=.true.)
+          !$ call hdf5Access%set     (                                                                                      )
+          call    outputFile%openFile(char(self%outputFileName),overWrite=.true.,readOnly=.false.,objectsOverwritable=.true.)
           ! Get current count of particles in file.
           header=outputFile%openGroup('Header','Group containing Gadget metadata.')
           call header%readAttributeStatic('NumPart_Total',particleCounts)
