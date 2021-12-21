@@ -1298,6 +1298,8 @@ contains
                   &   self%velocityDispersionRadialTableRadius(iRadius) < radiusTiny                                                           &
                   &  .and.                                                                                                                     &
                   &   self%velocityDispersionRadialTableRadius(iRadius) < radiusTiny*self%velocityDispersionRadialTableRadiusCore(iRadiusCore) &
+                  &  .and.                                                                                                                     &
+                  &   iRadius                                           < self%velocityDispersionRadialTableRadiusCount                        &
                   & ) then
                 self%velocityDispersionRadialTable(iRadius,iRadiusCore)=self%velocityDispersionRadialTable(iRadius+1,iRadiusCore)
              else
