@@ -560,6 +560,11 @@ my @executablesToRun = (
 	isSlow   => 1
     },
     {
+	name     => "tests.dark_matter_profiles.finite_resolution.exe",                   # Tests of finite resolution dark matter profiles.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.spectra.postprocess.Inoue2014.exe",                            # Tests of Inoue (2014) IGM attenutation model.
 	valgrind => 0,
 	mpi      => 0
