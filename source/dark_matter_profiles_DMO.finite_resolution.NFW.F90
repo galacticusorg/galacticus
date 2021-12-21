@@ -1067,8 +1067,9 @@ contains
     integer                                                  , intent(  out), optional :: status
     class           (nodeComponentBasic                     ), pointer                 :: basic
     class           (nodeComponentDarkMatterProfile         ), pointer                 :: darkMatterProfile
-    double precision                                                                   :: concentration            , radiusScaleFree, &
+    double precision                                                                   :: concentration                   , radiusScaleFree, &
          &                                                                                lengthResolutionScaleFree
+    double precision                                         , parameter               :: radiusScaleFreeSmall     =1.0d-3
 
     if (present(status)) status=structureErrorCodeSuccess
     if (node%uniqueID() /= self%lastUniqueID              ) call self%calculationReset(node)
@@ -1079,57 +1080,86 @@ contains
        concentration                =   self%darkMatterHaloScale_%radiusVirial            (node)/darkMatterProfile%scale()
        lengthResolutionScaleFree    =   self                     %lengthResolutionPhysical(node)/darkMatterProfile%scale()
        self%potentialRadiusPrevious =                             radius
-       self%potentialPrevious       =  -gravitationalConstantGalacticus                                                                                          &
-            &                          *basic            %mass ()                                                                                                &
-            &                          /darkMatterProfile%scale()                                                                                                &
-            &                          *(                                                                                                                        &
-            &                            +       sqrt(                          lengthResolutionScaleFree**2                                           )         &
-            &                            /                   radiusScaleFree                                /(+1.0d0+      lengthResolutionScaleFree**2)         &
-            &                            -       sqrt(      +radiusScaleFree**2+lengthResolutionScaleFree**2                                           )         &
-            &                            /                  +radiusScaleFree                                /(+1.0d0+      lengthResolutionScaleFree**2)         &
-            &                            -                                                                   (+1.0d0+2.0d0*lengthResolutionScaleFree**2)         &
-            &                            *atanh(                                                                                                                 &
-            &                                   +sqrt(                         +lengthResolutionScaleFree**2/(+1.0d0+      lengthResolutionScaleFree**2)       ) &
-            &                                  )                                                                                                                 &
-            &                            /                   radiusScaleFree                                /(+1.0d0+      lengthResolutionScaleFree**2)**1.5d0  &
-            &                            +atanh(                                                                                                                 &
-            &                                   +            radiusScaleFree                                                                                     &
-            &                                   /sqrt(      +radiusScaleFree**2+lengthResolutionScaleFree**2                                           )         &
-            &                                  )                                                                                                                 &
-            &                            /                   radiusScaleFree                                                                                     &
-            &                            +                                                                   (+1.0d0+2.0d0*lengthResolutionScaleFree**2)         &
-            &                            *atanh(                                                                                                                 &
-            &                                        (      -radiusScaleFree   +lengthResolutionScaleFree**2                                           )         &
-            &                                   /sqrt                                                        (+1.0d0+      lengthResolutionScaleFree**2)         &
-            &                                   /sqrt(      +radiusScaleFree**2+lengthResolutionScaleFree**2                                           )         &
-            &                                  )                                                                                                                 &
-            &                            /                   radiusScaleFree                                /(+1.0d0+      lengthResolutionScaleFree**2)**1.5d0  &
-            &                            -                                      lengthResolutionScaleFree**2                                                     &
-            &                            *log  (                                                                                                                 &
-            &                                         +1.0d0+radiusScaleFree                                                                                     &
-            &                                  )                                                                                                                 &
-            &                            /                                                                   (+1.0d0+      lengthResolutionScaleFree**2)**1.5d0  &
-            &                            +                                      lengthResolutionScaleFree**2/(+1.0d0+      lengthResolutionScaleFree**2)**1.5d0  &
-            &                            *log  (                                                                                                                 &
-            &                                               -radiusScaleFree   +lengthResolutionScaleFree**2                                                     &
-            &                                   +sqrt(+1.0d0                   +lengthResolutionScaleFree**2                                           )         &
-            &                                   *sqrt(      +radiusScaleFree**2+lengthResolutionScaleFree**2                                           )         &
-            &                                  )                                                                                                                 &
-            &                            +(                                                                                                                      &
-            &                            +       sqrt(+1.0d0                   +lengthResolutionScaleFree**2                                           )         &
-            &                            -                                      lengthResolutionScaleFree**2                                                     &
-            &                            *log  (                                                                                                                 &
-            &                                         -1.0d0                                                                                                     &
-            &                                   +sqrt(+1.0d0                   +lengthResolutionScaleFree**2                                           )         &
-            &                                  )                                                                                                                 &
-            &                             )                                                                                                                      &
-            &                            /                                                                   (+1.0d0+      lengthResolutionScaleFree**2)**1.5d0  &
-            &                           )                                                                                                                        &
-            &                          /(                                                                                                                        &
-            &                            -          concentration                                                                                                &
-            &                            /   (1.0d0+concentration)                                                                                               &
-            &                            +log(1.0d0+concentration)                                                                                               &
-            &                           )
+       if (radiusScaleFree < radiusScaleFreeSmall) then
+          ! Series expansion for small radii.
+          self%potentialPrevious       =  -gravitationalConstantGalacticus                              &
+               &                          *basic            %mass ()                                    &
+               &                          /darkMatterProfile%scale()                                    &
+               &                          *(                                                            &
+               &                            +(+1.0d0-lengthResolutionScaleFree   )                      &
+               &                            /(+1.0d0+lengthResolutionScaleFree**2)                      &
+               &                            +        lengthResolutionScaleFree**2                       &
+               &                            *(                                                          &
+               &                              +asinh(lengthResolutionScaleFree   )                      &
+               &                              +log  (                                                   &
+               &                                     +(1.0d0+sqrt(+1.0d0+lengthResolutionScaleFree**2)) &
+               &                                     /                   lengthResolutionScaleFree      &
+               &                                    )                                                   &
+               &                             )                                                          &
+               &                            /(+1.0d0+lengthResolutionScaleFree**2)**1.5d0               &
+               &                            -        radiusScaleFree**2                                 &
+               &                            *(+1.0d0-radiusScaleFree             )                      &
+               &                            /        lengthResolutionScaleFree                          &
+               &                            /6.0d0                                                      &
+               &                           )                                                            &
+               &                          /(                                                            &
+               &                            -          concentration                                    &
+               &                            /   (1.0d0+concentration)                                   &
+               &                            +log(1.0d0+concentration)                                   &
+               &                           )
+       else
+          self%potentialPrevious       =  -gravitationalConstantGalacticus                                                                                          &
+               &                          *basic            %mass ()                                                                                                &
+               &                          /darkMatterProfile%scale()                                                                                                &
+               &                          *(                                                                                                                        &
+               &                            +       sqrt(                          lengthResolutionScaleFree**2                                           )         &
+               &                            /                   radiusScaleFree                                /(+1.0d0+      lengthResolutionScaleFree**2)         &
+               &                            -       sqrt(      +radiusScaleFree**2+lengthResolutionScaleFree**2                                           )         &
+               &                            /                   radiusScaleFree                                /(+1.0d0+      lengthResolutionScaleFree**2)         &
+               &                            -                                                                   (+1.0d0+2.0d0*lengthResolutionScaleFree**2)         &
+               &                            *atanh(                                                                                                                 &
+               &                                   +sqrt(                         +lengthResolutionScaleFree**2/(+1.0d0+      lengthResolutionScaleFree**2)       ) &
+               &                                  )                                                                                                                 &
+               &                            /                   radiusScaleFree                                /(+1.0d0+      lengthResolutionScaleFree**2)**1.5d0  &
+               &                            +atanh(                                                                                                                 &
+               &                                   +            radiusScaleFree                                                                                     &
+               &                                   /sqrt(      +radiusScaleFree**2+lengthResolutionScaleFree**2                                           )         &
+               &                                  )                                                                                                                 &
+               &                            /                   radiusScaleFree                                                                                     &
+               &                            +                                                                   (+1.0d0+2.0d0*lengthResolutionScaleFree**2)         &
+               &                            *atanh(                                                                                                                 &
+               &                                        (      -radiusScaleFree   +lengthResolutionScaleFree**2                                           )         &
+               &                                   /sqrt                                                        (+1.0d0+      lengthResolutionScaleFree**2)         &
+               &                                   /sqrt(      +radiusScaleFree**2+lengthResolutionScaleFree**2                                           )         &
+               &                                  )                                                                                                                 &
+               &                            /                   radiusScaleFree                                /(+1.0d0+      lengthResolutionScaleFree**2)**1.5d0  &
+               &                            -                                      lengthResolutionScaleFree**2                                                     &
+               &                            *log  (                                                                                                                 &
+               &                                         +1.0d0+radiusScaleFree                                                                                     &
+               &                                  )                                                                                                                 &
+               &                            /                                                                   (+1.0d0+      lengthResolutionScaleFree**2)**1.5d0  &
+               &                            +                                      lengthResolutionScaleFree**2/(+1.0d0+      lengthResolutionScaleFree**2)**1.5d0  &
+               &                            *log  (                                                                                                                 &
+               &                                               -radiusScaleFree   +lengthResolutionScaleFree**2                                                     &
+               &                                   +sqrt(+1.0d0                   +lengthResolutionScaleFree**2                                           )         &
+               &                                   *sqrt(      +radiusScaleFree**2+lengthResolutionScaleFree**2                                           )         &
+               &                                  )                                                                                                                 &
+               &                            +(                                                                                                                      &
+               &                              +     sqrt(+1.0d0                   +lengthResolutionScaleFree**2                                           )         &
+               &                              -                                    lengthResolutionScaleFree**2                                                     &
+               &                              *log(                                                                                                                 &
+               &                                         -1.0d0                                                                                                     &
+               &                                   +sqrt(+1.0d0                   +lengthResolutionScaleFree**2                                           )         &
+               &                                  )                                                                                                                 &
+               &                             )                                                                                                                      &
+               &                            /                                                                   (+1.0d0+      lengthResolutionScaleFree**2)**1.5d0  &
+               &                           )                                                                                                                        &
+               &                          /(                                                                                                                        &
+               &                            -          concentration                                                                                                &
+               &                            /   (1.0d0+concentration)                                                                                               &
+               &                            +log(1.0d0+concentration)                                                                                               &
+               &                           )
+       end if
     end if
     finiteResolutionNFWPotential=self%potentialPrevious
     return
