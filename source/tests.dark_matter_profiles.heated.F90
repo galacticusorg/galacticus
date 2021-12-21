@@ -18,7 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a program which tests the \glspl{node} implementation.
+Contains a program which tests the heated dark matter profile implementation.
 !!}
 
 program Test_Dark_Matter_Profiles_Heated

@@ -23,7 +23,7 @@ Contains a program to test calculations for generic dark matter profiles.
 
 program Test_Dark_Matter_Profiles_Generic
   !!{
-  Tests that numerical differentiation functions work.
+  Tests calculations for generic dark matter profiles.
   !!}
   use :: Cosmology_Functions         , only : cosmologyFunctionsMatterLambda
   use :: Cosmology_Parameters        , only : cosmologyParametersSimple

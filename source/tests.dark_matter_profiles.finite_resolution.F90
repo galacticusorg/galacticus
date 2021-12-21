@@ -18,12 +18,12 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
 !!{
-Contains a program to test calculations for tidal track dark matter profiles.
+Contains a program to test calculations for finite resolution dark matter profiles.
 !!}
 
 program Test_Dark_Matter_Profiles_Finite_Resolution
   !!{
-  Test calculations for tidal track dark matter profiles.
+  Test calculations for finite resolution dark matter profiles.
   !!}
   use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
   use :: Cosmology_Functions           , only : cosmologyFunctionsMatterLambda
