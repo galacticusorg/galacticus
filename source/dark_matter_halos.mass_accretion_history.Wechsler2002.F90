@@ -23,6 +23,7 @@
 
   use :: Cosmological_Density_Field, only : cosmologicalMassVarianceClass, criticalOverdensityClass
   use :: Cosmology_Functions       , only : cosmologyFunctionsClass
+  use :: Kind_Numbers              , only : kind_int8
 
   !![
   <darkMatterHaloMassAccretionHistory name="darkMatterHaloMassAccretionHistoryWechsler2002">
@@ -48,13 +49,18 @@
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
      logical                                                  :: formationRedshiftCompute
      double precision                                         :: formationRedshift
+     integer         (kind=kind_int8               )          :: lastUniqueID              =  -huge(0_kind_int8)
+     double precision                                         :: timeFormationPrevious     =  -huge(0.0d0      )
    contains
      !![
      <methods>
-       <method description="Compute the formation expansion factor." method="expansionFactorAtFormation" />
+       <method description="Reset memoized calculations."            method="calculationReset"          />
+       <method description="Compute the formation expansion factor." method="expansionFactorAtFormation"/>
      </methods>
      !!]
      final     ::                               wechsler2002Destructor
+     procedure :: autoHook                   => wechsler2002AutoHook
+     procedure :: calculationReset           => wechsler2002CalculationReset
      procedure :: time                       => wechsler2002Time
      procedure :: massAccretionRate          => wechsler2002MassAccretionRate
      procedure :: expansionFactorAtFormation => wechsler2002ExpansionFactorAtFormation
@@ -138,6 +144,18 @@ contains
     return
   end function wechsler2002ConstructorInternal
 
+  subroutine wechsler2002AutoHook(self)
+    !!{
+    Attach to the calculation reset event.
+    !!}
+    use :: Events_Hooks, only : calculationResetEvent, openMPThreadBindingAllLevels
+    implicit none
+    class(darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout) :: self
+
+    call calculationResetEvent%attach(self,wechsler2002CalculationReset,openMPThreadBindingAllLevels)
+    return
+  end subroutine wechsler2002AutoHook
+  
   subroutine wechsler2002Destructor(self)
     !!{
     Destructor for the {\normalfont \ttfamily wechsler2002} dark matter halo mass accretion history class.
@@ -153,6 +171,19 @@ contains
     return
   end subroutine wechsler2002Destructor
 
+  subroutine wechsler2002CalculationReset(self,node)
+    !!{
+    Reset the cooling radius calculation.
+    !!}
+    implicit none
+    class(darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout) :: self
+    type (treeNode                                      ), intent(inout) :: node
+
+    self%timeFormationPrevious=-huge(0.0d0)
+    self%lastUniqueID         =node%uniqueID()
+    return
+  end subroutine wechsler2002CalculationReset
+
   double precision function wechsler2002Time(self,node,mass)
     !!{
     Compute the time corresponding to {\normalfont \ttfamily mass} in the mass accretion history of {\normalfont \ttfamily node} using the algorithm of
@@ -167,21 +198,27 @@ contains
     double precision                                                                        :: expansionFactor                   , expansionFactorBase, &
          &                                                                                     mergerTreeFormationExpansionFactor
 
-    basicBase => node%basic()
-    select case (self%formationRedshiftCompute)
-    case (.true.)
-       ! Compute the expansion factor at formation.
-       mergerTreeFormationExpansionFactor=self%expansionFactorAtFormation(basicBase%mass(),node)
-    case (.false.)
-       ! Use the specified formation redshift.
-       mergerTreeFormationExpansionFactor=self%cosmologyFunctions_%expansionFactorFromRedshift(self%formationRedshift)
-    end select
-    ! Get the expansion factor at the tree base.
-    expansionFactorBase=self%cosmologyFunctions_%expansionFactor(basicBase%time())
-    ! Compute the expansion factor for the current node.
-    expansionFactor=expansionFactorBase/(1.0d0-0.5d0*log(mass/basicBase%mass())/mergerTreeFormationExpansionFactor)
-    ! Find the time corresponding to this expansion factor.
-    wechsler2002Time=self%cosmologyFunctions_%cosmicTime(expansionFactor)
+    ! Check if node differs from previous one for which we performed calculations.
+    if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
+    ! Compute formation time unless already computed.
+    if (self%timeFormationPrevious < 0.0d0) then
+       basicBase => node%basic()
+       select case (self%formationRedshiftCompute)
+       case (.true.)
+          ! Compute the expansion factor at formation.
+          mergerTreeFormationExpansionFactor=self%expansionFactorAtFormation(basicBase%mass(),node)
+       case (.false.)
+          ! Use the specified formation redshift.
+          mergerTreeFormationExpansionFactor=self%cosmologyFunctions_%expansionFactorFromRedshift(self%formationRedshift)
+       end select
+       ! Get the expansion factor at the tree base.
+       expansionFactorBase=self%cosmologyFunctions_%expansionFactor(basicBase%time())
+       ! Compute the expansion factor for the current node.
+       expansionFactor=expansionFactorBase/(1.0d0-0.5d0*log(mass/basicBase%mass())/mergerTreeFormationExpansionFactor)
+       ! Find the time corresponding to this expansion factor.
+       self%timeFormationPrevious=self%cosmologyFunctions_%cosmicTime(expansionFactor)
+    end if
+    wechsler2002Time=self%timeFormationPrevious
     return
   end function wechsler2002Time
 
