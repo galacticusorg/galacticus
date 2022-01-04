@@ -50,7 +50,7 @@
      logical                                                  :: formationRedshiftCompute
      double precision                                         :: formationRedshift
      integer         (kind=kind_int8               )          :: lastUniqueID              =  -huge(0_kind_int8)
-     double precision                                         :: timeFormationPrevious     =  -huge(0.0d0      )
+     double precision                                         :: timeFormationPrevious     =  -huge(0.0d0      ), massPrevious=-huge(0.0d0)
    contains
      !![
      <methods>
@@ -180,6 +180,7 @@ contains
     type (treeNode                                      ), intent(inout) :: node
 
     self%timeFormationPrevious=-huge(0.0d0)
+    self%massPrevious         =-huge(0.0d0)
     self%lastUniqueID         =node%uniqueID()
     return
   end subroutine wechsler2002CalculationReset
@@ -200,8 +201,8 @@ contains
 
     ! Check if node differs from previous one for which we performed calculations.
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-    ! Compute formation time unless already computed.
-    if (self%timeFormationPrevious < 0.0d0) then
+    ! Compute formation time if necessary.
+    if (self%massPrevious /= mass) then
        basicBase => node%basic()
        select case (self%formationRedshiftCompute)
        case (.true.)
@@ -217,6 +218,7 @@ contains
        expansionFactor=expansionFactorBase/(1.0d0-0.5d0*log(mass/basicBase%mass())/mergerTreeFormationExpansionFactor)
        ! Find the time corresponding to this expansion factor.
        self%timeFormationPrevious=self%cosmologyFunctions_%cosmicTime(expansionFactor)
+       self%massPrevious         =mass
     end if
     wechsler2002Time=self%timeFormationPrevious
     return
