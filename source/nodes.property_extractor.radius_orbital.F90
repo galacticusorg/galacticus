@@ -96,7 +96,7 @@ contains
 
   integer function radiusOrbitalType(self)
     !!{
-    Return the type of the halo mass property.
+    Return the type of the radiusOrbital property.
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none

@@ -96,7 +96,7 @@ contains
 
   integer function speedOrbitalType(self)
     !!{
-    Return the type of the halo mass property.
+    Return the type of the speedOrbital property.
     !!}
     use :: Output_Analyses_Options, only : outputAnalysisPropertyTypeLinear
     implicit none
