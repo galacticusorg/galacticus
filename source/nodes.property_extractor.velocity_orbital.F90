@@ -168,7 +168,7 @@ contains
     !!{
     Return the units of the velocityOrbital property in the SI system.
     !!}
-    use :: Numerical_Constants_Astronomical, only : megaParsec
+    use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
     double precision                                      , dimension(:) , allocatable :: velocityOrbitalUnitsInSI
     class           (nodePropertyExtractorVelocityOrbital), intent(inout)              :: self
@@ -176,6 +176,6 @@ contains
     !$GLC attributes unused :: self, time
 
     allocate(velocityOrbitalUnitsInSI(3))
-    velocityOrbitalUnitsInSI=megaParsec
+    velocityOrbitalUnitsInSI=kilo
     return
   end function velocityOrbitalUnitsInSI
