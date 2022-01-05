@@ -27,7 +27,7 @@ Contains a module which implements an orbital position output analysis property 
     An orbital position output analysis property extractor class. Specifically, the orbital position is defined relative to the
     top-level halo in any sub-halo hierarchy. That is, relative to the host halo which is itself not a sub-halo of any other
     halo. If the position of a (sub)$^i$-halo with respect to the center of its (sub)$^{i-1}$-halo host is $\mathbf{x}_i$ then
-    the orbital potision computed by this class is
+    the orbital position computed by this class is
     \begin{equation}
      \mathbf{x} = sum_{i=1}^N \mathbf{x}_i,
     \end{equation}
