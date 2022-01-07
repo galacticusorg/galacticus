@@ -4119,16 +4119,16 @@ contains
     use :: String_Handling , only : operator(//)
     implicit none
     class           (*                       ), intent(inout)          :: self
-    type            (treeNode                ), intent(inout), target  :: nodeSatellite               , nodeHost
+    type            (treeNode                ), intent(inout), target  :: nodeSatellite              , nodeHost
     type            (treeNode                )               , pointer :: nodeTarget
     class           (nodeComponentSatellite  )               , pointer :: satelliteSatellite
-    class           (nodeComponentBasic      )               , pointer :: basicSatellite              , basicHost       , &
+    class           (nodeComponentBasic      )               , pointer :: basicSatellite             , basicHost       , &
          &                                                                basicTarget
     class           (nodeComponentPosition   )               , pointer :: positionSatellite           , positionHost
-    logical                                   , parameter              :: acceptUnboundOrbits =.false.
-    double precision                          , dimension(3)           :: relativePosition            , relativeVelocity
-    double precision                                                   :: timeUntilMerging            , radiusPericenter, &
-         &                                                                radiusApocenter             , radiusVirial
+    logical                                   , parameter              :: acceptUnboundOrbits=.false.
+    double precision                          , dimension(3)           :: relativePosition           , relativeVelocity
+    double precision                                                   :: timeUntilMerging           , radiusPericenter, &
+         &                                                                radiusApocenter            , radiusVirial
     type            (keplerOrbit             )                         :: orbit
     type            (varying_string          )                         :: message
 

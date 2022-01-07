@@ -269,17 +269,17 @@ contains
     implicit none
     type            (keplerOrbit               )                        :: li2020Orbit
     class           (virialOrbitLi2020         ), intent(inout), target :: self
-    type            (treeNode                  ), intent(inout)         :: host                          , node
+    type            (treeNode                  ), intent(inout)         :: host                                   , node
     logical                                     , intent(in   )         :: acceptUnboundOrbits
-    class           (nodeComponentBasic        ), pointer               :: basicHost                     , basic
+    class           (nodeComponentBasic        ), pointer               :: basicHost                              , basic
     class           (virialDensityContrastClass), pointer               :: virialDensityContrastDefinition_
-    integer                                     , parameter             :: attemptsMaximum        =10000
-    double precision                            , parameter             :: boundTolerance         =1.0d-4 !  Tolerence to ensure that orbits are sufficiently bound.
-    double precision                                                    :: velocityHost                  , radiusHost                , &
-         &                                                                 massHost                      , massSatellite             , &
-         &                                                                 energyInternal                , radiusHostSelf            , &
-         &                                                                 velocityRadialInternal        , velocityTangentialInternal, &
-         &                                                                 velocityTotalInternal         , eta
+    integer                                     , parameter             :: attemptsMaximum                 =10000
+    double precision                            , parameter             :: boundTolerance                  =1.0d-4 !  Tolerence to ensure that orbits are sufficiently bound.
+    double precision                                                    :: velocityHost                           , radiusHost                , &
+         &                                                                 massHost                               , massSatellite             , &
+         &                                                                 energyInternal                         , radiusHostSelf            , &
+         &                                                                 velocityRadialInternal                 , velocityTangentialInternal, &
+         &                                                                 velocityTotalInternal                  , eta
     logical                                                             :: foundOrbit
     integer                                                             :: attempts
 
