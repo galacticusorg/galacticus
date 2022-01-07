@@ -198,5 +198,6 @@ contains
     darkMatterProfile       => node       %darkMatterProfile()
     darkMatterProfileParent => node%parent%darkMatterProfile()
     call darkMatterProfile%metaPropertySet(self%scaleGrowthRateID,darkMatterProfileParent%metaPropertyGet(self%scaleGrowthRateID))
+    call darkMatterProfile%       scaleSet(                       darkMatterProfileParent%scale          (                      ))
     return
   end subroutine darkMatterProfileScaleInterpolateNodePromote
