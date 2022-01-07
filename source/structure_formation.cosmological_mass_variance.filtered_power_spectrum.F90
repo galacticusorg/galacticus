@@ -261,7 +261,7 @@ contains
      <argument name="powerSpectrumPrimordialTransferredReference" value="powerSpectrumPrimordialTransferredReference" condition="     parameters%isPresent('wavenumberReference')"                   />
      <argument name="powerSpectrumWindowFunctionTopHat_"          value="powerSpectrumWindowFunctionTopHat_"          parameterPresent="parameters" parameterName="powerSpectrumWindowFunctionTopHat"/>
     </conditionalCall>
-    <inputParametersValidate source="parameters"/>
+    <inputParametersValidate source="parameters" extraAllowedNames="reference"/>
     !!]
     if (parameters%isPresent('wavenumberReference')) then
        !![
