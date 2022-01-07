@@ -31,7 +31,7 @@
     \begin{equation}
      W(kR) = (\frac{1}{1+\left(\frac{kR}{c_\mathrm{W}}\right)^\beta})
     \end{equation}
-    with $c_\mathrm{W} = 3.78062835$, $\beta = 3.4638743$, where $R$ is related to $M$ via the standard relation $M =
+    with defaults of $c_\mathrm{W} = 3.78062835$, $\beta = 3.4638743$, where $R$ is related to $M$ via the standard relation $M =
     \frac{4\pi}{3}\bar\rho_m R^3$.
    </description>
   </powerSpectrumWindowFunction>
@@ -41,7 +41,8 @@
      ETHOS power spectrum window function class.
      !!}
      private
-     class(cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     double precision                                    :: cW                            , beta
    contains
      final     ::                      ETHOSDestructor
      procedure :: value             => ETHOSValue
@@ -64,14 +65,27 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (powerSpectrumWindowFunctionETHOS)                :: self
-    type (inputParameters                 ), intent(inout) :: parameters
-    class(cosmologyParametersClass        ), pointer       :: cosmologyParameters_
-    
+    type            (powerSpectrumWindowFunctionETHOS)                :: self
+    type            (inputParameters                 ), intent(inout) :: parameters
+    class           (cosmologyParametersClass        ), pointer       :: cosmologyParameters_
+    double precision                                                  :: cW                  , beta
+
     !![
+    <inputParameter>
+      <name>cW</name>
+      <source>parameters</source>
+      <defaultValue>3.78062835d0</defaultValue>
+      <description>The parameter $c_\mathrm{W}$ in the \cite{bohr_halo_2021} power spectrum window function.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>beta</name>
+      <source>parameters</source>
+      <defaultValue>3.4638743d0</defaultValue>
+      <description>The parameter $\beta$ in the \cite{bohr_halo_2021} power spectrum window function.</description>
+    </inputParameter>
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
-    self=ETHOSConstructorInternal(cosmologyParameters_)
+    self=powerSpectrumWindowFunctionETHOS(cW,beta,cosmologyParameters_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"/>
@@ -79,16 +93,17 @@ contains
     return
   end function ETHOSConstructorParameters
 
-  function ETHOSConstructorInternal(cosmologyParameters_) result(self)
+  function ETHOSConstructorInternal(cW,beta,cosmologyParameters_) result(self)
     !!{
     Internal constructor for the ETHOS power spectrum window function class.
     !!}
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    type (powerSpectrumWindowFunctionETHOS)                        :: self
-    class(cosmologyParametersClass        ), target, intent(in   ) :: cosmologyParameters_
+    type            (powerSpectrumWindowFunctionETHOS)                        :: self
+    double precision                                          , intent(in   ) :: cW                  , beta
+    class           (cosmologyParametersClass        ), target, intent(in   ) :: cosmologyParameters_
     !![
-    <constructorAssign variables="*cosmologyParameters_"/>
+    <constructorAssign variables="cW, beta, *cosmologyParameters_"/>
     !!]
 
     return
@@ -115,7 +130,6 @@ contains
     implicit none
     class           (powerSpectrumWindowFunctionETHOS), intent(inout) :: self
     double precision                                  , intent(in   ) :: smoothingMass       , wavenumber
-    double precision                                  , parameter     :: beta         =3.46d0, cW        =3.79d0 
     double precision                                                  :: radius
     
     radius =+(                                             &
@@ -135,8 +149,8 @@ contains
             &       +(            &
             &         +wavenumber &
             &         *radius     &
-            &         /cW         &
-            &        )**beta      &
+            &         /self %cW   &
+            &        )**self%beta &
             &      )
     end if
     return
