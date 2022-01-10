@@ -911,9 +911,11 @@ contains
   end function inputParameterGet
 
   subroutine inputParametersCheckParameters(self,allowedParameterNames,allowedMultiParameterNames)
+    use :: Galacticus_Error   , only : Galacticus_Error_Report
     use :: Display            , only : displayIndent                  , displayMessage      , displayUnindent, displayVerbosity, &
           &                            enumerationVerbosityLevelEncode, verbosityLevelSilent, displayMagenta , displayReset
-    use :: FoX_dom            , only : destroy                        , getNodeName         , node
+    use :: FoX_dom            , only : destroy                        , getNodeName         , node           , hasAttribute    , &
+         &                             getAttributeNode               , extractDataContent  , inException    , DOMException
     use :: ISO_Varying_String , only : assignment(=)                  , operator(//)        , char           , operator(==)
     use :: Regular_Expressions, only : regEx
     use :: Hashes             , only : integerHash
@@ -922,12 +924,13 @@ contains
     class    (inputParameters)              , intent(inout)           :: self
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedMultiParameterNames
-    type     (node           ), pointer                               :: node_
+    type     (node           ), pointer                               :: node_                     , ignoreWarningsNode
     type     (inputParameter ), pointer                               :: currentParameter
     type     (regEx          ), save                                  :: regEx_
     !$omp threadprivate(regEx_)
     logical                                                           :: warningsFound             , parameterMatched    , &
-         &                                                               verbose
+         &                                                               verbose                   , ignoreWarnings      , &
+         &                                                               isException
     integer                                                           :: allowedParametersCount    , errorStatus         , &
          &                                                               distance                  , distanceMinimum     , &
          &                                                               j
@@ -936,6 +939,7 @@ contains
          &                                                               parameterNameGuess
     type     (varying_string )                                        :: message                   , verbosityLevel
     type     (integerHash    )                                        :: parameterNamesSeen
+    type     (DOMException   )                                        :: exception
 
     ! Determine whether we should be verbose.
     verbose=displayVerbosity() > verbosityLevelSilent
@@ -953,6 +957,15 @@ contains
              node_ => currentParameter%content
              ! Attempt to read the parameter value.
              call self%value(currentParameter,parameterValue,errorStatus,writeOutput=.false.)
+             ! Determine if warnings should be ignored for this parameter.
+             ignoreWarnings=.false.
+             if (hasAttribute(node_,'ignoreWarnings')) then
+                ignoreWarningsNode => getAttributeNode(node_,'ignoreWarnings')
+                call extractDataContent(ignoreWarningsNode,ignoreWarnings,iostat=errorStatus,ex=exception)
+                isException=inException(exception)
+                if (isException .or. errorStatus /= 0) &
+                     & call Galacticus_Error_Report("unable to parse attribute 'ignoreWarnings' in parameter ["//getNodeName(node_)//"]"//{introspection:location})
+             end if
              ! Check for a match with allowed parameter names.
              allowedParametersCount=0
              if (present(allowedParameterNames)) allowedParametersCount=size(allowedParameterNames)
@@ -981,12 +994,14 @@ contains
                   &     .not.parameterMatched                           &
                   &   )                                                 &
                   &  .and.                                              &
+                  &   .not.ignoreWarnings                               &
+                  &  .and.                                              &
                   &   .not.warningsFound                                &
                   & ) then
                 if (verbose) call displayIndent(displayMagenta()//'WARNING:'//displayReset()//' problems found with input parameters:')
                 warningsFound=.true.
              end if
-             if (errorStatus /= inputParameterErrorStatusSuccess .and. verbose) then
+             if (errorStatus /= inputParameterErrorStatusSuccess .and. .not.ignoreWarnings .and. verbose) then
                 !$omp critical (FoX_DOM_Access)
                 select case (errorStatus)
                 case (inputParameterErrorStatusEmptyValue    )
@@ -997,7 +1012,7 @@ contains
                 !$omp end critical (FoX_DOM_Access)
                 call displayMessage(message)
              end if
-             if (allowedParametersCount > 0 .and. .not.parameterMatched .and. verbose) then
+             if (allowedParametersCount > 0 .and. .not.parameterMatched .and. .not.ignoreWarnings .and. verbose) then
                 !$omp critical (FoX_DOM_Access)
                 unknownName    =getNodeName(node_)
                 !$omp end critical (FoX_DOM_Access)
@@ -1023,7 +1038,7 @@ contains
                 parameterMatched=.false.
                 if (present(allowedMultiParameterNames)) &
                      & parameterMatched=any(getNodeName(node_) == allowedMultiParameterNames)
-                if (.not.parameterMatched) then
+                if (.not.parameterMatched .and. .not.ignoreWarnings) then
                    if (.not.warningsFound.and.verbose) call displayIndent(displayMagenta()//'WARNING:'//displayReset()//' problems found with input parameters:')
                    warningsFound=.true.
                    if (verbose) then
