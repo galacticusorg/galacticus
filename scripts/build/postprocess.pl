@@ -4,6 +4,8 @@ use warnings;
 use lib $ENV{'GALACTICUS_EXEC_PATH'}."/perl";
 use Data::Dumper;
 use Fortran::Utils;
+use utf8;
+use open ":std", ":encoding(UTF-8)";
 my $haveColor = eval
 {
 use Term::ANSIColor;
@@ -137,12 +139,12 @@ while ( my $line = <STDIN> ) {
     $dropBuffer = 1
 	if ( $line =~ m/Only array FINAL procedures declared for derived type/ );
     # <workaround type="gfortran" PR="86117" url="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=86117"/>
-    if ( $line =~ m/Warning:\s+\'MEM\[\(struct\s+([a-zA-Z0-9_]+)[a-z0-9_\s\*]+\)[a-z0-9_&]+\s+\+\s+\d+B\]\' (is|may be) used uninitialized in this function/ ) {
+    if ( $line =~ m/Warning:\s+['‘]MEM\[\(struct\s+([a-zA-Z0-9_]+)[a-z0-9_\s\*]+\)[a-z0-9_&]+\s+\+\s+\d+B\]['’] (is|may be) used uninitialized in this function/ ) {
 	$dropBuffer = 1;
 	# In these cases we must add the problem structure to a list that we will ignore other "uninitialized" complaints about.
 	$bogusUninitialized{$1} = 1;
     }
-    if ( $line =~ m/Warning:\s+\'([a-zA-Z0-9_\.]+)\'\s+may be used uninitialized in this function/ ) {
+    if ( $line =~ m/Warning:\s+['‘]([a-zA-Z0-9_\.]+)['’]\s+may be used uninitialized in this function/ ) {
 	my @elements = split(/\./,$1);
 	foreach my $symbolName ( keys(%bogusUninitialized) ) {
 	    $dropBuffer = 1
@@ -170,38 +172,38 @@ while ( my $line = <STDIN> ) {
     if ( $line =~ m/^<stdin>:\d+:\d+:/ ) {
 	$procedureName = "stdin";
     }
-    if ( $line =~ m/^Warning: Unused dummy argument '([a-zA-Z0-9_]+)' at \(\d+\) \[\-Wunused\-dummy-argument\]/ && defined($procedureName) ) {
+    if ( $line =~ m/^Warning: Unused dummy argument ['‘]([a-zA-Z0-9_]+)['’] at \(\d+\) \[\-Wunused\-dummy-argument\]/ && defined($procedureName) ) {
 	my $variableName = $1;
 	$dropBuffer = 1
 	    if ( $procedureName eq "stdin" || exists($unusedVariables->{$procedureName}->{$variableName}) );
     }
-    if ( $line =~ m/^Warning: Dummy argument '([a-zA-Z0-9_]+)' at \(\d+\) was declared INTENT\(OUT\) but was not set \[\-Wunused\-dummy-argument\]/ && defined($procedureName) ) {
+    if ( $line =~ m/^Warning: Dummy argument ['‘]([a-zA-Z0-9_]+)['’] at \(\d+\) was declared INTENT\(OUT\) but was not set \[\-Wunused\-dummy-argument\]/ && defined($procedureName) ) {
 	my $variableName = $1;
 	$dropBuffer = 1
 	    if ( $procedureName eq "stdin" || exists($unusedVariables->{$procedureName}->{$variableName}) );
     }
-    if ( $line =~ m/^Warning: Derived-type dummy argument '([a-zA-Z0-9_]+)' at \(\d+\) was declared INTENT\(OUT\) but was not set and does not have a default initializer \[\-Wunused\-dummy\-argument\]/ && defined($procedureName) ) {
+    if ( $line =~ m/^Warning: Derived-type dummy argument ['‘]([a-zA-Z0-9_]+)['’] at \(\d+\) was declared INTENT\(OUT\) but was not set and does not have a default initializer \[\-Wunused\-dummy\-argument\]/ && defined($procedureName) ) {
 	my $variableName = $1;
 	$dropBuffer = 1
 	    if ( $procedureName eq "stdin" || exists($unusedVariables->{$procedureName}->{$variableName}) );
     }
     # Handle explicit C-interoperable dummy arguments.
-    if ( $line =~ m/^Warning: Variable '([a-zA-Z0-9_]+)' at \(\d+\) is a dummy argument of the BIND\(C\) procedure '([a-z_]+)' but may not be C interoperable \[\-Wc\-binding\-type\]/ && defined($procedureName) ) {
+    if ( $line =~ m/^Warning: Variable ['‘]([a-zA-Z0-9_]+)['’] at \(\d+\) is a dummy argument of the BIND\(C\) procedure ['‘]([a-z_]+)['’] but may not be C interoperable \[\-Wc\-binding\-type\]/ && defined($procedureName) ) {
 	my $variableName = $1;
 	my $inProcedure  = $2;
 	$dropBuffer = 1
 	    if (  exists($interoperableVariables->{lc($inProcedure)}->{lc($variableName)}) );
     }
     # Handle uninitialized variable attributes.
-    if ( $line =~ /Warning: '([a-zA-Z0-9_]+)[a-zA-Z0-9_\.\[\]]*' may be used uninitialized( in this function)?? \[\-Wmaybe\-uninitialized\]/ ) {
+    if ( $line =~ /Warning: ['‘]([a-zA-Z0-9_]+)[a-zA-Z0-9_\.\[\]]*['’] may be used uninitialized( in this function)?? \[\-Wmaybe\-uninitialized\]/ ) {
 	$dropBuffer = 1
 	    if ( exists($initializedVariables{lc($1)}) );
     }
-    if ( $line =~ /Warning: '([a-zA-Z0-9_]+)[a-zA-Z0-9_\.\[\]]*' is used uninitialized( in this function)?? \[\-Wuninitialized\]/ ) {
+    if ( $line =~ /Warning: ['‘]([a-zA-Z0-9_]+)[a-zA-Z0-9_\.\[\]]*['’] is used uninitialized( in this function)?? \[\-Wuninitialized\]/ ) {
 	$dropBuffer = 1
 	    if ( exists($initializedVariables{lc($1)}) );
     }
-    if ( $line =~ /note: '([a-zA-Z0-9_]+)[a-zA-Z0-9_\.\[\]]*' was declared here/ ) {
+    if ( $line =~ /note: ['‘]([a-zA-Z0-9_]+)[a-zA-Z0-9_\.\[\]]*['’]( was)?? declared here/ ) {
 	$dropBuffer = 1
 	    if ( exists($initializedVariables{lc($1)}) );
     }
@@ -231,7 +233,7 @@ while ( my $line = <STDIN> ) {
     	    $line =~ s/^Warning:\s/$warning/;
 	    my $bold  = color('bold' );
 	    my $reset = color('reset');
-	    $line =~ s/\'([^\']+)\'/\'$bold$1$reset\'/g
+	    $line =~ s/(['‘])([^['’]]+)(['’])/$1$bold$2$reset$3\'/g
     	}
     	if ( $line =~ m/^\s*\^\s*$/ ) {
     	    my $arrow = colored(['bright_green bold'],"^");
