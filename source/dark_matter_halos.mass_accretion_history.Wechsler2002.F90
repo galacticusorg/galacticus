@@ -160,9 +160,11 @@ contains
     !!{
     Destructor for the {\normalfont \ttfamily wechsler2002} dark matter halo mass accretion history class.
     !!}
+    use :: Events_Hooks, only : calculationResetEvent
     implicit none
     type(darkMatterHaloMassAccretionHistoryWechsler2002), intent(inout) :: self
 
+    if (calculationResetEvent%isAttached(self,wechsler2002CalculationReset)) call calculationResetEvent%detach(self,wechsler2002CalculationReset)
     !![
     <objectDestructor name="self%cosmologyFunctions_"      />
     <objectDestructor name="self%criticalOverdensity_"     />
