@@ -1014,11 +1014,13 @@ contains
     class(galacticStructureStandard), intent(inout) :: self
 
     ! Restore from stack.
-    galacticStructureStateCount=                        galacticStructureStateCount                -1
-    componentType_             =galacticStructureState_(galacticStructureStateCount)%componentType_
-    massType_                  =galacticStructureState_(galacticStructureStateCount)%massType_
-    weightBy_                  =galacticStructureState_(galacticStructureStateCount)%weightBy_
-    weightIndex_               =galacticStructureState_(galacticStructureStateCount)%weightIndex_
-    radius_                    =galacticStructureState_(galacticStructureStateCount)%radius_
+    galacticStructureStateCount=galacticStructureStateCount-1
+    if (galacticStructureStateCount > 0) then
+       componentType_=galacticStructureState_(galacticStructureStateCount)%componentType_
+       massType_     =galacticStructureState_(galacticStructureStateCount)%massType_
+       weightBy_     =galacticStructureState_(galacticStructureStateCount)%weightBy_
+       weightIndex_  =galacticStructureState_(galacticStructureStateCount)%weightIndex_
+       radius_       =galacticStructureState_(galacticStructureStateCount)%radius_
+    end if
     return
   end subroutine standardRestore
