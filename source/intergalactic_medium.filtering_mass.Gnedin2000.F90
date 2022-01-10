@@ -294,10 +294,12 @@ contains
             &                  self%timeMaximum , &
             &                  self%countTimes    &
             &                 )
+       ! Set the initial state for the composite variables used to solve for filtering mass.
+       call self%conditionsInitialODEs(timeInitial,massFiltering,massFilteringScales)
        ! Loop over times and populate tables.
        solver=odeSolver(3_c_size_t,massFilteringODEs,toleranceAbsolute=odeToleranceAbsolute,toleranceRelative=odeToleranceRelative,scale=massFilteringScales)    
        do iTime=1,self%countTimes
-          ! Set the composite variables used to solve for filtering mass.
+          ! Reset the initial state composite variables used to solve for filtering mass.
           call self%conditionsInitialODEs(timeInitial,massFiltering,massFilteringScales)
           ! Solve the ODE system
           timeCurrent=timeInitial
