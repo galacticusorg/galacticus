@@ -78,10 +78,10 @@ Implements a merger tree branching probability class using the algorithm of \cit
    contains
      !![
      <methods>
-       <method description="Compute common factors needed for the calculations." method="computeCommonFactors" />
-       <method description="Compute the function $V(q)$ from \cite{parkinson_generating_2008}." method="V" />
-       <method description="Compute the part of the modifier term which depends on $\sigma_\mathrm{s}$." method="modifier" />
-       <method description="Compute the $a$ parameter of the hypergeometric function." method="hypergeometricA" />
+       <method description="Compute common factors needed for the calculations."                         method="computeCommonFactors"/>
+       <method description="Compute the function $V(q)$ from \cite{parkinson_generating_2008}."          method="V"                   />
+       <method description="Compute the part of the modifier term which depends on $\sigma_\mathrm{s}$." method="modifier"            />
+       <method description="Compute the $a$ parameter of the hypergeometric function."                   method="hypergeometricA"     />
      </methods>
      !!]
      final     ::                          parkinsonColeHellyDestructor
