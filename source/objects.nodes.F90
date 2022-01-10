@@ -140,7 +140,7 @@ module Galacticus_Nodes
      !!}
      type   (mergerTreeList), pointer         :: trees         => null()
      logical                                  :: allTreesBuilt =  .false.
-     type   (universeEvent ), pointer, public :: event
+     type   (universeEvent ), pointer, public :: event         => null()
      type   (genericHash   )                  :: attributes
      integer(kind_int8     )                  :: uniqueID
    contains
@@ -422,9 +422,10 @@ module Galacticus_Nodes
     class(nodeEvent), intent(inout), pointer :: newEvent
     class(nodeEvent)               , pointer :: event
 
-    !$omp atomic
+    !$omp critical (nodeEventIncrement)
     eventID       =  eventID+1
     newEvent%ID   =  eventID
+    !$omp end critical (nodeEventIncrement)
     newEvent%next => null()
     if (associated(self%event)) then
        event => self%event
@@ -1545,9 +1546,10 @@ module Galacticus_Nodes
 
     allocate(eventNew)
     nullify(eventNew%next)
-    !$omp atomic
+    !$omp critical (nodeEventIncrement)
     eventID=eventID+1
     eventNew%ID=eventID
+    !$omp end critical (nodeEventIncrement)
     if (associated(self%event)) then
        event => self%event
        do while (associated(event%next))
@@ -1710,9 +1712,10 @@ module Galacticus_Nodes
 
     allocate(newEvent)
     nullify(newEvent%next)
-    !$omp atomic
+    !$omp critical (nodeEventIncrement)
     eventID=eventID+1
     newEvent%ID=eventID
+    !$omp end critical (nodeEventIncrement)
     if (associated(self%event)) then
        event => self%event
        do while (associated(event%next))
@@ -1733,13 +1736,15 @@ module Galacticus_Nodes
     class  (universe     ), intent(inout) :: self
     type   (universeEvent), intent(in   ) :: event
     type   (universeEvent), pointer       :: eventLast, eventNext, event_
-
+    integer(kind_int8    )                :: eventID
+    
     ! Destroy the event.
+    eventID   =  event%ID
     eventLast => null()
     event_    => self%event
     do while (associated(event_))
        ! Match the event.
-       if (event_%ID == event%ID) then
+       if (event_%ID == eventID) then
           if (associated(event_,self%event)) then
              self     %event => event_%next
              eventLast       => self  %event
