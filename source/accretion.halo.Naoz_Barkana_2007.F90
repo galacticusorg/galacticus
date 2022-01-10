@@ -146,6 +146,7 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily naozBarkana2007} halo accretion class.
     !!}
+    use :: Kind_Numbers    , only : kind_int8
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (accretionHaloNaozBarkana2007         )                        :: self
@@ -166,6 +167,9 @@ contains
     !!]
 
     self%accretionHaloSimple=accretionHaloSimple(timeReionization,velocitySuppressionReionization,accretionNegativeAllowed,accretionNewGrowthOnly,cosmologyParameters_,cosmologyFunctions_,darkMatterHaloScale_,accretionHaloTotal_,chemicalState_,intergalacticMediumState_)
+    self%filteredFractionComputed    =.false.
+    self%filteredFractionRateComputed=.false.
+    self%lastUniqueID                =-huge(0_c_size_t)
     return
   end function naozBarkana2007ConstructorInternal
 
