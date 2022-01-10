@@ -99,7 +99,7 @@ contains
     !!]
     call self%initialize(temperatureLevelCount,temperatureMaximum)
     !![
-    <inputParametersValidate source="parameters"/>
+    <inputParametersValidate source="parameters" multiParameters="modelParameter"/>
     !!]
     return
   end function annealedDifferentialEvolutionConstructorParameters
