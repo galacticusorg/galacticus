@@ -447,63 +447,64 @@ contains
     use            :: Numerical_Ranges                    , only : Make_Range                         , rangeTypeLogarithmic
     use            :: String_Handling                     , only : operator(//)                       , String_Upper_Case_First
     implicit none
-    class           (taskHaloMassFunction                   ), intent(inout), target           :: self
-    integer                                                  , intent(  out), optional         :: status
-    double precision                                         , allocatable  , dimension(:,:  ) :: massFunctionDifferentialLogarithmicBinAveraged         , biasHalo                     , &
-         &                                                                                        massFunctionCumulative                                 , massFunctionDifferential     , &
-         &                                                                                        massFunctionDifferentialLogarithmic                    , massFunctionMassFraction     , &
-         &                                                                                        peakHeight                                             , densityFieldRootVariance     , &
-         &                                                                                        radiusVirial                                           , temperatureVirial            , &
-         &                                                                                        velocityVirial                                         , darkMatterProfileRadiusScale , &
-         &                                                                                        velocityMaximum                                        , peakHeightMassFunction       , &
-         &                                                                                        densityFieldRootVarianceGradientLogarithmic            , massFunctionCumulativeSubhalo, &
-         &                                                                                        massAccretionRate
-    double precision                                         , allocatable  , dimension(:    ) :: outputCharacteristicMass                               , outputCriticalOverdensities  , &
-         &                                                                                        outputExpansionFactors                                 , outputGrowthFactors          , &
-         &                                                                                        outputRedshifts                                        , outputTimes                  , &
-         &                                                                                        outputVirialDensityContrast                            , outputTurnAroundRadius       , &
-         &                                                                                        massHalo                                               , massHaloOutput               , &
-         &                                                                                        massFractionMode
-    double precision                                         , allocatable  , dimension(:,:,:) :: massAlternate                                          , radiusAlternate
-    integer                                                  , allocatable  , dimension(:    ) :: statusFractionMode
+    class           (taskHaloMassFunction                   ), intent(inout), target                 :: self
+    integer                                                  , intent(  out), optional               :: status
+    double precision                                         , allocatable  , dimension(:,:  )       :: massFunctionDifferentialLogarithmicBinAveraged         , biasHalo                     , &
+         &                                                                                              massFunctionCumulative                                 , massFunctionDifferential     , &
+         &                                                                                              massFunctionDifferentialLogarithmic                    , massFunctionMassFraction     , &
+         &                                                                                              peakHeight                                             , densityFieldRootVariance     , &
+         &                                                                                              radiusVirial                                           , temperatureVirial            , &
+         &                                                                                              velocityVirial                                         , darkMatterProfileRadiusScale , &
+         &                                                                                              velocityMaximum                                        , peakHeightMassFunction       , &
+         &                                                                                              densityFieldRootVarianceGradientLogarithmic            , massFunctionCumulativeSubhalo, &
+         &                                                                                              massAccretionRate
+    double precision                                         , allocatable  , dimension(:    )       :: outputCharacteristicMass                               , outputCriticalOverdensities  , &
+         &                                                                                              outputExpansionFactors                                 , outputGrowthFactors          , &
+         &                                                                                              outputRedshifts                                        , outputTimes                  , &
+         &                                                                                              outputVirialDensityContrast                            , outputTurnAroundRadius       , &
+         &                                                                                              massHalo                                               , massHaloOutput               , &
+         &                                                                                              massFractionMode
+    double precision                                         , allocatable  , dimension(:,:,:)       :: massAlternate                                          , radiusAlternate
+    integer                                                  , allocatable  , dimension(:    )       :: statusFractionMode
     ! The upper limit to halo mass used when computing cumulative mass functions.
-    double precision                                         , parameter                       :: haloMassEffectiveInfinity                     =1.0d16
+    double precision                                         , parameter                             :: haloMassEffectiveInfinity                     =1.0d16
     ! Largest subhalo mass (in units of host mass) for which we expect significant unevolved subhalo mass function.
-    double precision                                         , parameter                       :: subhaloMassMaximum                            =1.0d02
-    class           (nodeComponentBasic                     ), pointer                         :: basic
-    class           (nodeComponentDarkMatterProfile         ), pointer                         :: darkMatterProfileHalo
-    class           (cosmologyParametersClass               ), pointer                         :: cosmologyParameters_                          => null()
-    class           (cosmologyFunctionsClass                ), pointer                         :: cosmologyFunctions_                           => null()
-    class           (darkMatterProfileDMOClass              ), pointer                         :: darkMatterProfileDMO_                         => null()
-    class           (criticalOverdensityClass               ), pointer                         :: criticalOverdensity_                          => null()
-    class           (haloMassFunctionClass                  ), pointer                         :: haloMassFunction_                             => null()
-    class           (haloEnvironmentClass                   ), pointer                         :: haloEnvironment_                              => null()
-    class           (unevolvedSubhaloMassFunctionClass      ), pointer                         :: unevolvedSubhaloMassFunction_                 => null()
-    class           (darkMatterHaloScaleClass               ), pointer                         :: darkMatterHaloScale_                          => null()
-    class           (cosmologicalMassVarianceClass          ), pointer                         :: cosmologicalMassVariance_                     => null()
-    class           (darkMatterHaloBiasClass                ), pointer                         :: darkMatterHaloBias_                           => null()
-    class           (darkMatterProfileScaleRadiusClass      ), pointer                         :: darkMatterProfileScaleRadius_                 => null()
-    class           (darkMatterHaloMassAccretionHistoryClass), pointer                         :: darkMatterHaloMassAccretionHistory_           => null()
-    class           (virialDensityContrastClass             ), pointer                         :: virialDensityContrast_                        => null()
-    type            (virialDensityContrastList              ), allocatable   , dimension(:   ) :: virialDensityContrasts
-    type            (mergerTree                             ), target                          :: tree
-    type            (integrator                             )                                  :: integrator_
-    integer         (c_size_t                               )                                  :: iOutput                                                , outputCount                  , &
-         &                                                                                        iMass                                                  , massCount                    , &
-         &                                                                                        iAlternate
-    double precision                                                                           :: massHaloBinMinimum                                     , massHaloBinMaximum           , &
-         &                                                                                        massHaloLogarithmicInterval                            , massHalfMode                 , &
-         &                                                                                        massCritical                                           , massQuarterMode              , &
-         &                                                                                        densityMean                                            , densityCritical              , &
-         &                                                                                        massHaloMinimum                                        , massHaloMaximum              , &
-         &                                                                                        massHalfModeReference
-    type            (hdf5Object                             )                                  :: outputsGroup                                           , outputGroup                  , &
-         &                                                                                        containerGroup                                         , powerSpectrumGroup           , &
-         &                                                                                        cosmologyGroup                                         , dataset
-    integer                                                                                    :: statusHalfModeMass                                     , statusQuarterModeMass        , &
-         &                                                                                        statusHalfModeMassReference
-    type            (varying_string                         )                                  :: groupName                                              , commentText
-    character       (len=32                                 )                                  :: label
+    double precision                                         , parameter                             :: subhaloMassMaximum                            =1.0d02
+    class           (nodeComponentBasic                     ), pointer                               :: basic
+    class           (nodeComponentDarkMatterProfile         ), pointer                               :: darkMatterProfileHalo
+    class           (cosmologyParametersClass               ), pointer                               :: cosmologyParameters_                          => null()
+    class           (cosmologyFunctionsClass                ), pointer                               :: cosmologyFunctions_                           => null()
+    class           (darkMatterProfileDMOClass              ), pointer                               :: darkMatterProfileDMO_                         => null()
+    class           (criticalOverdensityClass               ), pointer                               :: criticalOverdensity_                          => null()
+    class           (haloMassFunctionClass                  ), pointer                               :: haloMassFunction_                             => null()
+    class           (haloEnvironmentClass                   ), pointer                               :: haloEnvironment_                              => null()
+    class           (unevolvedSubhaloMassFunctionClass      ), pointer                               :: unevolvedSubhaloMassFunction_                 => null()
+    class           (darkMatterHaloScaleClass               ), pointer                               :: darkMatterHaloScale_                          => null()
+    class           (cosmologicalMassVarianceClass          ), pointer                               :: cosmologicalMassVariance_                     => null()
+    class           (darkMatterHaloBiasClass                ), pointer                               :: darkMatterHaloBias_                           => null()
+    class           (darkMatterProfileScaleRadiusClass      ), pointer                               :: darkMatterProfileScaleRadius_                 => null()
+    class           (darkMatterHaloMassAccretionHistoryClass), pointer                               :: darkMatterHaloMassAccretionHistory_           => null()
+    class           (virialDensityContrastClass             ), pointer                               :: virialDensityContrast_                        => null()
+    type            (virialDensityContrastList              ), allocatable   , dimension(:   )       :: virialDensityContrasts
+    type            (mergerTree                             ), allocatable   , target         , save :: tree
+    !$omp threadprivate(tree)
+    type            (integrator                             ), allocatable                           :: integrator_
+    integer         (c_size_t                               )                                        :: iOutput                                                , outputCount                  , &
+         &                                                                                              iMass                                                  , massCount                    , &
+         &                                                                                              iAlternate
+    double precision                                                                                 :: massHaloBinMinimum                                     , massHaloBinMaximum           , &
+         &                                                                                              massHaloLogarithmicInterval                            , massHalfMode                 , &
+         &                                                                                              massCritical                                           , massQuarterMode              , &
+         &                                                                                              densityMean                                            , densityCritical              , &
+         &                                                                                              massHaloMinimum                                        , massHaloMaximum              , &
+         &                                                                                              massHalfModeReference
+    type            (hdf5Object                             )                                        :: outputsGroup                                           , outputGroup                  , &
+         &                                                                                              containerGroup                                         , powerSpectrumGroup           , &
+         &                                                                                              cosmologyGroup                                         , dataset
+    integer                                                                                          :: statusHalfModeMass                                     , statusQuarterModeMass        , &
+         &                                                                                              statusHalfModeMassReference
+    type            (varying_string                         )                                        :: groupName                                              , commentText
+    character       (len=32                                 )                                        :: label
     
     call displayIndent('Begin task: halo mass function')
     ! Call routines to perform initializations which must occur for all threads if run in parallel.
@@ -584,7 +585,7 @@ contains
     end if
     massHalo                   =Make_Range(massHaloMinimum,massHaloMaximum,int(massCount),rangeTypeLogarithmic)
     massHaloLogarithmicInterval=log(massHaloMaximum/massHaloMinimum)/dble(massCount-1)
-    !$omp parallel private(iOutput,iMass,densityMean,densityCritical,tree,basic,darkMatterProfileHalo,massHaloBinMinimum,massHaloBinMaximum,haloEnvironment_,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,unevolvedSubhaloMassFunction_,darkMatterHaloBias_,darkMatterProfileScaleRadius_,darkMatterHaloMassAccretionHistory_,virialDensityContrast_,virialDensityContrasts,integrator_)
+    !$omp parallel private(iOutput,iMass,densityMean,densityCritical,basic,darkMatterProfileHalo,massHaloBinMinimum,massHaloBinMaximum,haloEnvironment_,cosmologyFunctions_,cosmologyParameters_,cosmologicalMassVariance_,criticalOverdensity_,haloMassFunction_,darkMatterHaloScale_,darkMatterProfileDMO_,unevolvedSubhaloMassFunction_,darkMatterHaloBias_,darkMatterProfileScaleRadius_,darkMatterHaloMassAccretionHistory_,virialDensityContrast_,virialDensityContrasts,integrator_)
     allocate(haloEnvironment_                   ,mold=self%haloEnvironment_                   )
     allocate(cosmologyFunctions_                ,mold=self%cosmologyFunctions_                )
     allocate(cosmologyParameters_               ,mold=self%cosmologyParameters_               )
@@ -629,9 +630,12 @@ contains
     end do
     !$omp end critical(taskHaloMassFunctionDeepCopy)
     ! Build an integrator.
+    allocate(integrator_)
     integrator_=integrator(subhaloMassFunctionIntegrand,toleranceRelative=1.0d-3,integrationRule=GSL_Integ_Gauss15)
-    ! Create a node object, assume zero environmental overdensity.
-    tree%nodeBase          => treeNode()
+       ! Create a node object, assume zero environmental overdensity.
+    allocate(tree)
+    tree                   =  mergerTree()
+    tree%nodeBase          => treeNode  ()
     tree%nodeBase%hostTree => tree
     call tree                   %properties%initialize(                               )
     if (haloEnvironment_%overdensityIsSettable())                                       &
@@ -711,6 +715,11 @@ contains
             &                                         *massHalo
        !$omp end single
     end do
+    call tree%destroy()
+    nullify   (basic                )
+    nullify   (darkMatterProfileHalo)
+    deallocate(tree                 )
+    deallocate(integrator_          )
     !![
     <objectDestructor name="haloEnvironment_                   "/>
     <objectDestructor name="virialDensityContrast_             "/>
@@ -758,7 +767,7 @@ contains
              if (statusFractionMode(iMass) == errorStatusSuccess) call powerSpectrumGroup%writeAttribute(massFractionMode(iMass),trim(label))
           end do          
        end if
-       call                                                  powerSpectrumGroup%close         (                                 )
+       call                                                            powerSpectrumGroup%close         (                                   )
     end if
     ! Store sigma8.
     if (self%outputGroup == ".") then
