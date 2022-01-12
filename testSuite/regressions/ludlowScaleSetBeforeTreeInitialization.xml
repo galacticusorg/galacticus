@@ -370,7 +370,6 @@
                          "/>
     </nodePropertyExtractor>
   </nodePropertyExtractor>
-  <mergingStatistics value="standard"/>
   <galacticusOutputFileName value="testSuite/outputs/regressions/ludlowScaleSetBeforeTreeInitialization.hdf5"/>
   <!-- Merger trees -->
   <outputTimes value="list">
