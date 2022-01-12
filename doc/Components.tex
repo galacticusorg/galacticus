@@ -1229,34 +1229,6 @@ The scale radius and shape parameter of each node grow linearly with time to int
 
 This \gls{component} records statistics associated with galaxy merging.
 
-\subsection{``Standard'' Implementation}
-
-\subsubsection{Properties}
-
-The standard merging statistics implementation defines the following properties:
-\begin{description}
- \item [{\normalfont \ttfamily galaxyMajorMergerTime}] The time of the last major merger associated with this galaxy, output as the time \emph{since} the last major merger [{\normalfont \ttfamily mergingStatisticsGalaxyMajorMergerTime}];
- \item [{\normalfont \ttfamily nodeMajorMergerTime}] The time of the last major merger (as defined by the {\normalfont \ttfamily [nodeMajorMergerFraction]} parameter) between this \gls{node} and another, output as the time \emph{since} the last major merger [{\normalfont \ttfamily mergingStatisticsNodeMajorMergerTime}];
- \item [{\normalfont \ttfamily nodeFormationTime}] The time at which the \gls{node} is judged to have ``formed'', defined as the time at which its main branch progenitor had a mass equal to a fraction {\normalfont \ttfamily [nodeFormationMassFraction]} of the node's initial mass in the merger tree [{\normalfont \ttfamily mergingStatisticsNodeFormationTime}];
- \item [{\normalfont \ttfamily nodeHierarchyLevel}] The depth of this node in the initial merger tree hierarchy. For example, a node on the main branch has level 0. A node which merges directly onto the main branch has level 1. A node that merges onto a node that merges directly onto the main branch has level 2, etc. [{\normalfont \ttfamily mergingStatisticsNodeHierarchyLevel}];
-\end{description}
-
-\subsubsection{Initialization}
-
-The times of the last mergers are stored each time a major merger occurrs and this \gls{component} is created (if necessary) the first time such a merger occurs. Formation times and hierarchy levels are computed during merger tree initialization.
-
-\subsubsection{Differential Evolution}
-
-The times of the last mergers do not evolve.
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Node mergers:} The time of the last \gls{node} merger in the parent \gls{node} is reset to the current time if the merger is major.\\
-
-\noindent\emph{Satellite merging:} The time of the last merger is reset to the current time if the merger is major.\\
-
-\noindent\emph{Node promotion:} The time of the last major \gls{node} merger is updated to that of the parent if that time is more recent.\\
-
 \subsection{``Recent'' Implementation}
 
 \subsubsection{Properties}
@@ -1288,7 +1260,7 @@ The number of recent mergers do not evolve.
 
 The major merging statistics implementation defines the following properties:
 \begin{description}
- \item [{\normalfont \ttfamily majorMergerTime}] The time(s) of galaxy major mergers experience by this node. If non-empty, the merger times are output to a dataset {\normalfont \ttfamily majorMergers/Output\textless O\textgreater/mergerTree\textless T\textgreater/node\textless N\textgreater} (where {\normalfont \ttfamily \textless O\textgreater} is the output number, {\normalfont \ttfamily \textless T\textgreater} is the tree index, and {\normalfont \ttfamily \textless N\textgreater} is the node index) in the \glc\ output file.
+ \item [{\normalfont \ttfamily majorMergerTime}] The time(s) of galaxy major mergers experience by this node. Major merger times are output to a avriable-length dataset {\normalfont \ttfamily mergingStatisticsMajorMergerTimes} in the \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Usage.pdf\#sec.nodeDataGroup}{\normalfont \ttfamily nodeData} group.
 \end{description}
 
 \subsubsection{Initialization}
