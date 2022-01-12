@@ -106,7 +106,7 @@ contains
     logical                                                                             :: alwaysIsolatedOnly              , covarianceDiagonalize     , &
           &                                                                                covarianceTargetOnly            , likelihoodInLog
     
-    if (parameters%isPresent('rootVarianceTargetFractional')) allocate(rootVarianceTargetFractional(max(1,parameters%count('rootVarianceTargetFractional',zeroIfNotPresent=.true.))))
+    allocate(rootVarianceTargetFractional(max(1,parameters%count('rootVarianceTargetFractional',zeroIfNotPresent=.true.))))
     !![
     <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"             source="parameters"                                                />
     <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"              source="parameters"                                                />
