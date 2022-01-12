@@ -23,7 +23,7 @@ program Tests_IO_HDF5
   !!}
   use :: Display           , only : displayVerbositySet, verbosityLevelStandard
   use :: HDF5              , only : HSIZE_T
-  use :: IO_HDF5           , only : IO_HDF5_Is_HDF5    , hdf5Object
+  use :: IO_HDF5           , only : IO_HDF5_Is_HDF5    , hdf5Object            , hdf5VarDouble
   use :: ISO_Varying_String, only : assignment(=)      , trim                  , varying_string
   use :: Kind_Numbers      , only : kind_int8
   use :: Memory_Management , only : deallocateArray
@@ -66,7 +66,8 @@ program Tests_IO_HDF5
   double precision                             , dimension(10,10,10,10,10) :: doubleValueArray5dRereadStatic
   double precision                , allocatable, dimension( :, :, :, :, :) :: doubleValueArray5dReread      , doubleValueArray5dRereadExpect
   type            (varying_string), allocatable, dimension( :)             :: datasetNames
-  type            (varying_string)             , dimension(17)             :: datasetNamesReference
+  type            (varying_string)             , dimension(18)             :: datasetNamesReference
+  type            (hdf5VarDouble ), allocatable, dimension( :)             :: varDoubleArray2D              , varDoubleDataset2dArrayReread
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -677,6 +678,34 @@ program Tests_IO_HDF5
      call groupObject%readDatasetStatic("varStringDataset1dArray",varStringValueArrayRereadStatic)
      call Assert("re-read 1-D array varString dataset to static array",varStringValueArray,varStringValueArrayRereadStatic)
 
+     ! Write a variable length double dataset to the group.
+     allocate(varDoubleArray2D(10))
+     do i=1,10
+        allocate(varDoubleArray2D(i)%row(11-i))
+        varDoubleArray2D(i)%row=float(2*i)
+     end do
+     call groupObject%writeDataset(varDoubleArray2D,"varDoubleDataset2dArray")
+     ! Read the varying string 1-D array dataset back.
+     call groupObject%readDataset("varDoubleDataset2dArray",varDoubleDataset2dArrayReread)
+     call Assert(                                                                         &
+          &      "re-read 2-D array varDouble dataset"                                  , &
+          &      [                                                                        &
+          &       all(varDoubleArray2D( 1)%row == varDoubleDataset2dArrayReread( 1)%row), &
+          &       all(varDoubleArray2D( 2)%row == varDoubleDataset2dArrayReread( 2)%row), &
+          &       all(varDoubleArray2D( 3)%row == varDoubleDataset2dArrayReread( 3)%row), &
+          &       all(varDoubleArray2D( 4)%row == varDoubleDataset2dArrayReread( 4)%row), &
+          &       all(varDoubleArray2D( 5)%row == varDoubleDataset2dArrayReread( 5)%row), &
+          &       all(varDoubleArray2D( 6)%row == varDoubleDataset2dArrayReread( 6)%row), &
+          &       all(varDoubleArray2D( 7)%row == varDoubleDataset2dArrayReread( 7)%row), &
+          &       all(varDoubleArray2D( 8)%row == varDoubleDataset2dArrayReread( 8)%row), &
+          &       all(varDoubleArray2D( 9)%row == varDoubleDataset2dArrayReread( 9)%row), &
+          &       all(varDoubleArray2D(10)%row == varDoubleDataset2dArrayReread(10)%row)  &
+          &      ]                                                                      , &
+          &      spread(.true.,1,10)                                                      &
+          &     )
+     deallocate(varDoubleDataset2dArrayReread)
+     deallocate(varDoubleArray2D             )
+
      ! Write a scalar integer attribute to the group.
      integerValue=2020
      call groupObject%writeAttribute(integerValue,"integerShortAttribute")
@@ -726,12 +755,13 @@ program Tests_IO_HDF5
              &                 "integerDataset1dArray     ", &
              &                 "integerShortDataset1dArray", &
              &                 "myReference               ", &
+             &                 "varDoubleDataset2dArray   ", &
              &                 "varStringDataset1dArray   "  &
              &                ]
         forall(i=1:size(datasetNamesReference))
            datasetNamesReference(i)=trim(datasetNamesReference(i))
         end forall
-        call Assert("recover correct number of datasets in group",size(datasetNames),17)
+        call Assert("recover correct number of datasets in group",size(datasetNames),18)
         call Assert("recover names of datasets in group",datasetNames,datasetNamesReference)
      end if
 
