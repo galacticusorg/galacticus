@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -232,7 +232,7 @@ contains
     integer(c_size_t                  ), intent(in   ) :: treeNumber
     logical                            , intent(  out) :: finished
     class  (nodeComponentBasic        ), pointer       :: basicBase
-    integer(kind_int8                 ), parameter     :: baseNodeIndex=1
+    integer(kind_int8                 ), parameter     :: indexNodeBase=1
     integer(kind_int8                 )                :: treeIndex
     type   (varying_string            )                :: message
 
@@ -286,9 +286,9 @@ contains
        call tree%properties%initialize()
        ! Create the base node.
        tree%firstTree => tree
-       tree%baseNode  => treeNode(baseNodeIndex,tree)
+       tree%nodeBase  => treeNode(indexNodeBase,tree)
        ! Get the basic component of the base node.
-       basicBase     => tree%baseNode%basic(autoCreate=.true.)
+       basicBase     => tree%nodeBase%basic(autoCreate=.true.)
        ! Assign a mass to it.
        call basicBase%massSet(self%treeMass(self%rankMass(treeIndex)))
        ! Assign a time.
@@ -304,7 +304,7 @@ contains
                &                                                                               self%timeBase                                 , &
                &                                                                               self%treeMassMinimum(self%rankMass(treeIndex)), &
                &                                                                               self%treeMassMaximum(self%rankMass(treeIndex)), &
-               &                                                                               tree%baseNode                                   &
+               &                                                                               tree%nodeBase                                   &
                &                                                                              )                                                &
                &                                    *self%cosmologyParameters_%densityCritical(                                                &
                &                                                                              )                                                &

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,8 @@
 Contains a module which implements an N-body data importer for Gadget HDF5 files.
 !!}
 
-  use :: IO_HDF5, only : hdf5Object
+  use :: Cosmology_Parameters, only : cosmologyParametersClass
+  use :: IO_HDF5             , only : hdf5Object
 
   !![
   <nbodyImporter name="nbodyImporterGadgetHDF5">
@@ -33,11 +34,13 @@ Contains a module which implements an N-body data importer for Gadget HDF5 files
      An importer for Gadget HDF5 files.
      !!}
      private
-     type            (varying_string) :: fileName       , label
-     type            (hdf5Object    ) :: file
-     integer                          :: particleType
-     double precision                 :: lengthSoftening, unitMassInSI    , &
-          &                              unitLengthInSI , unitVelocityInSI
+     class           (cosmologyParametersClass), pointer :: cosmologyParameters_ => null()
+     type            (varying_string          )          :: fileName                      , label
+     type            (hdf5Object              )          :: file
+     integer                                             :: particleType
+     double precision                                    :: lengthSoftening               , unitMassInSI    , &
+          &                                                 unitLengthInSI                , unitVelocityInSI
+     logical                                             :: isCosmological
    contains
      final     ::           gadgetHDF5Destructor
      procedure :: import => gadgetHDF5Import
@@ -60,12 +63,14 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type            (nbodyImporterGadgetHDF5)                :: self
-    type            (inputParameters        ), intent(inout) :: parameters
-    integer                                                  :: particleType
-    double precision                                         :: lengthSoftening, unitMassInSI    , &
-         &                                                      unitLengthInSI , unitVelocityInSI
-    type            (varying_string         )                :: fileName       , label
+    type            (nbodyImporterGadgetHDF5 )                :: self
+    class           (cosmologyParametersClass), pointer       :: cosmologyParameters_
+    type            (inputParameters         ), intent(inout) :: parameters
+    integer                                                   :: particleType
+    double precision                                          :: lengthSoftening     , unitMassInSI    , &
+         &                                                       unitLengthInSI      , unitVelocityInSI
+    type            (varying_string          )                :: fileName            , label
+    logical                                                   :: isCosmological
 
     !![
     <inputParameter>
@@ -104,26 +109,35 @@ contains
       <source>parameters</source>
       <description>The velocity unit expressed in the SI system.</description>
     </inputParameter>
+    <inputParameter>
+      <name>isCosmological</name>
+      <source>parameters</source>
+      <description>Set to true if this is a cosmological simulation, false otherwise.</description>
+    </inputParameter>
+    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
     !!]
-    self=nbodyImporterGadgetHDF5(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI)
+    self=nbodyImporterGadgetHDF5(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI,isCosmological,cosmologyParameters_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="cosmologyParameters_"/>
     !!]
     return
   end function gadgetHDF5ConstructorParameters
 
-  function gadgetHDF5ConstructorInternal(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI) result (self)
+  function gadgetHDF5ConstructorInternal(fileName,label,particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI,isCosmological,cosmologyParameters_) result (self)
     !!{
     Internal constructor for the ``gadgetHDF5'' N-body importer class.
     !!}
     implicit none
-    type            (nbodyImporterGadgetHDF5)                :: self
-    type            (varying_string         ), intent(in   ) :: fileName       , label
-    integer                                  , intent(in   ) :: particleType
-    double precision                         , intent(in   ) :: lengthSoftening, unitMassInSI   , &
-         &                                                      unitLengthInSI ,unitVelocityInSI
+    type            (nbodyImporterGadgetHDF5 )                        :: self
+    type            (varying_string          ), intent(in   )         :: fileName            , label
+    integer                                   , intent(in   )         :: particleType
+    double precision                          , intent(in   )         :: lengthSoftening     , unitMassInSI   , &
+         &                                                               unitLengthInSI      ,unitVelocityInSI
+    logical                                   , intent(in   )         :: isCosmological
+    class           (cosmologyParametersClass), intent(in   ), target :: cosmologyParameters_
     !![
-    <constructorAssign variables="fileName, label, particleType,lengthSoftening,unitMassInSI,unitLengthInSI,unitVelocityInSI"/>
+    <constructorAssign variables="fileName, label, particleType, lengthSoftening, unitMassInSI, unitLengthInSI, unitVelocityInSI, isCosmological, *cosmologyParameters_"/>
     !!]
 
     return
@@ -137,6 +151,9 @@ contains
     type(nbodyImporterGadgetHDF5), intent(inout) :: self
 
     if (self%file%isOpen()) call self%file%close()
+    !![
+    <objectDestructor name="self%cosmologyParameters_"/>
+    !!]
     return
   end subroutine gadgetHDF5Destructor
 
@@ -144,24 +161,32 @@ contains
     !!{
     Import data from a Gadget HDF5 file.
     !!}
+    use :: Cosmology_Parameters            , only : hubbleUnitsLittleH
     use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Hashes                          , only : rank1IntegerSizeTPtrHash, rank2IntegerSizeTPtrHash, rank1DoublePtrHash, rank2DoublePtrHash, &
-         &                                          doubleHash
+         &                                          doubleHash              , varyingStringHash       , integerSizeTHash  , genericHash
     use :: Numerical_Constants_Astronomical, only : massSolar               , megaParsec
     use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (nbodyImporterGadgetHDF5), intent(inout)                              :: self
     type            (nBodyData              ), intent(  out), allocatable, dimension(:  ) :: simulations
     double precision                                                     , dimension(6  ) :: massParticleType
-    double precision                                        , pointer    , dimension(:,:) :: position         , velocity
+    double precision                                        , pointer    , dimension(:,:) :: position             , velocity
     integer         (c_size_t               )               , pointer    , dimension(:  ) :: particleID
     integer         (c_size_t               )                                             :: countParticles
     character       (len=9                  )                                             :: particleGroupName
-    type            (hdf5Object             )                                             :: header           , dataset
-    double precision                                                                      :: lengthSoftening  , massParticle
+    type            (hdf5Object             )                                             :: header               , dataset
+    double precision                                                                      :: lengthSoftening      , massParticle, &
+         &                                                                                   hubbleConstantLittleH, redshift
 
     allocate(simulations(1))
     simulations(1)%label=self%label
+    ! Determine the Hubble parameter factor for unit conversion.
+    if (self%isCosmological) then
+       hubbleConstantLittleH=self%cosmologyParameters_%HubbleConstant(hubbleUnitsLittleH)
+    else
+       hubbleConstantLittleH=1.0d0
+    end if
     ! Open the data file of the current snapshot.
     call self%file%openFile(char(self%fileName),objectsOverwritable=.true.)
     ! Construct the particle type group to read and verify that it exists.
@@ -169,14 +194,17 @@ contains
     if (.not.self%file%hasGroup(particleGroupName)) call Galacticus_Error_Report('particle group does not exist'//{introspection:location})
     ! Read values from header.
     header=self%file%openGroup('Header')
+    call header%readAttribute      ('Redshift' ,redshift        )
     call header%readAttributeStatic('MassTable',massParticleType)
     call header%close()
     ! Compute softening length and particle mass.
     lengthSoftening=+self%lengthSoftening                  &
          &          *self%unitLengthInSI                   &
+         &          /hubbleConstantLittleH                 &
          &          /megaParsec
     massParticle   =+massParticleType(self%particleType+1) &
          &          *self%unitMassInSI                     &
+         &          /hubbleConstantLittleH                 &
          &          /massSolar
     ! Open the particle group - this group will be used for analysis output.
     simulations(1)%analysis=self%file%openGroup(particleGroupName)
@@ -193,16 +221,31 @@ contains
     ! Convert position and velocities to internal units.
     position=+position                    &
          &   *self      %unitLengthInSI   &
+         &   /hubbleConstantLittleH       &
          &   /megaParsec
     velocity=+velocity                    &
          &   *self      %unitVelocityInSI &
          &   /kilo
+    !! For cosmological simulations velocities are in internal Gadget units and must be multiplied by √a to get peculiar velocity.
+    if (self%isCosmological) then
+       velocity=+velocity         &
+            &        *sqrt(            &
+            &              +  1.0d0    &
+            &              /(          &
+            &                +1.0d0    &
+            &                +redshift &
+            &               )          &
+            &             )
+    end if
     ! Store the data.
     simulations(1)%propertiesInteger     =rank1IntegerSizeTPtrHash()
     simulations(1)%propertiesIntegerRank1=rank2IntegerSizeTPtrHash()
     simulations(1)%propertiesReal        =rank1DoublePtrHash      ()
     simulations(1)%propertiesRealRank1   =rank2DoublePtrHash      ()
     simulations(1)%attributesReal        =doubleHash              ()
+    simulations(1)%attributesText        =varyingStringHash       ()
+    simulations(1)%attributesInteger     =integerSizeTHash        ()
+    simulations(1)%attributesGeneric     =genericHash             ()
     call simulations(1)%propertiesRealRank1%set('position'       ,position       )
     call simulations(1)%propertiesRealRank1%set('velocity'       ,velocity       )
     call simulations(1)%propertiesInteger  %set('particleID'     ,particleID     )

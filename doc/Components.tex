@@ -368,7 +368,7 @@ A fraction $1-${\normalfont \ttfamily [hotHaloAngularMomentumLossFraction]} of t
 
 \noindent\emph{Node promotion:} Any hot halo properties of the parent \gls{node} are added to those of the \gls{node} prior to promotion.\\
 
-\noindent\emph{Halo formation:} If {\normalfont \ttfamily [hotHaloOutflowReturnOnFormation]}$=${\normalfont \ttfamily true} then all outflowed gas is returned to the hot gas reservoir on \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#sec.HaloFormationEvents}{halo formation events}.\\
+\noindent\emph{Halo formation:} If {\normalfont \ttfamily [hotHaloOutflowReturnOnFormation]}$=${\normalfont \ttfamily true} then all outflowed gas is returned to the hot gas reservoir on \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf\#sec.HaloFormationEvents}{halo formation events}.\\
 
 \subsection{``Outflow Tracking'' Implementation}
 
@@ -877,7 +877,7 @@ The preset satellite orbit implementation defines the following properties:
  \item [{\normalfont \ttfamily timeOfMerging}] The cosmological time at which the satellite will merge with its host: $T_\mathrm{satellite, merge}$.
  \item [{\normalfont \ttfamily boundMass}] The remaining, total bound mass of the satellite (this property is read only---it is determined from the {\normalfont \ttfamily boundMassHistory} property).
  \item [{\normalfont \ttfamily boundMassHistory}] A history time-series of the total bound mass of the satellite.
- \item [{\normalfont \ttfamily virialOrbit}] The orbit (a \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#sec.KeplerOrbits}{\normalfont \ttfamily keplerOrbit} object) of the satellite at virial orbit crossing.
+ \item [{\normalfont \ttfamily virialOrbit}] The orbit (a \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf\#sec.KeplerOrbits}{\normalfont \ttfamily keplerOrbit} object) of the satellite at virial orbit crossing.
 \end{description}
 
 Note that the {\normalfont \ttfamily mergeTime} and {\normalfont \ttfamily timeOfMerging} effectively provide the same information. For that reason, setting one of them will automatically set the other accordingly.
@@ -934,7 +934,7 @@ The simple satellite orbit implementation defines the following properties:
 \begin{description}
  \item [{\normalfont \ttfamily mergeTime}] The time until the satellite will merge with its host: $t_\mathrm{satellite, merge}$ [{\normalfont \ttfamily satelliteMergeTime}].
  \item [{\normalfont \ttfamily boundMass}] The remaining, total bound mass of the satellite: $M_\mathrm{node,bound}$ [{\normalfont \ttfamily satelliteBoundMass}].
- \item[{\normalfont \ttfamily virialOrbit}] The orbit (returned as a \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#sec.KeplerOrbits}{\normalfont \ttfamily keplerOrbit} object) of the satellite at the point of virial radius crossing.
+ \item[{\normalfont \ttfamily virialOrbit}] The orbit (returned as a \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf\#sec.KeplerOrbits}{\normalfont \ttfamily keplerOrbit} object) of the satellite at the point of virial radius crossing.
 \end{description}
 
 \subsubsection{Initialization}
@@ -967,7 +967,7 @@ The orbiting satellite orbit implementation defines the following properties:
  \item [{\normalfont \ttfamily velocity}] The 3-dimensional velocity of the satellite relative to its host: $\mathbf{v}=(v_x,v_y,v_z)$.
  \item [{\normalfont \ttfamily mergeTime}] The time until the satellite will merge with its host: $t_\mathrm{satellite, merge}$ [{\normalfont \ttfamily satelliteMergeTime}].
  \item [{\normalfont \ttfamily boundMass}] The remaining, total bound mass of the satellite: $M_\mathrm{node,bound}$ [{\normalfont \ttfamily satelliteBoundMass}].
- \item[{\normalfont \ttfamily virialOrbit}] The orbit (returned as a \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Development.pdf\#sec.KeplerOrbits}{\normalfont \ttfamily keplerOrbit} object) of the satellite at the point of virial radius crossing.
+ \item[{\normalfont \ttfamily virialOrbit}] The orbit (returned as a \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Development.pdf\#sec.KeplerOrbits}{\normalfont \ttfamily keplerOrbit} object) of the satellite at the point of virial radius crossing.
  \item[{\normalfont \ttfamily tidalTensorPathIntegrated}] The time integral of the tidal tensor along the orbit of the satellite from initialization: $G_{ij}$.
  \item[{\normalfont \ttfamily tidalHeatingNormalized}] The tidal heating energy per radius squared desposited into the satellite: $Q_\mathrm{tidal}$.
 \end{description}
@@ -1229,34 +1229,6 @@ The scale radius and shape parameter of each node grow linearly with time to int
 
 This \gls{component} records statistics associated with galaxy merging.
 
-\subsection{``Standard'' Implementation}
-
-\subsubsection{Properties}
-
-The standard merging statistics implementation defines the following properties:
-\begin{description}
- \item [{\normalfont \ttfamily galaxyMajorMergerTime}] The time of the last major merger associated with this galaxy, output as the time \emph{since} the last major merger [{\normalfont \ttfamily mergingStatisticsGalaxyMajorMergerTime}];
- \item [{\normalfont \ttfamily nodeMajorMergerTime}] The time of the last major merger (as defined by the {\normalfont \ttfamily [nodeMajorMergerFraction]} parameter) between this \gls{node} and another, output as the time \emph{since} the last major merger [{\normalfont \ttfamily mergingStatisticsNodeMajorMergerTime}];
- \item [{\normalfont \ttfamily nodeFormationTime}] The time at which the \gls{node} is judged to have ``formed'', defined as the time at which its main branch progenitor had a mass equal to a fraction {\normalfont \ttfamily [nodeFormationMassFraction]} of the node's initial mass in the merger tree [{\normalfont \ttfamily mergingStatisticsNodeFormationTime}];
- \item [{\normalfont \ttfamily nodeHierarchyLevel}] The depth of this node in the initial merger tree hierarchy. For example, a node on the main branch has level 0. A node which merges directly onto the main branch has level 1. A node that merges onto a node that merges directly onto the main branch has level 2, etc. [{\normalfont \ttfamily mergingStatisticsNodeHierarchyLevel}];
-\end{description}
-
-\subsubsection{Initialization}
-
-The times of the last mergers are stored each time a major merger occurrs and this \gls{component} is created (if necessary) the first time such a merger occurs. Formation times and hierarchy levels are computed during merger tree initialization.
-
-\subsubsection{Differential Evolution}
-
-The times of the last mergers do not evolve.
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Node mergers:} The time of the last \gls{node} merger in the parent \gls{node} is reset to the current time if the merger is major.\\
-
-\noindent\emph{Satellite merging:} The time of the last merger is reset to the current time if the merger is major.\\
-
-\noindent\emph{Node promotion:} The time of the last major \gls{node} merger is updated to that of the parent if that time is more recent.\\
-
 \subsection{``Recent'' Implementation}
 
 \subsubsection{Properties}
@@ -1288,7 +1260,7 @@ The number of recent mergers do not evolve.
 
 The major merging statistics implementation defines the following properties:
 \begin{description}
- \item [{\normalfont \ttfamily majorMergerTime}] The time(s) of galaxy major mergers experience by this node. If non-empty, the merger times are output to a dataset {\normalfont \ttfamily majorMergers/Output\textless O\textgreater/mergerTree\textless T\textgreater/node\textless N\textgreater} (where {\normalfont \ttfamily \textless O\textgreater} is the output number, {\normalfont \ttfamily \textless T\textgreater} is the tree index, and {\normalfont \ttfamily \textless N\textgreater} is the node index) in the \glc\ output file.
+ \item [{\normalfont \ttfamily majorMergerTime}] The time(s) of galaxy major mergers experience by this node. Major merger times are output to a avriable-length dataset {\normalfont \ttfamily mergingStatisticsMajorMergerTimes} in the \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Usage.pdf\#sec.nodeDataGroup}{\normalfont \ttfamily nodeData} group.
 \end{description}
 
 \subsubsection{Initialization}

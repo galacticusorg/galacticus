@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -441,7 +441,7 @@ contains
         if (iNow > 1) then
            ! Get required objects.
            intergalacticMediumStateEvolveSelf => self
-           intergalacticMediumStateEvolveNode => universe_%trees%tree%baseNode
+           intergalacticMediumStateEvolveNode => universe_%trees%tree%nodeBase
            ! Map properties to a contiguous array.
            properties( 1   )=self%temperature           (iNow-1    )
            properties( 2: 3)=self%densityHydrogen       (iNow-1,1:2)
@@ -490,7 +490,7 @@ contains
         do while (associated(forest))
            tree => forest%tree
            do while (associated(tree))
-              node           => tree%baseNode
+              node           => tree%nodeBase
               basic          => node%basic()
               treetimeLatest =  max(treetimeLatest,basic%time())
               tree           => tree%nextTree

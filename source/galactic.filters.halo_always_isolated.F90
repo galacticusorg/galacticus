@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -31,6 +31,7 @@ Contains a module which implements a filter which passes only halos that have al
      A galactic filter class which passes only halos that have always been isolated.
      !!}
      private
+     integer :: nodeHierarchyLevelMaximumID
    contains
      procedure :: passes => haloAlwaysIsolatedPasses
   end type galacticFilterHaloAlwaysIsolated
@@ -40,6 +41,7 @@ Contains a module which implements a filter which passes only halos that have al
      Constructors for the ``haloAlwaysIsolated'' galactic filter class.
      !!}
      module procedure haloAlwaysIsolatedConstructorParameters
+     module procedure haloAlwaysIsolatedConstructorInternal
   end interface galacticFilterHaloAlwaysIsolated
 
 contains
@@ -48,40 +50,40 @@ contains
     !!{
     Constructor for the ``haloAlwaysIsolated'' galactic filter class which takes a parameter set as input.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Component_List        , Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : defaultMergingStatisticsComponent
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(galacticFilterHaloAlwaysIsolated)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
     !$GLC attributes unused :: parameters
 
-    if (.not.defaultMergingStatisticsComponent%nodeHierarchyLevelMaximumIsGettable())                                                           &
-         & call Galacticus_Error_Report                                                                                                         &
-         &      (                                                                                                                               &
-         &       'requires a merging statistics component that provides a gettable "nodeHierarchyLevelMaximum" property.'                    // &
-         &       Galacticus_Component_List(                                                                                                     &
-         &                                 'mergingStatistics'                                                                                , &
-         &                                  defaultMergingStatisticsComponent%nodeHierarchyLevelMaximumAttributeMatch(requireGettable=.true.)   &
-         &                                )                                                                                                  // &
-         &       {introspection:location}                                                                                                       &
-         &      )
     self=galacticFilterHaloAlwaysIsolated()
     return
   end function haloAlwaysIsolatedConstructorParameters
+
+  function haloAlwaysIsolatedConstructorInternal() result(self)
+    !!{
+    Intetnal constructor for the ``haloAlwaysIsolated'' galactic filter class.
+    !!}
+    implicit none
+    type(galacticFilterHaloAlwaysIsolated) :: self
+
+    !![
+    <addMetaProperty component="basic" name="nodeHierarchyLevelMaximum" type="integer" id="self%nodeHierarchyLevelMaximumID"/>
+    !!]
+    return
+  end function haloAlwaysIsolatedConstructorInternal
 
   logical function haloAlwaysIsolatedPasses(self,node)
     !!{
     Implement a galactic filter which passes only isolated halos.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentMergingStatistics
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(galacticFilterHaloAlwaysIsolated), intent(inout)         :: self
     type (treeNode                        ), intent(inout), target :: node
-    class(nodeComponentMergingStatistics  ), pointer               :: mergingStatistics
-    !$GLC attributes unused :: self
+    class(nodeComponentBasic              ), pointer               :: basic
 
-    mergingStatistics        => node             %mergingStatistics        (autoCreate=.true.)
-    haloAlwaysIsolatedPasses =  mergingStatistics%nodeHierarchyLevelMaximum(                 ) == 0
+    basic                    => node %basic                 (                                )
+    haloAlwaysIsolatedPasses =  basic%integerMetaPropertyGet(self%nodeHierarchyLevelMaximumID) == 0
     return
   end function haloAlwaysIsolatedPasses

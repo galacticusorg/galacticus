@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -158,11 +158,11 @@ contains
     ! Get the mass resolution for this tree.
     massResolution =  self%       mergerTreeMassResolution_%resolution(tree)
     ! Extract the base node properties.
-    nodeCurrent    => tree                                 %baseNode
+    nodeCurrent    => tree                                 %nodeBase
     basic          => nodeCurrent                          %basic     (    )
     indexNode      =  nodeCurrent                          %index     (    )
     ! Begin building. Steo backward in time, creating nodes until a sufficiently low mass has been reached.
-    nodeCurrent    => tree                                 %baseNode
+    nodeCurrent    => tree                                 %nodeBase
     massNode       =  basic                                %mass      (    )
     timeNode       =  basic                                %time      (    )
     do while (massNode > massResolution .and. timeNode > self%timeEarliest)
@@ -174,7 +174,7 @@ contains
        massNode  =  +      massNode             &
             &       *self%massHaloDeclineFactor
        ! Find the time corresponding to this mass.
-       timeNode  =  +self%darkMatterHaloMassAccretionHistory_%time(tree%baseNode,massNode)
+       timeNode  =  +self%darkMatterHaloMassAccretionHistory_%time(tree%nodeBase,massNode)
        ! Set the properties of the new node.
        call basic%            massSet(massNode)
        call basic%            timeSet(timeNode)

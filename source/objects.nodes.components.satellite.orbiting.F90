@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,15 +26,21 @@ module Node_Component_Satellite_Orbiting
   !!{
   Implements the orbiting satellite component.
   !!}
-  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
-  use :: Kepler_Orbits          , only : keplerOrbit
-  use :: Tensors                , only : tensorRank2Dimension3Symmetric
-  use :: Virial_Orbits          , only : virialOrbit                    , virialOrbitClass
+  use :: Cosmology_Parameters    , only : cosmologyParametersClass
+  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Galactic_Structure      , only : galacticStructureClass
+  use :: Virial_Density_Contrast , only : virialDensityContrastClass
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  use :: Kepler_Orbits           , only : keplerOrbit
+  use :: Tensors                 , only : tensorRank2Dimension3Symmetric
+  use :: Virial_Orbits           , only : virialOrbit                    , virialOrbitClass
   implicit none
   private
   public :: Node_Component_Satellite_Orbiting_Scale_Set        , Node_Component_Satellite_Orbiting_Create             , &
        &    Node_Component_Satellite_Orbiting_Pre_Host_Change  , Node_Component_Satellite_Orbiting_Initialize         , &
        &    Node_Component_Satellite_Orbiting_Thread_Initialize, Node_Component_Satellite_Orbiting_Thread_Uninitialize, &
+       &    Node_Component_Satellite_Orbiting_State_Store      , Node_Component_Satellite_Orbiting_State_Restore      , &
        &    Node_Component_Satellite_Orbiting_Tree_Initialize
   
   !![
@@ -125,9 +131,14 @@ module Node_Component_Satellite_Orbiting
   !!]
 
   ! Objects used by this module.
-  class(darkMatterHaloScaleClass      ), pointer :: darkMatterHaloScale_
-  class(virialOrbitClass              ), pointer :: virialOrbit_
-  !$omp threadprivate(darkMatterHaloScale_,virialOrbit_)
+  class(darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_
+  class(virialDensityContrastClass), pointer :: virialDensityContrast_
+  class(cosmologyParametersClass  ), pointer :: cosmologyParameters_
+  class(cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_
+  class(darkMatterHaloScaleClass  ), pointer :: darkMatterHaloScale_
+  class(virialOrbitClass          ), pointer :: virialOrbit_
+  class(galacticStructureClass    ), pointer :: galacticStructure_
+  !$omp threadprivate(darkMatterHaloScale_,virialOrbit_,darkMatterProfileDMO_,virialDensityContrast_,cosmologyParameters_,cosmologyFunctions_,galacticStructure_)
 
   ! Option controlling whether or not unbound virial orbits are acceptable.
   logical         , parameter :: acceptUnboundOrbits=.false.
@@ -220,8 +231,13 @@ contains
 
     if (defaultSatelliteComponent%orbitingIsActive()) then
        !![
-       <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
-       <objectBuilder class="virialOrbit"         name="virialOrbit_"         source="parameters_"/>
+       <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters_"/>
+       <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters_"/>
+       <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters_"/>
+       <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters_"/>
+       <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters_"/>
+       <objectBuilder class="virialOrbit"           name="virialOrbit_"           source="parameters_"/>
+       <objectBuilder class="galacticStructure"     name="galacticStructure_"     source="parameters_"/>
        !!]
        ! Check that the virial orbit class supports setting of angular coordinates.
        if (.not.virialOrbit_%isAngularlyResolved()) call Galacticus_Error_Report('"orbiting" satellite component requires a virialOrbit class which provides angularly-resolved orbits'//{introspection:location})
@@ -243,8 +259,13 @@ contains
 
     if (defaultSatelliteComponent%orbitingIsActive()) then
        !![
-       <objectDestructor name="darkMatterHaloScale_"/>
-       <objectDestructor name="virialOrbit_"        />
+       <objectDestructor name="cosmologyFunctions_"   />
+       <objectDestructor name="cosmologyParameters_"  />
+       <objectDestructor name="darkMatterProfileDMO_" />
+       <objectDestructor name="virialDensityContrast_"/>
+       <objectDestructor name="darkMatterHaloScale_"  />
+       <objectDestructor name="virialOrbit_"          />
+       <objectDestructor name="galacticStructure_"    />
        !!]
     end if
     return
@@ -299,7 +320,7 @@ contains
          &                                                                tidalHeatingNormalizedScaleFractional   =1.0d-2
     double precision                                                   :: virialRadius                                   , virialVelocity              , &
          &                                                                virialIntegratedTidalTensor                    , virialTidalHeatingNormalized, &
-         &                                                                satelliteMass
+         &                                                                massSatellite
 
     ! Get the satellite component.
     satellite => node%satellite()
@@ -307,9 +328,9 @@ contains
     select type (satellite)
     class is (nodeComponentSatelliteOrbiting)
        basic                       => node                %basic         (    )
-       satelliteMass               =  basic               %mass          (    )
-       virialRadius                =  darkMatterHaloScale_%virialRadius  (node)
-       virialVelocity              =  darkMatterHaloScale_%virialVelocity(node)
+       massSatellite               =  basic               %mass          (    )
+       virialRadius                =  darkMatterHaloScale_%radiusVirial  (node)
+       virialVelocity              =  darkMatterHaloScale_%velocityVirial(node)
        virialIntegratedTidalTensor =   virialVelocity/virialRadius*megaParsec/kilo/gigaYear
        virialTidalHeatingNormalized=  (virialVelocity/virialRadius)**2
        call satellite%positionScale                 (                                          &
@@ -323,7 +344,7 @@ contains
             &                                        *                 velocityScaleFractional &
             &                                       )
        call satellite%boundMassScale                (                                          &
-            &                                        +satelliteMass                            &
+            &                                        +massSatellite                            &
             &                                        *                boundMassScaleFractional &
             &                                       )
        call satellite%tidalTensorPathIntegratedScale(                                          &
@@ -496,14 +517,13 @@ contains
     Set the initial bound mass of the satellite.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Galactic_Structure_Enclosed_Masses  , only : Galactic_Structure_Enclosed_Mass
     use :: Galacticus_Error                    , only : Galacticus_Error_Report
     use :: Galacticus_Nodes                    , only : nodeComponentSatellite             , nodeComponentSatelliteOrbiting, treeNode
     implicit none
     class           (nodeComponentSatellite), intent(inout) :: satellite
     type            (treeNode              ), intent(inout) :: node
     double precision                                        :: virialRadius , maximumRadius, &
-         &                                                     satelliteMass
+         &                                                     massSatellite
 
     select type (satellite)
     class is (nodeComponentSatelliteOrbiting)
@@ -512,19 +532,72 @@ contains
           ! Do nothing. The bound mass of this satellite is set to the node mass by default.
        case (satelliteBoundMassInitializeTypeMaximumRadius  )
           ! Set the initial bound mass of this satellite by integrating the density profile up to a maximum radius.
-          virialRadius =darkMatterHaloScale_%virialRadius  (node                         )
+          virialRadius =darkMatterHaloScale_%radiusVirial(node              )
           maximumRadius=satelliteMaximumRadiusOverVirialRadius*virialRadius
-          satelliteMass=Galactic_Structure_Enclosed_Mass   (node,maximumRadius           )
-          call satellite%boundMassSet(satelliteMass)
+          massSatellite=galacticStructure_  %massEnclosed(node,maximumRadius)
+          call satellite%boundMassSet(massSatellite)
        case (satelliteBoundMassInitializeTypeDensityContrast)
           ! Set the initial bound mass of this satellite by assuming a specified density contrast.
-          satelliteMass=Dark_Matter_Profile_Mass_Definition(node,satelliteDensityContrast)
-          call satellite%boundMassSet(satelliteMass)
+          massSatellite=Dark_Matter_Profile_Mass_Definition(                                                 &
+               &                                                                   node                    , &
+               &                                                                   satelliteDensityContrast, &
+               &                                            cosmologyParameters_  =cosmologyParameters_    , &
+               &                                            cosmologyFunctions_   =cosmologyFunctions_     , &
+               &                                            darkMatterProfileDMO_ =darkMatterProfileDMO_   , &
+               &                                            virialDensityContrast_=virialDensityContrast_    &
+               &                                           )
+          call satellite%boundMassSet(massSatellite)
        case default
           call Galacticus_Error_Report('type of method to initialize the bound mass of satellites can not be recognized. Available options are "basicMass", "maximumRadius", "densityContrast"'//{introspection:location})
        end select
     end select
     return
   end subroutine Node_Component_Satellite_Orbiting_Bound_Mass_Initialize
+
+  !![
+  <galacticusStateStoreTask>
+   <unitName>Node_Component_Satellite_Orbiting_State_Store</unitName>
+  </galacticusStateStoreTask>
+  !!]
+  subroutine Node_Component_Satellite_Orbiting_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentSatellite -> orbiting',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="darkMatterHaloScale_ virialOrbit_ darkMatterProfileDMO_ virialDensityContrast_ cosmologyParameters_ cosmologyFunctions_ galacticStructure_"/>
+    !!]
+    return
+  end subroutine Node_Component_Satellite_Orbiting_State_Store
+
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>Node_Component_Satellite_Orbiting_State_Restore</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
+  subroutine Node_Component_Satellite_Orbiting_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentSatellite -> orbiting',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="darkMatterHaloScale_ virialOrbit_ darkMatterProfileDMO_ virialDensityContrast_ cosmologyParameters_ cosmologyFunctions_ galacticStructure_"/>
+    !!]
+    return
+  end subroutine Node_Component_Satellite_Orbiting_State_Restore
 
 end module Node_Component_Satellite_Orbiting

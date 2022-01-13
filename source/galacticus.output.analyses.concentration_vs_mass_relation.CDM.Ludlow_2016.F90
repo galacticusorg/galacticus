@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -57,16 +57,20 @@ contains
     type (inputParameters                                   ), intent(inout) :: parameters
     class(cosmologyParametersClass                          ), pointer       :: cosmologyParameters_
     class(cosmologyFunctionsClass                           ), pointer       :: cosmologyFunctions_
+    class(virialDensityContrastClass                        ), pointer       :: virialDensityContrast_
+    class(darkMatterProfileDMOClass                         ), pointer       :: darkMatterProfileDMO_
     class(outputTimesClass                                  ), pointer       :: outputTimes_
     class(nbodyHaloMassErrorClass                           ), pointer       :: nbodyHaloMassError_
 
     !![
-    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters"/>
-    <objectBuilder class="outputTimes"         name="outputTimes_"         source="parameters"/>
-    <objectBuilder class="nbodyHaloMassError"  name="nbodyHaloMassError_"  source="parameters"/>
+    <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
+    <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
+    <objectBuilder class="nbodyHaloMassError"    name="nbodyHaloMassError_"    source="parameters"/>
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
     !!]
-    self=outputAnalysisConcentrationVsHaloMassCDMLudlow2016(cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_)
+    self=outputAnalysisConcentrationVsHaloMassCDMLudlow2016(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,nbodyHaloMassError_,outputTimes_)
     !![
     <inputParametersValidate source="parameters"/>
     !!]
@@ -75,15 +79,17 @@ contains
     nullify(nbodyHaloMassError_ )
     nullify(outputTimes_        )
     !![
-    <objectDestructor name="cosmologyParameters_"/>
-    <objectDestructor name="cosmologyFunctions_" />
-    <objectDestructor name="outputTimes_"        />
-    <objectDestructor name="nbodyHaloMassError_" />
+    <objectDestructor name="cosmologyParameters_"  />
+    <objectDestructor name="cosmologyFunctions_"   />
+    <objectDestructor name="outputTimes_"          />
+    <objectDestructor name="nbodyHaloMassError_"   />
+    <objectDestructor name="darkMatterProfileDMO_" />
+    <objectDestructor name="virialDensityContrast_"/>
     !!]
     return
   end function concentrationVsHaloMassCDMLudlow2016ConstructorParameters
 
-  function concentrationVsHaloMassCDMLudlow2016ConstructorInternal(cosmologyParameters_,cosmologyFunctions_,nbodyHaloMassError_,outputTimes_) result (self)
+  function concentrationVsHaloMassCDMLudlow2016ConstructorInternal(cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,nbodyHaloMassError_,outputTimes_) result (self)
     !!{
     Constructor for the ``concentrationVsHaloMassCDMLudlow2016'' output analysis class for internal use.
     !!}
@@ -110,6 +116,8 @@ contains
     type            (outputAnalysisConcentrationVsHaloMassCDMLudlow2016)                                :: self
     class           (cosmologyParametersClass                          ), target       , intent(in   )  :: cosmologyParameters_
     class           (cosmologyFunctionsClass                           ), target       , intent(in   )  :: cosmologyFunctions_
+    class           (virialDensityContrastClass                        )               , intent(in   )  :: virialDensityContrast_
+    class           (darkMatterProfileDMOClass                         )               , intent(in   )  :: darkMatterProfileDMO_
     class           (nbodyHaloMassErrorClass                           ), target       , intent(in   )  :: nbodyHaloMassError_
     class           (outputTimesClass                                  ), target       , intent(inout)  :: outputTimes_
     integer         (c_size_t                                          ), parameter                     :: massHaloCount                         =26
@@ -128,7 +136,7 @@ contains
     type            (outputAnalysisPropertyOperatorAntiLog10           ), pointer                       :: outputAnalysisPropertyUnoperator_
     type            (nodePropertyExtractorMassHalo                     ), pointer                       :: nodePropertyExtractor_
     type            (nodePropertyExtractorConcentration                ), pointer                       :: outputAnalysisWeightPropertyExtractor_
-    type            (virialDensityContrastFixed                        ), pointer                       :: virialDensityContrast_
+    type            (virialDensityContrastFixed                        ), pointer                       :: virialDensityContrastDefinition_
     integer         (c_size_t                                          )                                :: iOutput
     type            (hdf5Object                                        )                                :: dataFile
 
@@ -159,28 +167,28 @@ contains
     galacticFilterAll_                       =  galacticFilterAll          (              filters_)
     ! Build N-body mass error distribution operator.
     allocate(outputAnalysisDistributionOperator_    )
-    outputAnalysisDistributionOperator_    =  outputAnalysisDistributionOperatorRndmErrNbodyMass(nbodyHaloMassError_                                                                            )
+    outputAnalysisDistributionOperator_    =  outputAnalysisDistributionOperatorRndmErrNbodyMass(nbodyHaloMassError_                                                                                     )
     ! Build identity weight operator.
     allocate(outputAnalysisWeightOperator_          )
-    outputAnalysisWeightOperator_          =  outputAnalysisWeightOperatorIdentity              (                                                                                               )
+    outputAnalysisWeightOperator_          =  outputAnalysisWeightOperatorIdentity              (                                                                                                        )
     ! Build log10() property operator.
     allocate(outputAnalysisPropertyOperator_        )
-    outputAnalysisPropertyOperator_        =  outputAnalysisPropertyOperatorLog10               (                                                                                               )
+    outputAnalysisPropertyOperator_        =  outputAnalysisPropertyOperatorLog10               (                                                                                                        )
     ! Build a log10 weight property operators.
     allocate(outputAnalysisWeightPropertyOperator_  )
-    outputAnalysisWeightPropertyOperator_  =  outputAnalysisPropertyOperatorLog10               (                                                                                               )
+    outputAnalysisWeightPropertyOperator_  =  outputAnalysisPropertyOperatorLog10               (                                                                                                        )
     ! Build anti-log10() property operator.
     allocate(outputAnalysisPropertyUnoperator_      )
-    outputAnalysisPropertyUnoperator_      =  outputAnalysisPropertyOperatorAntiLog10           (                                                                                               )
+    outputAnalysisPropertyUnoperator_      =  outputAnalysisPropertyOperatorAntiLog10           (                                                                                                        )
     ! Create a virial density contrast object matched to the defintion used by Ludlow et al. (2016).
-    allocate(virialDensityContrast_                 )
-    virialDensityContrast_                 =  virialDensityContrastFixed                        (200.0d0                ,fixedDensityTypeCritical,2.0d0,cosmologyParameters_,cosmologyFunctions_)
+    allocate(virialDensityContrastDefinition_       )
+    virialDensityContrastDefinition_       =  virialDensityContrastFixed                        (200.0d0                         ,fixedDensityTypeCritical,2.0d0,cosmologyParameters_,cosmologyFunctions_)
     ! Create a concentration weight property extractor.
     allocate(outputAnalysisWeightPropertyExtractor_ )
-    outputAnalysisWeightPropertyExtractor_ =  nodePropertyExtractorConcentration                (virialDensityContrast_                                                                         )
+    outputAnalysisWeightPropertyExtractor_ =  nodePropertyExtractorConcentration                (cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)
     ! Create a halo mass property extractor.
     allocate(nodePropertyExtractor_       )
-    nodePropertyExtractor_                 =  nodePropertyExtractorMassHalo                     (virialDensityContrast_                                                                        )
+    nodePropertyExtractor_                 =  nodePropertyExtractorMassHalo                     (cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)
     ! Build the object.
     self%outputAnalysisMeanFunction1D=outputAnalysisMeanFunction1D(                                                       &
          &                                                         var_str('concentrationHaloMassRelationCDMLudlow2016'), &
@@ -222,6 +230,6 @@ contains
     nullify(outputAnalysisWeightPropertyOperator_ )
     nullify(outputAnalysisWeightPropertyExtractor_)
     nullify(nodePropertyExtractor_                )
-    nullify(virialDensityContrast_                )
+    nullify(virialDensityContrastDefinition_      )
     return
   end function concentrationVsHaloMassCDMLudlow2016ConstructorInternal

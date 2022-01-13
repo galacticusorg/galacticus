@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,8 +20,9 @@
   !!{
   Contains a module which implements a property extractor class for the projected density at a set of radii.
   !!}
-  use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale, darkMatterHaloScaleClass
+  use :: Dark_Matter_Halo_Scales             , only : darkMatterHaloScale   , darkMatterHaloScaleClass
   use :: Galactic_Structure_Radii_Definitions, only : radiusSpecifier
+  use :: Galactic_Structure                  , only : galacticStructureClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorProjectedDensity">
@@ -29,7 +30,7 @@
     A property extractor class for the projected density at a set of radii. The radii and types of projected density to output
     is specified by the {\normalfont \ttfamily radiusSpecifiers} parameter. This parameter's value can contain multiple
     entries, each of which should be a valid
-    \href{https://github.com/galacticusorg/galacticus/releases/download/masterRelease/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
+    \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Physics.pdf\#sec.radiusSpecifiers}{radius
     specifier}.
    </description>
   </nodePropertyExtractor>
@@ -39,13 +40,14 @@
      A property extractor class for the projected density at a set of radii.
      !!}
      private
-     class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_
-     integer                                                      :: radiiCount                   , elementCount_
+     class  (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_          => null()
+     class  (galacticStructureClass  ), pointer                   :: galacticStructure_            => null()
+     integer                                                      :: radiiCount                             , elementCount_
      logical                                                      :: includeRadii
      type   (varying_string          ), allocatable, dimension(:) :: radiusSpecifiers
      type   (radiusSpecifier         ), allocatable, dimension(:) :: radii
-     logical                                                      :: darkMatterScaleRadiusIsNeeded, diskIsNeeded        , &
-          &                                                          spheroidIsNeeded             , virialRadiusIsNeeded
+     logical                                                      :: darkMatterScaleRadiusIsNeeded          , diskIsNeeded        , &
+          &                                                          spheroidIsNeeded                       , virialRadiusIsNeeded
    contains
      final     ::                       projectedDensityDestructor
      procedure :: columnDescriptions => projectedDensityColumnDescriptions
@@ -82,6 +84,7 @@ contains
     type   (inputParameters                      ), intent(inout)               :: parameters
     type   (varying_string                       ), allocatable  , dimension(:) :: radiusSpecifiers
     class  (darkMatterHaloScaleClass             ), pointer                     :: darkMatterHaloScale_
+    class  (galacticStructureClass               ), pointer                     :: galacticStructure_
     logical                                                                     :: includeRadii
 
     allocate(radiusSpecifiers(parameters%count('radiusSpecifiers')))
@@ -98,16 +101,18 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=nodePropertyExtractorProjectedDensity(radiusSpecifiers,includeRadii,darkMatterHaloScale_)
+    self=nodePropertyExtractorProjectedDensity(radiusSpecifiers,includeRadii,darkMatterHaloScale_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="darkMatterHaloScale_" />
+    <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function projectedDensityConstructorParameters
 
-  function projectedDensityConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_) result(self)
+  function projectedDensityConstructorInternal(radiusSpecifiers,includeRadii,darkMatterHaloScale_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily projectedDensity} property extractor class.
     !!}
@@ -116,9 +121,10 @@ contains
     type   (nodePropertyExtractorProjectedDensity)                              :: self
     type   (varying_string                       ), intent(in   ), dimension(:) :: radiusSpecifiers
     class  (darkMatterHaloScaleClass             ), intent(in   ), target       :: darkMatterHaloScale_
+    class  (galacticStructureClass               ), intent(in   ), target       :: galacticStructure_
     logical                                       , intent(in   )               :: includeRadii
     !![
-    <constructorAssign variables="radiusSpecifiers, includeRadii, *darkMatterHaloScale_"/>
+    <constructorAssign variables="radiusSpecifiers, includeRadii, *darkMatterHaloScale_, *galacticStructure_"/>
     !!]
 
     if (includeRadii) then
@@ -147,6 +153,7 @@ contains
 
     !![
     <objectDestructor name="self%darkMatterHaloScale_"/>
+    <objectDestructor name="self%galacticStructure_"  />
     !!]
     return
   end subroutine projectedDensityDestructor
@@ -182,13 +189,11 @@ contains
     !!{
     Implement a {\normalfont \ttfamily projectedDensity} property extractor.
     !!}
-    use :: Galactic_Structure_Densities        , only : Galactic_Structure_Density
-    use :: Galactic_Structure_Enclosed_Masses  , only : Galactic_Structure_Radius_Enclosing_Mass
-    use :: Galactic_Structure_Options          , only : componentTypeAll                        , massTypeGalactic
-    use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius         , radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius            , radiusTypeGalacticLightFraction, &
-          &                                             radiusTypeGalacticMassFraction          , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius, radiusTypeSpheroidRadius       , &
+    use :: Galactic_Structure_Options          , only : componentTypeAll               , massTypeGalactic
+    use :: Galactic_Structure_Radii_Definitions, only : radiusTypeDarkMatterScaleRadius, radiusTypeDiskHalfMassRadius, radiusTypeDiskRadius            , radiusTypeGalacticLightFraction, &
+          &                                             radiusTypeGalacticMassFraction , radiusTypeRadius            , radiusTypeSpheroidHalfMassRadius, radiusTypeSpheroidRadius       , &
           &                                             radiusTypeVirialRadius
-    use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile          , nodeComponentDisk           , nodeComponentSpheroid           , treeNode
+    use :: Galacticus_Nodes                    , only : nodeComponentDarkMatterProfile , nodeComponentDisk           , nodeComponentSpheroid           , treeNode
     use :: Numerical_Integration               , only : integrator
     implicit none
     double precision                                       , dimension(:,:), allocatable :: projectedDensityExtract
@@ -206,7 +211,7 @@ contains
 
     allocate(projectedDensityExtract(self%radiiCount,self%elementCount_))
     radiusVirial                                         =  0.0d0
-    if (self%         virialRadiusIsNeeded) radiusVirial      =  self%darkMatterHaloScale_%virialRadius(node                    )
+    if (self%         virialRadiusIsNeeded) radiusVirial      =  self%darkMatterHaloScale_%radiusVirial(node                    )
     if (self%                 diskIsNeeded) disk              =>                                        node%disk             ()
     if (self%             spheroidIsNeeded) spheroid          =>                                        node%spheroid         ()
     if (self%darkMatterScaleRadiusIsNeeded) darkMatterProfile =>                                        node%darkMatterProfile()
@@ -231,17 +236,17 @@ contains
        case   (radiusTypeGalacticMassFraction ,  &
             &  radiusTypeGalacticLightFraction )
           projectedDensityRadius=+projectedDensityRadius           &
-               & *Galactic_Structure_Radius_Enclosing_Mass         &
+               & *self%galacticStructure_%radiusEnclosingMass      &
                &  (                                                &
                &   node                                         ,  &
-               &   fractionalMass=self%radii(i)%fraction        ,  &
+               &   massFractional=self%radii(i)%fraction        ,  &
                &   massType      =              massTypeGalactic,  &
                &   componentType =              componentTypeAll,  &
                &   weightBy      =self%radii(i)%weightBy        ,  &
                &   weightIndex   =self%radii(i)%weightByIndex      &
                &  )
        end select
-       radiusOuter                        =self       %darkMatterHaloScale_%virialRadius(node                              )       
+       radiusOuter                        =self       %darkMatterHaloScale_%radiusVirial(node                              )       
        projectedDensityExtract       (i,1)=integrator_                     %integrate   (projectedDensityRadius,radiusOuter)
        if (self%includeRadii)                                                                                                &
             & projectedDensityExtract(i,2)=                                              projectedDensityRadius
@@ -254,29 +259,28 @@ contains
       !!{
       Integrand function used for computing projected densities.
       !!}
-      use :: Galactic_Structure_Densities, only : Galactic_Structure_Density
       implicit none
       double precision, intent(in   ) :: radius
 
       if (radius <= projectedDensityRadius) then
          projectedDensityIntegrand=+0.0d0
       else
-         projectedDensityIntegrand=+2.0d0                                                             &
-              &                    *radius                                                            &
-              &                    /sqrt(                                                             &
-              &                          +radius                **2                                   &
-              &                          -projectedDensityRadius**2                                   &
-              &                    )                                                                  &
-              &                    *Galactic_Structure_Density(                                       &
-              &                                                node                                 , &
-              &                                                [                                      &
-              &                                                 radius                              , &
-              &                                                 0.0d0                               , &
-              &                                                 0.0d0                                 &
-              &                                                ]                                    , &
-              &                                                componentType=self%radii(i)%component, &
-              &                                                massType     =self%radii(i)%mass       &
-              &                                               )
+         projectedDensityIntegrand=+2.0d0                                                                  &
+              &                    *radius                                                                 &
+              &                    /sqrt(                                                                  &
+              &                          +radius                **2                                        &
+              &                          -projectedDensityRadius**2                                        &
+              &                    )                                                                       &
+              &                    *self%galacticStructure_%density(                                       &
+              &                                                     node                                 , &
+              &                                                     [                                      &
+              &                                                      radius                              , &
+              &                                                      0.0d0                               , &
+              &                                                      0.0d0                                 &
+              &                                                     ]                                    , &
+              &                                                     componentType=self%radii(i)%component, &
+              &                                                     massType     =self%radii(i)%mass       &
+              &                                                    )
       end if
       return
     end function projectedDensityIntegrand

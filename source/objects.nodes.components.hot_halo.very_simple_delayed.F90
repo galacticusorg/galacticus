@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,6 +33,7 @@ module Node_Component_Hot_Halo_VS_Delayed
   public :: Node_Component_Hot_Halo_VS_Delayed_Node_Merger        , Node_Component_Hot_Halo_VS_Delayed_Rate_Compute     , &
        &    Node_Component_Hot_Halo_VS_Delayed_Scale_Set          , Node_Component_Hot_Halo_VS_Delayed_Tree_Initialize  , &
        &    Node_Component_Hot_Halo_VS_Delayed_Thread_Uninitialize, Node_Component_Hot_Halo_VS_Delayed_Thread_Initialize, &
+       &    Node_Component_Hot_Halo_VS_Delayed_State_Store        , Node_Component_Hot_Halo_VS_Delayed_State_Restore    , &
        &    Node_Component_Hot_Halo_VS_Delayed_Initialize
 
   !![
@@ -153,9 +154,9 @@ contains
        !![
        <objectDestructor name="hotHaloOutflowReincorporation_"/>
        !!]
-       call nodePromotionEvent  %detach(defaultHotHaloComponent,nodePromotion  )
-       call satelliteMergerEvent%detach(defaultHotHaloComponent,satelliteMerger)
-       call postEvolveEvent     %detach(defaultHotHaloComponent,postEvolve     )
+       if (nodePromotionEvent  %isAttached(defaultHotHaloComponent,nodePromotion  )) call nodePromotionEvent  %detach(defaultHotHaloComponent,nodePromotion  )
+       if (satelliteMergerEvent%isAttached(defaultHotHaloComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultHotHaloComponent,satelliteMerger)
+       if (postEvolveEvent     %isAttached(defaultHotHaloComponent,postEvolve     )) call postEvolveEvent     %detach(defaultHotHaloComponent,postEvolve     )
     end if
     return
   end subroutine Node_Component_Hot_Halo_VS_Delayed_Thread_Uninitialize
@@ -452,5 +453,51 @@ contains
     end select
     return
   end subroutine Node_Component_Hot_Halo_VS_Delayed_Node_Merger
+
+  !![
+  <galacticusStateStoreTask>
+   <unitName>Node_Component_Hot_Halo_VS_Delayed_State_Store</unitName>
+  </galacticusStateStoreTask>
+  !!]
+  subroutine Node_Component_Hot_Halo_VS_Delayed_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentHotHalo -> verySimpleDelayed',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="hotHaloOutflowReincorporation_"/>
+    !!]
+    return
+  end subroutine Node_Component_Hot_Halo_VS_Delayed_State_Store
+
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>Node_Component_Hot_Halo_VS_Delayed_State_Restore</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
+  subroutine Node_Component_Hot_Halo_VS_Delayed_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentHotHalo -> verySimpleDelayed',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="hotHaloOutflowReincorporation_"/>
+    !!]
+    return
+  end subroutine Node_Component_Hot_Halo_VS_Delayed_State_Restore
 
 end module Node_Component_Hot_Halo_VS_Delayed

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,8 @@
   Implementation of a the Kennicutt-Schmidt star formation rate surface density for galactic disks.
   !!}
 
-  use :: Kind_Numbers, only : kind_int8
+  use :: Kind_Numbers      , only : kind_int8
+  use :: Galactic_Structure, only : galacticStructureClass
 
   !![
   <starFormationRateSurfaceDensityDisks name="starFormationRateSurfaceDensityDisksKennicuttSchmidt">
@@ -56,13 +57,14 @@
      Implementation of a Kennicutt-Schmidt star formation rate surface density for galactic disks.
      !!}
      private
-     double precision            :: normalization               , exponent                 , &
-          &                         exponentTruncated           , velocityDispersionDiskGas, &
-          &                         toomreParameterCritical
-     logical                     :: truncate
-     integer         (kind_int8) :: lastUniqueID
-     logical                     :: factorsComputed
-     double precision            :: surfaceDensityCriticalFactor, hydrogenMassFraction
+     class           (galacticStructureClass), pointer :: galacticStructure_           => null()
+     double precision                                  :: normalization                         , exponent                 , &
+          &                                               exponentTruncated                     , velocityDispersionDiskGas, &
+          &                                               toomreParameterCritical
+     logical                                           :: truncate
+     integer         (kind_int8             )          :: lastUniqueID
+     logical                                           :: factorsComputed
+     double precision                                  :: surfaceDensityCriticalFactor          , hydrogenMassFraction
    contains
      !![
      <methods>
@@ -93,6 +95,7 @@ contains
     implicit none
     type            (starFormationRateSurfaceDensityDisksKennicuttSchmidt)                :: self
     type            (inputParameters                                     ), intent(inout) :: parameters
+    class           (galacticStructureClass                              ), pointer       :: galacticStructure_
     double precision                                                                      :: normalization          , exponent                 , &
          &                                                                                   exponentTruncated      , velocityDispersionDiskGas, &
          &                                                                                   toomreParameterCritical
@@ -139,27 +142,30 @@ contains
       <description>The critical Toomre parameter for star formation in disks.</description>
       <source>parameters</source>
     </inputParameter>
+    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
     !!]
-    self=starFormationRateSurfaceDensityDisksKennicuttSchmidt(normalization,exponent,truncate,exponentTruncated,velocityDispersionDiskGas,toomreParameterCritical)
+    self=starFormationRateSurfaceDensityDisksKennicuttSchmidt(normalization,exponent,truncate,exponentTruncated,velocityDispersionDiskGas,toomreParameterCritical,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticStructure_"/>
     !!]
     return
   end function kennicuttSchmidtConstructorParameters
 
-  function kennicuttSchmidtConstructorInternal(normalization,exponent,truncate,exponentTruncated,velocityDispersionDiskGas,toomreParameterCritical) result(self)
+  function kennicuttSchmidtConstructorInternal(normalization,exponent,truncate,exponentTruncated,velocityDispersionDiskGas,toomreParameterCritical,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily kennicuttSchmidt} star formation surface density rate from disks class.
     !!}
     use :: Numerical_Constants_Prefixes, only : mega
     implicit none
-    type            (starFormationRateSurfaceDensityDisksKennicuttSchmidt)                :: self
-    double precision                                                      , intent(in   ) :: normalization          , exponent                 , &
-         &                                                                                   exponentTruncated      , velocityDispersionDiskGas, &
-         &                                                                                   toomreParameterCritical
-    logical                                                               , intent(in   ) :: truncate
+    type            (starFormationRateSurfaceDensityDisksKennicuttSchmidt)                        :: self
+    double precision                                                      , intent(in   )         :: normalization          , exponent                 , &
+         &                                                                                           exponentTruncated      , velocityDispersionDiskGas, &
+         &                                                                                           toomreParameterCritical
+    logical                                                               , intent(in   )         :: truncate
+    class           (galacticStructureClass                              ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="normalization, exponent, truncate, exponentTruncated, velocityDispersionDiskGas, toomreParameterCritical"/>
+    <constructorAssign variables="normalization, exponent, truncate, exponentTruncated, velocityDispersionDiskGas, toomreParameterCritical, *galacticStructure_"/>
     !!]
 
     self%lastUniqueID   =-1_kind_int8
@@ -190,7 +196,10 @@ contains
     implicit none
     type(starFormationRateSurfaceDensityDisksKennicuttSchmidt), intent(inout) :: self
 
-    call calculationResetEvent%detach(self,kennicuttSchmidtCalculationReset)
+    if (calculationResetEvent%isAttached(self,kennicuttSchmidtCalculationReset)) call calculationResetEvent%detach(self,kennicuttSchmidtCalculationReset)
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
     return
   end subroutine kennicuttSchmidtDestructor
 
@@ -223,12 +232,11 @@ contains
     density occurs. $\sigma_\mathrm{gas}$ is assumed to be a constant equal to {\normalfont \ttfamily [velocityDispersionDiskGas]} and the disk is
     assumed to have a flat rotation curve such that $\kappa = \sqrt{2} V/R$.
     !!}
-    use :: Abundances_Structure                , only : abundances
-    use :: Galactic_Structure_Options          , only : componentTypeDisk                 , coordinateSystemCylindrical, massTypeGaseous
-    use :: Galactic_Structure_Surface_Densities, only : Galactic_Structure_Surface_Density
-    use :: Galacticus_Nodes                    , only : nodeComponentDisk                 , treeNode
-    use :: Numerical_Constants_Math            , only : Pi
-    use :: Numerical_Constants_Astronomical        , only : gravitationalConstantGalacticus
+    use :: Abundances_Structure            , only : abundances
+    use :: Galactic_Structure_Options      , only : componentTypeDisk              , coordinateSystemCylindrical, massTypeGaseous
+    use :: Galacticus_Nodes                , only : nodeComponentDisk              , treeNode
+    use :: Numerical_Constants_Math        , only : Pi
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
     class           (starFormationRateSurfaceDensityDisksKennicuttSchmidt), intent(inout) :: self
     type            (treeNode                                            ), intent(inout) :: node
@@ -261,7 +269,7 @@ contains
        self%factorsComputed=.true.
     end if
     ! Get gas surface density.
-    surfaceDensityGas=Galactic_Structure_Surface_Density(node,[radius,0.0d0,0.0d0],coordinateSystem=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeGaseous)
+    surfaceDensityGas=self%galacticStructure_%surfaceDensity(node,[radius,0.0d0,0.0d0],coordinateSystem=coordinateSystemCylindrical,componentType=componentTypeDisk,massType=massTypeGaseous)
     ! Compute the star formation rate surface density.
     kennicuttSchmidtRate=+self%normalization          &
          &               *(                           &

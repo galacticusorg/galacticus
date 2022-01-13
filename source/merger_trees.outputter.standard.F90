@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -71,12 +71,12 @@
      type            (varying_string              )                            :: outputsGroupName
      type            (hdf5Object                  )                            :: outputsGroup
      logical                                                                   :: outputsGroupOpened
-     integer         (c_size_t                    )                            :: outputGroupsCount
-     integer                                                                   :: doublePropertyCount              , integerPropertyCount
-     integer                                                                   :: doublePropertiesWritten          , integerPropertiesWritten
-     integer                                                                   :: doubleBufferCount                , integerBufferCount
-     integer                                                                   :: doubleScalarCount                , integerScalarCount
-     integer                                                                   :: integerBufferSize                , doubleBufferSize
+     integer         (c_size_t                    )                            :: outputGroupsCount       =  0_c_size_t
+     integer                                                                   :: doublePropertyCount                  , integerPropertyCount
+     integer                                                                   :: doublePropertiesWritten              , integerPropertiesWritten
+     integer                                                                   :: doubleBufferCount                    , integerBufferCount
+     integer                                                                   :: doubleScalarCount                    , integerScalarCount
+     integer                                                                   :: integerBufferSize                    , doubleBufferSize
      type            (outputPropertyInteger       ), allocatable, dimension(:) :: integerProperty
      type            (outputPropertyDouble        ), allocatable, dimension(:) :: doubleProperty
      type            (outputGroup                 ), allocatable, dimension(:) :: outputGroups
@@ -259,7 +259,7 @@ contains
     currentTree => tree
     do while (associated(currentTree))
        ! Get the base node of the tree.
-       node => currentTree%baseNode
+       node => currentTree%nodeBase
        ! Skip empty trees.
        if (associated(node)) then
           ! Initialize output buffers.
@@ -937,7 +937,6 @@ contains
        self%doubleProperty (doubleProperty +1:doubleProperty +extractor_%elementCount(                   time))%unitsInSI =extractor_%unitsInSI   (                   time)
        do i=1,extractor_%elementCount(time)
           if (allocated(self%doubleProperty(doubleProperty+i)%rank1Descriptors)) deallocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors)
-          allocate(self%doubleProperty(doubleProperty+i)%rank1Descriptors(extractor_%size(time)))
           call extractor_%columnDescriptions(time,self%doubleProperty(doubleProperty+i)%rank1Descriptors)
        end do
        doubleProperty =doubleProperty +extractor_%elementCount(time)

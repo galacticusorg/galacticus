@@ -126,15 +126,15 @@ foreach my $simulation ( @simulations ) {
 	my $parameters = $xml->XMLin($outputDirectory."/progenitorMassFunctionBase".$simulation->{'label'}.".xml");
 	# Modify parameters.
 	$parameters->{'galacticusOutputFileName'}->{'value'} =  $outputDirectory."/progenitorMassFunction".$simulation->{'label'}.$parameterSet->{'label'}.".hdf5";
-	if      ( $parameters->{'mergerTreeBuildMassesMethod'}->{'value'} eq "sampledDistributionUniform" ) {
-	    $parameters->{'mergerTreeBuildMassesMethod'}->{'treesPerDecade'  }->{'value'} *= $treeBoostFactor;
-	} elsif ( $parameters->{'mergerTreeBuildMassesMethod'}->{'value'} eq "replicate"                  ) {
-	    $parameters->{'mergerTreeBuildMassesMethod'}->{'replicationCount'}->{'value'} *= $treeBoostFactor;
+	if      ( $parameters->{'mergerTreeBuildMasses'}->{'value'} eq "sampledDistributionUniform" ) {
+	    $parameters->{'mergerTreeBuildMasses'}->{'treesPerDecade'  }->{'value'} *= $treeBoostFactor;
+	} elsif ( $parameters->{'mergerTreeBuildMasses'}->{'value'} eq "replicate"                  ) {
+	    $parameters->{'mergerTreeBuildMasses'}->{'replicationCount'}->{'value'} *= $treeBoostFactor;
 	} else {
-	    die('unknown "mergerTreeBuildMassesMethod"');
+	    die('unknown "mergerTreeBuildMasses"');
 	}
 	foreach my $name ( 'G0', 'gamma1', 'gamma2', 'gamma3' ) {
-	    $parameters->{'mergerTreeBranchingProbabilityMethod'}->{$name}->{'value'} = $parameterSet->{$name}
+	    $parameters->{'mergerTreeBranchingProbability'}->{$name}->{'value'} = $parameterSet->{$name}
 	        if ( exists($parameterSet->{$name}) );
 	}
 	# Write the parameters.
@@ -206,7 +206,7 @@ foreach my $simulation ( @simulations ) {
 	    print $gnuPlot "set xrange [1.0e-8:1.0e1]\n";
 	    print $gnuPlot "set yrange [1.0e-6:2.0e0]\n";
 	    print $gnuPlot "set pointsize 1.0\n";
-	    # Plot gray boxes indicate non-constrained regions.
+	    # Plot gray boxes to indicate non-constrained regions.
 	    my $x1 = pdl [ 1.0e-8                                                  , $analysisDefault->{'massRatioLikelihoodMinimum'}->sclr() ];
 	    my $x2 = pdl [ $analysisDefault->{'massRatioLikelihoodMaximum'}->sclr(), 1.0e+1                                                   ];
 	    my $y1 = pdl [ 1.0e-6                                                  , 1.0e-6                                                   ];

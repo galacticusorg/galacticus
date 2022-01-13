@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,6 +21,8 @@
 Contains a module which implements a half-light radii property extractor class.
 !!}
 
+  use :: Galactic_Structure, only : galacticStructureClass
+
   !![
   <nodePropertyExtractor name="nodePropertyExtractorRadiiHalfLightProperties">
    <description>
@@ -36,7 +38,9 @@ Contains a module which implements a half-light radii property extractor class.
      A half-light radii property extractor class.
      !!}
      private
+     class(galacticStructureClass), pointer :: galacticStructure_ => null()
    contains
+     final     ::                 radiiHalfLightPropertiesDestructor
      procedure :: elementCount => radiiHalfLightPropertiesElementCount
      procedure :: extract      => radiiHalfLightPropertiesExtract
      procedure :: names        => radiiHalfLightPropertiesNames
@@ -50,6 +54,7 @@ Contains a module which implements a half-light radii property extractor class.
      Constructors for the ``radiiHalfLightProperties'' output analysis class.
      !!}
      module procedure radiiHalfLightPropertiesConstructorParameters
+     module procedure radiiHalfLightPropertiesConstructorInternal
   end interface nodePropertyExtractorRadiiHalfLightProperties
 
 contains
@@ -60,13 +65,48 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(nodePropertyExtractorRadiiHalfLightProperties)                :: self
-    type(inputParameters                              ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
+    type (nodePropertyExtractorRadiiHalfLightProperties)                :: self
+    type (inputParameters                              ), intent(inout) :: parameters
+    class(galacticStructureClass                       ), pointer       :: galacticStructure_
 
-    self=nodePropertyExtractorRadiiHalfLightProperties()
-    return
+    !![
+    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
+    !!]
+    self=nodePropertyExtractorRadiiHalfLightProperties(galacticStructure_)
+     !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticStructure_"/>
+    !!]
+   return
   end function radiiHalfLightPropertiesConstructorParameters
+
+  function radiiHalfLightPropertiesConstructorInternal(galacticStructure_) result(self)
+    !!{
+    Internal constructor for the {\normalfont \ttfamily radiiHalfLightProperties} property extractor class.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    type (nodePropertyExtractorRadiiHalfLightProperties)                        :: self
+    class(galacticStructureClass                       ), intent(in   ), target :: galacticStructure_
+    !![
+    <constructorAssign variables="*galacticStructure_"/>
+    !!]
+
+    return
+  end function radiiHalfLightPropertiesConstructorInternal
+  
+  subroutine radiiHalfLightPropertiesDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily radiiHalfLightProperties} property extractor class.
+    !!}
+    implicit none
+    type(nodePropertyExtractorRadiiHalfLightProperties), intent(inout) :: self
+    
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
+    return
+  end subroutine radiiHalfLightPropertiesDestructor
 
   integer function radiiHalfLightPropertiesElementCount(self,time)
     !!{
@@ -86,9 +126,8 @@ contains
     !!{
     Implement a {\normalfont \ttfamily radiiHalfLightProperties} property extractor.
     !!}
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass, Galactic_Structure_Radius_Enclosing_Mass
-    use :: Galactic_Structure_Options        , only : componentTypeAll                , massTypeAll                             , massTypeStellar, weightByLuminosity
-    use :: Stellar_Luminosities_Structure    , only : unitStellarLuminosities
+    use :: Galactic_Structure_Options    , only : componentTypeAll       , massTypeAll, massTypeStellar, weightByLuminosity
+    use :: Stellar_Luminosities_Structure, only : unitStellarLuminosities
     implicit none
     double precision                                               , dimension(:) , allocatable :: radiiHalfLightPropertiesExtract
     class           (nodePropertyExtractorRadiiHalfLightProperties), intent(inout), target      :: self
@@ -103,8 +142,8 @@ contains
     j=-1
     do i=1,unitStellarLuminosities%luminosityCount()
        if (unitStellarLuminosities%isOutput(i,time)) then
-          halfLightRadius=Galactic_Structure_Radius_Enclosing_Mass(node,fractionalMass=0.5d0                                         ,massType=massTypeStellar,weightBy=weightByLuminosity,weightIndex=i)
-          massEnclosed   =Galactic_Structure_Enclosed_Mass        (node,               halfLightRadius,componentType=componentTypeAll,massType=massTypeAll                                              )
+          halfLightRadius=self%galacticStructure_%radiusEnclosingMass(node,massFractional=0.5d0                                         ,massType=massTypeStellar,weightBy=weightByLuminosity,weightIndex=i)
+          massEnclosed   =self%galacticStructure_%massEnclosed       (node,               halfLightRadius,componentType=componentTypeAll,massType=massTypeAll                                              )
           j=j+1
           radiiHalfLightPropertiesExtract(2*j+1:2*j+2)=[halfLightRadius,massEnclosed]
        end if

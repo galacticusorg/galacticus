@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -163,9 +163,6 @@ contains
     end if
     ! Build file if necessary.
     if (buildFile) then
-       ! Always obtain the file lock before the hdf5Access lock to avoid deadlocks between OpenMP threads.
-       call File_Unlock(                    self%fileLock                     )
-       call File_Lock  (char(self%fileName),self%fileLock,lockIsShared=.false.)
        ! Initialize RecFast.
        call Interface_RecFast_Initialize(recfastPath,recfastVersion)
        ! Build RecFast parameter file.

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -112,7 +112,7 @@ contains
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
 
-    if (defaultBasicComponent%standardIsActive()) &
+    if (defaultBasicComponent%standardIsActive() .and. nodePromotionEvent%isAttached(defaultBasicComponent,nodePromotion)) &
          & call nodePromotionEvent%detach(defaultBasicComponent,nodePromotion)
     return
   end subroutine Node_Component_Basic_Standard_Thread_Uninitialize
@@ -192,10 +192,10 @@ contains
     implicit none
     type            (treeNode          ), intent(inout), pointer :: node
     type            (treeNode          )               , pointer :: childNode          , nodeParent
-    class           (nodeComponentBasic)               , pointer :: childBasicComponent, basicParent     , &
+    class           (nodeComponentBasic)               , pointer :: basicChild         , basicParent     , &
          &                                                          basic
     double precision                                             :: deltaTime          , massUnresolved  , &
-         &                                                          progenitorMassTotal, timeLastIsolated
+         &                                                          massTotalProgenitor, timeLastIsolated
 
     ! Get the basic component.
     basic => node%basic()
@@ -230,16 +230,16 @@ contains
           childNode => node%firstChild
           if (associated(childNode)) then
              ! Get the basic component of the child node.
-             childBasicComponent => childNode%basic()
+             basicChild => childNode%basic()
              ! Ensure the child has a mass growth rate computed.
              call Node_Component_Basic_Standard_Tree_Initialize(childNode)
              ! Get the growth rate of the child.
-             call basic%accretionRateSet(childBasicComponent%accretionRate())
-             call basic%massTargetSet   (basic              %mass         ())
+             call basic%accretionRateSet(basicChild%accretionRate())
+             call basic%massTargetSet   (basic     %mass         ())
          else
              ! Parentless node has no child - set a zero growth rate.
-             call basic%accretionRateSet(0.0d0                              )
-             call basic%massTargetSet   (basic              %mass         ())
+             call basic%accretionRateSet(0.0d0                     )
+             call basic%massTargetSet   (basic     %mass         ())
           end if
        else
           ! Get the parent node.
@@ -263,12 +263,12 @@ contains
           else
              ! Negative mass growth - assume all progenitors lose mass at proportionally equal rates.
              ! Compute the total mass in progenitors.
-             progenitorMassTotal=basicParent%mass()-massUnresolved
+             massTotalProgenitor=basicParent%mass()-massUnresolved
              ! Compute the time available for accretion.
              deltaTime=basicParent%time()-basic%time()
              ! Compute mass growth rate.
-             if (deltaTime > 0.0d0) call basic%accretionRateSet((massUnresolved/deltaTime)*(basic%mass()/progenitorMassTotal))
-             call basic%massTargetSet(basic%mass()+massUnresolved*basic%mass()/progenitorMassTotal)
+             if (deltaTime > 0.0d0) call basic%accretionRateSet((massUnresolved/deltaTime)*(basic%mass()/massTotalProgenitor))
+             call basic%massTargetSet(basic%mass()+massUnresolved*basic%mass()/massTotalProgenitor)
           end if
        end if
     end select

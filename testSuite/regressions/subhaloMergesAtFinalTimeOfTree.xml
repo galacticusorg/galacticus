@@ -182,7 +182,7 @@
     <treeIndexToRootNodeIndex value="true"/>
     <presetOrbits value="true"/>
     <fileNames value="testSuite/data/mergerTrees/subhaloMergesAtFinalTimeOfTree.hdf5"/>
-    <presetSpins value="false"/>
+    <presetAngularMomenta value="false"/>
     <presetPositions value="true"/>
     <outputTimeSnapTolerance value="0.001"/>
     <presetSubhaloMasses value="false"/>
@@ -192,5 +192,6 @@
   <virialOrbit value="fixed">
     <velocityTangential value="+0.75"/>
     <velocityRadial value="-0.90"/>
+    <virialDensityContrastDefinition value="kitayamaSuto1996"/>
   </virialOrbit>
 </parameters>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -55,33 +55,33 @@ Implements a merger tree branching probability class using the algorithm of \cit
      A merger tree branching probability class using the algorithm of \cite{parkinson_generating_2008}.
      !!}
      private
-     double precision                                         :: gamma1                                          , gamma2                             , &
-          &                                                      G0                                              , accuracyFirstOrder                 , &
+     double precision                                         :: gamma1                                           , gamma2                                     , &
+          &                                                      G0                                               , accuracyFirstOrder                         , &
           &                                                      precisionHypergeometric
-     logical                                                  :: hypergeometricTabulate                          , cdmAssumptions                     , &
+     logical                                                  :: hypergeometricTabulate                           , cdmAssumptions                             , &
           &                                                      hypergeometricFailureWarned
-     type            (table1DLogarithmicLinear     )          :: subresolutionHypergeometric                     , upperBoundHypergeometric
-     logical                                                  :: subresolutionHypergeometricInitialized          , upperBoundHypergeometricInitialized
-     double precision                                         :: massResolutionTabulated                         , factorG0Gamma2                     , &
-          &                                                      branchingProbabilityPreFactor                   , sigmaParentSquared                 , &
-          &                                                      sigmaParent                                     , deltaParent                        , &
-          &                                                      massHaloParent                                  , probabilityMinimumMassLog          , &
-          &                                                      probabilityMaximumMassLog                       , probabilitySeek                    , &
-          &                                                      probabilityGradientMinimum                      , probabilityGradientMaximum         , &
-          &                                                      probabilityMaximum                              , probabilityMinimumMass             , &
-          &                                                      haloMassPrevious                                , deltaCriticalPrevious              , &
-          &                                                      massResolutionPrevious                          , probabilityPrevious                , &
-          &                                                      resolutionSigma                                 , resolutionAlpha                    , &
+     type            (table1DLogarithmicLinear     )          :: subresolutionHypergeometric                      , upperBoundHypergeometric
+     logical                                                  :: subresolutionHypergeometricInitialized =  .false., upperBoundHypergeometricInitialized=.false.
+     double precision                                         :: massResolutionTabulated                          , factorG0Gamma2                             , &
+          &                                                      branchingProbabilityPreFactor                    , sigmaParentSquared                         , &
+          &                                                      sigmaParent                                      , deltaParent                                , &
+          &                                                      massHaloParent                                   , probabilityMinimumMassLog                  , &
+          &                                                      probabilityMaximumMassLog                        , probabilitySeek                            , &
+          &                                                      probabilityGradientMinimum                       , probabilityGradientMaximum                 , &
+          &                                                      probabilityMaximum                               , probabilityMinimumMass                     , &
+          &                                                      haloMassPrevious                                 , deltaCriticalPrevious                      , &
+          &                                                      massResolutionPrevious                           , probabilityPrevious                        , &
+          &                                                      resolutionSigma                                  , resolutionAlpha                            , &
           &                                                      timeParent
      class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_              => null()
      class           (criticalOverdensityClass     ), pointer :: criticalOverdensity_                   => null()
    contains
      !![
      <methods>
-       <method description="Compute common factors needed for the calculations." method="computeCommonFactors" />
-       <method description="Compute the function $V(q)$ from \cite{parkinson_generating_2008}." method="V" />
-       <method description="Compute the part of the modifier term which depends on $\sigma_\mathrm{s}$." method="modifier" />
-       <method description="Compute the $a$ parameter of the hypergeometric function." method="hypergeometricA" />
+       <method description="Compute common factors needed for the calculations."                         method="computeCommonFactors"/>
+       <method description="Compute the function $V(q)$ from \cite{parkinson_generating_2008}."          method="V"                   />
+       <method description="Compute the part of the modifier term which depends on $\sigma_\mathrm{s}$." method="modifier"            />
+       <method description="Compute the $a$ parameter of the hypergeometric function."                   method="hypergeometricA"     />
      </methods>
      !!]
      final     ::                          parkinsonColeHellyDestructor
@@ -223,8 +223,8 @@ contains
     implicit none
     type(mergerTreeBranchingProbabilityParkinsonColeHelly), intent(inout) :: self
 
-    call self%subresolutionHypergeometric%destroy()
-    call self%upperBoundHypergeometric   %destroy()
+    if (self%subresolutionHypergeometricInitialized) call self%subresolutionHypergeometric%destroy()
+    if (self%upperBoundHypergeometricInitialized   ) call self%upperBoundHypergeometric   %destroy()
     !![
     <objectDestructor name="self%criticalOverdensity_"     />
     <objectDestructor name="self%cosmologicalMassVariance_"/>

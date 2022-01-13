@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,8 @@
   Implementation of a simple tidal stripping class.
   !!}
 
-  use :: Satellites_Tidal_Fields, only : satelliteTidalField, satelliteTidalFieldClass
+  use :: Satellites_Tidal_Fields, only : satelliteTidalFieldClass
+  use :: Galactic_Structure     , only : galacticStructureClass
 
   !![
   <tidalStripping name="tidalStrippingSimple">
@@ -34,6 +35,7 @@
      !!}
      private
      class           (satelliteTidalFieldClass), pointer :: satelliteTidalField_  => null()
+     class           (galacticStructureClass  ), pointer :: galacticStructure_    => null()
      double precision                                    :: rateFractionalMaximum          , beta
    contains
      final     ::                 simpleDestructor
@@ -59,6 +61,7 @@ contains
     type            (tidalStrippingSimple    )                :: self
     type            (inputParameters         ), intent(inout) :: parameters
     class           (satelliteTidalFieldClass), pointer       :: satelliteTidalField_
+    class           (galacticStructureClass  ), pointer       :: galacticStructure_
     double precision                                          :: rateFractionalMaximum, beta
 
     !![
@@ -75,16 +78,18 @@ contains
       <source>parameters</source>
     </inputParameter>
     <objectBuilder class="satelliteTidalField" name="satelliteTidalField_" source="parameters"/>
+    <objectBuilder class="galacticStructure"   name="galacticStructure_"   source="parameters"/>
     !!]
-    self=tidalStrippingSimple(rateFractionalMaximum,beta,satelliteTidalField_)
+    self=tidalStrippingSimple(rateFractionalMaximum,beta,satelliteTidalField_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="satelliteTidalField_"/>
+    <objectDestructor name="galacticStructure_"  />
     !!]
     return
   end function simpleConstructorParameters
 
-  function simpleConstructorInternal(rateFractionalMaximum,beta,satelliteTidalField_) result(self)
+  function simpleConstructorInternal(rateFractionalMaximum,beta,satelliteTidalField_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily simple} model of tidal stripping class.
     !!}
@@ -92,8 +97,9 @@ contains
     type            (tidalStrippingSimple    )                        :: self
     double precision                          , intent(in   )         :: rateFractionalMaximum, beta
     class           (satelliteTidalFieldClass), intent(in   ), target :: satelliteTidalField_
+    class           (galacticStructureClass  ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="rateFractionalMaximum, beta, *satelliteTidalField_"/>
+    <constructorAssign variables="rateFractionalMaximum, beta, *satelliteTidalField_, *galacticStructure_"/>
     !!]
 
     return
@@ -108,6 +114,7 @@ contains
 
     !![
     <objectDestructor name="self%satelliteTidalField_"/>
+    <objectDestructor name="self%galacticStructure_"  />
     !!]
     return
   end subroutine simpleDestructor
@@ -129,10 +136,9 @@ contains
     \end{equation}
     is the gravitational restoring force at the half-mass radius, $r_\mathrm{1/2}$.
     !!}
-    use :: Galactic_Structure_Rotation_Curves, only : Galactic_Structure_Rotation_Curve
-    use :: Galacticus_Nodes                  , only : nodeComponentDisk                , nodeComponentSpheroid, treeNode
-    use :: Numerical_Constants_Astronomical  , only : gigaYear                         , megaParsec
-    use :: Numerical_Constants_Prefixes      , only : kilo
+    use :: Galacticus_Nodes                , only : nodeComponentDisk, nodeComponentSpheroid, treeNode
+    use :: Numerical_Constants_Astronomical, only : gigaYear         , megaParsec
+    use :: Numerical_Constants_Prefixes    , only : kilo
     implicit none
     class           (tidalStrippingSimple), intent(inout) :: self
     class           (nodeComponent       ), intent(inout) :: component
@@ -179,10 +185,10 @@ contains
     ! Return if the tidal field is compressive.
     if (forceTidal <= 0.0d0) return
     ! Compute the rotation curve.
-    velocityRotation=Galactic_Structure_Rotation_Curve(                &
-         &                                             node          , &
-         &                                             radiusHalfMass  &
-         &                                            )
+    velocityRotation=self%galacticStructure_%velocityRotation(                &
+         &                                                    node          , &
+         &                                                    radiusHalfMass  &
+         &                                                   )
     ! Compute the gravitational restoring force at the half-mass radius.
     forceGravitational=+velocityRotation**2 &
          &             /radiusHalfMass

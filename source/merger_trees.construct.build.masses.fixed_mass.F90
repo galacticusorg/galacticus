@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,8 +20,11 @@
   !!{
   Implementation of a merger tree masses class which uses a fixed mass for trees.
   !!}
-  use :: Cosmology_Parameters   , only : cosmologyParametersClass
-  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
+  use :: Cosmology_Parameters     , only : cosmologyParametersClass
+  use :: Dark_Matter_Halo_Scales  , only : darkMatterHaloScaleClass
+  use :: Galactic_Structure       , only : galacticStructureClass
+  use :: Nodes_Operators          , only : nodeOperatorClass
+  use :: Numerical_Random_Numbers , only : randomNumberGeneratorClass
 
   !![
   <mergerTreeBuildMasses name="mergerTreeBuildMassesFixedMass">
@@ -33,11 +36,14 @@
      Implementation of a merger tree masses class which samples masses from a distribution.
      !!}
      private
-     class           (cosmologyParametersClass), pointer                   :: cosmologyParameters_   => null()
-     class           (darkMatterHaloScaleClass), pointer                   :: darkMatterHaloScale_   => null()
-     double precision                          , allocatable, dimension(:) :: massTree                        , radiusTree
-     integer                                   , allocatable, dimension(:) :: treeCount
-     double precision                                                      :: massIntervalFractional
+     class           (cosmologyParametersClass  ), pointer                   :: cosmologyParameters_   => null()
+     class           (darkMatterHaloScaleClass  ), pointer                   :: darkMatterHaloScale_   => null()
+     class           (nodeOperatorClass         ), pointer                   :: nodeOperator_          => null()
+     class           (galacticStructureClass    ), pointer                   :: galacticStructure_     => null()
+     class           (randomNumberGeneratorClass), pointer                   :: randomNumberGenerator_ => null()
+     double precision                            , allocatable, dimension(:) :: massTree                        , radiusTree
+     integer                                     , allocatable, dimension(:) :: treeCount
+     double precision                                                        :: massIntervalFractional
    contains
      final     ::              fixedMassDestructor
      procedure :: construct => fixedMassConstruct
@@ -65,6 +71,9 @@ contains
     integer                                         , allocatable, dimension(:) :: treeCount
     class           (cosmologyParametersClass      ), pointer                   :: cosmologyParameters_
     class           (darkMatterHaloScaleClass      ), pointer                   :: darkMatterHaloScale_
+    class           (nodeOperatorClass             ), pointer                   :: nodeOperator_
+    class           (randomNumberGeneratorClass    ), pointer                   :: randomNumberGenerator_
+    class           (galacticStructureClass        ), pointer                   :: galacticStructure_
     double precision                                                            :: massIntervalFractional
     integer                                                                     :: fixedHalosCount
 
@@ -134,19 +143,25 @@ contains
       <description>The fractional mass interval occupied by the trees. Where the intervals of trees of different mass would overlap this interval will be truncated.</description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters"/>
-    <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters"/>
+    <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"   source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters"/>
+    <objectBuilder class="nodeOperator"          name="nodeOperator_"          source="parameters"/>
+    <objectBuilder class="randomNumberGenerator" name="randomNumberGenerator_" source="parameters"/>
+    <objectBuilder class="galacticStructure"     name="galacticStructure_"     source="parameters"/>
     !!]
-    self=mergerTreeBuildMassesFixedMass(massTree,radiusTree,treeCount,massIntervalFractional,cosmologyParameters_,darkMatterHaloScale_)
+    self=mergerTreeBuildMassesFixedMass(massTree,radiusTree,treeCount,massIntervalFractional,cosmologyParameters_,darkMatterHaloScale_,nodeOperator_,randomNumberGenerator_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="cosmologyParameters_"/>
-    <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="cosmologyParameters_"  />
+    <objectDestructor name="darkMatterHaloScale_"  />
+    <objectDestructor name="nodeOperator_"         />
+    <objectDestructor name="randomNumberGenerator_"/>
+    <objectDestructor name="galacticStructure_"    />
     !!]
     return
   end function fixedMassConstructorParameters
 
-  function fixedMassConstructorInternal(massTree,radiusTree,treeCount,massIntervalFractional,cosmologyParameters_,darkMatterHaloScale_) result(self)
+  function fixedMassConstructorInternal(massTree,radiusTree,treeCount,massIntervalFractional,cosmologyParameters_,darkMatterHaloScale_,nodeOperator_,randomNumberGenerator_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily fixedMass} merger tree masses class.
     !!}
@@ -157,8 +172,11 @@ contains
     double precision                                , intent(in   )               :: massIntervalFractional
     class           (cosmologyParametersClass      ), intent(in   ), target       :: cosmologyParameters_
     class           (darkMatterHaloScaleClass      ), intent(in   ), target       :: darkMatterHaloScale_
+    class           (nodeOperatorClass             ), intent(in   ), target       :: nodeOperator_
+    class           (randomNumberGeneratorClass    ), intent(in   ), target       :: randomNumberGenerator_
+    class           (galacticStructureClass        ), intent(in   ), target       :: galacticStructure_
     !![
-    <constructorAssign variables="massTree, radiusTree, treeCount, massIntervalFractional, *cosmologyParameters_, *darkMatterHaloScale_"/>
+    <constructorAssign variables="massTree, radiusTree, treeCount, massIntervalFractional, *cosmologyParameters_, *darkMatterHaloScale_, *nodeOperator_, *randomNumberGenerator_, *galacticStructure_"/>
     !!]
 
     return
@@ -172,8 +190,11 @@ contains
     type(mergerTreeBuildMassesFixedMass), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%cosmologyParameters_"/>
-    <objectDestructor name="self%darkMatterHaloScale_"/>
+    <objectDestructor name="self%cosmologyParameters_"  />
+    <objectDestructor name="self%darkMatterHaloScale_"  />
+    <objectDestructor name="self%nodeOperator_"         />
+    <objectDestructor name="self%randomNumberGenerator_"/>
+    <objectDestructor name="self%galacticStructure_"    />
     !!]
     return
   end subroutine fixedMassDestructor
@@ -183,7 +204,7 @@ contains
     Construct a set of merger tree masses by sampling from a distribution.
     !!}
     use :: Galacticus_Calculations_Resets, only : Galacticus_Calculations_Reset
-    use :: Galacticus_Nodes              , only : nodeComponentBasic           , treeNode
+    use :: Galacticus_Nodes              , only : nodeComponentBasic           , treeNode  , mergerTree
     use :: Memory_Management             , only : allocateArray
     use :: Root_Finder                   , only : rangeExpandMultiplicative    , rootFinder
     use :: Sorting                       , only : sort
@@ -193,6 +214,7 @@ contains
     double precision                                , intent(  out), allocatable, dimension(:) :: mass       , weight     , &
          &                                                                                        massMinimum, massMaximum
     type            (rootFinder                    )                                           :: finder
+    type            (mergerTree                    )                                           :: tree
     type            (treeNode                      ), pointer                                  :: node
     class           (nodeComponentBasic            ), pointer                                  :: basic
     integer                                                                                    :: indexStart , i
@@ -206,8 +228,20 @@ contains
          &            rangeExpandDownward=0.5d+0                   , &
          &            rangeExpandType    =rangeExpandMultiplicative  &
          &           )
-    node  => treeNode      (                 )
-    basic => node    %basic(autoCreate=.true.)
+    ! Restart the random number sequence.
+    tree%index=1
+    allocate(tree%randomNumberGenerator_,mold=self%randomNumberGenerator_)
+    !$omp critical(mergerTreeConstructBuildMassesFixedDeepCopyReset)
+    !![
+    <deepCopyReset variables="self%randomNumberGenerator_"/>
+    <deepCopy source="self%randomNumberGenerator_" destination="tree%randomNumberGenerator_"/>
+    <deepCopyFinalize variables="tree%randomNumberGenerator_"/>
+    !!]
+    !$omp end critical(mergerTreeConstructBuildMassesFixedDeepCopyReset)
+    call tree%randomNumberGenerator_%seedSet(seed=tree%index,offset=.true.)
+    node          => treeNode      (hostTree  =tree  )
+    tree%nodeBase => node
+    basic         => node    %basic(autoCreate=.true.)
     call basic%timeSet            (time)
     call basic%timeLastIsolatedSet(time)
     do i=1,size(self%treeCount)
@@ -218,8 +252,7 @@ contains
           self%massTree(i)=finder%find(rootGuess=self%massTree(i))
        end if
     end do
-    call node%destroy()
-    deallocate(node)
+    call tree%destroy()
     call allocateArray(mass       ,[sum(self%treeCount)])
     call allocateArray(massMinimum,[sum(self%treeCount)])
     call allocateArray(massMaximum,[sum(self%treeCount)])
@@ -254,23 +287,24 @@ contains
       !!{
       Root finding function used to set the halo mass given the halo radius.
       !!}
-      use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-      use :: Galactic_Structure_Options        , only : massTypeDark
+      use :: Galactic_Structure_Options, only : massTypeDark
       implicit none
       double precision, intent(in   ) :: massTree
 
-      call basic%massSet(massTree)
+      call basic              %massSet           (massTree)
+      call self %nodeOperator_%nodeTreeInitialize(node    )
+      call self %nodeOperator_%nodeInitialize    (node    )
       call Galacticus_Calculations_Reset(node)
-      massEnclosed=+Galactic_Structure_Enclosed_Mass(                              &
-           &                                                   node              , &
-           &                                                   self%radiusTree(i), &
-           &                                          massType=massTypeDark        &
-           &                                         )                             &
-           &       *  self%cosmologyParameters_%OmegaMatter()                      &
-           &       /(                                                              &
-           &         +self%cosmologyParameters_%OmegaMatter()                      &
-           &         -self%cosmologyParameters_%OmegaBaryon()                      &
-           &        )                                                              &
+      massEnclosed=+  self%galacticStructure_  %massEnclosed(                             &
+           &                                                          node              , &
+           &                                                          self%radiusTree(i), &
+           &                                                 massType=massTypeDark        &
+           &                                                )                             &
+           &       *  self%cosmologyParameters_%OmegaMatter()                             &
+           &       /(                                                                     &
+           &         +self%cosmologyParameters_%OmegaMatter()                             &
+           &         -self%cosmologyParameters_%OmegaBaryon()                             &
+           &        )                                                                     &
            &       -self%massTree(i)
       return
     end function massEnclosed

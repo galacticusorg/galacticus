@@ -91,6 +91,12 @@
 	<sigma_8 value="0.807"/>
 	<monotonicInterpolation value="true" />
 	<nonMonotonicIsFatal value="false" />
+	<powerSpectrumPrimordial value="powerLaw">
+	  <index value="0.961"/>
+	  <wavenumberReference value="1.000"/>
+	  <running value="0.000"/>
+	</powerSpectrumPrimordial>
+	<powerSpectrumPrimordialTransferred value="simple"/>
 	<powerSpectrumWindowFunction value="sharpKSpace">
 	  <normalization value="2.5" />
 	</powerSpectrumWindowFunction>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -24,7 +24,7 @@
   ! Add dependency on GSL library.
   !; gsl
 
-  use, intrinsic :: ISO_C_Binding, only : c_long, c_ptr
+  use, intrinsic :: ISO_C_Binding, only : c_long, c_ptr, c_null_ptr
   
   !![
   <randomNumberGenerator name="randomNumberGeneratorGSL">
@@ -37,8 +37,8 @@
      !!}
      private
      integer(c_long) :: seed
-     logical         :: ompThreadOffset         , mpiRankOffset
-     type   (c_ptr ) :: gslRandomNumberGenerator
+     logical         :: ompThreadOffset                    , mpiRankOffset
+     type   (c_ptr ) :: gslRandomNumberGenerator=c_null_ptr
    contains
      final     ::                         gslDestructor
      procedure :: mpiIndependent       => gslMPIIndependent
@@ -247,7 +247,8 @@ contains
     implicit none
     type(randomNumberGeneratorGSL), intent(inout) :: self
 
-    call GSL_RNG_Free(self%gslRandomNumberGenerator)
+    if (c_associated(self%gslRandomNumberGenerator))        &
+         & call GSL_RNG_Free(self%gslRandomNumberGenerator)
     return
   end subroutine gslDestructor
 

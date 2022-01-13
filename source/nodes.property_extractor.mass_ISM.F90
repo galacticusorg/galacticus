@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,6 +21,8 @@
 Contains a module which implements an ISM mass output analysis property extractor class.
 !!}
 
+  use :: Galactic_Structure, only : galacticStructureClass
+
   !![
   <nodePropertyExtractor name="nodePropertyExtractorMassISM">
    <description>An ISM mass output analysis property extractor class.</description>
@@ -31,7 +33,9 @@ Contains a module which implements an ISM mass output analysis property extracto
      A stelalr mass output analysis class.
      !!}
      private
+     class(galacticStructureClass), pointer :: galacticStructure_ => null()
    contains
+     final     ::                massISMDestructor
      procedure :: extract     => massISMExtract
      procedure :: type        => massISMType
      procedure :: quantity    => massISMQuantity
@@ -45,6 +49,7 @@ Contains a module which implements an ISM mass output analysis property extracto
      Constructors for the ``massISM'' output analysis class.
      !!}
      module procedure massISMConstructorParameters
+     module procedure massISMConstructorInternal
   end interface nodePropertyExtractorMassISM
 
 contains
@@ -55,28 +60,62 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type(nodePropertyExtractorMassISM)                :: massISMConstructorParameters
-    type(inputParameters             ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
+    type (nodePropertyExtractorMassISM)                :: massISMConstructorParameters
+    type (inputParameters             ), intent(inout) :: parameters
+    class(galacticStructureClass      ), pointer       :: galacticStructure_
 
-    massISMConstructorParameters=nodePropertyExtractorMassISM()
+    !![
+    <objectBuilder class="galacticStructure" name="galacticStructure_" source="parameters"/>
+    !!]
+    massISMConstructorParameters=nodePropertyExtractorMassISM(galacticStructure_)
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="galacticStructure_"/>
+    !!]
     return
   end function massISMConstructorParameters
+
+  function massISMConstructorInternal(galacticStructure_) result(self)
+    !!{
+    Internal constructor for the ``massISM'' output analysis property extractor class.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    type (nodePropertyExtractorMassISM)                        :: self
+    class(galacticStructureClass      ), intent(in   ), target :: galacticStructure_
+    !![
+    <constructorAssign variables="*galacticStructure_"/>
+    !!]
+
+    return
+  end function massISMConstructorInternal
+  
+  subroutine massISMDestructor(self)
+    !!{
+    Destructor for the ``massISM'' output analysis property extractor class.
+    !!}
+    implicit none
+    type(nodePropertyExtractorMassISM), intent(inout) :: self
+    
+    !![
+    <objectDestructor name="self%galacticStructure_"/>
+    !!]
+    return
+  end subroutine massISMDestructor
 
   double precision function massISMExtract(self,node,instance)
     !!{
     Implement a massISM output analysis.
     !!}
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Enclosed_Mass
-    use :: Galactic_Structure_Options        , only : componentTypeDisk               , componentTypeSpheroid, massTypeGaseous, radiusLarge
+    use :: Galactic_Structure_Options, only : componentTypeDisk, componentTypeSpheroid, massTypeGaseous, radiusLarge
     implicit none
     class(nodePropertyExtractorMassISM), intent(inout)           :: self
     type (treeNode                    ), intent(inout), target   :: node
     type (multiCounter                ), intent(inout), optional :: instance
     !$GLC attributes unused :: self, instance
 
-    massISMExtract=+Galactic_Structure_Enclosed_Mass(node,radiusLarge,massType=massTypeGaseous,componentType=componentTypeDisk    ) &
-         &         +Galactic_Structure_Enclosed_Mass(node,radiusLarge,massType=massTypeGaseous,componentType=componentTypeSpheroid)
+    massISMExtract=+self%galacticStructure_%massEnclosed(node,radiusLarge,massType=massTypeGaseous,componentType=componentTypeDisk    ) &
+         &         +self%galacticStructure_%massEnclosed(node,radiusLarge,massType=massTypeGaseous,componentType=componentTypeSpheroid)
     return
   end function massISMExtract
 

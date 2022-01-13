@@ -1,22 +1,22 @@
-  !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-  !!           2019, 2020, 2021
-  !!    Andrew Benson <abenson@carnegiescience.edu>
-  !!
-  !! This file is part of Galacticus.
-  !!
-  !!    Galacticus is free software: you can redistribute it and/or modify
-  !!    it under the terms of the GNU General Public License as published by
-  !!    the Free Software Foundation, either version 3 of the License, or
-  !!    (at your option) any later version.
-  !!
-  !!    Galacticus is distributed in the hope that it will be useful,
-  !!    but WITHOUT ANY WARRANTY; without even the implied warranty of
-  !!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  !!    GNU General Public License for more details.
-  !!
-  !!    You should have received a copy of the GNU General Public License
-  !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
-  
+!! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
+!!           2019, 2020, 2021, 2022
+!!    Andrew Benson <abenson@carnegiescience.edu>
+!!
+!! This file is part of Galacticus.
+!!
+!!    Galacticus is free software: you can redistribute it and/or modify
+!!    it under the terms of the GNU General Public License as published by
+!!    the Free Software Foundation, either version 3 of the License, or
+!!    (at your option) any later version.
+!!
+!!    Galacticus is distributed in the hope that it will be useful,
+!!    but WITHOUT ANY WARRANTY; without even the implied warranty of
+!!    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+!!    GNU General Public License for more details.
+!!
+!!    You should have received a copy of the GNU General Public License
+!!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
+
   !!{
   Contains a module which implements a property extractor class for the SED of a component.
   !!}
@@ -886,8 +886,15 @@ contains
     type     (inputParameters         )                :: descriptor
     type     (varying_string          )                :: descriptorString          , values
     integer                                            :: i
-    type     (varying_string          ), save          :: descriptorStringPrevious  , hashedDescriptorPrevious
-    !$omp threadprivate(descriptorStringPrevious,hashedDescriptorPrevious)
+    !![
+    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845">
+      <description>
+	Memory leak possibly due to OpenMP parallelism, or some failing of gfortran.
+      </description>
+    </workaround>
+    !!]
+    ! type     (varying_string          ), save          :: descriptorStringPrevious  , hashedDescriptorPrevious
+    ! !$omp threadprivate(descriptorStringPrevious,hashedDescriptorPrevious)
     
     descriptor=inputParameters()
     call setLiveNodeLists(descriptor%document,.false.)
@@ -932,10 +939,18 @@ contains
     descriptorString=descriptor%serializeToString()
     call descriptor%destroy()
     descriptorString=descriptorString//":sourceDigest{"//String_C_To_Fortran(nodePropertyExtractorSED5)//"}"
-    if (descriptorString /= descriptorStringPrevious) then
-       descriptorStringPrevious=         descriptorString
-       hashedDescriptorPrevious=Hash_MD5(descriptorString)
-    end if
-    sedHistoryHashedDescriptor=hashedDescriptorPrevious
+    !![
+    <workaround type="gfortran" PR="102845" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=102845">
+     <description>
+      Memory leak possibly due to OpenMP parallelism, or some failing of gfortran.
+     </description>
+    </workaround>
+    !!]
+    !if (descriptorString /= descriptorStringPrevious) then
+    !   descriptorStringPrevious=         descriptorString
+    !   hashedDescriptorPrevious=Hash_MD5(descriptorString)
+    !end if
+    !sedHistoryHashedDescriptor=hashedDescriptorPrevious
+    sedHistoryHashedDescriptor=Hash_MD5(descriptorString)
     return
   end function sedHistoryHashedDescriptor

@@ -12,7 +12,7 @@ use Galacticus::Inclination;
 # Andrew Benson (15-October-2014)
 
 # Run the model and check for successful completion.
-system("Galacticus.exe testSuite/parameters/setProperties.xml");
+system("./Galacticus.exe testSuite/parameters/setProperties.xml");
 die("FAILED: setProperties.pl model failed to complete") 
     unless ( $? == 0 );
 

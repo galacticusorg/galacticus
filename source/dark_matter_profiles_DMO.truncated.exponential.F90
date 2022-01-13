@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -69,7 +69,6 @@
      procedure :: radiusFromSpecificAngularMomentum => truncatedExponentialRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization             => truncatedExponentialRotationNormalization
      procedure :: energy                            => truncatedExponentialEnergy
-     procedure :: energyGrowthRate                  => truncatedExponentialEnergyGrowthRate
      procedure :: kSpace                            => truncatedExponentialKSpace
      procedure :: freefallRadius                    => truncatedExponentialFreefallRadius
      procedure :: freefallRadiusIncreaseRate        => truncatedExponentialFreefallRadiusIncreaseRate
@@ -138,8 +137,8 @@ contains
     self=darkMatterProfileDMOTruncatedExponential(radiusFractionalDecay,alpha,beta,gamma,enumerationNonAnalyticSolversEncode(char(nonAnalyticSolver),includesPrefix=.false.),darkMatterProfileDMO_,darkMatterHaloScale_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="darkMatterProfileDMO_"  />
-    <objectDestructor name="darkMatterHaloScale_"/>
+    <objectDestructor name="darkMatterProfileDMO_"/>
+    <objectDestructor name="darkMatterHaloScale_" />
     !!]
     return
   end function truncatedExponentialConstructorParameters
@@ -162,8 +161,12 @@ contains
 
     ! Validate.
     if (.not.enumerationNonAnalyticSolversIsValid(nonAnalyticSolver)) call Galacticus_Error_Report('invalid non-analytic solver type'//{introspection:location})
-    self%lastUniqueID       =-1_kind_int8
-    self%genericLastUniqueID=-1_kind_int8
+    self%lastUniqueID                                           =-1_kind_int8
+    self%genericLastUniqueID                                    =-1_kind_int8
+    self%kappaPrevious                                          =-huge(0.0d0)
+    self%enclosingMassRadiusPrevious                            =-1.0d0
+    self%radialVelocityDispersionVirialRadiusPrevious           =-1.0d0
+    self%radialVelocityDispersionVirialRadiusUntruncatedPrevious=-1.0d0
     return
   end function truncatedExponentialConstructorInternal
 
@@ -191,7 +194,7 @@ contains
     <objectDestructor name="self%darkMatterProfileDMO_"/>
     <objectDestructor name="self%darkMatterHaloScale_" />
     !!]
-    call calculationResetEvent%detach(self,truncatedExponentialCalculationReset)
+    if (calculationResetEvent%isAttached(self,truncatedExponentialCalculationReset)) call calculationResetEvent%detach(self,truncatedExponentialCalculationReset)
     return
   end subroutine truncatedExponentialDestructor
 
@@ -203,10 +206,12 @@ contains
     class(darkMatterProfileDMOTruncatedExponential), intent(inout) :: self
     type (treeNode                                ), intent(inout) :: node
 
-    self%lastUniqueID               = node%uniqueID()
-    self%genericLastUniqueID        =node%uniqueID()
-    self%kappaPrevious              =-huge(0.0d0)
-    self%enclosingMassRadiusPrevious=-1.0d0
+    self%lastUniqueID                                           = node%uniqueID()
+    self%genericLastUniqueID                                    =node%uniqueID()
+    self%kappaPrevious                                          =-huge(0.0d0)
+    self%enclosingMassRadiusPrevious                            =-1.0d0
+    self%radialVelocityDispersionVirialRadiusPrevious           =-1.0d0
+    self%radialVelocityDispersionVirialRadiusUntruncatedPrevious=-1.0d0
     if (allocated(self%genericVelocityDispersionRadialVelocity)) deallocate(self%genericVelocityDispersionRadialVelocity)
     if (allocated(self%genericVelocityDispersionRadialRadius  )) deallocate(self%genericVelocityDispersionRadialRadius  )
     if (allocated(self%genericEnclosedMassMass                )) deallocate(self%genericEnclosedMassMass                )
@@ -227,7 +232,7 @@ contains
          &                                                                                 multiplier_
 
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-    radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
+    radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
     if (radius <= radiusVirial) then
        if (present(multiplier        )) multiplier        =+1.0d0
        if (present(multiplierGradient)) multiplierGradient=+0.0d0
@@ -271,7 +276,7 @@ contains
          &                                                                       concentration
 
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-    radiusVirial      =  self             %darkMatterHaloScale_%virialRadius(node             )
+    radiusVirial      =  self             %darkMatterHaloScale_%radiusVirial(node             )
     darkMatterProfile => node             %darkMatterProfile                (autoCreate=.true.)
     scaleRadius       =  darkMatterProfile%scale                            (                 )
     concentration     =  +radiusVirial                &
@@ -405,7 +410,7 @@ contains
     double precision                                                          :: radiusVirial, radiusDecay
 
     if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-    radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
+    radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
     if (radius <= radiusVirial) then
        truncatedExponentialEnclosedMass=+self%darkMatterProfileDMO_%enclosedMass(node,radius      )
     else
@@ -509,7 +514,7 @@ contains
        truncatedExponentialRadialVelocityDispersion=self%darkMatterProfileDMO_%radialVelocityDispersion(node,radius)
     else
        if (node%uniqueID() /= self%lastUniqueID) call self%calculationReset(node)
-       radiusVirial=self%darkMatterHaloScale_%virialRadius(node)
+       radiusVirial=self%darkMatterHaloScale_%radiusVirial(node)
        if (radius >= radiusVirial) then
           truncatedExponentialRadialVelocityDispersion=self%radialVelocityDispersionNumerical(node,radius)
        else
@@ -580,22 +585,6 @@ contains
     end if
     return
   end function truncatedExponentialEnergy
-
-  double precision function truncatedExponentialEnergyGrowthRate(self,node)
-    !!{
-    Return the rate of change of the energy of a truncatedExponential halo density profile.
-    !!}
-    implicit none
-    class(darkMatterProfileDMOTruncatedExponential), intent(inout)         :: self
-    type (treeNode                                ), intent(inout), target :: node
-
-    if (self%nonAnalyticSolver == nonAnalyticSolversFallThrough) then
-       truncatedExponentialEnergyGrowthRate=self%darkMatterProfileDMO_%energyGrowthRate         (node)
-    else
-       truncatedExponentialEnergyGrowthRate=self                      %energyGrowthRateNumerical(node)
-    end if
-    return
-  end function truncatedExponentialEnergyGrowthRate
 
   double precision function truncatedExponentialKSpace(self,node,waveNumber)
     !!{

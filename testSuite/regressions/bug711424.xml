@@ -35,11 +35,13 @@
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
     <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spins -->
-    <nodeOperator value="haloSpinRandom">
+    <nodeOperator value="haloAngularMomentumRandom">
       <factorReset value="2.0"/>
     </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>
@@ -178,7 +180,6 @@
     <accuracyFirstOrder value="+0.10"/>
   </mergerTreeBranchingProbability>
   <blackHoleSeedMass value="100"/>
-  <componentMergingStatistics value="standard"/>
   <stellarPopulationSelector value="fixed"/>
   <accretionHalo value="simple">
     <redshiftReionization value="9"/>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -252,13 +252,14 @@ contains
     type            (coordinateCartesian              )                :: position
     double precision                                   , dimension(3)  :: positionComponents
     double precision                                                   :: mSquared
-    type           (vector                            )                :: positionVector
+    type           (vector                            )                :: positionVectorUnrotated, positionVector
 
     ! Rotate the position to the frame where the ellipsoid is aligned with the principle Cartesian axes.
     position                = coordinates
     positionComponents      = position
-    positionVector          = positionComponents
-    positionVector          = self%rotationIn*positionVector
+    positionVectorUnrotated = positionComponents
+    positionVector          = self%rotationIn         &
+         &                   *positionVectorUnrotated
     positionComponents      = positionVector
     position                = positionComponents
     ! Evaluate the density.
@@ -298,19 +299,21 @@ contains
     class           (massDistributionGaussianEllipsoid), intent(inout)  :: self
     class           (coordinate                       ), intent(in   )  :: coordinates
     type            (coordinateCartesian              )                 :: coordinatesCartesian
-    double precision                                   , dimension(3)   :: positionCartesian            , positionCartesianScaleFree, &
+    double precision                                   , dimension(3)   :: positionCartesian            , positionCartesianScaleFree , &
          &                                                                 accelerationScaleFree
     integer                                                             :: i
-    type            (vector                            )                :: positionVector               , accelerationVector
+    type            (vector                            )                :: positionVector               , positionVectorUnrotated    , &
+         &                                                                 accelerationVector           , accelerationVectorUnrotated
     
     ! Ensure that acceleration is tabulated.
     call self%accelerationTabulate()
     ! Construct the scale-free (and rotated) position.
-    coordinatesCartesian=coordinates
-    positionCartesian   =coordinatesCartesian
-    positionVector      =positionCartesian
-    positionVector      =self%rotationIn*positionVector
-    positionCartesian   =positionVector
+    coordinatesCartesian    = coordinates
+    positionCartesian       = coordinatesCartesian
+    positionVectorUnrotated = positionCartesian
+    positionVector          = self%rotationIn         &
+         &                   *positionVectorUnrotated
+    positionCartesian       = positionVector
     do i=1,3
        positionCartesianScaleFree(self%axesMapIn(i))=positionCartesian(i)
     end do
@@ -322,9 +325,10 @@ contains
     do i=1,3
        gaussianEllipsoidAcceleration(self%axesMapOut(i))=accelerationScaleFree(i)
     end do
-    accelerationVector           =gaussianEllipsoidAcceleration
-    accelerationVector           =self%rotationOut*accelerationVector
-    gaussianEllipsoidAcceleration=accelerationVector
+    accelerationVector           = gaussianEllipsoidAcceleration
+    accelerationVectorUnrotated  = self%rotationOut              &
+         &                        *accelerationVector
+    gaussianEllipsoidAcceleration= accelerationVectorUnrotated
     if (.not.self%isDimensionless())                                      &
          & gaussianEllipsoidAcceleration=+gaussianEllipsoidAcceleration   &
          &                               *gravitationalConstantGalacticus &

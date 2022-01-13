@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -92,7 +92,6 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily agesStellarMassWeighted} node operator class.
     !!}
-    use :: Galacticus_Nodes, only : defaultDiskComponent, defaultSpheroidComponent
     implicit none
     type (nodeOperatorAgesStellarMassWeighted)                        :: self
     class(starFormationRateDisksClass        ), intent(in   ), target :: starFormationRateDisks_
@@ -102,10 +101,12 @@ contains
     <constructorAssign variables="*starFormationRateDisks_, *starFormationRateSpheroids_, *mergerMassMovements_"/>
     !!]
     
-    self%stellarMassFormedDiskID        =defaultDiskComponent    %addMetaProperty(var_str('agesStellarMassFormedDisk'        ),'disk:stellarMassFormed'        ,isEvolvable=.true.)  
-    self%timeStellarMassFormedDiskID    =defaultDiskComponent    %addMetaProperty(var_str('agesTimeStellarMassFormedDisk'    ),'disk:timeStellarMassFormed'    ,isEvolvable=.true.)  
-    self%stellarMassFormedSpheroidID    =defaultSpheroidComponent%addMetaProperty(var_str('agesStellarMassFormedSpheroid'    ),'spheroid:stellarMassFormed'    ,isEvolvable=.true.)  
-    self%timeStellarMassFormedSpheroidID=defaultSpheroidComponent%addMetaProperty(var_str('agesTimeStellarMassFormedSpheroid'),'spheroid:timeStellarMassFormed',isEvolvable=.true.)  
+    !![
+    <addMetaProperty component="disk"     name="agesStellarMassFormed"     id="self%stellarMassFormedDiskID"         isEvolvable="yes" isCreator="yes"/>
+    <addMetaProperty component="disk"     name="agesTimeStellarMassFormed" id="self%timeStellarMassFormedDiskID"     isEvolvable="yes" isCreator="yes"/>
+    <addMetaProperty component="spheroid" name="agesStellarMassFormed"     id="self%stellarMassFormedSpheroidID"     isEvolvable="yes" isCreator="yes"/>
+    <addMetaProperty component="spheroid" name="agesTimeStellarMassFormed" id="self%timeStellarMassFormedSpheroidID" isEvolvable="yes" isCreator="yes"/>
+    !!]
     return
   end function agesStellarMassWeightedConstructorInternal
 

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -298,7 +298,8 @@ contains
        type is (haloSpinDistributionLogNormal)
           distributionLogNormal=haloSpinDistributionLogNormal  (                                         &
                &                                                stateVector(1)                         , &
-               &                                                stateVector(2)                           &
+               &                                                stateVector(2)                         , &
+               &                                                self%darkMatterProfileDMO_               &
                &                                               )
           distributionNbody    =haloSpinDistributionNbodyErrors(                                         &
                &                                                distributionLogNormal                  , &
@@ -325,7 +326,8 @@ contains
        type is (haloSpinDistributionBett2007)
           distributionBett2007=haloSpinDistributionBett2007    (                                         &
                &                                                stateVector(1)                         , &
-               &                                                stateVector(2)                           &
+               &                                                stateVector(2)                         , &
+               &                                                self%darkMatterProfileDMO_               &
                &                                               )
           distributionNbody    =haloSpinDistributionNbodyErrors(                                         &
                &                                                distributionBett2007                   , &
@@ -371,10 +373,11 @@ contains
       !!{
       Integrand function used to find cumulative spin distribution over a bin.
       !!}
+      use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
       implicit none
       double precision, intent(in   ) :: spinPrime
 
-      call nodeSpin%spinSet(spinPrime)
+      call nodeSpin%angularMomentumSet(spinPrime*Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_))
       spinDistributionIntegrate=distributionNbody%distributionAveraged(node,self%massHaloMinimum)
       return
     end function spinDistributionIntegrate

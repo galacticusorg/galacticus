@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -46,8 +46,8 @@
      private
      double precision                                     :: factor
      integer                                              :: radiusFixed
-     class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_
-     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
+     class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
+     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
    contains
      final     ::             fixedDestructor
      procedure :: solve    => fixedSolve
@@ -179,10 +179,10 @@ contains
     <objectDestructor name="self%darkMatterHaloScale_" />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
     !!]
-    call   preDerivativeEvent%detach(self,fixedSolvePreDeriativeHook)
-    call      postEvolveEvent%detach(self,fixedSolveHook            )
-    call satelliteMergerEvent%detach(self,fixedSolveHook            )
-    call   nodePromotionEvent%detach(self,fixedSolveHook            )
+    if (  preDerivativeEvent%isAttached(self,fixedSolvePreDeriativeHook)) call   preDerivativeEvent%detach(self,fixedSolvePreDeriativeHook)
+    if (     postEvolveEvent%isAttached(self,fixedSolveHook            )) call      postEvolveEvent%detach(self,fixedSolveHook            )
+    if (satelliteMergerEvent%isAttached(self,fixedSolveHook            )) call satelliteMergerEvent%detach(self,fixedSolveHook            )
+    if (  nodePromotionEvent%isAttached(self,fixedSolveHook            )) call   nodePromotionEvent%detach(self,fixedSolveHook            )
     return
   end subroutine fixedDestructor
 
@@ -254,7 +254,8 @@ contains
       !!{
       Solve for the equilibrium radius of the given component.
       !!}
-      use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentSpin, treeNode
+      use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
+      use :: Galacticus_Nodes      , only : nodeComponentBasic                     , nodeComponentSpin, treeNode
       implicit none
       type            (treeNode          ), intent(inout)          :: node
       double precision                    , intent(in   )          :: specificAngularMomentum
@@ -269,12 +270,18 @@ contains
       spin => node%spin()
       select case (self%radiusFixed)
       case (radiusFixedVirial    )
-         velocity             =  self %darkMatterHaloScale_ %virialVelocity         (node)
-         radius               =  self %darkMatterHaloScale_ %virialRadius           (node)*spin%spin()*self%factor
+         velocity             =  +self %darkMatterHaloScale_ %velocityVirial         (node                           )
+         radius               =  +self %darkMatterHaloScale_ %radiusVirial           (node                           ) &
+              &                  *self                       %factor                                                   &
+              &                  *spin                       %angularMomentum        (                               ) &
+              &                  /Dark_Matter_Halo_Angular_Momentum_Scale            (node,self%darkMatterProfileDMO_)
       case (radiusFixedTurnaround)
-         basic                => node                       %basic                  (    )
-         velocity             =  self %darkMatterProfileDMO_%circularVelocityMaximum(node)
-         radius               =  basic                      %radiusTurnaround       (    )*spin%spin()*self%factor
+         basic                =>  node                       %basic                  (                               )
+         velocity             =  +self %darkMatterProfileDMO_%circularVelocityMaximum(node                           )
+         radius               =  +basic                      %radiusTurnaround       (                               ) &
+              &                  *self                       %factor                                                   &
+              &                  *spin                       %angularMomentum        (                               ) &
+              &                  /Dark_Matter_Halo_Angular_Momentum_Scale            (node,self%darkMatterProfileDMO_)
       end select
       ! Set the component size to new radius and velocity.
       call radiusSet  (node,radius  )

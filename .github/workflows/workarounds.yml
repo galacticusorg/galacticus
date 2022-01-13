@@ -1,0 +1,28 @@
+name: Workarounds
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '08 08 * * *'
+jobs:
+  Check-Workarounds:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: workarounds-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "This job is now running on a ${{ runner.os }} server."
+      - run: echo "The name of the branch is ${{ github.ref }} and the repository is ${{ github.repository }}."
+      - name: Check out repository code
+        uses: actions/checkout@v2
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - name: "Set environmental variables"
+        run: |
+          echo "GALACTICUS_EXEC_PATH=$GITHUB_WORKSPACE" >> $GITHUB_ENV
+      - name: Install tools
+        run: sudo apt install -y perl perl-doc curl
+      - name: Check for workaround fixes
+        run: |
+          cd $GALACTICUS_EXEC_PATH
+          ./scripts/aux/workaroundChecker.pl
+      - run: echo "This job's status is ${{ job.status }}."

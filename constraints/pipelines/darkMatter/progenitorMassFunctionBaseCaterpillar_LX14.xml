@@ -19,8 +19,7 @@
   <componentHotHalo            value="null"      />
   <componentSatellite          value="verySimple"/>
   <componentSpheroid           value="null"      />
-  <componentMergingStatistics  value="standard"  />
-  <satelliteMergingTimescales value="zero"      />
+  <satelliteMergingTimescales  value="zero"      />
   <componentSpin               value="null"      />
 
   <!-- Cosmological parameters matched to Caterpillar -->
@@ -106,6 +105,8 @@
     <odeToleranceAbsolute value="0.01"/>
     <odeToleranceRelative value="0.01"/>
   </mergerTreeNodeEvolver>
+  <nodeOperator value="hierarchy"/>
+  <hotHaloMassDistribution value="null"/>
 
   <!-- Output options -->
   <galacticusOutputFileName  value="Caterpillar_LX14.hdf5"/>
@@ -124,6 +125,7 @@
   <outputAnalysis value="multi">
     <!-- Minimum mass ratio for likelihood is the ratio of the Caterpillar 300 particle mass limit (8.9562e6Msun) to the minimum parent
          mass in the sample. -->
+    <virialDensityContrastDefinition value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
     <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_Caterpillar_LX14.hdf5"/>
       <indexParent                  value="1"                                                                                                   />

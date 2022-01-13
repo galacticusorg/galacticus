@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -67,9 +67,18 @@ contains
     integer                     , intent(  out), optional :: status
     type   (varying_string     )                          :: cloudyPath, cloudyVersion
     !$GLC attributes unused :: self
+#include "os.inc"
 
     call displayIndent  ('Begin task: Cloudy tool build')
-    call Interface_Cloudy_Initialize(cloudyPath,cloudyVersion,static=.true.)
+    call Interface_Cloudy_Initialize(                      &
+         &                                  cloudyPath   , &
+         &                                  cloudyVersion, &
+#ifdef __APPLE__
+         &                           static=.false.        &
+#else
+         &                           static=.true.         &
+#endif
+         &                          )
     call displayMessage('Cloudy version '//cloudyVersion//' successfully built in: '//cloudyPath)
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: Cloudy tool build')

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -138,8 +138,8 @@ contains
     use :: IO_HDF5                         , only : hdf5Object
     use :: IO_IRATE                        , only : irate
     use :: ISO_Varying_String              , only : char
-    use :: Numerical_Constants_Astronomical, only : massSolar
-    use :: Numerical_Constants_Prefixes    , only : kilo
+    use :: Numerical_Constants_Astronomical, only : massSolar              , megaparsec
+    use :: Numerical_Constants_Prefixes    , only : kilo                   , hecto
     implicit none
     class           (nbodyOperatorExportIRATE), intent(inout)                 :: self
     type            (nBodyData               ), intent(inout), dimension(:  ) :: simulations
@@ -259,7 +259,19 @@ contains
           case ('massVirial'               )
              datasetDescription="Halo virial mass."
              unitName="massSolar"
-             unitscgs=[massSolar*kilo,0.0d0,0.0d0]
+             unitscgs=[massSolar *kilo ,0.0d0,0.0d0]
+          case ('massParticle'             )
+             datasetDescription="Particle mass."
+             unitName="massSolar"
+             unitscgs=[massSolar *kilo ,0.0d0,0.0d0]
+          case ('radiusScale'              )
+             datasetDescription="Halo scale radius."
+             unitName="megaParsec"
+             unitscgs=[megaParsec*hecto,0.0d0,0.0d0]
+          case ('radiusVirial'             )
+             datasetDescription="Halo virial radius."
+             unitName="megaParsec"
+             unitscgs=[megaParsec*hecto,0.0d0,0.0d0]
           case default
              datasetDescription="Unknown property."
           end select

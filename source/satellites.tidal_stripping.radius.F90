@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -42,6 +42,7 @@ module Satellite_Tidal_Stripping_Radii
     <description>Returns the tidal radius for {\normalfont \ttfamily node} (in units of Mpc).</description>
     <type>double precision</type>
     <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
     <argument>type(treeNode), intent(inout), target :: node</argument>
    </method>
   </functionClass>

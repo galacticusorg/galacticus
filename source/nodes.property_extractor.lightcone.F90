@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -53,14 +53,14 @@
      A property extractor which extracts lightcone properties.
      !!}
      private
-     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_
-     class           (geometryLightconeClass ), pointer                   :: geometryLightcone_
-     integer                                                              :: elementCount_           , redshiftObservedOffset   , &
+     class           (cosmologyFunctionsClass), pointer                   :: cosmologyFunctions_      => null()
+     class           (geometryLightconeClass ), pointer                   :: geometryLightcone_       => null()
+     integer                                                              :: elementCount_                     , redshiftObservedOffset   , &
           &                                                                  angularCoordinatesOffset
      integer         (c_size_t               )                            :: instanceIndex
-     type            (varying_string         ), allocatable, dimension(:) :: names_                  , descriptions_
+     type            (varying_string         ), allocatable, dimension(:) :: names_                            , descriptions_
      double precision                         , allocatable, dimension(:) :: unitsInSI_
-     logical                                                              :: includeObservedRedshift , includeAngularCoordinates, &
+     logical                                                              :: includeObservedRedshift           , includeAngularCoordinates, &
           &                                                                  atCrossing
    contains
      final     ::                 lightconeDestructor

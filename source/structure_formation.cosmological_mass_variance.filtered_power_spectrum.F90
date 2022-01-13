@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -83,16 +83,16 @@
      private
      class           (cosmologyParametersClass               ), pointer                   :: cosmologyParameters_                => null()
      class           (cosmologyFunctionsClass                ), pointer                   :: cosmologyFunctions_                 => null()
-     class           (powerSpectrumPrimordialTransferredClass), pointer                   :: powerSpectrumPrimordialTransferred_ => null(), powerSpectrumPrimordialTransferredReference => null()
+     class           (powerSpectrumPrimordialTransferredClass), pointer                   :: powerSpectrumPrimordialTransferred_ => null() , powerSpectrumPrimordialTransferredReference => null()
      class           (cosmologicalMassVarianceClass          ), pointer                   :: cosmologicalMassVarianceReference   => null()
      class           (linearGrowthClass                      ), pointer                   :: linearGrowth_                       => null()
-     class           (powerSpectrumWindowFunctionClass       ), pointer                   :: powerSpectrumWindowFunction_        => null(), powerSpectrumWindowFunctionTopHat_          => null()
-     logical                                                                              :: initialized                                  , nonMonotonicIsFatal
-     double precision                                                                     :: tolerance                                    , toleranceTopHat                                      , &
-          &                                                                                  sigma8Value                                  , sigmaNormalization                                   , &
-          &                                                                                  massMinimum                                  , massMaximum                                          , &
-          &                                                                                  timeMinimum                                  , timeMaximum                                          , &
-          &                                                                                  timeMinimumLogarithmic                       , timeLogarithmicDeltaInverse                          , &
+     class           (powerSpectrumWindowFunctionClass       ), pointer                   :: powerSpectrumWindowFunction_        => null() , powerSpectrumWindowFunctionTopHat_          => null()
+     logical                                                                              :: initialized                         =  .false., nonMonotonicIsFatal
+     double precision                                                                     :: tolerance                                     , toleranceTopHat                                      , &
+          &                                                                                  sigma8Value                                   , sigmaNormalization                                   , &
+          &                                                                                  massMinimum                                   , massMaximum                                          , &
+          &                                                                                  timeMinimum                                   , timeMaximum                                          , &
+          &                                                                                  timeMinimumLogarithmic                        , timeLogarithmicDeltaInverse                          , &
           &                                                                                  wavenumberReference
      double precision                                         , allocatable, dimension(:) :: times
      class           (table1DLinearCSpline                   ), allocatable, dimension(:) :: rootVarianceTable
@@ -100,8 +100,8 @@
      type            (lockDescriptor                         )                            :: fileLock
      ! Unique values in the variance table and their corresponding indices.
      type            (uniqueTable                            ), allocatable, dimension(:) :: rootVarianceUniqueTable
-     logical                                                                              :: monotonicInterpolation                       , growthIsMassDependent_                               , &
-         &                                                                                   normalizationSigma8                          , truncateAtParticleHorizon
+     logical                                                                              :: monotonicInterpolation                        , growthIsMassDependent_                               , &
+         &                                                                                   normalizationSigma8                   =.false., truncateAtParticleHorizon
    contains
      !![
      <methods>
@@ -261,7 +261,7 @@ contains
      <argument name="powerSpectrumPrimordialTransferredReference" value="powerSpectrumPrimordialTransferredReference" condition="     parameters%isPresent('wavenumberReference')"                   />
      <argument name="powerSpectrumWindowFunctionTopHat_"          value="powerSpectrumWindowFunctionTopHat_"          parameterPresent="parameters" parameterName="powerSpectrumWindowFunctionTopHat"/>
     </conditionalCall>
-    <inputParametersValidate source="parameters"/>
+    <inputParametersValidate source="parameters" extraAllowedNames="reference"/>
     !!]
     if (parameters%isPresent('wavenumberReference')) then
        !![
@@ -865,10 +865,10 @@ contains
       double precision            , intent(in   ) :: time_
       logical                     , intent(in   ) :: useTopHat
       double precision            , parameter     :: wavenumberBAO    =5.0d0 ! The wavenumber above which baryon acoustic oscillations are small - used to split the integral allowing the oscillating part to be handled robustly.
-      double precision                            :: topHatRadius           , wavenumberMaximum, &
-           &                                         wavenumberMinimum      , integrandLow     , &
+      double precision                            :: topHatRadius           , wavenumberMaximum     , &
+           &                                         wavenumberMinimum      , integrandLow          , &
            &                                         integrandHigh
-      type            (integrator)                :: integrator_
+      type            (integrator)                :: integrator_            , integratorLogarithmic_
 
       filteredPowerTime=time_
       topHatRadius     =(                                             &
@@ -912,8 +912,18 @@ contains
          integrator_=integrator(varianceIntegrand,toleranceRelative=+self%tolerance,integrationRule=GSL_Integ_Gauss15)
          wavenumberMaximum=min(1.0d3/topHatRadius,self%powerSpectrumWindowFunction_      %wavenumberMaximum(smoothingMass))
          if (wavenumberMaximum > wavenumberBAO) then
-            integrandLow =   integrator_%integrate(wavenumberMinimum,wavenumberBAO    )
-            integrandHigh=   integrator_%integrate(wavenumberBAO    ,wavenumberMaximum)
+            integrandLow =integrator_%integrate(wavenumberMinimum,wavenumberBAO    )
+            integrandHigh=integrator_%integrate(wavenumberBAO    ,wavenumberMaximum)
+            if (integrandHigh <= 0.0d0) then
+               ! If there is no power in the high wavenumber integral this may be because the upper limit is large and the power
+               ! is confined to small wavenumbers near the lower limit. This can happen, for example, if attempting to compute
+               ! σ(M) for mass scales far below the cut off for power spectra with a small-scale cut off. In such cases attempt to
+               ! evaluate the integral again, but integrating over log(wavenumber) such that more points in the integrand are
+               ! placed at small wavenumber.
+               integratorLogarithmic_=integrator(varianceIntegrandLogarithmic,toleranceRelative=+self%tolerance,integrationRule=GSL_Integ_Gauss15)
+               integrandHigh         =integratorLogarithmic_%integrate(log(wavenumberBAO),log(wavenumberMaximum))
+               if (integrandHigh <= 0.0d0) call Galacticus_Error_Report('no power above BAO scale - unexpected'//{introspection:location})
+            end if
             rootVariance =+(                                                            &
                  &          +integrandLow                                               &
                  &          +integrandHigh                                              &
@@ -946,6 +956,26 @@ contains
            &             )**2
       return
     end function varianceIntegrand
+
+    double precision function varianceIntegrandLogarithmic(wavenumberLogarithmic)
+      !!{
+      Integrand function used in computing the variance in (real space) top-hat spheres from the power spectrum. This version integrates with respect to $\log(k)$.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: wavenumberLogarithmic
+      double precision                :: wavenumber
+
+      ! Return power spectrum multiplied by window function and volume element in k-space. Factors of 2 and π are included
+      ! elsewhere.
+      wavenumber                  =+exp(wavenumberLogarithmic)
+      varianceIntegrandLogarithmic=+  self%powerSpectrumPrimordialTransferred_%power(wavenumber,filteredPowerTime) &
+           &                       *(                                                                              &
+           &                         +self%powerSpectrumWindowFunction_       %value(wavenumber,smoothingMass    ) &
+           &                         *                                               wavenumber                    &
+           &                        )**2                                                                           &
+           &                       *                                                 wavenumber
+      return
+    end function varianceIntegrandLogarithmic
 
     double precision function varianceIntegrandTopHat(wavenumber)
       !!{

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -39,13 +39,13 @@
      A dark matter halo profile class implementing \cite{penarrubia_impact_2010} dark matter halos.
      !!}
      private
-     double precision                                        :: betaStripped                             , muRadius                                   , &
-          &                                                     etaRadius                                , muVelocity                                 , &
-          &                                                     etaVelocity                              , ratioRadiusMaximumRadiusScaleStripped      , &
-          &                                                     ratioRadiusMaximumRadiusScaleUnstripped  , ratioVelocityMaximumVelocityScaleUnstripped, &
-          &                                                     ratioVelocityMaximumVelocityScaleStripped, scaleRadiusPrevious                        , &
+     double precision                                        :: betaStripped                                       , muRadius                                             , &
+          &                                                     etaRadius                                          , muVelocity                                           , &
+          &                                                     etaVelocity                                        , ratioRadiusMaximumRadiusScaleStripped                , &
+          &                                                     ratioRadiusMaximumRadiusScaleUnstripped            , ratioVelocityMaximumVelocityScaleUnstripped          , &
+          &                                                     ratioVelocityMaximumVelocityScaleStripped          , scaleRadiusPrevious                                  , &
           &                                                     normalizationPrevious
-     type            (darkMatterProfileDMOZhao1996), pointer :: darkMatterProfileStripped                , darkMatterProfileUnstripped
+     type            (darkMatterProfileDMOZhao1996), pointer :: darkMatterProfileStripped                 => null(), darkMatterProfileUnstripped                 => null()
      integer         (kind_int8                   )          :: uniqueIDPrevious
    contains
      !![

@@ -27,14 +27,14 @@
   <evolveForestsWorkShare value="cyclic"/>
 
   <!-- Component selection -->
-  <componentBasic             value="standard"     />
-  <componentBlackHole         value="null"         />
-  <componentDarkMatterProfile value="virialTheorem"/>
-  <componentDisk              value="null"         />
-  <componentHotHalo           value="null"         />
-  <componentSatellite         value="orbiting"     />
-  <componentSpheroid          value="null"         />
-  <componentSpin              value="vitvitska"    />
+  <componentBasic             value="standard"/>
+  <componentBlackHole         value="null"    />
+  <componentDarkMatterProfile value="scale"   />
+  <componentDisk              value="null"    />
+  <componentHotHalo           value="null"    />
+  <componentSatellite         value="orbiting"/>
+  <componentSpheroid          value="null"    />
+  <componentSpin              value="vector"  />
 
   <!-- Dark matter properties -->
   <darkMatterParticle value="CDM"/>
@@ -140,37 +140,38 @@
   <darkMatterProfileScaleRadius value="concentrationLimiter">
     <concentrationMinimum value="  4.0"/>
     <concentrationMaximum value="100.0"/>
-    <darkMatterProfileScaleRadius value="ludlow2016"          >
-      <C                                  value="700.27000"    /> <!-- Best fit values from Johnson, Benson, & Grin (2020). -->
-      <f                                  value="  0.07534"    />
-      <timeFormationSeekDelta             value="  0.00000"    />
-      <darkMatterProfileScaleRadius value="concentration" >
-	<correctForConcentrationDefinition    value="true"              />
-	<darkMatterProfileConcentration value="diemerKravtsov2014" >
-	  <alpha   value="1.12"/>
-	  <beta    value="1.69"/>
-	  <eta0    value="6.82"/>
-	  <eta1    value="1.42"/>
-	  <kappa   value="0.69"/>
-	  <phi0    value="6.58"/>
-	  <phi1    value="1.37"/>
-	  <scatter value="0.00"/>
-	</darkMatterProfileConcentration>
+    <darkMatterProfileScaleRadius value="johnson2021">
+      <!-- Scale radii are computed using the energy random walk model of Johnson, Benson, & Grin (2021; ApJ; 908; 33; http://adsabs.harvard.edu/abs/2021ApJ...908...33J). -->
+      <!-- Best fit value from Johnson, Benson, & Grin (2020) -->
+      <energyBoost      value="0.6773"/>
+      <massExponent     value="1.5552"/>
+      <unresolvedEnergy value="0.5500"/> 
+      <darkMatterProfileScaleRadius value="ludlow2016"          >
+	<C                                  value="700.27000"    /> <!-- Best fit values from Johnson, Benson, & Grin (2020). -->
+	<f                                  value="  0.07534"    />
+	<timeFormationSeekDelta             value="  0.00000"    />
+	<darkMatterProfileScaleRadius value="concentration" >
+	  <correctForConcentrationDefinition    value="true"              />
+	  <darkMatterProfileConcentration value="diemerKravtsov2014" >
+	    <alpha   value="1.12"/>
+	    <beta    value="1.69"/>
+	    <eta0    value="6.82"/>
+	    <eta1    value="1.42"/>
+	    <kappa   value="0.69"/>
+	    <phi0    value="6.58"/>
+	    <phi1    value="1.37"/>
+	    <scatter value="0.00"/>
+	  </darkMatterProfileConcentration>
+	</darkMatterProfileScaleRadius>
       </darkMatterProfileScaleRadius>
     </darkMatterProfileScaleRadius>
   </darkMatterProfileScaleRadius>
 
-  <!-- Concentration model -->
-  <darkMatterProfileScaleVirialTheoremUnresolvedEnergy value="0.5500"/> <!-- Best fit value from Johnson, Benson, & Grin (2020) -->
-  <darkMatterProfileScaleVirialTheoremMassExponent     value="1.5552"/>
-  <darkMatterProfileScaleVirialTheoremEnergyBoost      value="0.6773"/>
-  
   <!-- Dark matter halo spin -->
   <haloSpinDistribution value="bett2007"> <!-- Values from Benson (2017) -->
     <alpha   value="1.7091800"/>
     <lambda0 value="0.0420190"/>
   </haloSpinDistribution>
-  <spinVitvitskaMassExponent value="0.10475"/> <!-- Best fit value from Benson, Behrens, & Lu (2020) -->
 
   <!-- Halo accretion options -->
   <accretionHalo value="zero"/>
@@ -222,11 +223,13 @@
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
     <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
-    <!-- Halo spins -->
-    <nodeOperator value="haloSpinRandom">
-      <factorReset value="2.0"/>
+    <!-- Halo angular momentum -->
+    <nodeOperator value="haloAngularMomentumVitvitska2002"  >
+      <exponentMass value="0.10475"/> <!-- Best fit value from Benson, Behrens, & Lu (2020) -->
     </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Subhalo hierarchy -->
     <nodeOperator value="subsubhaloPromotion"   />
     <!-- Subhalo orbits -->
@@ -238,7 +241,7 @@
       <radiusVirialFraction      value="0.01"/>
     </nodeOperator>
     <nodeOperator value="satelliteDestructionMassThreshold" >
-      <massDestruction           value="=[mergerTreeMassResolutionMethod::massResolution]"/>
+      <massDestruction           value="=[mergerTreeMassResolution::massResolution]"/>
       <massDestructionFractional value="0.0e0"/>
     </nodeOperator>
   </nodeOperator>
@@ -305,18 +308,18 @@
     <outputAnalysis value="subhaloMassFunction">
       <fileName                          value="%DATASTATICPATH%/darkMatter/subhaloDistributionsCaterpillar.hdf5"/>
       <negativeBinomialScatterFractional value="0.18"                                                            /> <!-- Boylan-Kolchin et al. (2010) -->
-      <virialDensityContrast       value="bryanNorman1998"                                                 />
+      <virialDensityContrastDefinition   value="bryanNorman1998"                                                 />
       <redshift                          value="0.0"                                                             />
     </outputAnalysis>
     <outputAnalysis value="subhaloRadialDistribution">
       <fileName                          value="%DATASTATICPATH%/darkMatter/subhaloDistributionsCaterpillar.hdf5"/>
       <negativeBinomialScatterFractional value="0.18"                                                            /> <!-- Boylan-Kolchin et al. (2010) -->
-      <virialDensityContrast       value="bryanNorman1998"                                                 />
+      <virialDensityContrastDefinition   value="bryanNorman1998"                                                 />
       <redshift                          value="0.0"                                                             />
     </outputAnalysis>
     <outputAnalysis value="subhaloVMaxVsMass">
       <fileName                          value="%DATASTATICPATH%/darkMatter/subhaloDistributionsCaterpillar.hdf5"/>
-      <virialDensityContrast       value="bryanNorman1998"                                                 />
+      <virialDensityContrastDefinition   value="bryanNorman1998"                                                 />
       <redshift                          value="0.0"                                                             />
     </outputAnalysis>
   </outputAnalysis>

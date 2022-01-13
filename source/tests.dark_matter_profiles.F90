@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -129,7 +129,7 @@ program Test_Dark_Matter_Profiles
   call basic%timeSet(cosmologyFunctions_%cosmicTime(1.0d0))
   call basic%massSet(massVirial                           )
   ! Compute scale radius.
-  radiusScale=+darkMatterHaloScale_%virialRadius(node) &
+  radiusScale=+darkMatterHaloScale_%radiusVirial(node) &
        &      /concentration
   call dmProfile%scaleSet(radiusScale)
   ! Build dark matter profiles.
@@ -233,8 +233,8 @@ program Test_Dark_Matter_Profiles
      radialVelocityDispersionSeriesExpansion(i)=darkMatterProfileDMONFWSeriesExpansion_%radialVelocityDispersion(node,      radiusScale*radius(i))
   end do
   ! Radial velocity dispersion in units of virial velocity.
-  radialVelocityDispersion               =radialVelocityDispersion               /darkMatterHaloScale_%virialVelocity(node)
-  radialVelocityDispersionSeriesExpansion=radialVelocityDispersionSeriesExpansion/darkMatterHaloScale_%virialVelocity(node)
+  radialVelocityDispersion               =radialVelocityDispersion               /darkMatterHaloScale_%velocityVirial(node)
+  radialVelocityDispersionSeriesExpansion=radialVelocityDispersionSeriesExpansion/darkMatterHaloScale_%velocityVirial(node)
   call Assert(                        &
        &      'enclosed mass'       , &
        &      mass                  , &

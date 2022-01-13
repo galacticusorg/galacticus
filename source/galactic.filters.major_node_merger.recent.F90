@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,6 +34,7 @@ Contains a module which implements a galactic low-pass filter for time since the
      A galactic low-pass filter for time since the last major node merger.
      !!}
      private
+     integer          :: nodeMajorMergerTimeID
      double precision :: timeRecent
    contains
      procedure :: passes => nodeMajorMergerRecentPasses
@@ -85,6 +86,10 @@ contains
     !![
     <constructorAssign variables="timeRecent"/>
     !!]
+
+    !![
+    <addMetaProperty component="basic" name="nodeMajorMergerTime" id="self%nodeMajorMergerTimeID"/>
+    !!]
     return
   end function nodeMajorMergerRecentConstructorInternal
 
@@ -92,18 +97,16 @@ contains
     !!{
     Implement a low-pass filter for time since the last major node merger.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentMergingStatistics, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBasic, treeNode
     implicit none
     class(galacticFilterNodeMajorMergerRecent), intent(inout)         :: self
     type (treeNode                           ), intent(inout), target :: node
     class(nodeComponentBasic                 ), pointer               :: basic
-    class(nodeComponentMergingStatistics     ), pointer               :: mergingStatistics
 
-    basic                       =>   node             %basic              ()
-    mergingStatistics           =>   node             %mergingStatistics  ()
-    nodeMajorMergerRecentPasses =   +mergingStatistics%nodeMajorMergerTime() &
-         &                         >=                                        &
-         &                          +basic            %time               () &
-         &                          -self             %timeRecent
+    basic                       =>   node %basic          (                          )
+    nodeMajorMergerRecentPasses =   +basic%metaPropertyGet(self%nodeMajorMergerTimeID) &
+         &                         >=                                                  &
+         &                          +basic%time           (                          ) &
+         &                          -self %timeRecent
     return
   end function nodeMajorMergerRecentPasses

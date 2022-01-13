@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -21,7 +21,10 @@
 Contains a module which implements a concentration output analysis property extractor class.
 !!}
 
-  use :: Virial_Density_Contrast, only : virialDensityContrastClass
+  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters    , only : cosmologyParametersClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Virial_Density_Contrast , only : virialDensityContrastClass
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorConcentration">
@@ -37,7 +40,10 @@ Contains a module which implements a concentration output analysis property extr
      concentration).
      !!}
      private
-     class(virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
+     class(cosmologyParametersClass  ), pointer :: cosmologyParameters_   => null()
+     class(cosmologyFunctionsClass   ), pointer :: cosmologyFunctions_    => null()
+     class(darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_  => null()
+     class(virialDensityContrastClass), pointer :: virialDensityContrast_ => null(), virialDensityContrastDefinition_ => null()
    contains
      final     ::                concentrationDestructor
      procedure :: extract     => concentrationExtract
@@ -65,28 +71,42 @@ contains
     implicit none
     type (nodePropertyExtractorConcentration)                :: self
     type (inputParameters                   ), intent(inout) :: parameters
-    class(virialDensityContrastClass        ), pointer       :: virialDensityContrast_
+    class(cosmologyParametersClass          ), pointer       :: cosmologyParameters_
+    class(cosmologyFunctionsClass           ), pointer       :: cosmologyFunctions_
+    class(darkMatterProfileDMOClass         ), pointer       :: darkMatterProfileDMO_
+    class(virialDensityContrastClass        ), pointer       :: virialDensityContrast_, virialDensityContrastDefinition_
 
     !![
-    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"             source="parameters"                                                />
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"              source="parameters"                                                />
+    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"            source="parameters"                                                />
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_"           source="parameters"                                                />
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrastDefinition_" source="parameters" parameterName="virialDensityContrastDefinition"/>
     !!]
-    self=nodePropertyExtractorConcentration(virialDensityContrast_)
+    self=nodePropertyExtractorConcentration(cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="virialDensityContrast_"/>
+    <objectDestructor name="cosmologyParameters_"            />
+    <objectDestructor name="cosmologyFunctions_"             />
+    <objectDestructor name="darkMatterProfileDMO_"           />
+    <objectDestructor name="virialDensityContrast_"          />
+    <objectDestructor name="virialDensityContrastDefinition_"/>
     !!]
     return
   end function concentrationConstructorParameters
 
-  function concentrationConstructorInternal(virialDensityContrast_) result(self)
+  function concentrationConstructorInternal(cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_) result(self)
     !!{
     Internal constructor for the ``concentration'' output analysis property extractor class.
     !!}
     implicit none
     type (nodePropertyExtractorConcentration)                        :: self
-    class(virialDensityContrastClass        ), intent(in   ), target :: virialDensityContrast_
+    class(cosmologyParametersClass          ), intent(in   ), target :: cosmologyParameters_
+    class(cosmologyFunctionsClass           ), intent(in   ), target :: cosmologyFunctions_
+    class(darkMatterProfileDMOClass         ), intent(in   ), target :: darkMatterProfileDMO_
+    class(virialDensityContrastClass        ), intent(in   ), target :: virialDensityContrast_, virialDensityContrastDefinition_
     !![
-    <constructorAssign variables="*virialDensityContrast_"/>
+    <constructorAssign variables="*cosmologyParameters_, *cosmologyFunctions_, *darkMatterProfileDMO_, *virialDensityContrast_, *virialDensityContrastDefinition_"/>
     !!]
 
     return
@@ -100,7 +120,11 @@ contains
     type(nodePropertyExtractorConcentration), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%virialDensityContrast_"/>
+    <objectDestructor name="self%cosmologyParameters_"            />
+    <objectDestructor name="self%cosmologyFunctions_"             />
+    <objectDestructor name="self%darkMatterProfileDMO_"           />
+    <objectDestructor name="self%virialDensityContrast_"          />
+    <objectDestructor name="self%virialDensityContrastDefinition_"/>
     !!]
     return
   end subroutine concentrationDestructor
@@ -122,10 +146,14 @@ contains
 
     basic                =>  node%basic            ()
     darkMatterProfile    =>  node%darkMatterProfile()
-    massHalo             =   Dark_Matter_Profile_Mass_Definition(                                                                                     &
-         &                                                              node                                                                        , &
-         &                                                              self      %virialDensityContrast_%densityContrast(basic%mass(),basic%time()), &
-         &                                                       radius=radiusHalo                                                                    &
+    massHalo             =   Dark_Matter_Profile_Mass_Definition(                                                                                                               &
+         &                                                                              node                                                                                  , &
+         &                                                                              self      %virialDensityContrastDefinition_%densityContrast(basic%mass(),basic%time()), &
+         &                                                       radius                =radiusHalo                                                                            , &
+         &                                                       cosmologyParameters_  =self%cosmologyParameters_                                                             , &
+         &                                                       cosmologyFunctions_   =self%cosmologyFunctions_                                                              , &
+         &                                                       darkMatterProfileDMO_ =self%darkMatterProfileDMO_                                                            , &
+         &                                                       virialDensityContrast_=self%virialDensityContrast_                                                             &
          &                                                      )
     concentrationExtract =  +                  radiusHalo   &
          &                  /darkMatterProfile%scale     ()

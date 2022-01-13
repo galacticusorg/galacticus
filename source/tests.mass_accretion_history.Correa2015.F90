@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,7 +33,6 @@ program Test_Correa2015_MAH
   use :: Display                                  , only : displayVerbositySet                         , verbosityLevelStandard
   use :: Events_Hooks                             , only : eventsHooksInitialize
   use :: Functions_Global_Utilities               , only : Functions_Global_Set
-  use :: Galacticus_Function_Classes_Destroys     , only : Galacticus_Function_Classes_Destroy
   use :: Galacticus_Nodes                         , only : nodeClassHierarchyInitialize                , nodeComponentBasic               , treeNode
   use :: Input_Parameters                         , only : inputParameters
   use :: Node_Components                          , only : Node_Components_Initialize                  , Node_Components_Thread_Initialize, Node_Components_Thread_Uninitialize, Node_Components_Uninitialize
@@ -215,5 +214,4 @@ program Test_Correa2015_MAH
   call Unit_Tests_Finish                  ()
   call Node_Components_Thread_Uninitialize()
   call Node_Components_Uninitialize       ()
-  call Galacticus_Function_Classes_Destroy()
 end program Test_Correa2015_MAH

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,17 +34,17 @@
      A halo mass function class using the fitting function of \cite{tinker_towardhalo_2008}.
      !!}
      private
-     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_
-     class           (linearGrowthClass            ), pointer :: linearGrowth_
-     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_
-     double precision                                         :: time                     , mass, &
+     class           (cosmologicalMassVarianceClass), pointer :: cosmologicalMassVariance_ => null()
+     class           (linearGrowthClass            ), pointer :: linearGrowth_             => null()
+     class           (cosmologyFunctionsClass      ), pointer :: cosmologyFunctions_       => null()
+     double precision                                         :: time                               , mass, &
           &                                                      massFunction
    contains
      !![
      <methods>
-       <method description="Return the parameter $a$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="a" />
-       <method description="Return the parameter $b$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="b" />
-       <method description="Return the parameter $c$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="c" />
+       <method description="Return the parameter $a$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="a"             />
+       <method description="Return the parameter $b$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="b"             />
+       <method description="Return the parameter $c$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="c"             />
        <method description="Return the parameter $A$ in the \cite{tinker_towardhalo_2008} halo mass function fit." method="normalization" />
      </methods>
      !!]
@@ -73,7 +73,7 @@ contains
     Return the differential halo mass function at the given time and mass.
     !!}
     implicit none
-    class           (haloMassFunctionTinker2008Form), intent(inout)            :: self
+    class           (haloMassFunctionTinker2008Form), intent(inout), target    :: self
     double precision                                , intent(in   )            :: time , mass
     type            (treeNode                      ), intent(inout) , optional :: node
     double precision                                                           :: sigma, alpha

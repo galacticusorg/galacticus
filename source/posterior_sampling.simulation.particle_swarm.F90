@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -246,7 +246,7 @@ contains
     end do
     self=posteriorSampleSimulationParticleSwarm(modelParametersActive_,modelParametersInactive_,posteriorSampleLikelihood_,posteriorSampleConvergence_,posteriorSampleStoppingCriterion_,posteriorSampleState_,posteriorSampleStateInitialize_,randomNumberGenerator_,stepsMaximum,char(logFileRoot),logFlushCount,reportCount,inertiaWeight,accelerationCoefficientPersonal,accelerationCoefficientGlobal,velocityCoefficient,velocityCoefficientInitial,char(interactionRoot),resume,appendLogs,char(logFilePreviousRoot))
     !![
-    <inputParametersValidate source="parameters"/>
+    <inputParametersValidate source="parameters" multiParameters="modelParameter"/>
     <objectDestructor name="posteriorSampleLikelihood_"       />
     <objectDestructor name="posteriorSampleConvergence_"      />
     <objectDestructor name="posteriorSampleStoppingCriterion_"/>
@@ -331,16 +331,20 @@ contains
     <objectDestructor name="self%posteriorSampleStateInitialize_"  />
     <objectDestructor name="self%randomNumberGenerator_"           />
     !!]
-    do i=1,size(self%modelParametersActive_  )
-       !![
-       <objectDestructor name="self%modelParametersActive_  (i)%modelParameter_"/>
-       !!]
-    end do
-    do i=1,size(self%modelParametersInactive_)
-       !![
-       <objectDestructor name="self%modelParametersInactive_(i)%modelParameter_"/>
-       !!]
-    end do
+    if (associated(self%modelParametersActive_  )) then
+       do i=1,size(self%modelParametersActive_  )
+          !![
+	  <objectDestructor name="self%modelParametersActive_  (i)%modelParameter_"/>
+          !!]
+       end do
+    end if
+    if (associated(self%modelParametersInactive_)) then
+       do i=1,size(self%modelParametersInactive_)
+          !![
+	  <objectDestructor name="self%modelParametersInactive_(i)%modelParameter_"/>
+          !!]
+       end do
+    end if
     return
   end subroutine particleSwarmDestructor
 

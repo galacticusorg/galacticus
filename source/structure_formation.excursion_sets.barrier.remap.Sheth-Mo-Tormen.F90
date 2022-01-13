@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -70,7 +70,8 @@ contains
     class           (excursionSetBarrierClass             ), pointer       :: excursionSetBarrier_
     double precision                                                       :: a                   , b, &
          &                                                                    c
-
+    integer                                                                :: applyTo
+    
     ! Check and read parameters.
     !![
     <inputParameter>
@@ -103,7 +104,8 @@ contains
     </inputParameter>
     <objectBuilder class="excursionSetBarrier" name="excursionSetBarrier_" source="parameters"/>
     !!]
-    self=excursionSetBarrierRemapShethMoTormen(a,b,c,enumerationExcursionSetRemapEncode(char(self%applyToText),includesPrefix=.false.),excursionSetBarrier_)
+    applyTo=enumerationExcursionSetRemapEncode(self%applyToText,includesPrefix=.false.)
+    self   =excursionSetBarrierRemapShethMoTormen(a,b,c,applyTo,excursionSetBarrier_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="excursionSetBarrier_"/>

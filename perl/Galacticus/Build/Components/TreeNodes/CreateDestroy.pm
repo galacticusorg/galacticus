@@ -113,7 +113,7 @@ sub Tree_Node_Builder {
 	description => "Build components in a {\\normalfont \\ttfamily treeNode} object given an XML definition.",
 	modules     =>
 	    [
-	     "FoX_DOM",
+	     "FoX_DOM, only : node, nodeList, getChildNodes, getLength, getNodeName, item",
 	     "Hashes"
 	    ],
 	variables   =>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -57,8 +57,9 @@ contains
     Constructor for the haloFormation freefall time available class which builds the object from a parameter set.
     !!}
     use :: Galacticus_Error, only : Galacticus_Component_List    , Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : defaultFormationTimeComponent
-    use :: Input_Parameters, only : inputParameters
+    use :: Galacticus_Nodes  , only : defaultFormationTimeComponent
+    use :: Input_Parameters  , only : inputParameters
+    use :: ISO_Varying_String, only : operator(//)
     implicit none
     type(freefallTimeAvailableHaloFormation)                :: self
     type(inputParameters                   ), intent(inout) :: parameters

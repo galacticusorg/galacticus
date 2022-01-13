@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -60,22 +60,24 @@ module Hashes
      Derived type for {Type¦label} hashes.
      !!}
      private
-     integer                                                   :: allocatedSize, elementCount
+     integer                                                   :: allocatedSize=0, elementCount=0
+     integer(c_size_t             )                            :: indexPrevious
      type   ({Type¦label}Container), allocatable, dimension(:) :: hashValues
      type   (varying_string       ), allocatable, dimension(:) :: hashKeys
+     type   (varying_string       )                            :: keyPrevious
    contains
      !![
      <methods>
-       <method description="Initialize the hash." method="initialize" />
-       <method description="Set the value of a key in the hash." method="set" />
-       <method description="Delete a key from the hash." method="delete" />
-       <method description="Return the value for the given key." method="value" />
-       <method description="Return the key of the {\normalfont \ttfamily indexValue}$^\mathrm{th}$ entry in the hash." method="key" />
-       <method description="Return an array of all keys in the hash." method="keys" />
-       <method description="Return an array of all values in the hash." method="values" />
-       <method description="Return true if the specified key exists in the hash." method="exists" />
-       <method description="Return the number of keys in the hash." method="size" />
-       <method description="Destroy the hash." method="destroy" />
+       <method description="Initialize the hash."                                                                      method="initialize"/>
+       <method description="Set the value of a key in the hash."                                                       method="set"       />
+       <method description="Delete a key from the hash."                                                               method="delete"    />
+       <method description="Return the value for the given key."                                                       method="value"     />
+       <method description="Return the key of the {\normalfont \ttfamily indexValue}$^\mathrm{th}$ entry in the hash." method="key"       />
+       <method description="Return an array of all keys in the hash."                                                  method="keys"      />
+       <method description="Return an array of all values in the hash."                                                method="values"    />
+       <method description="Return true if the specified key exists in the hash."                                      method="exists"    />
+       <method description="Return the number of keys in the hash."                                                    method="size"      />
+       <method description="Destroy the hash."                                                                         method="destroy"   />
      </methods>
      !!]
      final     ::                             {Type¦label}Destructor
@@ -124,11 +126,14 @@ contains
     !!{
     Routine to initialize (or re-initialize) a hash.
     !!}
+  use :: ISO_Varying_String, only : assignment(=)
     implicit none
     class({Type¦label}Hash), intent(  out) :: self
 
-    self%elementCount =0
-    self%allocatedSize=0
+    self%elementCount = 0
+    self%allocatedSize= 0
+    self%indexPrevious=-1
+    self%keyPrevious  =''
     if (allocated(self%hashValues)) deallocate(self%hashValues)
     if (allocated(self%hashKeys  )) deallocate(self%hashKeys  )
     return
@@ -199,7 +204,7 @@ contains
     use            :: Arrays_Search     , only : searchArray
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: ISO_Varying_String, only : char
+    use            :: ISO_Varying_String, only : char                   , assignment(=)
     implicit none
     type   (varying_string  ), intent(in   ) :: key
     class  ({Type¦label}Hash), intent(inout) :: self
@@ -214,6 +219,9 @@ contains
           self%hashValues(i)%object {Type¦assignment} self%hashValues(i+1)%object
        end do
        self%elementCount=self%elementCount-1
+       ! Unset memoized key.
+       self%  keyPrevious=''
+       self%indexPrevious=-1
     else
        call Galacticus_Error_Report('key '''//char(key)//''' does not exist in hash'//{introspection:location})
     end if
@@ -306,14 +314,16 @@ contains
     use            :: Arrays_Search     , only : searchArray
     use            :: Galacticus_Error  , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: ISO_Varying_String, only : char
+    use            :: ISO_Varying_String, only : char                   , operator(==)
     implicit none
     {Type¦intrinsic}                  {Type¦attributes} :: {Type¦label}ValueVarStr
     class           ({Type¦label}Hash), intent(in   )   :: self
     type            (varying_string  ), intent(in   )   :: key
     integer         (c_size_t        )                  :: iKey
 
-    if ({Type¦label}ExistsVarStr(self,key)) then
+    if (key == self%keyPrevious) then
+       {Type¦label}ValueVarStr {Type¦assignment} self%hashValues(self%indexPrevious)%object
+    else if ({Type¦label}ExistsVarStr(self,key)) then
        iKey=searchArray(self%hashKeys(1:self%elementCount),key)
        {Type¦label}ValueVarStr {Type¦assignment} self%hashValues(iKey)%object
     else
@@ -346,30 +356,47 @@ contains
     !!}
     use            :: Arrays_Search     , only : searchArray
     use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: ISO_Varying_String, only : operator(==)
+    use            :: ISO_Varying_String, only : operator(==), assignment(=), char
     implicit none
     {Type¦intrinsic}                       {Type¦argumentAttributes}, intent(in   )               :: Value
     type            (varying_string       )                         , intent(in   )               :: Key
     class           ({Type¦label}Hash     )                         , intent(inout)               :: self
     integer         (c_size_t             )                                                       :: iKey           , i
-    logical                                                                                       :: keyExists
+    logical                                                                                       :: keyExists      , keyChanged
     type            ({Type¦label}Container)                         , allocatable  , dimension(:) :: valuesTemporary
     type            (varying_string       )                         , allocatable  , dimension(:) :: keysTemporary
 
-    ! Check if key already exists.
+    ! Check if the key already exists.
+    keyChanged=.true.
     if (self%elementCount > 0) then
-       keyExists=any(self%hashKeys(1:self%elementCount) == key)
+       if (key == self%keyPrevious) then
+          iKey      =self%indexPrevious
+          keyExists =.true.
+          keyChanged=.false.
+       else
+          iKey     =searchArray(self%hashKeys(1:self%elementCount),key)
+          if (iKey < 1 .or. iKey > self%elementCount) then
+             keyExists=.false.
+          else
+             keyExists=self%hashKeys(iKey) == key
+          end if
+       end if
     else
+       iKey     =-1
        keyExists=.false.
     end if
     if (keyExists) then
-       iKey=searchArray(self%hashKeys(1:self%elementCount),key)
 #if {Type¦match¦^rank\d+[a-zA-Z]+$¦1¦0}
 #if {Type¦match¦Ptr$¦0¦1}
        deallocate(self%hashValues(iKey)%object)
 #endif
 #endif
        self%hashValues(iKey)%object {Type¦assignment} value
+       ! Set memoized key.
+       if (keyChanged) then
+          self%  keyPrevious=key
+          self%indexPrevious=iKey
+       end if
     else
        ! Increase hash size if necessary.
        if (self%elementCount == self%allocatedSize) then
@@ -403,6 +430,9 @@ contains
           self%elementCount                               =                 self%elementCount+1
           self%hashKeys    (self%elementCount)        =                 key
           self%hashValues  (self%elementCount)%object {Type¦assignment} value
+          ! Set memoized key.
+          self%  keyPrevious=key
+          self%indexPrevious=self%elementCount
        else
           ! Shift array then insert.
           do i=self%elementCount+1,iKey+2,-1
@@ -412,6 +442,9 @@ contains
           self   %hashKeys    (iKey+1)        =                 key
           self   %hashValues  (iKey+1)%object {Type¦assignment} value
           self   %elementCount                =                 self%elementCount     +1
+          ! Set memoized key.
+          self%  keyPrevious=key
+          self%indexPrevious=iKey+1
        end if
     end if
     return

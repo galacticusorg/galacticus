@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -237,6 +237,7 @@ contains
 
     ! Compute correlation lengths.
     if (mpiSelf%isMaster()) call displayIndent("Computing correlation lengths")
+    allocate(stateMean(size(self%states,dim=1)))
     stateMean              =sum(self%states(:,1:self%storedStateCount),dim=2)/dble(self%storedStateCount)
     self%correlationLengths=-1
     do i=1,size(stateMean)

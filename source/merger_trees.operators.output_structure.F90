@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -40,7 +40,7 @@
      A merger tree operator class which dumps pre-evolution tree structure to the output file.
      !!}
      private
-     class(nodePropertyExtractorClass), pointer :: nodePropertyExtractor_
+     class(nodePropertyExtractorClass), pointer :: nodePropertyExtractor_ => null()
      type (hdf5Object                )          :: outputGroup
    contains
      final     ::                        outputStructureDestructor
@@ -156,7 +156,7 @@ contains
           countNodes=countNodes+1
        end do
        ! Determine the number of properties for output.
-       basic                  => treeCurrent%baseNode%basic()
+       basic                  => treeCurrent%nodeBase%basic()
        countPropertiesDouble  =  0
        countPropertiesInteger =  0
        select type (extractor_ => self%nodePropertyExtractor_)

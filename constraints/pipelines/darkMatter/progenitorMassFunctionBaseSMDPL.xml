@@ -16,8 +16,7 @@
   <componentHotHalo            value="null"      />
   <componentSatellite          value="verySimple"/>
   <componentSpheroid           value="null"      />
-  <componentMergingStatistics  value="standard"  />
-  <satelliteMergingTimescales value="zero"      />
+  <satelliteMergingTimescales  value="zero"      />
   <componentSpin               value="null"      />
 
   <!-- Cosmological parameters matched to MDPL -->
@@ -103,6 +102,8 @@
     <odeToleranceAbsolute value="0.01"/>
     <odeToleranceRelative value="0.01"/>
   </mergerTreeNodeEvolver>
+  <nodeOperator value="hierarchy"/>
+  <hotHaloMassDistribution value="null"/>
 
   <!-- Output options -->
   <galacticusOutputFileName  value="SMDPL.hdf5"/>
@@ -123,6 +124,7 @@
   <outputAnalysis value="multi">
     <!-- Minimum mass ratio for likelihood is the ratio of the SMDPL 300 particle mass limit (1.42e8) to the minimum parent
          mass in the sample. -->
+    <virialDensityContrastDefinition value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
     <outputAnalysis value="progenitorMassFunction">
       <fileName                     value="%DATASTATICPATH%/darkMatter/progenitorMassFunctions_SMDPL.hdf5"/>
       <indexParent                  value="0"                                                                                        />

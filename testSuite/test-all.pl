@@ -163,6 +163,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.convex_hulls.exe",                                             # Tests of convex hull functions.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.comparisons.exe",                                              # Tests of comparison functions.
 	valgrind => 0,
 	mpi      => 0
@@ -398,6 +403,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.halo_mass_function.Reed2007.exe",                                # Tests of dark matter halo mass functions.
+ 	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     =>"tests.comoving_distance.exe",                                         # Tests of comoving distance calculations.
  	valgrind => 0,
 	mpi      => 0
@@ -473,6 +483,11 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
+	name     => "tests.power_spectrum.primordial.exe",                                # Primordial power spectrum.
+	valgrind => 0,
+	mpi      => 0
+    },
+    {
 	name     => "tests.transfer_functions.exe",                                       # Transfer functions.
 	valgrind => 0,
 	mpi      => 0
@@ -543,6 +558,11 @@ my @executablesToRun = (
 	valgrind => 0,
 	mpi      => 0,
 	isSlow   => 1
+    },
+    {
+	name     => "tests.dark_matter_profiles.finite_resolution.exe",                   # Tests of finite resolution dark matter profiles.
+	valgrind => 0,
+	mpi      => 0
     },
     {
 	name     => "tests.spectra.postprocess.Inoue2014.exe",                            # Tests of Inoue (2014) IGM attenutation model.

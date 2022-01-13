@@ -219,11 +219,13 @@
   <!-- Physics -->
   <nodeOperator value="multi">
     <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
     <!-- Halo spins -->
-    <nodeOperator value="haloSpinRandom">
+    <nodeOperator value="haloAngularMomentumRandom">
       <factorReset value="2.0"/>
     </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks">
       <luminositiesStellarInactive value="true"/>

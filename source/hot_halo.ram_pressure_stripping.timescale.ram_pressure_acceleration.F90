@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -160,7 +160,7 @@ contains
     end if
     ! For zero density or radius, return the halo dynamical time (the timescale should be irrelevant in such cases anyway).
     if (radiusOuter <= 0.0d0 .or. surfaceDensityOuter <= 0.0d0) then
-       ramPressureAccelerationTimescale=self%darkMatterHaloScale_%dynamicalTimescale(node)
+       ramPressureAccelerationTimescale=self%darkMatterHaloScale_%timescaleDynamical(node)
        return
     end if
     ! Find the hosting node.
@@ -180,7 +180,7 @@ contains
          &                                     )                                             , &
          &                                +radiusOuter                                         &
          &                                /velocityStrippingMaximum                            &
-         &                                /self%darkMatterHaloScale_%virialVelocity(nodeHost)  &
+         &                                /self%darkMatterHaloScale_%velocityVirial(nodeHost)  &
          &                               )
     return
   end function ramPressureAccelerationTimescale

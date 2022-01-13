@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -60,6 +60,7 @@ contains
     type   (inputParameters                                   ), intent(inout)               :: parameters
     type   (varying_string                                    ), allocatable  , dimension(:) :: names
     type   (stellarPopulationSpectraPostprocessorList         ), allocatable  , dimension(:) :: postprocessors
+    type   (varying_string                                    )               , dimension(1) :: namesDefault
     integer                                                                                  :: countPostprocessors, countPostprocessorNames, &
          &                                                                                      i
 
@@ -69,9 +70,15 @@ contains
     allocate(names         (countPostprocessors))
     allocate(postprocessors(countPostprocessors))
     !![
+    <workaround type="gfortran" PR="37336" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=37336">
+      <description>Missing finalization of array constructors after their use.</description>
+    </workaround>
+    !!]   
+    namesDefault=var_str('default')
+    !![
     <inputParameter>
       <name>names</name>
-      <defaultValue>[var_str('default')]</defaultValue>
+      <defaultValue>namesDefault</defaultValue>
       <description>The names assigned to stellar spectra postprocessors.</description>
       <source>parameters</source>
     </inputParameter>
@@ -120,6 +127,7 @@ contains
     type   (stellarPopulationSpectraPostprocessorBuilderLookup), intent(inout) :: self
     integer                                                                    :: i
 
+    if (.not.allocated(self%postprocessors)) return
     do i=1,size(self%postprocessors)
        !![
        <objectDestructor name="self%postprocessors(i)%stellarPopulationSpectraPostprocessor_"/>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,13 +34,13 @@
      !!{
      A mass distribution class which overlays clouds on another mass distribution.
      !!}
-     class           (randomNumberGeneratorClass), pointer                     :: randomNumberGenerator_
-     class           (massDistributionClass     ), pointer                     :: massDistribution_
+     class           (randomNumberGeneratorClass), pointer                     :: randomNumberGenerator_    => null()
+     class           (massDistributionClass     ), pointer                     :: massDistribution_         => null()
      double precision                            , allocatable, dimension(:,:) :: positions
      type            (nearestNeighbors          )                              :: neighbors
-     double precision                                                          :: radius                   , densityContrast, &
-          &                                                                       volumeFillingFactor      , radiusBoundary , &
-          &                                                                       densityContrastIntercloud, radiusSquared
+     double precision                                                          :: radius                             , densityContrast, &
+          &                                                                       volumeFillingFactor                , radiusBoundary , &
+          &                                                                       densityContrastIntercloud          , radiusSquared
      integer         (c_size_t                  )                              :: countClouds
    contains
      final     ::            cloudOverdensitiesDestructor

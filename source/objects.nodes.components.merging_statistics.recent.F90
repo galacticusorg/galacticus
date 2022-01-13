@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,7 +34,8 @@ module Node_Component_Merging_Statistics_Recent
   public :: Node_Component_Merging_Statistics_Recent_Merger_Tree_Init , Node_Component_Merging_Statistics_Recent_Node_Merger        , &
        &    Node_Component_Merging_Statistics_Recent_Output_Count     , Node_Component_Merging_Statistics_Recent_Output             , &
        &    Node_Component_Merging_Statistics_Recent_Thread_Initialize, Node_Component_Merging_Statistics_Recent_Thread_Uninitialize, &
-       &    Node_Component_Merging_Statistics_Recent_Initialize       , Node_Component_Merging_Statistics_Recent_Output_Names 
+       &    Node_Component_Merging_Statistics_Recent_Initialize       , Node_Component_Merging_Statistics_Recent_Output_Names       , &
+       &    Node_Component_Merging_Statistics_Recent_State_Store      , Node_Component_Merging_Statistics_Recent_State_Restore
 
   !![
   <component>
@@ -179,7 +180,7 @@ contains
        <objectDestructor name="darkMatterHaloScale_"/>
        <objectDestructor name="outputTimes_"        />
        !!]
-       call nodePromotionEvent%detach(defaultMergingStatisticsComponent,nodePromotion)
+       if (nodePromotionEvent%isAttached(defaultMergingStatisticsComponent,nodePromotion)) call nodePromotionEvent%detach(defaultMergingStatisticsComponent,nodePromotion)
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Recent_Thread_Uninitialize
@@ -246,7 +247,7 @@ contains
           case (nodeRecentMajorMergerIntervalTypeAbsolute)
              recentTimeInterval=nodeRecentMajorMergerInterval
           case (nodeRecentMajorMergerIntervalTypeDynamical)
-             recentTimeInterval=nodeRecentMajorMergerInterval*darkMatterHaloScale_%dynamicalTimescale(node)
+             recentTimeInterval=nodeRecentMajorMergerInterval*darkMatterHaloScale_%timescaleDynamical(node)
           case default
              call Galacticus_Error_Report('unrecognized time interval type'//{introspection:location})
           end select
@@ -414,5 +415,51 @@ contains
     end select
     return
   end function Node_Component_Merging_Statistics_Recent_Matches
+
+  !![
+  <galacticusStateStoreTask>
+   <unitName>Node_Component_Merging_Statistics_Recent_State_Store</unitName>
+  </galacticusStateStoreTask>
+  !!]
+  subroutine Node_Component_Merging_Statistics_Recent_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentMergingStatistics -> recent',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="darkMatterHaloScale_ outputTimes_"/>
+    !!]
+    return
+  end subroutine Node_Component_Merging_Statistics_Recent_State_Store
+
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>Node_Component_Merging_Statistics_Recent_State_Restore</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
+  subroutine Node_Component_Merging_Statistics_Recent_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentMergingStatistics -> recent',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="darkMatterHaloScale_ outputTimes_"/>
+    !!]
+    return
+  end subroutine Node_Component_Merging_Statistics_Recent_State_Restore
 
 end module Node_Component_Merging_Statistics_Recent

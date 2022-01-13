@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -83,9 +83,11 @@ contains
     implicit none
     type            (outputAnalysisSubhaloMassFunction)                :: self
     type            (inputParameters                  ), intent(inout) :: parameters
+    class           (cosmologyParametersClass         ), pointer       :: cosmologyParameters_
     class           (cosmologyFunctionsClass          ), pointer       :: cosmologyFunctions_
     class           (outputTimesClass                 ), pointer       :: outputTimes_
-    class           (virialDensityContrastClass       ), pointer       :: virialDensityContrast_
+    class           (virialDensityContrastClass       ), pointer       :: virialDensityContrast_, virialDensityContrastDefinition_
+    class           (darkMatterProfileDMOClass        ), pointer       :: darkMatterProfileDMO_
     double precision                                                   :: massRatioMinimum      , massRatioMaximum                 , &
          &                                                                redshift              , negativeBinomialScatterFractional
     integer         (c_size_t                         )                :: countMassRatios
@@ -135,30 +137,36 @@ contains
       <defaultSource>\citep{boylan-kolchin_theres_2010}</defaultSource>
       <description>The fractional scatter (relative to the Poisson scatter) in the negative binomial distribution used in likelihood calculations.</description>
     </inputParameter>
-    <objectBuilder class="outputTimes"           name="outputTimes_"           source="parameters"/>
-    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"    source="parameters"/>
-    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
+    <objectBuilder class="outputTimes"           name="outputTimes_"                     source="parameters"                                                />
+    <objectBuilder class="cosmologyParameters"   name="cosmologyParameters_"             source="parameters"                                                />
+    <objectBuilder class="cosmologyFunctions"    name="cosmologyFunctions_"              source="parameters"                                                />
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_"           source="parameters"                                                />
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrastDefinition_" source="parameters" parameterName="virialDensityContrastDefinition"/>
+    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"            source="parameters"                                                />
     !!]
     if (parameters%isPresent('fileName')) then
        !![
        <conditionalCall>
-        <call>self=outputAnalysisSubhaloMassFunction(outputTimes_,virialDensityContrast_,cosmologyFunctions_                                                                      ,fileName                                         ,negativeBinomialScatterFractional{conditions})</call>
+        <call>self=outputAnalysisSubhaloMassFunction(outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,fileName,negativeBinomialScatterFractional{conditions})</call>
          <argument name="redshift" value="redshift" parameterPresent="parameters"/>
        </conditionalCall>
        !!]
     else
-       self=outputAnalysisSubhaloMassFunction(outputTimes_,virialDensityContrast_,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),massRatioMinimum,massRatioMaximum,countMassRatios,negativeBinomialScatterFractional)
+       self=outputAnalysisSubhaloMassFunction(outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift)),massRatioMinimum,massRatioMaximum,countMassRatios,negativeBinomialScatterFractional)
     end if
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="outputTimes_"          />
-    <objectDestructor name="cosmologyFunctions_"   />
-    <objectDestructor name="virialDensityContrast_"/>
+    <objectDestructor name="outputTimes_"                    />
+    <objectDestructor name="cosmologyParameters_"            />
+    <objectDestructor name="cosmologyFunctions_"             />
+    <objectDestructor name="darkMatterProfileDMO_"           />
+    <objectDestructor name="virialDensityContrast_"          />
+    <objectDestructor name="virialDensityContrastDefinition_"/>
     !!]
     return
   end function subhaloMassFunctionConstructorParameters
   
-  function subhaloMassFunctionConstructorFile(outputTimes_,virialDensityContrast_,cosmologyFunctions_,fileName,negativeBinomialScatterFractional,redshift) result (self)
+  function subhaloMassFunctionConstructorFile(outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,fileName,negativeBinomialScatterFractional,redshift) result (self)
     !!{
     Constructor for the ``subhaloMassFunction'' output analysis class for internal use.
     !!}
@@ -173,8 +181,10 @@ contains
     type            (varying_string                   ), intent(in   )                 :: fileName
     double precision                                   , intent(in   )                 :: negativeBinomialScatterFractional
     class           (outputTimesClass                 ), intent(inout)                 :: outputTimes_
-    class           (virialDensityContrastClass       ), intent(in   )                 :: virialDensityContrast_
+    class           (virialDensityContrastClass       ), intent(in   )                 :: virialDensityContrast_           , virialDensityContrastDefinition_
+    class           (cosmologyParametersClass         ), intent(inout)                 :: cosmologyParameters_
     class           (cosmologyFunctionsClass          ), intent(inout)                 :: cosmologyFunctions_
+    class           (darkMatterProfileDMOClass        ), intent(in   )                 :: darkMatterProfileDMO_
     double precision                                   , intent(in   ), optional       :: redshift
     double precision                                   , allocatable  , dimension(:  ) :: massRatiosTarget                 , massFunctionTarget               , &
          &                                                                                massFunctionErrorTarget
@@ -209,11 +219,11 @@ contains
     do i=1_c_size_t,countMassRatios
        massFunctionCovarianceTarget(i,i)=massFunctionErrorTarget(i)**2
     end do
-    self=outputAnalysisSubhaloMassFunction(outputTimes_,virialDensityContrast_,time,massRatioMinimum,massRatioMaximum,countMassRatios,negativeBinomialScatterFractional,massFunctionTarget,massFunctionCovarianceTarget,labelTarget)
+    self=outputAnalysisSubhaloMassFunction(outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,time,massRatioMinimum,massRatioMaximum,countMassRatios,negativeBinomialScatterFractional,massFunctionTarget,massFunctionCovarianceTarget,labelTarget)
     return
   end function subhaloMassFunctionConstructorFile
 
-  function subhaloMassFunctionConstructorInternal(outputTimes_,virialDensityContrast_,time,massRatioMinimum,massRatioMaximum,countMassRatios,negativeBinomialScatterFractional,massFunctionTarget,massFunctionCovarianceTarget,labelTarget) result (self)
+  function subhaloMassFunctionConstructorInternal(outputTimes_,virialDensityContrastDefinition_,cosmologyParameters_,cosmologyFunctions_,virialDensityContrast_,darkMatterProfileDMO_,time,massRatioMinimum,massRatioMaximum,countMassRatios,negativeBinomialScatterFractional,massFunctionTarget,massFunctionCovarianceTarget,labelTarget) result (self)
     !!{
     Constructor for the ``subhaloMassFunction'' output analysis class for internal use.
     !!}
@@ -236,7 +246,10 @@ contains
          &                                                                                                     massRatioMaximum                                , time
     integer         (c_size_t                                    ), intent(in   )                           :: countMassRatios
     class           (outputTimesClass                            ), intent(inout)                           :: outputTimes_
-    class           (virialDensityContrastClass                  ), intent(in   )                           :: virialDensityContrast_
+    class           (virialDensityContrastClass                  ), intent(in   )                           :: virialDensityContrast_                          , virialDensityContrastDefinition_
+    class           (cosmologyParametersClass                    ), intent(in   )                           :: cosmologyParameters_
+    class           (cosmologyFunctionsClass                     ), intent(in   )                           :: cosmologyFunctions_
+    class           (darkMatterProfileDMOClass                   ), intent(in   )                           :: darkMatterProfileDMO_
     double precision                                              , intent(in   ), dimension(:)  , optional :: massFunctionTarget
     double precision                                              , intent(in   ), dimension(:,:), optional :: massFunctionCovarianceTarget
     type            (varying_string                              ), intent(in   )                , optional :: labelTarget
@@ -286,8 +299,8 @@ contains
     !![
     <referenceConstruct object="nodePropertyExtractorMassBound_"        constructor="nodePropertyExtractorMassBound    (                                                                                                                                                   )"/>
     <referenceConstruct object="nodePropertyExtractorRadiusOrbital_"    constructor="nodePropertyExtractorRadiusOrbital(                                                                                                                                                   )"/>
-    <referenceConstruct object="nodePropertyExtractorMassHalo_"         constructor="nodePropertyExtractorMassHalo     (virialDensityContrast_                                                                                                                             )"/>
-    <referenceConstruct object="nodePropertyExtractorRadiusVirial_"     constructor="nodePropertyExtractorRadiusVirial (virialDensityContrast_                                                                                                                             )"/>
+    <referenceConstruct object="nodePropertyExtractorMassHalo_"         constructor="nodePropertyExtractorMassHalo     (cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_                             )"/>
+    <referenceConstruct object="nodePropertyExtractorRadiusVirial_"     constructor="nodePropertyExtractorRadiusVirial (cosmologyFunctions_,cosmologyParameters_,darkMatterProfileDMO_,virialDensityContrast_,virialDensityContrastDefinition_                             )"/>
     <referenceConstruct object="nodePropertyExtractorMassHost_"         constructor="nodePropertyExtractorHostNode     (nodePropertyExtractorMassHalo_                                                                                                                     )"/>
     <referenceConstruct object="nodePropertyExtractorRadiusVirialHost_" constructor="nodePropertyExtractorHostNode     (nodePropertyExtractorRadiusVirial_                                                                                                                 )"/>
     <referenceConstruct object="nodePropertyExtractor_"                 constructor="nodePropertyExtractorRatio        ('massRatio'     ,'Ratio of subhalo to host mass'                        ,nodePropertyExtractorMassBound_    ,nodePropertyExtractorMassHost_        )"/>

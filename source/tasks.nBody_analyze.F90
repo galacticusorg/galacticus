@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -30,9 +30,9 @@
      Implementation of a task which analyzes N-body simulation data.
      !!}
      private
-     class  (nbodyImporterClass), pointer :: nbodyImporter_
-     class  (nbodyOperatorClass), pointer :: nbodyOperator_
-     logical                              :: storeBackToImported
+     class  (nbodyImporterClass), pointer :: nbodyImporter_      => null()
+     class  (nbodyOperatorClass), pointer :: nbodyOperator_      => null()
+     logical                              :: storeBackToImported          , nodeComponentsInitialized=.false.
      ! Pointer to the parameters for this task.
      type   (inputParameters   )          :: parameters
    contains
@@ -79,6 +79,7 @@ contains
        call nodeClassHierarchyInitialize(parameters    )
        call Node_Components_Initialize  (parameters    )
     end if
+    self%nodeComponentsInitialized=.true.
     !![
     <inputParameter>
       <name>storeBackToImported</name>
@@ -130,7 +131,7 @@ contains
     <objectDestructor name="self%nbodyOperator_"/>
     <objectDestructor name="self%nbodyImporter_"/>
     !!]
-    call Node_Components_Uninitialize()
+    if (self%nodeComponentsInitialized) call Node_Components_Uninitialize()
     return
   end subroutine nbodyAnalyzeDestructor
 

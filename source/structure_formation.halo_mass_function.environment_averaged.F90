@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -125,7 +125,7 @@ contains
     use :: Numerical_Integration, only : integrator
     use :: Root_Finder          , only : rangeExpandAdditive, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive, rootFinder
     implicit none
-    class           (haloMassFunctionEnvironmentAveraged), intent(inout)           :: self
+    class           (haloMassFunctionEnvironmentAveraged), intent(inout), target   :: self
     double precision                                     , intent(in   )           :: time                              , mass
     type            (treeNode                           ), intent(inout), optional :: node
     class           (nodeComponentBasic                 ), pointer                 :: basic
@@ -154,9 +154,9 @@ contains
        ! Halo mass is less than the mass of the environment - we must average the mass function over environment.
        ! Create a work node.
        call tree%properties%initialize()
-       tree %baseNode          => treeNode               (                 )
-       tree %baseNode%hostTree => tree
-       basic                   => tree    %baseNode%basic(autoCreate=.true.)
+       tree %nodeBase          => treeNode               (                 )
+       tree %nodeBase%hostTree => tree
+       basic                   => tree    %nodeBase%basic(autoCreate=.true.)
        ! Set the properties of the work node.
        call basic%massSet(mass)
        call basic%timeSet(time)
@@ -192,8 +192,8 @@ contains
             &                                                                  environmentOverdensityUpper   &
             &                                               )
        ! Clean up our work node.
-       call tree%baseNode%destroy()
-       deallocate(tree%baseNode)
+       call tree%nodeBase%destroy()
+       deallocate(tree%nodeBase)
     end if
     return
 
@@ -206,7 +206,7 @@ contains
       implicit none
       double precision, intent(in   ) :: environmentOverdensity
 
-      environmentAveragedRoot=self%haloEnvironment_ %cdf(environmentOverdensity)-cdfTarget
+      environmentAveragedRoot=self%haloEnvironment_%cdf(environmentOverdensity)-cdfTarget
       return
     end function environmentAveragedRoot
 
@@ -217,8 +217,8 @@ contains
       implicit none
       double precision, intent(in   ) :: environmentOverdensity
 
-      call self%haloEnvironment_%overdensityLinearSet(node=tree%baseNode,overdensity=environmentOverdensity)
-      environmentAveragedIntegrand=+self%haloMassFunctionConditioned_%differential(time                  ,mass,node=tree%baseNode) &
+      call self%haloEnvironment_%overdensityLinearSet(node=tree%nodeBase,overdensity=environmentOverdensity)
+      environmentAveragedIntegrand=+self%haloMassFunctionConditioned_%differential(time                  ,mass,node=tree%nodeBase) &
            &                       *self%haloEnvironment_            %pdf         (environmentOverdensity                        )
       return
     end function environmentAveragedIntegrand

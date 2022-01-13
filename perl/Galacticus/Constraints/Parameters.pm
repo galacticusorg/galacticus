@@ -251,6 +251,8 @@ sub parameterFind {
 	if ( $_ =~ m/^(.*)\[(\d+)\]$/ ) {
 	    # Parameter name contains array reference. Step through to the relevant parameter in the list. If the parameter is
 	    # not an array, allow this only if the array index given is zero.
+	    return ( undef(), undef() )
+		unless ( defined($parameter->{$1}) );
 	    if ( reftype($parameter->{$1}) eq "ARRAY" ) {
 		$parameter->{$1}->[$2]->{'value'} = undef()
 		    unless ( scalar(@{$parameter->{$1}}) > $2 );

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -79,25 +79,31 @@ contains
     integer                                          :: stateUnit
     integer(c_size_t      )                          :: stateOperatorID_
     type   (c_ptr         )                          :: gslStateFile
-    type   (varying_string)                          :: fileName        , fileNameGSL, &
-         &                                              fileNameLog
+    type   (varying_string)                          :: fileName        , fileNameGSL , &
+         &                                              fileNameLog     , fileName_   , &
+         &                                              fileNameGSL_    , fileNameLog_
 
     ! Check if state store is active.
     if (stateStoreActive) then
-
        ! Open a file in which to store the state and an additional file for GSL state.
        fileName   =stateFileRoot//'.state'
        fileNameGSL=stateFileRoot//'.gsl.state'
        fileNameLog=stateFileRoot//'.state.log'
        !$ if (omp_in_parallel()) then
-       !$    fileName   =fileName   //':openMP'//omp_get_thread_num()
-       !$    fileNameGSL=fileNameGSL//':openMP'//omp_get_thread_num()
-       !$    fileNameLog=fileNameLog//':openMP'//omp_get_thread_num()
+       !$    fileName_   =fileName   //':openMP'//omp_get_thread_num()
+       !$    fileNameGSL_=fileNameGSL//':openMP'//omp_get_thread_num()
+       !$    fileNameLog_=fileNameLog//':openMP'//omp_get_thread_num()
+       !$    fileName    =fileName_
+       !$    fileNameGSL =fileNameGSL_
+       !$    fileNameLog =fileNameLog_
        !$ end if
 #ifdef USEMPI
-       fileName   =fileName   //':MPI'//mpiSelf%rankLabel()
-       fileNameGSL=fileNameGSL//':MPI'//mpiSelf%rankLabel()
-       fileNameLog=fileNameLog//':MPI'//mpiSelf%rankLabel()
+       fileName_   =fileName   //':MPI'//mpiSelf%rankLabel()
+       fileNameGSL_=fileNameGSL//':MPI'//mpiSelf%rankLabel()
+       fileNameLog_=fileNameLog//':MPI'//mpiSelf%rankLabel()
+       fileName    =fileName_
+       fileNameGSL =fileNameGSL_
+       fileNameLog =fileNameLog_
 #endif
        if (present(logMessage)) then
           !![
@@ -208,7 +214,8 @@ contains
     integer                 :: stateUnit
     integer(c_size_t      ) :: stateOperatorID_
     type   (c_ptr         ) :: gslStateFile
-    type   (varying_string) :: fileName        , fileNameGSL
+    type   (varying_string) :: fileName        , fileNameGSL , &
+         &                     fileName_       , fileNameGSL_
 
     ! Check if we have already retrieved the internal state.
     if (.not.stateHasBeenRetrieved) then
@@ -222,12 +229,16 @@ contains
              fileName   =stateRetrieveFileRoot//'.state'
              fileNameGSL=stateRetrieveFileRoot//'.gsl.state'
              !$ if (omp_in_parallel()) then
-             !$    fileName   =fileName   //':openMP'//omp_get_thread_num()
-             !$    fileNameGSL=fileNameGSL//':openMP'//omp_get_thread_num()
+             !$    fileName_   =fileName    //':openMP'//omp_get_thread_num()
+             !$    fileNameGSL_=fileNameGSL //':openMP'//omp_get_thread_num()
+             !$    fileName    =fileName_
+             !$    fileNameGSL =fileNameGSL_
              !$ end if
 #ifdef USEMPI
-             fileName   =fileName   //':MPI'//mpiSelf%rankLabel()
-             fileNameGSL=fileNameGSL//':MPI'//mpiSelf%rankLabel()
+             fileName_   =fileName   //':MPI'//mpiSelf%rankLabel()
+             fileNameGSL_=fileNameGSL//':MPI'//mpiSelf%rankLabel()
+             fileName    =fileName_
+             fileNameGSL =fileNameGSL_
 #endif
              !![
              <workaround type="gfortran" PR="92836" url="https:&#x2F;&#x2F;gcc.gnu.org&#x2F;bugzilla&#x2F;show_bug.cgi=92836">

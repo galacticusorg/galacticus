@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -168,7 +168,7 @@ contains
     use :: Galacticus_Nodes        , only : nodeComponentBasic     , treeNode
     use :: Numerical_Constants_Math, only : Pi
     implicit none
-    class           (haloMassFunctionFofBias), intent(inout)           :: self
+    class           (haloMassFunctionFofBias), intent(inout), target   :: self
     double precision                         , intent(in   )           :: time                                                                , &
          &                                                                mass
     type            (treeNode               ), intent(inout), optional :: node
@@ -222,8 +222,8 @@ contains
        call basic%massSet(massHaloInfinitePrevious)
        call basic%timeSet(time                    )
        ! Get the radius of the halo.
-       radiusHalo                             =+self%darkMatterHaloScale_%virialRadius                       (nodeWork)
-       gradientRadiusHaloMass                 =+self%darkMatterHaloScale_%virialRadiusGradientLogarithmicMass(nodeWork) &
+       radiusHalo                             =+self%darkMatterHaloScale_%radiusVirial                       (nodeWork)
+       gradientRadiusHaloMass                 =+self%darkMatterHaloScale_%radiusVirialGradientLogarithmicMass(nodeWork) &
             &                                  *radiusHalo                                                              &
             &                                  /massHaloInfinitePrevious
        ! Compute friends-of-friends fractional accuracy parameter (Lsize from More et al. 2011).

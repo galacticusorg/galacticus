@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -25,6 +25,7 @@
   use :: Dark_Matter_Particles   , only : darkMatterParticleClass
   use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
   use :: Numerical_Interpolation , only : interpolator
+  use :: Galactic_Structure      , only : galacticStructureClass
 
   !![
   <satelliteEvaporationSIDM name="satelliteEvaporationSIDMKummer2018">
@@ -39,6 +40,7 @@
      private
      class           (darkMatterParticleClass  ), pointer     :: darkMatterParticle_         => null()
      class           (darkMatterProfileDMOClass), pointer     :: darkMatterProfileDMO_       => null()
+     class           (galacticStructureClass   ), pointer     :: galacticStructure_          => null()
      type            (interpolator             ), allocatable :: evaporationFactor
      double precision                                         :: rateScatteringNormalization          , xMaximum
    contains
@@ -73,22 +75,24 @@ contains
     type (inputParameters                   ), intent(inout) :: parameters
     class(darkMatterParticleClass           ), pointer       :: darkMatterParticle_
     class(darkMatterProfileDMOClass         ), pointer       :: darkMatterProfileDMO_
-
+    class(galacticStructureClass            ), pointer       :: galacticStructure_
   
     !![
     <objectBuilder class="darkMatterParticle"   name="darkMatterParticle_"   source="parameters"/>
     <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    <objectBuilder class="galacticStructure"    name="galacticStructure_"    source="parameters"/>
     !!]
-    self=satelliteEvaporationSIDMKummer2018(darkMatterParticle_,darkMatterProfileDMO_)
+    self=satelliteEvaporationSIDMKummer2018(darkMatterParticle_,darkMatterProfileDMO_,galacticStructure_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterParticle_"  />
     <objectDestructor name="darkMatterProfileDMO_"/>
+    <objectDestructor name="galacticStructure_"   />
     !!]
     return
   end function kummer2018ConstructorParameters
 
-  function kummer2018ConstructorInternal(darkMatterParticle_,darkMatterProfileDMO_) result(self)
+  function kummer2018ConstructorInternal(darkMatterParticle_,darkMatterProfileDMO_,galacticStructure_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily kummer2018} satellite evaporation due to dark matter self-interactions
     class.
@@ -100,8 +104,9 @@ contains
     type (satelliteEvaporationSIDMKummer2018)                        :: self
     class(darkMatterParticleClass           ), intent(in   ), target :: darkMatterParticle_
     class(darkMatterProfileDMOClass         ), intent(in   ), target :: darkMatterProfileDMO_
+    class(galacticStructureClass            ), intent(in   ), target :: galacticStructure_
     !![
-    <constructorAssign variables="*darkMatterParticle_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="*darkMatterParticle_, *darkMatterProfileDMO_, *galacticStructure_"/>
     !!]
 
     select type (darkMatterParticle_ => self%darkMatterParticle_)
@@ -133,6 +138,7 @@ contains
     !![
     <objectDestructor name="self%darkMatterParticle_"  />
     <objectDestructor name="self%darkMatterProfileDMO_"/>
+    <objectDestructor name="self%galacticStructure_"   />
     !!]
     return
   end subroutine kummer2018Destructor
@@ -141,13 +147,10 @@ contains
     !!{
     Return a evaporation for satellites due to dark matter self-interactions using the formulation of \cite{kummer_effective_2018}.
     !!}
-    use :: Galactic_Structure_Densities      , only : Galactic_Structure_Density
-    use :: Galactic_Structure_Potentials     , only : Galactic_Structure_Potential
-    use :: Galactic_Structure_Enclosed_Masses, only : Galactic_Structure_Radius_Enclosing_Mass
-    use :: Galactic_Structure_Options        , only : coordinateSystemCartesian                , radiusLarge
-    use :: Galacticus_Nodes                  , only : nodeComponentSatellite,nodeComponentBasic
-    use :: Numerical_Constants_Astronomical  , only : gravitationalConstantGalacticus
-    use :: Vectors                           , only : Vector_Magnitude
+    use :: Galactic_Structure_Options      , only : coordinateSystemCartesian                , radiusLarge
+    use :: Galacticus_Nodes                , only : nodeComponentSatellite,nodeComponentBasic
+    use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
+    use :: Vectors                         , only : Vector_Magnitude
     implicit none
     class           (satelliteEvaporationSIDMKummer2018), intent(inout) :: self
     type            (treeNode                           ), intent(inout) :: node
@@ -169,13 +172,13 @@ contains
     ! If the scattering cross section is zero, we can return immediately.
     if (self%rateScatteringNormalization == 0.0d0) return
     ! Evaluate satellite and host properties.
-    nodeHost                     =>  node     %mergesWith      (                                           )
-    satellite                    =>  node     %satellite       (                                           )
-    position                     =   satellite%position        (                                           )
-    velocity                     =   satellite%velocity        (                                           )
-    radiusOrbital                =   Vector_Magnitude          (         position                          )
-    speedOrbital                 =   Vector_Magnitude          (         velocity                          )
-    densityHost                  =   Galactic_Structure_Density(nodeHost,position,coordinateSystemCartesian)
+    nodeHost                     =>  node                               %mergesWith(                                           )
+    satellite                    =>  node                               %satellite (                                           )
+    position                     =   satellite                          %position  (                                           )
+    velocity                     =   satellite                          %velocity  (                                           )
+    radiusOrbital                =   Vector_Magnitude                              (         position                          )
+    speedOrbital                 =   Vector_Magnitude                              (         velocity                          )
+    densityHost                  =   self            %galacticStructure_%density   (nodeHost,position,coordinateSystemCartesian)
     ! Find the escape velocity from the half-mass radius of the subhalo. This is equal to the potential difference between the
     ! half-mass radius and outer boundary of the subhalo, plus the potential difference from the outer boundary to infinity (for
     ! which we can treat the subhalo as a point mass).
@@ -190,11 +193,11 @@ contains
          &             basic    %     mass()  &
          &            )
     if (massBoundary > 0.0d0) then
-       radiusBoundary   =Galactic_Structure_Radius_Enclosing_Mass(node,mass  =      massBoundary  )
-       radiusHalfMass   =Galactic_Structure_Radius_Enclosing_Mass(node,mass  =0.5d0*massBoundary  )
+       radiusBoundary      =self%galacticStructure_%radiusEnclosingMass(node,mass  =      massBoundary  )
+       radiusHalfMass      =self%galacticStructure_%radiusEnclosingMass(node,mass  =0.5d0*massBoundary  )
        if (radiusBoundary < 0.5d0*radiusLarge) then
-          potentialBoundary=Galactic_Structure_Potential            (node,radius=      radiusBoundary)
-          potentialHalfMass=Galactic_Structure_Potential            (node,radius=      radiusHalfMass)
+          potentialBoundary=self%galacticStructure_%potential          (node,radius=      radiusBoundary)
+          potentialHalfMass=self%galacticStructure_%potential          (node,radius=      radiusHalfMass)
           potentialEscape  =+potentialBoundary               &
                &            -potentialHalfMass               &
                &            +gravitationalConstantGalacticus &

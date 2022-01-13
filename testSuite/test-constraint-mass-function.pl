@@ -10,7 +10,7 @@ use PDL::IO::HDF5;
 # Andrew Benson (15-January-2020)
 
 # Run model.
-system("cd ..; mkdir -p testSuite/outputs; Galacticus.exe testSuite/parameters/constrainHaloMassFunction.xml");
+system("cd ..; mkdir -p testSuite/outputs; ./Galacticus.exe testSuite/parameters/constrainHaloMassFunction.xml");
 unless ( $? == 0 ) {
     print "FAILED: Galacticus model failed to run\n";
     exit 0;

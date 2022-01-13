@@ -5,7 +5,7 @@
   <version>0.9.4</version>
 
   <!-- Verbosity -->
-  <verbosityLevel value="working"/>
+  <verbosityLevel value="warn"/>
 
   <!-- Component selection -->
   <componentBasic value="standard"/>
@@ -206,10 +206,12 @@
   <!-- Node physics -->
   <nodeOperator value="multi">
     <!-- Halo concentrations -->
+    <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
-    <nodeOperator value="haloSpinRandom">
+    <nodeOperator value="haloAngularMomentumRandom">
       <factorReset value="2.0"/>
     </nodeOperator>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
   </nodeOperator>
 
   <!-- Output file -->

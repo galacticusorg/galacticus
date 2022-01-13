@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -41,6 +41,8 @@ contains
     use :: Galacticus_Paths  , only : galacticusPath         , pathTypeDataDynamic  , pathTypeExec
     use :: ISO_Varying_String, only : assignment(=)          , char                 , operator(//), varying_string
     use :: System_Command    , only : System_Command_Do
+    use :: System_Download   , only : download
+    use :: System_Compilers  , only : compiler               , languageFortran
     implicit none
     type     (varying_string), intent(  out)           :: recfastPath, recfastVersion
     logical                  , intent(in   ), optional :: static
@@ -56,14 +58,14 @@ contains
     recfastPath=galacticusPath(pathTypeDataDynamic)//"RecFast/"
     ! Build the code if the executable does not exist.
     if (.not.File_Exists(recfastPath//"recfast.exe")) then
-       call Directory_Make(recfastPath)
-       call File_Lock(char(recfastPath//"recfast.exe"),fileLock,lockIsShared=.false.)
+       call Directory_Make(     recfastPath                                              )
+       call File_Lock     (char(recfastPath//"recfast.exe"),fileLock,lockIsShared=.false.)
        ! Patch the code if not already patched.
        if (.not.File_Exists(recfastPath//"patched")) then
           ! Download the code if not already downloaded.
           if (.not.File_Exists(recfastPath//"recfast.for")) then
              call displayMessage("downloading RecFast code....",verbosityLevelWorking)
-             call System_Command_Do("wget --no-check-certificate https://www.astro.ubc.ca/people/scott/recfast.for -O "//recfastPath//"recfast.for")
+             call download("https://www.astro.ubc.ca/people/scott/recfast.for",char(recfastPath)//"recfast.for")
              if (.not.File_Exists(recfastPath//"recfast.for")) &
                   & call Galacticus_Error_Report("failed to download RecFast code"//{introspection:location})
           end if
@@ -73,7 +75,7 @@ contains
           call System_Command_Do("touch "//recfastPath//"patched")
        end if
        call displayMessage("compiling RecFast code....",verbosityLevelWorking)
-       command="cd "//recfastPath//"; gfortran recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none"
+       command="cd "//recfastPath//"; "//compiler(languageFortran)//" recfast.for -o recfast.exe -O3 -ffixed-form -ffixed-line-length-none"
        if (static_) command=command//" -static"
        call System_Command_Do(char(command))
        if (.not.File_Exists(recfastPath//"recfast.exe")) &

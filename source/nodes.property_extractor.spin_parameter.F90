@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -20,7 +20,9 @@
 !!{
 Contains a module which implements a spin parameter output analysis property extractor class.
 !!}
-
+  
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
+  
   !![
   <nodePropertyExtractor name="nodePropertyExtractorSpin">
    <description>A spin parameter output analysis property extractor class.</description>
@@ -31,7 +33,9 @@ Contains a module which implements a spin parameter output analysis property ext
      A spin parameter property extractor output analysis class.
      !!}
      private
+     class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
    contains
+     final     ::                spinDestructor
      procedure :: extract     => spinExtract
      procedure :: type        => spinType
      procedure :: name        => spinName
@@ -44,6 +48,7 @@ Contains a module which implements a spin parameter output analysis property ext
      Constructors for the ``spin'' output property extractor class.
      !!}
      module procedure spinConstructorParameters
+     module procedure spinConstructorInternal
   end interface nodePropertyExtractorSpin
 
 contains
@@ -56,18 +61,53 @@ contains
     implicit none
     type (nodePropertyExtractorSpin)                :: self
     type (inputParameters          ), intent(inout) :: parameters
+    class(darkMatterProfileDMOClass), pointer       :: darkMatterProfileDMO_
     !$GLC attributes unused :: parameters
 
-    ! Build the object.
-    self=nodePropertyExtractorSpin()
+    !![
+    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    !!]
+    self=nodePropertyExtractorSpin(darkMatterProfileDMO_)
+    !![
+    <inputParametersValidate source="parameters"/>
+    <objectDestructor name="darkMatterProfileDMO_"/>
+    !!]
     return
   end function spinConstructorParameters
+
+  function spinConstructorInternal(darkMatterProfileDMO_) result(self)
+    !!{
+    Internal constructor for the {\normalfont \ttfamily spin} output analysis property extractor class.
+    !!}
+    implicit none
+    type (nodePropertyExtractorSpin)                        :: self
+    class(darkMatterProfileDMOClass), intent(in   ), target :: darkMatterProfileDMO_
+    !![
+    <constructorAssign variables="*darkMatterProfileDMO_"/>
+    !!]
+
+    return
+  end function spinConstructorInternal
+
+  subroutine spinDestructor(self)
+    !!{
+    Destructor for the {\normalfont \ttfamily spin} output analysis property extractor class.
+    !!}
+    implicit none
+    type(nodePropertyExtractorSpin), intent(inout) :: self
+
+    !![
+    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    !!]
+    return
+  end subroutine spinDestructor
 
   double precision function spinExtract(self,node,instance)
     !!{
     Implement a spin output property extractor.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentSpin, treeNode
+    use :: Dark_Matter_Halo_Spins, only : Dark_Matter_Halo_Angular_Momentum_Scale
+    use :: Galacticus_Nodes      , only : nodeComponentSpin
     implicit none
     class(nodePropertyExtractorSpin), intent(inout)           :: self
     type (treeNode                 ), intent(inout), target   :: node
@@ -75,8 +115,9 @@ contains
     class(nodeComponentSpin        ), pointer                 :: spin
     !$GLC attributes unused :: self, instance
 
-    spin        => node%spin()
-    spinExtract =  spin%spin()
+    spin        =>  node               %spin()
+    spinExtract =  +spin%angularMomentum    ()                                               &
+         &         /Dark_Matter_Halo_Angular_Momentum_Scale(node,self%darkMatterProfileDMO_)
     return
   end function spinExtract
 

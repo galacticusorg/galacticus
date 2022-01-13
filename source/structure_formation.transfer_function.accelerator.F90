@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,12 +34,11 @@
      !!}
      private
      type            (table1DLinearLinear  )          :: transferTable
-     class           (transferFunctionClass), pointer :: transferFunction_ => null()
-     double precision                                 :: wavenumberLogarithmicMinimum, wavenumberLogarithmicMaximum
+     class           (transferFunctionClass), pointer :: transferFunction_            => null()
+     double precision                                 :: wavenumberLogarithmicMinimum           , wavenumberLogarithmicMaximum
      integer                                          :: tablePointsPerDecade
-     logical                                          :: tableInitialized
+     logical                                          :: tableInitialized             =  .false.
    contains
-
      final     ::                          acceleratorDestructor
      procedure :: value                 => acceleratorValue
      procedure :: logarithmicDerivative => acceleratorLogarithmicDerivative

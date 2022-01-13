@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -41,6 +41,7 @@ module Black_Hole_Binary_Initial_Separation
     <description>Computes the initial separation of a newly formed black hole binary black holes.</description>
     <type>double precision</type>
     <pass>yes</pass>
+    <selfTarget>yes</selfTarget>
     <argument>type(treeNode), intent(inout), target :: node, nodeHost</argument>
    </method>
   </functionClass>

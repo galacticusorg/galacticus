@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -51,9 +51,9 @@ double precision function Node_Component_Spheroid_Standard_Enclosed_Mass(self,ra
   use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
   implicit none
   class           (nodeComponentSpheroidStandard), intent(inout) :: self
-  integer                                        , intent(in   ) :: componentType   , massType      , weightBy, weightIndex
+  integer                                        , intent(in   ) :: componentType       , massType      , weightBy, weightIndex
   double precision                               , intent(in   ) :: radius
-  double precision                                               :: fractionalRadius, spheroidRadius
+  double precision                                               :: fractionalRadius    , radiusSpheroid
   type            (stellarLuminosities          ), save          :: luminositiesSpheroid
   !$omp threadprivate(luminositiesSpheroid)
 
@@ -83,9 +83,9 @@ double precision function Node_Component_Spheroid_Standard_Enclosed_Mass(self,ra
   ! Return if mass is zero.
   if (Node_Component_Spheroid_Standard_Enclosed_Mass <=       0.0d0) return
   ! Compute actual mass.
-  spheroidRadius=self%radius()
-  if (spheroidRadius > 0.0d0) then
-     fractionalRadius=radius/spheroidRadius
+  radiusSpheroid=self%radius()
+  if (radiusSpheroid > 0.0d0) then
+     fractionalRadius=radius/radiusSpheroid
      Node_Component_Spheroid_Standard_Enclosed_Mass   =Node_Component_Spheroid_Standard_Enclosed_Mass*spheroidMassDistribution%massEnclosedBySphere(fractionalRadius)
   end if
   return
@@ -130,7 +130,7 @@ function Node_Component_Spheroid_Standard_Tidal_Tensor(self,positionCartesian,co
   use :: Galactic_Structure_Options           , only : componentTypeAll               , componentTypeSpheroid, weightByMass, weightIndexNull, &
        &                                               radiusLarge
   use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
-  use :: Numerical_Constants_Astronomical         , only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Astronomical     , only : gravitationalConstantGalacticus
   use :: Tensors                              , only : tensorRank2Dimension3Symmetric , tensorNullR2D3Sym    , operator(*)
   implicit none
   type            (tensorRank2Dimension3Symmetric)                              :: Node_Component_Spheroid_Standard_Tidal_Tensor
@@ -324,7 +324,7 @@ double precision function Node_Component_Spheroid_Standard_Potential(self,radius
   use :: Coordinates                          , only : assignment(=)                  , coordinateSpherical
   use :: Galactic_Structure_Options           , only : radiusLarge                    , weightByMass       , weightIndexNull
   use :: Node_Component_Spheroid_Standard_Data, only : spheroidMassDistribution
-  use :: Numerical_Constants_Astronomical         , only : gravitationalConstantGalacticus
+  use :: Numerical_Constants_Astronomical     , only : gravitationalConstantGalacticus
   !!{
   Return the potential due to the standard spheroid.
   !!}

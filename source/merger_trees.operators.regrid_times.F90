@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -328,6 +328,8 @@ contains
                    if (iTime > iNow+1 ) newNodes(iTime-iNow)%node%firstChild => newNodes(iTime-iNow-1)%node
                    ! Link to parent node.
                    if (iTime < iParent) newNodes(iTime-iNow)%node%parent     => newNodes(iTime-iNow+1)%node
+                   ! Set subsampling rate.
+                   call newNodes(iTime-iNow)%node%subsamplingWeightSet(node%subsamplingWeight())
                 end do
                 ! Link final node to the parent.
                 newNodes(iParent-iNow)%node%parent  => node%parent
@@ -361,7 +363,7 @@ contains
        ! Dump the intermediate tree if required.
        if (self%dumpTrees) then
           allocate(highlightNodes(nodeIndex-firstNewNode+2))
-          highlightNodes(1)=currentTree%baseNode%index()
+          highlightNodes(1)=currentTree%nodeBase%index()
           do nodeIndex=1,nodeIndex-firstNewNode+1
              highlightNodes(nodeIndex+1)=firstNewNode+nodeIndex-1
           end do

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -32,8 +32,8 @@ module Input_Parameters
   use :: Kind_Numbers      , only : kind_int8
   use :: String_Handling   , only : char
   private
-  public :: inputParameters, inputParameter, inputParameterList, globalParameters
-
+  public :: inputParameters, inputParameter, inputParameterList
+  
   !![
   <generic identifier="Type">
    <instance label="Logical"        intrinsic="logical"                                          outputConverter="regEx¦(.*)¦char($1)¦"/>
@@ -117,8 +117,6 @@ module Input_Parameters
      <methods>
        <method description="Build a tree of {\normalfont \ttfamily inputParameter} objects from the structure of an XML parameter file." method="buildTree" />
        <method description="Resolve references in the tree of {\normalfont \ttfamily inputParameter} objects." method="resolveReferences" />
-       <method description="Mark an input parameter set as the global set." method="markGlobal" />
-       <method description="Return true if these parameters are the global set." method="isGlobal" />
        <method description="Open an output group for parameters in the given HDF5 object." method="parametersGroupOpen" />
        <method description="Copy the HDF5 output group for parameters from another parameters object." method="parametersGroupCopy" />
        <method description="Check that a given parameter name is a valid name, aborting if not." method="validateName" />
@@ -140,8 +138,6 @@ module Input_Parameters
      procedure :: buildTree           => inputParametersBuildTree
      procedure :: resolveReferences   => inputParametersResolveReferences
      procedure :: destroy             => inputParametersDestroy
-     procedure :: markGlobal          => inputParametersMarkGlobal
-     procedure :: isGlobal            => inputParametersIsGlobal
      procedure :: parametersGroupOpen => inputParametersParametersGroupOpen
      procedure :: parametersGroupCopy => inputParametersParametersGroupCopy
      procedure :: validateName        => inputParametersValidateName
@@ -210,11 +206,8 @@ module Input_Parameters
   </enumeration>
   !!]
 
-  ! Pointer to the global input parameters.
-  type   (inputParameters), pointer   :: globalParameters       => null()
-
   ! Maximum length allowed for parameter entries.
-  integer                 , parameter :: parameterLengthMaximum =  1024
+  integer, parameter :: parameterLengthMaximum=1024
 
   ! Interface to the (auto-generated) knownParameterNames() function.
   interface
@@ -390,6 +383,7 @@ contains
     use :: Galacticus_Error  , only : Galacticus_Error_Report
     use :: ISO_Varying_String, only : assignment(=)                    , char           , operator(//)    , operator(/=)
     use :: String_Handling   , only : String_Strip
+    use :: IO_HDF5           , only : ioHDF5AccessInitialize
     use :: HDF5_Access       , only : hdf5Access
     implicit none
     type     (inputParameters)                                        :: inputParametersConstructorNode
@@ -406,7 +400,8 @@ contains
     <optionalArgument name="noOutput" defaultsTo=".false." />
     <optionalArgument name="noBuild"  defaultsTo=".false." />
     !!]
-
+#include "os.inc"
+    
     inputParametersConstructorNode%global   =  .false.
     inputParametersConstructorNode%isNull   =  .false.
     inputParametersConstructorNode%document => getOwnerDocument(parametersNode)
@@ -426,18 +421,33 @@ contains
     end if
     !$omp end critical (FoX_DOM_Access)
     ! Set a pointer to HDF5 object to which to write parameters.
-    !$ call hdf5Access%  set()
     if (present(outputParametersGroup)) then
+       !$ call hdf5Access%  set()
        inputParametersConstructorNode%outputParameters         =outputParametersGroup%openGroup('Parameters')
        inputParametersConstructorNode%outputParametersCopied   =.false.
        inputParametersConstructorNode%outputParametersTemporary=.false.
+       !$ call hdf5Access%unset()
     else if (.not.noOutput_) then
-       call inputParametersConstructorNode%outputParametersContainer%openFile(char(File_Name_Temporary('glcTmpPar','/dev/shm')))
+       ! The HDF5 access lock may not yet have been initialized. Ensure it is before using it.
+       call ioHDF5AccessInitialize()
+       !$ call hdf5Access%  set()
+       call inputParametersConstructorNode%outputParametersContainer%openFile(                                      &
+            &                                                                 char(                                 &
+            &                                                                      File_Name_Temporary(             &
+            &                                                                                          'glcTmpPar', &
+#ifdef __APPLE__
+            &                                                                                          '/tmp'       &
+#else
+            &                                                                                          '/dev/shm'   &
+#endif
+            &                                                                                         )             &
+            &                                                                      )                                &
+            &                                                                )
        inputParametersConstructorNode%outputParameters         =inputParametersConstructorNode%outputParametersContainer%openGroup('Parameters')
        inputParametersConstructorNode%outputParametersCopied   =.false.
        inputParametersConstructorNode%outputParametersTemporary=.true.
+       !$ call hdf5Access%unset()
     end if
-    !$ call hdf5Access%unset()
     ! Get allowed parameter names.
     call knownParameterNames(allowedParameterNamesCombined)
     allowedParameterFromFileCount=size(allowedParameterNamesCombined)
@@ -901,9 +911,11 @@ contains
   end function inputParameterGet
 
   subroutine inputParametersCheckParameters(self,allowedParameterNames,allowedMultiParameterNames)
+    use :: Galacticus_Error   , only : Galacticus_Error_Report
     use :: Display            , only : displayIndent                  , displayMessage      , displayUnindent, displayVerbosity, &
           &                            enumerationVerbosityLevelEncode, verbosityLevelSilent, displayMagenta , displayReset
-    use :: FoX_dom            , only : destroy                        , getNodeName         , node
+    use :: FoX_dom            , only : destroy                        , getNodeName         , node           , hasAttribute    , &
+         &                             getAttributeNode               , extractDataContent  , inException    , DOMException
     use :: ISO_Varying_String , only : assignment(=)                  , operator(//)        , char           , operator(==)
     use :: Regular_Expressions, only : regEx
     use :: Hashes             , only : integerHash
@@ -912,12 +924,13 @@ contains
     class    (inputParameters)              , intent(inout)           :: self
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedParameterNames
     type     (varying_string ), dimension(:), intent(in   ), optional :: allowedMultiParameterNames
-    type     (node           ), pointer                               :: node_
+    type     (node           ), pointer                               :: node_                     , ignoreWarningsNode
     type     (inputParameter ), pointer                               :: currentParameter
     type     (regEx          ), save                                  :: regEx_
     !$omp threadprivate(regEx_)
     logical                                                           :: warningsFound             , parameterMatched    , &
-         &                                                               verbose
+         &                                                               verbose                   , ignoreWarnings      , &
+         &                                                               isException
     integer                                                           :: allowedParametersCount    , errorStatus         , &
          &                                                               distance                  , distanceMinimum     , &
          &                                                               j
@@ -926,6 +939,7 @@ contains
          &                                                               parameterNameGuess
     type     (varying_string )                                        :: message                   , verbosityLevel
     type     (integerHash    )                                        :: parameterNamesSeen
+    type     (DOMException   )                                        :: exception
 
     ! Determine whether we should be verbose.
     verbose=displayVerbosity() > verbosityLevelSilent
@@ -943,6 +957,15 @@ contains
              node_ => currentParameter%content
              ! Attempt to read the parameter value.
              call self%value(currentParameter,parameterValue,errorStatus,writeOutput=.false.)
+             ! Determine if warnings should be ignored for this parameter.
+             ignoreWarnings=.false.
+             if (hasAttribute(node_,'ignoreWarnings')) then
+                ignoreWarningsNode => getAttributeNode(node_,'ignoreWarnings')
+                call extractDataContent(ignoreWarningsNode,ignoreWarnings,iostat=errorStatus,ex=exception)
+                isException=inException(exception)
+                if (isException .or. errorStatus /= 0) &
+                     & call Galacticus_Error_Report("unable to parse attribute 'ignoreWarnings' in parameter ["//getNodeName(node_)//"]"//{introspection:location})
+             end if
              ! Check for a match with allowed parameter names.
              allowedParametersCount=0
              if (present(allowedParameterNames)) allowedParametersCount=size(allowedParameterNames)
@@ -971,12 +994,14 @@ contains
                   &     .not.parameterMatched                           &
                   &   )                                                 &
                   &  .and.                                              &
+                  &   .not.ignoreWarnings                               &
+                  &  .and.                                              &
                   &   .not.warningsFound                                &
                   & ) then
                 if (verbose) call displayIndent(displayMagenta()//'WARNING:'//displayReset()//' problems found with input parameters:')
                 warningsFound=.true.
              end if
-             if (errorStatus /= inputParameterErrorStatusSuccess .and. verbose) then
+             if (errorStatus /= inputParameterErrorStatusSuccess .and. .not.ignoreWarnings .and. verbose) then
                 !$omp critical (FoX_DOM_Access)
                 select case (errorStatus)
                 case (inputParameterErrorStatusEmptyValue    )
@@ -987,7 +1012,7 @@ contains
                 !$omp end critical (FoX_DOM_Access)
                 call displayMessage(message)
              end if
-             if (allowedParametersCount > 0 .and. .not.parameterMatched .and. verbose) then
+             if (allowedParametersCount > 0 .and. .not.parameterMatched .and. .not.ignoreWarnings .and. verbose) then
                 !$omp critical (FoX_DOM_Access)
                 unknownName    =getNodeName(node_)
                 !$omp end critical (FoX_DOM_Access)
@@ -1013,7 +1038,7 @@ contains
                 parameterMatched=.false.
                 if (present(allowedMultiParameterNames)) &
                      & parameterMatched=any(getNodeName(node_) == allowedMultiParameterNames)
-                if (.not.parameterMatched) then
+                if (.not.parameterMatched .and. .not.ignoreWarnings) then
                    if (.not.warningsFound.and.verbose) call displayIndent(displayMagenta()//'WARNING:'//displayReset()//' problems found with input parameters:')
                    warningsFound=.true.
                    if (verbose) then
@@ -1032,32 +1057,6 @@ contains
     if (warningsFound .and. verbose) call displayUnindent('')
     return
   end subroutine inputParametersCheckParameters
-
-  subroutine inputParametersMarkGlobal(self)
-    !!{
-    Mark an {\normalfont \ttfamily inputParameters} object as the global input parameters.
-    !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    class(inputParameters), intent(inout), target :: self
-
-    ! Mark as global.
-    self%global=.true.
-    ! Set global parameters pointer.
-    globalParameters => self
-    return
-  end subroutine inputParametersMarkGlobal
-
-  logical function inputParametersIsGlobal(self)
-    !!{
-    Return true if an {\normalfont \ttfamily inputParameters} object is the global input parameter set.
-    !!}
-    implicit none
-    class(inputParameters), intent(in   ), target :: self
-
-    inputParametersIsGlobal=self%global
-    return
-  end function inputParametersIsGlobal
 
   subroutine inputParametersParametersGroupOpen(self,outputGroup)
     !!{
@@ -1347,7 +1346,7 @@ contains
        end if
        copyCount                               =  1
     else
-       copyCount                               =  self%copiesCount(parameterName                                                                                           ,requireValue=requireValue                          )
+       copyCount                               =  self%copiesCount(parameterName        ,requireValue=requireValue                          )
        parameterNode                           => self%node       (parameterName        ,requireValue=requireValue,copyInstance=copyInstance)
        inputParametersSubParameters            =  inputParameters (parameterNode%content,noOutput    =.true.      ,noBuild     =.true.      )
        inputParametersSubParameters%parameters => parameterNode

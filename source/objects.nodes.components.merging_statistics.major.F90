@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -28,8 +28,9 @@ module Node_Component_Merging_Statistics_Major
   use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
   implicit none
   private
-  public :: Node_Component_Merging_Statistics_Major_Thread_Uninitialize, Node_Component_Merging_Statistics_Major_Output, &
-       &    Node_Component_Merging_Statistics_Major_Thread_Initialize
+  public :: Node_Component_Merging_Statistics_Major_Thread_Uninitialize, Node_Component_Merging_Statistics_Major_Output     , &
+       &    Node_Component_Merging_Statistics_Major_Thread_Initialize  , Node_Component_Merging_Statistics_Major_State_Store, &
+       &    Node_Component_Merging_Statistics_Major_State_Restore
 
   !![
   <component>
@@ -99,8 +100,8 @@ contains
        !![
        <objectDestructor name="mergerMassMovements_"/>
        !!]
-       call nodePromotionEvent  %detach(defaultMergingStatisticsComponent,nodePromotion  )
-       call satelliteMergerEvent%detach(defaultMergingStatisticsComponent,satelliteMerger)
+       if (nodePromotionEvent  %isAttached(defaultMergingStatisticsComponent,nodePromotion  )) call nodePromotionEvent  %detach(defaultMergingStatisticsComponent,nodePromotion  )
+       if (satelliteMergerEvent%isAttached(defaultMergingStatisticsComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultMergingStatisticsComponent,satelliteMerger)
     end if
     return
   end subroutine Node_Component_Merging_Statistics_Major_Thread_Uninitialize
@@ -111,8 +112,8 @@ contains
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentMergingStatistics, treeNode
     implicit none
-    class           (*                             ), intent(inout)                :: self
-    type            (treeNode                      ), intent(inout)                :: node
+    class           (*                             ), intent(inout)               :: self
+    type            (treeNode                      ), intent(inout)               :: node
     class           (nodeComponentMergingStatistics), pointer                     :: mergingStatistics
     class           (nodeComponentBasic            ), pointer                     :: basicHost              , basic
     type            (treeNode                      ), pointer                     :: nodeHost
@@ -159,6 +160,7 @@ contains
     double precision                                , allocatable  , dimension(:) :: timeMajorMerger        , timeMajorMergerParent, &
          &                                                                           timeMajorMergerNew
     !$GLC attributes unused :: self
+    !$GLC attributes initialized :: timeMajorMerger, timeMajorMergerParent
     
     mergingStatisticsParent => node%parent            %mergingStatistics(autoCreate=.true.)
     mergingStatistics       => node                   %mergingStatistics(autoCreate=.true.)
@@ -176,56 +178,109 @@ contains
    <unitName>Node_Component_Merging_Statistics_Major_Output</unitName>
   </mergerTreeExtraOutputTask>
   !!]
-  subroutine Node_Component_Merging_Statistics_Major_Output(node,iOutput,treeIndex,nodePassesFilter,treeLock)
+  subroutine Node_Component_Merging_Statistics_Major_Output(node,indexOutput,indexTree,nodePassesFilter,treeLock)
     !!{
     Output properties for all black holes in {\normalfont \ttfamily node}.
     !!}
-    use            :: Galacticus_HDF5   , only : galacticusOutputFile
-    use            :: Galacticus_Nodes  , only : defaultMergingStatisticsComponent, mergerTree, nodeComponentMergingStatistics, treeNode
-    use            :: HDF5_Access       , only : hdf5Access
-    use            :: IO_HDF5           , only : hdf5Object
-    use, intrinsic :: ISO_C_Binding     , only : c_size_t
-    use            :: ISO_Varying_String, only : assignment(=)                    , char      , varying_string
-    use            :: Kind_Numbers      , only : kind_int8
-    use            :: String_Handling   , only : operator(//)
-    use            :: Locks             , only : ompLock
+    use            :: Galacticus_HDF5                 , only : galacticusOutputFile
+    use            :: Galacticus_Nodes                , only : defaultMergingStatisticsComponent, mergerTree   , nodeComponentMergingStatistics, treeNode
+    use            :: HDF5_Access                     , only : hdf5Access
+    use            :: IO_HDF5                         , only : hdf5Object                       , hdf5VarDouble
+    use, intrinsic :: ISO_C_Binding                   , only : c_size_t
+    use            :: ISO_Varying_String              , only : assignment(=)                    , char         , varying_string                , var_str
+    use            :: Kind_Numbers                    , only : kind_int8
+    use            :: Numerical_Constants_Astronomical, only : gigaYear
+    use            :: String_Handling                 , only : operator(//)
+    use            :: Locks                           , only : ompLock
     implicit none
     type            (treeNode                      ), intent(inout), pointer      :: node
-    integer         (kind=kind_int8                ), intent(in   )               :: treeIndex
-    integer         (c_size_t                      ), intent(in   )               :: iOutput
+    integer         (kind=kind_int8                ), intent(in   )               :: indexTree
+    integer         (c_size_t                      ), intent(in   )               :: indexOutput
     logical                                         , intent(in   )               :: nodePassesFilter
     type            (ompLock                       ), intent(inout)               :: treeLock
     class           (nodeComponentMergingStatistics)               , pointer      :: mergingStatistics
     double precision                                , allocatable  , dimension(:) :: majorMergerTimes
-    type            (hdf5Object                    )                              :: majorMergersGroup, outputGroup, &
-         &                                                                           treeGroup
-    type            (varying_string                )                              :: groupName
-    !$GLC attributes unused :: treeLock
+    type            (hdf5VarDouble                 )               , dimension(1) :: majorMergerTimes_
+    type            (hdf5Object                    )                              :: outputsGroup     , outputGroup, &
+         &                                                                           nodeData         , dataset
+    type            (varying_string                )                              :: groupName        , commentText
+    logical                                                                       :: datasetExists
+    !$GLC attributes unused :: indexTree, treeLock
 
     ! Return immediately if this class is not active or the filter has not passed.
     if (.not.(defaultMergingStatisticsComponent%majorIsActive().and.nodePassesFilter)) return
     ! Get the major merger times.
-    mergingStatistics => node%mergingStatistics()
-    majorMergerTimes=mergingStatistics%majorMergerTime()
-    ! Return if no major mergers occurred.
-    if (.not.allocated(majorMergerTimes).or.size(majorMergerTimes) == 0) return
-    ! Open the output group.
+    mergingStatistics => node             %mergingStatistics()
+    majorMergerTimes  =  mergingStatistics%majorMergerTime  ()
+    allocate(majorMergerTimes_(1)%row(size(majorMergerTimes)))
+    majorMergerTimes_(1)%row=majorMergerTimes
     !$ call hdf5Access%set()
-    majorMergersGroup=galacticusOutputFile%openGroup("majorMergers","Major merger times.")
-    groupName="Output"
-    groupName=groupName//iOutput
-    outputGroup=majorMergersGroup%openGroup(char(groupName),"Major merger times for all trees at each output.")
-    groupName="mergerTree"
-    groupName=groupName//treeIndex
-    treeGroup=outputGroup%openGroup(char(groupName),"Major merger times for all nodes in this tree")
-    groupName="node"
-    groupName=groupName//node%index()
-    call    treeGroup        %writeDataset(majorMergerTimes,char(groupName),"Major merger times.")
-    call    treeGroup        %close       (                                                      )
-    call    outputGroup      %close       (                                                      )
-    call    majorMergersGroup%close       (                                                      )
-    !$ call hdf5Access       %unset       (                                                      )
+    outputsGroup =galacticusOutputFile%openGroup("Outputs","Contains all outputs from Galacticus.")
+    groupName    =var_str("Output"                 )//indexOutput
+    commentText  =var_str("Data for output number ")//indexOutput
+    outputGroup  =outputsGroup%openGroup (char(groupName                          ),char(commentText                                         ))
+    nodeData     =outputGroup %openGroup (     "nodeData"                          ,     "Group containing data on all nodes at this output." )
+    datasetExists=nodeData    %hasDataset(     "mergingStatisticsMajorMergerTimes"                                                            )
+    call nodeData%writeDataset(                                                                       &
+         &                                     majorMergerTimes_                                    , &
+         &                                     "mergingStatisticsMajorMergerTimes"                  , &
+         &                                     "Times of major mergers for the galaxy in this node.", &
+         &                     appendTo       =.true.                                               , &
+         &                     datasetReturned=dataset                                                &
+         &                    )
+    if (.not.datasetExists) call dataset%writeAttribute(gigaYear,"unitsInSI")
+    call    dataset     %close()
+    call    nodeData    %close()
+    call    outputGroup %close()
+    call    outputsGroup%close()
+    !$ call hdf5Access  %unset()
     return
   end subroutine Node_Component_Merging_Statistics_Major_Output
+
+  !![
+  <galacticusStateStoreTask>
+   <unitName>Node_Component_Merging_Statistics_Major_State_Store</unitName>
+  </galacticusStateStoreTask>
+  !!]
+  subroutine Node_Component_Merging_Statistics_Major_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentMergingStatistics -> major',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="mergerMassMovements_"/>
+    !!]
+    return
+  end subroutine Node_Component_Merging_Statistics_Major_State_Store
+
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>Node_Component_Merging_Statistics_Major_State_Restore</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
+  subroutine Node_Component_Merging_Statistics_Major_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentMergingStatistics -> major',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="mergerMassMovements_"/>
+    !!]
+    return
+  end subroutine Node_Component_Merging_Statistics_Major_State_Restore
 
 end module Node_Component_Merging_Statistics_Major

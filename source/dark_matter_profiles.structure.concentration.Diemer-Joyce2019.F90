@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -57,13 +57,13 @@
      type            (virialDensityContrastFixed   ), pointer     :: virialDensityContrastDefinition_ => null()
      type            (darkMatterProfileDMONFW      ), pointer     :: darkMatterProfileDMODefinition_  => null()
      type            (rootFinder                   )              :: finder
-     double precision                                             :: kappa                                     , scatter     , &
-          &                                                          a0                                        , a1          , &
-          &                                                          b0                                        , b1          , &
-          &                                                          cAlpha                                    , timePrevious, &
-          &                                                          concentrationMeanPrevious                 , massPrevious, &
+     double precision                                             :: kappa                                     , scatter      , &
+          &                                                          a0                                        , a1           , &
+          &                                                          b0                                        , b1           , &
+          &                                                          cAlpha                                    , timePrevious , &
+          &                                                          concentrationMeanPrevious                 , massPrevious , &
           &                                                          GTildePrevious
-     logical                                                      :: truncateConcentration
+     logical                                                      :: truncateConcentration                     , includeUpturn
    contains
      final     ::                                   diemerJoyce2019Destructor
      procedure :: concentration                  => diemerJoyce2019Concentration
@@ -99,69 +99,67 @@ contains
     class           (criticalOverdensityClass                        ), pointer       :: criticalOverdensity_
     class           (cosmologicalMassVarianceClass                   ), pointer       :: cosmologicalMassVariance_
     class           (linearGrowthClass                               ), pointer       :: linearGrowth_
-    double precision                                                                  :: kappa                    , a0     , &
-         &                                                                               a1                       , b0     , &
-         &                                                                               b1                       , cAlpha , &
+    double precision                                                                  :: kappa                    , a0           , &
+         &                                                                               a1                       , b0           , &
+         &                                                                               b1                       , cAlpha       , &
          &                                                                               scatter
-    logical                                                                           :: truncateConcentration
+    logical                                                                           :: truncateConcentration    , includeUpturn
 
     ! Check and read parameters.
     !![
     <inputParameter>
       <name>kappa</name>
       <source>parameters</source>
-      <variable>kappa</variable>
       <defaultValue>0.41d0</defaultValue>
       <description>The parameter $\kappa$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
     </inputParameter>
     <inputParameter>
       <name>a0</name>
       <source>parameters</source>
-      <variable>a0</variable>
       <defaultValue>2.45d0</defaultValue>
       <description>The parameter $a_0$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
     </inputParameter>
     <inputParameter>
       <name>a1</name>
       <source>parameters</source>
-      <variable>a1</variable>
       <defaultValue>1.82d0</defaultValue>
       <description>The parameter $a_1$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
     </inputParameter>
     <inputParameter>
       <name>b0</name>
       <source>parameters</source>
-      <variable>b0</variable>
       <defaultValue>3.20d0</defaultValue>
       <description>The parameter $b_0$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
     </inputParameter>
     <inputParameter>
       <name>b1</name>
       <source>parameters</source>
-      <variable>b1</variable>
       <defaultValue>2.30d0</defaultValue>
       <description>The parameter $b_1$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
     </inputParameter>
     <inputParameter>
       <name>cAlpha</name>
       <source>parameters</source>
-      <variable>cAlpha</variable>
       <defaultValue>0.21d0</defaultValue>
       <description>The parameter $c_{\alpha}$ appearing in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
     </inputParameter>
     <inputParameter>
       <name>scatter</name>
       <source>parameters</source>
-      <variable>scatter</variable>
       <defaultValue>0.0d0</defaultValue>
       <description>The scatter (in dex) to assume in the halo concentration algorithm of \cite{diemer_accurate_2019}.</description>
     </inputParameter>
     <inputParameter>
       <name>truncateConcentration</name>
       <source>parameters</source>
-      <variable>truncateConcentration</variable>
       <defaultValue>.false.</defaultValue>
       <description>If false, solutions to equation~(30) of \cite{diemer_accurate_2019} requring $x&lt;1$ will cause a fatal error. If true, such cases are simply truncated to $x=1$.</description>
+    </inputParameter>
+    <inputParameter>
+      <name>includeUpturn</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>If true, the term modelling the upturn in the $c(M)$ relation at high masses (i.e. $[1+\nu^2/B(n)]$ in equation~(28) of \citealt{diemer_accurate_2019}) is included. Otherwise this term is set equal to $1$ so that no upturn occurs.</description>
     </inputParameter>
     <objectBuilder class="cosmologyFunctions"       name="cosmologyFunctions_"       source="parameters"/>
     <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
@@ -169,7 +167,7 @@ contains
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
     !!]
-     self=darkMatterProfileConcentrationDiemerJoyce2019(kappa,a0,a1,b0,b1,cAlpha,scatter,truncateConcentration,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_)
+     self=darkMatterProfileConcentrationDiemerJoyce2019(kappa,a0,a1,b0,b1,cAlpha,scatter,truncateConcentration,includeUpturn,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"      />
@@ -181,7 +179,7 @@ contains
     return
   end function diemerJoyce2019ConstructorParameters
 
-  function diemerJoyce2019ConstructorInternal(kappa,a0,a1,b0,b1,cAlpha,scatter,truncateConcentration,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_) result(self)
+  function diemerJoyce2019ConstructorInternal(kappa,a0,a1,b0,b1,cAlpha,scatter,truncateConcentration,includeUpturn,cosmologyFunctions_,cosmologyParameters_,criticalOverdensity_,cosmologicalMassVariance_,linearGrowth_) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily diemerJoyce2019} dark matter halo profile
     concentration class.
@@ -192,11 +190,11 @@ contains
     use :: Root_Finder            , only : rangeExpandMultiplicative, rangeExpandSignExpectNegative, rangeExpandSignExpectPositive
     implicit none
     type            (darkMatterProfileConcentrationDiemerJoyce2019     )                         :: self
-    double precision                                                    , intent(in   )          :: kappa                          , a0     , &
-         &                                                                                          a1                             , b0     , &
-         &                                                                                          b1                             , cAlpha , &
+    double precision                                                    , intent(in   )          :: kappa                          , a0           , &
+         &                                                                                          a1                             , b0           , &
+         &                                                                                          b1                             , cAlpha       , &
          &                                                                                          scatter
-    logical                                                             , intent(in   )          :: truncateConcentration
+    logical                                                             , intent(in   )          :: truncateConcentration          , includeUpturn
     class           (cosmologyFunctionsClass                           ), intent(in   ), target  :: cosmologyFunctions_
     class           (cosmologyParametersClass                          ), intent(in   ), target  :: cosmologyParameters_
     class           (criticalOverdensityClass                          ), intent(in   ), target  :: criticalOverdensity_
@@ -204,7 +202,7 @@ contains
     class           (linearGrowthClass                                 ), intent(in   ), target  :: linearGrowth_
     type            (darkMatterHaloScaleVirialDensityContrastDefinition)               , pointer :: darkMatterHaloScaleDefinition_
     !![
-    <constructorAssign variables="kappa, a0, a1, b0, b1, cAlpha, scatter, truncateConcentration, *cosmologyFunctions_, *cosmologyParameters_, *criticalOverdensity_, *cosmologicalMassVariance_, *linearGrowth_"/>
+    <constructorAssign variables="kappa, a0, a1, b0, b1, cAlpha, scatter, truncateConcentration, includeUpturn, *cosmologyFunctions_, *cosmologyParameters_, *criticalOverdensity_, *cosmologicalMassVariance_, *linearGrowth_"/>
     !!]
 
     self%timePrevious             =-1.0d0
@@ -312,10 +310,10 @@ contains
     class           (darkMatterProfileConcentrationDiemerJoyce2019), intent(inout)          :: self
     type            (treeNode                                     ), intent(inout), target  :: node
     class           (nodeComponentBasic                           )               , pointer :: basic
-    double precision                                                                        :: peakHeight    , massHalo, &
-         &                                                                                     alphaEffective, A       , &
-         &                                                                                     B             , C       , &
-         &                                                                                     GTilde
+    double precision                                                                        :: peakHeight    , massHalo  , &
+         &                                                                                     alphaEffective, A         , &
+         &                                                                                     B             , C         , &
+         &                                                                                     GTilde        , termUpturn
 
     basic => node%basic()
     if     (                                   &
@@ -343,12 +341,14 @@ contains
             &                             )
        C                                =+1.0d0                                                                                                         &
             &                            -self%cAlpha*(1.0d0-alphaEffective)
+       if (self%includeUpturn) then
+          termUpturn=+1.0d0+peakHeight**2/B
+       else
+          termUpturn=+1.0d0
+       end if
        diemerJoyce2019GRoot             =+A                                                                                                             &
             &                            /peakHeight                                                                                                    &
-            &                            *(                                                                                                             &
-            &                             +1.0d0                                                                                                        &
-            &                             +peakHeight**2/B                                                                                              &
-            &                             )
+            &                            *termUpturn
        ! Initial guess of the concentration.
        if (self%GTildePrevious < 0.0d0) self%GTildePrevious=5.0d0
        ! Solve for the concentration.

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -33,6 +33,7 @@ module Node_Component_Hot_Halo_Very_Simple
   public :: Node_Component_Hot_Halo_Very_Simple_Reset            , Node_Component_Hot_Halo_Very_Simple_Rate_Compute       , &
        &    Node_Component_Hot_Halo_Very_Simple_Scale_Set        , Node_Component_Hot_Halo_Very_Simple_Tree_Initialize    , &
        &    Node_Component_Hot_Halo_Very_Simple_Thread_Initialize, Node_Component_Hot_Halo_Very_Simple_Thread_Uninitialize, &
+       &    Node_Component_Hot_Halo_Very_Simple_State_Store      , Node_Component_Hot_Halo_Very_Simple_State_Restore      , &
        &    Node_Component_Hot_Halo_Very_Simple_Node_Merger
 
   !![
@@ -175,9 +176,9 @@ contains
        <objectDestructor name="coolingRate_"        />
        <objectDestructor name="accretionHalo_"      />
        !!]
-       call nodePromotionEvent  %detach(defaultHotHaloComponent,nodePromotion  )
-       call satelliteMergerEvent%detach(defaultHotHaloComponent,satelliteMerger)
-       call postEvolveEvent     %detach(defaultHotHaloComponent,postEvolve     )
+       if (nodePromotionEvent  %isAttached(defaultHotHaloComponent,nodePromotion  )) call nodePromotionEvent  %detach(defaultHotHaloComponent,nodePromotion  )
+       if (satelliteMergerEvent%isAttached(defaultHotHaloComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultHotHaloComponent,satelliteMerger)
+       if (postEvolveEvent     %isAttached(defaultHotHaloComponent,postEvolve     )) call postEvolveEvent     %detach(defaultHotHaloComponent,postEvolve     )
     end if
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Thread_Uninitialize
@@ -279,7 +280,7 @@ contains
     implicit none
     class(nodeComponentHotHaloVerySimple), intent(inout) :: self
 
-    Node_Component_Hot_Halo_Very_Simple_Outer_Radius=darkMatterHaloScale_%virialRadius(self%hostNode)
+    Node_Component_Hot_Halo_Very_Simple_Outer_Radius=darkMatterHaloScale_%radiusVirial(self%hostNode)
     return
   end function Node_Component_Hot_Halo_Very_Simple_Outer_Radius
 
@@ -384,7 +385,7 @@ contains
     type            (treeNode            ), intent(inout), pointer :: node
     class           (nodeComponentHotHalo)               , pointer :: hotHaloCurrent, hotHalo
     class           (nodeEvent           )               , pointer :: event
-    double precision                                               :: hotHaloMass   , failedHotHaloMass
+    double precision                                               :: massHotHalo   , massFailedHotHalo
 
     ! If the very simple hot halo is not active, then return immediately.
     if (associated(node%firstChild).or..not.defaultHotHaloComponent%verySimpleIsActive()) return
@@ -411,14 +412,14 @@ contains
     select type (hotHaloCurrent)
     type is (nodeComponentHotHalo)
        ! Get the mass of hot gas accreted and the mass that failed to accrete.
-       hotHaloMass      =accretionHalo_%accretedMass      (node,accretionModeTotal)
-       failedHotHaloMass=accretionHalo_%failedAccretedMass(node,accretionModeTotal)
+       massHotHalo      =accretionHalo_%accretedMass      (node,accretionModeTotal)
+       massFailedHotHalo=accretionHalo_%failedAccretedMass(node,accretionModeTotal)
        ! If either is non-zero, then create a hot halo component and add these masses to it.
-       if (hotHaloMass > 0.0d0 .or. failedHotHaloMass > 0.0d0) then
+       if (massHotHalo > 0.0d0 .or. massFailedHotHalo > 0.0d0) then
           call Node_Component_Hot_Halo_Very_Simple_Create(node)
           hotHalo => node%hotHalo()
-          call hotHalo%          massSet(      hotHaloMass)
-          call hotHalo%unaccretedMassSet(failedHotHaloMass)
+          call hotHalo%          massSet(      massHotHalo)
+          call hotHalo%unaccretedMassSet(massFailedHotHalo)
           call hotHalo%    abundancesSet(   zeroAbundances)
        end if
     end select
@@ -664,5 +665,51 @@ contains
     hotHalo => node%hotHalo(autoCreate=.true.)
     return
   end subroutine Node_Component_Hot_Halo_Very_Simple_Create
+
+  !![
+  <galacticusStateStoreTask>
+   <unitName>Node_Component_Hot_Halo_Very_Simple_State_Store</unitName>
+  </galacticusStateStoreTask>
+  !!]
+  subroutine Node_Component_Hot_Halo_Very_Simple_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentHotHalo -> verySimple',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="darkMatterHaloScale_ coolingRate_ accretionHalo_"/>
+    !!]
+    return
+  end subroutine Node_Component_Hot_Halo_Very_Simple_State_Store
+
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>Node_Component_Hot_Halo_Very_Simple_State_Restore</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
+  subroutine Node_Component_Hot_Halo_Very_Simple_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentHotHalo -> verySimple',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="darkMatterHaloScale_ coolingRate_ accretionHalo_"/>
+    !!]
+    return
+  end subroutine Node_Component_Hot_Halo_Very_Simple_State_Restore
 
 end module Node_Component_Hot_Halo_Very_Simple

@@ -137,15 +137,15 @@ foreach my $directive ( keys(%{$nonIncludeDirectives}) ) {
 	    if ( exists($nonIncludeDirectives->{$directive}->{$content}) );
     }
 }
-
 # Output a file listing which files contain which directives.
 my $outputDirectives;
 @{$outputDirectives->{$_}->{'file'}} = @{$nonIncludeDirectives->{$_}->{'files'}}
     foreach ( keys(%{$nonIncludeDirectives}) );
 my $xmlOutput = new XML::Simple( NoAttr => 1, RootName => "directives" );
-open(my $directiveLocationsFile,">".$ENV{'BUILDPATH'}."/directiveLocations.xml");
+open(my $directiveLocationsFile,">".$ENV{'BUILDPATH'}."/directiveLocations.xml.tmp");
 print $directiveLocationsFile $xmlOutput->XMLout($outputDirectives);
 close($directiveLocationsFile);
+&File::Changes::Update($ENV{'BUILDPATH'}."/directiveLocations.xml",$ENV{'BUILDPATH'}."/directiveLocations.xml.tmp");
 # Output the Makefile and XML files containing the directives.
 open(my $directivesMakefile,">".$ENV{'BUILDPATH'}."/Makefile_Directives");
 foreach my $directive ( sort(keys(%{$includeDirectives})) ) {
@@ -187,7 +187,8 @@ print $directivesMakefile "-include ".$ENV{'BUILDPATH'}."/Makefile_Component_Inc
 print $directivesMakefile $ENV{'BUILDPATH'}."/Makefile_Component_Includes: ".$ENV{'BUILDPATH'}."/objects.nodes.components.Inc\n\n";
 close($directivesMakefile);
 # Output the per file directive data.
-store($directivesPerFile,$ENV{'BUILDPATH'}."/codeDirectives.blob");
+store($directivesPerFile,$ENV{'BUILDPATH'}."/codeDirectives.blob.tmp");
+&File::Changes::Update($ENV{'BUILDPATH'}."/codeDirectives.blob",$ENV{'BUILDPATH'}."/codeDirectives.blob.tmp");
 exit;
 
 sub addImplicitDirectives {

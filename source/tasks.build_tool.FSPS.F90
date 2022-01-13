@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -67,9 +67,18 @@ contains
     integer                   , intent(  out), optional :: status
     type   (varying_string   )                          :: fspsPath, fspsVersion
     !$GLC attributes unused :: self
+#include "os.inc"
 
     call displayIndent  ('Begin task: FSPS tool build')
-    call Interface_FSPS_Initialize(fspsPath,fspsVersion,static=.true.)
+    call Interface_FSPS_Initialize(                    &
+         &                                fspsPath   , &
+         &                                fspsVersion, &
+#ifdef __APPLE__
+         &                         static=.false.      &
+#else
+         &                         static=.true.       &
+#endif
+         &                        )
     call displayMessage('FSPS version '//fspsVersion//' successfully built in: '//fspsPath)
     if (present(status)) status=errorStatusSuccess
     call displayUnindent('Done task: FSPS tool build')

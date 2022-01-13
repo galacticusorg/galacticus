@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -79,7 +79,6 @@ contains
     !!{
     Internal constructor for the {\normalfont \ttfamily massCooled} node operator class.
     !!}
-    use :: Galacticus_Nodes, only : defaultHotHaloComponent
     implicit none
     type (nodeOperatorMassCooled)                        :: self
     class(coolingRateClass      ), intent(in   ), target :: coolingRate_
@@ -87,7 +86,9 @@ contains
     <constructorAssign variables="*coolingRate_"/>
     !!]
     
-    self%massCooledID=defaultHotHaloComponent%addMetaProperty(var_str('massCooled'),'hotHalo:massCooled',isEvolvable=.true.)  
+    !![
+    <addMetaProperty component="hotHalo" name="massCooled" id="self%massCooledID" isEvolvable="yes" isCreator="yes"/>
+    !!]
     return
   end function massCooledConstructorInternal
 

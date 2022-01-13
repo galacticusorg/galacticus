@@ -84,7 +84,7 @@
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
     <!-- Halo spins -->
-    <nodeOperator value="haloSpinInterpolate"/>
+    <nodeOperator value="haloAngularMomentumInterpolate"/>
     <!-- Star formation -->
     <nodeOperator value="starFormationDisks"/>
     <nodeOperator value="starFormationSpheroids"/>

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -110,7 +110,7 @@ contains
     use :: Galacticus_Nodes, only : defaultFormationTimeComponent
     implicit none
 
-    if (defaultFormationTimeComponent%massFractionIsActive()) &
+    if (defaultFormationTimeComponent%massFractionIsActive() .and. nodePromotionEvent%isAttached(defaultFormationTimeComponent,nodePromotion)) &
          & call nodePromotionEvent%detach(defaultFormationTimeComponent,nodePromotion)
     return
   end subroutine Node_Component_Formation_Times_Mass_Fraction_Thread_Uninit

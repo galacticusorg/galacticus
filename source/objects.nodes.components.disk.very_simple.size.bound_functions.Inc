@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -44,7 +44,7 @@ double precision function Node_Component_Disk_Very_Simple_Size_Enclosed_Mass(sel
   class           (nodeComponentDiskVerySimpleSize), intent(inout) :: self
   integer                                          , intent(in   ) :: componentType   , massType        , weightBy, weightIndex
   double precision                                 , intent(in   ) :: radius
-  double precision                                                 :: diskRadius      , fractionalRadius
+  double precision                                                 :: radiusDisk      , fractionalRadius
   type            (stellarLuminosities            ), save          :: luminositiesDisk
   !$omp threadprivate(luminositiesDisk)
 
@@ -74,9 +74,9 @@ double precision function Node_Component_Disk_Very_Simple_Size_Enclosed_Mass(sel
   ! Return if the total mass was requested.
   if (radius                                     >= radiusLarge) return
   ! Compute the actual mass.
-  diskRadius=self%radius()
-  if (diskRadius > 0.0d0) then
-     fractionalRadius=radius/diskRadius
+  radiusDisk=self%radius()
+  if (radiusDisk > 0.0d0) then
+     fractionalRadius=radius/radiusDisk
      Node_Component_Disk_Very_Simple_Size_Enclosed_Mass=                         &
           & +Node_Component_Disk_Very_Simple_Size_Enclosed_Mass                  &
           & *diskMassDistribution%massEnclosedBySphere(fractionalRadius)

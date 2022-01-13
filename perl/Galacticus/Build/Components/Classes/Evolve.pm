@@ -37,6 +37,10 @@ sub Build_Rate_Functions {
 	type        => "void",
 	name        => $class->{'name'}."MetaPropertyRate",
 	description => "Accumulate to the rate of change of the indexed meta-property of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class.",
+	modules     =>
+	    [
+	     "ISO_Varying_String"
+	    ],
 	variables   =>
 	    [
 	     {
@@ -77,10 +81,12 @@ sub Build_Rate_Functions {
 	$function->{'content'} = fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: interrupt, interruptProcedure, self
 CODE
+	$code::className          = $class->{'name'};
 	$code::offsetNameAll      = &offsetName('all'     ,$class->{'name'},'metaProperties');
 	$code::offsetNameActive   = &offsetName('active'  ,$class->{'name'},'metaProperties');
 	$code::offsetNameInactive = &offsetName('inactive',$class->{'name'},'metaProperties');
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (.not.{$className}MetaPropertyCreator(metaPropertyID)) call metaPropertyNoCreator('{$className}',char({$className}MetaPropertyLabels(metaPropertyID)),'real')
 if (rateComputeState == propertyTypeAll          ) then
  offset={$offsetNameAll}(metaPropertyID)
 else if (rateComputeState == propertyTypeActive  ) then
@@ -117,6 +123,10 @@ sub Build_Scale_Functions {
 	type        => "void",
 	name        => $class->{'name'}."MetaPropertyScale",
 	description => "Set the absolute scale of the indexed meta-property of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class.",
+	modules     =>
+	    [
+	     "ISO_Varying_String"
+	    ],
 	variables   =>
 	    [
 	     {
@@ -139,9 +149,11 @@ sub Build_Scale_Functions {
     };
     # Build the function.
     if ( grep {$class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$code::className  = $class->{'name'};
 	$code::offsetName = &offsetName('all',$class->{'name'},'metaProperties');
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self
+if (.not.{$className}MetaPropertyCreator(metaPropertyID)) call metaPropertyNoCreator('{$className}',char({$className}MetaPropertyLabels(metaPropertyID)),'real')
 nodeScales({$offsetName}(metaPropertyID))=setValue
 CODE
 	}

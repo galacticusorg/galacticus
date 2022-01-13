@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -66,12 +66,6 @@ module Dark_Matter_Profiles_DMO
     <type>double precision</type>
     <pass>yes</pass>
     <argument>type(treeNode), intent(inout) :: node</argument>
-   </method>
-   <method name="energyGrowthRate" >
-    <description> Returns the rate of chance of the total energy of {\normalfont \ttfamily node} in units of $M_\odot$ km$^2$ s$^{-2}$ Gyr$^{-1}$.</description>
-    <type>double precision</type>
-    <pass>yes</pass>
-    <argument>type(treeNode), intent(inout), target :: node</argument>
    </method>
    <method name="rotationNormalization" >
     <description> Returns the relation between specific angular momentum and rotation velocity (assuming a rotation velocity that is constant in radius) for the given {\normalfont \ttfamily node}. Specifically, the normalization, $A$, returned is such that $V_\mathrm{rot} = A J/M$</description>
@@ -194,7 +188,7 @@ module Dark_Matter_Profiles_DMO
      if (node%uniqueID()     == uniqueIDPrevious) then
         radiusGuess     =radiusPrevious
      else
-        radiusGuess     =self%darkMatterHaloScale_%virialRadius(node)
+        radiusGuess     =self%darkMatterHaloScale_%radiusVirial(node)
         uniqueIDPrevious=node                     %uniqueID    (    )
      end if
      darkMatterProfileDMOSelf  => self
@@ -246,7 +240,7 @@ module Dark_Matter_Profiles_DMO
   class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMOSelf   => null()
   type            (treeNode                 ), pointer :: darkMatterProfileDMONode   => null()
   double precision                                     :: darkMatterProfileDMOMass_
-  !$omp threadprivate(darkMatterProfileDMOSelf,darkMatterProfileDMOMass_)
+  !$omp threadprivate(darkMatterProfileDMOSelf,darkMatterProfileDMONode,darkMatterProfileDMOMass_)
 
 contains
 

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -39,9 +39,9 @@
      A merger tree operator class which outputs a file of tree root masses (and weights).
      !!}
      private
-     integer                                                                 :: treeCount
+     integer                                                                 :: nodeHierarchyLevelMaximumID, treeCount
      double precision                                                        :: time
-     double precision                , dimension(outputRootMassesBufferSize) :: mass                   , weight
+     double precision                , dimension(outputRootMassesBufferSize) :: mass                       , weight
      type            (varying_string)                                        :: fileName
      logical                                                                 :: alwaysIsolatedHalosOnly
    contains
@@ -111,19 +111,22 @@ contains
     !!{
     Internal constructor for the conditional mass function merger tree operator class.
     !!}
-    use :: File_Utilities, only : File_Exists, File_Remove
-    use :: HDF5_Access   , only : hdf5Access
+    use :: File_Utilities  , only : File_Exists, File_Remove
+    use :: HDF5_Access     , only : hdf5Access
     implicit none
     type            (mergerTreeOperatorOutputRootMasses)                :: self
     double precision                                    , intent(in   ) :: time
     logical                                             , intent(in   ) :: alwaysIsolatedHalosOnly
     type            (varying_string                    ), intent(in   ) :: fileName
     !![
-    <constructorAssign variables="time,alwaysIsolatedHalosOnly,fileName"/>
+    <constructorAssign variables="time, alwaysIsolatedHalosOnly, fileName"/>
     !!]
 
     ! Initialize.
     self%treeCount=0
+    !![
+    <addMetaProperty component="basic" name="nodeHierarchyLevelMaximum" id="self%nodeHierarchyLevelMaximumID" type="integer"/>
+    !!]
     ! Remove any pre-existing file.
     !$ call hdf5Access%set()
     if (File_Exists(fileName)) call File_Remove(fileName)
@@ -136,7 +139,7 @@ contains
     Compute conditional mass function on {\normalfont \ttfamily tree}.
     !!}
     use :: Galacticus_Error    , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes    , only : mergerTree                   , nodeComponentBasic, nodeComponentMergingStatistics, treeNode
+    use :: Galacticus_Nodes    , only : mergerTree                   , nodeComponentBasic, treeNode
     use :: Merger_Tree_Walkers , only : mergerTreeWalkerIsolatedNodes
     use :: Numerical_Comparison, only : Values_Agree
     implicit none
@@ -146,7 +149,6 @@ contains
          &                                                                          nodeSibling
     class           (nodeComponentBasic                ), pointer                :: basic            , basicChild     , &
          &                                                                          basicSibling
-    class           (nodeComponentMergingStatistics    ), pointer                :: mergingStatistics
     type            (mergerTreeWalkerIsolatedNodes     )                         :: treeWalker
     double precision                                                             :: branchBegin      , branchEnd      , &
          &                                                                          branchMassInitial, branchMassFinal, &
@@ -162,18 +164,16 @@ contains
           nodeChild => node
        end if
        ! Check if child should be included.
-       mergingStatistics => nodeChild%mergingStatistics()
-       if     (                                                         &
-            &   .not.self             %alwaysIsolatedHalosOnly          &
-            &  .or.                                                     &
-            &        mergingStatistics%nodeHierarchyLevelMaximum() == 0 &
+       basicChild => nodeChild%basic()
+       if     (                                                                                &
+            &   .not.self      %alwaysIsolatedHalosOnly                                        &
+            &  .or.                                                                            &
+            &        basicChild%integerMetaPropertyGet (self%nodeHierarchyLevelMaximumID) == 0 &
             & ) then
-          ! Get the basic components.
-          basic      => node     %basic()
-          basicChild => nodeChild%basic()
           ! Determine range of times spanned by this branch.
-          branchBegin=basicChild%time()
-          branchEnd  =basic     %time()
+          basic       => node      %basic()
+          branchBegin =  basicChild%time ()
+          branchEnd   =  basic     %time ()
           ! Does the branch span the search time?
           if     (                                                     &
                &     branchBegin <= self%time                          &

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -34,7 +34,8 @@ module Node_Component_Black_Hole_Simple
   public :: Node_Component_Black_Hole_Simple_Initialize         , Node_Component_Black_Hole_Simple_Scale_Set        , &
        &    Node_Component_Black_Hole_Simple_Thread_Uninitialize, Node_Component_Black_Hole_Simple_Output_Names     , &
        &    Node_Component_Black_Hole_Simple_Output_Count       , Node_Component_Black_Hole_Simple_Output           , &
-       &    Node_Component_Black_Hole_Simple_Rate_Compute       , Node_Component_Black_Hole_Simple_Thread_Initialize
+       &    Node_Component_Black_Hole_Simple_Rate_Compute       , Node_Component_Black_Hole_Simple_Thread_Initialize, &
+       &    Node_Component_Black_Hole_Simple_State_Store        , Node_Component_Black_Hole_Simple_State_Restore
 
   !![
   <component>
@@ -212,7 +213,7 @@ contains
        <objectDestructor name="blackHoleBinaryMerger_"     />
        <objectDestructor name="starFormationRateSpheroids_"/>
        !!]
-       call satelliteMergerEvent%detach(defaultBlackHoleComponent,satelliteMerger)
+       if (satelliteMergerEvent%isAttached(defaultBlackHoleComponent,satelliteMerger)) call satelliteMergerEvent%detach(defaultBlackHoleComponent,satelliteMerger)
     end if
     return
   end subroutine Node_Component_Black_Hole_Simple_Thread_Uninitialize
@@ -325,7 +326,7 @@ contains
           if (blackHoleHeatsHotHalo) then
              ! Compute jet coupling efficiency based on whether halo is cooling quasistatically.
              coolingRadiusFractional=+coolingRadius_      %      radius(node) &
-                  &                  /darkMatterHaloScale_%virialRadius(node)
+                  &                  /darkMatterHaloScale_%radiusVirial(node)
              if      (coolingRadiusFractional < coolingRadiusFractionalTransitionMinimum) then
                 couplingEfficiency=1.0d0
              else if (coolingRadiusFractional > coolingRadiusFractionalTransitionMaximum) then
@@ -533,5 +534,51 @@ contains
     Node_Component_Black_Hole_Simple_Seed_Mass=blackHoleSeedMass
     return
   end function Node_Component_Black_Hole_Simple_Seed_Mass
+
+  !![
+  <galacticusStateStoreTask>
+   <unitName>Node_Component_Black_Hole_Simple_State_Store</unitName>
+  </galacticusStateStoreTask>
+  !!]
+  subroutine Node_Component_Black_Hole_Simple_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentBlackHole -> simple',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="darkMatterHaloScale_ coolingRadius_ blackHoleBinaryMerger_ starFormationRateSpheroids_"/>
+    !!]
+    return
+  end subroutine Node_Component_Black_Hole_Simple_State_Store
+
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>Node_Component_Black_Hole_Simple_State_Restore</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
+  subroutine Node_Component_Black_Hole_Simple_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentBlackHole -> simple',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="darkMatterHaloScale_ coolingRadius_ blackHoleBinaryMerger_ starFormationRateSpheroids_"/>
+    !!]
+    return
+  end subroutine Node_Component_Black_Hole_Simple_State_Restore
 
 end module Node_Component_Black_Hole_Simple

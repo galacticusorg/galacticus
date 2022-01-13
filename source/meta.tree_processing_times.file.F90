@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -89,9 +89,10 @@ contains
     !!{
     Internal constructor for the ``file'' merger tree processing time estimator class.
     !!}
-    use :: FoX_DOM         , only : node                   , parseFile
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    use :: IO_XML          , only : XML_Array_Read_Static  , XML_Get_First_Element_By_Tag_Name
+    use :: FoX_DOM           , only : node                   , parseFile
+    use :: Galacticus_Error  , only : Galacticus_Error_Report
+    use :: IO_XML            , only : XML_Array_Read_Static  , XML_Get_First_Element_By_Tag_Name
+    use :: ISO_Varying_String, only : varying_string         , char
     implicit none
     type   (metaTreeProcessingTimeFile)                :: self
     type   (varying_string            ), intent(in   ) :: fileName

@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -109,6 +109,6 @@ contains
     class(hotHaloRamPressureTimescaleHaloDynamicalTime), intent(inout) :: self
     type (treeNode                                    ), intent(inout) :: node
 
-    haloDynamicalTimeTimescale=self%darkMatterHaloScale_%dynamicalTimescale(node)
+    haloDynamicalTimeTimescale=self%darkMatterHaloScale_%timescaleDynamical(node)
     return
   end function haloDynamicalTimeTimescale

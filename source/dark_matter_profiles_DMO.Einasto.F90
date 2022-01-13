@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -133,7 +133,6 @@
      procedure :: radiusFromSpecificAngularMomentum          => einastoRadiusFromSpecificAngularMomentum
      procedure :: rotationNormalization                      => einastoRotationNormalization
      procedure :: energy                                     => einastoEnergy
-     procedure :: energyGrowthRate                           => einastoEnergyGrowthRate
      procedure :: kSpace                                     => einastoKSpace
      procedure :: freefallRadius                             => einastoFreefallRadius
      procedure :: freefallRadiusIncreaseRate                 => einastoFreefallRadiusIncreaseRate
@@ -323,7 +322,7 @@ contains
     scaleRadius                =darkMatterProfile%scale()
     alpha                      =darkMatterProfile%shape()
     radiusOverScaleRadius      =radius                                      /scaleRadius
-    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
+    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%radiusVirial(node)/scaleRadius
     einastoDensity             =self%densityScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha) &
          &                      *basic%mass()/scaleRadius**3
     return
@@ -376,7 +375,7 @@ contains
          &                                                                       alpha              , densityNormalization
 
     radiusMinimumActual=0.0d0
-    radiusMaximumActual=self%darkMatterHaloScale_%virialRadius(node)
+    radiusMaximumActual=self%darkMatterHaloScale_%radiusVirial(node)
     if (present(radiusMinimum)) radiusMinimumActual=radiusMinimum
     if (present(radiusMaximum)) radiusMaximumActual=radiusMaximum
     ! Get components.
@@ -384,7 +383,7 @@ contains
     darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
     scaleRadius                =darkMatterProfile%scale()
     alpha                      =darkMatterProfile%shape()
-    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
+    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%radiusVirial(node)/scaleRadius
     densityNormalization= (alpha/4.0d0/Pi)                                                                                    &
          &               *   ((2.0d0/alpha)                    **(3.0d0/alpha)                                              ) &
          &               *exp(-2.0d0/alpha                                                                                  ) &
@@ -441,7 +440,7 @@ contains
     scaleRadius                =darkMatterProfile%scale()
     alpha                      =darkMatterProfile%shape()
     radiusOverScaleRadius      =radius                                      /scaleRadius
-    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
+    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%radiusVirial(node)/scaleRadius
     einastoEnclosedMass        =self%enclosedMassScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha) &
          &                      *basic%mass()
     return
@@ -542,7 +541,7 @@ contains
     ! Get the scale radius.
     scaleRadius                 =  darkMatterProfile%scale()
     radiusOverScaleRadius       =  radius                                      /scaleRadius
-    virialRadiusOverScaleRadius =  self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
+    virialRadiusOverScaleRadius =  self%darkMatterHaloScale_%radiusVirial(node)/scaleRadius
     ! Get the shape parameter.
     alpha                       =  darkMatterProfile%shape()
     if (radius > 0.0d0) then
@@ -559,7 +558,7 @@ contains
                &                          *                                                                                                                            hAlpha(iAlpha)
        end do
        einastoRadialVelocityDispersion=+einastoRadialVelocityDispersion                                                                           &
-            &                          *self%darkMatterHaloScale_%virialVelocity(node)                                                            &
+            &                          *self%darkMatterHaloScale_%velocityVirial(node)                                                            &
             &                          *sqrt(                                                                                                     &
             &                                +virialRadiusOverScaleRadius                                                                         &
             &                                /Gamma_Function_Incomplete_Complementary(3.0d0/alpha,2.0d0*virialRadiusOverScaleRadius**alpha/alpha) &
@@ -596,7 +595,7 @@ contains
     scaleRadius                =darkMatterProfile%scale()
     alpha                      =darkMatterProfile%shape()
     radiusOverScaleRadius      =radius                       /scaleRadius
-    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
+    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%radiusVirial(node)/scaleRadius
     einastoPotential=+self%potentialScaleFree(radiusOverScaleRadius,virialRadiusOverScaleRadius,alpha) &
          &           *gravitationalConstantGalacticus                                                  &
          &           *basic%mass()                                                                     &
@@ -778,7 +777,7 @@ contains
     ! Get scale radius, shape and concentration.
     scaleRadius                 =+darkMatterProfile%scale()
     alpha                       =+darkMatterProfile%shape()
-    virialRadiusOverScaleRadius =+self             %darkMatterHaloScale_%virialRadius(node) &
+    virialRadiusOverScaleRadius =+self             %darkMatterHaloScale_%radiusVirial(node) &
          &                       /                                       scaleRadius
     einastoRotationNormalization=+(2.0d0/alpha)**(1.0d0/alpha)                                                                        &
          &                       *Gamma_Function                         (3.0d0/alpha                                               ) &
@@ -813,7 +812,7 @@ contains
     ! Get scale radius, shape parameter and concentration.
     scaleRadius                =darkMatterProfile%scale()
     alpha                      =darkMatterProfile%shape()
-    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
+    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%radiusVirial(node)/scaleRadius
 
     ! Ensure the table exists and is sufficiently tabulated.
     call self%energyTableMake(virialRadiusOverScaleRadius,alpha)
@@ -832,69 +831,9 @@ contains
 
     ! Scale to dimensionful units.
     einastoEnergy=einastoEnergy*basic%mass()                         &
-         &        *self%darkMatterHaloScale_%virialVelocity(node)**2
+         &        *self%darkMatterHaloScale_%velocityVirial(node)**2
     return
   end function einastoEnergy
-
-  double precision function einastoEnergyGrowthRate(self,node)
-    !!{
-    Return the energy of an Einasto halo density profile.
-    !!}
-    use            :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile, treeNode
-    use, intrinsic :: ISO_C_Binding   , only : c_size_t
-    implicit none
-    class           (darkMatterProfileDMOEinasto   ), intent(inout)           :: self
-    type            (treeNode                      ), intent(inout) , target  :: node
-    class           (nodeComponentBasic            )                , pointer :: basic
-    class           (nodeComponentDarkMatterProfile)                , pointer :: darkMatterProfile
-    integer         (c_size_t                      ), dimension(0:1)          :: jAlpha
-    double precision                                , dimension(0:1)          :: hAlpha
-    integer                                                                   :: iAlpha
-    double precision                                                          :: alpha                      , energy     , &
-         &                                                                       energyGradient             , scaleRadius, &
-         &                                                                       virialRadiusOverScaleRadius
-
-    ! Get components.
-    basic             => node%basic            (                 )
-    darkMatterProfile => node%darkMatterProfile(autoCreate=.true.)
-
-    ! Get scale radius, shape parameter and concentration.
-    scaleRadius                =darkMatterProfile%scale()
-    alpha                      =darkMatterProfile%shape()
-    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
-
-    ! Ensure the table exists and is sufficiently tabulated.
-    call self%energyTableMake(virialRadiusOverScaleRadius,alpha)
-
-    ! Get interpolating factors in alpha.
-    call self%energyTableAlphaInterpolator%linearFactors(alpha,jAlpha(0),hAlpha)
-    jAlpha(1)=jAlpha(0)+1
-    
-    ! Find the energy gradient by interpolation.
-    energy        =0.0d0
-    energyGradient=0.0d0
-    do iAlpha=0,1
-       energy        =+energy                                                                                                                &
-            &         +self%energyTableConcentrationInterpolator%interpolate(virialRadiusOverScaleRadius,self%energyTable(:,jAlpha(iAlpha))) &
-            &         *                                                                                                     hAlpha(iAlpha)
-       energyGradient=+energyGradient                                                                                                        &
-            &         +self%energyTableConcentrationInterpolator%derivative (virialRadiusOverScaleRadius,self%energyTable(:,jAlpha(iAlpha))) &
-            &         *                                                                                                     hAlpha(iAlpha)
-    end do
-
-    ! Compute the energy growth rate.
-    einastoEnergyGrowthRate=+self%energy(node)                                                                                               &
-         &                  *(                                                                                                               &
-         &                    +basic%accretionRate()/basic%mass()                                                                            &
-         &                    +2.0d0*self%darkMatterHaloScale_%virialVelocityGrowthRate(node)/self%darkMatterHaloScale_%virialVelocity(node) &
-         &                    +(energyGradient*virialRadiusOverScaleRadius/energy)                                                           &
-         &                    *(                                                                                                             &
-         &                      +self%darkMatterHaloScale_%virialRadiusGrowthRate(node)/self%darkMatterHaloScale_%virialRadius(node)         &
-         &                      -darkMatterProfile%scaleGrowthRate()/darkMatterProfile%scale()                                               &
-         &                     )                                                                                                             &
-         &                   )
-    return
-  end function einastoEnergyGrowthRate
 
   subroutine einastoEnergyTableMake(self,concentrationRequired,alphaRequired)
     !!{
@@ -1144,7 +1083,7 @@ contains
     ! Get scale radius, shape parameter and concentration.
     scaleRadius                =darkMatterProfile%scale()
     alpha                      =darkMatterProfile%shape()
-    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/scaleRadius
+    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%radiusVirial(node)/scaleRadius
     wavenumberScaleFree        =wavenumber*scaleRadius
 
     ! Ensure the table exists and is sufficiently tabulated.
@@ -1361,7 +1300,7 @@ contains
 
     ! Get the scale radius.
     radiusScale                =darkMatterProfile%scale()
-    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/radiusScale
+    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%radiusVirial(node)/radiusScale
 
     ! Get the velocity scale.
     velocityScale=sqrt(gravitationalConstantGalacticus*basic%mass()/radiusScale)
@@ -1431,7 +1370,7 @@ contains
 
     ! Get the scale radius.
     radiusScale                =darkMatterProfile%scale()
-    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%virialRadius(node)/radiusScale
+    virialRadiusOverScaleRadius=self%darkMatterHaloScale_%radiusVirial(node)/radiusScale
 
     ! Get the velocity scale.
     velocityScale=sqrt(gravitationalConstantGalacticus*basic%mass()/radiusScale)
@@ -1606,7 +1545,7 @@ contains
     einastoDensityEnclosed        =  density
     einastoNode                   => node
     einastoSelf                   => self
-    einastoRadiusEnclosingDensity =  self%finderEnclosedDensity%find(rootGuess=self%darkMatterHaloScale_%virialRadius(node))
+    einastoRadiusEnclosingDensity =  self%finderEnclosedDensity%find(rootGuess=self%darkMatterHaloScale_%radiusVirial(node))
     return
   end function einastoRadiusEnclosingDensity
 

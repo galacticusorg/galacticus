@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -67,10 +67,10 @@ module Galacticus_Nodes
      integer         (kind=kind_int8            )                  :: index
      type            (hdf5Object                )                  :: hdf5Group
      double precision                                              :: volumeWeight                    , initializedUntil
-     type            (treeNode                  ), pointer         :: baseNode               => null()
+     type            (treeNode                  ), pointer         :: nodeBase               => null()
      type            (mergerTree                ), pointer         :: nextTree               => null(), firstTree        => null()
      type            (universe                  ), pointer         :: hostUniverse           => null()
-     type            (treeEvent                 ), pointer, public :: event
+     type            (treeEvent                 ), pointer, public :: event                  => null()
      class           (randomNumberGeneratorClass), pointer         :: randomNumberGenerator_ => null()
      type            (doubleHash                )                  :: properties
    contains
@@ -140,7 +140,7 @@ module Galacticus_Nodes
      !!}
      type   (mergerTreeList), pointer         :: trees         => null()
      logical                                  :: allTreesBuilt =  .false.
-     type   (universeEvent ), pointer, public :: event
+     type   (universeEvent ), pointer, public :: event         => null()
      type   (genericHash   )                  :: attributes
      integer(kind_int8     )                  :: uniqueID
    contains
@@ -422,9 +422,10 @@ module Galacticus_Nodes
     class(nodeEvent), intent(inout), pointer :: newEvent
     class(nodeEvent)               , pointer :: event
 
-    !$omp atomic
+    !$omp critical (nodeEventIncrement)
     eventID       =  eventID+1
     newEvent%ID   =  eventID
+    !$omp end critical (nodeEventIncrement)
     newEvent%next => null()
     if (associated(self%event)) then
        event => self%event
@@ -1015,7 +1016,7 @@ module Galacticus_Nodes
     return
   end subroutine Node_Component_Generic_Destroy
 
-  integer function Node_Component_Generic_Add_Meta_Property(self,label,name,isEvolvable)
+  integer function Node_Component_Generic_Add_Meta_Property(self,label,name,isEvolvable,isCreator)
     !!{
     Add a meta-property to a node component.
     !!}
@@ -1023,14 +1024,34 @@ module Galacticus_Nodes
     class    (nodeComponent ), intent(inout)           :: self
     type     (varying_string), intent(in   )           :: label
     character(len=*         ), intent(in   )           :: name
-    logical                  , intent(in   ), optional :: isEvolvable
-    !$GLC attributes unused :: self, label, name, isEvolvable
+    logical                  , intent(in   ), optional :: isEvolvable, isCreator
+    !$GLC attributes unused :: self, label, name, isEvolvable, isCreator
 
     Node_Component_Generic_Add_Meta_Property=-1
     call Galacticus_Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})
     return
   end function Node_Component_Generic_Add_Meta_Property
 
+  integer function Node_Component_Generic_Add_Integer_Meta_Property(self,label,name,isCreator)
+    !!{
+    Add an integer meta-property to a node component.
+    !!}
+    implicit none
+    class    (nodeComponent ), intent(inout)           :: self
+    type     (varying_string), intent(in   )           :: label
+    character(len=*         ), intent(in   )           :: name
+    logical                  , intent(in   ), optional :: isCreator
+    !$GLC attributes unused :: self, label, name, isCreator
+
+    Node_Component_Generic_Add_Integer_Meta_Property=-1
+    call Galacticus_Error_Report('can not add integer meta-properties to a generic nodeComponent'//{introspection:location})
+    return
+  end function Node_Component_Generic_Add_Integer_Meta_Property
+  
+  !![
+  <metaPropertyDatabase/>
+  !!]
+  
   subroutine Node_Component_ODE_Step_Initialize_Null(self)
     !!{
     Initialize a generic tree node component for an ODE solver step.
@@ -1466,9 +1487,9 @@ module Galacticus_Nodes
     select type (tree)
     type is (mergerTree)
        ! Destroy all nodes.
-       if (associated(tree%baseNode)) then
-          call tree%baseNode%destroyBranch()
-          deallocate(tree%baseNode)
+       if (associated(tree%nodeBase)) then
+          call tree%nodeBase%destroyBranch()
+          deallocate(tree%nodeBase)
        end if
        ! Destroy the HDF5 group associated with this tree.
        call tree%hdf5Group%destroy()
@@ -1502,7 +1523,7 @@ module Galacticus_Nodes
     Merger_Tree_Node_Get => null()
     treeCurrent => tree
     do while (associated(treeCurrent))
-       node => treeCurrent%baseNode
+       node => treeCurrent%nodeBase
        do while (associated(node))
           if (node%index() == nodeIndex) then
              Merger_Tree_Node_Get => node
@@ -1525,9 +1546,10 @@ module Galacticus_Nodes
 
     allocate(eventNew)
     nullify(eventNew%next)
-    !$omp atomic
+    !$omp critical (nodeEventIncrement)
     eventID=eventID+1
     eventNew%ID=eventID
+    !$omp end critical (nodeEventIncrement)
     if (associated(self%event)) then
        event => self%event
        do while (associated(event%next))
@@ -1586,7 +1608,7 @@ module Galacticus_Nodes
     Merger_Tree_Earliest_Time =  timeInfinity
     treeCurrent               => self
     do while (associated(treeCurrent))
-       node => treeCurrent%baseNode
+       node => treeCurrent%nodeBase
        do while (associated(node))
           if (.not.associated(node%firstChild)) then
              basic                     =>                               node %basic()
@@ -1613,7 +1635,7 @@ module Galacticus_Nodes
     Merger_Tree_Earliest_Time_Evolving =  timeInfinity
     treeCurrent                        => self
     do while (associated(treeCurrent))
-       node => treeCurrent%baseNode
+       node => treeCurrent%nodeBase
        do while (associated(node))
           if (.not.associated(node%firstChild).and.(associated(node%parent).or..not.associated(node%firstSatellite))) then
              basic                              =>                                        node %basic()
@@ -1633,14 +1655,14 @@ module Galacticus_Nodes
     implicit none
     class           (mergerTree        ), intent(inout), target :: self
     type            (mergerTree        ), pointer               :: treeCurrent
-    class           (nodeComponentBasic), pointer               :: baseBasic
+    class           (nodeComponentBasic), pointer               :: basicBase
 
     Merger_Tree_Latest_Time =  -1.0d0
     treeCurrent             => self
     do while (associated(treeCurrent))
-       if (associated(treeCurrent%baseNode)) then
-          baseBasic               =>                             treeCurrent%baseNode%basic()
-          Merger_Tree_Latest_Time =  max(Merger_Tree_Latest_Time,baseBasic  %time          ())
+       if (associated(treeCurrent%nodeBase)) then
+          basicBase               =>                             treeCurrent%nodeBase%basic()
+          Merger_Tree_Latest_Time =  max(Merger_Tree_Latest_Time,basicBase  %time          ())
        end if
        treeCurrent => treeCurrent%nextTree
     end do
@@ -1690,9 +1712,10 @@ module Galacticus_Nodes
 
     allocate(newEvent)
     nullify(newEvent%next)
-    !$omp atomic
+    !$omp critical (nodeEventIncrement)
     eventID=eventID+1
     newEvent%ID=eventID
+    !$omp end critical (nodeEventIncrement)
     if (associated(self%event)) then
        event => self%event
        do while (associated(event%next))
@@ -1713,13 +1736,15 @@ module Galacticus_Nodes
     class  (universe     ), intent(inout) :: self
     type   (universeEvent), intent(in   ) :: event
     type   (universeEvent), pointer       :: eventLast, eventNext, event_
-
+    integer(kind_int8    )                :: eventID
+    
     ! Destroy the event.
+    eventID   =  event%ID
     eventLast => null()
     event_    => self%event
     do while (associated(event_))
        ! Match the event.
-       if (event_%ID == event%ID) then
+       if (event_%ID == eventID) then
           if (associated(event_,self%event)) then
              self     %event => event_%next
              eventLast       => self  %event

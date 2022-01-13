@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -219,7 +219,7 @@ contains
     ! Write basic tree information.
     treeCurrent => tree
     do while (associated(treeCurrent))
-       write (fileUnit) treeCurrent%index,treeCurrent%volumeWeight,treeCurrent%initializedUntil,nodeArrayPosition(treeCurrent%baseNode%uniqueID(),nodeIndices)
+       write (fileUnit) treeCurrent%index,treeCurrent%volumeWeight,treeCurrent%initializedUntil,nodeArrayPosition(treeCurrent%nodeBase%uniqueID(),nodeIndices)
        treeCurrent => treeCurrent%nextTree
     end do
     ! Output nodes.
@@ -360,7 +360,7 @@ contains
           nodes(iNode)%node => treeNode(hostTree=treeCurrent)
        end do
        ! Assign the tree base node.
-       treeCurrent%baseNode => nodes(nodeArrayIndex)%node
+       treeCurrent%nodeBase => nodes(nodeArrayIndex)%node
        ! Ensure tree events are nullified.
        treeCurrent%event => null()
        ! Set pointer to the first tree in the forest.

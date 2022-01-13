@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -26,15 +26,17 @@ module Node_Component_Basic_Standard_Extended
   !!{
   Extends the standard implementation of basic component to track the Bertschinger mass.
   !!}
-  use :: Cosmology_Functions    , only : cosmologyFunctionsClass
-  use :: Cosmology_Parameters   , only : cosmologyParametersClass
-  use :: Virial_Density_Contrast, only : virialDensityContrastClass
+  use :: Cosmology_Functions     , only : cosmologyFunctionsClass
+  use :: Cosmology_Parameters    , only : cosmologyParametersClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Virial_Density_Contrast , only : virialDensityContrastClass
   implicit none
   private
-  public :: Node_Component_Basic_Standard_Extended_Initialize, Node_Component_Basic_Standard_Extended_Node_Merger , &
-       &    Node_Component_Basic_Standard_Extended_Scale_Set , Node_Component_Basic_Extended_Bindings             , &
-       &    Node_Component_Basic_Extended_Thread_Initialize  , Node_Component_Basic_Extended_Thread_Uninitialize  , &
-       &    Node_Component_Basic_Standard_Extended_Rate_Compute
+  public :: Node_Component_Basic_Standard_Extended_Initialize  , Node_Component_Basic_Standard_Extended_Node_Merger , &
+       &    Node_Component_Basic_Standard_Extended_Scale_Set   , Node_Component_Basic_Extended_Bindings             , &
+       &    Node_Component_Basic_Extended_Thread_Initialize    , Node_Component_Basic_Extended_Thread_Uninitialize  , &
+       &    Node_Component_Basic_Standard_Extended_Rate_Compute, Node_Component_Basic_Extended_State_Store          , &
+       &    Node_Component_Basic_Extended_State_Restore
 
   !![
   <component>
@@ -79,9 +81,10 @@ module Node_Component_Basic_Standard_Extended
   !!]
 
   ! Objects used by this component.
-  class(cosmologyParametersClass), pointer :: cosmologyParameters_
-  class(cosmologyFunctionsClass ), pointer :: cosmologyFunctions_
-  !$omp threadprivate(cosmologyParameters_,cosmologyFunctions_)
+  class(cosmologyParametersClass ), pointer :: cosmologyParameters_
+  class(cosmologyFunctionsClass  ), pointer :: cosmologyFunctions_
+  class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
+  !$omp threadprivate(cosmologyParameters_,cosmologyFunctions_,darkMatterProfileDMO_)
 
   ! Options controlling spherical collapse model to use.
   integer                                        :: nodeComponentBasicExtendedSphericalCollapseType                 , nodeComponentBasicExtendedSphericalCollapseEnergyFixedAt
@@ -167,8 +170,9 @@ contains
 
     if (defaultBasicComponent%standardExtendedIsActive()) then
        !![
-       <objectBuilder class="cosmologyParameters" name="cosmologyParameters_" source="parameters_"/>
-       <objectBuilder class="cosmologyFunctions"  name="cosmologyFunctions_"  source="parameters_"/>
+       <objectBuilder class="cosmologyParameters"  name="cosmologyParameters_"  source="parameters_"/>
+       <objectBuilder class="cosmologyFunctions"   name="cosmologyFunctions_"   source="parameters_"/>
+       <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters_"/>
        !!]
        call nodePromotionEvent%attach(defaultBasicComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentBasicExtended')
     end if
@@ -190,10 +194,11 @@ contains
 
     if (defaultBasicComponent%standardExtendedIsActive()) then
        !![
-       <objectDestructor name="cosmologyParameters_"/>
-       <objectDestructor name="cosmologyFunctions_" />
+       <objectDestructor name="cosmologyParameters_" />
+       <objectDestructor name="cosmologyFunctions_"  />
+       <objectDestructor name="darkMatterProfileDMO_"/>
        !!]
-       call nodePromotionEvent%detach(defaultBasicComponent,nodePromotion)
+       if (nodePromotionEvent%isAttached(defaultBasicComponent,nodePromotion)) call nodePromotionEvent%detach(defaultBasicComponent,nodePromotion)
     end if
     return
   end subroutine Node_Component_Basic_Extended_Thread_Uninitialize
@@ -236,15 +241,19 @@ contains
     end if
     ! Compute Bertschinger mass and turnaround radius.
     selfNode => self%hostNode
-    call self%massBertschingerSet(                                                                                                           &
-         &                        Dark_Matter_Profile_Mass_Definition(                                                                       &
-         &                                                                   selfNode                                                      , &
-         &                                                                   virialDensityContrast_%densityContrast(                         &
-         &                                                                                                          self%mass            (), &
-         &                                                                                                          self%timeLastIsolated()  &
-         &                                                                                                         )                       , &
-         &                                                            radius=radiusVirial                                                    &
-         &                                                           )                                                                       &
+    call self%massBertschingerSet(                                                                                                                           &
+         &                        Dark_Matter_Profile_Mass_Definition(                                                                                       &
+         &                                                                                   selfNode                                                      , &
+         &                                                                                   virialDensityContrast_%densityContrast(                         &
+         &                                                                                                                          self%mass            (), &
+         &                                                                                                                          self%timeLastIsolated()  &
+         &                                                                                                                         )                       , &
+         &                                                            radius                =radiusVirial                                                  , &
+         &                                                            cosmologyParameters_  =cosmologyParameters_                                          , &
+         &                                                            cosmologyFunctions_   =cosmologyFunctions_                                           , &
+         &                                                            darkMatterProfileDMO_ =darkMatterProfileDMO_                                         , &
+         &                                                            virialDensityContrast_=virialDensityContrast_                                          &
+         &                                                           )                                                                                       &
          &                       )
     call self%radiusTurnaroundSet(virialDensityContrast_%turnAroundOverVirialRadii(mass=self%mass(),time=self%time())*radiusVirial)
     return
@@ -494,5 +503,51 @@ contains
     call basic%radiusTurnaroundGrowthRateSet(basicParent%radiusTurnaroundGrowthRate())
     return
   end subroutine nodePromotion
+
+  !![
+  <galacticusStateStoreTask>
+   <unitName>Node_Component_Basic_Extended_State_Store</unitName>
+  </galacticusStateStoreTask>
+  !!]
+  subroutine Node_Component_Basic_Extended_State_Store(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Store object state,
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Storing state for: componentBasic -> extended',verbosity=verbosityLevelInfo)
+    !![
+    <stateStore variables="cosmologyParameters_ cosmologyFunctions_ darkMatterProfileDMO_"/>
+    !!]
+    return
+  end subroutine Node_Component_Basic_Extended_State_Store
+
+  !![
+  <galacticusStateRetrieveTask>
+   <unitName>Node_Component_Basic_Extended_State_Restore</unitName>
+  </galacticusStateRetrieveTask>
+  !!]
+  subroutine Node_Component_Basic_Extended_State_Restore(stateFile,gslStateFile,stateOperationID)
+    !!{
+    Retrieve object state.
+    !!}
+    use            :: Display      , only : displayMessage, verbosityLevelInfo
+    use, intrinsic :: ISO_C_Binding, only : c_ptr         , c_size_t
+    implicit none
+    integer          , intent(in   ) :: stateFile
+    integer(c_size_t), intent(in   ) :: stateOperationID
+    type   (c_ptr   ), intent(in   ) :: gslStateFile
+
+    call displayMessage('Retrieving state for: componentBasic -> extended',verbosity=verbosityLevelInfo)
+    !![
+    <stateRestore variables="cosmologyParameters_ cosmologyFunctions_ darkMatterProfileDMO_"/>
+    !!]
+    return
+  end subroutine Node_Component_Basic_Extended_State_Restore
 
 end module Node_Component_Basic_Standard_Extended

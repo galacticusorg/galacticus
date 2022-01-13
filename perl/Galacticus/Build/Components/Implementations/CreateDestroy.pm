@@ -160,6 +160,10 @@ if (allocated({$class->{'name'}}MetaPropertyNames).and..not.allocated(self%metaP
  allocate(self%metaProperties(size({$class->{'name'}}MetaPropertyNames)))
  self%metaProperties=0.0d0
 end if
+if (allocated({$class->{'name'}}IntegerMetaPropertyNames).and..not.allocated(self%integerMetaProperties)) then
+ allocate(self%integerMetaProperties(size({$class->{'name'}}IntegerMetaPropertyNames)))
+ self%integerMetaProperties=0_kind_int8
+end if
 CODE
     }
     # Add required modules to function.
@@ -269,7 +273,7 @@ sub Implementation_Builder {
 	modules     =>
 	    [
 	     "Galacticus_Error",
-	     "FoX_DOM",
+	     "FoX_DOM, only : node, nodeList, getLength, extractDataContent, getElementsByTagName, item",
 	     "Memory_Management",
 	     "ISO_Varying_String"
 	    ],

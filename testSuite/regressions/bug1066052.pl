@@ -8,7 +8,7 @@ use PDL::IO::HDF5;
 # Andrew Benson (12-October-2012)
 
 # Run the model and check for successful completion.
-system("Galacticus.exe testSuite/parameters/bug1066052.xml");
+system("./Galacticus.exe testSuite/parameters/bug1066052.xml");
 die("FAILED: bug1066052.xml model failed to complete") 
     unless ( $? == 0 );
 

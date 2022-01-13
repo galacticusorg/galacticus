@@ -1,5 +1,5 @@
 !! Copyright 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018,
-!!           2019, 2020, 2021
+!!           2019, 2020, 2021, 2022
 !!    Andrew Benson <abenson@carnegiescience.edu>
 !!
 !! This file is part of Galacticus.
@@ -55,14 +55,14 @@
      !!}
      private
      class           (posteriorSampleLikelihoodClass), pointer                     :: posteriorSampleLikelihood_ => null()
-     integer                                         , allocatable, dimension(:  ) :: neighborIndices           , exclusions
+     integer                                         , allocatable, dimension(:  ) :: neighborIndices                     , exclusions
      logical                                         , allocatable, dimension(:  ) :: included
-     double precision                                , allocatable, dimension(:  ) :: neighborDistances         , rootVariance
+     double precision                                , allocatable, dimension(:  ) :: neighborDistances                   , rootVariance
      double precision                                , allocatable, dimension(:,:) :: states
      class           (nearestNeighbors              ), allocatable                 :: searcher
-     integer                                                                       :: dimCount                  , convergedStateCount  , &
+     integer                                                                       :: dimCount                            , convergedStateCount  , &
           &                                                                           neighborCount
-     double precision                                                              :: tolerance                 , logPriorNormalization
+     double precision                                                              :: tolerance                           , logPriorNormalization
      logical                                                                       :: initialized
    contains
      !![
