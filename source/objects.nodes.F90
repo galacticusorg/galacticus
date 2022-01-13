@@ -187,6 +187,14 @@ module Galacticus_Nodes
      end function universeEventTask
   end interface
 
+  ! Meta-property types.
+  type :: rank1MetaProperty
+     !!{
+     Type used to store rank-1 meta-properties.
+     !!}
+     double precision, allocatable, dimension(:) :: values
+  end type rank1MetaProperty
+  
   ! Zero dimension arrays to be returned as defaults.
   integer                                            , dimension(0) :: nullInteger1d
   integer         (kind_int8)                        , dimension(0) :: nullLongInteger1d
@@ -1031,6 +1039,22 @@ module Galacticus_Nodes
     call Galacticus_Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})
     return
   end function Node_Component_Generic_Add_Meta_Property
+
+  integer function Node_Component_Generic_Add_Rank1_Meta_Property(self,label,name,isCreator)
+    !!{
+    Add a rank-1 meta-property to a node component.
+    !!}
+    implicit none
+    class    (nodeComponent ), intent(inout)           :: self
+    type     (varying_string), intent(in   )           :: label
+    character(len=*         ), intent(in   )           :: name
+    logical                  , intent(in   ), optional :: isCreator
+    !$GLC attributes unused :: self, label, name, isCreator
+
+    Node_Component_Generic_Add_Rank1_Meta_Property=-1
+    call Galacticus_Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})
+    return
+  end function Node_Component_Generic_Add_Rank1_Meta_Property
 
   integer function Node_Component_Generic_Add_Integer_Meta_Property(self,label,name,isCreator)
     !!{
