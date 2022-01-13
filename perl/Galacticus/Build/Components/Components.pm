@@ -61,6 +61,14 @@ sub Build_Node_Component_Class {
 	 },
 	 {
 	     type        => "procedure"                                                                                            ,
+	     name        => "addRank1MetaProperty"                                                                                      ,
+	     function    => "Node_Component_Generic_Add_Rank1_Meta_Property"                                                             ,
+	     description => "Add a rank-1 meta-property to this class."                                                                   ,
+	     returnType  => "\\intzero"                                                                                            ,
+	     arguments   => "\\textcolor{red}{\\textless type(varying\_string)\\textgreater label, \\textcolor{red}{\\textless character(len=*)\\textgreater name, \\logicalzero\ [isEvolvable], \\logicalzero\ [isCreator]"
+	 },
+	 {
+	     type        => "procedure"                                                                                            ,
 	     name        => "addIntegerMetaProperty"                                                                               ,
 	     function    => "Node_Component_Generic_Add_Integer_Meta_Property"                                                     ,
 	     description => "Add an integer meta-property to this class."                                                          ,
@@ -266,6 +274,12 @@ sub Build_Node_Component_Class {
 	     intrinsic  =>   "double precision",
 	     attributes => [ "allocatable" , "dimension(:)" ],
 	     variables  => [ "metaProperties" ]
+	 },
+	 {
+	     intrinsic  =>   "type",
+	     type       =>   "rank1MetaProperty",
+	     attributes => [ "allocatable" , "dimension(:)" ],
+	     variables  => [ "rank1MetaProperties" ]
 	 },
 	 {
 	     intrinsic  =>   "integer(kind_int8)",

@@ -36,20 +36,30 @@ sub Process_AddMetaProperty {
 	    # Set defaults.
 	    $node->{'directive'}->{'type'       } = "real"
 		unless ( exists($node->{'directive'}->{'type'       }) );
+	    $node->{'directive'}->{'rank'       } = 0
+		unless ( exists($node->{'directive'}->{'rank'       }) );
 	    $node->{'directive'}->{'isEvolvable'} = "no"
 		unless ( exists($node->{'directive'}->{'isEvolvable'}) );
 	    $node->{'directive'}->{'isCreator'  } = "no"
 		unless ( exists($node->{'directive'}->{'isCreator'  }) );
 	    # Validate.
-	    die("non-real meta-properties can not be evolvable")
-		if ( $node->{'directive'}->{'isEvolvable'} eq "yes" && $node->{'directive'}->{'type'} ne "real" );
+	    die("non-real meta-properties can not be evolvable"          )
+		if ( $node->{'directive'}->{'isEvolvable'} eq "yes"     && $node->{'directive'}->{'type'} ne "real" );
+	    die("rank > 0 meta-properties can not be evolvable"          )
+		if ( $node->{'directive'}->{'isEvolvable'} eq "yes"     && $node->{'directive'}->{'rank'} >  0      );
+	    die("integer meta-properties with rank > 0 are not supported")
+		if ( $node->{'directive'}->{'type'       } eq "integer" && $node->{'directive'}->{'rank'} >  0      );
+	    die("rank > 1 meta-properties are not supported"             )
+		if (                                                       $node->{'directive'}->{'rank'} >  1      );
 	    # Construct default component.
 	    my $component  = "default".ucfirst($node->{'directive'}->{'component'})."Component";
 	    # Construct type prefix.
 	    my $typePrefix = $node->{'directive'}->{'type'} eq "real" ? "" : ucfirst($node->{'directive'}->{'type'});
+	    # Construct type suffix.
+	    my $typeSuffix = $node->{'directive'}->{'rank'} == 0      ? "" : "Rank".$node->{'directive'}->{'rank'};
 	    # Initialize new code.
 	    my %boolean = ( no => ".false.", yes => ".true." );
-	    my $code = $node->{'directive'}->{'id'}."=".$component."%add".$typePrefix."MetaProperty(var_str('".$node->{'directive'}->{'name'}."'),'".$node->{'directive'}->{'component'}.":".$node->{'directive'}->{'name'}."',isCreator=".$boolean{$node->{'directive'}->{'isCreator'}}.($node->{'directive'}->{'type'} eq "real" ? ",isEvolvable=".$boolean{$node->{'directive'}->{'isEvolvable'}} : "").")\n";
+	    my $code = $node->{'directive'}->{'id'}."=".$component."%add".$typePrefix.$typeSuffix."MetaProperty(var_str('".$node->{'directive'}->{'name'}."'),'".$node->{'directive'}->{'component'}.":".$node->{'directive'}->{'name'}."',isCreator=".$boolean{$node->{'directive'}->{'isCreator'}}.($node->{'directive'}->{'type'} eq "real" && $node->{'directive'}->{'rank'} == 0 ? ",isEvolvable=".$boolean{$node->{'directive'}->{'isEvolvable'}} : "").")\n";
 	    # Add module usage.
 	    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses(
 		$node->{'parent'},

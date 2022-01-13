@@ -70,13 +70,13 @@ sub Implementation_Serialize_ASCII {
 	     variables  => [ "label" ]
 	 }
 	);
-    # Add a counter variable for any rank-1 and meta-properties.
+    # Add counter variables for any rank-1 and meta-properties.
     push
 	(
 	 @{$function->{'variables'}},
 	 {
 	     intrinsic  => "integer",
-	     variables  => [ "i" ]
+	     variables  => [ "i", "j" ]
 	 }
 	);
     # Define format labels for different data types.
@@ -158,6 +158,17 @@ if (allocated({$class->{'name'}}IntegerMetaPropertyNames)) then
   call displayMessage(message)
  end do
 end if
+if (allocated({$class->{'name'}}Rank1MetaPropertyNames)) then
+ do i=1,size(({$class->{'name'}}Rank1MetaPropertyNames))
+  do j=1,size( self%rank1MetaProperties(i)%values)
+   write (label,'(i3)') j
+   message=trim({$class->{'name'}}Rank1MetaPropertyNames(i))//': '//repeat(' ',propertyNameLengthMax-len_trim({$class->{'name'}}Rank1MetaPropertyNames(i)))//trim(label)
+   write (label,{$formatLabel{'double'}}) self%rank1MetaProperties(i)%values(j)
+   message=message//': '//label
+   call displayMessage(message)
+  end do
+ end do
+end if
 CODE
     }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -205,13 +216,13 @@ sub Implementation_Serialize_XML {
 	    ],
 	content     => ""
     };
-    # Add a counter variable for any rank-1 and meta-properties.
+    # Add counter variables for any rank-1 and meta-properties.
     push
 	(
 	 @{$function->{'variables'}},
 	 {
 	     intrinsic  => "integer",
-	     variables  => [ "i" ]
+	     variables  => [ "i", "j" ]
 	 }
 	);
     # Define format labels for different data types.
@@ -285,6 +296,13 @@ if (allocated({$class->{'name'}}IntegerMetaPropertyNames)) then
   write (fileHandle,'(a,a,a,{$formatLabel{'longInteger'}},a,a,a)') '   <'//char({$class->{'name'}}IntegerMetaPropertyNames(i))//'>',self%integerMetaProperties(i),'</'//char({$class->{'name'}}IntegerMetaPropertyNames(i))//'>'
  end do
 end if
+if (allocated({$class->{'name'}}Rank1MetaPropertyNames)) then
+ do i=1,size(({$class->{'name'}}Rank1MetaPropertyNames))
+  do j=1,size(self%rank1MetaProperties(i)%values)
+   write (fileHandle,'(a,a,a,{$formatLabel{'double'}},a,a,a)') '   <'//char({$class->{'name'}}Rank1MetaPropertyNames(i))//'>',self%rank1MetaProperties(i)%values(j),'</'//char({$class->{'name'}}Rank1MetaPropertyNames(i))//'>'
+  end do
+ end do
+end if
 CODE
     }
     $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -328,7 +346,7 @@ sub Implementation_Serialize_Raw {
 	    ],
 	content     => ""
     };
-    # Add a counter variable if there are any rank-1 properties.
+    # Add a counter variable for any rank-1 properties and meta-properties.
     push
 	(
 	 @{$function->{'variables'}},
@@ -336,8 +354,7 @@ sub Implementation_Serialize_Raw {
 	     intrinsic  => "integer",
 	     variables  => [ "i" ]
 	 }
-	)
-	if ( grep {! $_->{'attributes'}->{'isVirtual'} && ! &isIntrinsic($_->{'data'}->{'type'}) && $_->{'data'}->{'rank'} == 1} &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) );  
+	);
     # Generate the code.
     if ( scalar(@code::unused) > 0 ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
@@ -388,6 +405,12 @@ CODE
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated({$class->{'name'}}MetaPropertyNames       )) write (fileHandle) self%metaProperties
 if (allocated({$class->{'name'}}IntegerMetaPropertyNames)) write (fileHandle) self%integerMetaProperties
+if (allocated({$class->{'name'}}Rank1MetaPropertyNames  )) then
+ do i=1,size({$class->{'name'}}Rank1MetaPropertyNames)
+  write (fileHandle) size(self%rank1MetaProperties(i)%values)
+  write (fileHandle) self%rank1MetaProperties(i)%values
+ end do
+end if
 CODE
     }
     # Insert a type-binding for this function.
@@ -432,16 +455,15 @@ sub Implementation_Deserialize_Raw {
 	    ],
 	content     => ""
     };
-    # Add a counter variable if there are any rank-1 properties.
+    # Add a counter variable for any rank-1 properties and meta-properties.
     push
 	(
 	 @{$function->{'variables'}},
 	 {
 	     intrinsic  => "integer",
-	     variables  => [ "i" ]
+	     variables  => [ "i", "metaPropertySize" ]
 	 }
-	)
-	if ( grep {! $_->{'attributes'}->{'isVirtual'} && ! &isIntrinsic($_->{'data'}->{'type'}) && $_->{'data'}->{'rank'} == 1} &List::ExtraUtils::hashList($code::member->{'properties'}->{'property'}) );
+	);
     # Add variables required for array reads.
     push
 	(
@@ -508,6 +530,13 @@ CODE
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated({$class->{'name'}}MetaPropertyNames       )) read (fileHandle) self%metaProperties
 if (allocated({$class->{'name'}}IntegerMetaPropertyNames)) read (fileHandle) self%integerMetaProperties
+if (allocated({$class->{'name'}}Rank1MetaPropertyNames  )) then
+ do i=1,size({$class->{'name'}}Rank1MetaPropertyNames)
+  read (fileHandle) metaPropertySize
+  allocate(self%rank1MetaProperties(i)%values(metaPropertySize))
+  read (fileHandle) self%rank1MetaProperties(i)%values
+ end do
+end if
 CODE
     }
     # Insert a type-binding for this function.

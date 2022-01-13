@@ -27,7 +27,7 @@ use Galacticus::Build::Components::Utils qw(&offsetName);
     );
 
 sub Build_Rate_Functions {
-    # Build rate setting functions for non-virtual, evolvable properties.
+    # Build rate setting functions for evolvable meta-properties.
     my $build = shift();
     my $class = shift();
     # Build the function.
@@ -86,7 +86,7 @@ CODE
 	$code::offsetNameActive   = &offsetName('active'  ,$class->{'name'},'metaProperties');
 	$code::offsetNameInactive = &offsetName('inactive',$class->{'name'},'metaProperties');
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (.not.{$className}MetaPropertyCreator(metaPropertyID)) call metaPropertyNoCreator('{$className}',char({$className}MetaPropertyLabels(metaPropertyID)),'real')
+if (.not.{$className}MetaPropertyCreator(metaPropertyID)) call metaPropertyNoCreator('{$className}',char({$className}MetaPropertyLabels(metaPropertyID)),'real',0)
 if (rateComputeState == propertyTypeAll          ) then
  offset={$offsetNameAll}(metaPropertyID)
 else if (rateComputeState == propertyTypeActive  ) then
@@ -113,7 +113,7 @@ CODE
 }
 
 sub Build_Scale_Functions {
-    # Build scale setting functions for non-virtual, evolvable properties.
+    # Build scale setting functions for evolvable meta-properties.
     my $build = shift();
     my $class = shift();
     # Build the function.
@@ -153,7 +153,7 @@ sub Build_Scale_Functions {
 	$code::offsetName = &offsetName('all',$class->{'name'},'metaProperties');
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self
-if (.not.{$className}MetaPropertyCreator(metaPropertyID)) call metaPropertyNoCreator('{$className}',char({$className}MetaPropertyLabels(metaPropertyID)),'real')
+if (.not.{$className}MetaPropertyCreator(metaPropertyID)) call metaPropertyNoCreator('{$className}',char({$className}MetaPropertyLabels(metaPropertyID)),'real',0)
 nodeScales({$offsetName}(metaPropertyID))=setValue
 CODE
 	}

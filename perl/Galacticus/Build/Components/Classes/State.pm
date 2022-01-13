@@ -56,25 +56,27 @@ sub Class_State {
 	 @{$build->{'variables'}},
 	 # Arrays used to store meta-property indices.
 	 {
-	     intrinsic  => "type"                                                                                                                                                        ,
-	     type       => "varying_string"                                                                                                                                              ,
-	     attributes => [ "allocatable", "dimension(:)" ]                                                                                                                             ,
-	     variables  => [ $code::class->{'name'}."MetaPropertyLabels"   , $code::class->{'name'}."IntegerMetaPropertyLabels"                                                         ]
+	     intrinsic  => "type"                                                                                                                                                          ,
+	     type       => "varying_string"                                                                                                                                                ,
+	     attributes => [ "allocatable", "dimension(:)" ]                                                                                                                               ,
+	     variables  => [ $code::class->{'name'}."MetaPropertyLabels"          , $code::class->{'name'}."IntegerMetaPropertyLabels" , $code::class->{'name'}."Rank1MetaPropertyLabels"   ]
 	 },
 	 {
-	     intrinsic  => "type"                                                                                                                                                        ,
-	     type       => "varying_string"                                                                                                                                              ,
-	     attributes => [ "allocatable", "dimension(:)" ]                                                                                                                             ,
-	     variables  => [ $code::class->{'name'}."MetaPropertyNames"    , $code::class->{'name'}."IntegerMetaPropertyNames"                                                          ]
+	     intrinsic  => "type"                                                                                                                                                           ,
+	     type       => "varying_string"                                                                                                                                                 ,
+	     attributes => [ "allocatable", "dimension(:)" ]                                                                                                                                ,
+	     variables  => [ $code::class->{'name'}."MetaPropertyNames"           , $code::class->{'name'}."IntegerMetaPropertyNames"  , $code::class->{'name'}."Rank1MetaPropertyNames"     ]
 	 },
 	 {
-	     intrinsic  => "logical"                                                                                                                                                     ,
-	     attributes => [ "allocatable", "dimension(:)" ]                                                                                                                             ,
-	     variables  => [ $code::class->{'name'}."MetaPropertyEvolvable", $code::class->{'name'}."MetaPropertyCreator"       , $code::class->{'name'}."IntegerMetaPropertyCreator"   ]
+	     intrinsic  => "logical"                                                                                                                                                        ,
+	     attributes => [ "allocatable", "dimension(:)" ]                                                                                                                                ,
+	     variables  => [ $code::class->{'name'}."MetaPropertyEvolvable"       , $code::class->{'name'}."MetaPropertyCreator"       , $code::class->{'name'}."IntegerMetaPropertyCreator",
+			     $code::class->{'name'}."Rank1MetaPropertyCreator"                             ]
 	 },
 	 {
-	     intrinsic  => "integer"                                                ,
-	     variables  => [ $code::class->{'name'}."MetaPropertyCount=0"  , $code::class->{'name'}."IntegerMetaPropertyCount=0", $code::class->{'name'}."MetaPropertyEvolvableCount=0" ]
+	     intrinsic  => "integer"                                                                                                                                                        ,
+	     variables  => [ $code::class->{'name'}."MetaPropertyCount=0"         , $code::class->{'name'}."IntegerMetaPropertyCount=0", $code::class->{'name'}."Rank1MetaPropertyCount=0"  ,
+			     $code::class->{'name'}."MetaPropertyEvolvableCount=0"                                                                                                           ]
 	 }
 	)
 	if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} );

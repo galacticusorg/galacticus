@@ -24,6 +24,7 @@ use Galacticus::Build::Components::DataTypes;
 	      \&Class_Finalization             ,
 	      \&Class_Create_By_Interrupt      ,
 	      \&Class_Add_Meta_Property        ,
+	      \&Class_Add_Rank1_Meta_Property  ,
 	      \&Class_Add_Integer_Meta_Property
 	     ]
      }
@@ -347,6 +348,124 @@ CODE
 	    type        => "procedure",
 	    descriptor  => $function,
 	    name        => "addMetaProperty", 
+	}
+	);
+}
+
+sub Class_Add_Rank1_Meta_Property {
+    # Generate a function to add rank-1 meta-properties to component classes.
+    my $build    = shift();
+    $code::class = shift();
+    my $function =
+    {
+	type        => "integer",
+	name        => "nodeComponent".ucfirst($code::class->{'name'})."AddRank1MetaProperty",
+	description => "Add a rank-1 meta-property to the generic {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	modules     =>
+	    [
+	     "ISO_Varying_String",
+	     "Galacticus_Error"
+	    ],
+	variables   =>
+	    [
+	     {
+		 intrinsic  => "class",
+		 type       => "nodeComponent".ucfirst($code::class->{'name'}),
+		 attributes => [ "intent(inout)" ],
+		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "varying_string",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "label" ]
+	     },
+	     {
+		 intrinsic  => "character",
+		 type       => "len=*",
+		 attributes => [ "intent(in   )" ],
+		 variables  => [ "name" ]
+	     },
+	     {
+		 intrinsic  => "logical",
+		 attributes => [ "intent(in   )", "optional" ],
+		 variables  => [ "isCreator" ]
+	     },
+	     {
+		 intrinsic  => "type",
+		 type       => "varying_string",
+		 attributes => [ "allocatable", "dimension(:)" ],
+		 variables  => [ "labelsTmp", "namesTmp" ]
+	     },
+	     {
+		 intrinsic  => "logical",
+		 attributes => [ "allocatable", "dimension(:)" ],
+		 variables  => [ "creatorTmp" ]
+	     },
+	     {
+		 intrinsic  => "logical",
+		 variables  => [ "found" ]
+	     }
+	    ]
+    };
+    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
+!$GLC attributes unused :: self
+
+!$omp critical ({class->{'name'}}Rank1MetaPropertyUpdate)
+found=.false.
+if (allocated({$class->{'name'}}Rank1MetaPropertyLabels)) then
+ do nodeComponent{ucfirst($class->{'name'})}AddRank1MetaProperty=1,size({$class->{'name'}}Rank1MetaPropertyLabels)
+  if ({$class->{'name'}}Rank1MetaPropertyLabels(nodeComponent{ucfirst($class->{'name'})}AddRank1MetaProperty) == label) then
+   found=.true.
+   exit
+  end if
+ end do
+ if (.not.found) then
+  call move_alloc({$class->{'name'}}Rank1MetaPropertyLabels , labelsTmp)
+  call move_alloc({$class->{'name'}}Rank1MetaPropertyNames  ,  namesTmp)
+  call move_alloc({$class->{'name'}}Rank1MetaPropertyCreator,creatorTmp)
+  allocate({$class->{'name'}}Rank1MetaPropertyLabels (size( labelsTmp)+1))
+  allocate({$class->{'name'}}Rank1MetaPropertyNames  (size(  namesTmp)+1))
+  allocate({$class->{'name'}}Rank1MetaPropertyCreator(size(creatorTmp)+1))
+  {$class->{'name'}}Rank1MetaPropertyLabels (1:size( labelsTmp))= labelsTmp
+  {$class->{'name'}}Rank1MetaPropertyNames  (1:size(  namesTmp))=  namesTmp
+  {$class->{'name'}}Rank1MetaPropertyCreator(1:size(creatorTmp))=creatorTmp
+  deallocate( labelsTmp)
+  deallocate(  namesTmp)
+  deallocate(creatorTmp)
+ end if
+else
+ allocate({$class->{'name'}}Rank1MetaPropertyLabels (                1))
+ allocate({$class->{'name'}}Rank1MetaPropertyNames  (                1))
+ allocate({$class->{'name'}}Rank1MetaPropertyCreator(                1))
+end if
+if (.not.found) then
+ nodeComponent{ucfirst($class->{'name'})}AddRank1MetaProperty=size({$class->{'name'}}Rank1MetaPropertyLabels)
+ {$class->{'name'}}Rank1MetaPropertyLabels   (nodeComponent{ucfirst($class->{'name'})}AddRank1MetaProperty)=label
+ {$class->{'name'}}Rank1MetaPropertyNames    (nodeComponent{ucfirst($class->{'name'})}AddRank1MetaProperty)=name
+ if (present(isCreator  )) then
+  {$class->{'name'}}Rank1MetaPropertyCreator  (nodeComponent{ucfirst($class->{'name'})}AddRank1MetaProperty)=isCreator
+ else
+  {$class->{'name'}}Rank1MetaPropertyCreator  (nodeComponent{ucfirst($class->{'name'})}AddRank1MetaProperty)=.false.
+ end if
+ {$class->{'name'}}Rank1MetaPropertyCount={$class->{'name'}}Rank1MetaPropertyCount+1
+ propertyNameLengthMax=max(len(name),propertyNameLengthMax) 
+else
+ if (present(isCreator)) then
+  if (isCreator) {$class->{'name'}}Rank1MetaPropertyCreator(nodeComponent{ucfirst($class->{'name'})}AddRank1MetaProperty)=.true.
+ end if
+end if
+!$omp end critical ({class->{'name'}}Rank1MetaPropertyUpdate)
+CODE
+    }
+    # Insert a type-binding for this function.
+    push(
+	@{$build->{'types'}->{"nodeComponent".ucfirst($code::class->{'name'})}->{'boundFunctions'}},
+	{
+	    type        => "procedure",
+	    descriptor  => $function,
+	    name        => "addRank1MetaProperty", 
 	}
 	);
 }

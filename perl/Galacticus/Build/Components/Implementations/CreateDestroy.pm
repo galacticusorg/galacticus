@@ -46,6 +46,10 @@ sub Implementation_Creation {
 		 type       => $code::implementationTypeName,
 		 attributes => [ "intent(inout)" ],
 		 variables  => [ "self" ]
+	     },
+	     {
+		 intrinsic  => "integer",
+		 variables  => [ "i" ]
 	     }
 	    ]
     };
@@ -163,6 +167,12 @@ end if
 if (allocated({$class->{'name'}}IntegerMetaPropertyNames).and..not.allocated(self%integerMetaProperties)) then
  allocate(self%integerMetaProperties(size({$class->{'name'}}IntegerMetaPropertyNames)))
  self%integerMetaProperties=0_kind_int8
+end if
+if (allocated({$class->{'name'}}Rank1MetaPropertyNames).and..not.allocated(self%rank1MetaProperties)) then
+ allocate(self%rank1MetaProperties(size({$class->{'name'}}Rank1MetaPropertyNames)))
+ do i=1,size({$class->{'name'}}Rank1MetaPropertyNames)
+  allocate(self%rank1MetaProperties(i)%values(0))
+ end do
 end if
 CODE
     }

@@ -16,6 +16,13 @@
     </xs:restriction>
   </xs:simpleType> 
   
+  <xs:simpleType name="rank">
+    <xs:restriction base="xs:integer">
+      <xs:minInclusive value="0"/>
+      <xs:maxInclusive value="1"/>
+    </xs:restriction>
+  </xs:simpleType> 
+  
   <xs:element name="addMetaProperty" type="xs:string">
     <xs:attribute name="component"   use="required"/>
     <xs:attribute name="name"        use="required"/>
@@ -23,6 +30,7 @@
     <xs:attribute name="isEvolvable" type="yesNo"  />
     <xs:attribute name="isCreator"   type="yesNo"  />
     <xs:attribute name="type"        type="type"   />
+    <xs:attribute name="rank"        type="rank"   />
   </xs:element>
   
 </xs:schema>
