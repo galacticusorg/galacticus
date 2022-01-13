@@ -26,6 +26,7 @@ module Merger_Tree_Outputter_Buffer_Types
   Provides buffer types for merger tree outputters.
   !!}
   use :: Kind_Numbers      , only : kind_int8
+  use :: IO_HDF5           , only : hdf5VarDouble
   use :: ISO_Varying_String, only : varying_string
   public
 
@@ -53,6 +54,7 @@ module Merger_Tree_Outputter_Buffer_Types
      double precision                                                            :: unitsInSI
      double precision                              , allocatable, dimension(:  ) :: scalar
      double precision                              , allocatable, dimension(:,:) :: rank1
+     type            (hdf5VarDouble               ), allocatable, dimension(:  ) :: rank1VarLen
      type            (varying_string              ), allocatable, dimension(:  ) :: rank1Descriptors
   end type outputPropertyDouble
 

@@ -21,7 +21,8 @@
   Implements a node operator class that computes the time of the most recent major merger between galaxies.
   !!}
 
-  use :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
+  use, intrinsic :: ISO_C_Binding                   , only : countTimesMaximum
+  use            :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
 
   !![
   <nodeOperator name="nodeOperatorGalaxyMajorMergerTime">
@@ -35,10 +36,10 @@
      private
      class  (mergerMassMovementsClass), pointer :: mergerMassMovements_    => null()
      integer                                    :: galaxyMajorMergerTimeID
+     integer(c_size_t                )          :: countTimesMaximum
   contains
-     final     ::                   galaxyMajorMergerTimeDestructor
-     procedure :: nodeInitialize => galaxyMajorMergerTimeNodeInitialize
-     procedure :: autoHook       => galaxyMajorMergerTimeAutoHook
+     final     ::            galaxyMajorMergerTimeDestructor
+     procedure :: autoHook=> galaxyMajorMergerTimeAutoHook
   end type nodeOperatorGalaxyMajorMergerTime
   
   interface nodeOperatorGalaxyMajorMergerTime
@@ -57,14 +58,21 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type (nodeOperatorGalaxyMajorMergerTime)                :: self
-    type (inputParameters                  ), intent(inout) :: parameters
-    class(mergerMassMovementsClass         ), pointer       :: mergerMassMovements_
+    type   (nodeOperatorGalaxyMajorMergerTime)                :: self
+    type   (inputParameters                  ), intent(inout) :: parameters
+    class  (mergerMassMovementsClass         ), pointer       :: mergerMassMovements_
+    integer(c_size_t                         )                :: countTimesMaximum
     
     !![
+    <inputParameter>
+      <name>countTimesMaximum</name>
+      <defaultValue>huge(0_c_size_t)</defaultValue>
+      <description>The maximum number of major merger times to accumulate for each node. Defaults to the maximum possible.</description>
+      <source>parameters</source>
+    </inputParameter>
     <objectBuilder class="mergerMassMovements" name="mergerMassMovements_" source="parameters"/>
     !!]
-    self=nodeOperatorGalaxyMajorMergerTime(mergerMassMovements_)
+    self=nodeOperatorGalaxyMajorMergerTime(countTimesMaximum,mergerMassMovements_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="mergerMassMovements_"/>
@@ -72,20 +80,21 @@ contains
     return
   end function galaxyMajorMergerTimeConstructorParameters
 
-  function galaxyMajorMergerTimeConstructorInternal(mergerMassMovements_) result(self)
+  function galaxyMajorMergerTimeConstructorInternal(countTimesMaximum,mergerMassMovements_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily galaxyMajorMergerTime} node operator class.
     !!}
     use :: Galacticus_Nodes, only : defaultBasicComponent
     implicit none
-    type (nodeOperatorGalaxyMajorMergerTime)                        :: self
-    class(mergerMassMovementsClass         ), intent(in   ), target :: mergerMassMovements_
+    type   (nodeOperatorGalaxyMajorMergerTime)                        :: self
+    class  (mergerMassMovementsClass         ), intent(in   ), target :: mergerMassMovements_
+    integer(c_size_t                         ), intent(in   )         :: countTimesMaximum
     !![
-    <constructorAssign variables="*mergerMassMovements_"/>
+    <constructorAssign variables="countTimesMaximum, *mergerMassMovements_"/>
     !!]
     
     !![
-    <addMetaProperty component="basic" name="galaxyMajorMergerTime" id="self%galaxyMajorMergerTimeID" isCreator="yes"/>
+    <addMetaProperty component="basic" name="galaxyMajorMergerTime" id="self%galaxyMajorMergerTimeID" rank="1" isCreator="yes"/>
     !!]
     return
   end function galaxyMajorMergerTimeConstructorInternal
@@ -100,10 +109,10 @@ contains
     type (dependencyRegEx                  ), dimension(1)  :: dependenciesSatelliteMerger 
 
     dependenciesSatelliteMerger(1)=dependencyRegEx(dependencyDirectionAfter,'^remnantStructure:')
-    call satelliteMergerEvent%attach(self,satelliteMerger ,openMPThreadBindingAtLevel,label='galaxyMajorMergerTime',dependencies=dependenciesSatelliteMerger )
+    call satelliteMergerEvent%attach(self,satelliteMerger ,openMPThreadBindingAtLevel,label='galaxyMajorMergerTime',dependencies=dependenciesSatelliteMerger)
     return
   end subroutine galaxyMajorMergerTimeAutoHook
-
+  
   subroutine galaxyMajorMergerTimeDestructor(self)
     !!{
     Destructor for the {\normalfont \ttfamily galaxyMajorMergerTime} node operator class.
@@ -119,21 +128,6 @@ contains
     return
   end subroutine galaxyMajorMergerTimeDestructor
 
-  subroutine galaxyMajorMergerTimeNodeInitialize(self,node)
-    !!{
-    Initialize galaxyMajorMergerTime level data.
-    !!}
-    use :: Galacticus_Nodes   , only : nodeComponentBasic
-    implicit none
-    class(nodeOperatorGalaxyMajorMergerTime), intent(inout)          :: self
-    type (treeNode                         ), intent(inout), target  :: node
-    class(nodeComponentBasic               )               , pointer :: basic
-
-    basic => node%basic()
-    call basic%metaPropertySet(self%galaxyMajorMergerTimeID,-1.0d0)
-    return
-  end subroutine galaxyMajorMergerTimeNodeInitialize
-
   subroutine satelliteMerger(self,node)
     !!{
     Record times of galaxy-galaxy major mergers.
@@ -141,13 +135,14 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class  (*                 ), intent(inout)          :: self
-    type   (treeNode          ), intent(inout), target  :: node
-    type   (treeNode          )               , pointer :: nodeHost
-    class  (nodeComponentBasic)               , pointer :: basicHost
-    integer                                             :: destinationGasSatellite, destinationGasHost       , &
-         &                                                 destinationStarsHost   , destinationStarsSatellite
-    logical                                             :: mergerIsMajor
+    class           (*                 ), intent(inout)              :: self
+    type            (treeNode          ), intent(inout), target      :: node
+    type            (treeNode          )               , pointer     :: nodeHost
+    class           (nodeComponentBasic)               , pointer     :: basicHost
+    double precision                    , dimension(:) , allocatable :: majorMergerTimesCurrent, majorMergerTimesNew
+    integer                                                          :: destinationGasSatellite, destinationGasHost       , &
+         &                                                              destinationStarsHost   , destinationStarsSatellite
+    logical                                                          :: mergerIsMajor
  
     select type (self)
     class is (nodeOperatorGalaxyMajorMergerTime)
@@ -156,8 +151,17 @@ contains
        ! Find the node to merge with.
        nodeHost  => node    %mergesWith()
        basicHost => nodeHost%basic     ()
-       ! Record the merger time.
-       call basicHost%metaPropertySet(self%galaxyMajorMergerTimeID,basicHost%time())
+       ! Append the merger time.
+       majorMergerTimesCurrent=basicHost%rank1MetaPropertyGet(self%galaxyMajorMergerTimeID)
+       if (size(majorMergerTimesCurrent) < self%countTimesMaximum) then
+          allocate(majorMergerTimesNew(size(majorMergerTimesCurrent)+1_c_size_t))
+          majorMergerTimesNew(1_c_size_t:size(majorMergerTimesCurrent)           )=majorMergerTimesCurrent(          :                             )
+       else
+          allocate(majorMergerTimesNew(size(majorMergerTimesCurrent)           ))
+          majorMergerTimesNew(1_c_size_t:size(majorMergerTimesCurrent)-1_c_size_t)=majorMergerTimesCurrent(2_c_size_t:size(majorMergerTimesCurrent))
+       end if
+       majorMergerTimesNew(size(majorMergerTimesNew))=basicHost%time()
+       call basicHost%rank1MetaPropertySet(self%galaxyMajorMergerTimeID,majorMergerTimesNew)
     end if
     class default
        call Galacticus_Error_Report('incorrect class'//{introspection:location})
