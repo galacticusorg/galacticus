@@ -414,7 +414,7 @@ contains
     use :: Multi_Counters                , only : multiCounter
     use :: Node_Property_Extractors      , only : elementTypeDouble            , elementTypeInteger       , nodePropertyExtractorIntegerScalar, nodePropertyExtractorIntegerTuple, &
          &                                        nodePropertyExtractorMulti   , nodePropertyExtractorNull, nodePropertyExtractorScalar       , nodePropertyExtractorTuple       , &
-         &                                        nodePropertyExtractorArray
+         &                                        nodePropertyExtractorArray   , nodePropertyExtractorList
     use :: Poly_Ranks                    , only : polyRankInteger              , polyRankDouble           , assignment(=)
     !![
     <include directive="mergerTreeOutputTask" type="moduleUse">
@@ -432,6 +432,7 @@ contains
     double precision                             , allocatable  , dimension(:,:) :: doubleArray
     type            (polyRankInteger            ), allocatable  , dimension(:  ) :: integerProperties
     type            (polyRankDouble             ), allocatable  , dimension(:  ) :: doubleProperties
+    integer                                      , allocatable  , dimension(:  ) :: doubleRanks
     integer         (c_size_t                   ), allocatable  , dimension(:  ) :: shape_
     integer                                                                      :: doubleProperty   , integerProperty, &
          &                                                                          i
@@ -525,18 +526,36 @@ contains
           deallocate(doubleArray )
           doubleProperty                                                            =+doubleProperty                                                     &
                &                                                                     +extractor_     %elementCount(                       time         )
+       class is (nodePropertyExtractorList         )
+          ! List property extractor - extract and store the values.
+          doubleTuple =extractor_%extract       (node     ,instance)
+          if (     allocated(self%doubleProperty (doubleProperty +1)%scalar     ))                          deallocate(self%doubleProperty (doubleProperty +1)%scalar)
+          if (     allocated(self%doubleProperty (doubleProperty +1)%rank1      ))                          deallocate(self%doubleProperty (doubleProperty +1)%rank1 )
+          if (.not.allocated(self%doubleProperty (doubleProperty +1)%rank1VarLen)) allocate(self%doubleProperty (doubleProperty +1)%rank1VarLen(self%doubleBufferSize))
+          if (associated(self%doubleProperty (doubleProperty +1)%rank1VarLen (self%doubleBufferCount )%row)) then
+             if (size(self%doubleProperty (doubleProperty +1)%rank1VarLen (self%doubleBufferCount )%row) /= size(doubleTuple)) deallocate(self%doubleProperty (doubleProperty +1)%rank1VarLen (self%doubleBufferCount )%row)
+          end if
+          if (.not.associated(self%doubleProperty (doubleProperty +1)%rank1VarLen (self%doubleBufferCount )%row)) then
+             allocate(self%doubleProperty (doubleProperty +1)%rank1VarLen (self%doubleBufferCount )%row(size(doubleTuple)))
+          end if
+          self%doubleProperty (doubleProperty +1)%rank1VarLen(self%doubleBufferCount)%row=doubleTuple
+          deallocate(doubleTuple )
+          doubleProperty                                                            =+doubleProperty                                                     &
+               &                                                                     +1
        class is (nodePropertyExtractorMulti        )
           ! Multi property extractor - extract and store the values.
-          doubleProperties =extractor_%extractDouble (node,time,instance)
+          doubleProperties =extractor_%extractDouble (node,time,instance,doubleRanks)
           do i=1,extractor_%elementCount(elementTypeDouble ,time)
-             select case (doubleProperties(i)%rank())
+             select case (doubleRanks(i))
              case (0)
+                ! Scalar property.
                 if (     allocated(self%doubleProperty (doubleProperty +i)%rank1 ))            deallocate(self%doubleProperty (doubleProperty +i)%rank1 )
                 if (.not.allocated(self%doubleProperty (doubleProperty +i)%scalar)) then
                    allocate(self%doubleProperty(doubleProperty+i)%scalar(          self%doubleBufferSize))
                 end if
                 self%doubleProperty (doubleProperty +i)%scalar(  self%doubleBufferCount )=doubleProperties(i)
              case (1)
+                ! Rank-1 array property.
                 if (     allocated(self%doubleProperty(doubleProperty +i)%scalar))             deallocate(self%doubleProperty (doubleProperty +i)%scalar)
                 if (     allocated(self%doubleProperty(doubleProperty +i)%rank1 )) then
                    shape_=doubleProperties(i)%shape()
@@ -549,6 +568,22 @@ contains
                    deallocate(shape_)
                 end if
                 self%doubleProperty (doubleProperty +i)%rank1 (:,self%doubleBufferCount )=doubleProperties(i)
+             case (-1)
+                ! Rank-1 list property
+                if (     allocated(self%doubleProperty(doubleProperty +i)%scalar     ))             deallocate(self%doubleProperty (doubleProperty +i)%scalar)
+                if (     allocated(self%doubleProperty(doubleProperty +i)%rank1      ))             deallocate(self%doubleProperty (doubleProperty +i)%rank1 )
+                if (.not.allocated(self%doubleProperty(doubleProperty +i)%rank1VarLen)) allocate(self%doubleProperty (doubleProperty +i)%rank1VarLen(self%doubleBufferSize))
+                if (associated(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row)) then
+                   shape_=doubleProperties(i)%shape()
+                   if (size(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row) /= shape_(1)) deallocate(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row)
+                   deallocate(shape_)
+                end if
+                if (.not.associated(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row)) then
+                   shape_=doubleProperties(i)%shape()
+                   allocate(self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row(shape_(1)))
+                   deallocate(shape_)
+                end if
+                self%doubleProperty (doubleProperty +i)%rank1VarLen (self%doubleBufferCount )%row=doubleProperties(i)
              case default
                 call Galacticus_Error_Report('unsupported rank for output property'//{introspection:location})
              end select
@@ -696,20 +731,27 @@ contains
     if (self%doublePropertyCount > 0) then
        !$ call hdf5Access%set()
        do iProperty=1,self%doublePropertyCount
-          if      (allocated(self%doubleProperty(iProperty)%scalar)) then
-             call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                                    &
-                  &                                                                         self%doubleProperty(iProperty)%scalar (1:self%doubleBufferCount  ), &
-                  &                                                                         self%doubleProperty(iProperty)%name                               , &
-                  &                                                                         self%doubleProperty(iProperty)%comment                            , &
-                  &                                                         appendTo       =.true.                                                              &
+          if      (allocated(self%doubleProperty(iProperty)%scalar     )) then
+             call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                                        &
+                  &                                                                         self%doubleProperty(iProperty)%scalar     (  1:self%doubleBufferCount), &
+                  &                                                                         self%doubleProperty(iProperty)%name                                   , &
+                  &                                                                         self%doubleProperty(iProperty)%comment                                , &
+                  &                                                         appendTo       =.true.                                                                  &
                   &                                                        )
-          else if (allocated(self%doubleProperty(iProperty)%rank1 )) then
-             call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                                    &
-                  &                                                                         self%doubleProperty(iProperty)%rank1  (:,1:self%doubleBufferCount), &
-                  &                                                                         self%doubleProperty(iProperty)%name                               , &
-                  &                                                                         self%doubleProperty(iProperty)%comment                            , &
-                  &                                                         appendTo       =.true.                                                            , &
-                  &                                                         appendDimension=2                                                                   &
+          else if (allocated(self%doubleProperty(iProperty)%rank1      )) then
+             call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                                        &
+                  &                                                                         self%doubleProperty(iProperty)%rank1      (:,1:self%doubleBufferCount), &
+                  &                                                                         self%doubleProperty(iProperty)%name                                   , &
+                  &                                                                         self%doubleProperty(iProperty)%comment                                , &
+                  &                                                         appendTo       =.true.                                                                , &
+                  &                                                         appendDimension=2                                                                       &
+                  &                                                        )
+          else if (allocated(self%doubleProperty(iProperty)%rank1VarLen)) then
+             call self%outputGroups(indexOutput)%nodeDataGroup%writeDataset(                                                                                        &
+                  &                                                                         self%doubleProperty(iProperty)%rank1VarLen(  1:self%doubleBufferCount), &
+                  &                                                                         self%doubleProperty(iProperty)%name                                   , &
+                  &                                                                         self%doubleProperty(iProperty)%comment                                , &
+                  &                                                         appendTo       =.true.                                                                  &
                   &                                                        )
           end if
           if (.not.self%outputGroups(indexOutput)% doubleAttributesWritten.and. self%doubleProperty(iProperty)%unitsInSI /= 0.0d0) then
@@ -798,7 +840,7 @@ contains
     use :: Galacticus_Nodes        , only : treeNode
     use :: Node_Property_Extractors, only : elementTypeDouble         , elementTypeInteger       , nodePropertyExtractorIntegerScalar, nodePropertyExtractorIntegerTuple, &
          &                                  nodePropertyExtractorMulti, nodePropertyExtractorNull, nodePropertyExtractorScalar       , nodePropertyExtractorTuple       , &
-         &                                  nodePropertyExtractorArray
+         &                                  nodePropertyExtractorArray, nodePropertyExtractorList
     !![
     <include directive="mergerTreeOutputPropertyCount" type="moduleUse">
     !!]
@@ -837,6 +879,9 @@ contains
     class is (nodePropertyExtractorArray        )
        ! Array property extractor - increment the double property output count by the number of elements.
        self%doublePropertyCount =self%doublePropertyCount +extractor_%elementCount(time)
+    class is (nodePropertyExtractorList         )
+       ! List property extractor - simply increment the double property output count by one.
+       self%doublePropertyCount =self%doublePropertyCount +1
     class is (nodePropertyExtractorIntegerScalar)
        ! Integer scalar property extractor - simply increment the integer property output count by one.
        self%integerPropertyCount=self%integerPropertyCount+1
@@ -881,7 +926,7 @@ contains
     use :: Galacticus_Nodes        , only : treeNode
     use :: Node_Property_Extractors, only : elementTypeDouble         , elementTypeInteger       , nodePropertyExtractorIntegerScalar, nodePropertyExtractorIntegerTuple, &
          &                                  nodePropertyExtractorMulti, nodePropertyExtractorNull, nodePropertyExtractorScalar       , nodePropertyExtractorTuple       , &
-         &                                  nodePropertyExtractorArray
+         &                                  nodePropertyExtractorArray, nodePropertyExtractorList
     !![
     <include directive="mergerTreeOutputNames" type="moduleUse">
     !!]
@@ -942,6 +987,12 @@ contains
        doubleProperty =doubleProperty +extractor_%elementCount(time)
        deallocate(namesTmp       )
        deallocate(descriptionsTmp)
+    class is (nodePropertyExtractorList         )
+       ! List property extractor - get the name, description, and units.
+       self%doubleProperty (doubleProperty +1                                                                 )%name      =extractor_%name        (                       )
+       self%doubleProperty (doubleProperty +1                                                                 )%comment   =extractor_%description (                       )
+       self%doubleProperty (doubleProperty +1                                                                 )%unitsInSI =extractor_%unitsInSI   (                       )
+       doubleProperty =doubleProperty +1
     class is (nodePropertyExtractorIntegerScalar)
        ! Integer scalar property extractor - get the name, description, and units.
        self%integerProperty(integerProperty+1                                                                 )%name     =extractor_%name        (                       )

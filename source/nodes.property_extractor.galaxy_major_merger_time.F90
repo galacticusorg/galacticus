@@ -24,7 +24,7 @@
    </description>
   </nodePropertyExtractor>
   !!]
-  type, extends(nodePropertyExtractorScalar) :: nodePropertyExtractorGalaxyMajorMergerTime
+  type, extends(nodePropertyExtractorList) :: nodePropertyExtractorGalaxyMajorMergerTime
      !!{
      A property extractor which extracts the time of the last major merger for each galaxy.
      !!}
@@ -71,25 +71,26 @@ contains
     type(nodePropertyExtractorGalaxyMajorMergerTime) :: self
     
     !![
-    <addMetaProperty component="basic" name="galaxyMajorMergerTime" id="self%galaxyMajorMergerTimeID" isEvolvable="no" isCreator="no"/>
+    <addMetaProperty component="basic" name="galaxyMajorMergerTime" id="self%galaxyMajorMergerTimeID" rank="1" isCreator="no"/>
     !!]
     return
   end function galaxyMajorMergerTimeConstructorInternal
 
-  double precision function galaxyMajorMergerTimeExtract(self,node,instance)
+  function galaxyMajorMergerTimeExtract(self,node,instance) result(timeMajorMergers)
     !!{
     Implement a galaxyMajorMergerTime output extractor.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class(nodePropertyExtractorGalaxyMajorMergerTime), intent(inout)           :: self
-    type (treeNode                                  ), intent(inout), target   :: node
-    type (multiCounter                              ), intent(inout), optional :: instance
-    class(nodeComponentBasic                        )               , pointer  :: basic
+    double precision                                            , dimension(:) , allocatable :: timeMajorMergers
+    class           (nodePropertyExtractorGalaxyMajorMergerTime), intent(inout)              :: self
+    type            (treeNode                                  ), intent(inout)              :: node
+    type            (multiCounter                              ), intent(inout), optional    :: instance
+    class           (nodeComponentBasic                        )               , pointer     :: basic
     !$GLC attributes unused :: instance
 
-    basic                        => node %basic          (                            )
-    galaxyMajorMergerTimeExtract =  basic%metaPropertyGet(self%galaxyMajorMergerTimeID)
+    basic            => node %basic               (                            )
+    timeMajorMergers =  basic%rank1MetaPropertyGet(self%galaxyMajorMergerTimeID)
     return
   end function galaxyMajorMergerTimeExtract
   

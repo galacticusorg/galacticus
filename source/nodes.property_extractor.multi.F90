@@ -188,6 +188,8 @@ contains
           if (elementType == elementTypeInteger) multiElementCount=multiElementCount+extractor_%elementCount(time)
        class is (nodePropertyExtractorArray        )
           if (elementType == elementTypeDouble ) multiElementCount=multiElementCount+extractor_%elementCount(time)
+       class is (nodePropertyExtractorList         )
+          if (elementType == elementTypeDouble ) multiElementCount=multiElementCount+1
        class default
           call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
        end select
@@ -196,25 +198,27 @@ contains
     return
   end function multiElementCount
 
-  function multiExtractDouble(self,node,time,instance)
+  function multiExtractDouble(self,node,time,instance,ranks)
     !!{
     Implement a multi output extractor.
     !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Poly_Ranks      , only : polyRankDouble
     implicit none
-    type            (polyRankDouble            ), dimension(:) , allocatable    :: multiExtractDouble
-    class           (nodePropertyExtractorMulti), intent(inout)                 :: self
-    type            (treeNode                  ), intent(inout)                 :: node
-    double precision                            , intent(in   )                 :: time
-    type            (multiCounter              ), intent(inout), optional       :: instance
-    type            (multiExtractorList        ), pointer                       :: extractor_
-    double precision                            , allocatable  , dimension(:  ) :: rank0
-    double precision                            , allocatable  , dimension(:,:) :: rank1
-    integer                                                                     :: offset            , elementCount, &
-         &                                                                         i
+    type            (polyRankDouble            )                         , allocatable, dimension(:  ) :: multiExtractDouble
+    class           (nodePropertyExtractorMulti), intent(inout)                                        :: self
+    type            (treeNode                  ), intent(inout)                                        :: node
+    double precision                            , intent(in   )                                        :: time
+    type            (multiCounter              ), intent(inout), optional                              :: instance
+    integer                                     , intent(  out), optional, allocatable, dimension(:  ) :: ranks
+    type            (multiExtractorList        ), pointer                                              :: extractor_
+    double precision                                                     , allocatable, dimension(:  ) :: rank0
+    double precision                                                     , allocatable, dimension(:,:) :: rank1
+    integer                                                                                            :: offset            , elementCount, &
+         &                                                                                                i
 
     allocate(multiExtractDouble(self%elementCount(elementTypeDouble,time)))
+    if (present(ranks)) allocate(ranks(self%elementCount(elementTypeDouble,time)))
     offset     =  0
     extractor_ => self%extractors
     do while (associated(extractor_))
@@ -222,11 +226,13 @@ contains
        class is (nodePropertyExtractorScalar       )
           elementCount=1
           multiExtractDouble(offset+1)=polyRankDouble(extractor_%extract(node,instance))
+          if (present(ranks)) ranks(offset+1)=0
        class is (nodePropertyExtractorTuple        )
           elementCount=extractor_%elementCount(time)
           rank0=extractor_%extract(node,time,instance)
           do i=1,elementCount
              multiExtractDouble(offset+i)=polyRankDouble(rank0(i))
+             if (present(ranks)) ranks(offset+i)=0
           end do
           deallocate(rank0)
        class is (nodePropertyExtractorArray        )
@@ -234,8 +240,15 @@ contains
           rank1=extractor_%extract(node,time,instance)
           do i=1,elementCount
              multiExtractDouble(offset+i)=polyRankDouble(rank1(:,i))
+             if (present(ranks)) ranks(offset+i)=1
           end do
           deallocate(rank1)
+       class is (nodePropertyExtractorList         )
+          elementCount=1
+          rank0=extractor_%extract(node     ,instance)
+          multiExtractDouble(offset+1)=polyRankDouble(rank0(:))
+          deallocate(rank0)
+          if (present(ranks)) ranks(offset+1)=-1
        class is (nodePropertyExtractorIntegerScalar)
           elementCount=0
        class is (nodePropertyExtractorIntegerTuple )
@@ -277,6 +290,8 @@ contains
        class is (nodePropertyExtractorTuple        )
           elementCount=0
        class is (nodePropertyExtractorArray        )
+          elementCount=0
+       class is (nodePropertyExtractorList         )
           elementCount=0
        class is (nodePropertyExtractorIntegerScalar)
           elementCount=1
@@ -338,7 +353,7 @@ contains
        select type (extractor_ => extractor_%extractor_)
        class is (nodePropertyExtractorScalar       )
           if (elementType == elementTypeDouble ) then
-             elementCount=1
+             elementCount                              =1
              names       (offset+1:offset+elementCount)=extractor_%name (    )
           end if
        class is (nodePropertyExtractorTuple        )
@@ -352,7 +367,7 @@ contains
           end if
        class is (nodePropertyExtractorIntegerScalar)
           if (elementType == elementTypeInteger) then
-             elementCount=1
+             elementCount                              =1
              names       (offset+1:offset+elementCount)=extractor_%name (    )
           end if
        class is (nodePropertyExtractorIntegerTuple )
@@ -372,6 +387,11 @@ contains
                 names(offset+1:offset+elementCount)=namesTmp
                 deallocate(namesTmp)
              end if
+          end if
+       class is (nodePropertyExtractorList         )
+          if (elementType == elementTypeDouble ) then
+             elementCount                              =1
+             names       (offset+1:offset+elementCount)=extractor_%name (    )
           end if
        class default
           call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
@@ -437,6 +457,14 @@ contains
              elementCount=extractor_%elementCount(time)
              if (offset+elementCount >= i) then
                 call extractor_%columnDescriptions(time,descriptions)
+                return
+             end if
+          end if
+       class is (nodePropertyExtractorList         )
+          if (elementType == elementTypeDouble ) then
+             elementCount=1
+             if (offset+elementCount >= i) then
+                allocate(descriptions(0))
                 return
              end if
           end if
@@ -506,6 +534,11 @@ contains
                 deallocate(descriptionsTmp)
              end if
           end if
+       class is (nodePropertyExtractorList         )
+          if (elementType == elementTypeDouble ) then
+             elementCount=1
+             descriptions       (offset+1:offset+elementCount)=extractor_%description (    )
+          end if
        class default
           call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
        end select
@@ -559,6 +592,11 @@ contains
              elementCount=extractor_%elementCount(time)
              multiUnitsInSI(offset+1:offset+elementCount)=extractor_%unitsInSI(time)
           end if
+       class is (nodePropertyExtractorList         )
+          if (elementType == elementTypeDouble ) then
+             elementCount=1
+             multiUnitsInSI(offset+1:offset+elementCount)=extractor_%unitsInSI(    )
+          end if
        class default
           call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
        end select
@@ -570,7 +608,7 @@ contains
 
   function multiRanks(self,elementType,time)
     !!{
-    Return the ranks of the multiple properties.
+    Return the ranks of the multiple properties. Negative values indicate variable length ranks.
     !!}
     use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
@@ -611,6 +649,11 @@ contains
           if (elementType == elementTypeDouble ) then
              elementCount=extractor_%elementCount(time)
              multiRanks(offset+1:offset+elementCount)=1
+          end if
+       class is (nodePropertyExtractorList        )
+          if (elementType == elementTypeDouble ) then
+             elementCount=1
+             multiRanks(offset+1:offset+elementCount)=-1
           end if
        class default
           call Galacticus_Error_Report('unsupported property extractor type'//{introspection:location})
