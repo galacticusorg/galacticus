@@ -228,7 +228,7 @@ contains
             &              +velocityEscape    **2 &
             &             )
        x            =+      velocityEscape        &
-            &        /      speedHalfMass
+            &        /      speedOrbital
        ! Evaporation occurs for x<1.
        if (x < 1.0d0) then
           call self%tabulate(1.0d0)
