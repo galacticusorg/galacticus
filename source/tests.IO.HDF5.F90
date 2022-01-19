@@ -23,51 +23,52 @@ program Tests_IO_HDF5
   !!}
   use :: Display           , only : displayVerbositySet, verbosityLevelStandard
   use :: HDF5              , only : HSIZE_T
-  use :: IO_HDF5           , only : IO_HDF5_Is_HDF5    , hdf5Object            , hdf5VarDouble
+  use :: IO_HDF5           , only : IO_HDF5_Is_HDF5    , hdf5Object            , hdf5VarDouble       , hdf5VarInteger8
   use :: ISO_Varying_String, only : assignment(=)      , trim                  , varying_string
   use :: Kind_Numbers      , only : kind_int8
   use :: Memory_Management , only : deallocateArray
   use :: Unit_Tests        , only : Assert             , Unit_Tests_Begin_Group, Unit_Tests_End_Group, Unit_Tests_Finish
   implicit none
-  type            (hdf5Object    ), target                                 :: datasetObject                  , fileObject           , &
-       &                                                                      groupObject
-  integer                                                                  :: iPass                          , integerValue         , &
-       &                                                                      integerValueReread             , i
-  logical                                                                  :: appendableOK
-  integer                                      , dimension(10)             :: integerValueArray
-  integer                                      , dimension(10)             :: integerValueArrayRereadStatic
-  integer                         , allocatable, dimension( :)             :: integerValueArrayReread
-  integer         (kind=kind_int8)                                         :: integer8Value                  , integer8ValueReread
-  integer         (kind=kind_int8)             , dimension(10)             :: integer8ValueArray
-  integer         (kind=kind_int8)             , dimension(10)             :: integer8ValueArrayRereadStatic
-  integer         (kind=kind_int8), allocatable, dimension( :)             :: integer8ValueArrayReread       , integerRangeU32
-  double precision                                                         :: doubleValue                    , doubleValueReread
-  double precision                             , dimension(10)             :: doubleValueArray
-  double precision                             , dimension(10)             :: doubleValueArrayRereadStatic
-  double precision                , allocatable, dimension( :)             :: doubleValueArrayReread
-  character       (len=32        )                                         :: characterValue                 , characterValueReread
-  character       (len=32        )             , dimension(10)             :: characterValueArray
-  character       (len=32        )             , dimension(10)             :: characterValueArrayRereadStatic
-  character       (len=32        ), allocatable, dimension( :)             :: characterValueArrayReread
-  type            (varying_string)                                         :: varStringValue                 , varStringValueReread
-  type            (varying_string)             , dimension(10)             :: varStringValueArray
-  type            (varying_string)             , dimension(10)             :: varStringValueArrayRereadStatic
-  type            (varying_string), allocatable, dimension( :)             :: varStringValueArrayReread
-  double precision                             , dimension(10,10)          :: doubleValueArray2d
-  double precision                             , dimension(10,10)          :: doubleValueArray2dRereadStatic
-  double precision                , allocatable, dimension( :, :)          :: doubleValueArray2dReread      , doubleValueArray2dRereadExpect
-  double precision                             , dimension(10,10,10)       :: doubleValueArray3d
-  double precision                             , dimension(10,10,10)       :: doubleValueArray3dRereadStatic
-  double precision                , allocatable, dimension( :, :, :)       :: doubleValueArray3dReread      , doubleValueArray3dRereadExpect
-  double precision                             , dimension(10,10,10,10)    :: doubleValueArray4d
-  double precision                             , dimension(10,10,10,10)    :: doubleValueArray4dRereadStatic
-  double precision                , allocatable, dimension( :, :, :, :)    :: doubleValueArray4dReread      , doubleValueArray4dRereadExpect
-  double precision                             , dimension(10,10,10,10,10) :: doubleValueArray5d
-  double precision                             , dimension(10,10,10,10,10) :: doubleValueArray5dRereadStatic
-  double precision                , allocatable, dimension( :, :, :, :, :) :: doubleValueArray5dReread      , doubleValueArray5dRereadExpect
-  type            (varying_string), allocatable, dimension( :)             :: datasetNames
-  type            (varying_string)             , dimension(18)             :: datasetNamesReference
-  type            (hdf5VarDouble ), allocatable, dimension( :)             :: varDoubleArray2D              , varDoubleDataset2dArrayReread
+  type            (hdf5Object     ), target                                 :: datasetObject                  , fileObject           , &
+       &                                                                       groupObject
+  integer                                                                   :: iPass                          , integerValue         , &
+       &                                                                       integerValueReread             , i
+  logical                                                                   :: appendableOK
+  integer                                       , dimension(10)             :: integerValueArray
+  integer                                       , dimension(10)             :: integerValueArrayRereadStatic
+  integer                          , allocatable, dimension( :)             :: integerValueArrayReread
+  integer         (kind=kind_int8 )                                         :: integer8Value                  , integer8ValueReread
+  integer         (kind=kind_int8 )             , dimension(10)             :: integer8ValueArray
+  integer         (kind=kind_int8 )             , dimension(10)             :: integer8ValueArrayRereadStatic
+  integer         (kind=kind_int8 ), allocatable, dimension( :)             :: integer8ValueArrayReread       , integerRangeU32
+  double precision                                                          :: doubleValue                    , doubleValueReread
+  double precision                              , dimension(10)             :: doubleValueArray
+  double precision                              , dimension(10)             :: doubleValueArrayRereadStatic
+  double precision                 , allocatable, dimension( :)             :: doubleValueArrayReread
+  character       (len=32         )                                         :: characterValue                 , characterValueReread
+  character       (len=32         )             , dimension(10)             :: characterValueArray
+  character       (len=32         )             , dimension(10)             :: characterValueArrayRereadStatic
+  character       (len=32         ), allocatable, dimension( :)             :: characterValueArrayReread
+  type            (varying_string )                                         :: varStringValue                 , varStringValueReread
+  type            (varying_string )             , dimension(10)             :: varStringValueArray
+  type            (varying_string )             , dimension(10)             :: varStringValueArrayRereadStatic
+  type            (varying_string ), allocatable, dimension( :)             :: varStringValueArrayReread
+  double precision                              , dimension(10,10)          :: doubleValueArray2d
+  double precision                              , dimension(10,10)          :: doubleValueArray2dRereadStatic
+  double precision                 , allocatable, dimension( :, :)          :: doubleValueArray2dReread      , doubleValueArray2dRereadExpect
+  double precision                              , dimension(10,10,10)       :: doubleValueArray3d
+  double precision                              , dimension(10,10,10)       :: doubleValueArray3dRereadStatic
+  double precision                 , allocatable, dimension( :, :, :)       :: doubleValueArray3dReread      , doubleValueArray3dRereadExpect
+  double precision                              , dimension(10,10,10,10)    :: doubleValueArray4d
+  double precision                              , dimension(10,10,10,10)    :: doubleValueArray4dRereadStatic
+  double precision                 , allocatable, dimension( :, :, :, :)    :: doubleValueArray4dReread      , doubleValueArray4dRereadExpect
+  double precision                              , dimension(10,10,10,10,10) :: doubleValueArray5d
+  double precision                              , dimension(10,10,10,10,10) :: doubleValueArray5dRereadStatic
+  double precision                 , allocatable, dimension( :, :, :, :, :) :: doubleValueArray5dReread      , doubleValueArray5dRereadExpect
+  type            (varying_string ), allocatable, dimension( :)             :: datasetNames
+  type            (varying_string )             , dimension(19)             :: datasetNamesReference
+  type            (hdf5VarDouble  ), allocatable, dimension( :)             :: varDoubleArray2D              , varDoubleDataset2dArrayReread
+  type            (hdf5VarInteger8), allocatable, dimension( :)             :: varInteger8Array2D            , varInteger8Dataset2dArrayReread
 
   ! Set verbosity level.
   call displayVerbositySet(verbosityLevelStandard)
@@ -685,7 +686,7 @@ program Tests_IO_HDF5
         varDoubleArray2D(i)%row=float(2*i)
      end do
      call groupObject%writeDataset(varDoubleArray2D,"varDoubleDataset2dArray")
-     ! Read the varying string 1-D array dataset back.
+     ! Read the variable-length double array dataset back.
      call groupObject%readDataset("varDoubleDataset2dArray",varDoubleDataset2dArrayReread)
      call Assert(                                                                         &
           &      "re-read 2-D array varDouble dataset"                                  , &
@@ -705,6 +706,34 @@ program Tests_IO_HDF5
           &     )
      deallocate(varDoubleDataset2dArrayReread)
      deallocate(varDoubleArray2D             )
+
+     ! Write a variable length integer8 dataset to the group.
+     allocate(varInteger8Array2D(10))
+     do i=1,10
+        allocate(varInteger8Array2D(i)%row(11-i))
+        varInteger8Array2D(i)%row=2*i
+     end do
+     call groupObject%writeDataset(varInteger8Array2D,"varInteger8Dataset2dArray")
+     ! Read the variable-length integer-8 array dataset back.
+     call groupObject%readDataset("varInteger8Dataset2dArray",varInteger8Dataset2dArrayReread)
+     call Assert(                                                                             &
+          &      "re-read 2-D array varInteger8 dataset"                                    , &
+          &      [                                                                            &
+          &       all(varInteger8Array2D( 1)%row == varInteger8Dataset2dArrayReread( 1)%row), &
+          &       all(varInteger8Array2D( 2)%row == varInteger8Dataset2dArrayReread( 2)%row), &
+          &       all(varInteger8Array2D( 3)%row == varInteger8Dataset2dArrayReread( 3)%row), &
+          &       all(varInteger8Array2D( 4)%row == varInteger8Dataset2dArrayReread( 4)%row), &
+          &       all(varInteger8Array2D( 5)%row == varInteger8Dataset2dArrayReread( 5)%row), &
+          &       all(varInteger8Array2D( 6)%row == varInteger8Dataset2dArrayReread( 6)%row), &
+          &       all(varInteger8Array2D( 7)%row == varInteger8Dataset2dArrayReread( 7)%row), &
+          &       all(varInteger8Array2D( 8)%row == varInteger8Dataset2dArrayReread( 8)%row), &
+          &       all(varInteger8Array2D( 9)%row == varInteger8Dataset2dArrayReread( 9)%row), &
+          &       all(varInteger8Array2D(10)%row == varInteger8Dataset2dArrayReread(10)%row)  &
+          &      ]                                                                          , &
+          &      spread(.true.,1,10)                                                          &
+          &     )
+     deallocate(varInteger8Dataset2dArrayReread)
+     deallocate(varInteger8Array2D             )
 
      ! Write a scalar integer attribute to the group.
      integerValue=2020
@@ -756,12 +785,13 @@ program Tests_IO_HDF5
              &                 "integerShortDataset1dArray", &
              &                 "myReference               ", &
              &                 "varDoubleDataset2dArray   ", &
+             &                 "varInteger8Dataset2dArray ", &
              &                 "varStringDataset1dArray   "  &
              &                ]
         forall(i=1:size(datasetNamesReference))
            datasetNamesReference(i)=trim(datasetNamesReference(i))
         end forall
-        call Assert("recover correct number of datasets in group",size(datasetNames),18)
+        call Assert("recover correct number of datasets in group",size(datasetNames),19)
         call Assert("recover names of datasets in group",datasetNames,datasetNamesReference)
      end if
 
