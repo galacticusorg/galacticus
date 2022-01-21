@@ -113,6 +113,8 @@ contains
     !!{
     Compute the rate of growth of dark matter profile scale radius assuming a constant growth rate.
     !!}
+    use :: Display         , only : displayBlue       , displayGreen                  , displayYellow, displayBold, &
+         &                          displayReset
     use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
     class           (nodeOperatorDarkMatterProfileScaleInterpolate), intent(inout)          :: self
@@ -124,30 +126,40 @@ contains
     ! Set the growth rate for the scale radius.
     call self%nodeTreeInitialize(node)
     darkMatterProfile => node%darkMatterProfile()
-    if (node%isPrimaryProgenitor()) then
-       ! Node is the primary progenitor, so compute the scale radius growth rate.
-       basic        =>  node              %basic()
-       basicParent  =>  node       %parent%basic()
-       timeInterval =  +basicParent       %time () &
-            &          -basic             %time ()
-       if (timeInterval > 0.0d0) then
-          darkMatterProfileParent => node%parent%darkMatterProfile()
-          call darkMatterProfile%metaPropertySet(                                                &
-               &                                    self                   %scaleGrowthRateID  , &
-               &                                 +(                                              &
-               &                                   +darkMatterProfileParent%scale            ()  &
-               &                                   -darkMatterProfile      %scale            ()  &
-               &                                  )                                              &
-               &                                 /                          timeInterval         &
-               &                                )
+    select type (darkMatterProfile)
+    type is (nodeComponentDarkMatterProfile)
+       call Galacticus_Error_Report(                                                                                                                                                                                            &
+            &                       displayBold()//'darkMatterProfile'//displayReset()//' component must be created prior to initialization scale radius interpolation'                                            //char(10)// &
+            &                       '   For example, by using the following nodeOperator'                                                                                                                          //char(10)// &
+            &                       '    <'//displayBlue()//'nodeOperator'//displayReset()//' '//displayYellow()//'value'//displayReset()//'='//displayGreen()//'"darkMatterProfileScaleSet"'//displayReset()//'/>'          // &
+            &                       {introspection:location}                                                                                                                                                                    &
+            &                      )
+    class default
+       if (node%isPrimaryProgenitor()) then
+          ! Node is the primary progenitor, so compute the scale radius growth rate.
+          basic        =>  node              %basic()
+          basicParent  =>  node       %parent%basic()
+          timeInterval =  +basicParent       %time () &
+               &          -basic             %time ()
+          if (timeInterval > 0.0d0) then
+             darkMatterProfileParent => node%parent%darkMatterProfile()
+             call darkMatterProfile%metaPropertySet(                                                &
+                  &                                    self                   %scaleGrowthRateID  , &
+                  &                                 +(                                              &
+                  &                                   +darkMatterProfileParent%scale            ()  &
+                  &                                   -darkMatterProfile      %scale            ()  &
+                  &                                  )                                              &
+                  &                                 /                          timeInterval         &
+                  &                                )
+          else
+             ! Time interval is non-positive - assume zero growth rate.
+             call darkMatterProfile%metaPropertySet(self%scaleGrowthRateID,0.0d0)
+          end if
        else
-          ! Time interval is non-positive - assume zero growth rate.
-          call darkMatterProfile%metaPropertySet(self%scaleGrowthRateID,0.0d0)
+          ! Node is a non-primary progenitor - assume zero growth rate.
+          call    darkMatterProfile%metaPropertySet(self%scaleGrowthRateID,0.0d0)
        end if
-    else
-       ! Node is a non-primary progenitor - assume zero growth rate.
-       call    darkMatterProfile%metaPropertySet(self%scaleGrowthRateID,0.0d0)
-    end if
+    end select
     return
   end subroutine darkMatterProfileScaleInterpolateNodeInitialize
   
