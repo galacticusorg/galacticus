@@ -134,7 +134,8 @@ contains
     double precision                                     , parameter               :: toleranceBackground        =1.0d-3
     type            (mergerTree                         ), target                  :: tree
     double precision                                                               :: environmentOverdensityLower       , environmentOverdensityUpper, &
-         &                                                                            cdfTarget                         , massBackground
+         &                                                                            cdfTarget                         , massBackground             , &
+         &                                                                            massFunctionUnconditioned         , massFunctionConditioned
     type            (integrator                         )                          :: integrator_
     type            (rootFinder                         )                          :: finder
 
@@ -144,9 +145,19 @@ contains
        ! function. We include an empirical correction to ensure that the mass function transitions smoothly through the background
        ! mass.
        if (time /= self%timeMatching) then
-          self%factorMatching=+self                               %differential(time,massBackground*(1.0d0-toleranceBackground),node) &
-               &              /self%haloMassFunctionUnconditioned_%differential(time,massBackground*(1.0d0-toleranceBackground),node)
-          self%timeMatching  =+                                                 time
+          massFunctionUnconditioned=self%haloMassFunctionUnconditioned_%differential(time,massBackground*(1.0d0-toleranceBackground),node)
+          massFunctionConditioned  =self                               %differential(time,massBackground*(1.0d0-toleranceBackground),node)
+          if (massFunctionUnconditioned > 0.0d0 .and. exponent(massFunctionConditioned)+exponent(massFunctionUnconditioned) < maxExponent(0.0d0)) then
+             ! Unconditioned mass function is non-zero (and not too small), so we can calculate the matching factor precisely.
+             self%factorMatching=+massFunctionConditioned   &
+                  &              /massFunctionUnconditioned
+          else
+             ! Unconditioned mass function is zero (or very small). No well-defined matching factor therefore exists, but this
+             ! should be irrelevant as the mass function will be negligible in the high mass regime anyway. Therefore, we simply
+             ! set the matching factor to 1.
+             self%factorMatching=+1.0d0
+          end if
+          self%timeMatching=time
        end if
        environmentAveragedDifferential=+self%haloMassFunctionUnconditioned_%differential(time,mass,node) &
             &                          *self%factorMatching
