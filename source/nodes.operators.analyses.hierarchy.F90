@@ -163,8 +163,8 @@ contains
              if (.not.nodeHost%isPrimaryProgenitor() .and. associated(nodeHost%parent)) then
                 nodeHierarchyLevelDepth =  nodeHierarchyLevelDepth                 +1
                 basicParent             => nodeHost%parent%basic(autoCreate=.true.)
-                if (basicParent%integerMetaPropertyGet(self%nodeHierarchyLevelDepthID) > -1_kind_int8) then
-                   nodeHierarchyLevelDepth= nodeHierarchyLevelDepth+basicParent%integerMetaPropertyGet(self%nodeHierarchyLevelDepthID)
+                if (basicParent%longIntegerRank0MetaPropertyGet(self%nodeHierarchyLevelDepthID) > -1_kind_int8) then
+                   nodeHierarchyLevelDepth= nodeHierarchyLevelDepth+basicParent%longIntegerRank0MetaPropertyGet(self%nodeHierarchyLevelDepthID)
                    exit
                 end if
              end if
@@ -174,7 +174,7 @@ contains
           nodeParent => nodeWork
           do while (associated(nodeParent))
              basicParent => nodeParent%basic(autoCreate=.true.)
-             call basicParent%integerMetaPropertySet(self%nodeHierarchyLevelDepthID,nodeHierarchyLevelDepth)
+             call basicParent%longIntegerRank0MetaPropertySet(self%nodeHierarchyLevelDepthID,nodeHierarchyLevelDepth)
              if (nodeParent%isPrimaryProgenitor()) then
                 nodeParent => nodeParent%parent
              else
@@ -190,9 +190,9 @@ contains
           nodeHost           => nodeHost          %parent
        end do
        basic => nodeWork%basic()
-       call basic%integerMetaPropertySet(self%nodeHierarchyLevelID       ,      nodeHierarchyLevel  )
-       call basic%integerMetaPropertySet(self%nodeHierarchyLevelMaximumID,      nodeHierarchyLevel  )
-       call basic%       metaPropertySet(self%massWhenFirstIsolatedID    ,basic%mass              ())
+       call basic%longIntegerRank0MetaPropertySet(self%nodeHierarchyLevelID       ,      nodeHierarchyLevel  )
+       call basic%longIntegerRank0MetaPropertySet(self%nodeHierarchyLevelMaximumID,      nodeHierarchyLevel  )
+       call basic%floatRank0MetaPropertySet      (self%massWhenFirstIsolatedID    ,basic%mass              ())
     end do
     return
   end subroutine hierarchyNodeTreeInitialize
@@ -222,13 +222,13 @@ contains
     class(nodeComponentBasic   )               , pointer :: basic
     
     basic => node%basic()
-    call basic%integerMetaPropertySet(self%nodeHierarchyLevelID       ,    basic%integerMetaPropertyGet(self%nodeHierarchyLevelID       )+1)
-    call basic%integerMetaPropertySet(self%nodeHierarchyLevelMaximumID,                                                                       &
-         &                                                             max(                                                                   &
-         &                                                                 basic%integerMetaPropertyGet(self%nodeHierarchyLevelID       )   , &
-         &                                                                 basic%integerMetaPropertyGet(self%nodeHierarchyLevelMaximumID)     &
-         &                                                                 )                                                                  &
-         &                           )
+    call basic%longIntegerRank0MetaPropertySet(self%nodeHierarchyLevelID       ,    basic%longIntegerRank0MetaPropertyGet(self%nodeHierarchyLevelID       )+1)
+    call basic%longIntegerRank0MetaPropertySet(self%nodeHierarchyLevelMaximumID,                                                                                &
+         &                                                                      max(                                                                            &
+         &                                                                          basic%longIntegerRank0MetaPropertyGet(self%nodeHierarchyLevelID       )   , &
+         &                                                                          basic%longIntegerRank0MetaPropertyGet(self%nodeHierarchyLevelMaximumID)     &
+         &                                                                         )                                                                            &
+         &                                )
     ! Increment the hierarchy level of any satellites.
     nodeSatellite => node%firstSatellite
     do while (associated(nodeSatellite))
@@ -262,7 +262,7 @@ contains
           nodeHierarchyLevel =  nodeHierarchyLevel       +1_kind_int8
           nodeHost           => nodeHost          %parent
        end do
-       call basic%integerMetaPropertySet(self%nodeHierarchyLevelID,nodeHierarchyLevel)
+       call basic%longIntegerRank0MetaPropertySet(self%nodeHierarchyLevelID,nodeHierarchyLevel)
        ! Call this function on any satellites of the satellite node.
        nodeSatellite => node%firstSatellite
        do while (associated(nodeSatellite))
@@ -290,7 +290,7 @@ contains
     class is (nodeOperatorHierarchy)
        basic       => node         %basic()
        basicParent => nodePromotion%basic()
-       call basic%metaPropertySet(self%massWhenFirstIsolatedID,basicParent%mass())
+       call basic%floatRank0MetaPropertySet(self%massWhenFirstIsolatedID,basicParent%mass())
     class default
        call Galacticus_Error_Report('incorrect class'//{introspection:location})
     end select
@@ -309,8 +309,8 @@ contains
     
     basic       => node       %basic()
     basicParent => node%parent%basic()
-    call self %reset                 (node                                                                                   )
-    call basic%integerMetaPropertySet(self%nodeHierarchyLevelID,basicParent%integerMetaPropertyGet(self%nodeHierarchyLevelID))
+    call self %reset                          (node                                                                                        )
+    call basic%longIntegerRank0MetaPropertySet(self%nodeHierarchyLevelID,basicParent%longIntegerRank0MetaPropertyGet(self%nodeHierarchyLevelID))
     return
   end subroutine hierarchyNodePromote
 
@@ -338,7 +338,7 @@ contains
 
     ! Test if previous mass has been exceeded by a sufficient factor to reset the maximum hierarchy level.
     basic => node%basic()
-    if (basic%mass() > self%factorMassReset*basic%metaPropertyGet(self%massWhenFirstIsolatedID)) &
-         & call basic%integerMetaPropertySet(self%nodeHierarchyLevelMaximumID,basic%integerMetaPropertyGet(self%nodeHierarchyLevelID))
+    if (basic%mass() > self%factorMassReset*basic%floatRank0MetaPropertyGet(self%massWhenFirstIsolatedID)) &
+         & call basic%longIntegerRank0MetaPropertySet(self%nodeHierarchyLevelMaximumID,basic%longIntegerRank0MetaPropertyGet(self%nodeHierarchyLevelID))
     return
   end subroutine hierarchyReset

@@ -165,10 +165,10 @@ contains
        end if
        ! Check if child should be included.
        basicChild => nodeChild%basic()
-       if     (                                                                                &
-            &   .not.self      %alwaysIsolatedHalosOnly                                        &
-            &  .or.                                                                            &
-            &        basicChild%integerMetaPropertyGet (self%nodeHierarchyLevelMaximumID) == 0 &
+       if     (                                                                                     &
+            &   .not.self      %alwaysIsolatedHalosOnly                                             &
+            &  .or.                                                                                 &
+            &        basicChild%integerRank0MetaPropertyGet (self%nodeHierarchyLevelMaximumID) == 0 &
             & ) then
           ! Determine range of times spanned by this branch.
           basic       => node      %basic()

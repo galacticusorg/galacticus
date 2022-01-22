@@ -101,7 +101,8 @@ sub Label_Lengths {
 		 length($_        ->{'name' })
 	     }
 	     &List::ExtraUtils::hashList($component->{'properties'}->{'property'}, keyAs => 'name' )
-	    );
+	    )
+	    if ( exists($component->{'properties'}->{'property'}) );
     }
     # Add variables for use at run-time.
         push

@@ -131,8 +131,8 @@ contains
        massStellarDisk        =0.0d0
        massTimeStellarDisk    =0.0d0
     class default
-       massStellarDisk        =disk    %metaPropertyGet(self%    stellarMassFormedDiskID    )
-       massTimeStellarDisk    =disk    %metaPropertyGet(self%timeStellarMassFormedDiskID    )
+       massStellarDisk        =disk    %floatRank0MetaPropertyGet(self%    stellarMassFormedDiskID    )
+       massTimeStellarDisk    =disk    %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )
     end select
     select type (spheroid)
     type is (nodeComponentSpheroid)
@@ -140,8 +140,8 @@ contains
        massStellarSpheroid    =0.0d0
        massTimeStellarSpheroid=0.0d0
     class default
-       massStellarSpheroid    =spheroid%metaPropertyGet(self%    stellarMassFormedSpheroidID)
-       massTimeStellarSpheroid=spheroid%metaPropertyGet(self%timeStellarMassFormedSpheroidID)
+       massStellarSpheroid    =spheroid%floatRank0MetaPropertyGet(self%    stellarMassFormedSpheroidID)
+       massTimeStellarSpheroid=spheroid%floatRank0MetaPropertyGet(self%timeStellarMassFormedSpheroidID)
     end select
     ! Compute ages.
     if (massStellarDisk > 0.0d0) then

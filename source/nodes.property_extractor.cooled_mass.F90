@@ -109,8 +109,8 @@ contains
        ! Spheroid does not yet exist.
        massCooledExtract=0.0d0
     class default
-       massCooledExtract=hotHalo%metaPropertyGet(self%massCooledID)
-       if (self%resetAfterExtract) call hotHalo%metaPropertySet(self%massCooledID,0.0d0)
+       massCooledExtract=hotHalo%floatRank0MetaPropertyGet(self%massCooledID)
+       if (self%resetAfterExtract) call hotHalo%floatRank0MetaPropertySet(self%massCooledID,0.0d0)
     end select
     return
   end function massCooledExtract

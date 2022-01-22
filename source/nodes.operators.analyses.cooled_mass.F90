@@ -120,7 +120,7 @@ contains
     type is (nodeComponentHotHalo)
        ! Hot halo does not yet exist - nothing to do here.
     class default
-       call hotHalo%metaPropertyInactive(self%massCooledID)
+       call hotHalo%floatRank0MetaPropertyInactive(self%massCooledID)
     end select
     return
   end subroutine massCooledDifferentialEvolutionInactives
@@ -143,7 +143,7 @@ contains
        ! Hot halo does not yet exist - nothing to do here.
        class default
        basic => node%basic()
-       call hotHalo%metaPropertyScale(self%massCooledID,scaleMassRelative*basic%mass())
+       call hotHalo%floatRank0MetaPropertyScale(self%massCooledID,scaleMassRelative*basic%mass())
     end select
     return
   end subroutine massCooledDifferentialEvolutionScales
@@ -171,7 +171,7 @@ contains
     type is (nodeComponentHotHalo)
        ! Hot halo does not yet exist - nothing to do here.
     class default
-       call hotHalo%metaPropertyRate(self%massCooledID,self%coolingRate_%rate(node))
+       call hotHalo%floatRank0MetaPropertyRate(self%massCooledID,self%coolingRate_%rate(node))
     end select
     return
   end subroutine massCooledDifferentialEvolution

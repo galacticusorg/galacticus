@@ -89,8 +89,8 @@ contains
     class           (nodeComponentBasic                        )               , pointer     :: basic
     !$GLC attributes unused :: instance
 
-    basic            => node %basic               (                            )
-    timeMajorMergers =  basic%rank1MetaPropertyGet(self%galaxyMajorMergerTimeID)
+    basic            => node %basic                    (                            )
+    timeMajorMergers =  basic%floatRank1MetaPropertyGet(self%galaxyMajorMergerTimeID)
     return
   end function galaxyMajorMergerTimeExtract
   

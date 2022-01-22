@@ -90,8 +90,8 @@ contains
     class           (nodeComponentBasic                 )               , pointer  :: basic
     !$GLC attributes unused :: instance, time
 
-    basic                 => node %basic                 (                     )
-    indexBranchTipExtract =  basic%integerMetaPropertyGet(self%indexBranchTipID)
+    basic                 => node %basic                      (                     )
+    indexBranchTipExtract =  basic%integerRank0MetaPropertyGet(self%indexBranchTipID)
     return
   end function indexBranchTipExtract
 

@@ -146,7 +146,7 @@ contains
                &                                           formationMassFraction              =self%fractionMassFormation              , &
                &                                           darkMatterHaloMassAccretionHistory_=self%darkMatterHaloMassAccretionHistory_  &
                &                                          )
-          call basic%metaPropertySet(self%nodeFormationTimeID,timeFormation)
+          call basic%floatRank0MetaPropertySet(self%nodeFormationTimeID,timeFormation)
        else if (.not.associated(nodeWork%firstChild)) then
           nodeParent    => nodeWork
           nodeFormation => nodeWork
@@ -158,7 +158,7 @@ contains
                   &                                           formationMassFraction              =self%fractionMassFormation              , &
                   &                                           darkMatterHaloMassAccretionHistory_=self%darkMatterHaloMassAccretionHistory_  &
                   &                                          )
-             call basic%metaPropertySet(self%nodeFormationTimeID,timeFormation)
+             call basic%floatRank0MetaPropertySet(self%nodeFormationTimeID,timeFormation)
              if (nodeParent%isPrimaryProgenitor()) then
                 nodeParent => nodeParent%parent
              else
@@ -182,6 +182,6 @@ contains
     
     basic       => node       %basic()
     basicParent => node%parent%basic()
-    call basic%metaPropertySet(self%nodeFormationTimeID,basicParent%metaPropertyGet(self%nodeFormationTimeID))
+    call basic%floatRank0MetaPropertySet(self%nodeFormationTimeID,basicParent%floatRank0MetaPropertyGet(self%nodeFormationTimeID))
     return
   end subroutine nodeFormationTimeNodePromote

@@ -192,7 +192,7 @@ contains
     hotHalo       => node                      %hotHalo       (    )
     massVirial    =  basic                     %mass          (    )
     velocityVirial=  self %darkMatterHaloScale_%velocityVirial(node)
-    call hotHalo%metaPropertyScale(self%energyRadiatedID,unitEnergyRadiated*massVirial*velocityVirial**2*scaleRelative)
+    call hotHalo%floatRank0MetaPropertyScale(self%energyRadiatedID,unitEnergyRadiated*massVirial*velocityVirial**2*scaleRelative)
     return
   end subroutine coolingEnergyRadiatedDifferentialEvolutionScales
   
@@ -290,12 +290,12 @@ contains
        ! Set the rate. Note that the "cooling function" here is λ(T,Z) = Λ(T,Z) nₕ², where Λ(T,Z) is the usual cooling function and
        ! nₕ is the number density of hydrogen atoms. We want to evaluate the integral ∫ dt Λ(T,Z) nₕ N where N is the total number of
        ! particles in the halo. This can be written as ∫ dt λ(T,Z) nₕ⁻¹ N.
-       call hotHalo%metaPropertyRate(                        &
-            &                         self%energyradiatedID, &
-            &                        +coolingFunction        &
-            &                        /numberDensityHydrogen  &
-            &                        *countParticles         &
-            &                       )
+       call hotHalo%floatRank0MetaPropertyRate(                        &
+            &                                   self%energyradiatedID, &
+            &                                  +coolingFunction        &
+            &                                  /numberDensityHydrogen  &
+            &                                  *countParticles         &
+            &                                 )
     end select
     return
   end subroutine coolingEnergyRadiatedDifferentialEvolution
@@ -317,11 +317,11 @@ contains
        ! Component has not yet been created - therefore we do not need to do anything here.
     class default
        hotHaloParent => node%parent%hotHalo(autoCreate=.true.)
-       call hotHalo%metaPropertySet(                                                      &
-            &                                                      self%energyRadiatedID, &
-            &                       +hotHalo      %metaPropertyGet(self%energyRadiatedID) &
-            &                       +hotHaloParent%metaPropertyGet(self%energyRadiatedID) &
-            &                      )
+       call hotHalo%floatRank0MetaPropertySet(                                                                &
+            &                                                                          self%energyRadiatedID, &
+            &                                 +hotHalo      %floatRank0MetaPropertyGet(self%energyRadiatedID) &
+            &                                 +hotHaloParent%floatRank0MetaPropertyGet(self%energyRadiatedID) &
+            &                                )
     end select
     return
   end subroutine coolingEnergyRadiatedNodePromote
@@ -339,10 +339,10 @@ contains
     ! We do not add the energy radiated from this node to that of its parent, as we assume that, on merging, the hot halo gas of
     ! this node is shock heated to the virial temperature of the parent, effectively negating the energy radiated.
     hotHalo => node%hotHalo()
-    call hotHalo%metaPropertySet(                        &
-         &                        self%energyRadiatedID, &
-         &                       +0.0d0                  &
-         &                      )
+    call hotHalo%floatRank0MetaPropertySet(                        &
+         &                                  self%energyRadiatedID, &
+         &                                 +0.0d0                  &
+         &                                )
     return
   end subroutine coolingEnergyRadiatedNodesMerge
   
@@ -370,7 +370,7 @@ contains
             &          +hotHalo                   %outflowedMass(                                          ) &
             &          +self   %galacticStructure_%massEnclosed (node,radiusLarge,massType=massTypeGalactic)
     if (massNotional > 0.0d0) &
-         & call hotHalo%metaPropertyRate(self%energyRadiatedID,-hotHalo%metaPropertyGet(self%energyRadiatedID)*massRate/massNotional)
+         & call hotHalo%floatRank0MetaPropertyRate(self%energyRadiatedID,-hotHalo%floatRank0MetaPropertyGet(self%energyRadiatedID)*massRate/massNotional)
     class default
        call Galacticus_Error_Report('incorrect class'//{introspection:location})
     end select

@@ -144,21 +144,21 @@ contains
     class(nodeComponentSpheroid                   ), pointer       :: spheroid
 
     basic => node%basic()
-    if (self%outputTimes_%timeNext(basic%time()) > basic%metaPropertyGet(self%starFormationRateInterOutputNextID)) then
-       call basic      %metaPropertySet(self%starFormationRateInterOutputNextID    ,self%outputTimes_%timeNext(basic%time()))
+    if (self%outputTimes_%timeNext(basic%time()) > basic%floatRank0MetaPropertyGet(self%starFormationRateInterOutputNextID)) then
+       call basic      %floatRank0MetaPropertySet(self%starFormationRateInterOutputNextID    ,self%outputTimes_%timeNext(basic%time()))
        disk     =>  node%disk    ()
        spheroid =>  node%spheroid()
        select type (disk    )
        type is (nodeComponentDisk    )
           ! Disk does not yet exist - nothing to do here.
        class default
-          call disk    %metaPropertySet(self%starFormationRateDiskInterOutputID    ,0.0d0                                   )
+          call disk    %floatRank0MetaPropertySet(self%starFormationRateDiskInterOutputID    ,0.0d0                                   )
        end select
        select type (spheroid)
        type is (nodeComponentSpheroid)
           ! Spheroid does not yet exist - nothing to do here.
        class default
-          call spheroid%metaPropertySet(self%starFormationRateSpheroidInterOutputID,0.0d0                                   )
+          call spheroid%floatRank0MetaPropertySet(self%starFormationRateSpheroidInterOutputID,0.0d0                                   )
        end select
     end if
     return
@@ -186,13 +186,13 @@ contains
     type is (nodeComponentDisk    )
        ! Disk does not yet exist - nothing to do here.
     class default
-       call disk    %metaPropertyScale(self%starFormationRateDiskInterOutputID    ,max(mass,massMinimum)/timeScale)
+       call disk    %floatRank0MetaPropertyScale(self%starFormationRateDiskInterOutputID    ,max(mass,massMinimum)/timeScale)
     end select
     select type (spheroid)
     type is (nodeComponentSpheroid)
        ! Spheroid does not yet exist - nothing to do here.
     class default
-       call spheroid%metaPropertyScale(self%starFormationRateSpheroidInterOutputID,max(mass,massMinimum)/timeScale)
+       call spheroid%floatRank0MetaPropertyScale(self%starFormationRateSpheroidInterOutputID,max(mass,massMinimum)/timeScale)
     end select
     return
   end subroutine starFormationRateInterOutputDifferentialEvolutionScales
@@ -220,21 +220,21 @@ contains
     disk     => node%disk    ()
     spheroid => node%spheroid()
     ! Find the time interval for this inter-output.
-    timeInterval=+          basic%metaPropertyGet             (self %starFormationRateInterOutputNextID  )  &
-         &       -max(0.0d0,self %outputTimes_   %timePrevious(basic%time                              ()))
+    timeInterval=+          basic%floatRank0MetaPropertyGet             (self %starFormationRateInterOutputNextID  )  &
+         &       -max(0.0d0,self %outputTimes_             %timePrevious(basic%time                              ()))
     if (timeInterval <= 0.0d0) return
     ! Accumulate rates.
     select type (disk    )
     type is (nodeComponentDisk    )
        ! Disk does not yet exist - nothing to do here.
     class default
-       call disk    %metaPropertyRate(self%starFormationRateDiskInterOutputID    ,self%starFormationRateDisks_   %rate(node)/timeInterval)
+       call disk    %floatRank0MetaPropertyRate(self%starFormationRateDiskInterOutputID    ,self%starFormationRateDisks_   %rate(node)/timeInterval)
     end select
     select type (spheroid)
     type is (nodeComponentSpheroid)
        ! Spheroid does not yet exist - nothing to do here.
     class default
-       call spheroid%metaPropertyRate(self%starFormationRateSpheroidInterOutputID,self%starFormationRateSpheroids_%rate(node)/timeInterval)
+       call spheroid%floatRank0MetaPropertyRate(self%starFormationRateSpheroidInterOutputID,self%starFormationRateSpheroids_%rate(node)/timeInterval)
     end select   
     return
   end subroutine starFormationRateInterOutputDifferentialEvolution
@@ -267,51 +267,51 @@ contains
     ! Move the star formation rates from secondary to primary.
     select case (destinationStarsSatellite)
     case (destinationMergerDisk    )
-       call     diskHost%metaPropertySet(                                                                                                  &
-            &                             self        %starFormationRateDiskInterOutputID,                                                 &
-            &                            +    diskHost%metaPropertyGet                       (self%starFormationRateDiskInterOutputID    ) &
-            &                            +    disk    %metaPropertyGet                       (self%starFormationRateDiskInterOutputID    ) &
-            &                           )
-       call spheroidHost%metaPropertySet(&
-            &                             self        %starFormationRateSpheroidInterOutputID,                                             &
-            &                            +spheroidHost%metaPropertyGet                       (self%starFormationRateSpheroidInterOutputID) &
-            &                            +spheroid    %metaPropertyGet                       (self%starFormationRateSpheroidInterOutputID) &
-            &                           )
+       call     diskHost%floatRank0MetaPropertySet(                                                                                                             &
+            &                                       self        %starFormationRateDiskInterOutputID                                                           , &
+            &                                      +    diskHost%floatRank0MetaPropertyGet                       (self%starFormationRateDiskInterOutputID    )  &
+            &                                      +    disk    %floatRank0MetaPropertyGet                       (self%starFormationRateDiskInterOutputID    )  &
+            &                                     )
+       call spheroidHost%floatRank0MetaPropertySet(&
+            &                                       self        %starFormationRateSpheroidInterOutputID                                                       , &
+            &                                      +spheroidHost%floatRank0MetaPropertyGet                       (self%starFormationRateSpheroidInterOutputID)  &
+            &                                      +spheroid    %floatRank0MetaPropertyGet                       (self%starFormationRateSpheroidInterOutputID)  &
+            &                                     )
     case (destinationMergerSpheroid)
     case default
        call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
     end select
     ! Zero rates in the secondary,
-    call        disk    %metaPropertySet(                                                                                                  &
-         &                                self        %starFormationRateDiskInterOutputID                                                , &
-         &                               +0.0d0                                                                                            &
-         &                              )
-    call    spheroid    %metaPropertySet(                                                                                                  &
-         &                                self        %starFormationRateSpheroidInterOutputID                                            , &
-         &                               +0.0d0                                                                                            &
-         &                              )
+    call        disk    %floatRank0MetaPropertySet(                                                                                                             &
+         &                                          self        %starFormationRateDiskInterOutputID                                                           , &
+         &                                         +0.0d0                                                                                                       &
+         &                                        )
+    call    spheroid    %floatRank0MetaPropertySet(                                                                                                             &
+         &                                          self        %starFormationRateSpheroidInterOutputID                                                       , &
+         &                                         +0.0d0                                                                                                       &
+         &                                        ) 
     ! Move star formation rates within the host if necessary.
     select case (destinationStarsHost)
     case (destinationMergerDisk)
-       call     diskHost%metaPropertySet(                                                                                                  &
-            &                             self        %starFormationRateDiskInterOutputID                                                , &
-            &                            +    diskHost%metaPropertyGet                       (self%starFormationRateDiskInterOutputID    ) &
-            &                            +spheroidHost%metaPropertyGet                       (self%starFormationRateSpheroidInterOutputID) &
-            &                           )
-       call spheroidHost%metaPropertySet(                                                                                                  &
-            &                             self        %starFormationRateSpheroidInterOutputID                                           ,  &
-            &                            +0.0d0                                                                                            &
-            &                           )
+       call     diskHost%floatRank0MetaPropertySet(                                                                                                             &
+            &                                       self        %starFormationRateDiskInterOutputID                                                           , &
+            &                                      +    diskHost%floatRank0MetaPropertyGet                       (self%starFormationRateDiskInterOutputID    )  &
+            &                                      +spheroidHost%floatRank0MetaPropertyGet                       (self%starFormationRateSpheroidInterOutputID)  &
+            &                                     )
+       call spheroidHost%floatRank0MetaPropertySet(                                                                                                             &
+            &                                       self        %starFormationRateSpheroidInterOutputID                                                       , &
+            &                                      +0.0d0                                                                                                       &
+            &                                     )
     case (destinationMergerSpheroid)
-       call spheroidHost%metaPropertySet(                                                                                                  &
-            &                             self        %starFormationRateSpheroidInterOutputID                                            , &
-            &                            +spheroidHost%metaPropertyGet                       (self%starFormationRateSpheroidInterOutputID) &
-            &                            +    diskHost%metaPropertyGet                       (self%starFormationRateDiskInterOutputID    ) &
-            &                           )
-       call     diskHost%metaPropertySet(                                                                                                  &
-            &                             self        %starFormationRateDiskInterOutputID                                                , &
-            &                            +0.0d0                                                                                            &
-            &                           )
+       call spheroidHost%floatRank0MetaPropertySet(                                                                                                             &
+            &                                       self        %starFormationRateSpheroidInterOutputID                                                       , &
+            &                                      +spheroidHost%floatRank0MetaPropertyGet                       (self%starFormationRateSpheroidInterOutputID)  &
+            &                                      +    diskHost%floatRank0MetaPropertyGet                       (self%starFormationRateDiskInterOutputID    )  &
+            &                                     )
+       call     diskHost%floatRank0MetaPropertySet(                                                                                                             &
+            &                                       self        %starFormationRateDiskInterOutputID                                                           , &
+            &                                      +0.0d0                                                                                                       &
+            &                                     )
     case (destinationMergerUnmoved)
        ! Do nothing.
     case default

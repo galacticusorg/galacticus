@@ -102,7 +102,7 @@ contains
     class(nodeComponentBasic             )               , pointer :: basic
 
     basic => node%basic()
-    call basic%metaPropertySet(self%nodeMajorMergerTimeID,-1.0d0)
+    call basic%floatRank0MetaPropertySet(self%nodeMajorMergerTimeID,-1.0d0)
     return
   end subroutine nodeMajorMergerTimeNodeInitialize
 
@@ -119,7 +119,7 @@ contains
     basic       => node       %basic()
     basicParent => node%parent%basic()
     if (basic%mass() >= self%fractionMassMajorMerger*basicParent%mass()) &
-         &  call basicParent%metaPropertySet(self%nodeMajorMergerTimeID,basic%time())
+         &  call basicParent%floatRank0MetaPropertySet(self%nodeMajorMergerTimeID,basic%time())
     return
   end subroutine nodeMajorMergerTimeNodesMerge
  
@@ -135,7 +135,7 @@ contains
     
     basic       => node       %basic()
     basicParent => node%parent%basic()
-    if (basicParent%metaPropertyGet(self%nodeMajorMergerTimeID) > basic%metaPropertyGet(self%nodeMajorMergerTimeID)) &
-         & call basic%metaPropertySet(self%nodeMajorMergerTimeID,basicParent%metaPropertyGet(self%nodeMajorMergerTimeID))
+    if (basicParent%floatRank0MetaPropertyGet(self%nodeMajorMergerTimeID) > basic%floatRank0MetaPropertyGet(self%nodeMajorMergerTimeID)) &
+         & call basic%floatRank0MetaPropertySet(self%nodeMajorMergerTimeID,basicParent%floatRank0MetaPropertyGet(self%nodeMajorMergerTimeID))
     return
   end subroutine nodeMajorMergerTimeNodePromote

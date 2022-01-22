@@ -188,12 +188,19 @@ module Galacticus_Nodes
   end interface
 
   ! Meta-property types.
-  type :: rank1MetaProperty
+  type :: floatRank1MetaProperty
      !!{
-     Type used to store rank-1 meta-properties.
+     Type used to store float rank-1 meta-properties.
      !!}
      double precision, allocatable, dimension(:) :: values
-  end type rank1MetaProperty
+  end type floatRank1MetaProperty
+
+  type :: integerRank1MetaProperty
+     !!{
+     Type used to store integer rank-1 meta-properties.
+     !!}
+     integer, allocatable, dimension(:) :: values
+  end type integerRank1MetaProperty
   
   ! Zero dimension arrays to be returned as defaults.
   integer                                            , dimension(0) :: nullInteger1d
@@ -1024,7 +1031,7 @@ module Galacticus_Nodes
     return
   end subroutine Node_Component_Generic_Destroy
 
-  integer function Node_Component_Generic_Add_Meta_Property(self,label,name,isEvolvable,isCreator)
+  integer function Node_Component_Generic_Add_Float_Rank0_Meta_Property(self,label,name,isEvolvable,isCreator)
     !!{
     Add a meta-property to a node component.
     !!}
@@ -1035,12 +1042,12 @@ module Galacticus_Nodes
     logical                  , intent(in   ), optional :: isEvolvable, isCreator
     !$GLC attributes unused :: self, label, name, isEvolvable, isCreator
 
-    Node_Component_Generic_Add_Meta_Property=-1
+    Node_Component_Generic_Add_Float_Rank0_Meta_Property=-1
     call Galacticus_Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})
     return
-  end function Node_Component_Generic_Add_Meta_Property
+  end function Node_Component_Generic_Add_Float_Rank0_Meta_Property
 
-  integer function Node_Component_Generic_Add_Rank1_Meta_Property(self,label,name,isCreator)
+  integer function Node_Component_Generic_Add_Float_Rank1_Meta_Property(self,label,name,isCreator)
     !!{
     Add a rank-1 meta-property to a node component.
     !!}
@@ -1051,12 +1058,44 @@ module Galacticus_Nodes
     logical                  , intent(in   ), optional :: isCreator
     !$GLC attributes unused :: self, label, name, isCreator
 
-    Node_Component_Generic_Add_Rank1_Meta_Property=-1
+    Node_Component_Generic_Add_Float_Rank1_Meta_Property=-1
     call Galacticus_Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})
     return
-  end function Node_Component_Generic_Add_Rank1_Meta_Property
+  end function Node_Component_Generic_Add_Float_Rank1_Meta_Property
 
-  integer function Node_Component_Generic_Add_Integer_Meta_Property(self,label,name,isCreator)
+  integer function Node_Component_Generic_Add_LongInteger_Rank0_Meta_Property(self,label,name,isCreator)
+    !!{
+    Add a long integer meta-property to a node component.
+    !!}
+    implicit none
+    class    (nodeComponent ), intent(inout)           :: self
+    type     (varying_string), intent(in   )           :: label
+    character(len=*         ), intent(in   )           :: name
+    logical                  , intent(in   ), optional :: isCreator
+    !$GLC attributes unused :: self, label, name, isCreator
+
+    Node_Component_Generic_Add_LongInteger_Rank0_Meta_Property=-1
+    call Galacticus_Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})
+    return
+  end function Node_Component_Generic_Add_LongInteger_Rank0_Meta_Property
+  
+  integer function Node_Component_Generic_Add_Integer_Rank0_Meta_Property(self,label,name,isCreator)
+    !!{
+    Add a long integer meta-property to a node component.
+    !!}
+    implicit none
+    class    (nodeComponent ), intent(inout)           :: self
+    type     (varying_string), intent(in   )           :: label
+    character(len=*         ), intent(in   )           :: name
+    logical                  , intent(in   ), optional :: isCreator
+    !$GLC attributes unused :: self, label, name, isCreator
+
+    Node_Component_Generic_Add_Integer_Rank0_Meta_Property=-1
+    call Galacticus_Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})
+    return
+  end function Node_Component_Generic_Add_Integer_Rank0_Meta_Property
+  
+  integer function Node_Component_Generic_Add_Integer_Rank1_Meta_Property(self,label,name,isCreator)
     !!{
     Add an integer meta-property to a node component.
     !!}
@@ -1067,10 +1106,10 @@ module Galacticus_Nodes
     logical                  , intent(in   ), optional :: isCreator
     !$GLC attributes unused :: self, label, name, isCreator
 
-    Node_Component_Generic_Add_Integer_Meta_Property=-1
-    call Galacticus_Error_Report('can not add integer meta-properties to a generic nodeComponent'//{introspection:location})
+    Node_Component_Generic_Add_Integer_Rank1_Meta_Property=-1
+    call Galacticus_Error_Report('can not add meta-properties to a generic nodeComponent'//{introspection:location})
     return
-  end function Node_Component_Generic_Add_Integer_Meta_Property
+  end function Node_Component_Generic_Add_Integer_Rank1_Meta_Property
   
   !![
   <metaPropertyDatabase/>

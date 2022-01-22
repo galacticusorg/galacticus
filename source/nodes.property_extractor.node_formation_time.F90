@@ -88,8 +88,8 @@ contains
     class(nodeComponentBasic                    )               , pointer  :: basic
     !$GLC attributes unused :: instance
 
-    basic                    => node %basic          (                        )
-    nodeFormationTimeExtract =  basic%metaPropertyGet(self%nodeFormationTimeID)
+    basic                    => node %basic                    (                        )
+    nodeFormationTimeExtract =  basic%floatRank0MetaPropertyGet(self%nodeFormationTimeID)
     return
   end function nodeFormationTimeExtract
   

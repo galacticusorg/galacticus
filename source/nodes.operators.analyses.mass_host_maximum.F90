@@ -127,13 +127,13 @@ contains
     if (.not.(node%isSatellite() .or. isMerging)) return
     basic     => node       %basic()
     basicHost => node%parent%basic()
-    call basic%metaPropertySet(                                                       &
-         &                                                   self%massHostMaximumID , &
-         &                     max(                                                   &
-         &                         basic    %metaPropertyGet(self%massHostMaximumID), &
-         &                         basicHost%mass           (                      )  &
-         &                        )                                                   &
-         &                    )  
+    call basic%floatRank0MetaPropertySet(                                                                 &
+         &                                                                       self%massHostMaximumID , &
+         &                               max(                                                             &
+         &                                   basic    %floatRank0MetaPropertyGet(self%massHostMaximumID), &
+         &                                   basicHost%mass                     (                      )  &
+         &                                  )                                                             &
+         &                              )
     return
   end subroutine massHostMaximumUpdate
 
@@ -183,13 +183,13 @@ contains
     do while (associated(nodeSatellite))
        basicSatellite => nodeSatellite       %basic()
        basicHost      => node         %parent%basic()
-       call basicSatellite%metaPropertySet(                                                            &
-            &                                                                 self%massHostMaximumID , &
-            &                              max(                                                        &
-            &                                  basicSatellite%metaPropertyGet(self%massHostMaximumID), &
-            &                                  basicHost     %mass           (                      )  &
-            &                                 )                                                        &
-            &                             )  
+       call basicSatellite%floatRank0MetaPropertySet(                                                                      &
+            &                                                                                     self%massHostMaximumID , &
+            &                                        max(                                                                  &
+            &                                            basicSatellite%floatRank0MetaPropertyGet(self%massHostMaximumID), &
+            &                                            basicHost     %mass                     (                      )  &
+            &                                           )                                                                  &
+            &                                       )  
        nodeSatellite => nodeSatellite%sibling
     end do
     return

@@ -103,10 +103,10 @@ contains
     type (treeNode                           ), intent(inout), target :: node
     class(nodeComponentBasic                 ), pointer               :: basic
 
-    basic                       =>   node %basic          (                          )
-    nodeMajorMergerRecentPasses =   +basic%metaPropertyGet(self%nodeMajorMergerTimeID) &
-         &                         >=                                                  &
-         &                          +basic%time           (                          ) &
+    basic                       =>   node %basic                    (                          )
+    nodeMajorMergerRecentPasses =   +basic%floatRank0MetaPropertyGet(self%nodeMajorMergerTimeID) &
+         &                         >=                                                            &
+         &                          +basic%time                     (                          ) &
          &                          -self %timeRecent
     return
   end function nodeMajorMergerRecentPasses
