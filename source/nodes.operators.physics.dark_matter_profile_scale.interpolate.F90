@@ -143,21 +143,21 @@ contains
                &          -basic             %time ()
           if (timeInterval > 0.0d0) then
              darkMatterProfileParent => node%parent%darkMatterProfile()
-             call darkMatterProfile%metaPropertySet(                                                &
-                  &                                    self                   %scaleGrowthRateID  , &
-                  &                                 +(                                              &
-                  &                                   +darkMatterProfileParent%scale            ()  &
-                  &                                   -darkMatterProfile      %scale            ()  &
-                  &                                  )                                              &
-                  &                                 /                          timeInterval         &
-                  &                                )
+             call darkMatterProfile%floatRank0MetaPropertySet(                                                &
+                  &                                              self                   %scaleGrowthRateID  , &
+                  &                                           +(                                              &
+                  &                                             +darkMatterProfileParent%scale            ()  &
+                  &                                             -darkMatterProfile      %scale            ()  &
+                  &                                            )                                              &
+                  &                                           /                          timeInterval         &
+                  &                                          )
           else
              ! Time interval is non-positive - assume zero growth rate.
-             call darkMatterProfile%metaPropertySet(self%scaleGrowthRateID,0.0d0)
+             call darkMatterProfile%floatRank0MetaPropertySet(self%scaleGrowthRateID,0.0d0)
           end if
        else
           ! Node is a non-primary progenitor - assume zero growth rate.
-          call    darkMatterProfile%metaPropertySet(self%scaleGrowthRateID,0.0d0)
+          call    darkMatterProfile%floatRank0MetaPropertySet(self%scaleGrowthRateID,0.0d0)
        end if
     end select
     return
@@ -181,8 +181,8 @@ contains
     ! Return immediately if inactive variables are requested.
     if (propertyType == propertyTypeInactive) return
     ! Get the dark matter profile component.
-    darkMatterProfile => node             %darkMatterProfile(                      )
-    rateScaleRadius   =  darkMatterProfile%metaPropertyGet  (self%scaleGrowthRateID)
+    darkMatterProfile => node             %darkMatterProfile        (                      )
+    rateScaleRadius   =  darkMatterProfile%floatRank0MetaPropertyGet(self%scaleGrowthRateID)
     if (node%isPrimaryProgenitor()) then
        ! If necessary, limit the growth rate so that we do not exceed the scale radius of the parent halo.
        darkMatterProfileParent => node%parent%darkmatterProfile()
@@ -209,7 +209,7 @@ contains
     
     darkMatterProfile       => node       %darkMatterProfile()
     darkMatterProfileParent => node%parent%darkMatterProfile()
-    call darkMatterProfile%metaPropertySet(self%scaleGrowthRateID,darkMatterProfileParent%metaPropertyGet(self%scaleGrowthRateID))
-    call darkMatterProfile%       scaleSet(                       darkMatterProfileParent%scale          (                      ))
+    call darkMatterProfile%floatRank0MetaPropertySet(self%scaleGrowthRateID,darkMatterProfileParent%floatRank0MetaPropertyGet(self%scaleGrowthRateID))
+    call darkMatterProfile%                 scaleSet(                       darkMatterProfileParent%scale                    (                      ))
     return
   end subroutine darkMatterProfileScaleInterpolateNodePromote

@@ -11,8 +11,9 @@
 
   <xs:simpleType name="type">
     <xs:restriction base="xs:string">
-      <xs:enumeration value="real"   />
-      <xs:enumeration value="integer"/>
+      <xs:enumeration value="float"      />
+      <xs:enumeration value="integer"    />
+      <xs:enumeration value="longInteger"/>
     </xs:restriction>
   </xs:simpleType> 
   

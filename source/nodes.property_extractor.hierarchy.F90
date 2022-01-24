@@ -110,10 +110,10 @@ contains
 
     basic => node%basic()
     allocate(hierarchyExtract(3))
-    hierarchyExtract=[                                                                &
-         &            basic%integerMetaPropertyGet(self%nodeHierarchyLevelID       ), &
-         &            basic%integerMetaPropertyGet(self%nodeHierarchyLevelDepthID  ), &
-         &            basic%integerMetaPropertyGet(self%nodeHierarchyLevelMaximumID)  &
+    hierarchyExtract=[                                                                     &
+         &            basic%integerRank0MetaPropertyGet(self%nodeHierarchyLevelID       ), &
+         &            basic%integerRank0MetaPropertyGet(self%nodeHierarchyLevelDepthID  ), &
+         &            basic%integerRank0MetaPropertyGet(self%nodeHierarchyLevelMaximumID)  &
          &           ]
     return
   end function hierarchyExtract

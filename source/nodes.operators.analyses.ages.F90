@@ -144,15 +144,15 @@ contains
     type is (nodeComponentDisk    )
        ! Disk does not yet exist - nothing to do here.
     class default
-       call disk    %metaPropertyInactive(self%    stellarMassFormedDiskID    )
-       call disk    %metaPropertyInactive(self%timeStellarMassFormedDiskID    )
+       call disk    %floatRank0MetaPropertyInactive(self%    stellarMassFormedDiskID    )
+       call disk    %floatRank0MetaPropertyInactive(self%timeStellarMassFormedDiskID    )
     end select
     select type (spheroid)
     type is (nodeComponentSpheroid)
        ! Spheroid does not yet exist - nothing to do here.
     class default
-       call spheroid%metaPropertyInactive(self%    stellarMassFormedSpheroidID)
-       call spheroid%metaPropertyInactive(self%timeStellarMassFormedSpheroidID)
+       call spheroid%floatRank0MetaPropertyInactive(self%    stellarMassFormedSpheroidID)
+       call spheroid%floatRank0MetaPropertyInactive(self%timeStellarMassFormedSpheroidID)
     end select
      return
   end subroutine agesStellarMassWeightedDifferentialEvolutionInactives
@@ -182,15 +182,15 @@ contains
     type is (nodeComponentDisk    )
        ! Disk does not yet exist - nothing to do here.
     class default
-       call disk    %metaPropertyScale(self%    stellarMassFormedDiskID    ,max(mass,massMinimum)          )
-       call disk    %metaPropertyScale(self%timeStellarMassFormedDiskID    ,max(mass,massMinimum)*timeScale)
+       call disk    %floatRank0MetaPropertyScale(self%    stellarMassFormedDiskID    ,max(mass,massMinimum)          )
+       call disk    %floatRank0MetaPropertyScale(self%timeStellarMassFormedDiskID    ,max(mass,massMinimum)*timeScale)
     end select
     select type (spheroid)
     type is (nodeComponentSpheroid)
        ! Spheroid does not yet exist - nothing to do here.
     class default
-       call spheroid%metaPropertyScale(self%    stellarMassFormedSpheroidID,max(mass,massMinimum)          )
-       call spheroid%metaPropertyScale(self%timeStellarMassFormedSpheroidID,max(mass,massMinimum)*timeScale)
+       call spheroid%floatRank0MetaPropertyScale(self%    stellarMassFormedSpheroidID,max(mass,massMinimum)          )
+       call spheroid%floatRank0MetaPropertyScale(self%timeStellarMassFormedSpheroidID,max(mass,massMinimum)*timeScale)
     end select
     return
   end subroutine agesStellarMassWeightedDifferentialEvolutionScales
@@ -228,15 +228,15 @@ contains
     type is (nodeComponentDisk    )
        ! Disk does not yet exist - nothing to do here.
     class default
-       call disk    %metaPropertyRate(self%timeStellarMassFormedDiskID    ,rateStarFormationDisk    *time)
-       call disk    %metaPropertyRate(self%    stellarMassFormedDiskID    ,rateStarFormationDisk         )
+       call disk    %floatRank0MetaPropertyRate(self%timeStellarMassFormedDiskID    ,rateStarFormationDisk    *time)
+       call disk    %floatRank0MetaPropertyRate(self%    stellarMassFormedDiskID    ,rateStarFormationDisk         )
     end select
     select type (spheroid)
     type is (nodeComponentSpheroid)
        ! Spheroid does not yet exist - nothing to do here.
     class default
-       call spheroid%metaPropertyRate(self%timeStellarMassFormedSpheroidID,rateStarFormationSpheroid*time)
-       call spheroid%metaPropertyRate(self%    stellarMassFormedSpheroidID,rateStarFormationSpheroid     )
+       call spheroid%floatRank0MetaPropertyRate(self%timeStellarMassFormedSpheroidID,rateStarFormationSpheroid*time)
+       call spheroid%floatRank0MetaPropertyRate(self%    stellarMassFormedSpheroidID,rateStarFormationSpheroid     )
     end select
     return
   end subroutine agesStellarMassWeightedDifferentialEvolution
@@ -269,35 +269,35 @@ contains
     ! Move star formation rates within the host if necessary.
     select case (destinationStarsHost)
     case (destinationMergerDisk    )
-       call diskHost    %metaPropertySet(                              self%timeStellarMassFormedDiskID     , &
-            &                            +diskHost    %metaPropertyGet(self%timeStellarMassFormedDiskID    )  &
-            &                            +spheroidHost%metaPropertyGet(self%timeStellarMassFormedSpheroidID)  &
-            &                           )
-       call spheroidHost%metaPropertySet(                              self%timeStellarMassFormedSpheroidID , &
-            &                            +0.0d0                                                               &
-            &                           )
-       call diskHost    %metaPropertySet(                              self%    stellarMassFormedDiskID     , &
-            &                            +diskHost    %metaPropertyGet(self%    stellarMassFormedDiskID    )  &
-            &                            +spheroidHost%metaPropertyGet(self%    stellarMassFormedSpheroidID)  &
-            &                           )
-       call spheroidHost%metaPropertySet(                              self%    stellarMassFormedSpheroidID , &
-            &                            +0.0d0                                                               &
-            &                           )
+       call diskHost    %floatRank0MetaPropertySet(                                        self%timeStellarMassFormedDiskID     , &
+            &                                      +diskHost    %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )  &
+            &                                      +spheroidHost%floatRank0MetaPropertyGet(self%timeStellarMassFormedSpheroidID)  &
+            &                                     )
+       call spheroidHost%floatRank0MetaPropertySet(                                        self%timeStellarMassFormedSpheroidID , &
+            &                                      +0.0d0                                                                         &
+            &                                     )
+       call diskHost    %floatRank0MetaPropertySet(                                        self%    stellarMassFormedDiskID     , &
+            &                                      +diskHost    %floatRank0MetaPropertyGet(self%    stellarMassFormedDiskID    )  &
+            &                                      +spheroidHost%floatRank0MetaPropertyGet(self%    stellarMassFormedSpheroidID)  &
+            &                                     )
+       call spheroidHost%floatRank0MetaPropertySet(                                        self%    stellarMassFormedSpheroidID , &
+            &                                      +0.0d0                                                                         &
+            &                                     )
     case (destinationMergerSpheroid)
-       call spheroidHost%metaPropertySet(                              self%timeStellarMassFormedDiskID     , &
-            &                            +diskHost    %metaPropertyGet(self%timeStellarMassFormedDiskID    )  &
-            &                            +spheroidHost%metaPropertyGet(self%timeStellarMassFormedSpheroidID)  &
-            &                           )
-       call diskHost    %metaPropertySet(                              self%timeStellarMassFormedSpheroidID , &
-            &                            +0.0d0                                                               &
-            &                           )
-       call spheroidHost%metaPropertySet(                              self%    stellarMassFormedDiskID     , &
-            &                            +diskHost    %metaPropertyGet(self%    stellarMassFormedDiskID    )  &
-            &                            +spheroidHost%metaPropertyGet(self%    stellarMassFormedSpheroidID)  &
-            &                           )
-       call diskHost    %metaPropertySet(                              self%    stellarMassFormedSpheroidID , &
-            &                            +0.0d0                                                               &
-            &                           )
+       call spheroidHost%floatRank0MetaPropertySet(                                        self%timeStellarMassFormedDiskID     , &
+            &                                      +diskHost    %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )  &
+            &                                      +spheroidHost%floatRank0MetaPropertyGet(self%timeStellarMassFormedSpheroidID)  &
+            &                                     )
+       call diskHost    %floatRank0MetaPropertySet(                                        self%timeStellarMassFormedSpheroidID , &
+            &                                      +0.0d0                                                                         &
+            &                                     )
+       call spheroidHost%floatRank0MetaPropertySet(                                        self%    stellarMassFormedDiskID     , &
+            &                                      +diskHost    %floatRank0MetaPropertyGet(self%    stellarMassFormedDiskID    )  &
+            &                                      +spheroidHost%floatRank0MetaPropertyGet(self%    stellarMassFormedSpheroidID)  &
+            &                                     )
+       call diskHost    %floatRank0MetaPropertySet(                                        self%    stellarMassFormedSpheroidID , &
+            &                                      +0.0d0                                                                         &
+            &                                     )
     case (destinationMergerUnmoved)
        ! Do nothing.
     case default
@@ -306,43 +306,43 @@ contains
     ! Move the star formation rates from secondary to primary.
     select case (destinationStarsSatellite)
     case (destinationMergerDisk    )
-       call diskHost    %metaPropertySet(                              self%timeStellarMassFormedDiskID     , &
-            &                            +diskHost    %metaPropertyGet(self%timeStellarMassFormedDiskID    )  &
-            &                            +disk        %metaPropertyGet(self%timeStellarMassFormedDiskID    )  &
-            &                            +spheroid    %metaPropertyGet(self%timeStellarMassFormedSpheroidID)  &
-            &                           )
-       call diskHost    %metaPropertySet(                              self%    stellarMassFormedDiskID     , &
-            &                            +diskHost    %metaPropertyGet(self%    stellarMassFormedDiskID    )  &
-            &                            +disk        %metaPropertyGet(self%    stellarMassFormedDiskID    )  &
-            &                            +spheroid    %metaPropertyGet(self%    stellarMassFormedSpheroidID)  &
-            &                           )
+       call diskHost    %floatRank0MetaPropertySet(                                        self%timeStellarMassFormedDiskID     , &
+            &                                      +diskHost    %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )  &
+            &                                      +disk        %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )  &
+            &                                      +spheroid    %floatRank0MetaPropertyGet(self%timeStellarMassFormedSpheroidID)  &
+            &                                     )
+       call diskHost    %floatRank0MetaPropertySet(                                        self%    stellarMassFormedDiskID     , &
+            &                                      +diskHost    %floatRank0MetaPropertyGet(self%    stellarMassFormedDiskID    )  &
+            &                                      +disk        %floatRank0MetaPropertyGet(self%    stellarMassFormedDiskID    )  &
+            &                                      +spheroid    %floatRank0MetaPropertyGet(self%    stellarMassFormedSpheroidID)  &
+            &                                     )
     case (destinationMergerSpheroid)
-      call spheroidHost%metaPropertySet(                              self%timeStellarMassFormedSpheroidID , &
-            &                            +spheroidHost%metaPropertyGet(self%timeStellarMassFormedSpheroidID)  &
-            &                            +disk        %metaPropertyGet(self%timeStellarMassFormedDiskID    )  &
-            &                            +spheroid    %metaPropertyGet(self%timeStellarMassFormedSpheroidID)  &
-            &                           )
-       call spheroidHost%metaPropertySet(                              self%    stellarMassFormedSpheroidID , &
-            &                            +spheroidHost%metaPropertyGet(self%    stellarMassFormedSpheroidID)  &
-            &                            +disk        %metaPropertyGet(self%    stellarMassFormedDiskID    )  &
-            &                            +spheroid    %metaPropertyGet(self%    stellarMassFormedSpheroidID)  &
-            &                           )
+      call spheroidHost%floatRank0MetaPropertySet(                                         self%timeStellarMassFormedSpheroidID , &
+            &                                      +spheroidHost%floatRank0MetaPropertyGet(self%timeStellarMassFormedSpheroidID)  &
+            &                                      +disk        %floatRank0MetaPropertyGet(self%timeStellarMassFormedDiskID    )  &
+            &                                      +spheroid    %floatRank0MetaPropertyGet(self%timeStellarMassFormedSpheroidID)  &
+            &                                     )
+       call spheroidHost%floatRank0MetaPropertySet(                                        self%    stellarMassFormedSpheroidID , &
+            &                                      +spheroidHost%floatRank0MetaPropertyGet(self%    stellarMassFormedSpheroidID)  &
+            &                                      +disk        %floatRank0MetaPropertyGet(self%    stellarMassFormedDiskID    )  &
+            &                                      +spheroid    %floatRank0MetaPropertyGet(self%    stellarMassFormedSpheroidID)  &
+            &                                     )
     case default
        call Galacticus_Error_Report('unrecognized movesTo descriptor'//{introspection:location})
     end select
     ! Zero rates in the secondary,
-    call    disk        %metaPropertySet(                              self%timeStellarMassFormedDiskID     , &
-         &                               +0.0d0                                                               &
-         &                              )
-    call    spheroid    %metaPropertySet(                              self%timeStellarMassFormedSpheroidID , &
-         &                               +0.0d0                                                               &
-         &                              )
-    call    disk        %metaPropertySet(                              self%    stellarMassFormedDiskID     , &
-         &                               +0.0d0                                                               &
-         &                              )
-    call    spheroid    %metaPropertySet(                              self%    stellarMassFormedSpheroidID , &
-         &                               +0.0d0                                                               &
-         &                              )
+    call    disk        %floatRank0MetaPropertySet(                              self%timeStellarMassFormedDiskID     , &
+         &                                         +0.0d0                                                               &
+         &                                        )
+    call    spheroid    %floatRank0MetaPropertySet(                              self%timeStellarMassFormedSpheroidID , &
+         &                                         +0.0d0                                                               &
+         &                                        )
+    call    disk        %floatRank0MetaPropertySet(                              self%    stellarMassFormedDiskID     , &
+         &                                         +0.0d0                                                               &
+         &                                        )
+    call    spheroid    %floatRank0MetaPropertySet(                              self%    stellarMassFormedSpheroidID , &
+         &                                         +0.0d0                                                               &
+         &                                        )
     return
   end subroutine agesStellarMassWeightedGalaxiesMerge
   

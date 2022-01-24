@@ -88,8 +88,8 @@ contains
     class(nodeComponentBasic                      )               , pointer  :: basic
     !$GLC attributes unused :: instance
 
-    basic                      => node %basic          (                          )
-    nodeMajorMergerTimeExtract =  basic%metaPropertyGet(self%nodeMajorMergerTimeID)
+    basic                      => node %basic                    (                          )
+    nodeMajorMergerTimeExtract =  basic%floatRank0MetaPropertyGet(self%nodeMajorMergerTimeID)
     return
   end function nodeMajorMergerTimeExtract
   

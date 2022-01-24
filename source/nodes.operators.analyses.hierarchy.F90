@@ -141,7 +141,6 @@ contains
     Initialize hierarchy level data.
     !!}
     use :: Galacticus_Nodes   , only : nodeComponentBasic
-    use :: Kind_Numbers       , only : kind_int8
     use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
     implicit none
     class   (nodeOperatorHierarchy   ), intent(inout), target  :: self
@@ -149,7 +148,7 @@ contains
     type    (treeNode                )               , pointer :: nodeHost               , nodeParent        , &
          &                                                        nodeWork
     class   (nodeComponentBasic      )               , pointer :: basicParent            , basic
-    integer (kind_int8               )                         :: nodeHierarchyLevelDepth, nodeHierarchyLevel
+    integer                                                    :: nodeHierarchyLevelDepth, nodeHierarchyLevel
     type    (mergerTreeWalkerAllNodes)                         :: treeWalker
     
     treeWalker=mergerTreeWalkerAllNodes(node%hostTree,spanForest=.true.)
@@ -163,8 +162,8 @@ contains
              if (.not.nodeHost%isPrimaryProgenitor() .and. associated(nodeHost%parent)) then
                 nodeHierarchyLevelDepth =  nodeHierarchyLevelDepth                 +1
                 basicParent             => nodeHost%parent%basic(autoCreate=.true.)
-                if (basicParent%integerMetaPropertyGet(self%nodeHierarchyLevelDepthID) > -1_kind_int8) then
-                   nodeHierarchyLevelDepth= nodeHierarchyLevelDepth+basicParent%integerMetaPropertyGet(self%nodeHierarchyLevelDepthID)
+                if (basicParent%integerRank0MetaPropertyGet(self%nodeHierarchyLevelDepthID) > -1) then
+                   nodeHierarchyLevelDepth= nodeHierarchyLevelDepth+basicParent%integerRank0MetaPropertyGet(self%nodeHierarchyLevelDepthID)
                    exit
                 end if
              end if
@@ -174,7 +173,7 @@ contains
           nodeParent => nodeWork
           do while (associated(nodeParent))
              basicParent => nodeParent%basic(autoCreate=.true.)
-             call basicParent%integerMetaPropertySet(self%nodeHierarchyLevelDepthID,nodeHierarchyLevelDepth)
+             call basicParent%integerRank0MetaPropertySet(self%nodeHierarchyLevelDepthID,nodeHierarchyLevelDepth)
              if (nodeParent%isPrimaryProgenitor()) then
                 nodeParent => nodeParent%parent
              else
@@ -190,9 +189,9 @@ contains
           nodeHost           => nodeHost          %parent
        end do
        basic => nodeWork%basic()
-       call basic%integerMetaPropertySet(self%nodeHierarchyLevelID       ,      nodeHierarchyLevel  )
-       call basic%integerMetaPropertySet(self%nodeHierarchyLevelMaximumID,      nodeHierarchyLevel  )
-       call basic%       metaPropertySet(self%massWhenFirstIsolatedID    ,basic%mass              ())
+       call basic%integerRank0MetaPropertySet(self%nodeHierarchyLevelID       ,      nodeHierarchyLevel  )
+       call basic%integerRank0MetaPropertySet(self%nodeHierarchyLevelMaximumID,      nodeHierarchyLevel  )
+       call basic%  floatRank0MetaPropertySet(self%massWhenFirstIsolatedID    ,basic%mass              ())
     end do
     return
   end subroutine hierarchyNodeTreeInitialize
@@ -222,13 +221,13 @@ contains
     class(nodeComponentBasic   )               , pointer :: basic
     
     basic => node%basic()
-    call basic%integerMetaPropertySet(self%nodeHierarchyLevelID       ,    basic%integerMetaPropertyGet(self%nodeHierarchyLevelID       )+1)
-    call basic%integerMetaPropertySet(self%nodeHierarchyLevelMaximumID,                                                                       &
-         &                                                             max(                                                                   &
-         &                                                                 basic%integerMetaPropertyGet(self%nodeHierarchyLevelID       )   , &
-         &                                                                 basic%integerMetaPropertyGet(self%nodeHierarchyLevelMaximumID)     &
-         &                                                                 )                                                                  &
-         &                           )
+    call basic%integerRank0MetaPropertySet(self%nodeHierarchyLevelID       ,    basic%integerRank0MetaPropertyGet(self%nodeHierarchyLevelID       )+1)
+    call basic%integerRank0MetaPropertySet(self%nodeHierarchyLevelMaximumID,                                                                            &
+         &                                                                  max(                                                                        &
+         &                                                                      basic%integerRank0MetaPropertyGet(self%nodeHierarchyLevelID       )   , &
+         &                                                                      basic%integerRank0MetaPropertyGet(self%nodeHierarchyLevelMaximumID)     &
+         &                                                                     )                                                                        &
+         &                                )
     ! Increment the hierarchy level of any satellites.
     nodeSatellite => node%firstSatellite
     do while (associated(nodeSatellite))
@@ -242,7 +241,6 @@ contains
     !!{
     Handle cases where a satellite switches host node.
     !!}
-    use :: Kind_Numbers    , only : kind_int8
     use :: Galacticus_Error, only : Galacticus_Error_Report
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
@@ -250,19 +248,19 @@ contains
     type   (treeNode          ), intent(inout), target  :: node
     type   (treeNode          ),                pointer :: nodeSatellite     , nodeHost
     class  (nodeComponentBasic)               , pointer :: basic
-    integer(kind_int8         )                         :: nodeHierarchyLevel
+    integer                                             :: nodeHierarchyLevel
 
     select type (self)
     class is (nodeOperatorHierarchy)
        ! Recompute the hierarchy level of the satellite node.
-       nodeHierarchyLevel =  0_kind_int8
+       nodeHierarchyLevel =  0
        nodeHost           => node
        basic  => node%basic()
        do while (nodeHost%isSatellite())
-          nodeHierarchyLevel =  nodeHierarchyLevel       +1_kind_int8
+          nodeHierarchyLevel =  nodeHierarchyLevel       +1
           nodeHost           => nodeHost          %parent
        end do
-       call basic%integerMetaPropertySet(self%nodeHierarchyLevelID,nodeHierarchyLevel)
+       call basic%integerRank0MetaPropertySet(self%nodeHierarchyLevelID,nodeHierarchyLevel)
        ! Call this function on any satellites of the satellite node.
        nodeSatellite => node%firstSatellite
        do while (associated(nodeSatellite))
@@ -290,7 +288,7 @@ contains
     class is (nodeOperatorHierarchy)
        basic       => node         %basic()
        basicParent => nodePromotion%basic()
-       call basic%metaPropertySet(self%massWhenFirstIsolatedID,basicParent%mass())
+       call basic%floatRank0MetaPropertySet(self%massWhenFirstIsolatedID,basicParent%mass())
     class default
        call Galacticus_Error_Report('incorrect class'//{introspection:location})
     end select
@@ -309,8 +307,8 @@ contains
     
     basic       => node       %basic()
     basicParent => node%parent%basic()
-    call self %reset                 (node                                                                                   )
-    call basic%integerMetaPropertySet(self%nodeHierarchyLevelID,basicParent%integerMetaPropertyGet(self%nodeHierarchyLevelID))
+    call self %reset                      (node                                                                                        )
+    call basic%integerRank0MetaPropertySet(self%nodeHierarchyLevelID,basicParent%integerRank0MetaPropertyGet(self%nodeHierarchyLevelID))
     return
   end subroutine hierarchyNodePromote
 
@@ -338,7 +336,7 @@ contains
 
     ! Test if previous mass has been exceeded by a sufficient factor to reset the maximum hierarchy level.
     basic => node%basic()
-    if (basic%mass() > self%factorMassReset*basic%metaPropertyGet(self%massWhenFirstIsolatedID)) &
-         & call basic%integerMetaPropertySet(self%nodeHierarchyLevelMaximumID,basic%integerMetaPropertyGet(self%nodeHierarchyLevelID))
+    if (basic%mass() > self%factorMassReset*basic%floatRank0MetaPropertyGet(self%massWhenFirstIsolatedID)) &
+         & call basic%integerRank0MetaPropertySet(self%nodeHierarchyLevelMaximumID,basic%integerRank0MetaPropertyGet(self%nodeHierarchyLevelID))
     return
   end subroutine hierarchyReset

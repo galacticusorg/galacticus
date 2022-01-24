@@ -68,7 +68,7 @@ contains
     type(nodeOperatorIndexBranchTip) :: self
     
     !![
-    <addMetaProperty component="basic" name="nodeIndexBranchTip" type="integer" id="self%indexBranchTipID" isCreator="yes"/>
+    <addMetaProperty component="basic" name="nodeIndexBranchTip" type="longInteger" id="self%indexBranchTipID" isCreator="yes"/>
     !!]
     return
   end function indexBranchTipConstructorInternal
@@ -92,7 +92,7 @@ contains
        nodeWork => nodeTip
        do while (associated(nodeWork))
           basic => nodeWork%basic()
-          call basic%integerMetaPropertySet(self%indexBranchTipID,nodeTip%index())
+          call basic%longIntegerRank0MetaPropertySet(self%indexBranchTipID,nodeTip%index())
           if (nodeWork%isPrimaryProgenitor()) then
              nodeWork => nodeWork%parent
           else

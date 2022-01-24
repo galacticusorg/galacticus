@@ -10,6 +10,7 @@ use Text::Template 'fill_in_string';
 use List::ExtraUtils;
 use Galacticus::Build::Components::Utils qw(&isIntrinsic %intrinsicNulls);
 use Galacticus::Build::Components::DataTypes;
+use Galacticus::Build::Components::Classes::MetaProperties;
 use Data::Dumper;
 
 # Insert hooks for our functions.
@@ -159,22 +160,38 @@ CODE
     }
     # Allocate and initialize meta-properties.
     if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
-	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (allocated({$class->{'name'}}MetaPropertyNames).and..not.allocated(self%metaProperties)) then
- allocate(self%metaProperties(size({$class->{'name'}}MetaPropertyNames)))
- self%metaProperties=0.0d0
-end if
-if (allocated({$class->{'name'}}IntegerMetaPropertyNames).and..not.allocated(self%integerMetaProperties)) then
- allocate(self%integerMetaProperties(size({$class->{'name'}}IntegerMetaPropertyNames)))
- self%integerMetaProperties=0_kind_int8
-end if
-if (allocated({$class->{'name'}}Rank1MetaPropertyNames).and..not.allocated(self%rank1MetaProperties)) then
- allocate(self%rank1MetaProperties(size({$class->{'name'}}Rank1MetaPropertyNames)))
- do i=1,size({$class->{'name'}}Rank1MetaPropertyNames)
-  allocate(self%rank1MetaProperties(i)%values(0))
+	foreach my $metaPropertyType ( @Galacticus::Build::Components::Classes::MetaProperties::metaPropertyTypes ) {
+	    $code::label    = $metaPropertyType->{'label'};
+	    $code::rank     = $metaPropertyType->{'rank' };
+	    $code::prefix   = ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'};
+	    if ( $metaPropertyType->{'rank'} == 0 ) {
+		$code::initializer = " self%".$code::prefix."MetaProperties=";
+		if      ( $metaPropertyType->{'intrinsic'} eq "double precision" ) {
+		    $code::initializer .= "0.0";
+		} elsif ( $metaPropertyType->{'intrinsic'} eq "integer"          ) {
+		    $code::initializer .= "0";
+		} else {
+		    die("Galacticus::Build::Components::Implementations::CreateDestroy::Implementation_Creation: unknown meta-property type");
+		}
+		if      ( exists($metaPropertyType->{'type'})                   ) {
+		    $code::initializer .= "_".$metaPropertyType->{'type'};
+		} elsif ( $metaPropertyType->{'intrinsic'} eq "double precision" ) {
+		    $code::initializer .= "d0";
+		}
+	    } else {
+		$code::initializer = fill_in_string(<<'CODE', PACKAGE => 'code');
+ do i=1,size({$class->{'name'}.$prefix}MetaPropertyNames)
+  allocate(self%{$prefix}MetaProperties(i)%values(0))
  end do
+CODE
+	    }	    
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated({$class->{'name'}.$prefix}MetaPropertyNames).and..not.allocated(self%{$prefix}MetaProperties)) then
+ allocate(self%{$prefix}MetaProperties(size({$class->{'name'}.$prefix}MetaPropertyNames)))
+{$initializer}
 end if
 CODE
+	}
     }
     # Add required modules to function.
     push(@{$function->{'modules'}},keys(%modules))
@@ -315,7 +332,7 @@ sub Implementation_Builder {
 	     },
 	     {
 		 intrinsic  => "integer",
-		 variables  => [ "i" ]
+		 variables  => [ "i", "j" ]
 	     }
 	    ]
 	};
@@ -415,20 +432,57 @@ CODE
     }
     # Build any meta-properties.
     if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
-	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (allocated({$class->{'name'}}MetaPropertyNames)) then
+	foreach my $metaPropertyType ( @Galacticus::Build::Components::Classes::MetaProperties::metaPropertyTypes ) {
+	    $code::label    = $metaPropertyType->{'label'};
+	    $code::rank     = $metaPropertyType->{'rank' };
+	    $code::prefix   = ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank' };
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+if (allocated({$class->{'name'}.$prefix}MetaPropertyNames)) then
  !$omp critical (FoX_DOM_Access)
- do i=1,size(({$class->{'name'}}MetaPropertyNames))
-  propertyList => getElementsByTagName(componentDefinition,char({$class->{'name'}}MetaPropertyNames(i)))
+ do i=1,size(({$class->{'name'}.$prefix}MetaPropertyNames))
+  propertyList => getElementsByTagName(componentDefinition,char({$class->{'name'}.$prefix}MetaPropertyNames(i)))
+CODE
+	    if      ( $metaPropertyType->{'rank'} == 0 ) {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
   if (getLength(propertyList) > 1) call Galacticus_Error_Report('meta-property must have precisely one value'//\{introspection:location\})
+CODE
+		if ( $metaPropertyType->{'intrinsic'} eq "integer" && defined($metaPropertyType->{'type'}) && $metaPropertyType->{'type'} eq "kind_int8" ) {
+		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+  call Galacticus_Error_Report('building of long integer properties currently not supported'//\{introspection:location\})
+CODE
+		} else {
+		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
   if (getLength(propertyList) == 1) then
     property => item(propertyList,0)
-    call extractDataContent(property,self%metaProperties(i))
+    call extractDataContent(property,self%{$prefix}MetaProperties(i))
   end if
+CODE
+		}
+	    } elsif ( $metaPropertyType->{'rank'} == 1 ) {
+		if ( $metaPropertyType->{'intrinsic'} eq "integer" && defined($metaPropertyType->{'type'}) && $metaPropertyType->{'type'} eq "kind_int8" ) {
+		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+  call Galacticus_Error_Report('building of long integer properties currently not supported'//\{introspection:location\})
+CODE
+		} else {
+		    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+  if (getLength(propertyList) >= 1) then
+    allocate(self%{$prefix}MetaProperties(i)%values(getLength(propertyList)))
+    do j=1,getLength(propertyList)
+     property => item(propertyList,j-1)
+     call extractDataContent(property,self%{$prefix}MetaProperties(i)%values(j))
+    end do
+  end if
+CODE
+		}
+	    } else {
+		die("Galacticus::Build::Components::Implementations::CreateDestroy::Implementation_Builder: unsupported meta-property rank");
+	    }
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
  end do
  !$omp end critical (FoX_DOM_Access)
 end if
 CODE
+	}
     }
     # Insert a type-binding for this function.
     push(

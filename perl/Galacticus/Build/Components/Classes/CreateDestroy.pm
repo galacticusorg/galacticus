@@ -10,6 +10,7 @@ use Text::Template 'fill_in_string';
 use List::ExtraUtils;
 use Galacticus::Build::Components::Utils qw(offsetName);
 use Galacticus::Build::Components::DataTypes;
+use Galacticus::Build::Components::Classes::MetaProperties;
 
 # Insert hooks for our functions.
 %Galacticus::Build::Component::Utils::componentUtils = 
@@ -19,13 +20,11 @@ use Galacticus::Build::Components::DataTypes;
      {
 	 classIteratedFunctions =>
 	     [
-	      \&Class_Initialization           ,
-	      \&Class_Builder                  ,
-	      \&Class_Finalization             ,
-	      \&Class_Create_By_Interrupt      ,
-	      \&Class_Add_Meta_Property        ,
-	      \&Class_Add_Rank1_Meta_Property  ,
-	      \&Class_Add_Integer_Meta_Property
+	      \&Class_Initialization     ,
+	      \&Class_Builder            ,
+	      \&Class_Finalization       ,
+	      \&Class_Create_By_Interrupt,
+	      \&Class_Add_Meta_Property        
 	     ]
      }
     );
@@ -222,369 +221,178 @@ sub Class_Add_Meta_Property {
     # Generate a function to add meta-properties to component classes.
     my $build    = shift();
     $code::class = shift();
-    my $function =
-    {
-	type        => "integer",
-	name        => "nodeComponent".ucfirst($code::class->{'name'})."AddMetaProperty",
-	description => "Add a meta-property to the generic {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
-	modules     =>
-	    [
-	     "ISO_Varying_String",
-	     "Galacticus_Error"
-	    ],
-	variables   =>
-	    [
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".ucfirst($code::class->{'name'}),
-		 attributes => [ "intent(inout)" ],
-		 variables  => [ "self" ]
-	     },
-	     {
-		 intrinsic  => "type",
-		 type       => "varying_string",
-		 attributes => [ "intent(in   )" ],
-		 variables  => [ "label" ]
-	     },
-	     {
-		 intrinsic  => "character",
-		 type       => "len=*",
-		 attributes => [ "intent(in   )" ],
-		 variables  => [ "name" ]
-	     },
-	     {
-		 intrinsic  => "logical",
-		 attributes => [ "intent(in   )", "optional" ],
-		 variables  => [ "isEvolvable", "isCreator" ]
-	     },
-	     {
-		 intrinsic  => "type",
-		 type       => "varying_string",
-		 attributes => [ "allocatable", "dimension(:)" ],
-		 variables  => [ "labelsTmp", "namesTmp" ]
-	     },
-	     {
-		 intrinsic  => "logical",
-		 attributes => [ "allocatable", "dimension(:)" ],
-		 variables  => [ "evolvableTmp", "creatorTmp" ]
-	     },
-	     {
-		 intrinsic  => "logical",
-		 variables  => [ "found" ]
-	     }
-	    ]
-    };
-    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
-	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
+    foreach my $metaPropertyType ( @Galacticus::Build::Components::Classes::MetaProperties::metaPropertyTypes ) {
+	$code::label    = $metaPropertyType->{'label'};
+	$code::rank     = $metaPropertyType->{'rank' };
+	$code::prefix   = ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank' };
+	my $isEvolvable = $metaPropertyType->{'label'} eq "float" && $metaPropertyType->{'rank'} == 0;
+	my @options     = ( "isCreator"  );
+	my @tmps        = ( "creatorTmp" );
+	if ( $isEvolvable ) {
+	    unshift(@options,"isEvolvable" );
+	    unshift(@tmps   ,"evolvableTmp");
+	}
+	my $function =
+	{
+	    type        => "integer",
+	    name        => "nodeComponent".ucfirst($code::class->{'name'})."Add".ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaProperty",
+	    description => "Add a rank-".$metaPropertyType->{'rank'}." ".$metaPropertyType->{'label'}."meta-property to the generic {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	    modules     =>
+		[
+		 "ISO_Varying_String",
+		 "Galacticus_Error"
+		],
+	    variables   =>
+		[
+		 {
+		     intrinsic  => "class",
+		     type       => "nodeComponent".ucfirst($code::class->{'name'}),
+		     attributes => [ "intent(inout)" ],
+		     variables  => [ "self" ]
+		 },
+		 {
+		     intrinsic  => "type",
+		     type       => "varying_string",
+		     attributes => [ "intent(in   )" ],
+		     variables  => [ "label" ]
+		 },
+		 {
+		     intrinsic  => "character",
+		     type       => "len=*",
+		     attributes => [ "intent(in   )" ],
+		     variables  => [ "name" ]
+		 },
+		 {
+		     intrinsic  => "logical",
+		     attributes => [ "intent(in   )", "optional" ],
+		     variables  => \@options
+		 },
+		 {
+		     intrinsic  => "type",
+		     type       => "varying_string",
+		     attributes => [ "allocatable", "dimension(:)" ],
+		     variables  => [ "labelsTmp", "namesTmp" ]
+		 },
+		 {
+		     intrinsic  => "logical",
+		     attributes => [ "allocatable", "dimension(:)" ],
+		     variables  => \@tmps
+		 },
+		 {
+		     intrinsic  => "logical",
+		     variables  => [ "found" ]
+		 }
+		]
+	};
+	if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	    $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self
 
-!$omp critical ({class->{'name'}}MetaPropertyUpdate)
+!$omp critical ({$class->{'name'}.$prefix}MetaPropertyUpdate)
 found=.false.
-if (allocated({$class->{'name'}}MetaPropertyLabels)) then
- do nodeComponent{ucfirst($class->{'name'})}AddMetaProperty=1,size({$class->{'name'}}MetaPropertyLabels)
-  if ({$class->{'name'}}MetaPropertyLabels(nodeComponent{ucfirst($class->{'name'})}AddMetaProperty) == label) then
+if (allocated({$class->{'name'}.$prefix}MetaPropertyLabels)) then
+ do nodeComponent{ucfirst($class->{'name'})}Add{$prefix}MetaProperty=1,size({$class->{'name'}.$prefix}MetaPropertyLabels)
+  if ({$class->{'name'}.$prefix}MetaPropertyLabels(nodeComponent{ucfirst($class->{'name'})}Add{$prefix}MetaProperty) == label) then
    found=.true.
    exit
   end if
  end do
  if (.not.found) then
-  call move_alloc({$class->{'name'}}MetaPropertyLabels   ,   labelsTmp)
-  call move_alloc({$class->{'name'}}MetaPropertyNames    ,    namesTmp)
-  call move_alloc({$class->{'name'}}MetaPropertyEvolvable,evolvableTmp)
-  call move_alloc({$class->{'name'}}MetaPropertyCreator  ,  creatorTmp)
-  allocate({$class->{'name'}}MetaPropertyLabels   (size(   labelsTmp)+1))
-  allocate({$class->{'name'}}MetaPropertyNames    (size(    namesTmp)+1))
-  allocate({$class->{'name'}}MetaPropertyEvolvable(size(evolvableTmp)+1))
-  allocate({$class->{'name'}}MetaPropertyCreator  (size(  creatorTmp)+1))
-  {$class->{'name'}}MetaPropertyLabels   (1:size(   labelsTmp))=   labelsTmp
-  {$class->{'name'}}MetaPropertyNames    (1:size(    namesTmp))=    namesTmp
-  {$class->{'name'}}MetaPropertyEvolvable(1:size(evolvableTmp))=evolvableTmp
-  {$class->{'name'}}MetaPropertyCreator  (1:size(  creatorTmp))=  creatorTmp
-  deallocate(   labelsTmp)
-  deallocate(    namesTmp)
+  call move_alloc({$class->{'name'}.$prefix}MetaPropertyLabels , labelsTmp)
+  call move_alloc({$class->{'name'}.$prefix}MetaPropertyNames  ,  namesTmp)
+  call move_alloc({$class->{'name'}.$prefix}MetaPropertyCreator,creatorTmp)
+  allocate({$class->{'name'}.$prefix}MetaPropertyLabels (size( labelsTmp)+1))
+  allocate({$class->{'name'}.$prefix}MetaPropertyNames  (size(  namesTmp)+1))
+  allocate({$class->{'name'}.$prefix}MetaPropertyCreator(size(creatorTmp)+1))
+  {$class->{'name'}.$prefix}MetaPropertyLabels (1:size( labelsTmp))= labelsTmp
+  {$class->{'name'}.$prefix}MetaPropertyNames  (1:size(  namesTmp))=  namesTmp
+  {$class->{'name'}.$prefix}MetaPropertyCreator(1:size(creatorTmp))=creatorTmp
+  deallocate( labelsTmp)
+  deallocate(  namesTmp)
+  deallocate(creatorTmp)
+CODE
+	    if ( $isEvolvable ) {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+  call move_alloc({$class->{'name'}.$prefix}MetaPropertyEvolvable,evolvableTmp)
+  allocate({$class->{'name'}.$prefix}MetaPropertyEvolvable(size(evolvableTmp)+1))
+  {$class->{'name'}.$prefix}MetaPropertyEvolvable(1:size(evolvableTmp))=evolvableTmp
   deallocate(evolvableTmp)
-  deallocate(  creatorTmp)
+CODE
+	    }
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
  end if
 else
- allocate({$class->{'name'}}MetaPropertyLabels   (                1))
- allocate({$class->{'name'}}MetaPropertyNames    (                1))
- allocate({$class->{'name'}}MetaPropertyEvolvable(                1))
- allocate({$class->{'name'}}MetaPropertyCreator  (                1))
+ allocate({$class->{'name'}.$prefix}MetaPropertyLabels (1))
+ allocate({$class->{'name'}.$prefix}MetaPropertyNames  (1))
+ allocate({$class->{'name'}.$prefix}MetaPropertyCreator(1))
+CODE
+	    if ( $isEvolvable ) {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+ allocate({$class->{'name'}.$prefix}MetaPropertyEvolvable(1))
+CODE
+	    }
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 end if
+CODE
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (.not.found) then
- nodeComponent{ucfirst($class->{'name'})}AddMetaProperty=size({$class->{'name'}}MetaPropertyLabels)
- {$class->{'name'}}MetaPropertyLabels   (nodeComponent{ucfirst($class->{'name'})}AddMetaProperty)=label
- {$class->{'name'}}MetaPropertyNames    (nodeComponent{ucfirst($class->{'name'})}AddMetaProperty)=name
+ nodeComponent{ucfirst($class->{'name'})}Add{$prefix}MetaProperty=size({$class->{'name'}.$prefix}MetaPropertyLabels)
+ {$class->{'name'}.$prefix}MetaPropertyLabels   (nodeComponent{ucfirst($class->{'name'})}Add{$prefix}MetaProperty)=label
+ {$class->{'name'}.$prefix}MetaPropertyNames    (nodeComponent{ucfirst($class->{'name'})}Add{$prefix}MetaProperty)=name
+CODE
+	    if ( $isEvolvable ) {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
  if (present(isEvolvable)) then
-  {$class->{'name'}}MetaPropertyEvolvable(nodeComponent{ucfirst($class->{'name'})}AddMetaProperty)=isEvolvable
+  {$class->{'name'}.$prefix}MetaPropertyEvolvable(nodeComponent{ucfirst($class->{'name'})}Add{$prefix}MetaProperty)=isEvolvable
  else
-  {$class->{'name'}}MetaPropertyEvolvable(nodeComponent{ucfirst($class->{'name'})}AddMetaProperty)=.false.
+  {$class->{'name'}.$prefix}MetaPropertyEvolvable(nodeComponent{ucfirst($class->{'name'})}Add{$prefix}MetaProperty)=.false.
  end if
+CODE
+	    }
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
  if (present(isCreator  )) then
-  {$class->{'name'}}MetaPropertyCreator  (nodeComponent{ucfirst($class->{'name'})}AddMetaProperty)=isCreator
+  {$class->{'name'}.$prefix}MetaPropertyCreator  (nodeComponent{ucfirst($class->{'name'})}Add{$prefix}MetaProperty)=isCreator
  else
-  {$class->{'name'}}MetaPropertyCreator  (nodeComponent{ucfirst($class->{'name'})}AddMetaProperty)=.false.
+  {$class->{'name'}.$prefix}MetaPropertyCreator  (nodeComponent{ucfirst($class->{'name'})}Add{$prefix}MetaProperty)=.false.
  end if
- {$class->{'name'}}MetaPropertyCount={$class->{'name'}}MetaPropertyCount+1
- if ({$class->{'name'}}MetaPropertyEvolvable(nodeComponent{ucfirst($class->{'name'})}AddMetaProperty)) {$class->{'name'}}MetaPropertyEvolvableCount={$class->{'name'}}MetaPropertyEvolvableCount+1
+ {$class->{'name'}.$prefix}MetaPropertyCount={$class->{'name'}.$prefix}MetaPropertyCount+1
+CODE
+	    if ( $isEvolvable ) {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+ if ({$class->{'name'}.$prefix}MetaPropertyEvolvable(nodeComponent{ucfirst($class->{'name'})}Add{$prefix}MetaProperty)) {$class->{'name'}.$prefix}MetaPropertyEvolvableCount={$class->{'name'}.$prefix}MetaPropertyEvolvableCount+1
+CODE
+	    }
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
  propertyNameLengthMax=max(len(name),propertyNameLengthMax) 
 else
  if (present(isCreator)) then
-  if (isCreator) {$class->{'name'}}MetaPropertyCreator(nodeComponent{ucfirst($class->{'name'})}AddMetaProperty)=.true.
+  if (isCreator) {$class->{'name'}.$prefix}MetaPropertyCreator(nodeComponent{ucfirst($class->{'name'})}Add{$prefix}MetaProperty)=.true.
  end if
+CODE
+	    if ( $isEvolvable ) {
+		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
  if (present(isEvolvable)) then
-  if ({$class->{'name'}}MetaPropertyEvolvable(nodeComponent{ucfirst($class->{'name'})}AddMetaProperty) .neqv. isEvolvable) call Galacticus_Error_Report('inconsistent evolvability for meta-property'//\{introspection:location\})
+  if ({$class->{'name'}.$prefix}MetaPropertyEvolvable(nodeComponent{ucfirst($class->{'name'})}Add{$prefix}MetaProperty) .neqv. isEvolvable) call Galacticus_Error_Report('inconsistent evolvability for meta-property'//\{introspection:location\})
  else
-  if ({$class->{'name'}}MetaPropertyEvolvable(nodeComponent{ucfirst($class->{'name'})}AddMetaProperty)                   ) call Galacticus_Error_Report('inconsistent evolvability for meta-property'//\{introspection:location\})
+  if ({$class->{'name'}.$prefix}MetaPropertyEvolvable(nodeComponent{ucfirst($class->{'name'})}Add{$prefix}MetaProperty)                   ) call Galacticus_Error_Report('inconsistent evolvability for meta-property'//\{introspection:location\})
  end if
-end if
-!$omp end critical ({class->{'name'}}MetaPropertyUpdate)
 CODE
-    }
-    # Insert a type-binding for this function.
-    push(
-	@{$build->{'types'}->{"nodeComponent".ucfirst($code::class->{'name'})}->{'boundFunctions'}},
-	{
-	    type        => "procedure",
-	    descriptor  => $function,
-	    name        => "addMetaProperty", 
-	}
-	);
-}
-
-sub Class_Add_Rank1_Meta_Property {
-    # Generate a function to add rank-1 meta-properties to component classes.
-    my $build    = shift();
-    $code::class = shift();
-    my $function =
-    {
-	type        => "integer",
-	name        => "nodeComponent".ucfirst($code::class->{'name'})."AddRank1MetaProperty",
-	description => "Add a rank-1 meta-property to the generic {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
-	modules     =>
-	    [
-	     "ISO_Varying_String",
-	     "Galacticus_Error"
-	    ],
-	variables   =>
-	    [
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".ucfirst($code::class->{'name'}),
-		 attributes => [ "intent(inout)" ],
-		 variables  => [ "self" ]
-	     },
-	     {
-		 intrinsic  => "type",
-		 type       => "varying_string",
-		 attributes => [ "intent(in   )" ],
-		 variables  => [ "label" ]
-	     },
-	     {
-		 intrinsic  => "character",
-		 type       => "len=*",
-		 attributes => [ "intent(in   )" ],
-		 variables  => [ "name" ]
-	     },
-	     {
-		 intrinsic  => "logical",
-		 attributes => [ "intent(in   )", "optional" ],
-		 variables  => [ "isCreator" ]
-	     },
-	     {
-		 intrinsic  => "type",
-		 type       => "varying_string",
-		 attributes => [ "allocatable", "dimension(:)" ],
-		 variables  => [ "labelsTmp", "namesTmp" ]
-	     },
-	     {
-		 intrinsic  => "logical",
-		 attributes => [ "allocatable", "dimension(:)" ],
-		 variables  => [ "creatorTmp" ]
-	     },
-	     {
-		 intrinsic  => "logical",
-		 variables  => [ "found" ]
-	     }
-	    ]
-    };
-    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
-	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
-!$GLC attributes unused :: self
-
-!$omp critical ({class->{'name'}}Rank1MetaPropertyUpdate)
-found=.false.
-if (allocated({$class->{'name'}}Rank1MetaPropertyLabels)) then
- do nodeComponent{ucfirst($class->{'name'})}AddRank1MetaProperty=1,size({$class->{'name'}}Rank1MetaPropertyLabels)
-  if ({$class->{'name'}}Rank1MetaPropertyLabels(nodeComponent{ucfirst($class->{'name'})}AddRank1MetaProperty) == label) then
-   found=.true.
-   exit
-  end if
- end do
- if (.not.found) then
-  call move_alloc({$class->{'name'}}Rank1MetaPropertyLabels , labelsTmp)
-  call move_alloc({$class->{'name'}}Rank1MetaPropertyNames  ,  namesTmp)
-  call move_alloc({$class->{'name'}}Rank1MetaPropertyCreator,creatorTmp)
-  allocate({$class->{'name'}}Rank1MetaPropertyLabels (size( labelsTmp)+1))
-  allocate({$class->{'name'}}Rank1MetaPropertyNames  (size(  namesTmp)+1))
-  allocate({$class->{'name'}}Rank1MetaPropertyCreator(size(creatorTmp)+1))
-  {$class->{'name'}}Rank1MetaPropertyLabels (1:size( labelsTmp))= labelsTmp
-  {$class->{'name'}}Rank1MetaPropertyNames  (1:size(  namesTmp))=  namesTmp
-  {$class->{'name'}}Rank1MetaPropertyCreator(1:size(creatorTmp))=creatorTmp
-  deallocate( labelsTmp)
-  deallocate(  namesTmp)
-  deallocate(creatorTmp)
- end if
-else
- allocate({$class->{'name'}}Rank1MetaPropertyLabels (                1))
- allocate({$class->{'name'}}Rank1MetaPropertyNames  (                1))
- allocate({$class->{'name'}}Rank1MetaPropertyCreator(                1))
+	    }
+	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 end if
-if (.not.found) then
- nodeComponent{ucfirst($class->{'name'})}AddRank1MetaProperty=size({$class->{'name'}}Rank1MetaPropertyLabels)
- {$class->{'name'}}Rank1MetaPropertyLabels   (nodeComponent{ucfirst($class->{'name'})}AddRank1MetaProperty)=label
- {$class->{'name'}}Rank1MetaPropertyNames    (nodeComponent{ucfirst($class->{'name'})}AddRank1MetaProperty)=name
- if (present(isCreator  )) then
-  {$class->{'name'}}Rank1MetaPropertyCreator  (nodeComponent{ucfirst($class->{'name'})}AddRank1MetaProperty)=isCreator
- else
-  {$class->{'name'}}Rank1MetaPropertyCreator  (nodeComponent{ucfirst($class->{'name'})}AddRank1MetaProperty)=.false.
- end if
- {$class->{'name'}}Rank1MetaPropertyCount={$class->{'name'}}Rank1MetaPropertyCount+1
- propertyNameLengthMax=max(len(name),propertyNameLengthMax) 
-else
- if (present(isCreator)) then
-  if (isCreator) {$class->{'name'}}Rank1MetaPropertyCreator(nodeComponent{ucfirst($class->{'name'})}AddRank1MetaProperty)=.true.
- end if
-end if
-!$omp end critical ({class->{'name'}}Rank1MetaPropertyUpdate)
+!$omp end critical ({$class->{'name'}.$prefix}MetaPropertyUpdate)
 CODE
-    }
-    # Insert a type-binding for this function.
-    push(
-	@{$build->{'types'}->{"nodeComponent".ucfirst($code::class->{'name'})}->{'boundFunctions'}},
-	{
-	    type        => "procedure",
-	    descriptor  => $function,
-	    name        => "addRank1MetaProperty", 
 	}
-	);
-}
-
-sub Class_Add_Integer_Meta_Property {
-    # Generate a function to add integer meta-properties to component classes.
-    my $build    = shift();
-    $code::class = shift();
-    my $function =
-    {
-	type        => "integer",
-	name        => "nodeComponent".ucfirst($code::class->{'name'})."AddIntegerMetaProperty",
-	description => "Add an integer meta-property to the generic {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
-	modules     =>
-	    [
-	     "ISO_Varying_String"
-	    ],
-	variables   =>
-	    [
-	     {
-		 intrinsic  => "class",
-		 type       => "nodeComponent".ucfirst($code::class->{'name'}),
-		 attributes => [ "intent(inout)" ],
-		 variables  => [ "self" ]
-	     },
-	     {
-		 intrinsic  => "type",
-		 type       => "varying_string",
-		 attributes => [ "intent(in   )" ],
-		 variables  => [ "label" ]
-	     },
-	     {
-		 intrinsic  => "character",
-		 type       => "len=*",
-		 attributes => [ "intent(in   )" ],
-		 variables  => [ "name" ]
-	     },
-	     {
-		 intrinsic  => "logical",
-		 attributes => [ "intent(in   )", "optional" ],
-		 variables  => [ "isCreator" ]
-	     },
-	     {
-		 intrinsic  => "type",
-		 type       => "varying_string",
-		 attributes => [ "allocatable", "dimension(:)" ],
-		 variables  => [ "labelsTmp", "namesTmp" ]
-	     },
-	     {
-		 intrinsic  => "logical",
-		 attributes => [ "allocatable", "dimension(:)" ],
-		 variables  => [ "creatorTmp" ]
-	     },
-	     {
-		 intrinsic  => "logical",
-		 variables  => [ "found" ]
-	     }
-	    ]
-    };
-    if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
-	$function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
-!$GLC attributes unused :: self
-
-!$omp critical ({class->{'name'}}IntegerMetaPropertyUpdate)
-found=.false.
-if (allocated({$class->{'name'}}IntegerMetaPropertyLabels)) then
- do nodeComponent{ucfirst($class->{'name'})}AddIntegerMetaProperty=1,size({$class->{'name'}}IntegerMetaPropertyLabels)
-  if ({$class->{'name'}}IntegerMetaPropertyLabels(nodeComponent{ucfirst($class->{'name'})}AddIntegerMetaProperty) == label) then
-   found=.true.
-   exit
-  end if
- end do
- if (.not.found) then
-  call move_alloc({$class->{'name'}}IntegerMetaPropertyLabels , labelsTmp)
-  call move_alloc({$class->{'name'}}IntegerMetaPropertyNames  ,  namesTmp)
-  call move_alloc({$class->{'name'}}IntegerMetaPropertyCreator,creatorTmp)
-  allocate({$class->{'name'}}IntegerMetaPropertyLabels (size( labelsTmp)+1))
-  allocate({$class->{'name'}}IntegerMetaPropertyNames  (size(  namesTmp)+1))
-  allocate({$class->{'name'}}IntegerMetaPropertyCreator(size(creatorTmp)+1))
-  {$class->{'name'}}IntegerMetaPropertyLabels (1:size( labelsTmp))= labelsTmp
-  {$class->{'name'}}IntegerMetaPropertyNames  (1:size(  namesTmp))=  namesTmp
-  {$class->{'name'}}IntegerMetaPropertyCreator(1:size(creatorTmp))=creatorTmp
-  deallocate( labelsTmp)
-  deallocate(  namesTmp)
-  deallocate(creatorTmp)
- end if
-else
- allocate({$class->{'name'}}IntegerMetaPropertyLabels (1))
- allocate({$class->{'name'}}IntegerMetaPropertyNames  (1))
- allocate({$class->{'name'}}IntegerMetaPropertyCreator(1))
-end if
-if (.not.found) then
- nodeComponent{ucfirst($class->{'name'})}AddIntegerMetaProperty=size({$class->{'name'}}IntegerMetaPropertyLabels)
- {$class->{'name'}}IntegerMetaPropertyLabels   (nodeComponent{ucfirst($class->{'name'})}AddIntegerMetaProperty)=label
- {$class->{'name'}}IntegerMetaPropertyNames    (nodeComponent{ucfirst($class->{'name'})}AddIntegerMetaProperty)=name
- if (present(isCreator  )) then
-  {$class->{'name'}}IntegerMetaPropertyCreator (nodeComponent{ucfirst($class->{'name'})}AddIntegerMetaProperty)=isCreator
- else
-  {$class->{'name'}}IntegerMetaPropertyCreator (nodeComponent{ucfirst($class->{'name'})}AddIntegerMetaProperty)=.false.
- end if
- {$class->{'name'}}IntegerMetaPropertyCount={$class->{'name'}}IntegerMetaPropertyCount+1
- propertyNameLengthMax=max(len(name),propertyNameLengthMax) 
-else
- if (present(isCreator)) then
-  if (isCreator) {$class->{'name'}}IntegerMetaPropertyCreator(nodeComponent{ucfirst($class->{'name'})}AddIntegerMetaProperty)=.true.
- end if
-end if
-!$omp end critical ({class->{'name'}}IntegerMetaPropertyUpdate)
-CODE
+	# Insert a type-binding for this function.
+	push(
+	    @{$build->{'types'}->{"nodeComponent".ucfirst($code::class->{'name'})}->{'boundFunctions'}},
+	    {
+		type        => "procedure",
+		descriptor  => $function,
+		name        => "add".ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaProperty", 
+	    }
+	    );
     }
-    # Insert a type-binding for this function.
-    push(
-	@{$build->{'types'}->{"nodeComponent".ucfirst($code::class->{'name'})}->{'boundFunctions'}},
-	{
-	    type        => "procedure",
-	    descriptor  => $function,
-	    name        => "addIntegerMetaProperty", 
-	}
-	);
 }
 
 1;

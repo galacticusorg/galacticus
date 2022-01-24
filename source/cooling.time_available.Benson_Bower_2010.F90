@@ -234,11 +234,11 @@ contains
        ! Note that the "cooling function" here is λ(T,Z) = Λ(T,Z) nₕ², where Λ(T,Z) is the usual cooling function and nₕ is the
        ! number density of hydrogen atoms. We want to evaluate the integral ∫ dt Λ(T,Z) nₕ N where N is the total number of
        ! particles in the halo. This can be written as ∫ dt λ(T,Z) nₕ⁻¹ N.
-       bensonBower2010TimeAvailable=+hotHalo%metaPropertyGet(self%energyRadiatedID) &
-            &                       /coolingFunction                                &
-            &                       *numberDensityHydrogen                          &
+       bensonBower2010TimeAvailable=+hotHalo%floatRank0MetaPropertyGet(self%energyRadiatedID) &
+            &                       /coolingFunction                                          &
+            &                       *numberDensityHydrogen                                    &
             &                       /countParticles
-    else if (hotHalo%metaPropertyGet(self%energyRadiatedID) == 0.0d0) then
+    else if (hotHalo%floatRank0MetaPropertyGet(self%energyRadiatedID) == 0.0d0) then
        bensonBower2010TimeAvailable=+0.0d0
     else
        bensonBower2010TimeAvailable=+huge(0.0d0)

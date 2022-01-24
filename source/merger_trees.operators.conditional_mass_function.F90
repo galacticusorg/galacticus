@@ -672,8 +672,8 @@ contains
           do while (associated(nodeChild))
              ! Check if child should be included.
              if (self%alwaysIsolatedHalosOnly) then
-                basicChild    =>  nodeChild%basic                 (                                )
-                includeBranch =  (basic    %integerMetaPropertyGet(self%nodeHierarchyLevelMaximumID) == 0)
+                basicChild    =>  nodeChild%basic                      (                                )
+                includeBranch =  (basic    %integerRank0MetaPropertyGet(self%nodeHierarchyLevelMaximumID) == 0)
              else
                 includeBranch =  .true.
              end if
@@ -781,7 +781,7 @@ contains
                          ! Check if child should be included.
                          if (self%alwaysIsolatedHalosOnly) then
                             basicChild    =>  nodeParentChild%basic                 (                                )
-                            includeBranch =  (basicChild     %integerMetaPropertyGet(self%nodeHierarchyLevelMaximumID) == 0)
+                            includeBranch =  (basicChild     %integerRank0MetaPropertyGet(self%nodeHierarchyLevelMaximumID) == 0)
                          else
                             includeBranch =  .true.
                          end if

@@ -62,7 +62,7 @@ sub Process_MetaPropertyDatabase {
 		foreach my $addMetaProperty ( @addMetaProperties ) {
 		    $addMetaProperty->{'functionClass'     } = $functionClassName;
 		    $addMetaProperty->{'implementationName'} = $implementationName;
-		    $addMetaProperty->{'type'              } = "real"
+		    $addMetaProperty->{'type'              } = "float"
 			unless ( exists($addMetaProperty->{'type'}) );
 		    $addMetaProperty->{'rank'              } = 0
 			unless ( exists($addMetaProperty->{'rank'}) );

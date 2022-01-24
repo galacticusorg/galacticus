@@ -152,7 +152,7 @@ contains
        nodeHost  => node    %mergesWith()
        basicHost => nodeHost%basic     ()
        ! Append the merger time.
-       majorMergerTimesCurrent=basicHost%rank1MetaPropertyGet(self%galaxyMajorMergerTimeID)
+       majorMergerTimesCurrent=basicHost%floatRank1MetaPropertyGet(self%galaxyMajorMergerTimeID)
        if (size(majorMergerTimesCurrent) < self%countTimesMaximum) then
           allocate(majorMergerTimesNew(size(majorMergerTimesCurrent)+1_c_size_t))
           majorMergerTimesNew(1_c_size_t:size(majorMergerTimesCurrent)           )=majorMergerTimesCurrent(          :                             )
@@ -161,7 +161,7 @@ contains
           majorMergerTimesNew(1_c_size_t:size(majorMergerTimesCurrent)-1_c_size_t)=majorMergerTimesCurrent(2_c_size_t:size(majorMergerTimesCurrent))
        end if
        majorMergerTimesNew(size(majorMergerTimesNew))=basicHost%time()
-       call basicHost%rank1MetaPropertySet(self%galaxyMajorMergerTimeID,majorMergerTimesNew)
+       call basicHost%floatRank1MetaPropertySet(self%galaxyMajorMergerTimeID,majorMergerTimesNew)
     end if
     class default
        call Galacticus_Error_Report('incorrect class'//{introspection:location})

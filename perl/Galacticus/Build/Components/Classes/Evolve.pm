@@ -35,8 +35,8 @@ sub Build_Rate_Functions {
     my $function =
     {
 	type        => "void",
-	name        => $class->{'name'}."MetaPropertyRate",
-	description => "Accumulate to the rate of change of the indexed meta-property of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class.",
+	name        => $class->{'name'}."FloatRank0MetaPropertyRate",
+	description => "Accumulate to the rate of change of the indexed rank-0 float meta-property of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class.",
 	modules     =>
 	    [
 	     "ISO_Varying_String"
@@ -82,11 +82,11 @@ sub Build_Rate_Functions {
 !$GLC attributes unused :: interrupt, interruptProcedure, self
 CODE
 	$code::className          = $class->{'name'};
-	$code::offsetNameAll      = &offsetName('all'     ,$class->{'name'},'metaProperties');
-	$code::offsetNameActive   = &offsetName('active'  ,$class->{'name'},'metaProperties');
-	$code::offsetNameInactive = &offsetName('inactive',$class->{'name'},'metaProperties');
+	$code::offsetNameAll      = &offsetName('all'     ,$class->{'name'},'floatRank0MetaProperties');
+	$code::offsetNameActive   = &offsetName('active'  ,$class->{'name'},'floatRank0MetaProperties');
+	$code::offsetNameInactive = &offsetName('inactive',$class->{'name'},'floatRank0MetaProperties');
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (.not.{$className}MetaPropertyCreator(metaPropertyID)) call metaPropertyNoCreator('{$className}',char({$className}MetaPropertyLabels(metaPropertyID)),'real',0)
+if (.not.{$className}FloatRank0MetaPropertyCreator(metaPropertyID)) call metaPropertyNoCreator('{$className}',char({$className}FloatRank0MetaPropertyLabels(metaPropertyID)),'float',0)
 if (rateComputeState == propertyTypeAll          ) then
  offset={$offsetNameAll}(metaPropertyID)
 else if (rateComputeState == propertyTypeActive  ) then
@@ -107,7 +107,7 @@ CODE
 	{
 	    type        => "procedure", 
 	    descriptor  => $function,
-	    name        => "metaPropertyRate"
+	    name        => "floatRank0metaPropertyRate"
 	}
 	);
 }
@@ -121,8 +121,8 @@ sub Build_Scale_Functions {
     my $function =
     {
 	type        => "void",
-	name        => $class->{'name'}."MetaPropertyScale",
-	description => "Set the absolute scale of the indexed meta-property of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class.",
+	name        => $class->{'name'}."FloatRank0MetaPropertyScale",
+	description => "Set the absolute scale of the rank-0 float indexed meta-property of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class.",
 	modules     =>
 	    [
 	     "ISO_Varying_String"
@@ -150,10 +150,10 @@ sub Build_Scale_Functions {
     # Build the function.
     if ( grep {$class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
 	$code::className  = $class->{'name'};
-	$code::offsetName = &offsetName('all',$class->{'name'},'metaProperties');
+	$code::offsetName = &offsetName('all',$class->{'name'},'floatRank0MetaProperties');
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self
-if (.not.{$className}MetaPropertyCreator(metaPropertyID)) call metaPropertyNoCreator('{$className}',char({$className}MetaPropertyLabels(metaPropertyID)),'real',0)
+if (.not.{$className}FloatRank0MetaPropertyCreator(metaPropertyID)) call metaPropertyNoCreator('{$className}',char({$className}FloatRank0MetaPropertyLabels(metaPropertyID)),'float',0)
 nodeScales({$offsetName}(metaPropertyID))=setValue
 CODE
 	}
@@ -163,7 +163,7 @@ CODE
 	{
 	    type        => "procedure", 
 	    descriptor  => $function,
-	    name        => "metaPropertyScale"
+	    name        => "floatRank0MetaPropertyScale"
 	}
 	);  
 }
@@ -177,8 +177,8 @@ sub Build_Inactive_Functions {
     my $function =
     {
 	type        => "void",
-	name        => $class->{'name'}."MetaPropertyJcbnZr",
-	description => "Indicate that the indexed meta-property of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class is inactive for differential equation solving.",
+	name        => $class->{'name'}."FloatRank0MetaPropertyJcbnZr",
+	description => "Indicate that the indexed rank-0 float meta-property of the {\\normalfont \\ttfamily ".$class->{'name'}."} component class is inactive for differential equation solving.",
 	variables   =>
 	    [
 	     {
@@ -196,7 +196,7 @@ sub Build_Inactive_Functions {
     };
     # Build the function.
     if ( grep {$class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
-	$code::offsetName = &offsetName('all',$class->{'name'},'metaProperties');
+	$code::offsetName = &offsetName('all',$class->{'name'},'floatRank0MetaProperties');
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 !$GLC attributes unused :: self
 nodeInactives({$offsetName}(metaPropertyID))=.true.
@@ -208,7 +208,7 @@ CODE
 	{
 	    type        => "procedure", 
 	    descriptor  => $function,
-	    name        => "metaPropertyInactive"
+	    name        => "floatRank0MetaPropertyInactive"
 	}
 	);  
 }

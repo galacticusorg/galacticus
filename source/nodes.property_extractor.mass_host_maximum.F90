@@ -90,8 +90,8 @@ contains
     class(nodeComponentBasic                  )               , pointer  :: basic
     !$GLC attributes unused :: instance
 
-    basic                  => node %basic          (                      )
-    massHostMaximumExtract =  basic%metaPropertyGet(self%massHostMaximumID)
+    basic                  => node %basic                    (                      )
+    massHostMaximumExtract =  basic%floatRank0MetaPropertyGet(self%massHostMaximumID)
     return
   end function massHostMaximumExtract
 

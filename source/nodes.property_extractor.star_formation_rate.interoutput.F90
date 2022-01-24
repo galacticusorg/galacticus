@@ -118,14 +118,14 @@ contains
        ! Disk does not yet exist.
        starFormationRateDisk    =0.0d0
     class default
-       starFormationRateDisk    =disk    %metaPropertyGet(self%starFormationRateDiskInterOutputID    )
+       starFormationRateDisk    =disk    %floatRank0MetaPropertyGet(self%starFormationRateDiskInterOutputID    )
     end select
     select type (spheroid)
     type is (nodeComponentSpheroid)
        ! Spheroid does not yet exist.
        starFormationRateSpheroid=0.0d0
     class default
-       starFormationRateSpheroid=spheroid%metaPropertyGet(self%starFormationRateSpheroidInterOutputID)
+       starFormationRateSpheroid=spheroid%floatRank0MetaPropertyGet(self%starFormationRateSpheroidInterOutputID)
     end select
     starFormationRateInterOutputExtract=[                           &
          &                               starFormationRateDisk    , &

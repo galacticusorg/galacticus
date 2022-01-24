@@ -83,7 +83,7 @@ contains
     type (treeNode                        ), intent(inout), target :: node
     class(nodeComponentBasic              ), pointer               :: basic
 
-    basic                    => node %basic                 (                                )
-    haloAlwaysIsolatedPasses =  basic%integerMetaPropertyGet(self%nodeHierarchyLevelMaximumID) == 0
+    basic                    => node %basic                      (                                )
+    haloAlwaysIsolatedPasses =  basic%integerRank0MetaPropertyGet(self%nodeHierarchyLevelMaximumID) == 0
     return
   end function haloAlwaysIsolatedPasses
