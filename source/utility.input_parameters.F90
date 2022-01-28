@@ -110,9 +110,9 @@ module Input_Parameters
      type   (hdf5Object     )                  :: outputParameters                 , outputParametersContainer
      type   (inputParameter ), pointer         :: parameters             => null()
      type   (inputParameters), pointer, public :: parent                 => null()
-     logical                                   :: global                 =  .false., isNull                   =.false., &
-          &                                       outputParametersCopied =  .false., outputParametersTemporary=.false.
-   contains
+     logical                                   :: outputParametersCopied =  .false., outputParametersTemporary=.false., &
+          &                                       isNull                 =  .false.
+        contains
      !![
      <methods>
        <method description="Build a tree of {\normalfont \ttfamily inputParameter} objects from the structure of an XML parameter file." method="buildTree" />
@@ -234,7 +234,6 @@ contains
          &                                                         )
     inputParametersConstructorNull%rootNode   => getDocumentElement(inputParametersConstructorNull%document)
     inputParametersConstructorNull%parameters => null()
-    inputParametersConstructorNull%global     = .false.
     inputParametersConstructorNull%isNull     = .true.
     !$omp critical (FoX_DOM_Access)
     call setLiveNodeLists(inputParametersConstructorNull%document,.false.)
@@ -362,7 +361,6 @@ contains
     inputParametersConstructorCopy            =  inputParameters(parameters%rootNode  ,noOutput=.true.,noBuild=.true.)
     inputParametersConstructorCopy%parameters =>                 parameters%parameters
     inputParametersConstructorCopy%parent     =>                 parameters%parent
-    inputParametersConstructorCopy%global     =                  parameters%global
     return
   end function inputParametersConstructorCopy
 
@@ -402,7 +400,6 @@ contains
     !!]
 #include "os.inc"
     
-    inputParametersConstructorNode%global   =  .false.
     inputParametersConstructorNode%isNull   =  .false.
     inputParametersConstructorNode%document => getOwnerDocument(parametersNode)
     inputParametersConstructorNode%rootNode =>                  parametersNode
@@ -1352,7 +1349,6 @@ contains
        inputParametersSubParameters%parameters => parameterNode
     end if
     inputParametersSubParameters%parent => self
-    inputParametersSubParameters%global =  self%global
     !$ call hdf5Access%set()
     if (self%outputParameters%isOpen()) then
        groupName=parameterName
