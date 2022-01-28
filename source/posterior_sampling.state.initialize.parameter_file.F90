@@ -108,7 +108,8 @@ contains
     type            (varying_string                             ), allocatable  , dimension(:) :: parameterNames
     double precision                                             , allocatable  , dimension(:) :: stateVector         , stateVectorMapped, &
          &                                                                                        parameterValues
-    type            (inputParameters                            )                              :: parameters          , parameters_
+    type            (inputParameters                            )                              :: parameters          , parameters_      , &
+         &                                                                                        subParameters_
     integer                                                                                    :: i                   , j                , &
          &                                                                                        instance            , indexElement     , &
          &                                                                                        parameterCount
@@ -160,7 +161,12 @@ contains
              stateVectorMapped(i)=modelParameters_(i)%modelParameter_%map(stateVector(i))
           else
              ! This is an intermediate parameter, get the appropriate sub-parameters.
-             parameters_=parameters_%subParameters(char(parameterNames(j)),requireValue=.false.,copyInstance=instance)
+             if (parameters_%isPresent(char(parameterNames(j)),requireValue=.false.)) then
+                subParameters_=parameters_   %subParameters(char(parameterNames(j)),requireValue=.false.,copyInstance=instance)
+                parameters_   =subParameters_
+             else
+                call Galacticus_Error_Report('parameter "'//char(parameterNames(j))//'" not found in "'//char(modelParameters_(i)%modelParameter_%name())//'"'//{introspection:location})
+             end if
           end if
        end do
        deallocate(parameterNames)
