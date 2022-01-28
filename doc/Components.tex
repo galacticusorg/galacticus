@@ -1224,61 +1224,6 @@ The scale radius and shape parameter of each node grow linearly with time to int
 
 \noindent\emph{Node promotion:} None.\\
 
-
-\section{Merging Statistics}
-
-This \gls{component} records statistics associated with galaxy merging.
-
-\subsection{``Recent'' Implementation}
-
-\subsubsection{Properties}
-
-The recent merging statistics implementation defines the following properties:
-\begin{description}
- \item [{\normalfont \ttfamily recentMajorMergerTime}] The number of node major mergers (defined as a merger with mass ratio in excess of {\normalfont \ttfamily [nodeMajorMergerFraction]}) occuring within a recent interval, $\Delta t$ where $\Delta t = ${\normalfont \ttfamily [nodeRecentMajorMergerInterval]}~Gyr if {\normalfont \ttfamily [nodeRecentMajorMergerIntervalType]}$=${\normalfont \ttfamily absolute}, or $\Delta t = ${\normalfont \ttfamily [nodeRecentMajorMergerInterval]}$\tau_\mathrm{dyn}$ (where $\tau_\mathrm{dyn}$ is the halo dynamical time) if {\normalfont \ttfamily [nodeRecentMajorMergerIntervalType]}$=${\normalfont \ttfamily dynamical}. [{\normalfont \ttfamily mergingStatisticsRecentMajorMergerTime}];
-\end{description}
-
-\subsubsection{Initialization}
-
-The number of recent mergers for each output time are initialized to zero.
-
-\subsubsection{Differential Evolution}
-
-The number of recent mergers do not evolve.
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Node mergers:} If the merger is major and occurs within $\Delta t$ of an output time, the number of recent major mergers is increased by one.\\
-
-\noindent\emph{Satellite merging:} N/A.\\
-
-\noindent\emph{Node promotion:} N/A.\\
-
-\subsection{``Major'' Implementation}
-
-\subsubsection{Properties}
-
-The major merging statistics implementation defines the following properties:
-\begin{description}
- \item [{\normalfont \ttfamily majorMergerTime}] The time(s) of galaxy major mergers experience by this node. Major merger times are output to a avriable-length dataset {\normalfont \ttfamily mergingStatisticsMajorMergerTimes} in the \href{https://github.com/galacticusorg/galacticus/releases/download/bleeding-edge/Galacticus_Usage.pdf\#sec.nodeDataGroup}{\normalfont \ttfamily nodeData} group.
-\end{description}
-
-\subsubsection{Initialization}
-
-The times are initialized to an empty list.
-
-\subsubsection{Differential Evolution}
-
-N/A.
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Node mergers:} N/A.\\
-
-\noindent\emph{Satellite merging:} If the merger is major, the time of the merger is appended to the list of merging times for the host node.\\
-
-\noindent\emph{Node promotion:} Times recorded from the parent node are appended to those of the child node prior to promotion.\\
-
 \section{Formation Times}\label{sec:ComponentFormationTimes}
 
 This \gls{component} implements ``formation times'' of dark matter halos.
