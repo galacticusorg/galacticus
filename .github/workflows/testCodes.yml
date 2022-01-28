@@ -3436,8 +3436,8 @@ jobs:
           name: galacticus-execs
       - name: Install valgrind
         run: |
-          sudo apt -y update
-          sudo apt -y install valgrind
+          apt -y update
+          apt -y install valgrind
       - name: Create test suite output directory
         run: mkdir -p $GALACTICUS_EXEC_PATH/testSuite/outputs
       - name: Run test
