@@ -21,7 +21,7 @@
   Implements a node operator class that computes the time of the most recent major merger between galaxies.
   !!}
 
-  use, intrinsic :: ISO_C_Binding                   , only : countTimesMaximum
+  use, intrinsic :: ISO_C_Binding                   , only : c_size_t
   use            :: Satellite_Merging_Mass_Movements, only : mergerMassMovementsClass
 
   !![
