@@ -161,6 +161,8 @@ contains
     <constructorAssign variables="radiusEnvironment, time, *cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_, *linearGrowth_, *criticalOverdensity_" />
     !!]
 
+    ! Set the redshift.
+    self%redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%time))
     ! Find the root-variance in the linear density field on the given scale.
     self%variance=self%cosmologicalMassVariance_%rootVariance(                                                        &
          &                                                    +4.0d0                                                  &
