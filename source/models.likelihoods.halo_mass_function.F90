@@ -98,10 +98,12 @@ contains
       <description>The minimum number of halos per bin required to permit bin to be included in likelihood evaluation.</description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters"/>
     !!]
     allocate(parametersModel)
     parametersModel=inputParameters                          (baseParametersFileName,noOutput=.true.)
+    !![
+    <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parametersModel"/>
+    !!]
     self           =posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,binCountMinimum,parametersModel,cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
