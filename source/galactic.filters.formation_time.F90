@@ -34,6 +34,7 @@ Contains a module which implements a galactic filter which removes recently-form
      A galactic filter which implements a galactic filter which removes recently-formed halos.
      !!}
      private
+     integer          :: nodeFormationTimeID
      double precision :: timeRecent
    contains
      procedure :: passes => formationTimePasses
@@ -86,6 +87,9 @@ contains
     <constructorAssign variables="timeRecent"/>
     !!]
 
+    !![
+    <addMetaProperty component="basic" name="nodeFormationTime" id="self%nodeFormationTimeID" isEvolvable="no" isCreator="no"/>
+    !!]
     return
   end function formationTimeConstructorInternal
 
@@ -93,18 +97,16 @@ contains
     !!{
     Implement a filter which rejects halos that formed too recently.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentFormationTime, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(galacticFilterFormationTime), intent(inout)         :: self
     type (treeNode                   ), intent(inout), target :: node
     class(nodeComponentBasic         ), pointer               :: basic
-    class(nodeComponentFormationTime ), pointer               :: formationTime
 
-    basic               =>   node         %basic        ()
-    formationTime       =>   node         %formationTime()
-    formationTimePasses =   +formationTime%formationTime() &
-         &                 <=                              &
-         &                  +basic        %time         () &
-         &                  -self         %timeRecent
+    basic               =>   node %basic                    (                        )
+    formationTimePasses =   +basic%floatRank0MetaPropertyGet(self%nodeFormationTimeID) &
+         &                 <=                                                          &
+         &                  +basic%time                     (                        ) &
+         &                  -self %timeRecent
     return
   end function formationTimePasses

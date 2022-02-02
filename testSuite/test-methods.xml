@@ -488,9 +488,38 @@
       <coolingTimeAvailable value="whiteFrenk1991" parameterLevel="top"/>
       <coolingTimeAvailable value="formationTime" parameterLevel="top"/>
       <hotHaloCoolingFromNode value="formationNode" parameterLevel="top"/>
-      <componentFormationTime value="Cole2000" parameterLevel="top"/>
+      <nodeOperator value="multi" parameterLevel="top">
+	<!-- Halo concentrations -->
+	<nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
+	<nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+	<!-- Halo spins -->
+	<nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
+	<nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+	<!-- Star formation -->
+	<nodeOperator value="starFormationDisks" iterable="no"/>
+	<nodeOperator value="starFormationSpheroids" iterable="no"/>
+	<!--Stellar feedback outflows-->
+	<nodeOperator value="stellarFeedbackDisks" iterable="no">
+	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="powerLaw">
+              <velocityCharacteristic value="250.0"/>
+              <exponent value="3.5"/>
+            </stellarFeedbackOutflows>
+	  </stellarFeedbackOutflows>
+	</nodeOperator>
+	<nodeOperator value="stellarFeedbackSpheroids" iterable="no">
+	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="powerLaw">
+              <velocityCharacteristic value="250.0"/>
+              <exponent value="3.5"/>
+            </stellarFeedbackOutflows>
+	  </stellarFeedbackOutflows>
+	</nodeOperator>
+	<nodeOperator value="nodeFormationTimeCole2000" iterable="no"/>
+      </nodeOperator>
       <nodePropertyExtractor value="rateCooling" parameterLevel="top"/>
-      <nodePropertyExtractor value="null" parameterLevel="top"/>
     </coolingRate>
   </parameters>
   
@@ -522,7 +551,37 @@
     <coolingInfallRadius value="coolingFreefall">
       <freefallRadius value="darkMatterHalo"/>
       <freefallTimeAvailable value="haloFormation" parameterLevel="top"/>
-      <componentFormationTime value="Cole2000" parameterLevel="top"/>
+      <nodeOperator value="multi" parameterLevel="top">
+	<!-- Halo concentrations -->
+	<nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
+	<nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+	<!-- Halo spins -->
+	<nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
+	<nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+	<!-- Star formation -->
+	<nodeOperator value="starFormationDisks" iterable="no"/>
+	<nodeOperator value="starFormationSpheroids" iterable="no"/>
+	<!--Stellar feedback outflows-->
+	<nodeOperator value="stellarFeedbackDisks" iterable="no">
+	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="powerLaw">
+              <velocityCharacteristic value="250.0"/>
+              <exponent value="3.5"/>
+            </stellarFeedbackOutflows>
+	  </stellarFeedbackOutflows>
+	</nodeOperator>
+	<nodeOperator value="stellarFeedbackSpheroids" iterable="no">
+	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="powerLaw">
+              <velocityCharacteristic value="250.0"/>
+              <exponent value="3.5"/>
+            </stellarFeedbackOutflows>
+	  </stellarFeedbackOutflows>
+	</nodeOperator>
+	<nodeOperator value="nodeFormationTimeCole2000" iterable="no"/>
+      </nodeOperator>
     </coolingInfallRadius>
   </parameters>
   
@@ -532,7 +591,37 @@
     <version>0.9.4</version>
     <coolingTimeAvailable value="whiteFrenk1991"/>
     <coolingTimeAvailable value="formationTime">
-      <componentFormationTime value="Cole2000" parameterLevel="top"/>
+      <nodeOperator value="multi" parameterLevel="top">
+	<!-- Halo concentrations -->
+	<nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
+	<nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
+	<!-- Halo spins -->
+	<nodeOperator value="haloAngularMomentumRandom" iterable="no"/>
+	<nodeOperator value="haloAngularMomentumInterpolate" iterable="no"/>
+	<!-- Star formation -->
+	<nodeOperator value="starFormationDisks" iterable="no"/>
+	<nodeOperator value="starFormationSpheroids" iterable="no"/>
+	<!--Stellar feedback outflows-->
+	<nodeOperator value="stellarFeedbackDisks" iterable="no">
+	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="powerLaw">
+              <velocityCharacteristic value="250.0"/>
+              <exponent value="3.5"/>
+            </stellarFeedbackOutflows>
+	  </stellarFeedbackOutflows>
+	</nodeOperator>
+	<nodeOperator value="stellarFeedbackSpheroids" iterable="no">
+	  <stellarFeedbackOutflows value="rateLimit">
+            <timescaleOutflowFractionalMinimum value="0.001"/>
+            <stellarFeedbackOutflows value="powerLaw">
+              <velocityCharacteristic value="250.0"/>
+              <exponent value="3.5"/>
+            </stellarFeedbackOutflows>
+	  </stellarFeedbackOutflows>
+	</nodeOperator>
+	<nodeOperator value="nodeFormationTimeCole2000" iterable="no"/>
+      </nodeOperator>
     </coolingTimeAvailable>
   </parameters>
   

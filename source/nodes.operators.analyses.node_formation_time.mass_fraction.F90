@@ -18,19 +18,19 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   !!{
-  Implements a node operator class that computes the formation time for each node.
+  Implements a node operator class that computes the formation time for each node based on a mass fraction definition.
   !!}
 
   use :: Dark_Matter_Halo_Mass_Accretion_Histories, only : darkMatterHaloMassAccretionHistoryClass
 
   !![
-  <nodeOperator name="nodeOperatorNodeFormationTime">
-   <description>A node operator class that computes the formation time for each node.</description>
+  <nodeOperator name="nodeOperatorNodeFormationTimeMassFraction">
+   <description>A node operator class that computes the formation time for each node based on a mass fraction definition.</description>
   </nodeOperator>
   !!]
-  type, extends(nodeOperatorClass) :: nodeOperatorNodeFormationTime
+  type, extends(nodeOperatorClass) :: nodeOperatorNodeFormationTimeMassFraction
      !!{
-     A node operator class that computes the formation time for each node.
+     A node operator class that computes the formation time for each node based on a mass fraction definition.
      !!}
      private
      class           (darkMatterHaloMassAccretionHistoryClass), pointer :: darkMatterHaloMassAccretionHistory_ => null()
@@ -38,32 +38,32 @@
      logical                                                            :: assumeMonotonicGrowth
      double precision                                                   :: fractionMassFormation
    contains
-     final     ::                       nodeFormationTimeDestructor
-     procedure :: nodeTreeInitialize => nodeFormationTimeNodeTreeInitialize
-     procedure :: nodePromote        => nodeFormationTimeNodePromote
-  end type nodeOperatorNodeFormationTime
+     final     ::                       nodeFormationTimeMassFractionDestructor
+     procedure :: nodeTreeInitialize => nodeFormationTimeMassFractionNodeTreeInitialize
+     procedure :: nodePromote        => nodeFormationTimeMassFractionNodePromote
+  end type nodeOperatorNodeFormationTimeMassFraction
   
-  interface nodeOperatorNodeFormationTime
+  interface nodeOperatorNodeFormationTimeMassFraction
      !!{
-     Constructors for the {\normalfont \ttfamily nodeFormationTime} node operator class.
+     Constructors for the {\normalfont \ttfamily nodeFormationTimeMassFraction} node operator class.
      !!}
-     module procedure nodeFormationTimeConstructorParameters
-     module procedure nodeFormationTimeConstructorInternal
-  end interface nodeOperatorNodeFormationTime
+     module procedure nodeFormationTimeMassFractionConstructorParameters
+     module procedure nodeFormationTimeMassFractionConstructorInternal
+  end interface nodeOperatorNodeFormationTimeMassFraction
   
 contains
 
-  function nodeFormationTimeConstructorParameters(parameters) result(self)
+  function nodeFormationTimeMassFractionConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the {\normalfont \ttfamily nodeFormationTime} node operator class which takes a parameter set as input.
+    Constructor for the {\normalfont \ttfamily nodeFormationTimeMassFraction} node operator class which takes a parameter set as input.
     !!}
     use :: Input_Parameters, only : inputParameters
     implicit none
-    type            (nodeOperatorNodeFormationTime          )                :: self
-    type            (inputParameters                        ), intent(inout) :: parameters
-    class           (darkMatterHaloMassAccretionHistoryClass), pointer       :: darkMatterHaloMassAccretionHistory_
-    logical                                                                  :: assumeMonotonicGrowth
-    double precision                                                         :: fractionMassFormation
+    type            (nodeOperatorNodeFormationTimeMassFraction)                :: self
+    type            (inputParameters                          ), intent(inout) :: parameters
+    class           (darkMatterHaloMassAccretionHistoryClass  ), pointer       :: darkMatterHaloMassAccretionHistory_
+    logical                                                                    :: assumeMonotonicGrowth
+    double precision                                                           :: fractionMassFormation
 
     !![
     <inputParameter>
@@ -80,23 +80,23 @@ contains
     </inputParameter>
     <objectBuilder class="darkMatterHaloMassAccretionHistory" name="darkMatterHaloMassAccretionHistory_" source="parameters"/>
     !!]
-    self=nodeOperatorNodeFormationTime(fractionMassFormation,assumeMonotonicGrowth,darkMatterHaloMassAccretionHistory_)
+    self=nodeOperatorNodeFormationTimeMassFraction(fractionMassFormation,assumeMonotonicGrowth,darkMatterHaloMassAccretionHistory_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterHaloMassAccretionHistory_"/>
     !!]
     return
-  end function nodeFormationTimeConstructorParameters
+  end function nodeFormationTimeMassFractionConstructorParameters
 
-  function nodeFormationTimeConstructorInternal(fractionMassFormation,assumeMonotonicGrowth,darkMatterHaloMassAccretionHistory_) result(self)
+  function nodeFormationTimeMassFractionConstructorInternal(fractionMassFormation,assumeMonotonicGrowth,darkMatterHaloMassAccretionHistory_) result(self)
     !!{
-    Internal constructor for the {\normalfont \ttfamily nodeFormationTime} node operator class.
+    Internal constructor for the {\normalfont \ttfamily nodeFormationTimeMassFraction} node operator class.
     !!}
     implicit none
-    type            (nodeOperatorNodeFormationTime          )                        :: self
-    class           (darkMatterHaloMassAccretionHistoryClass), intent(in   ), target :: darkMatterHaloMassAccretionHistory_
-    logical                                                  , intent(in   )         :: assumeMonotonicGrowth
-    double precision                                         , intent(in   )         :: fractionMassFormation
+    type            (nodeOperatorNodeFormationTimeMassFraction)                        :: self
+    class           (darkMatterHaloMassAccretionHistoryClass  ), intent(in   ), target :: darkMatterHaloMassAccretionHistory_
+    logical                                                    , intent(in   )         :: assumeMonotonicGrowth
+    double precision                                           , intent(in   )         :: fractionMassFormation
     !![
     <constructorAssign variables="fractionMassFormation, assumeMonotonicGrowth, *darkMatterHaloMassAccretionHistory_"/>
     !!]
@@ -105,22 +105,22 @@ contains
     <addMetaProperty component="basic" name="nodeFormationTime" id="self%nodeFormationTimeID" isEvolvable="no" isCreator="yes"/>
     !!]
     return
-  end function nodeFormationTimeConstructorInternal
+  end function nodeFormationTimeMassFractionConstructorInternal
 
-  subroutine nodeFormationTimeDestructor(self)
+  subroutine nodeFormationTimeMassFractionDestructor(self)
     !!{
-    Destructor for the {\normalfont \ttfamily nodeFormationTime} node operator class.
+    Destructor for the {\normalfont \ttfamily nodeFormationTimeMassFraction} node operator class.
     !!}
     implicit none
-    type(nodeOperatorNodeFormationTime), intent(inout) :: self
+    type(nodeOperatorNodeFormationTimeMassFraction), intent(inout) :: self
 
     !![
     <objectDestructor name="self%darkMatterHaloMassAccretionHistory_"/>
     !!]
     return
-  end subroutine nodeFormationTimeDestructor
+  end subroutine nodeFormationTimeMassFractionDestructor
 
-  subroutine nodeFormationTimeNodeTreeInitialize(self,node)
+  subroutine nodeFormationTimeMassFractionNodeTreeInitialize(self,node)
     !!{
     Initialize node formation times.
     !!}
@@ -128,13 +128,13 @@ contains
     use :: Galacticus_Nodes                , only : nodeComponentBasic
     use :: Merger_Tree_Walkers             , only : mergerTreeWalkerAllNodes
     implicit none
-    class           (nodeOperatorNodeFormationTime), intent(inout), target  :: self
-    type            (treeNode                     ), intent(inout), target  :: node
-    type            (treeNode                     )               , pointer :: nodeFormation, nodeWork, &
-         &                                                                     nodeParent
-    class           (nodeComponentBasic           )               , pointer :: basic
-    type            (mergerTreeWalkerAllNodes     )                         :: treeWalker
-    double precision                                                        :: timeFormation
+    class           (nodeOperatorNodeFormationTimeMassFraction), intent(inout), target  :: self
+    type            (treeNode                                 ), intent(inout), target  :: node
+    type            (treeNode                                 )               , pointer :: nodeFormation, nodeWork, &
+         &                                                                                 nodeParent
+    class           (nodeComponentBasic                       )               , pointer :: basic
+    type            (mergerTreeWalkerAllNodes                 )                         :: treeWalker
+    double precision                                                                    :: timeFormation
 
     
     treeWalker=mergerTreeWalkerAllNodes(node%hostTree,spanForest=.false.)
@@ -168,20 +168,20 @@ contains
        end if
     end do
     return
-  end subroutine nodeFormationTimeNodeTreeInitialize
+  end subroutine nodeFormationTimeMassFractionNodeTreeInitialize
  
-  subroutine nodeFormationTimeNodePromote(self,node)
+  subroutine nodeFormationTimeMassFractionNodePromote(self,node)
     !!{
     Promote node major merger times.
     !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class(nodeOperatorNodeFormationTime), intent(inout) :: self
-    type (treeNode                     ), intent(inout) :: node
-    class(nodeComponentBasic           ), pointer       :: basic, basicParent
+    class(nodeOperatorNodeFormationTimeMassFraction), intent(inout) :: self
+    type (treeNode                                 ), intent(inout) :: node
+    class(nodeComponentBasic                       ), pointer       :: basic, basicParent
     
     basic       => node       %basic()
     basicParent => node%parent%basic()
     call basic%floatRank0MetaPropertySet(self%nodeFormationTimeID,basicParent%floatRank0MetaPropertyGet(self%nodeFormationTimeID))
     return
-  end subroutine nodeFormationTimeNodePromote
+  end subroutine nodeFormationTimeMassFractionNodePromote

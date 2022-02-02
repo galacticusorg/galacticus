@@ -894,7 +894,6 @@
   <componentSatellite         value="standard"       />
   <componentSpheroid          value="standard"       />
   <componentSpin              value="scalar"         />
-  <componentFormationTime     value="null"           />
   <componentNBody             value="null"           />
 
   <!-- Elements -->

@@ -38,6 +38,7 @@
      Implementation of freefall time available class in which the time available is determined by the halo formation time.
      !!}
      private
+     integer :: nodeFormationTimeID
    contains
      procedure :: timeAvailable             => haloFormationTimeAvailable
      procedure :: timeAvailableIncreaseRate => haloFormationTimeAvailableIncreaseRate
@@ -48,40 +49,38 @@
      Constructors for the haloFormation freefall time available class.
      !!}
      module procedure haloFormationConstructorParameters
+     module procedure haloFormationConstructorInternal
   end interface freefallTimeAvailableHaloFormation
 
 contains
 
   function haloFormationConstructorParameters(parameters) result(self)
     !!{
-    Constructor for the haloFormation freefall time available class which builds the object from a parameter set.
+    Constructor for the {\normalfont \ttfamily haloFormation} freefall time available class which builds the object from a parameter set.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Component_List    , Galacticus_Error_Report
-    use :: Galacticus_Nodes  , only : defaultFormationTimeComponent
     use :: Input_Parameters  , only : inputParameters
-    use :: ISO_Varying_String, only : operator(//)
     implicit none
     type(freefallTimeAvailableHaloFormation)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
     !$GLC attributes unused :: parameters
 
-    ! Check that there is a gettable formation time property.
-    if (.not.defaultFormationTimeComponent%formationTimeIsGettable())                                                          &
-         & call Galacticus_Error_Report                                                                                        &
-         &      (                                                                                                              &
-         &       "'haloFormation' method for time available for freefall requires a formation time component that supports "// &
-         &       "getting of the formationTime property."                                                                   // &
-         &       Galacticus_Component_List(                                                                                    &
-         &                                 'formationTime'                                                                  ,  &
-         &                                 defaultFormationTimeComponent%formationTimeAttributeMatch(requireGettable=.true.)   &
-         &                                )                                                                                 // &
-         &       {introspection:location}                                                                                      &
-         &      )
-    ! Construct the instance.
     self=freefallTimeAvailableHaloFormation()
     return
   end function haloFormationConstructorParameters
 
+  function haloFormationConstructorInternal() result(self)
+    !!{
+    Internal constructor for the {\normalfont \ttfamily haloFormation} freefall time available class.
+    !!}
+    implicit none
+    type(freefallTimeAvailableHaloFormation) :: self
+
+    !![
+    <addMetaProperty component="basic" name="nodeFormationTime" id="self%nodeFormationTimeID" isEvolvable="no" isCreator="no"/>
+    !!]
+    return
+  end function haloFormationConstructorInternal
+  
   double precision function haloFormationTimeAvailableIncreaseRate(self,node)
     !!{
     Compute the rate of increase of the time available for freefall using the \cite{cole_hierarchical_2000} method. We return a rate
@@ -102,17 +101,14 @@ contains
     Compute the time available for freefall using the \cite{cole_hierarchical_2000} method. Specifically, the time available is
     assumed to be the time since the halo formation event.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentFormationTime, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
     class(freefallTimeAvailableHaloFormation), intent(inout) :: self
     type (treeNode                          ), intent(inout) :: node
     class(nodeComponentBasic                ), pointer       :: basic
-    class(nodeComponentFormationTime        ), pointer       :: formationTime
-    !$GLC attributes unused :: self, node
 
-    basic                      =>  node         %basic        ()
-    formationTime              =>  node         %formationTime()
-    haloFormationTimeAvailable =  +basic        %         time() &
-         &                        -formationTime%formationTime()
+    basic                      =>  node %basic                    (                        )
+    haloFormationTimeAvailable =  +basic%time                     (                        ) &
+         &                        -basic%floatRank0MetaPropertyGet(self%nodeFormationTimeID)
     return
   end function haloFormationTimeAvailable

@@ -951,7 +951,7 @@ with $\dot{M}_\mathrm{node,bound}$ set to the rate given by the \refClass{darkMa
 
 \subsubsection{Event Evolution}
 
-\noindent\emph{Node mergers:} The \gls{component} is created and the time to merging is assigned a value. The bound mass is set to the current total mass of the node. If {\normalfont \ttfamily satelliteOrbitStoreOrbitalParameters}$=${\normalfont \ttfamily true} then a virial orbit is selected (unless one has already been set for the node) using the {\normalfont \ttfamily virialOrbits} (see \refPhysics{virialOrbit}) and stored (otherwise, a new virial orbit will be computed---possibly at random---each time the virial orbit is requested). If {\normalfont \ttfamily [satelliteOrbitResetOnHaloFormation]}$=${\normalfont \ttfamily true} then satellite orbits will be reset on halo formation events (see \S\ref{sec:ComponentFormationTimes}).\\
+\noindent\emph{Node mergers:} The \gls{component} is created and the time to merging is assigned a value. The bound mass is set to the current total mass of the node. If {\normalfont \ttfamily satelliteOrbitStoreOrbitalParameters}$=${\normalfont \ttfamily true} then a virial orbit is selected (unless one has already been set for the node) using the {\normalfont \ttfamily virialOrbits} (see \refPhysics{virialOrbit}) and stored (otherwise, a new virial orbit will be computed---possibly at random---each time the virial orbit is requested). If {\normalfont \ttfamily [satelliteOrbitResetOnHaloFormation]}$=${\normalfont \ttfamily true} then satellite orbits will be reset on halo formation events.\\
 
 \noindent\emph{Satellite merging:} None.\\
 
@@ -1215,35 +1215,6 @@ The scale length of each node, if not already assigned, is assigned using the co
 \subsubsection{Differential Evolution}
 
 The scale radius and shape parameter of each node grow linearly with time to interpolate between the scale radii and shape parameters of child and parent halos.
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Node mergers:} None.\\
-
-\noindent\emph{Satellite merging:} None.\\
-
-\noindent\emph{Node promotion:} None.\\
-
-\section{Formation Times}\label{sec:ComponentFormationTimes}
-
-This \gls{component} implements ``formation times'' of dark matter halos.
-
-\subsection{``Cole2000'' Implementation}
-
-\subsubsection{Properties}
-
-The ``Cole2000' formation times implementation defines the following properties:
-\begin{description}
- \item [{\normalfont \ttfamily formationTime}] The time at which the halo last ``formed''. Formation is defined as an increase in the mass of the halo by a factor {\normalfont \ttfamily [haloReformationMassFactor]}.
-\end{description}
-
-\subsubsection{Initialization}
-
-The formation time is set to the current time and this \gls{component} is created the first time such a merger occurs.
-
-\subsubsection{Differential Evolution}
-
-The formation time does not evolve. When the \gls{node} mass exceeds the mass at the formation time by a factor {\normalfont \ttfamily [haloReformationMassFactor]} evolution is interrupted and the formation time reset to the current time.
 
 \subsubsection{Event Evolution}
 
