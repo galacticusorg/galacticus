@@ -43,13 +43,19 @@ my $mvDirName     ;
 open(my $otool,"otool -L ".$executable." |");
 while ( my $line = <$otool> ) {
     my @columns = split(" ",$line);
-    # Skip unless this is a dylib.
+    # Skip unless this is a dylib or an so. MacOS shared libraries should have a .dylib extension, but some libraries that we
+    # install (e.q. qhull) install with a .so extension, so we need to handle that case also.
     next
-	unless ( $columns[0] =~ m/\.dylib$/ );
+	unless ( $columns[0] =~ m/\.dylib$/ || $columns[0] =~ m/\.so[0-9\.]+$/ );
     # Check for existance of the corresponding static library.
     my $dynamicName = $columns[0];
     (my $libraryName = $dynamicName) =~ s/^.*\/lib([a-zA-Z0-9_\-\+]+)\..*/$1/;
-    (my $staticName  = $dynamicName) =~ s/(\.\d+)?\.dylib$/.a/;
+    my $staticName;
+    if ( $columns[0] =~ m/\.dylib$/ ) {
+	($staticName = $dynamicName) =~ s/(\.\d+)?\.dylib$/.a/;
+    } elsif ( $columns[0] =~ m/\.so[0-9\.]+$/ ) {
+	($staticName = $dynamicName) =~ s/\.so[0-9\.]+$/.a/;
+    }
     print "Looking for static library for '".$libraryName."'\n";
     if      ( $libraryName =~ m/^gcc/      ) {
 	$isGCC      = 1;
