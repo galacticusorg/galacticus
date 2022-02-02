@@ -16,7 +16,23 @@ die('unable to determine executable')
 print "Executable is '".$executable."'\n";
 
 # Get the compile command.
-my $compileCommand = join(" ",@arguments);
+my $compileCommand;
+while ( scalar(@arguments) > 0 ) {
+    my $arg = shift(@arguments);
+    if ( $arg =~ m/^`/ ) {
+	my $toExpand = $arg;
+	while ( $toExpand !~ m/`$/ ) {
+	    $arg = shift(@arguments);
+	    $toExpand .= " ".$arg;
+	}
+	$toExpand =~ s/`//g;
+	my $expanded = `$toExpand`;
+	$expanded =~ s/\n/ /g;
+	$compileCommand .= " ".$expanded;
+    } else {
+	$compileCommand .= " ".$arg;
+    }
+}
 
 # Find dynamic libraries being linked.
 my $isGCC      = 0;
@@ -68,7 +84,6 @@ while ( my $line = <$otool> ) {
     } else {
 	(my $path = $staticName) =~ s/\/[^\/]+$//;
 	print " -> No static library found, looked in '".$path."'\n";
-	system("ls ".$path);
     }
 }
 close($otool);
