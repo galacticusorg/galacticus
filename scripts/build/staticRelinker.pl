@@ -33,14 +33,19 @@ while ( my $line = <$otool> ) {
     # Check for existance of the corresponding static library.
     my $dynamicName = $columns[0];
     (my $libraryName = $dynamicName) =~ s/^.*\/lib([a-zA-Z0-9_\-\+]+)\..*/$1/;
-    (my $staticName = $dynamicName) =~ s/(\.\d+)?\.dylib$/.a/;
+    (my $staticName  = $dynamicName) =~ s/(\.\d+)?\.dylib$/.a/;
+    print "Looking for static library for '".$libraryName."'\n";
     if      ( $libraryName =~ m/^gcc/      ) {
 	$isGCC      = 1;
+	print " -> Can use gcc compiler option\n";
     } elsif ( $libraryName =~ m/^gfortran/ ) {
 	$isGFortran = 1;
+	print " -> Can use gfortran compiler option\n";
     } elsif ( $libraryName =~ m/^stdc\+\+/ ) {
 	$isGPP      = 1;
+	print " -> Can use g++ compiler option\n";
     } elsif ( -e $staticName ) {
+	print " -> Found static library at '".$staticName."'\n";
 	$libraryName =~ s/\+/\\\+/g;
 	if ( $compileCommand =~ m/\-l$libraryName/ ) {
 	    $compileCommand =~ s/\-l$libraryName/$staticName/;
@@ -60,7 +65,11 @@ while ( my $line = <$otool> ) {
 		system($mvCommand);
 	    }
 	}
-   }
+    } else {
+	(my $path = $staticName) =~ s/\/[^\/]+$//;
+	print " -> No static library found, looked in '".$path."'\n";
+	system("ls ".$path);
+    }
 }
 close($otool);
 # Add static GCC flags.
