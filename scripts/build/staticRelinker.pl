@@ -50,6 +50,7 @@ while ( my $line = <$otool> ) {
     # Check for existance of the corresponding static library.
     my $dynamicName = $columns[0];
     (my $libraryName = $dynamicName) =~ s/^.*\/lib([a-zA-Z0-9_\-\+]+)\..*/$1/;
+    my $libraryNameOriginal = $libraryName;
     my $staticName;
     if ( $columns[0] =~ m/\.dylib$/ ) {
 	($staticName = $dynamicName) =~ s/(\.\d+)?\.dylib$/.a/;
@@ -71,8 +72,8 @@ while ( my $line = <$otool> ) {
     } elsif ( -e $staticName ) {
 	print " -> Found static library at '".$staticName."'\n";
 	$libraryName =~ s/\+/\\\+/g;
-	if ( $compileCommand =~ m/\-l$libraryName/ ) {
-	    $compileCommand =~ s/\-l$libraryName/$staticName/;
+	if ( $compileCommand =~ m/\-l$libraryNameOriginal/ ) {
+	    $compileCommand =~ s/\-l$libraryNameOriginal/$staticName/;
 	} else {
 	    $compileCommand .= " ".$staticName;
 	    if ( $libraryName eq "quadmath" ) {
@@ -99,10 +100,10 @@ while ( my $line = <$otool> ) {
 	    my $fileName = $location."/lib".$libraryName.".a";
 	    if ( -e $fileName ) {
 		print " -> Found static library at '".$fileName."'\n";
-		if ( $compileCommand =~ m/\-l$libraryName/ ) {
-		    $compileCommand =~ s/\-l$libraryName/$staticName/;
+		if ( $compileCommand =~ m/\-l$libraryNameOriginal/ ) {
+		    $compileCommand =~ s/\-l$libraryNameOriginal/$staticName/;
 		} else {
-		    $compileCommand .= " ".$staticName;
+		    $compileCommand .= " ".$fileName;
 		}
 		$found = 1;
 		last;
