@@ -56,6 +56,8 @@ while ( my $line = <$otool> ) {
     } elsif ( $columns[0] =~ m/\.so[0-9\.]+$/ ) {
 	($staticName = $dynamicName) =~ s/\.so[0-9\.]+$/.a/;
     }
+    $libraryName = "qhullstatic_r"
+	if ( $libraryName eq "qhull_r" );
     print "Looking for static library for '".$libraryName."'\n";
     if      ( $libraryName =~ m/^gcc/      ) {
 	$isGCC      = 1;
@@ -94,7 +96,7 @@ while ( my $line = <$otool> ) {
 	push(@locations,split(/:/,$ENV{'LD_LIBRARY_PATH'}))
 	    if ( exists($ENV{'LD_LIBRARY_PATH'}) );
 	foreach my $location ( @locations ) {
-	    my $fileName = $location."/".$libraryName.".a";
+	    my $fileName = $location."/lib".$libraryName.".a";
 	    if ( -e $fileName ) {
 		print " -> Found static library at '".$fileName."'\n";
 		if ( $compileCommand =~ m/\-l$libraryName/ ) {
