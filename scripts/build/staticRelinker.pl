@@ -88,8 +88,28 @@ while ( my $line = <$otool> ) {
 	    }
 	}
     } else {
-	(my $path = $staticName) =~ s/\/[^\/]+$//;
-	print " -> No static library found, looked in '".$path."'\n";
+	# Look in other possible locations.
+	my $found     = 0;
+	my @locations = ( "/usr/local/lib" );
+	push(@locations,split(/:/,$ENV{'LD_LIBRARY_PATH'}))
+	    if ( exists($ENV{'LD_LIBRARY_PATH'}) );
+	foreach my $location ( @locations ) {
+	    my $fileName = $location."/".$libraryName.".a";
+	    if ( -e $fileName ) {
+		print " -> Found static library at '".$fileName."'\n";
+		if ( $compileCommand =~ m/\-l$libraryName/ ) {
+		    $compileCommand =~ s/\-l$libraryName/$staticName/;
+		} else {
+		    $compileCommand .= " ".$staticName;
+		}
+		$found = 1;
+		last;
+	    }
+	}
+	unless ( $found ) {
+	    (my $path = $staticName) =~ s/\/[^\/]+$//;
+	    print " -> No static library found\n";
+	}
     }
 }
 close($otool);
