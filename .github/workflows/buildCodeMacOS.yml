@@ -97,7 +97,12 @@ jobs:
           make -j3
           sudo make install
           cd ..
-          rm -rf hdf5-1.8.20 hdf5-1.8.20.tar.gz 
+          echo CHECK HDF5 STATIC LIBRARY COMPILE
+          echo BUILD DIR
+          ls hdf5-1.8.20/fortran/src/.libs
+          echo USR LOCAL LIB
+          ls /usr/local/lib
+          rm -rf hdf5-1.8.20 hdf5-1.8.20.tar.gz
       - name: Install FoX
         run: |
           curl -L https://github.com/andreww/fox/archive/refs/tags/4.1.0.tar.gz --output FoX-4.1.0.tar.gz
