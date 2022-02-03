@@ -101,7 +101,7 @@ while ( my $line = <$otool> ) {
 	    if ( -e $fileName ) {
 		print " -> Found static library at '".$fileName."'\n";
 		if ( $compileCommand =~ m/\-l$libraryNameOriginal/ ) {
-		    $compileCommand =~ s/\-l$libraryNameOriginal/$staticName/;
+		    $compileCommand =~ s/\-l$libraryNameOriginal/$fileName/;
 		} else {
 		    $compileCommand .= " ".$fileName;
 		}
