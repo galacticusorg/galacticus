@@ -148,7 +148,7 @@ contains
     !!]
 
     ! Convert redshift to time.
-    self%time=cosmologyFunctions_ %cosmicTime                (          &
+    self%time=cosmologyFunctions_%cosmicTime                 (          &
          &    cosmologyFunctions_%expansionFactorFromRedshift (         &
          &                                                     redshift &
          &                                                    )         &
