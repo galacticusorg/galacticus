@@ -73,10 +73,12 @@ module Input_Parameters
      !!}
      private
      type   (node             ), pointer                   :: content
-     type   (inputParameter   ), pointer    , public       :: parent         , firstChild        , &
-          &                                                   sibling        , referenced
+     type   (inputParameter   ), pointer    , public       :: parent                 , firstChild        , &
+          &                                                   sibling                , referenced
      type   (genericObjectList), allocatable, dimension(:) :: objects
-     logical                                               :: created=.false., removed   =.false.
+     type   (varying_string   )                            :: contentOriginal
+     logical                                               :: created        =.false., removed   =.false.,&
+          &                                                   evaluated      =.false.
    contains
      !![
      <methods>
@@ -802,20 +804,22 @@ contains
     return
   end subroutine inputParameterObjectSet
 
-  recursive subroutine inputParameterReset(self,children)
+  recursive subroutine inputParameterReset(self,children,evaluations)
     !!{
     Reset objects associated with this parameter and any sub-parameters.
     !!}
-    use :: FoX_dom, only : destroy
+    use :: FoX_DOM, only : destroy
     implicit none
     class  (inputParameter), intent(inout), target   :: self
-    logical                , intent(in   ), optional :: children
-    type   (inputParameter), pointer                 :: child, childNext
+    logical                , intent(in   ), optional :: children, evaluations
+    type   (inputParameter), pointer                 :: child   , childNext
     integer                                          :: i
     !![
-    <optionalArgument name="children" defaultsTo=".true."/>
+    <optionalArgument name="children"    defaultsTo=".true." />
+    <optionalArgument name="evaluations" defaultsTo=".false."/>
     !!]
 
+    ! Destroy any objects associated with this parameter node.
     if (allocated(self%objects)) then
        do i=lbound(self%objects,dim=1),ubound(self%objects,dim=1)
           if (associated(self%objects(i)%object)) then
@@ -825,6 +829,13 @@ contains
           end if
        end do
     end if
+    ! For evaluated parameters, restore them to their unevaluated state.
+    if (evaluations_) then
+       if (self%evaluated) then
+          self%evaluated=.false.
+          call self%set(self%contentOriginal)
+       end if
+    end if
     ! Clean up children if requested.
     if (children_) then
        ! Remove if this parameter was created.
@@ -833,7 +844,7 @@ contains
        child => self%firstChild
        do while (associated(child))
           childNext => child%sibling
-          call child%reset()
+          call child%reset(children,evaluations)
           child => childNext
        end do
     end if
@@ -1489,7 +1500,11 @@ contains
           !$omp end critical (FoX_DOM_Access)
           if (expression(1:1) == "=") then
              {Type¦match¦^Double$¦if (.true.) then¦if (.false.) then}
-                ! This is an expression, and we have a scalar, floating point type - it can be evaluated.
+                ! This is an expression, and we have a scalar, floating point type - it can be evaluated.             
+                !! Mark this parameter as being evaluated and store its original content. This allows the parameter to be reset to
+                !! its original (unevaluated) state if necessary.
+                parameterNode%evaluated      =.true.
+                parameterNode%contentOriginal=expression
                 !! Remove the initial "=".
                 expression=expression(2:len_trim(expression))
                 !! Replace other parameter values inside the parameter.
@@ -1788,6 +1803,7 @@ contains
        currentParameter%sibling    => null()
        currentParameter%referenced => null()
        currentParameter%created    =  .true.
+       currentParameter%evaluated  =  .false.
     end if
     currentParameter%removed=.false.
     return
@@ -1800,7 +1816,7 @@ contains
     implicit none
     class(inputParameters), intent(inout) :: self
 
-    call self%parameters%reset()
+    call self%parameters%reset(evaluations=.true.)
     return
   end subroutine inputParametersReset
 
