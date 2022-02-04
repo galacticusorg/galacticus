@@ -999,37 +999,6 @@ with $R$ being the node's half-mass radius, $M_\mathrm{node,basic}$ being the no
 
 \noindent\emph{Node promotion:} Not applicable (component only exists for satellite nodes).\\
 
-\section{N-body Halo Properties}
-
-This component is intended for tracking of miscellaneous properties derived from N-body simulation merger trees.
-
-\subsection{``Standard'' Implementation}
-
-\subsubsection{Properties}
-
-The standard N-body component implementation defines the following properties:
-\begin{description}
- \item [{\normalfont \ttfamily particleCount}] The number of particles in the N-body halo [{\normalfont \ttfamily nbodyParticleCount}].
- \item [{\normalfont \ttfamily velocityMaximum}] The maximum of the N-body halo's rotation curve (in units of km/s) [{\normalfont \ttfamily nbodyVelocityMaximum}].
- \item [{\normalfont \ttfamily velocityDispersion}] The velocity dispersion of the N-body halo (in units of km/s) [{\normalfont \ttfamily nbodyVelocityDispersion}].
-\end{description}
-
-\subsubsection{Initialization}
-
-The N-body properties of each \gls{node} are assumed to have been preset prior to merger tree initialization. They are assumed to remain constant along each branch of the tree.
-
-\subsubsection{Differential Evolution}
-
-None.
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Node mergers:} None.\\
-
-\noindent\emph{Satellite merging:} None.\\
-
-\noindent\emph{Node promotion:} The properties are updated to equal those of the parent node.\\
-
 \section{Dark Matter Halo Spin}\label{sec:DarkMatterHaloSpinComponent}\hyperdef{sec}{DarkMatterHaloSpinComponent}{}
 
 \subsection{``Random'' Implementation}
