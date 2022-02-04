@@ -57,7 +57,18 @@ sub Process_AddMetaProperty {
 	    my $typeSuffix = "Rank".$node->{'directive'}->{'rank'};
 	    # Initialize new code.
 	    my %boolean = ( no => ".false.", yes => ".true." );
-	    my $code = $node->{'directive'}->{'id'}."=".$component."%add".$typePrefix.$typeSuffix."MetaProperty(var_str('".$node->{'directive'}->{'name'}."'),'".$node->{'directive'}->{'component'}.":".$node->{'directive'}->{'name'}."',isCreator=".$boolean{$node->{'directive'}->{'isCreator'}}.($node->{'directive'}->{'type'} eq "float" && $node->{'directive'}->{'rank'} == 0 ? ",isEvolvable=".$boolean{$node->{'directive'}->{'isEvolvable'}} : "").")\n";
+	    my $name;
+	    my $prefixedName;
+	    if ( $node->{'directive'}->{'name'} =~ m/^'/ ) {
+		# Interpret the name as a Fortran character string.
+		$name         ="var_str(".$node->{'directive'}->{'name'}.")";
+		$prefixedName = "'".$node->{'directive'}->{'component'}.":'//".$node->{'directive'}->{'name'};
+	    } else {
+		# Interpret the name as raw text.
+		$name         = "var_str('".$node->{'directive'}->{'name'}."')";
+		$prefixedName = "'".$node->{'directive'}->{'component'}.":".$node->{'directive'}->{'name'}."'";
+	    }
+	    my $code = $node->{'directive'}->{'id'}."=".$component."%add".$typePrefix.$typeSuffix."MetaProperty(".$name.",".$prefixedName.",isCreator=".$boolean{$node->{'directive'}->{'isCreator'}}.($node->{'directive'}->{'type'} eq "float" && $node->{'directive'}->{'rank'} == 0 ? ",isEvolvable=".$boolean{$node->{'directive'}->{'isEvolvable'}} : "").")\n";
 	    # Add module usage.
 	    &Galacticus::Build::SourceTree::Parse::ModuleUses::AddUses(
 		$node->{'parent'},
