@@ -90,7 +90,7 @@
        Interface for {\normalfont \ttfamily integerTuple property units.
        !!}
        import nodePropertyExtractorIntegerTuple
-       double precision                                    , dimension(:) , allocatable :: integerTupleUnitsInSI
+       double precision                                   , dimension(:) , allocatable :: integerTupleUnitsInSI
        class           (nodePropertyExtractorIntegerTuple), intent(inout)              :: self
        double precision                                   , intent(in   )              :: time
      end function integerTupleUnitsInSI
