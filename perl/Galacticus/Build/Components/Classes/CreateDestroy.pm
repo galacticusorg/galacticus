@@ -24,7 +24,9 @@ use Galacticus::Build::Components::Classes::MetaProperties;
 	      \&Class_Builder            ,
 	      \&Class_Finalization       ,
 	      \&Class_Create_By_Interrupt,
-	      \&Class_Add_Meta_Property        
+	      \&Class_Add_Meta_Property  ,
+	      \&Class_Count_Meta_Property,
+	      \&Class_Name_Meta_Property  
 	     ]
      }
     );
@@ -390,6 +392,109 @@ CODE
 		type        => "procedure",
 		descriptor  => $function,
 		name        => "add".ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaProperty", 
+	    }
+	    );
+    }
+}
+
+sub Class_Count_Meta_Property {
+    # Generate a function to return a count of meta-properties for a component classes.
+    my $build    = shift();
+    $code::class = shift();
+    foreach my $metaPropertyType ( @Galacticus::Build::Components::Classes::MetaProperties::metaPropertyTypes ) {
+	$code::label    = $metaPropertyType->{'label'};
+	$code::rank     = $metaPropertyType->{'rank' };
+	$code::prefix   = ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank' };
+	my $function =
+	{
+	    type        => "integer => countMetaProperties",
+	    name        => "component".ucfirst($code::class->{'name'})."Count".ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaProperties",
+	    description => "Return the number of rank-".$metaPropertyType->{'rank'}." ".$metaPropertyType->{'label'}."meta-properties associated with the generic {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	    variables   =>
+		[
+		 {
+		     intrinsic  => "class",
+		     type       => "nodeComponent".ucfirst($code::class->{'name'}),
+		     attributes => [ "intent(inout)" ],
+		     variables  => [ "self" ]
+		 }
+		]
+	};
+	if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	    $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
+!$GLC attributes unused :: self
+
+!$omp critical ({$class->{'name'}.$prefix}MetaPropertyUpdate)
+if (allocated({$class->{'name'}.$prefix}MetaPropertyNames)) then
+ countMetaProperties=size({$class->{'name'}.$prefix}MetaPropertyNames)
+else
+ countMetaProperties=0
+end if
+!$omp end critical ({$class->{'name'}.$prefix}MetaPropertyUpdate)
+CODE
+	}
+	# Insert a type-binding for this function.
+	push(
+	    @{$build->{'types'}->{"nodeComponent".ucfirst($code::class->{'name'})}->{'boundFunctions'}},
+	    {
+		type        => "procedure",
+		descriptor  => $function,
+		name        => "count".ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaProperties", 
+	    }
+	    );
+    }
+}
+
+sub Class_Name_Meta_Property {
+    # Generate a function to return the name of the indexed meta-property for a component classes.
+    my $build    = shift();
+    $code::class = shift();
+    foreach my $metaPropertyType ( @Galacticus::Build::Components::Classes::MetaProperties::metaPropertyTypes ) {
+	$code::label    = $metaPropertyType->{'label'};
+	$code::rank     = $metaPropertyType->{'rank' };
+	$code::prefix   = ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank' };
+	my $function =
+	{
+	    type        => "type(varying_string) => nameMetaProperty",
+	    name        => "component".ucfirst($code::class->{'name'})."Name".ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaProperty",
+	    description => "Return the name of the indexed of rank-".$metaPropertyType->{'rank'}." ".$metaPropertyType->{'label'}."meta-property associated with the generic {\\normalfont \\ttfamily ".$code::class->{'name'}."} component.",
+	    modules     => [ "ISO_Varying_String" ],
+	    variables   =>
+		[
+		 {
+		     intrinsic  => "class",
+		     type       => "nodeComponent".ucfirst($code::class->{'name'}),
+		     attributes => [ "intent(inout)" ],
+		     variables  => [ "self" ]
+		 },
+		 {
+		     intrinsic  => "integer",
+		     attributes => [ "intent(in   )" ],
+		     variables  => [ "index" ]
+		 }
+		]
+	};
+	if ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
+	    $function->{'content'}  = fill_in_string(<<'CODE', PACKAGE => 'code');
+!$GLC attributes unused :: self
+
+!$omp critical ({$class->{'name'}.$prefix}MetaPropertyUpdate)
+if (index > 0 .and. index <= size({$class->{'name'}.$prefix}MetaPropertyNames)) then
+ nameMetaProperty={$class->{'name'}.$prefix}MetaPropertyNames(index)
+else
+ nameMetaProperty=var_str('')
+ call Galacticus_Error_Report('meta-property index is out of range'//\{introspection:location\})
+end if
+!$omp end critical ({$class->{'name'}.$prefix}MetaPropertyUpdate)
+CODE
+	}
+	# Insert a type-binding for this function.
+	push(
+	    @{$build->{'types'}->{"nodeComponent".ucfirst($code::class->{'name'})}->{'boundFunctions'}},
+	    {
+		type        => "procedure",
+		descriptor  => $function,
+		name        => "name".ucfirst($metaPropertyType->{'label'})."Rank".$metaPropertyType->{'rank'}."MetaProperty", 
 	    }
 	    );
     }

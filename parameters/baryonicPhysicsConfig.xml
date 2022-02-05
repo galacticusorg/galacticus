@@ -894,7 +894,6 @@
   <componentSatellite         value="standard"       />
   <componentSpheroid          value="standard"       />
   <componentSpin              value="scalar"         />
-  <componentNBody             value="null"           />
 
   <!-- Elements -->
   <elementsToTrack    value="O"    />

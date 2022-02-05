@@ -688,7 +688,6 @@ contains
     use    :: Display                    , only : displayMagenta         , displayReset
     use    :: File_Utilities             , only : File_Name_Expand
     use    :: Galacticus_Error           , only : Galacticus_Error_Report, Galacticus_Warn
-    use    :: Galacticus_Nodes           , only : defaultNBodyComponent  , nodeComponentNBodyGeneric
     use    :: Memory_Management          , only : allocateArray
     use    :: Numerical_Constants_Boolean, only : booleanFalse           , booleanTrue
     !$ use :: OMP_Lib                    , only : OMP_Init_Lock
@@ -880,23 +879,22 @@ contains
          &  .or.                                &
          &   size(self%presetNamedIntegers) > 0 &
          &  ) then
-       select type (defaultNBodyComponent)
-       class is (nodeComponentNBodyGeneric)
-          if (size(self%presetNamedReals   ) > 0) then
-             allocate(self%indexNamedReals   (size(self%presetNamedReals   )))
-             do i=1,size(self%presetNamedReals   )
-                self%indexNamedReals   (i)=defaultNBodyComponent%addRealProperty   (char(self%presetNamedReals   (i)))
-             end do
-          end if
-          if (size(self%presetNamedIntegers) > 0) then
-             allocate(self%indexNamedIntegers(size(self%presetNamedIntegers)))
-             do i=1,size(self%presetNamedIntegers)
-                self%indexNamedIntegers(i)=defaultNBodyComponent%addIntegerProperty(char(self%presetNamedIntegers(i)))
-             end do
-          end if
-       class default
-          call Galacticus_Error_Report('presetting of named datasets is supported only with the "generic" N-body component'//{introspection:location})
-       end select
+       if (size(self%presetNamedReals   ) > 0) then
+          allocate(self%indexNamedReals   (size(self%presetNamedReals   )))
+          do i=1,size(self%presetNamedReals   )
+             !![
+	     <addMetaProperty component="basic" name="'preset:'//char(self%presetNamedReals   (i))" type="float"       id="self%indexNamedReals  (i)" isCreator="yes"/>
+             !!]
+          end do
+       end if
+       if (size(self%presetNamedIntegers) > 0) then
+          allocate(self%indexNamedIntegers(size(self%presetNamedIntegers)))
+          do i=1,size(self%presetNamedIntegers)
+             !![
+	     <addMetaProperty component="basic" name="'preset:'//char(self%presetNamedIntegers(i))" type="longInteger" id="self%indexNamedIntegers(i)" isCreator="yes"/>
+             !!]
+          end do
+       end if
     end if
     return
   end function readConstructorInternal
@@ -2198,14 +2196,13 @@ contains
     !!{
     Assign named properties to nodes.
     !!}
-    use :: Galacticus_Error          , only : Galacticus_Error_Report
-    use :: Galacticus_Nodes          , only : nodeComponentNBody     , nodeComponentNBodyGeneric, treeNodeList
+    use :: Galacticus_Nodes          , only : nodeComponentBasic, treeNodeList
     use :: Merger_Tree_Read_Importers, only : nodeData
     implicit none
     class  (mergerTreeConstructorRead)                       , intent(inout) :: self
     class  (nodeData                 )         , dimension(:), intent(inout) :: nodes
     type   (treeNodeList             )         , dimension(:), intent(inout) :: nodeList
-    class  (nodeComponentNBody       ), pointer                              :: nBody
+    class  (nodeComponentBasic       ), pointer                              :: basic
     integer                                                                  :: iNode        , i
     integer(c_size_t                 )                                       :: iIsolatedNode
 
@@ -2213,25 +2210,19 @@ contains
        ! Only process if this is an isolated node.
        if (nodes(iNode)%isolatedNodeIndex /= readNodeReachabilityUnreachable) then
           iIsolatedNode=nodes(iNode)%isolatedNodeIndex
-          ! Get N-body component.
-          nBody => nodeList(iIsolatedNode)%node%nBody(autoCreate=.true.)
           ! Assign the named properties.
-          select type (nBody)
-          class is (nodeComponentNBodyGeneric)
-             if (size(self%presetNamedReals   ) > 0) then
-                do i=1,size(self%presetNamedReals   )
-                   call nBody%setRealProperty   (self%indexNamedReals   (i),nodes(iNode)%reals   (i))
-                end do
-             end if
-             if (size(self%presetNamedIntegers) > 0) then
-                do i=1,size(self%presetNamedIntegers)
-                   call nBody%setIntegerProperty(self%indexNamedIntegers(i),nodes(iNode)%integers(i))
-                end do
-             end if
-          class default
-             call Galacticus_Error_Report('presetting of named datasets is supported only with the "generic" N-body component'//{introspection:location})
-          end select
-       end if
+          basic => nodeList(iIsolatedNode)%node%basic()
+          if (size(self%presetNamedReals   ) > 0) then
+             do i=1,size(self%presetNamedReals   )
+                call basic%floatRank0MetaPropertySet      (self%indexNamedReals   (i),nodes(iNode)%reals   (i))
+             end do
+          end if
+          if (size(self%presetNamedIntegers) > 0) then
+             do i=1,size(self%presetNamedIntegers)
+                call basic%longIntegerRank0MetaPropertySet(self%indexNamedIntegers(i),nodes(iNode)%integers(i))
+             end do
+          end if
+        end if
     end do
     return
   end subroutine readAssignNamedProperties

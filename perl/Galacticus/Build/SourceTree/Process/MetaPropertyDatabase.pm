@@ -80,10 +80,12 @@ subroutine metaPropertyNoCreator(component_,name_,type_,rank_)
 CODE
 	    my $join = "";
 	    foreach my $creator ( @creators ) {
-		$noCreator .= $join."if (component_ == '".$creator->{'component'}."' .and. name_ == '".$creator->{'name'}."' .and. type_ == '".$creator->{'type'}."' .and. rank_ == ".$creator->{'rank'}.") then\n";
-		$noCreator .= "          className='".$creator->{'functionClass'     }."'\n";
-		$noCreator .= " implementationName='".$creator->{'implementationName'}."'\n";
-		$join       = "else ";
+		unless ( $creator->{'name'} =~ m/^'/ ) {
+		    $noCreator .= $join."if (component_ == '".$creator->{'component'}."' .and. name_ == '".$creator->{'name'}."' .and. type_ == '".$creator->{'type'}."' .and. rank_ == ".$creator->{'rank'}.") then\n";
+		    $noCreator .= "          className='".$creator->{'functionClass'     }."'\n";
+		    $noCreator .= " implementationName='".$creator->{'implementationName'}."'\n";
+		    $join       = "else ";
+		}
 	    }
 	    $code::location = &Galacticus::Build::SourceTree::Process::SourceIntrospection::Location($node,$node->{'line'});
 	    $noCreator .= fill_in_string(<<'CODE', PACKAGE => 'code');
