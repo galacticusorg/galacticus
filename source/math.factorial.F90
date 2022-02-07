@@ -31,17 +31,28 @@ module Factorials
   use, intrinsic :: ISO_C_Binding, only : c_double, c_int
   implicit none
   private
-  public :: Factorial, Logarithmic_Double_Factorial
+  public :: Factorial, Logarithmic_Factorial, Logarithmic_Double_Factorial
 
   interface
      function gsl_sf_fact(n) bind(c,name='gsl_sf_fact')
        !!{
-       Template for the GSL error function.
+       Template for the GSL factorial function.
        !!}
        import
        real   (c_double)        :: gsl_sf_fact
        integer(c_int   ), value :: n
      end function gsl_sf_fact
+  end interface
+  
+  interface
+     function gsl_sf_lnfact(n) bind(c,name='gsl_sf_lnfact')
+       !!{
+       Template for the GSL logarithm of the factorial function.
+       !!}
+       import
+       real   (c_double)        :: gsl_sf_lnfact
+       integer(c_int   ), value :: n
+     end function gsl_sf_lnfact
   end interface
   
 contains
@@ -56,6 +67,17 @@ contains
     Factorial=GSL_SF_Fact(argument)
     return
   end function Factorial
+
+  double precision function Logarithmic_Factorial(argument)
+    !!{
+    Computes the logarithmic of the factorial of {\normalfont \ttfamily argument}.
+    !!}
+    implicit none
+    integer, intent(in   ) :: argument
+
+    Logarithmic_Factorial=GSL_SF_LnFact(argument)
+    return
+  end function Logarithmic_Factorial
 
   double precision function Logarithmic_Double_Factorial(argument)
     !!{
