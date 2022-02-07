@@ -33,11 +33,14 @@
      Implementation of a posterior sampling likelihood class which implements a likelihood for halo mass functions.
      !!}
      private
-     double precision                , dimension(:  ), allocatable :: mass            , massFunction, &
-          &                                                           massMinimum     , massMaximum
+     double precision                , dimension(:  ), allocatable :: mass                 , massFunction, &
+          &                                                           massMinimum          , massMaximum
      double precision                , dimension(:,:), allocatable :: covarianceMatrix
-     double precision                                              :: time            , massParticle, &
-          &                                                           massRangeMinimum, redshift
+     integer         (c_size_t      ), dimension(:  ), allocatable :: countHalos
+     double precision                                              :: time                 , massParticle, &
+          &                                                           massRangeMinimum     , redshift    , &
+          &                                                           countConversionFactor
+     logical                                                       :: likelihoodPoisson
      type            (vector        )                              :: means
      type            (matrix        )                              :: covariance
      type            (varying_string)                              :: fileName
@@ -69,6 +72,7 @@ contains
     type            (varying_string                           )                :: fileName           , baseParametersFileName
     double precision                                                           :: redshift           , massRangeMinimum
     integer                                                                    :: binCountMinimum
+    logical                                                                    :: likelihoodPoisson
     type            (inputParameters                          ), pointer       :: parametersModel
     class           (cosmologyFunctionsClass                  ), pointer       :: cosmologyFunctions_
 
@@ -98,13 +102,19 @@ contains
       <description>The minimum number of halos per bin required to permit bin to be included in likelihood evaluation.</description>
       <source>parameters</source>
     </inputParameter>
+    <inputParameter>
+      <name>likelihoodPoisson</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, likelihood is computed assuming a Poisson distribution for the number of halos in each bin (with no covariance between bins). Otherwise a multivariate normal is assumed when computing likelihood.</description>
+      <source>parameters</source>
+    </inputParameter>
     !!]
     allocate(parametersModel)
     parametersModel=inputParameters                          (baseParametersFileName,noOutput=.true.)
     !![
     <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parametersModel"/>
     !!]
-    self           =posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,binCountMinimum,parametersModel,cosmologyFunctions_)
+    self           =posteriorSampleLikelihoodHaloMassFunction(char(fileName),redshift,massRangeMinimum,binCountMinimum,likelihoodPoisson,parametersModel,cosmologyFunctions_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyFunctions_"/>
@@ -113,7 +123,7 @@ contains
     return
   end function haloMassFunctionConstructorParameters
 
-  function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,binCountMinimum,parametersModel,cosmologyFunctions_) result(self)
+  function haloMassFunctionConstructorInternal(fileName,redshift,massRangeMinimum,binCountMinimum,likelihoodPoisson,parametersModel,cosmologyFunctions_) result(self)
     !!{
     Constructor for ``haloMassFunction'' posterior sampling likelihood class.
     !!}
@@ -129,6 +139,7 @@ contains
     character       (len=*                                    ), intent(in   )                 :: fileName
     double precision                                           , intent(in   )                 :: redshift                      , massRangeMinimum
     integer                                                    , intent(in   )                 :: binCountMinimum
+    logical                                                    , intent(in   )                 :: likelihoodPoisson
     type            (inputParameters                          ), intent(inout), target         :: parametersModel
     class           (cosmologyFunctionsClass                  ), intent(inout)                 :: cosmologyFunctions_
     double precision                                           , allocatable  , dimension(:  ) :: eigenValueArray               , massOriginal     , &
@@ -144,7 +155,7 @@ contains
     type            (matrix                                   )                                :: eigenVectors
     type            (vector                                   )                                :: eigenValues
     !![
-    <constructorAssign variables="fileName, redshift, massRangeMinimum, *parametersModel"/>
+    <constructorAssign variables="fileName, redshift, massRangeMinimum, likelihoodPoisson, *parametersModel"/>
     !!]
 
     ! Convert redshift to time.
@@ -164,43 +175,76 @@ contains
     call simulationGroup %close      (                                        )
     call massFunctionFile%close      (                                        )
     !$ call hdf5Access%unset()
-    ! Construct the covariance matrix.
-    allocate(massFunctionCovarianceOriginal(size(massOriginal),size(massOriginal)))
-    massFunctionCovarianceOriginal=0.0d0
-    do i=1,size(massOriginal)
-       if (massFunctionCountOriginal(i) > 0_c_size_t)                                     &
-            &  massFunctionCovarianceOriginal(i,i)=+     massFunctionOriginal     (i) **2 &
-            &                                      /dble(massFunctionCountOriginal(i))
-    end do
-    ! Find a reduced mass function excluding any empty bins.
-    massCountReduced=0
-    do i=1,size(massOriginal)       
-       if (massFunctionOriginal     (i) <= 0.0d0           ) cycle
-       if (massOriginal             (i) <  massRangeMinimum) cycle
-       if (massFunctionCountOriginal(i) <  binCountMinimum ) cycle
-       massCountReduced=massCountReduced+1
-    end do
-    if (massCountReduced == 0) call Galacticus_Error_Report("no usable bins in mass function from file '"//trim(fileName)//"'"//{introspection:location})
-    call allocateArray(self%mass            ,[massCountReduced                 ])
-    call allocateArray(self%massFunction    ,[massCountReduced                 ])
-    call allocateArray(self%covarianceMatrix,[massCountReduced,massCountReduced])
-    ii=0
-    do i=1,size(massOriginal)
-       if (massFunctionOriginal     (i) <= 0.0d0           ) cycle
-       if (massOriginal             (i) <  massRangeMinimum) cycle
-       if (massFunctionCountOriginal(i) <  binCountMinimum ) cycle
-       ii=ii+1
-       self%mass        (ii)=massOriginal        (i)
-       self%massFunction(ii)=massFunctionOriginal(i)
-       jj=0
-       do j=1,size(massOriginal)
-          if (massFunctionOriginal     (j) <= 0.0d0           ) cycle
-          if (massOriginal             (j) <  massRangeMinimum) cycle
-          if (massFunctionCountOriginal(j) <  binCountMinimum ) cycle
-          jj=jj+1
-          self%covarianceMatrix(ii,jj)=massFunctionCovarianceOriginal(i,j)
+    ! Compute quantities needed for likelihood calculations.
+    if (self%likelihoodPoisson) then
+       ! Find a reduced mass function excluding bins below the mass threshold
+       massCountReduced=0
+       do i=1,size(massOriginal)       
+          if (massOriginal(i) < massRangeMinimum) cycle
+          massCountReduced=massCountReduced+1
        end do
-    end do
+       if (massCountReduced == 0) call Galacticus_Error_Report("no usable bins in mass function from file '"//trim(fileName)//"'"//{introspection:location})
+       call allocateArray(self%mass        ,[massCountReduced])
+       call allocateArray(self%massFunction,[massCountReduced])
+       call allocateArray(self%countHalos  ,[massCountReduced])
+       ii=0
+       do i=1,size(massOriginal)
+          if (massOriginal(i) <  massRangeMinimum) cycle
+          ii=ii+1
+          self%mass        (ii)=massOriginal             (i)
+          self%massFunction(ii)=massFunctionOriginal     (i)
+          self%countHalos  (ii)=massFunctionCountOriginal(i)
+       end do
+       ! Compute the conversion factor between halo count per bin and the mass function.
+       self%countConversionFactor=+     sum  (dble(self%countHalos)/self%massFunction,mask=self%massFunction > 0.0d0)  &
+            &                     /dble(count(                                        mask=self%massFunction > 0.0d0))
+    else
+       ! Construct the covariance matrix.
+       allocate(massFunctionCovarianceOriginal(size(massOriginal),size(massOriginal)))
+       massFunctionCovarianceOriginal=0.0d0
+       do i=1,size(massOriginal)
+          if (massFunctionCountOriginal(i) > 0_c_size_t)                                     &
+               &  massFunctionCovarianceOriginal(i,i)=+     massFunctionOriginal     (i) **2 &
+               &                                      /dble(massFunctionCountOriginal(i))
+       end do
+       ! Find a reduced mass function excluding any empty bins.
+       massCountReduced=0
+       do i=1,size(massOriginal)       
+          if (massFunctionOriginal     (i) <= 0.0d0           ) cycle
+          if (massOriginal             (i) <  massRangeMinimum) cycle
+          if (massFunctionCountOriginal(i) <  binCountMinimum ) cycle
+          massCountReduced=massCountReduced+1
+       end do
+       if (massCountReduced == 0) call Galacticus_Error_Report("no usable bins in mass function from file '"//trim(fileName)//"'"//{introspection:location})
+       call allocateArray(self%mass            ,[massCountReduced                 ])
+       call allocateArray(self%massFunction    ,[massCountReduced                 ])
+       call allocateArray(self%covarianceMatrix,[massCountReduced,massCountReduced])
+       ii=0
+       do i=1,size(massOriginal)
+          if (massFunctionOriginal     (i) <= 0.0d0           ) cycle
+          if (massOriginal             (i) <  massRangeMinimum) cycle
+          if (massFunctionCountOriginal(i) <  binCountMinimum ) cycle
+          ii=ii+1
+          self%mass        (ii)=massOriginal        (i)
+          self%massFunction(ii)=massFunctionOriginal(i)
+          jj=0
+          do j=1,size(massOriginal)
+             if (massFunctionOriginal     (j) <= 0.0d0           ) cycle
+             if (massOriginal             (j) <  massRangeMinimum) cycle
+             if (massFunctionCountOriginal(j) <  binCountMinimum ) cycle
+             jj=jj+1
+             self%covarianceMatrix(ii,jj)=massFunctionCovarianceOriginal(i,j)
+          end do
+       end do
+       ! Find the covariance matrix.
+       self%covariance=self%covarianceMatrix
+       ! Get eigenvalues and vectors of the covariance matrix.
+       allocate(eigenValueArray(size(self%mass)))
+       call self%covariance%eigenSystem(eigenVectors,eigenValues)
+       eigenValueArray=eigenValues
+       if (any(eigenValueArray < 0.0d0)) call displayMessage(displayMagenta()//'WARNING:'//displayReset()//' inverse covariance matrix is not semi-positive definite')
+       deallocate(eigenValueArray               )
+    end if
     ! Compute mass ranges for bins.
     massIntervalLogarithmic=+log(                                  &
          &                       +massOriginal(size(massOriginal)) &
@@ -216,17 +260,9 @@ contains
        self%massMinimum(i)=self%mass(i)*exp(-0.5d0*massIntervalLogarithmic)
        self%massMaximum(i)=self%mass(i)*exp(+0.5d0*massIntervalLogarithmic)
     end do
-    ! Find the covariance matrix.
-    self%covariance=self%covarianceMatrix
-    ! Get eigenvalues and vectors of the covariance matrix.
-    allocate(eigenValueArray(size(self%mass)))
-    call self%covariance%eigenSystem(eigenVectors,eigenValues)
-    eigenValueArray=eigenValues
-    if (any(eigenValueArray < 0.0d0)) call displayMessage(displayMagenta()//'WARNING:'//displayReset()//' inverse covariance matrix is not semi-positive definite')
-    deallocate(eigenValueArray               )
-    deallocate(massOriginal                  )
-    deallocate(massFunctionOriginal          )
-    deallocate(massFunctionCovarianceOriginal)
+    if (allocated(massOriginal                  )) deallocate(massOriginal                  )
+    if (allocated(massFunctionOriginal          )) deallocate(massFunctionOriginal          )
+    if (allocated(massFunctionCovarianceOriginal)) deallocate(massFunctionCovarianceOriginal)
     return
   end function haloMassFunctionConstructorInternal
 
@@ -252,25 +288,27 @@ contains
     use :: Halo_Mass_Functions              , only : haloMassFunctionClass           , haloMassFunctionEnvironmentAveraged, haloMassFunctionErrorConvolved, haloMassFunctionShethTormen, &
          &                                           haloMassFunctionBhattacharya2011
     use :: Linear_Algebra                   , only : assignment(=)                   , operator(*)
-    use :: Models_Likelihoods_Constants     , only : logImpossible
+    use :: Models_Likelihoods_Constants     , only : logImpossible                   , logImprobable
     use :: Posterior_Sampling_Convergence   , only : posteriorSampleConvergenceClass
     use :: Posterior_Sampling_State         , only : posteriorSampleStateClass
     use :: Statistics_NBody_Halo_Mass_Errors, only : nbodyHaloMassErrorClass         , nbodyHaloMassErrorPowerLaw         , nbodyHaloMassErrorSOHaloFinder, nbodyHaloMassErrorTrenti2010
+    use :: Factorials                       , only : Logarithmic_Factorial
     implicit none
     class           (posteriorSampleLikelihoodHaloMassFunction), intent(inout)               :: self
     class           (posteriorSampleStateClass                ), intent(inout)               :: simulationState
-    type            (modelParameterList                       ), intent(in   ), dimension(:) :: modelParametersActive_       , modelParametersInactive_
+    type            (modelParameterList                       ), intent(in   ), dimension(:) :: modelParametersActive_        , modelParametersInactive_
     class           (posteriorSampleConvergenceClass          ), intent(inout)               :: simulationConvergence
-    double precision                                           , intent(in   )               :: temperature                  , logLikelihoodCurrent          , &
-         &                                                                                      logPriorCurrent              , logPriorProposed
+    double precision                                           , intent(in   )               :: temperature                   , logLikelihoodCurrent    , &
+         &                                                                                      logPriorCurrent               , logPriorProposed
     real                                                       , intent(inout)               :: timeEvaluate
     double precision                                           , intent(  out), optional     :: logLikelihoodVariance
     logical                                                    , intent(inout), optional     :: forceAcceptance
-    double precision                                           , allocatable  , dimension(:) :: stateVector                  , massFunction
-    double precision                                           , parameter                   :: errorFractionalMaximum =1.0d1
+    double precision                                           , allocatable  , dimension(:) :: stateVector                   , massFunction
+    double precision                                           , parameter                   :: errorFractionalMaximum =1.0d+1
     class           (haloMassFunctionClass                    ), pointer                     :: haloMassFunction_
     type            (vector                                   )                              :: difference
     integer                                                                                  :: i
+    double precision                                                                         :: countHalosMean
     !$GLC attributes unused :: simulationConvergence, temperature, timeEvaluate, logLikelihoodCurrent, logPriorCurrent, modelParametersInactive_, forceAcceptance
 
     ! There is no variance in our likelihood estimate.
@@ -305,8 +343,33 @@ contains
             &              )
     end do
     ! Evaluate the log-likelihood.
-    difference              =massFunction-self%massFunction
-    haloMassFunctionEvaluate=-0.5d0*self%covariance%covarianceProduct(difference)
+    if (self%likelihoodPoisson) then
+       haloMassFunctionEvaluate=0.0d0
+       do i=1,size(self%mass)
+          ! Find the mean number of halos expected in this bin based on our model mass function.
+          countHalosMean          =+                          self%countConversionFactor         &
+               &                   *                               massFunction            (i)
+          ! If the expected mean is zero, and the measured number is non-zero, this is impossible.
+          if (countHalosMean <= 0.0d0) then
+             if (self%countHalos(i) > 0) then
+                haloMassFunctionEvaluate=logImprobable
+                exit
+             end if
+          else
+             ! Evaluate the Poisson likelihood.
+             haloMassFunctionEvaluate=+                               haloMassFunctionEvaluate      &
+                  &                   +dble                 (    self%countHalos              (i))  &
+                  &                   *log                  (         countHalosMean             )  &
+                  &                   -                               countHalosMean                &
+                  &                   -Logarithmic_Factorial(int(self%countHalos              (i)))
+          end if
+       end do
+    else
+       difference              =+massFunction                                  &
+            &                   -self%massFunction
+       haloMassFunctionEvaluate=-0.5d0                                         &
+            &                   *self%covariance%covarianceProduct(difference)
+    end if
     ! Clean up.
     !![
     <objectDestructor name="haloMassFunction_"/>
