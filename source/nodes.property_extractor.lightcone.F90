@@ -237,6 +237,7 @@ contains
     type            (treeNode                      ), intent(inout), target      :: node
     double precision                                , intent(in   )              :: time
     type            (multiCounter                  ), intent(inout), optional    :: instance
+    double precision                                                             :: velocityBeta
     !$GLC attributes unused :: time
 
     if (.not.present(instance).and..not.self%atCrossing) call Galacticus_Error_Report('instance is required'//{introspection:location})
@@ -257,11 +258,24 @@ contains
          &                                                                          )
     lightconeExtract   (8  )=self%geometryLightcone_%solidAngle()/degreesToRadians**2
     if (self%includeObservedRedshift) then
-       lightconeExtract(self%redshiftObservedOffset  +1)=+                                       lightconeExtract(7  )  &
-            &                                            +Dot_Product     (lightconeExtract(4:6),lightconeExtract(1:3)) &
+       ! Compute the relativistic velocity β=v/c.
+       velocityBeta                                     =+Dot_Product     (lightconeExtract(4:6),lightconeExtract(1:3)) &
             &                                            /Vector_Magnitude(                      lightconeExtract(1:3)) &
             &                                            *kilo                                                          &
             &                                            /speedLight
+       ! Compute the observed redshift. This is given by:
+       !  1 + zₒ = (1 + zₕ) (1 + zₚ),
+       ! where zₒ is observed redshift, zₕ is cosmological redshift (due to Hubble expansion), and zₚ is the pecular redshift,
+       ! given by
+       !  1 + zₚ = √[(1+βₚ)/(1-βₚ)]
+       ! where βₚ=vₚ/c is the dimensionless peculiar velocity (e.g. Davis et al.; 2011; ApJ; 741; 67; eqn. 4;
+       ! https://ui.adsabs.harvard.edu/abs/2011ApJ...741...67D).
+       lightconeExtract(self%redshiftObservedOffset  +1)=+                                       lightconeExtract(7  )  &
+            &                                            +    (+1.0d0                           +lightconeExtract(7  )) &
+            &                                            *sqrt(                                                         &
+            &                                                  +(+1.0d0+velocityBeta)                                   &
+            &                                                  /(+1.0d0-velocityBeta)                                   &
+            &                                                 )
     end if
     if (self%includeAngularCoordinates) then
        lightconeExtract(self%angularCoordinatesOffset+1)=atan2(                              &
