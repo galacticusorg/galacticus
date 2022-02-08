@@ -203,7 +203,6 @@ module Galacticus_Nodes
   end type integerRank1MetaProperty
   
   ! Zero dimension arrays to be returned as defaults.
-  integer         (kind_int8)                        , dimension(0) :: nullLongInteger1d
   double precision                                   , dimension(0) :: nullDouble1d
 
   ! Labels for function mapping reduction types.
