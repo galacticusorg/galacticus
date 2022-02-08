@@ -86,7 +86,7 @@ contains
     !!]
     self=stellarPopulationSpectraPostprocessorBuilderLookup(names,postprocessors)
     !![
-    <inputParametersValidate source="parameters"/>
+    <inputParametersValidate source="parameters" multiParameters="stellarPopulationSpectraPostprocessor"/>
     !!]
     do i=1,countPostprocessors
        !![
