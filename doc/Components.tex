@@ -780,31 +780,6 @@ where the ``parent'' subscript indicates a property of the parent \gls{node} in 
 
 \noindent\emph{Node promotion:} $M_\mathrm{node}$ is updated to the \gls{node} mass of the parent prior to promotion.\\
 
-\subsection{``Standard-Tracking Implemenation}
-
-\subsubsection{Properties}
-
-The standard-tracking basic properties implementation extends the standard implementation and defines the following additional properties:
-\begin{description}
- \item [{\normalfont \ttfamily massMaximum}] The maximum total mass of the node achieved prior to the current time along this node's branch: $M_\mathrm{node, maximum}$ [{\normalfont \ttfamily basicMassMaximum}].
-\end{description}
-
-\subsubsection{Initialization}
-
-The maximum mass along each branch is computed from the merger tree structure at initialization time.
-
-\subsubsection{Differential Evolution}
-
-None.
-
-\subsubsection{Event Evolution}
-
-\noindent\emph{Node mergers:} None.\\
-
-\noindent\emph{Satellite merging:} None.\\
-
-\noindent\emph{Node promotion:} $M_\mathrm{node, maximum}$ is updated to the \gls{node} maximum mass of the parent prior to promotion.\\
-
 \subsection{``Standard-Extended Implemenation}
 
 \subsubsection{Properties}
