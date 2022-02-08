@@ -55,6 +55,7 @@ contains
     logical                  , intent(in   ), optional :: static
     integer                                            :: status
     type     (varying_string)                          :: lockPath
+#include "os.inc"
     !![
     <optionalArgument name="static" defaultsTo=".false." />
     !!]
