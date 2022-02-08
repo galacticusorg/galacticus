@@ -99,6 +99,10 @@ contains
        else
           call System_Command_Do("cd "//fspsPath//"/src; sed -i~ -E s/'^(F90FLAGS = .*)[[:space:]]*\-static(.*)'/'\1 \2'/g Makefile")
        end if
+#ifdef __APPLE__
+       ! On MacOS optimizations above O1 seem to lead to a use-after-free error. So, we set optimization to -O1 here.
+       call System_Command_Do("cd "//fspsPath//"/src; sed -i~ -E s/'^(F90FLAGS = .*)[[:space:]]*\-O\d(.*)'/'\1 \-O1 \2'/g Makefile")
+#endif
        call System_Command_Do("cd "//fspsPath//"/src; export SPS_HOME="//fspsPath//'; export F90FLAGS="-mcmodel=medium '//char(compilerOptions(languageFortran))//'"; sed -i~ -E s/"gfortran"/"'//char(compiler(languageFortran))//'"/ Makefile; make clean; make -j 1',status)
        if (.not.File_Exists(fspsPath//"/src/autosps.exe") .or. status /= 0) call Galacticus_Error_Report("failed to build autosps.exe code"//{introspection:location})
     end if
