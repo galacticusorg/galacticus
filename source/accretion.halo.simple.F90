@@ -86,12 +86,12 @@
           &                                                                opticalDepthReionization
      logical                                                            :: accretionNegativeAllowed           , accretionNewGrowthOnly
      type            (radiationFieldCosmicMicrowaveBackground), pointer :: radiation                 => null()
-     integer                                                            :: countChemicals
+     integer                                                            :: countChemicals                     , massProgenitorMaximumID
    contains
      !![
      <methods>
-       <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which fails." method="failedFraction" />
-       <method description="Returns the velocity scale to use for {\normalfont \ttfamily node}." method="velocityScale" />
+       <method description="Returns the fraction of potential accretion onto a halo from the \gls{igm} which fails." method="failedFraction"/>
+       <method description="Returns the velocity scale to use for {\normalfont \ttfamily node}."                     method="velocityScale" />
      </methods>
      !!]
      final     ::                           simpleDestructor
@@ -225,21 +225,11 @@ contains
     !![
     <referenceConstruct isResult="yes" owner="self" object="radiation" constructor="radiationFieldCosmicMicrowaveBackground(cosmologyFunctions_)"/>
     !!]
-    ! Check that required properties have required attributes.
-    if     (                                                                                                       &
-         &   accretionNewGrowthOnly                                                                                &
-         &  .and.                                                                                                  &
-         &   .not.defaultBasicComponent%massMaximumIsGettable()                                                    &
-         & ) call Galacticus_Error_Report                                                                          &
-         &   (                                                                                                     &
-         &    'accretionNewGrowthOnly=true requires that the "massMaximum" '//                                     &
-         &    'property of the basic component be gettable.'              //                                       &
-         &    Galacticus_Component_List(                                                                           &
-         &                              'basic'                                                                 ,  &
-         &                               defaultBasicComponent%massMaximumAttributeMatch(requireGettable=.true.)   &
-         &                             )                                                                        // &
-         &    {introspection:location}                                                                             &
-         &   )
+    if (accretionNewGrowthOnly) then
+       !![
+       <addMetaProperty component="basic" name="massProgenitorMaximum" id="self%massProgenitorMaximumID" isEvolvable="no"/>
+       !!]
+    end if
     self%countChemicals=Chemicals_Property_Count()
     return
   end function simpleConstructorInternal
@@ -320,7 +310,7 @@ contains
     end if
     ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.
     if (self%accretionNewGrowthOnly) then
-       if (self%accretionHaloTotal_%accretedMass(node) < basic%massMaximum()) simpleAccretionRate=0.0d0
+       if (self%accretionHaloTotal_%accretedMass(node) < basic%floatRank0MetaPropertyGet(self%massProgenitorMaximumID)) simpleAccretionRate=0.0d0
     end if
     return
   end function simpleAccretionRate
@@ -379,7 +369,7 @@ contains
     ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.
     if (self%accretionNewGrowthOnly) then
        basic => node%basic()
-       if (self%accretionHaloTotal_%accretedMass(node) < basic%massMaximum()) simpleFailedAccretionRate=0.0d0
+       if (self%accretionHaloTotal_%accretedMass(node) < basic%floatRank0MetaPropertyGet(self%massProgenitorMaximumID)) simpleFailedAccretionRate=0.0d0
     end if
     return
   end function simpleFailedAccretionRate

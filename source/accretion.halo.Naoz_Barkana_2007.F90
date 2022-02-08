@@ -409,7 +409,7 @@ contains
             &                       *growthRate
     end if
     ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.
-    if (self%accretionNewGrowthOnly .and. self%accretionHaloTotal_%accretedMass(node) < basic%massMaximum()) naozBarkana2007AccretionRate=0.0d0
+    if (self%accretionNewGrowthOnly .and. self%accretionHaloTotal_%accretedMass(node) < basic%floatRank0MetaPropertyGet(self%massProgenitorMaximumID)) naozBarkana2007AccretionRate=0.0d0
     return
   end function naozBarkana2007AccretionRate
 
@@ -498,7 +498,7 @@ contains
             &                             *growthRate
     end if
     ! If accretion is allowed only on new growth, check for new growth and shut off accretion if growth is not new.
-    if (self%accretionNewGrowthOnly .and. self%accretionHaloTotal_%accretedMass(node) < basic%massMaximum()) naozBarkana2007FailedAccretionRate=0.0d0
+    if (self%accretionNewGrowthOnly .and. self%accretionHaloTotal_%accretedMass(node) < basic%floatRank0MetaPropertyGet(self%massProgenitorMaximumID)) naozBarkana2007FailedAccretionRate=0.0d0
     return
   end function naozBarkana2007FailedAccretionRate
 
