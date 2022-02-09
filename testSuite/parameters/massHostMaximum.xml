@@ -86,6 +86,8 @@
   <nodeOperator value="multi">
     <!-- Cosmological epoch -->
     <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
     <!-- Maximum host mass -->
     <nodeOperator value="massHostMaximum"/>
   </nodeOperator>
