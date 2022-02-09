@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<!-- Parameter file used for testing concentration algorithms. -->
-<parameters>
-  <formatVersion>2</formatVersion>
-  <version>0.9.4</version>
-  <componentDarkMatterProfile value="scaleShape"/>
-</parameters>

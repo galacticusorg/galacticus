@@ -32,7 +32,7 @@
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorDarkMatterProfileScaleSet
      !!{
-     A node operator class that causes dark matter profile scale radius to be interpolated linearly between child and parent nodes.
+     A node operator class that sets the dark matter profile scale radius in halos.
      !!}
      private
      class(darkMatterProfileScaleRadiusClass), pointer :: darkMatterProfileScaleRadius_ => null()

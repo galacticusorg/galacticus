@@ -285,7 +285,6 @@ contains
   !![
   <mergerTreeInitializeTask>
    <unitName>Node_Component_Hot_Halo_VS_Delayed_Tree_Initialize</unitName>
-   <after>darkMatterProfile</after>
    <after>Node_Component_Hot_Halo_Very_Simple_Tree_Initialize</after>
   </mergerTreeInitializeTask>
   !!]

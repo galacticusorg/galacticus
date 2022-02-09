@@ -274,7 +274,6 @@ contains
   !![
   <mergerTreeInitializeTask>
    <unitName>Node_Component_Satellite_Orbiting_Tree_Initialize</unitName>
-   <after>darkMatterProfile</after>
   </mergerTreeInitializeTask>
   !!]
   subroutine Node_Component_Satellite_Orbiting_Tree_Initialize(node)
