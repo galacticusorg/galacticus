@@ -162,6 +162,10 @@
     </darkMatterProfileConcentration>
   </darkMatterProfileScaleRadius>
   <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
     <nodeOperator value="darkMatterProfileScaleSet"/>
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
   </nodeOperator>

@@ -141,6 +141,11 @@
 
   <!-- Halo concentrations -->
   <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Halo concentrations -->
     <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
     <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
     <nodeOperator value="hierarchy"                         iterable="no"/>

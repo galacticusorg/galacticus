@@ -261,6 +261,10 @@
       <spinVarianceSpecific value="0.001"/>
     </nodeOperator>
     <nodeOperator value="haloAngularMomentumInterpolate"/>
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
   </nodeOperator>
   
   <!-- Numerical tolerances -->

@@ -65,6 +65,10 @@
 	<virialDensityContrastDefinition value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
       </virialOrbit>
       <nodeOperator value="multi" parameterLevel="top">
+	<!-- Cosmological epoch -->
+	<nodeOperator value="cosmicTime" iterable="no"/>
+	<!-- DMO evolution -->
+	<nodeOperator value="DMOInterpolate" iterable="no"/>
 	<!-- Halo concentrations -->
 	<nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
 	<nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
@@ -98,10 +102,6 @@
 	</nodeOperator>
 	<nodeOperator value="nodeFormationTimeCole2000" iterable="no"/>
       </nodeOperator>
-
-
-
-
     </darkMatterProfileDMO>
   </parameters>
   <parameters>
@@ -527,6 +527,10 @@
       <coolingTimeAvailable value="formationTime" parameterLevel="top"/>
       <hotHaloCoolingFromNode value="formationNode" parameterLevel="top"/>
       <nodeOperator value="multi" parameterLevel="top">
+	<!-- Cosmological epoch -->
+	<nodeOperator value="cosmicTime" iterable="no"/>
+	<!-- DMO evolution -->
+	<nodeOperator value="DMOInterpolate" iterable="no"/>
 	<!-- Halo concentrations -->
 	<nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
 	<nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
@@ -590,6 +594,10 @@
       <freefallRadius value="darkMatterHalo"/>
       <freefallTimeAvailable value="haloFormation" parameterLevel="top"/>
       <nodeOperator value="multi" parameterLevel="top">
+	<!-- Cosmological epoch -->
+	<nodeOperator value="cosmicTime" iterable="no"/>
+	<!-- DMO evolution -->
+	<nodeOperator value="DMOInterpolate" iterable="no"/>
 	<!-- Halo concentrations -->
 	<nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
 	<nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
@@ -630,6 +638,10 @@
     <coolingTimeAvailable value="whiteFrenk1991"/>
     <coolingTimeAvailable value="formationTime">
       <nodeOperator value="multi" parameterLevel="top">
+	<!-- Cosmological epoch -->
+	<nodeOperator value="cosmicTime" iterable="no"/>
+	<!-- DMO evolution -->
+	<nodeOperator value="DMOInterpolate" iterable="no"/>
 	<!-- Halo concentrations -->
 	<nodeOperator value="darkMatterProfileScaleSet" iterable="no"/>
 	<nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
@@ -922,6 +934,10 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime" iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Halo concentrations -->
       <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
@@ -960,6 +976,10 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime" iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Halo concentrations -->
       <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
@@ -999,6 +1019,10 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime" iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Halo concentrations -->
       <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
@@ -1037,6 +1061,10 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime" iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
       <!-- Halo concentrations -->
       <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
@@ -1202,6 +1230,10 @@
     </spheroidMassDistribution>
     <componentSpin value="scalar"/>
     <nodeOperator value="multi" >
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime" iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
       <nodeOperator value="haloAngularMomentumRandom" iterable="no">
@@ -1372,7 +1404,13 @@
  	<progenitorRedshifts value="0.508591 1.077875"/>
       </mergerTreeOperator>
     </mergerTreeOperator>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate"/>
+    </nodeOperator>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="null"/>
@@ -1417,7 +1455,13 @@
 	<fileName value="%DATASTATICPATH%/simulations/millennium.xml"/>
       </outputTimes>
     </mergerTreeOperator>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate"/>
+    </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
@@ -1465,7 +1509,13 @@
       <primaryProgenitorDepth value="4"/>
       <progenitorRedshifts value="0.508591 1.077875"/>
     </mergerTreeOperator>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate"/>
+    </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
@@ -1502,7 +1552,13 @@
       <massResolution value="1.0e10"/>
     </mergerTreeMassResolution>
     <mergerTreeOperator value="informationContent"/>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate"/>
+    </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
@@ -1542,7 +1598,13 @@
       <massMinimum value="2.0e12"/>
       <massMaximum value="6.0e12"/>
     </mergerTreeOperator>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate"/>
+    </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
@@ -1581,7 +1643,13 @@
     <mergerTreeOperator value="pruneByMass">
       <massThreshold value="1.0e11"/>
     </mergerTreeOperator>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate"/>
+    </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
@@ -1620,7 +1688,13 @@
     <mergerTreeOperator value="pruneHierarchy">
       <hierarchyDepth value="1"/>
     </mergerTreeOperator>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate"/>
+    </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
@@ -1659,7 +1733,13 @@
     <mergerTreeOperator value="pruneByTime">
       <redshiftEarliest value="1.0"/>
     </mergerTreeOperator>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate"/>
+    </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
@@ -1704,7 +1784,13 @@
       <selection value="hosts"/>
       <nonCosmological value="true"/>
     </mergerTreeOperator>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate"/>
+    </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
@@ -1743,7 +1829,13 @@
     <mergerTreeOperator value="dumpToGraphViz">
       <path value="testSuite/outputs"/>
     </mergerTreeOperator>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate"/>
+    </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
@@ -1798,7 +1890,13 @@
  	<massParticle value="1.0e9"/>
       </nbodyHaloMassError>
     </mergerTreeOperator>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate"/>
+    </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
@@ -1849,7 +1947,13 @@
       <allTreesExistAtFinalTime value="false"/>
     </mergerTreeEvolver>
     <mergerTreeOperator value="monotonizeMassGrowth"/>
-    <nodeOperator value="null"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate"/>
+    </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
@@ -1903,7 +2007,15 @@
       <redshift value="0.1"/>
       <fileName value="testSuite/outputs/rootMasses.hdf5"/>
     </mergerTreeOperator>
-    <nodeOperator value="hierarchy"/>
+    <!-- Node evolution and physics -->
+    <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime" iterable="no"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate" iterable="no"/>
+      <!-- Subhalo hierarchy -->
+      <nodeOperator value="hierarchy" iterable="no"/>
+    </nodeOperator>
     <hotHaloMassDistribution value="null"/>
     <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
@@ -1922,6 +2034,11 @@
     <formatVersion>2</formatVersion>
     <version>0.9.4</version>
     <nodeOperator value="multi">
+      <!-- Cosmological epoch -->
+      <nodeOperator value="cosmicTime"/>
+      <!-- DMO evolution -->
+      <nodeOperator value="DMOInterpolate"/>
+      <!-- Halo concentrations -->
       <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
     </nodeOperator>
