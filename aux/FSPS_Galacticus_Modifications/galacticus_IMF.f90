@@ -29,7 +29,7 @@ contains
        close(iunit)
        allocate(massTable(nTable))
        allocate(imfTable(nTable))
-       allocate(y2(nTable))
+       allocate(y2(nTable+1))
        open(unit=iunit,file=trim(imfFileName),status="old",form="formatted",iostat=ierr)
        do i=1,nTable
           read (iunit,*,iostat=ierr) massTable(i),imfTable(i)
@@ -82,10 +82,12 @@ contains
     ! Compute number of points.
     n=size(x)
     ! Compute h and b.
-    do i=0,n-1
+    do i=0,n-2
        h(i)= x(i+1)-x(i)
        b(i)=(y(i+1)-y(i))/h(i)
     end do
+    h(n-1)=h(n-2)
+    b(n-1)=b(n-2)
     ! Gaussian elimination.
     u(1)=2.0*(h(0)+h(1))
     v(1)=6.0*(b(1)-b(0))
