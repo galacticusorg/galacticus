@@ -25,7 +25,7 @@ module Node_Component_Halo_Angular_Momentum_Scalar
   !!{
   Implement a scalar spin component for tree nodes.
   !!}
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   implicit none
   private
   public :: Node_Component_Halo_Angular_Momentum_Scalar_Thread_Initialize, Node_Component_Halo_Angular_Momentum_Scalar_Thread_Uninitialize, &
@@ -56,8 +56,8 @@ module Node_Component_Halo_Angular_Momentum_Scalar
   !!]
 
   ! Objects used by this component.
-  class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
-  !$omp threadprivate(darkMatterProfileDMO_)
+  class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+  !$omp threadprivate(darkMatterHaloScale_)
 
 contains
 
@@ -78,7 +78,7 @@ contains
 
     if (defaultSpinComponent%scalarIsActive()) then
        !![
-       <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters_"/>
+       <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
        !!]
      end if
      return
@@ -98,7 +98,7 @@ contains
 
     if (defaultSpinComponent%scalarIsActive()) then
        !![
-       <objectDestructor name="darkMatterProfileDMO_"/>
+       <objectDestructor name="darkMatterHaloScale_"/>
        !!]
     end if
     return
@@ -128,7 +128,7 @@ contains
     select type (spin)
     class is (nodeComponentSpinScalar)
        ! Set scale for spin.
-       call spin%angularMomentumScale(max(spin%angularMomentum(),spinMinimum*Dark_Matter_Halo_Angular_Momentum_Scale(node,darkMatterProfileDMO_)))
+       call spin%angularMomentumScale(max(spin%angularMomentum(),spinMinimum*Dark_Matter_Halo_Angular_Momentum_Scale(node,darkMatterHaloScale_=darkMatterHaloScale_,useBullockDefinition=.true.)))
     end select
     return
   end subroutine Node_Component_Halo_Angular_Momentum_Scalar_Scale_Set
@@ -151,7 +151,7 @@ contains
 
     call displayMessage('Storing state for: componentSpin -> scalar',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="darkMatterProfileDMO_"/>
+    <stateStore variables="darkMatterHaloScale_"/>
     !!]
     return
   end subroutine Node_Component_Halo_Angular_Momentum_Scalar_State_Store
@@ -174,7 +174,7 @@ contains
 
     call displayMessage('Retrieving state for: componentSpin -> scalar',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="darkMatterProfileDMO_"/>
+    <stateRestore variables="darkMatterHaloScale_"/>
     !!]
     return
   end subroutine Node_Component_Halo_Angular_Momentum_Scalar_State_Restore

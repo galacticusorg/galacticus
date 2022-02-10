@@ -25,7 +25,7 @@ module Node_Component_Halo_Angular_Momentum_Vector
   !!{
   Implements the vector spin component.
   !!}
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Dark_Matter_Halo_Scales, only : darkMatterHaloScaleClass
   implicit none
   private
   public :: Node_Component_Halo_Angular_Momentum_Vector_Thread_Initialize, Node_Component_Halo_Angular_Momentum_Vector_Thread_Uninitialize, &
@@ -67,8 +67,8 @@ module Node_Component_Halo_Angular_Momentum_Vector
   !!]
 
   ! Objects used by this component.
-  class(darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_
-  !$omp threadprivate(darkMatterProfileDMO_)
+  class(darkMatterHaloScaleClass), pointer :: darkMatterHaloScale_
+  !$omp threadprivate(darkMatterHaloScale_)
 
 contains
 
@@ -110,7 +110,7 @@ contains
     
     if (defaultSpinComponent%vectorIsActive()) then
        !![
-       <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters_"/>
+       <objectBuilder class="darkMatterHaloScale" name="darkMatterHaloScale_" source="parameters_"/>
        !!]
     end if
     return
@@ -130,7 +130,7 @@ contains
 
     if (defaultSpinComponent%vectorIsActive()) then
        !![
-       <objectDestructor name="darkMatterProfileDMO_"/>
+       <objectDestructor name="darkMatterHaloScale_"/>
        !!]
     end if
     return
@@ -160,7 +160,7 @@ contains
     select type (spin)
     class is (nodeComponentSpinVector)
        ! Set scale for spin.
-       call spin%angularMomentumVectorScale([1.0d0,1.0d0,1.0d0]*max(spin%angularMomentum(),spinMinimum*Dark_Matter_Halo_Angular_Momentum_Scale(node,darkMatterProfileDMO_)))
+       call spin%angularMomentumVectorScale([1.0d0,1.0d0,1.0d0]*max(spin%angularMomentum(),spinMinimum*Dark_Matter_Halo_Angular_Momentum_Scale(node,darkMatterHaloScale_=darkMatterHaloScale_,useBullockDefinition=.true.)))
     end select
     return
   end subroutine Node_Component_Halo_Angular_Momentum_Vector_Scale_Set
@@ -198,7 +198,7 @@ contains
 
     call displayMessage('Storing state for: componentSpin -> vectore',verbosity=verbosityLevelInfo)
     !![
-    <stateStore variables="darkMatterProfileDMO_"/>
+    <stateStore variables="darkMatterHaloScale_"/>
     !!]
     return
   end subroutine Node_Component_Halo_Angular_Momentum_Vector_State_Store
@@ -221,7 +221,7 @@ contains
 
     call displayMessage('Retrieving state for: componentSpin -> vector',verbosity=verbosityLevelInfo)
     !![
-    <stateRestore variables="darkMatterProfileDMO_"/>
+    <stateRestore variables="darkMatterHaloScale_"/>
     !!]
     return
   end subroutine Node_Component_Halo_Angular_Momentum_Vector_State_Restore

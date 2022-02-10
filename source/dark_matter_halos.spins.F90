@@ -64,23 +64,43 @@ contains
     return
   end subroutine assertPropertiesGettable
 
-  double precision function Dark_Matter_Halo_Angular_Momentum_Scale(node,darkMatterProfileDMO_)
+  double precision function Dark_Matter_Halo_Angular_Momentum_Scale(node,darkMatterProfileDMO_,darkMatterHaloScale_,useBullockDefinition)
     !!{
     Returns the characteristic anuglar momentum scale of {\normalfont \ttfamily node} (as used in spin definitions) based on its mass, and energy.
     !!}
     use :: Dark_Matter_Profiles_DMO        , only : darkMatterProfileDMOClass
+    use :: Dark_Matter_Halo_Scales         , only : darkMatterHaloScaleClass
     use :: Galacticus_Nodes                , only : nodeComponentBasic             , treeNode
+    use :: Galacticus_Error                , only : Galacticus_Error_Report
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
-    type (treeNode                 ), intent(inout) :: node
-    class(darkMatterProfileDMOClass), intent(inout) :: darkMatterProfileDMO_
-    class(nodeComponentBasic       ), pointer       :: basic
-
+    type   (treeNode                 ), intent(inout)           :: node
+    class  (darkMatterProfileDMOClass), intent(inout), optional :: darkMatterProfileDMO_
+    class  (darkMatterHaloScaleClass ), intent(inout), optional :: darkMatterHaloScale_
+    logical                           , intent(in   ), optional :: useBullockDefinition
+    class  (nodeComponentBasic       ), pointer                 :: basic
+    !![
+    <optionalArgument name="useBullockDefinition" defaultsTo=".false." />
+    !!]
+    
     call assertPropertiesGettable()
     basic => node%basic()
-    Dark_Matter_Halo_Angular_Momentum_Scale=+gravitationalConstantGalacticus                      &
-         &                                  *         basic                %mass  (    )**2.5d0   &
-         &                                  /sqrt(abs(darkMatterProfileDMO_%energy(node)       ))
+    if (useBullockDefinition_) then
+       ! Use the halo angular momentum scale used in the Bullock et al. (2001; http://adsabs.harvard.edu/abs/2001ApJ...555..240B)
+       ! definition of halo spin.
+       if (.not.present(darkMatterHaloScale_ )) call Galacticus_Error_Report('"darkMatterHaloScale_" must be supplied' //{introspection:location})
+       Dark_Matter_Halo_Angular_Momentum_Scale=+sqrt(2.0d0)                               &
+            &                                  *basic               %mass          (    ) &
+            &                                  *darkMatterHaloScale_%velocityVirial(node) &
+            &                                  *darkMatterHaloScale_%radiusVirial  (node)
+    else
+       ! Use the halo angular momentum scale used in the Peebles (1971; http://adsabs.harvard.edu/abs/1971A%26A....11..377P)
+       ! definition of halo spin.
+        if (.not.present(darkMatterProfileDMO_)) call Galacticus_Error_Report('"darkMatterProfileDMO_" must be supplied'//{introspection:location})
+        Dark_Matter_Halo_Angular_Momentum_Scale=+gravitationalConstantGalacticus                      &
+             &                                  *         basic                %mass  (    )**2.5d0   &
+             &                                  /sqrt(abs(darkMatterProfileDMO_%energy(node)       ))
+    end if
     return
   end function Dark_Matter_Halo_Angular_Momentum_Scale
 
