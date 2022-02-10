@@ -82,9 +82,16 @@
   <!-- Galactic structure options -->
   <galacticStructureSolver value="fixed"/>
 
-  <!-- Maximum host mass -->
-  <nodeOperator value="massHostMaximum"/>
-
+  <!-- Node evolution and physics -->
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Maximum host mass -->
+    <nodeOperator value="massHostMaximum"/>
+  </nodeOperator>
+  
   <!-- Numerical tolerances -->
   <mergerTreeNodeEvolver value="standard">
     <odeToleranceAbsolute value="0.01"/>

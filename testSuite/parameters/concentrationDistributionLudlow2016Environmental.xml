@@ -92,6 +92,11 @@
   </darkMatterProfileScaleRadius>
   <darkMatterProfileConcentration value="diemerJoyce2019"/>
   <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Halo concentrations -->
     <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
   </nodeOperator>

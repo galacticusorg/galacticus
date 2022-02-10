@@ -195,6 +195,10 @@
 
   <!-- Node evolution and physics -->
   <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
     <!-- Include calculation of mean interoutput star formation rate -->
     <nodeOperator value="starFormationRateInterOutput"/>
     <!-- Halo concentrations -->

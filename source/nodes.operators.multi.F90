@@ -56,6 +56,7 @@
      procedure :: differentialEvolutionInactives      => multiDifferentialEvolutionInactives
      procedure :: differentialEvolutionStepFinalState => multiDifferentialEvolutionStepFinalState
      procedure :: differentialEvolutionPost           => multiDifferentialEvolutionPost
+     procedure :: differentialEvolutionPostStep       => multiDifferentialEvolutionPostStep
   end type nodeOperatorMulti
 
   interface nodeOperatorMulti
@@ -330,3 +331,21 @@ contains
     end do
     return
   end subroutine multiDifferentialEvolutionPost
+
+  subroutine multiDifferentialEvolutionPostStep(self,node,status)
+    !!{
+    Act on a node after a differential evolution step.
+    !!}
+    implicit none
+    class  (nodeOperatorMulti), intent(inout) :: self
+    type   (treeNode         ), intent(inout) :: node
+    integer                   , intent(inout) :: status
+    type   (multiProcessList ), pointer       :: process_
+
+    process_ => self%processes
+    do while (associated(process_))
+       call process_%process_%differentialEvolutionPostStep(node,status)
+       process_ => process_%next
+    end do
+    return
+  end subroutine multiDifferentialEvolutionPostStep

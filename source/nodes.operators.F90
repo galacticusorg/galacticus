@@ -138,6 +138,16 @@ module Nodes_Operators
 	!$GLC attributes unused :: self, node
       </code>
     </method>
+    <method name="differentialEvolutionPostStep" >
+      <description>Operate on a node after a differential evolution step.</description>
+      <type>void</type>
+      <pass>yes</pass>
+      <argument>type   (treeNode), intent(inout) :: node</argument>
+      <argument>integer          , intent(inout) :: status</argument>
+      <code>
+	!$GLC attributes unused :: self, node, status
+      </code>
+    </method>
   </functionClass>
   !!]
 
