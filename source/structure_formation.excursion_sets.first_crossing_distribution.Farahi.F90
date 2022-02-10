@@ -1164,7 +1164,7 @@ contains
        write (label,'(e22.16)') self%timeMaximumRate
        message=var_str('    time maximum: ')//label//' Gyr'
        write (label,'(e22.16)') self%varianceMaximumRate
-       message=var_str('variance minimum: ')//label
+       message=var_str('variance maximum: ')//label
        call displayMessage (message,verbosityLevelWorking)
        call displayUnindent(''     ,verbosityLevelWorking)
     end if
@@ -1235,7 +1235,7 @@ contains
        write (label,'(e22.16)') self%timeMaximumRate
        message=var_str('    time maximum: ')//label//' Gyr'
        write (label,'(e22.16)') self%varianceMaximumRate
-       message=var_str('variance minimum: ')//label
+       message=var_str('variance maximum: ')//label
        call displayMessage (message,verbosityLevelWorking)
        call displayUnindent(''     ,verbosityLevelWorking)
     end if
