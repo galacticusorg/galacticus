@@ -130,7 +130,12 @@ sub checkLink {
 	$status = exists($pdfDestinations->{$suffix}) && exists($pdfDestinations->{$suffix}->{$anchor});
     } else {
 	# An external link. Include a short sleep here to rate limit requests.
-	system("sleep 1; curl --silent --insecure --location --output /dev/null --fail --range 0-0 \"".$url."\"");
+	## --cipher 'DEFAULT:!DH' - this reduces the default security level which otherwise prevents some URLs from being downloaded.
+	## --range 0-0 - this causes on bytes to actually be downloaded - this is disabled on some sites as it seems to break them
+	my $options = "--silent --insecure --location --output /dev/null --fail --cipher 'DEFAULT:!DH'";
+	$options .= " --range 0-0"
+	    unless ( $url =~ m/^https:\/\/www\.drdobbs\.com\// );
+	system("sleep 1; curl ".$options." \"".$url."\"");
 	$status = $? == 0 ? 1 : 0;	
     }
     return $status;
