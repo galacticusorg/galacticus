@@ -105,7 +105,7 @@ sub scanWiki {
 	    my $url = $1;
 	    $line =~ s/\[[^\]]+\]\(([^\)]+)\)//;
 	    unless ( &checkLink($url) ) {
-		print "Broken link: \"".$url."\" in ".$path."/".$fileName." line ".$lineNumber."\n";
+		print "Broken link: \"".$url."\" in ".$path."/".$fileName." line ".$lineNumber." (see preceededing log)\n";
 		push(@brokenURLs,$url." in ".$path."/".$fileName." line ".$lineNumber);
 	    }
 	}
@@ -137,6 +137,10 @@ sub checkLink {
 	    unless ( $url =~ m/^https:\/\/www\.drdobbs\.com\// );
 	system("sleep 1; curl ".$options." \"".$url."\"");
 	$status = $? == 0 ? 1 : 0;	
+	$options =~ s/\-\-silent//;
+	$options =~ s/\-\-fail//;
+	system("sleep 1; curl ".$options." \"".$url."\"")
+	    unless ( $status );
     }
     return $status;
 }

@@ -73,8 +73,15 @@
   <galacticStructureSolver value="fixed"/>
 
   <!-- Node evolution and physics -->
-  <nodeOperator value="massCooled"/>
-
+  <nodeOperator value="multi">
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
+    <!-- Gas cooling -->
+    <nodeOperator value="massCooled"/>
+  </nodeOperator>
+  
   <!-- Numerical tolerances -->
   <mergerTreeNodeEvolver value="standard">
     <odeToleranceAbsolute value="0.01"/>

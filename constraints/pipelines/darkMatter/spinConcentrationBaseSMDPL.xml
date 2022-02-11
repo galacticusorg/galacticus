@@ -164,6 +164,10 @@
     </nodeOperator>
     <nodeOperator value="haloAngularMomentumInterpolate"   />
     <nodeOperator value="nodeMajorMergerTime"              />
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
   </nodeOperator>
 
   <!-- Output options -->

@@ -407,8 +407,7 @@ contains
 
   !![
   <postStepTask>
-  <unitName>Node_Component_Spheroid_Standard_Post_Step</unitName>
-  <after>Node_Component_Basic_Standard_Post_Step</after>
+    <unitName>Node_Component_Spheroid_Standard_Post_Step</unitName>
   </postStepTask>
   !!]
   subroutine Node_Component_Spheroid_Standard_Post_Step(node,status)

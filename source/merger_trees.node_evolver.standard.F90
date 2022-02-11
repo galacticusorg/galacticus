@@ -1102,7 +1102,8 @@ contains
     real   (kind=c_double), intent(inout), dimension(*) :: y
     integer(kind=c_int   ), intent(inout)               :: postStepStatus
 
-    call standardSelf%activeNode%deserializeValues(y(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
+    call standardSelf%activeNode   %deserializeValues            (y(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
+    call standardSelf%nodeOperator_%differentialEvolutionPostStep(standardSelf%activeNode,postStepStatus)
     !![
     <include directive="postStepTask" type="functionCall" functionType="void">
      <functionArgs>standardSelf%activeNode,postStepStatus</functionArgs>

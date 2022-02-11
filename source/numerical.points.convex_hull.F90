@@ -36,7 +36,7 @@ module Points_Convex_Hull
 
   type :: convexHull
      !!{
-     Type used to wrap \href{qhull}{http://www.qhull.org} convex hull objects.
+     Type used to wrap \href{http://www.qhull.org}{qhull} convex hull objects.
      !!}
      type(c_ptr) :: qhull=c_null_ptr
    contains

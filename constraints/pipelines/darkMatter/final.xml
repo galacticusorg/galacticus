@@ -24,5 +24,9 @@
       <exponentMass value="0.10475"/>
     </nodeOperator>
     <nodeOperator value="haloAngularMomentumInterpolate"   />
+    <!-- Cosmological epoch -->
+    <nodeOperator value="cosmicTime"/>
+    <!-- DMO evolution -->
+    <nodeOperator value="DMOInterpolate"/>
   </nodeOperator>
 </parameters>
