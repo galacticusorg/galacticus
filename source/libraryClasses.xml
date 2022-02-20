@@ -28,7 +28,15 @@
     <excursionSetFirstCrossing/>
     <nbodyHaloMassError/>
     <darkMatterHaloScale/>
-    <darkMatterProfileDMO/>
+    <darkMatterProfileDMO>
+      <darkMatterProfileDMOAccretionFlow>
+	<constructor>
+	  <!-- The accretion flow DMO density profile class uses an unlimited polymorphic object in the constructor. We must
+	       provide a concrete type for it here to allow it to be passed via a C-style interface. -->
+	  <argument name="accretionFlows_" type="accretionFlowsClass" module="Accretion_Flows"/>
+	</constructor>
+      </darkMatterProfileDMOAccretionFlow>
+    </darkMatterProfileDMO>
     <darkMatterProfileHeating/>
     <haloMassFunction/>
   </classes>

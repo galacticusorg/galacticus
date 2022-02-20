@@ -103,6 +103,13 @@
 	<nodeOperator value="nodeFormationTimeCole2000" iterable="no"/>
       </nodeOperator>
     </darkMatterProfileDMO>
+    <darkMatterProfileDMO value="accretionFlow">
+      <toleranceRelativePotential value="1.0e-5"/>
+      <darkMatterProfileDMO value="NFW"/>
+      <accretionFlows value="diemerKravtsov2014" parameterLevel="top">
+	<darkMatterProfileDMO value="NFW"/>
+      </accretionFlows>
+    </darkMatterProfileDMO>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
