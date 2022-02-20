@@ -1731,7 +1731,7 @@ contains
     !!}
     use :: FoX_DOM           , only : serialize
     use :: ISO_Varying_String, only : char
-   implicit none
+    implicit none
     class(inputParameters), intent(in   ) :: self
     type (varying_string ), intent(in   ) :: parameterFile
 
