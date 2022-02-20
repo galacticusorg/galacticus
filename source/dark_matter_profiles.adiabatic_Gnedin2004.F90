@@ -174,9 +174,9 @@
   class           (darkMatterProfileAdiabaticGnedin2004), pointer   :: adiabaticGnedin2004Self
   !$omp threadprivate(adiabaticGnedin2004Self,adiabaticGnedin2004Node)
     
-  contains
+contains
 
-    recursive function adiabaticGnedin2004ConstructorParameters(parameters,recursiveConstruct,recursiveSelf) result(self)
+  recursive function adiabaticGnedin2004ConstructorParameters(parameters,recursiveConstruct,recursiveSelf) result(self)
     !!{
     Default constructor for the {\normalfont \ttfamily adiabaticGnedin2004} dark matter halo profile class.
     !!}
@@ -287,7 +287,7 @@
        end select
     end if
     self%parentDeferred=.false.
-     return
+    return
   end function adiabaticGnedin2004ConstructorInternal
 
   subroutine adiabaticGnedin2004AutoHook(self)
