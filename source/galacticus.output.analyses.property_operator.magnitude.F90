@@ -52,9 +52,11 @@ contains
     implicit none
     type(outputAnalysisPropertyOperatorMagnitude)                :: magnitudeConstructorParameters
     type(inputParameters                        ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     magnitudeConstructorParameters=outputAnalysisPropertyOperatorMagnitude()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function magnitudeConstructorParameters
 

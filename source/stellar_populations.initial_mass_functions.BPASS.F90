@@ -61,9 +61,11 @@ contains
     implicit none
     type(initialMassFunctionBPASS)                :: self
     type(inputParameters         ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=initialMassFunctionBPASS()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function bpassConstructorParameters
 

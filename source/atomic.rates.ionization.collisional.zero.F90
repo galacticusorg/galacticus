@@ -53,9 +53,11 @@ contains
     implicit none
     type(atomicIonizationRateCollisionalZero)                :: self
     type(inputParameters                    ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=atomicIonizationRateCollisionalZero()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function zeroConstructorParameters
 

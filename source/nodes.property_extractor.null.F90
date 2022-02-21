@@ -51,10 +51,12 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(nodePropertyExtractorNull)                :: nullConstructorParameters
-    type(inputParameters                    ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
+    type(inputParameters          ), intent(inout) :: parameters
 
     nullConstructorParameters=nodePropertyExtractorNull()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function nullConstructorParameters
 

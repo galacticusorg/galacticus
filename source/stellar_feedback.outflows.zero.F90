@@ -52,9 +52,11 @@ contains
     implicit none
     type(stellarFeedbackOutflowsZero)                :: self
     type(inputParameters            ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=stellarFeedbackOutflowsZero()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function zeroConstructorParameters
 

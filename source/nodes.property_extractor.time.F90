@@ -56,9 +56,11 @@ contains
     implicit none
     type (nodePropertyExtractorTime)                :: self
     type (inputParameters          ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
     
     self=nodePropertyExtractorTime()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function timeConstructorParameters
 

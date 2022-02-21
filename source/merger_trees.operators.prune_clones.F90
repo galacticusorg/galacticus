@@ -52,9 +52,11 @@ contains
     implicit none
     type(mergerTreeOperatorPruneClones)                :: pruneClonesConstructorParameters
     type(inputParameters              ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     pruneClonesConstructorParameters=mergerTreeOperatorPruneClones()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function pruneClonesConstructorParameters
 

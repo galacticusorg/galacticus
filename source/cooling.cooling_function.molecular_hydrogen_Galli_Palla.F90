@@ -131,9 +131,11 @@ contains
     implicit none
     type(coolingFunctionMolecularHydrogenGalliPalla)                :: self
     type(inputParameters                           ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=coolingFunctionMolecularHydrogenGalliPalla()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function molecularHydrogenGalliPallaConstructorParameters
 

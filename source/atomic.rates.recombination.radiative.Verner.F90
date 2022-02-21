@@ -553,9 +553,11 @@ contains
     implicit none
     type(atomicRecombinationRateRadiativeVerner1996)                :: self
     type(inputParameters                           ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=atomicRecombinationRateRadiativeVerner1996()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function verner1996ConstructorParameters
 

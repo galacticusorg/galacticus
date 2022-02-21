@@ -54,9 +54,11 @@ contains
     implicit none
     type(nodeOperatorIndexBranchTip)                :: self
     type(inputParameters           ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
     
     self=nodeOperatorIndexBranchTip()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function indexBranchTipConstructorParameters
 

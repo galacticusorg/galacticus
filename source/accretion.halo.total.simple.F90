@@ -55,9 +55,11 @@ contains
     implicit none
     type(accretionHaloTotalSimple)                :: self
     type(inputParameters         ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=accretionHaloTotalSimple()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function simpleConstructorParameters
 

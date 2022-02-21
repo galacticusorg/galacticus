@@ -57,9 +57,11 @@ contains
     implicit none
     type(blackHoleBinarySeparationGrowthRateZero)                :: self
     type(inputParameters                        ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=blackHoleBinarySeparationGrowthRateZero()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function zeroConstructorParameters
 

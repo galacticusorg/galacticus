@@ -50,9 +50,11 @@ contains
     implicit none
     type(gravitationalLensingNull)                :: self
     type(inputParameters         ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
     
     self=gravitationalLensingNull()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function nullConstructorParameters
 

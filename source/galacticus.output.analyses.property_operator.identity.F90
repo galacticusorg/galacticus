@@ -52,9 +52,11 @@ contains
     implicit none
     type(outputAnalysisPropertyOperatorIdentity)                :: identityConstructorParameters
     type(inputParameters                       ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     identityConstructorParameters=outputAnalysisPropertyOperatorIdentity()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function identityConstructorParameters
 

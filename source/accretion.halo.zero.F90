@@ -60,9 +60,11 @@ contains
     implicit none
     type(accretionHaloZero)                :: self
     type(inputParameters  ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=accretionHaloZero()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function zeroConstructorParameters
 

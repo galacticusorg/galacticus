@@ -60,9 +60,11 @@ contains
     implicit none
     type(initialMassFunctionBaugh2005TopHeavy)                :: self
     type(inputParameters                     ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=initialMassFunctionBaugh2005TopHeavy()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function baugh2005TopHeavyConstructorParameters
 

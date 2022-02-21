@@ -55,9 +55,11 @@ contains
     implicit none
     type(atomicExcitationRateCollisionalScholzWalters1991)                :: self
     type(inputParameters                                 ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=atomicExcitationRateCollisionalScholzWalters1991()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function scholzWalters1991ConstructorParameters
 

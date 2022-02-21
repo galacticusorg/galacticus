@@ -91,10 +91,11 @@ contains
     implicit none
     type(surveyGeometryBernardi2013SDSS)                :: self
     type(inputParameters               ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
-    ! Build the object.
     self=surveyGeometryBernardi2013SDSS()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function bernardi2013SDSSConstructorParameters
 

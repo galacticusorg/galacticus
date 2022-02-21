@@ -52,9 +52,11 @@ contains
     implicit none
     type(outputAnalysisPropertyOperatorBoolean)                :: self
     type(inputParameters                      ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=outputAnalysisPropertyOperatorBoolean()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function booleanConstructorParameters
 

@@ -55,9 +55,11 @@ contains
     implicit none
     type(stellarPopulationSpectraPostprocessorLycSuppress)                :: self
     type(inputParameters                                 ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=stellarPopulationSpectraPostprocessorLycSuppress()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function lycSuppressConstructorParameters
 

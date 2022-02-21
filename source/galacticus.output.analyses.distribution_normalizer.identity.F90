@@ -52,9 +52,11 @@ contains
     implicit none
     type(outputAnalysisDistributionNormalizerIdentity)                :: self
     type(inputParameters                             ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=outputAnalysisDistributionNormalizerIdentity()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function identityConstructorParameters
 

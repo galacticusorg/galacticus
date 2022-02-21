@@ -59,9 +59,11 @@ contains
     implicit none
     type(coolingSpecificAngularMomentumMean)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=coolingSpecificAngularMomentumMean()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function meanConstructorParameters
 

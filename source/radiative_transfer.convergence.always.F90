@@ -49,9 +49,11 @@ contains
     implicit none
     type(radiativeTransferConvergenceAlways)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
     
     self=radiativeTransferConvergenceAlways()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function alwaysConstructorParameters
 

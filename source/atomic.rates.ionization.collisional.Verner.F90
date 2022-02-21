@@ -466,9 +466,11 @@ contains
     implicit none
     type(atomicIonizationRateCollisionalVerner1996)                :: self
     type(inputParameters                          ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=atomicIonizationRateCollisionalVerner1996()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function verner1996ConstructorParameters
 

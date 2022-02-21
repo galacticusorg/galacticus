@@ -55,9 +55,11 @@ contains
     implicit none
     type(satelliteTidalStrippingZero)                :: self
     type(inputParameters            ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=satelliteTidalStrippingZero()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function zeroConstructorParameters
 

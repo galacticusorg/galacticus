@@ -55,9 +55,11 @@ contains
     implicit none
     type(chemicalReactionRateZero)                :: self
     type(inputParameters         ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=chemicalReactionRateZero()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function zeroConstructorParameters
 

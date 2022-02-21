@@ -62,9 +62,11 @@ contains
     implicit none
     type(initialMassFunctionKennicutt1983)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=initialMassFunctionKennicutt1983()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function kennicutt1983ConstructorParameters
 

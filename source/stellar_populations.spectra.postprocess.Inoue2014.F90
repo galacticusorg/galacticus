@@ -147,9 +147,11 @@ contains
     implicit none
     type(stellarPopulationSpectraPostprocessorInoue2014)                :: self
     type(inputParameters                               ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=stellarPopulationSpectraPostprocessorInoue2014()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function inoue2014ConstructorParameters
 

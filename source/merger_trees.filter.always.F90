@@ -51,10 +51,12 @@ contains
     use :: Input_Parameters, only : inputParameters
     implicit none
     type(mergerTreeFilterAlways)                :: alwaysConstructorParameters
-    type(inputParameters       ), intent(in   ) :: parameters
-    !$GLC attributes unused :: parameters
+    type(inputParameters       ), intent(inout) :: parameters
 
     alwaysConstructorParameters=mergerTreeFilterAlways()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function alwaysConstructorParameters
 

@@ -52,9 +52,11 @@ contains
     implicit none
     type(outputAnalysisDistributionNormalizerBinWidth)                :: self
     type(inputParameters                             ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=outputAnalysisDistributionNormalizerBinWidth()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function binWidthConstructorParameters
 

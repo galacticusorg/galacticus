@@ -52,10 +52,12 @@ contains
     implicit none
     type(stellarSpectraDustAttenuationZero)                :: self
     type(inputParameters                  ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=stellarSpectraDustAttenuationZero()
-   return
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
+    return
   end function zeroConstructorParameters
 
   double precision function zeroAttenuation(self,wavelength,age,vBandAttenuation)

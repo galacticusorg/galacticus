@@ -52,9 +52,11 @@ contains
     implicit none
     type(radiationFieldNull)                :: self
     type(inputParameters   ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=radiationFieldNull()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function nullConstructorParameters
 

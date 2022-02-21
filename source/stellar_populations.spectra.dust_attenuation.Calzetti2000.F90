@@ -53,9 +53,11 @@ contains
     implicit none
     type(stellarSpectraDustAttenuationCalzetti2000)                :: self
     type(inputParameters                          ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=stellarSpectraDustAttenuationCalzetti2000()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function calzetti2000ConstructorParameters
 

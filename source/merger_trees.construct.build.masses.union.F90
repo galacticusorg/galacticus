@@ -73,6 +73,9 @@ contains
        end if
        mergerTreeBuildMasses_%mergerTreeBuildMasses_ => mergerTreeBuildMasses(parameters,i)
     end do
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function unionConstructorParameters
 

@@ -63,9 +63,11 @@ contains
     implicit none
     type(initialMassFunctionKroupa2001)                :: self
     type(inputParameters              ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=initialMassFunctionKroupa2001()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function kroupa2001ConstructorParameters
 

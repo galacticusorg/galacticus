@@ -52,9 +52,11 @@ contains
     implicit none
     type(outputAnalysisPropertyOperatorLog10)                :: log10ConstructorParameters
     type(inputParameters                    ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     log10ConstructorParameters=outputAnalysisPropertyOperatorLog10()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function log10ConstructorParameters
 

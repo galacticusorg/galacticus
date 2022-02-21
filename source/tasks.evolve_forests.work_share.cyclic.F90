@@ -56,9 +56,11 @@ contains
     implicit none
     type(evolveForestsWorkShareCyclic)                :: self
     type(inputParameters             ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=evolveForestsWorkShareCyclic()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function cyclicConstructorParameters
 

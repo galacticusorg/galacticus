@@ -92,6 +92,9 @@ contains
     </inputParameter>
     !!]
     self=virialDensityContrastFriendsOfFriends(linkingLength,densityRatio)
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function friendsOfFriendsConstructorParameters
 

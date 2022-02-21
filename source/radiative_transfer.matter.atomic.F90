@@ -229,6 +229,7 @@ contains
     !!]
     self=radiativeTransferMatterAtomic(abundancePattern,metallicity,elements,iterationAverageCount,temperatureMinimum,outputRates,outputAbsorptionCoefficients,convergencePercentile,massDistribution_,atomicCrossSectionIonizationPhoto_,atomicRecombinationRateRadiative_,atomicRecombinationRateRadiativeCooling_,atomicIonizationRateCollisional_,atomicRecombinationRateDielectronic_,atomicIonizationPotential_,atomicExcitationRateCollisional_,gauntFactor_)
     !![
+    <inputParametersValidate source="parameters"/>
     <objectDestructor name="massDistribution_"                       />
     <objectDestructor name="atomicCrossSectionIonizationPhoto_"      />
     <objectDestructor name="atomicRecombinationRateRadiative_"       />

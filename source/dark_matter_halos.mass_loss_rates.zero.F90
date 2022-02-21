@@ -54,9 +54,11 @@ contains
     implicit none
     type(darkMatterHaloMassLossRateZero)                :: self
     type(inputParameters               ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=darkMatterHaloMassLossRateZero()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function zeroConstructorParameters
 

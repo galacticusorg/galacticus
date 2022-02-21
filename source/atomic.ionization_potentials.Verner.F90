@@ -532,9 +532,11 @@ contains
     implicit none
     type(atomicIonizationPotentialVerner)                :: self
     type(inputParameters                ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=atomicIonizationPotentialVerner()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function vernerConstructorParameters
 

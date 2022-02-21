@@ -53,9 +53,11 @@ contains
     implicit none
     type(hotHaloOutflowReincorporationZero)                :: self
     type(inputParameters                  ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=hotHaloOutflowReincorporationZero()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function zeroConstructorParameters
 

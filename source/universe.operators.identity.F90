@@ -51,6 +51,9 @@ contains
     !$GLC attributes unused :: parameters
 
     self=universeOperatorIdentity()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function identityConstructorParameters
 

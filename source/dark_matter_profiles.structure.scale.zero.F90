@@ -54,9 +54,11 @@ contains
     implicit none
     type(darkMatterProfileScaleRadiusZero)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=darkMatterProfileScaleRadiusZero()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function zeroConstructorParameters
 

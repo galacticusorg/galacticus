@@ -63,6 +63,9 @@ contains
     </inputParameter>
     !!]
     self=radiativeTransferConvergenceHydrogenRecombinationRate(toleranceRelative)
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function hydrogenRecombinationRateConstructorParameters
 

@@ -55,9 +55,11 @@ contains
     implicit none
     type(mergerTreeBranchingProbabilityModifierIdentity)                :: self
     type(inputParameters                               ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=mergerTreeBranchingProbabilityModifierIdentity()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function identityConstructorParameters
 

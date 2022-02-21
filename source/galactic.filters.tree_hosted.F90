@@ -52,9 +52,11 @@ contains
     implicit none
     type(galacticFilterTreeHosted)                :: self
     type(inputParameters         ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=galacticFilterTreeHosted()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function treeHostedConstructorParameters
 

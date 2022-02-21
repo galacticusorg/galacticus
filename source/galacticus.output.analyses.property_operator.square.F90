@@ -52,9 +52,11 @@ contains
     implicit none
     type(outputAnalysisPropertyOperatorSquare)                :: squareConstructorParameters
     type(inputParameters                     ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     squareConstructorParameters=outputAnalysisPropertyOperatorSquare()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function squareConstructorParameters
 

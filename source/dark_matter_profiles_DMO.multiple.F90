@@ -83,6 +83,7 @@ contains
     !!]
     self=darkMatterProfileDMOMultiple(darkMatterProfileDMOHost_,darkMatterProfileDMOSatellite_)
     !![
+    <inputParametersValidate source="parameters"/>
     <objectDestructor name="darkMatterProfileDMOHost_"     />
     <objectDestructor name="darkMatterProfileDMOSatellite_"/>
     !!]

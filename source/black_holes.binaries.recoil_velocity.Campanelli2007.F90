@@ -82,9 +82,11 @@ contains
     implicit none
     type(blackHoleBinaryRecoilCampanelli2007)                :: self
     type(inputParameters                    ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=blackHoleBinaryRecoilCampanelli2007()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function campanelli2007ConstructorParameters
 

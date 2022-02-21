@@ -55,9 +55,11 @@ contains
     implicit none
     type(mergerRemnantSizeNull)                :: self
     type(inputParameters      ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=mergerRemnantSizeNull()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function nullConstructorParameters
 

@@ -56,9 +56,11 @@ contains
     implicit none
     type(satelliteMergingTimescalesRandom)                  :: self
     type(inputParameters                 ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=satelliteMergingTimescalesRandom()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function randomConstructorParameters
 

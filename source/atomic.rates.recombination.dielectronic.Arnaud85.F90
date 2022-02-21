@@ -230,9 +230,11 @@ contains
     implicit none
     type(atomicRecombinationRateDielectronicArnaud1985)                :: self
     type(inputParameters                              ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=atomicRecombinationRateDielectronicArnaud1985()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function arnaud1985ConstructorParameters
 

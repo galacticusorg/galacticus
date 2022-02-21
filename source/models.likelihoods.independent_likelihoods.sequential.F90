@@ -114,6 +114,9 @@ contains
     self%evaluateCount                                  =0
     self%evaluateCountGlobal                            =0
     self%forceCount                                     =0
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function independentLikelihoodsSequentialConstructorParameters
 

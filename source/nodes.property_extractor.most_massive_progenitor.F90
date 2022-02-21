@@ -61,9 +61,11 @@ contains
     implicit none
     type(nodePropertyExtractorMostMassiveProgenitor)                :: self
     type(inputParameters                           ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=nodePropertyExtractorMostMassiveProgenitor()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function mostMassiveProgenitorConstructorParameters
 

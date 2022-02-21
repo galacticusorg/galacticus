@@ -63,6 +63,9 @@ contains
     </inputParameter>
     !!]
     self=radiativeTransferConvergenceLycEscape(toleranceRelative)
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function lycEscapeConstructorParameters
 

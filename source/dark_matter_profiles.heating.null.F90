@@ -55,9 +55,11 @@ contains
     implicit none
     type(darkMatterProfileHeatingNull), target        :: self
     type(inputParameters             ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=darkMatterProfileHeatingNull()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function nullConstructorParameters
 

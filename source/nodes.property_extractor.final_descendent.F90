@@ -55,9 +55,11 @@ contains
     implicit none
     type(nodePropertyExtractorFinalDescendent)                :: finalDescendentConstructorParameters
     type(inputParameters                     ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     finalDescendentConstructorParameters=nodePropertyExtractorFinalDescendent()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function finalDescendentConstructorParameters
 

@@ -54,9 +54,11 @@ contains
     implicit none
     type(posteriorSampleStateInitializePriorRandom)                :: self
     type(inputParameters                          ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=posteriorSampleStateInitializePriorRandom()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function priorRandomConstructorParameters
 

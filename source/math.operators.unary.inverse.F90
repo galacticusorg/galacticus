@@ -54,9 +54,11 @@ contains
     implicit none
     type(operatorUnaryInverse)                :: self
     type(inputParameters     ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=operatorUnaryInverse()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function inverseConstructorParameters
 

@@ -57,9 +57,11 @@ contains
     implicit none
     type(nodePropertyExtractorMassBlackHole)                :: massBlackHoleConstructorParameters
     type(inputParameters                   ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     massBlackHoleConstructorParameters=nodePropertyExtractorMassBlackHole()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function massBlackHoleConstructorParameters
 

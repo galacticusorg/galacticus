@@ -68,6 +68,9 @@ contains
     </inputParameter>
     !!]
     self=stellarPopulationSpectraPostprocessorRecent(timeLimit)
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function recentConstructorParameters
 

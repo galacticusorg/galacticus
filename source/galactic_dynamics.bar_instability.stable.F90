@@ -56,9 +56,11 @@ contains
     implicit none
     type(galacticDynamicsBarInstabilityStable)                :: self
     type(inputParameters                     ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=galacticDynamicsBarInstabilityStable()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function stableConstructorParameters
 

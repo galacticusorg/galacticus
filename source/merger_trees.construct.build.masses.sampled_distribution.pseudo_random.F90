@@ -59,6 +59,7 @@ contains
     self%mergerTreeBuildMassesSampledDistribution=mergerTreeBuildMassesSampledDistribution(parameters)
     !![
     <objectBuilder class="randomNumberGenerator" name="self%randomNumberGenerator_" source="parameters"/>
+    <inputParametersValidate source="parameters"/>
     !!]
     return
   end function sampledDistributionPseudoRandomConstructorParameters

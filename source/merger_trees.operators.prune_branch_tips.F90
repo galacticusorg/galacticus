@@ -53,9 +53,11 @@ contains
     implicit none
     type   (mergerTreeOperatorPruneBranchTips)                :: self
     type   (inputParameters                  ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=mergerTreeOperatorPruneBranchTips()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function pruneBranchTipsConstructorParameters
 

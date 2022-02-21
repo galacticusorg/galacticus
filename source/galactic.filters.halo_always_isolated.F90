@@ -54,9 +54,11 @@ contains
     implicit none
     type(galacticFilterHaloAlwaysIsolated)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=galacticFilterHaloAlwaysIsolated()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function haloAlwaysIsolatedConstructorParameters
 
