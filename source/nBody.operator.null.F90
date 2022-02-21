@@ -52,9 +52,11 @@ contains
     implicit none
     type   (nbodyOperatorNull)                :: self
     type   (inputParameters  ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=nbodyOperatorNull()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function nullConstructorParameters
 

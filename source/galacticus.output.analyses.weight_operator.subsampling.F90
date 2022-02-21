@@ -52,10 +52,11 @@ contains
     implicit none
     type(outputAnalysisWeightOperatorSubsampling)                :: self
     type(inputParameters                        ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
-    ! Construct the object.
     self=outputAnalysisWeightOperatorSubsampling()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function subsamplingConstructorParameters
 

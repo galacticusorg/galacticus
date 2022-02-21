@@ -52,9 +52,11 @@ contains
     implicit none
     type(galacticFilterMainBranch)                :: self
     type(inputParameters         ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=galacticFilterMainBranch()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function mainBranchConstructorParameters
 

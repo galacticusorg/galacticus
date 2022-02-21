@@ -69,6 +69,9 @@ contains
     type (inputParameters                              ), intent(inout) :: parameters
 
     self%satelliteMergingTimescalesLaceyCole1993=satelliteMergingTimescalesLaceyCole1993(parameters)
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function laceyCole1993TormenConstructorParameters
 

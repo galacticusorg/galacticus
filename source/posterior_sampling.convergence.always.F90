@@ -56,9 +56,11 @@ contains
     implicit none
     type(posteriorSampleConvergenceAlways)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=posteriorSampleConvergenceAlways()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function alwaysConstructorParameters
 

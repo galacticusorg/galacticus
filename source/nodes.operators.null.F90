@@ -51,8 +51,10 @@ contains
     implicit none
     type(nodeOperatorNull)                :: self
     type(inputParameters ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=nodeOperatorNull()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function nullConstructorParameters

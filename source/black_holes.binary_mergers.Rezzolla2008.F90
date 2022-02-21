@@ -58,9 +58,11 @@ contains
     implicit none
     type(blackHoleBinaryMergerRezzolla2008)                :: self
     type(inputParameters                  ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=blackHoleBinaryMergerRezzolla2008()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function rezzolla2008ConstructorParameters
 

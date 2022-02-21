@@ -56,9 +56,11 @@ contains
     implicit none
     type (nodePropertyExtractorMassBasic)                :: self
     type (inputParameters               ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
     
     self=nodePropertyExtractorMassBasic()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function massBasicConstructorParameters
 

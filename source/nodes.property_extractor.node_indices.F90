@@ -90,9 +90,11 @@ contains
     implicit none
     type(nodePropertyExtractorNodeIndices)                :: self
     type(inputParameters                 ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=nodePropertyExtractorNodeIndices()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function nodeIndicesConstructorParameters
 

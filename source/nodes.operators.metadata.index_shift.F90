@@ -52,9 +52,11 @@ contains
     implicit none
     type(nodeOperatorIndexShift)                :: self
     type(inputParameters       ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
     
     self=nodeOperatorIndexShift()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function indexShiftConstructorParameters
 

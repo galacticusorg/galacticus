@@ -56,9 +56,11 @@ contains
     implicit none
     type (nodePropertyExtractorDarkMatterProfileShapeParameter)                :: self
     type (inputParameters                                  ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
     
     self=nodePropertyExtractorDarkMatterProfileShapeParameter()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function darkMatterProfileShapeParameterConstructorParameters
 

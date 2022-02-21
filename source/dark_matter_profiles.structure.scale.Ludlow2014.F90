@@ -63,6 +63,9 @@ contains
     type(inputParameters                       ), intent(inout) :: parameters
 
     self%darkMatterProfileScaleRadiusLudlow2016=darkMatterProfileScaleRadiusLudlow2016(parameters)
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function ludlow2014ConstructorParameters
 

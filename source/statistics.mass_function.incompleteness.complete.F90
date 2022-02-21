@@ -54,9 +54,11 @@ contains
     implicit none
     type(massFunctionIncompletenessComplete)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=massFunctionIncompletenessComplete()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function completeConstructorParameters
 

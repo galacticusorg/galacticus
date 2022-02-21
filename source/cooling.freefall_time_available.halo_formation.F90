@@ -62,9 +62,11 @@ contains
     implicit none
     type(freefallTimeAvailableHaloFormation)                :: self
     type(inputParameters                   ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=freefallTimeAvailableHaloFormation()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function haloFormationConstructorParameters
 

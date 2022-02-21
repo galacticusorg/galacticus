@@ -54,9 +54,11 @@ contains
     implicit none
     type(hotHaloRamPressureForceZero)                :: self
     type(inputParameters            ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=hotHaloRamPressureForceZero()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function zeroConstructorParameters
 

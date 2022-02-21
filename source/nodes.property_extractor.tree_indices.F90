@@ -55,9 +55,11 @@ contains
     implicit none
     type(nodePropertyExtractorIndicesTree)                :: indicesTreeConstructorParameters
     type(inputParameters                 ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     indicesTreeConstructorParameters=nodePropertyExtractorIndicesTree()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function indicesTreeConstructorParameters
 

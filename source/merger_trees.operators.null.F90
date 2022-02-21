@@ -51,8 +51,10 @@ contains
     implicit none
     type(mergerTreeOperatorNull)                :: nullConstructorParameters
     type(inputParameters       ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     nullConstructorParameters=mergerTreeOperatorNull()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function nullConstructorParameters

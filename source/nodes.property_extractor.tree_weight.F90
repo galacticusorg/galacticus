@@ -56,9 +56,11 @@ contains
     implicit none
     type(nodePropertyExtractorTreeWeight)                :: self
     type(inputParameters                ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=nodePropertyExtractorTreeWeight()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function treeWeightConstructorParameters
 

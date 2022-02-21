@@ -61,9 +61,11 @@ contains
     implicit none
     type(nodePropertyExtractorMainBranchStatus)                :: mainBranchStatusConstructorParameters
     type(inputParameters                      ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     mainBranchStatusConstructorParameters=nodePropertyExtractorMainBranchStatus()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function mainBranchStatusConstructorParameters
 

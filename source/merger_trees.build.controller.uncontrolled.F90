@@ -52,9 +52,11 @@ contains
     implicit none
     type(mergerTreeBuildControllerUncontrolled)                :: self
     type(inputParameters                      ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
     
     self=mergerTreeBuildControllerUncontrolled()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function uncontrolledConstructorParameters
 

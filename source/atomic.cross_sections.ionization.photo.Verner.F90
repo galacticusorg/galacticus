@@ -1953,9 +1953,11 @@ contains
     implicit none
     type(atomicCrossSectionIonizationPhotoVerner)                :: self
     type(inputParameters                        ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=atomicCrossSectionIonizationPhotoVerner()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function vernerConstructorParameters
 

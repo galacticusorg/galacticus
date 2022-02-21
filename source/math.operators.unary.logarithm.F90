@@ -57,9 +57,11 @@ contains
     implicit none
     type(operatorUnaryLogarithm)                :: self
     type(inputParameters       ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=operatorUnaryLogarithm()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function logarithmConstructorParameters
 

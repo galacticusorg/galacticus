@@ -65,6 +65,9 @@ contains
     !$GLC attributes unused :: parameters
 
     self=accretionDisksShakuraSunyaev()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function shakuraSunyaevConstructorParameters
 

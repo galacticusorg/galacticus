@@ -52,10 +52,12 @@ contains
     implicit none
     type(outputAnalysisWeightOperatorIdentity)                :: self
     type(inputParameters                     ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     ! Construct the object.
     self=outputAnalysisWeightOperatorIdentity()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function identityConstructorParameters
 

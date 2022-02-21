@@ -56,9 +56,11 @@ contains
     implicit none
     type (nodePropertyExtractorDarkMatterProfileScaleRadius)                :: self
     type (inputParameters                                  ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
     
     self=nodePropertyExtractorDarkMatterProfileScaleRadius()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function darkMatterProfileScaleRadiusConstructorParameters
 

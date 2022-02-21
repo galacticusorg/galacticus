@@ -52,9 +52,11 @@ contains
     implicit none
     type(posteriorSampleStoppingCriterionNever)                :: self
     type(inputParameters                      ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=posteriorSampleStoppingCriterionNever()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function neverConstructorParameters
 

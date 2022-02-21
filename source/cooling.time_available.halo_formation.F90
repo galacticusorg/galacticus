@@ -62,9 +62,11 @@ contains
     implicit none
     type(coolingTimeAvailableFormationTime)                :: self
     type(inputParameters                  ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=coolingTimeAvailableFormationTime()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function formationTimeConstructorParameters
 

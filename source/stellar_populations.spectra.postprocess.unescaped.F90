@@ -65,6 +65,9 @@ contains
     </inputParameter>
     !!]
     self=stellarPopulationSpectraPostprocessorUnescaped(timescale)
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function unescapedConstructorParameters
 

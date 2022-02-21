@@ -52,9 +52,11 @@ contains
     implicit none
     type(satelliteDynamicalFrictionZero)                :: self
     type(inputParameters               ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=satelliteDynamicalFrictionZero()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function zeroConstructorParameters
 

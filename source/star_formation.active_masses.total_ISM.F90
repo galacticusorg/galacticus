@@ -53,9 +53,11 @@ contains
     implicit none
     type(starFormationActiveMassTotalISM)                :: self
     type(inputParameters                ), intent(inout) :: parameters
-    !$GLC attributes unused : parameters
     
     self=starFormationActiveMassTotalISM()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function totalISMConstructorParameters
 

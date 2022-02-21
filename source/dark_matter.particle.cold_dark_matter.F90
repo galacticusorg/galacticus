@@ -53,9 +53,11 @@ contains
     implicit none
     type(darkMatterParticleCDM)                :: CDMConstructorParameters
     type(inputParameters      ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     CDMConstructorParameters=darkMatterParticleCDM()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function CDMConstructorParameters
 

@@ -56,9 +56,11 @@ contains
     implicit none
     type(nodePropertyExtractorSpeedOrbital)                :: self
     type(inputParameters                  ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=nodePropertyExtractorSpeedOrbital()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function speedOrbitalConstructorParameters
 

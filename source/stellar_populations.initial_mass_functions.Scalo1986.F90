@@ -65,9 +65,11 @@ contains
     implicit none
     type(initialMassFunctionScalo1986)                :: self
     type(inputParameters             ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=initialMassFunctionScalo1986()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function scalo1986ConstructorParameters
 

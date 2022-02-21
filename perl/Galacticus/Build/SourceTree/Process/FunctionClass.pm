@@ -680,6 +680,7 @@ CODE
 	    };
 	    # Add "allowedParameters" method.
 	    my $allowedParametersCode;
+	    my $allowedParameters;
 	    my $parametersPresent = 0;
 	    foreach my $class ( @classes ) {
 		(my $label = $class->{'name'}) =~ s/^$directive->{'name'}//;
@@ -701,8 +702,7 @@ CODE
 		}
 		# Search for constructors.
 		$node = $class->{'tree'}->{'firstChild'};
-		my $allowedParameters;
-		my $declarationMatches = 0;
+		$allowedParameters->{$class->{'name'}}->{'declarationMatches'} = 0;
 		while ( $node ) {
 		    if ( $node->{'type'} eq "function" && (grep {$_ eq $node->{'name'}} @constructors) && $node->{'opener'} =~ m/^\s*(recursive)??\s+function\s+$node->{'name'}\s*\(\s*parameters\s*(\s*,\s*recursiveConstruct\s*,\s*recursiveSelf\s*)??\)/ ) {
 			# Extract the name of the return variable in this function.
@@ -715,7 +715,7 @@ CODE
 			    if ( $constructorNode->{'type'} eq "declaration" ) {
 				# Declaration node found - check if we have a parameters argument of the correct type.
 				foreach my $declaration ( @{$constructorNode->{'declarations'}} ) {
-				    $declarationMatches = 1
+				    $allowedParameters->{$class->{'name'}}->{'declarationMatches'} = 1
 					if (
 					           $declaration->{'intrinsic'}  eq "type"
 					    &&
@@ -725,16 +725,39 @@ CODE
 					);
 				}
 			    }
+			    if ( $constructorNode->{'type'} eq "code" ) {
+				# Look for calls to a parent class' parameter constructor.
+				my $newContent;
+				my $modified = 0;
+				open(my $code,"<",\$constructorNode->{'content'});
+				do {
+				    # Get a line.
+				    &Fortran::Utils::Get_Fortran_Line($code, my $rawLine, my $processedLine, my $bufferedComments);
+				    if ( $processedLine =~ m/^\s*$result%([a-zA-Z0-9_]+)\s*=([a-zA-Z0-9_]+)\(\s*parameters\s*\)/ ) {
+					$allowedParameters->{$class->{'name'}}->{'classParent'} = $1;
+					$newContent .= $directive->{'name'}."DsblVldtn=.true.\n";
+					$newContent .= $rawLine;
+					$newContent .= $directive->{'name'}."DsblVldtn=.false.\n";
+					$modified    = 1;
+				    } else {
+					$newContent .= $rawLine;
+				    }
+				} until ( eof($code) );
+				close($code);
+				$constructorNode->{'content'} = $newContent
+				    if ( $modified );
+			    }			    
 			    if ( $constructorNode->{'type'} eq "inputParameter" ) {
 				my $source = $constructorNode->{'directive'}->{'source'};
 				if ( exists($constructorNode->{'directive'}->{'name'}) ) {
 				    # A regular parameter, defined by its name.
-				    push(@{$allowedParameters->{$source}->{'all'}},$constructorNode->{'directive'}->{'name' });
+				    push(@{$allowedParameters->{$class->{'name'}}->{'parameters'}->{$source}->{'all'}},$constructorNode->{'directive'}->{'name' });
 				}
 			    }
 			    if ( $constructorNode->{'type'} eq "objectBuilder"  ) {
 				my $source = $constructorNode->{'directive'}->{'source'};
-				push(@{$allowedParameters->{$source}->{'all'}},exists($constructorNode->{'directive'}->{'parameterName'}) ? $constructorNode->{'directive'}->{'parameterName'} : $constructorNode->{'directive'}->{'class'});
+				push(@{$allowedParameters->{$class->{'name'}}->{'parameters'}->{$source}->{'all'    }},exists($constructorNode->{'directive'}->{'parameterName'}) ? $constructorNode->{'directive'}->{'parameterName'} : $constructorNode->{'directive'}->{'class'});
+				push(@{$allowedParameters->{$class->{'name'}}->{'parameters'}->{$source}->{'classes'}},exists($constructorNode->{'directive'}->{'parameterName'}) ? $constructorNode->{'directive'}->{'parameterName'} : $constructorNode->{'directive'}->{'class'});
 				# Check if the class contains a pointer of the expected type and name for this object.
 				my $typeNode = $class->{'tree'}->{'firstChild'};
 				while ( $typeNode ) {
@@ -749,7 +772,7 @@ CODE
 							trimlc($declaration->{'type'}) eq trimlc($constructorNode->{'directive'}->{'class'})."class"
 							) {
 							push(
-							     @{$allowedParameters->{$source}->{'objects'}},
+							     @{$allowedParameters->{$class->{'name'}}->{'parameters'}->{$source}->{'objects'}},
 							     map {
 								  (
 								   lc(            $_) eq striplc($constructorNode->{'directive'}->{'name'})
@@ -779,53 +802,82 @@ CODE
 		    }
 		    $node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 		}
-		if ( $declarationMatches && defined($allowedParameters) ) {
-		    $parametersPresent      = 1;
-		    $allowedParametersCode .= "select type (self)\n";
-		    # Include the class and all parent classes here - in the parent class constructor we want to accept parameters
-		    # that are valid in child classes.
+	    }
+	    $allowedParametersCode .= "select type (self)\n";
+	    foreach my $class ( @classes ) {
+		if ( $allowedParameters->{$class->{'name'}}->{'declarationMatches'} ) {
 		    my $className = $class->{'name'};
+		    $allowedParametersCode .= "type is (".$className.")\n";
+		    # Include the class and all parent classes for which the parent class parameter constructor is called.
 		    while ( defined($className) ) {
-			$allowedParametersCode .= "class is (".$className.")\n";
-			foreach my $source ( keys(%{$allowedParameters}) ) {
-			    my $parameterCount = scalar(@{$allowedParameters->{$source}->{'all'}});
-			    if ( $parameterCount > 0 ) {
-				$allowedParametersCode .= "  if (sourceName == '".$source."') then\n";
-				$allowedParametersCode .= "    if (allocated(allowedParameters)) then\n";
-				$allowedParametersCode .= "      call move_alloc(allowedParameters,allowedParametersTmp)\n";
-				$allowedParametersCode .= "      allocate(allowedParameters(size(allowedParametersTmp)+".$parameterCount."))\n";
-				$allowedParametersCode .= "      allowedParameters(1:size(allowedParametersTmp))=allowedParametersTmp\n";
-				$allowedParametersCode .= "      deallocate(allowedParametersTmp)\n";
-				$allowedParametersCode .= "    else\n";
-				$allowedParametersCode .= "      allocate(allowedParameters(".$parameterCount."))\n";
-				$allowedParametersCode .= "    end if\n";
-				# The following is done as a sequence of scalar assignments, instead of assigning a single array
-				# using an array constructor, as that approach lead to a memory leak.
-				for(my $i=0;$i<$parameterCount;++$i) {
-				    $allowedParametersCode .= "    allowedParameters(size(allowedParameters)-".($parameterCount-1-$i).")='".$allowedParameters->{$source}->{'all'}->[$i]."'\n";
+			foreach my $source ( keys(%{$allowedParameters->{$className}->{'parameters'}}) ) {
+			    $allowedParametersCode .= "  if (objectsOnly) then\n";
+			    {
+				my $parameterCount = exists($allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}) ? scalar(@{$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}}) : 0;
+				if ( $parameterCount > 0 ) {
+				    $parametersPresent      = 1;
+				    $allowedParametersCode .= "   if (sourceName == '".$source."') then\n";
+				    $allowedParametersCode .= "     if (allocated(allowedParameters)) then\n";
+				    $allowedParametersCode .= "       call move_alloc(allowedParameters,allowedParametersTmp)\n";
+				    $allowedParametersCode .= "       allocate(allowedParameters(size(allowedParametersTmp)+".$parameterCount."))\n";
+				    $allowedParametersCode .= "       allowedParameters(1:size(allowedParametersTmp))=allowedParametersTmp\n";
+				    $allowedParametersCode .= "       deallocate(allowedParametersTmp)\n";
+				    $allowedParametersCode .= "     else\n";
+				    $allowedParametersCode .= "       allocate(allowedParameters(".$parameterCount."))\n";
+				    $allowedParametersCode .= "     end if\n";
+				    # The following is done as a sequence of scalar assignments, instead of assigning a single array
+				    # using an array constructor, as that approach lead to a memory leak.
+				    for(my $i=0;$i<$parameterCount;++$i) {
+					$allowedParametersCode .= "     allowedParameters(size(allowedParameters)-".($parameterCount-1-$i).")='".$allowedParameters->{$className}->{'parameters'}->{$source}->{'classes'}->[$i]."'\n";
+				    }
+				    $allowedParametersCode .= "   end if\n";
 				}
-				$allowedParametersCode .= "  end if\n";
 			    }
+			    $allowedParametersCode .= "  else\n";
+			    {
+				my $parameterCount = scalar(@{$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}});
+				if ( $parameterCount > 0 ) {
+				    $parametersPresent      = 1;
+				    $allowedParametersCode .= "   if (sourceName == '".$source."') then\n";
+				    $allowedParametersCode .= "     if (allocated(allowedParameters)) then\n";
+				    $allowedParametersCode .= "       call move_alloc(allowedParameters,allowedParametersTmp)\n";
+				    $allowedParametersCode .= "       allocate(allowedParameters(size(allowedParametersTmp)+".$parameterCount."))\n";
+				    $allowedParametersCode .= "       allowedParameters(1:size(allowedParametersTmp))=allowedParametersTmp\n";
+				    $allowedParametersCode .= "       deallocate(allowedParametersTmp)\n";
+				    $allowedParametersCode .= "     else\n";
+				    $allowedParametersCode .= "       allocate(allowedParameters(".$parameterCount."))\n";
+				    $allowedParametersCode .= "     end if\n";
+				    # The following is done as a sequence of scalar assignments, instead of assigning a single array
+				    # using an array constructor, as that approach lead to a memory leak.
+				    for(my $i=0;$i<$parameterCount;++$i) {
+					$allowedParametersCode .= "     allowedParameters(size(allowedParameters)-".($parameterCount-1-$i).")='".$allowedParameters->{$className}->{'parameters'}->{$source}->{'all'}->[$i]."'\n";
+				    }
+				    $allowedParametersCode .= "   end if\n";
+				}
+			    }
+			    $allowedParametersCode .= "  end if\n";
 			    # Call the allowedParameters() method of any stored obejcts.
 			    if ( $className eq $class->{'name'} ) {
-				foreach ( @{$allowedParameters->{$source}->{'objects'}} ) {
-				    $allowedParametersCode .= "  if (associated(self%".$_.")) call self%".$_."%allowedParameters(allowedParameters,'".$source."')\n";
+				$parametersPresent      = 1
+				    if ( exists($allowedParameters->{$className}->{'parameters'}->{$source}->{'objects'}) );
+				foreach ( @{$allowedParameters->{$className}->{'parameters'}->{$source}->{'objects'}} ) {
+				    $allowedParametersCode .= "  if (associated(self%".$_.")) call self%".$_."%allowedParameters(allowedParameters,'".$source."',.true.)\n";
 				}
 			    }
 			}
-			if ( $classes{$className}->{'extends'} eq $directive->{'name'}."Class" ) {
-			    undef($className);
+			if ( defined($allowedParameters->{$className}->{'classParent'}) ) {
+			    $className = $allowedParameters->{$className}->{'classParent'};
 			} else {
-			    $className = $classes{$className}->{'extends'};
+			    undef($className);
 			}
 		    }
-		    $allowedParametersCode .= "end select\n";
 		}
 	    }
+	    $allowedParametersCode .= "end select\n";
 	    if ( $parametersPresent ) {
-		$allowedParametersCode = "type(varying_string), allocatable, dimension(:) :: allowedParametersTmp\n".$allowedParametersCode;
+		$allowedParametersCode = "type(varying_string), allocatable, dimension(:) :: allowedParametersTmp\n".$directive->{'name'}."DsblVldtn=".$directive->{'name'}."DsblVldtn\n".$allowedParametersCode;
 	    } else {
-		$allowedParametersCode = "!\$GLC attributes unused :: self, allowedParameters, sourceName\n";
+		$allowedParametersCode = "!\$GLC attributes unused :: self, allowedParameters, sourceName\n".$directive->{'name'}."DsblVldtn=".$directive->{'name'}."DsblVldtn\n";
 	    }
 	    $methods{'allowedParameters'} =
 	    {
@@ -834,7 +886,11 @@ CODE
 		recursive   => "yes",
 		pass        => "yes",
 		modules     => "ISO_Varying_String",
-		argument    => [ "type(varying_string), dimension(:), allocatable, intent(inout) :: allowedParameters", "character(len=*), intent(in   ) :: sourceName" ],
+		argument    => [
+		    "type     (varying_string), dimension(:), allocatable, intent(inout) :: allowedParameters",
+		    "character(len=*         )                           , intent(in   ) :: sourceName"       ,
+		    "logical                                             , intent(in   ) :: objectsOnly"
+		    ],
 		code        => $allowedParametersCode
 	    };
 	    # Add "deepCopy" method.
@@ -2543,6 +2599,10 @@ CODE
 		    }
 		}
 	    }
+
+	    # Insert state variable for input parameter validation.
+	    $modulePreContains->{'content'} .= "   logical :: ".$directive->{'name'}."DsblVldtn=.false.\n";
+	    $modulePreContains->{'content'} .= "   !\$omp threadprivate(".$directive->{'name'}."DsblVldtn)\n";
 
 	    # Generate class constructors
 	    $modulePreContains->{'content'} .= "   interface ".$directive->{'name'}."\n";

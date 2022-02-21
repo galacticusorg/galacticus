@@ -64,6 +64,9 @@ contains
     !$GLC attributes unused :: parameters
 
     self=accretionDiskSpectraHopkins2007()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function hopkins2007ConstructorParameters
 

@@ -52,9 +52,11 @@ contains
     implicit none
     type(mergerTreeEvolveProfilerNull)                :: self
     type(inputParameters           ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
     
     self=mergerTreeEvolveProfilerNull()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function nullConstructorParameters
 

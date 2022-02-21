@@ -59,9 +59,11 @@ contains
     implicit none
     type(hotHaloMassDistributionNull)                :: self
     type(inputParameters            ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=hotHaloMassDistributionNull()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function nullConstructorParameters
 

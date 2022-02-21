@@ -60,9 +60,11 @@ contains
     implicit none
     type(haloEnvironmentUniform)                :: self
     type(inputParameters       ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=haloEnvironmentUniform()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function uniformConstructorParameters
 

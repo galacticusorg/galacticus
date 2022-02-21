@@ -58,9 +58,11 @@ contains
     implicit none
     type(posteriorSampleDffrntlEvltnRandomJumpSimple)                 :: self
     type(inputParameters                            ), intent(inout)  :: parameters
-    !$GLC attributes unused :: parameters
 
     self=posteriorSampleDffrntlEvltnRandomJumpSimple()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function simpleConstructorParameters
 

@@ -55,9 +55,11 @@ contains
     implicit none
     type(satelliteMergingTimescalesZero)                :: self
     type(inputParameters               ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=satelliteMergingTimescalesZero()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function zeroConstructorParameters
 

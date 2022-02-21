@@ -66,9 +66,11 @@ contains
     implicit none
     type(nodePropertyExtractorPositionOrbital)                :: self
     type(inputParameters                     ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=nodePropertyExtractorPositionOrbital()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function positionOrbitalConstructorParameters
 

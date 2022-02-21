@@ -54,9 +54,11 @@ contains
     implicit none
     type(satelliteTidalHeatingRateZero)                :: self
     type(inputParameters              ), intent(inout) :: parameters
-    !$GLC attributes unused :: self, parameters
 
     self=satelliteTidalHeatingRateZero()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function zeroConstructorParameters
 

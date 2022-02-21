@@ -55,9 +55,11 @@ contains
     implicit none
     type(nodeOperatorPresetNamedShift)                :: self
     type(inputParameters             ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
     
     self=nodeOperatorPresetNamedShift()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function presetNamedShiftConstructorParameters
 

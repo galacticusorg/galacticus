@@ -86,9 +86,11 @@ contains
     implicit none
     type(coolingFunctionAtomicCIECloudy)                :: self
     type(inputParameters               ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=coolingFunctionAtomicCIECloudy()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function atomicCIECloudyConstructorParameters
 

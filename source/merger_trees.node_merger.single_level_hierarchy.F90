@@ -57,9 +57,11 @@ contains
     implicit none
     type(mergerTreeNodeMergerSingleLevelHierarchy)                :: self
     type(inputParameters                         ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=mergerTreeNodeMergerSingleLevelHierarchy()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function singleLevelHierarchyConstructorParameters
 

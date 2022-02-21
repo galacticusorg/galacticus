@@ -52,9 +52,11 @@ contains
     implicit none
     type(mergerTreeOperatorDeforest)                :: deforestConstructorParameters
     type(inputParameters           ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     deforestConstructorParameters=mergerTreeOperatorDeforest()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function deforestConstructorParameters
 

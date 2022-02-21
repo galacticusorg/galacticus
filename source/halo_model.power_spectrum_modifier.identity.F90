@@ -52,9 +52,11 @@ contains
     implicit none
     type(haloModelPowerSpectrumModifierIdentity)                :: self
     type(inputParameters                       ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=haloModelPowerSpectrumModifierIdentity()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function identityConstructorParameters
 

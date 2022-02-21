@@ -147,6 +147,9 @@ contains
 
     self%excursionSetFirstCrossingZhangHui=excursionSetFirstCrossingZhangHui(parameters)
     call self%initialize()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function zhangHuiHighOrderConstructorParameters
 

@@ -55,9 +55,11 @@ contains
     implicit none
     type(stellarPopulationSpectraPostprocessorIdentity)                :: self
     type(inputParameters                              ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=stellarPopulationSpectraPostprocessorIdentity()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function identityConstructorParameters
 

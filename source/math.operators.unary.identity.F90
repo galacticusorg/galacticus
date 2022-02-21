@@ -54,9 +54,11 @@ contains
     implicit none
     type(operatorUnaryIdentity)                :: self
     type(inputParameters      ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=operatorUnaryIdentity()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function identityConstructorParameters
 

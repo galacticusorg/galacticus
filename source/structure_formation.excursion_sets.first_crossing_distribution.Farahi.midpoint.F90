@@ -58,6 +58,9 @@ contains
     type(inputParameters                        ), intent(inout) :: parameters
 
     self%excursionSetFirstCrossingFarahi=excursionSetFirstCrossingFarahi(parameters)
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function farahiMidpointConstructorParameters
 

@@ -52,9 +52,11 @@ contains
     implicit none
     type(outputAnalysisDistributionNormalizerLog10ToLog)                :: self
     type(inputParameters                               ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=outputAnalysisDistributionNormalizerLog10ToLog()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function log10ToLogConstructorParameters
 

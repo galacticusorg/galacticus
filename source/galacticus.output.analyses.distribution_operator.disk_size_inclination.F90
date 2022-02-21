@@ -63,9 +63,11 @@ contains
     implicit none
     type(outputAnalysisDistributionOperatorDiskSizeInclntn)                :: self
     type(inputParameters                                  ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=outputAnalysisDistributionOperatorDiskSizeInclntn()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function diskSizeInclinationConstructorParameters
 

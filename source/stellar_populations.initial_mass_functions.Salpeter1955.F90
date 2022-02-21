@@ -62,9 +62,11 @@ contains
     implicit none
     type(initialMassFunctionSalpeter1955)                :: self
     type(inputParameters                ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=initialMassFunctionSalpeter1955()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function salpeter1955ConstructorParameters
 

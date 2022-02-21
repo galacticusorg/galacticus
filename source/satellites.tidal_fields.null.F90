@@ -54,9 +54,11 @@ contains
     implicit none
     type(satelliteTidalFieldNull)                :: self
     type(inputParameters        ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=satelliteTidalFieldNull()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function nullConstructorParameters
 

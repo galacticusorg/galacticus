@@ -52,9 +52,11 @@ contains
     implicit none
     type(coolingRateZero)                :: self
     type(inputParameters), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=coolingRateZero()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function zeroConstructorParameters
 

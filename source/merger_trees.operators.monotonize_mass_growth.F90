@@ -58,9 +58,11 @@ contains
     implicit none
     type(mergerTreeOperatorMonotonizeMassGrowth)                :: monotonizeMassGrowthConstructorParameters
     type(inputParameters                       ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     monotonizeMassGrowthConstructorParameters=mergerTreeOperatorMonotonizeMassGrowth()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function monotonizeMassGrowthConstructorParameters
 

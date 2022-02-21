@@ -134,7 +134,11 @@
   <darkMatterProfileDMO value="NFW"/>
 
   <!-- Halo accretion options -->
-  <accretionHalo value="zero"/>
+  <accretionHalo value="coldMode">
+    <widthTransitionStabilityShock value="0.01"/>
+    <redshiftReionization value="10.5"/>
+    <velocitySuppressionReionization value="35.0"/>
+  </accretionHalo>
 
   <!-- Hot halo gas model options -->
   <hotHaloMassDistribution value="null"/>

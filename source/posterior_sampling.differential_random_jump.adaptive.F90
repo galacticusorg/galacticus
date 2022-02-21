@@ -60,9 +60,11 @@ contains
     implicit none
     type(posteriorSampleDffrntlEvltnRandomJumpAdaptive)                 :: self
     type(inputParameters                              ), intent(inout)  :: parameters
-    !$GLC attributes unused :: parameters
 
     self=posteriorSampleDffrntlEvltnRandomJumpAdaptive()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function adaptiveConstructorParameters
 

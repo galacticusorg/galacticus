@@ -54,6 +54,9 @@ contains
     type(inputParameters                                ), intent(inout) :: parameters
 
     self%mergerTreeBuildMassesSampledDistribution=mergerTreeBuildMassesSampledDistribution(parameters)
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function sampledDistributionUniformConstructorParameters
 

@@ -82,6 +82,9 @@ contains
     </inputParameter>
     !!]
     self=metaTreeProcessingTimeFile(fileName)
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function fileConstructorParameters
 

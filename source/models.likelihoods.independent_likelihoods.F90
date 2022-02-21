@@ -127,6 +127,9 @@ contains
           call Galacticus_Error_Report('invalid parameter'//{introspection:location})
        end if
     end do
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function independentLikelihoodsConstructorParameters
 

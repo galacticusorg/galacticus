@@ -54,9 +54,11 @@ contains
     implicit none
     type(mergerTreeEvolveTimestepSatelliteDestruction)                :: self
     type(inputParameters                             ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
     
     self=mergerTreeEvolveTimestepSatelliteDestruction()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function satelliteDestructionConstructorParameters
 

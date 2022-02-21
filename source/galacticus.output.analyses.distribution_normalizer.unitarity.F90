@@ -52,9 +52,11 @@ contains
     implicit none
     type(outputAnalysisDistributionNormalizerUnitarity)                :: self
     type(inputParameters                              ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     self=outputAnalysisDistributionNormalizerUnitarity()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function unitarityConstructorParameters
 

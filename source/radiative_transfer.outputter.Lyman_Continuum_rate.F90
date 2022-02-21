@@ -57,9 +57,11 @@ contains
     implicit none
     type(radiativeTransferOutputterLymanContinuumRate)                :: self
     type(inputParameters                             ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
     
     self=radiativeTransferOutputterLymanContinuumRate()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function lymanContinuumRateConstructorParameters
   

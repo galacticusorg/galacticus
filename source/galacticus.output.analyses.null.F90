@@ -55,9 +55,11 @@ contains
     implicit none
     type(outputAnalysisNull)                :: nullConstructorParameters
     type(inputParameters   ), intent(inout) :: parameters
-    !$GLC attributes unused :: parameters
 
     nullConstructorParameters=outputAnalysisNull()
+    !![
+    <inputParametersValidate source="parameters"/>
+    !!]
     return
   end function nullConstructorParameters
 
