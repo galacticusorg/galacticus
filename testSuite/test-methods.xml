@@ -403,6 +403,9 @@
     <virialOrbit value="fixed">
       <virialDensityContrastDefinition value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
     </virialOrbit>
+    <virialOrbit value="massReduced">
+      <virialOrbit value="benson2005"/>
+    </virialOrbit>
   </parameters>
   <parameters>
     <formatVersion>2</formatVersion>
