@@ -31,8 +31,9 @@ module Instruments_Filters
   use :: Locks              , only : ompReadWriteLock
   implicit none
   private
-  public :: Filter_Get_Index, Filter_Response            , Filter_Extent , Filter_Vega_Offset      , &
-       &    Filter_Name     , Filter_Wavelength_Effective, Filters_Output, Filter_Response_Function
+  public :: Filter_Get_Index  , Filter_Response            , Filter_Extent , Filter_Vega_Offset      , &
+       &    Filter_Name       , Filter_Wavelength_Effective, Filters_Output, Filter_Response_Function, &
+       &    Filters_Initialize
 
   type filterType
      !!{
@@ -47,14 +48,41 @@ module Instruments_Filters
 
   ! Array to hold filter data.
   type   (filterType      ), allocatable, dimension(:) :: filterResponses
-  integer                                              :: countFilterResponses=0
+  integer                                              :: countFilterResponses    =0
 
   ! Read/write lock used to control access to the filter responeses.
   type   (ompReadWriteLock)                            :: lock
-  logical                                              :: lockInitialized=.false.
+  logical                                              :: lockInitialized         =.false.
+
+  ! Options controlling output.
+  logical                                              :: filtersConstructedOutput
   
 contains
 
+  !![
+  <nodeComponentInitializationTask>
+   <unitName>Filters_Initialize</unitName>
+  </nodeComponentInitializationTask>
+  !!]
+  subroutine Filters_Initialize(parameters)
+    !!{
+    Initialize the module.
+    !!}
+    use :: Input_Parameters, only : inputParameters
+    implicit none
+    type(inputParameters), intent(inout) :: parameters
+    
+    !![
+    <inputParameter>
+      <name>filtersConstructedOutput</name>
+      <defaultValue>.false.</defaultValue>
+      <description>If true, any filters constructed internally will be written to file.</description>
+      <source>parameters</source>
+    </inputParameter>
+    !!]
+    return
+  end subroutine Filters_Initialize
+  
   integer function Filter_Get_Index(filterName)
     !!{
     Return the index for the specified filter, loading that filter if necessary.
@@ -128,9 +156,11 @@ contains
     !!{
     Load a filter response curve.
     !!}
-    use :: File_Utilities           , only : File_Exists
-    use :: FoX_dom                  , only : DOMException           , Node                             , destroy           , getExceptionCode                          , &
+    use :: File_Utilities           , only : File_Exists            , Directory_Make
+    use :: FoX_DOM                  , only : DOMException           , Node                             , destroy           , getExceptionCode                          , &
          &                                   inException
+    use :: FoX_WXML                 , only : xml_AddCharacters      , xml_Close                        , xml_EndElement    , xml_NewElement                            , &
+          &                                  xml_OpenFile           , xmlf_t
     use :: Galacticus_Error         , only : Galacticus_Error_Report
     use :: Galacticus_Paths         , only : galacticusPath         , pathTypeDataDynamic              , pathTypeDataStatic
     use :: HII_Region_Emission_Lines, only : emissionLineWavelength
@@ -147,11 +177,14 @@ contains
     type            (varying_string)               , dimension(4) :: specialFilterWords
     type            (node          ), pointer                     :: vegaElement                   , wavelengthEffectiveElement
     double precision                , parameter                   :: cutOffResolution        =1.0d4
-    integer                                                       :: filterIndex                   , ioErr
-    type            (varying_string)                              :: filterFileName                , errorMessage
+    integer                                                       :: filterIndex                   , ioErr                     , &
+         &                                                           i
+    type            (varying_string)                              :: filterFileName                , filterDescription         , &
+         &                                                           errorMessage
     type            (DOMException  )                              :: exception
-    logical                                                       :: parseSuccess
-    character       (len=64        )                              :: word
+    type            (xmlf_t        )                              :: filterDoc
+    logical                                                       :: parseSuccess                  , filterConstructed
+    character       (len=64        )                              :: word                          , label
     double precision                                              :: centralWavelength             , resolution                , &
          &                                                           filterWidth
 
@@ -199,6 +232,9 @@ contains
             &  1.0d0                                                                                                    , &
             &  0.0d0                                                                                                      &
             & ]
+       filterConstructed=.true.
+       write (label,'(f16.8,":",f16.12)') centralWavelength,resolution
+       filterDescription="Top-hat filter; wavelength:resolution = "//trim(label)
     else if (extract(filterName,1,25)=="adaptiveResolutionTopHat_") then
        ! Construct an SED top-hat filter. Extract central wavelength and top hat width.
        call String_Split_Words(specialFilterWords,char(filterName),separator="_")
@@ -211,20 +247,23 @@ contains
        filterResponses(filterIndex)%nPoints            =4
        call allocateArray(filterResponses(filterIndex)%wavelength,[4])
        call allocateArray(filterResponses(filterIndex)%response  ,[4])
-       filterResponses(filterIndex)%wavelength         =                                                                  &
-            & [                                                                                                           &
-            &  centralWavelength - filterWidth/2.0d0 - filterWidth/100.0d0                                              , &
-            &  centralWavelength - filterWidth/2.0d0                                                                    , &
-            &  centralWavelength + filterWidth/2.0d0                                                                    , &
-            &  centralWavelength + filterWidth/2.0d0 + filterWidth/100.0d0                                                &
+       filterResponses(filterIndex)%wavelength         =                                                              &
+            & [                                                                                                       &
+            &  centralWavelength-filterWidth/2.0d0-filterWidth/100.0d0                                              , &
+            &  centralWavelength-filterWidth/2.0d0                                                                  , &
+            &  centralWavelength+filterWidth/2.0d0                                                                  , &
+            &  centralWavelength+filterWidth/2.0d0+filterWidth/100.0d0                                                &
             & ]
-       filterResponses(filterIndex)%response           =                                                                  &
-            & [                                                                                                           &
-            &  0.0d0                                                                                                    , &
-            &  1.0d0                                                                                                    , &
-            &  1.0d0                                                                                                    , &
-            &  0.0d0                                                                                                      &
+       filterResponses(filterIndex)%response           =                                                              &
+            & [                                                                                                       &
+            &  0.0d0                                                                                                , &
+            &  1.0d0                                                                                                , &
+            &  1.0d0                                                                                                , &
+            &  0.0d0                                                                                                  &
             & ]
+       filterConstructed=.true.
+       write (label,'(f16.8,":",f16.8)') centralWavelength,filterWidth
+       filterDescription="Top-hat filter; wavelength:width = "//trim(label)
     else if (extract(filterName,1,21)=="emissionLineContinuum") then
        ! Construct a top-hat filter for calculating equivalent width of specified emission line.
        ! From filter name extract line name (to determine central wavelength) and resolution.
@@ -262,6 +301,9 @@ contains
             &  1.0d0                                                                                                  , &
             &  0.0d0                                                                                                    &
             & ]
+       filterConstructed=.true.
+       write (label,'(f16.8,":",f16.12)') centralWavelength,resolution
+       filterDescription="Emission line continuum filter; wavelength:resolution = "//trim(label)
     else
        ! Construct a file name for the filter.
        filterFileName=char(galacticusPath(pathTypeDataStatic))//'filters/'//filterName//'.xml'
@@ -311,12 +353,49 @@ contains
        ! Destroy the document.
        call destroy(doc)
        !$omp end critical (FoX_DOM_Access)
+       filterConstructed=.false.
     end if
     ! No effective wavelength was supplied - compute it directly.
     filterResponses(filterIndex)%wavelengthEffectiveAvailable=.true.
     filterResponses(filterIndex)%wavelengthEffective         =+sum(filterResponses(filterIndex)%wavelength*filterResponses(filterIndex)%response) &
          &                                                    /sum(                                        filterResponses(filterIndex)%response)
     call lock%unsetWrite(haveReadLock=.true.)
+    ! Write out the filter file if necessary.
+    call Directory_Make(galacticusPath(pathTypeDataDynamic)//'filters')
+    filterFileName=galacticusPath(pathTypeDataDynamic)//'filters/'//filterName//'.xml'
+    if (filtersConstructedOutput .and. filterConstructed .and. .not.File_Exists(filterFileName)) then
+       call xml_OpenFile     (char(filterFileName),filterDoc)
+       call xml_NewElement   (filterDoc,"filter"     )
+       call xml_NewElement   (filterDoc,"description")
+       call xml_AddCharacters(filterDoc,char(filterDescription        ))
+       call xml_EndElement   (filterDoc,"description")
+       call xml_NewElement   (filterDoc,"name"       )
+       call xml_AddCharacters(filterDoc,char(filterName               ))
+       call xml_EndElement   (filterDoc,"name"       )
+       call xml_NewElement   (filterDoc,"origin"     )
+       call xml_AddCharacters(filterDoc,     "Automatically generated" )
+       call xml_EndElement   (filterDoc,"origin"     )
+       call xml_NewElement   (filterDoc,"response"   )
+       do i=1,size(filterResponses(filterIndex)%response)
+          call xml_NewElement   (filterDoc,"datum")
+          write (label,'(f16.8,1x,f16.12)') filterResponses(filterIndex)%wavelength(i),filterResponses(filterIndex)%response(i)
+          call xml_AddCharacters(filterDoc,trim(adjustl(label)))
+          call xml_EndElement   (filterDoc,"datum")
+       end do
+       call xml_EndElement   (filterDoc,"response"   )
+       call xml_NewElement   (filterDoc,"effectiveWavelength")
+       write (label,'(f16.8)') filterResponses(filterIndex)%wavelengthEffective
+       call xml_AddCharacters(filterDoc,trim(adjustl(label)))
+       call xml_EndElement   (filterDoc,"effectiveWavelength")
+       if (filterResponses(filterIndex)%vegaOffsetAvailable) then
+          call xml_NewElement   (filterDoc,"vegaOffset")
+          write (label,'(f16.12)') filterResponses(filterIndex)%vegaOffset
+          call xml_AddCharacters(filterDoc,trim(adjustl(label)))
+          call xml_EndElement   (filterDoc,"vegaOffset")
+       end if
+          call xml_EndElement   (filterDoc,"filter"    )
+       call xml_Close        (filterDoc                      )
+    end if
     return
   end subroutine Filter_Response_Load
 
