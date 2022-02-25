@@ -273,9 +273,6 @@ use :: kind_numbers, only : kind_int8
             &  .and.                                        &
             &   basic%time() >  timeBase-intervalRecent     &
             & ) countMajorMergers(i)=countMajorMergers(i)+1
-
-if (node%hostTree%index==2 .and. node%isprogenitorof(45_kind_int8)) write (0,*) "WTF ",basic%time(),timeBase,intervalRecent,i,countMajorMergers(i)
-    
     end do
     ! Update the count of recent mergers.
     call basicParent%integerRank1MetaPropertySet(self%nodeMajorMergerRecentCountID,countMajorMergers)
