@@ -115,7 +115,7 @@ contains
     self%evaluateCountGlobal                            =0
     self%forceCount                                     =0
     !![
-    <inputParametersValidate source="parameters"/>
+    <inputParametersValidate source="parameters" multiParameters="likelihoodMultiplier, likelihoodAccept"/>
     !!]
     return
   end function independentLikelihoodsSequentialConstructorParameters

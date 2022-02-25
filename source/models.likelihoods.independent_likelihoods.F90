@@ -128,7 +128,7 @@ contains
        end if
     end do
     !![
-    <inputParametersValidate source="parameters"/>
+    <inputParametersValidate source="parameters" multiParameters="posteriorSampleLikelihood"/>
     !!]
     return
   end function independentLikelihoodsConstructorParameters
