@@ -108,7 +108,7 @@ contains
     <objectBuilder class="linearGrowth"       name="linearGrowth_"       source="parameters"/>
     <conditionalCall>
      <call>self=haloEnvironmentFixed(cosmologyFunctions_,linearGrowth_,overdensity{conditions})</call>
-     <argument name="massEnvironment" value="massEnvironment" parameterPresent="parameters"/>
+     <argument name="massEnvironment"   value="massEnvironment"   parameterPresent="parameters"/>
      <argument name="radiusEnvironment" value="radiusEnvironment" parameterPresent="parameters"/>
     </conditionalCall>
     <inputParametersValidate source="parameters"/>
