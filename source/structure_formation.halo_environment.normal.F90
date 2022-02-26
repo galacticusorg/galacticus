@@ -57,7 +57,7 @@ Contains a module which implements a normally-distributed halo environment.
      double precision                                                             :: radiusEnvironment                        , variance           , &
           &                                                                          environmentalOverdensityMaximum          , overdensityPrevious, &
           &                                                                          includedVolumeFraction                   , redshift           , &
-          &                                                                          time
+          &                                                                          time                                     , massEnvironment
      integer         (kind_int8                                        )          :: uniqueIDPrevious
      logical                                                                      :: linearToNonLinearInitialized
      type            (varying_string                                   )          :: propertyName
@@ -105,7 +105,7 @@ contains
     class           (linearGrowthClass            ), pointer       :: linearGrowth_
     class           (criticalOverdensityClass     ), pointer       :: criticalOverdensity_
     double precision                                               :: radiusEnvironment        , redshift, &
-         &                                                            time
+         &                                                            massEnvironment          , time
 
     !![
     <objectBuilder class="cosmologyParameters"      name="cosmologyParameters_"      source="parameters"/>
@@ -113,6 +113,12 @@ contains
     <objectBuilder class="cosmologicalMassVariance" name="cosmologicalMassVariance_" source="parameters"/>
     <objectBuilder class="linearGrowth"             name="linearGrowth_"             source="parameters"/>
     <objectBuilder class="criticalOverdensity"      name="criticalOverdensity_"      source="parameters"/>
+    <inputParameter>
+      <name>massEnvironment</name>
+      <source>parameters</source>
+      <defaultValue>1.0d15</defaultValue>
+      <description>The mass within the sphere sphere used to determine the variance in the environmental density.</description>
+    </inputParameter>
     <inputParameter>
       <name>radiusEnvironment</name>
       <source>parameters</source>
@@ -127,8 +133,12 @@ contains
     </inputParameter>
     !!]
     time=cosmologyFunctions_%cosmicTime(cosmologyFunctions_%expansionFactorFromRedshift(redshift))
-    self=haloEnvironmentNormal(radiusEnvironment,time,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_)
     !![
+    <conditionalCall>
+     <call>self=haloEnvironmentNormal(time,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_{conditions})</call>
+     <argument name="massEnvironment"   value="massEnvironment"   parameterPresent="parameters"/>
+     <argument name="radiusEnvironment" value="radiusEnvironment" parameterPresent="parameters"/>
+    </conditionalCall>
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="cosmologyParameters_"     />
     <objectDestructor name="cosmologyFunctions_"      />
@@ -139,50 +149,63 @@ contains
     return
   end function normalConstructorParameters
 
-  function normalConstructorInternal(radiusEnvironment,time,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_) result(self)
+  function normalConstructorInternal(time,cosmologyParameters_,cosmologyFunctions_,cosmologicalMassVariance_,linearGrowth_,criticalOverdensity_,radiusEnvironment,massEnvironment) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily normal} halo mass function class.
     !!}
     use :: Error_Functions         , only : Error_Function
     use :: Numerical_Constants_Math, only : Pi
+    use :: Galacticus_Error        , only : Galacticus_Error_Report
     use :: ISO_Varying_String      , only : assignment(=)
     implicit none
-    type            (haloEnvironmentNormal        )                         :: self
-    class           (cosmologyParametersClass     ), target , intent(in   ) :: cosmologyParameters_
-    class           (cosmologyFunctionsClass      ), target , intent(in   ) :: cosmologyFunctions_
-    class           (cosmologicalMassVarianceClass), target , intent(in   ) :: cosmologicalMassVariance_
-    class           (linearGrowthClass            ), target , intent(in   ) :: linearGrowth_
-    class           (criticalOverdensityClass     ), target , intent(in   ) :: criticalOverdensity_
-    double precision                                        , intent(in   ) :: radiusEnvironment               , time
-    double precision                                        , parameter     :: overdensityMean          =0.0d+0
-    double precision                                        , parameter     :: limitUpperBuffer         =1.0d-4
-    double precision                                                        :: overdensityVariance
+    type            (haloEnvironmentNormal        )                           :: self
+    class           (cosmologyParametersClass     ), target   , intent(in   ) :: cosmologyParameters_
+    class           (cosmologyFunctionsClass      ), target   , intent(in   ) :: cosmologyFunctions_
+    class           (cosmologicalMassVarianceClass), target   , intent(in   ) :: cosmologicalMassVariance_
+    class           (linearGrowthClass            ), target   , intent(in   ) :: linearGrowth_
+    class           (criticalOverdensityClass     ), target   , intent(in   ) :: criticalOverdensity_
+    double precision                                          , intent(in   ) :: time
+    double precision                               , optional , intent(in   ) :: radiusEnvironment               , massEnvironment
+    double precision                                          , parameter     :: overdensityMean          =0.0d+0
+    double precision                                          , parameter     :: limitUpperBuffer         =1.0d-4
+    double precision                                                          :: overdensityVariance
     !![
-    <constructorAssign variables="radiusEnvironment, time, *cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_, *linearGrowth_, *criticalOverdensity_" />
+    <constructorAssign variables="time, *cosmologyParameters_, *cosmologyFunctions_, *cosmologicalMassVariance_, *linearGrowth_, *criticalOverdensity_, radiusEnvironment, massEnvironment" />
     !!]
 
+    ! Compute environmental radius and mass.
+    if (present(radiusEnvironment).and.present(massEnvironment)) call Galacticus_Error_Report('only one of radiusEnvironment and massEnvironment may be specified'//{introspection:location})
+    if (present(radiusEnvironment)) then
+       self%massEnvironment=+4.0d0                                                                   &
+            &               *Pi                                                                      &
+            &               *self%radiusEnvironment                                              **3 &
+            &               *self%cosmologyFunctions_%matterDensityEpochal(expansionFactor=1.0d0)    &
+            &               /3.0d0
+    else if (present(massEnvironment)) then
+       self%radiusEnvironment=+(                                                                      &
+            &                   +3.0d0                                                                &
+            &                   *self%massEnvironment                                                 &
+            &                   /self%cosmologyFunctions_%matterDensityEpochal(expansionFactor=1.0d0) &
+            &                   /4.0d0                                                                &
+            &                   /Pi                                                                   &
+            &                  )**(1.0d0/3.0d0)
+    else
+       call Galacticus_Error_Report('one of radiusEnvironment and massEnvironment must be specified'//{introspection:location})
+    end if
     ! Set the redshift.
-    self%redshift=self%cosmologyFunctions_%redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%time))
+    self%redshift                       =self%cosmologyFunctions_      %redshiftFromExpansionFactor(self%cosmologyFunctions_%expansionFactor(self%time))
     ! Find the root-variance in the linear density field on the given scale.
-    self%variance=self%cosmologicalMassVariance_%rootVariance(                                                        &
-         &                                                    +4.0d0                                                  &
-         &                                                    /3.0d0                                                  &
-         &                                                    *Pi                                                     &
-         &                                                    *self%cosmologyParameters_%OmegaMatter      (     )     &
-         &                                                    *self%cosmologyParameters_%densityCritical  (     )     &
-         &                                                    *self                     %radiusEnvironment       **3, &
-         &                                                     self%cosmologyFunctions_ %cosmicTime       (1.0d0)     &
-         &                                                   )                                                   **2
+    self%variance                       =self%cosmologicalMassVariance_%rootVariance               (time=time,mass=self%massEnvironment)**2
     ! Build the distribution function.
-    overdensityVariance                 =+self%variance                                                             &
-         &                               *self%linearGrowth_       %value(time=time                            )**2
+    overdensityVariance                 =+self%variance                                                                                     &
+         &                               *self%linearGrowth_           %value                      (time=time                          )**2
     ! Construct the distribution for δ. This assumes a normal distribution for the densities, but conditioned on the fact that the
     ! region has not collapsed on any larger scale. The resulting distribution is given by eqn. (9) of Mo & White (1996; MNRAS;
     ! 282; 347). We include some small buffer to the collapse threshold to avoid rounding errors. 
-    self%environmentalOverdensityMaximum=+self%criticalOverdensity_%value(time=time,mass=self%environmentMass())    &
-         &                               *(                                                                         &
-         &                                 +1.0d0                                                                   &
-         &                                 -limitUpperBuffer                                                        &
+    self%environmentalOverdensityMaximum=+self%criticalOverdensity_    %value                      (time=time,mass=self%massEnvironment)    &
+         &                               *(                                                                                                 &
+         &                                 +1.0d0                                                                                           &
+         &                                 -limitUpperBuffer                                                                                &
          &                                )
     allocate(self%distributionOverdensity)
     !![
@@ -374,15 +397,10 @@ contains
     !!{
     Return the mass of the environment.
     !!}
-    use :: Numerical_Constants_Math, only : Pi
     implicit none
     class(haloEnvironmentNormal), intent(inout) :: self
 
-    normalEnvironmentMass=+4.0d0                                                                   &
-         &                *Pi                                                                      &
-         &                *self%radiusEnvironment                                              **3 &
-         &                *self%cosmologyFunctions_%matterDensityEpochal(expansionFactor=1.0d0)    &
-         &                /3.0d0
+    normalEnvironmentMass=self%massEnvironment
     return
   end function normalEnvironmentMass
 
