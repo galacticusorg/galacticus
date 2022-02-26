@@ -136,7 +136,7 @@ contains
     double precision                                                               :: environmentOverdensityLower       , environmentOverdensityUpper, &
          &                                                                            cdfTarget                         , massBackground             , &
          &                                                                            massFunctionUnconditioned         , massFunctionConditioned
-    type            (integrator                         )                          :: integrator_
+    type            (integrator                         )                          :: integrator_                       , integratorNormalization_
     type            (rootFinder                         )                          :: finder
 
     massBackground=self%haloEnvironment_%environmentMass()
@@ -193,15 +193,24 @@ contains
           environmentOverdensityLower=environmentOverdensityLower-rangeExpandStep
        end if
        ! Perform the averaging integral.
-       integrator_                    =integrator           (                                                &
-            &                                                                  environmentAveragedIntegrand, &
-            &                                                toleranceAbsolute=1.0d-100                    , &
-            &                                                toleranceRelative=1.0d-009                      &
-            &                                               )
-       environmentAveragedDifferential=integrator_%integrate(                                                &
-            &                                                                  environmentOverdensityLower , &
-            &                                                                  environmentOverdensityUpper   &
-            &                                               )
+       integrator_                    = integrator                        (                                                             &
+            &                                                                                environmentAveragedIntegrand             , &
+            &                                                              toleranceAbsolute=1.0d-100                                 , &
+            &                                                              toleranceRelative=1.0d-009                                   &
+            &                                                             )
+       integratorNormalization_       = integrator                        (                                                             &
+            &                                                                                environmentAveragedNormalizationIntegrand, &
+            &                                                              toleranceAbsolute=1.0d-100                                 , &
+            &                                                              toleranceRelative=1.0d-009                                   &
+            &                                                             )
+       environmentAveragedDifferential=+integrator_%integrate             (                                                             &
+            &                                                                                environmentOverdensityLower              , &
+            &                                                                                environmentOverdensityUpper                &
+            &                                                             )                                                             &
+            &                          /integratorNormalization_%integrate(                                                             &
+            &                                                                                environmentOverdensityLower              , &
+            &                                                                                environmentOverdensityUpper                &
+            &                                                             )
        ! Clean up our work node.
        call tree%nodeBase%destroy()
        deallocate(tree%nodeBase)
@@ -233,5 +242,17 @@ contains
            &                       *self%haloEnvironment_            %pdf         (environmentOverdensity                        )
       return
     end function environmentAveragedIntegrand
+
+    double precision function environmentAveragedNormalizationIntegrand(environmentOverdensity)
+      !!{
+      Integrand function used in computing the normalization when averging the dark matter halo mass function over environment.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: environmentOverdensity
+
+      call self%haloEnvironment_%overdensityLinearSet(node=tree%nodeBase,overdensity=environmentOverdensity)
+      environmentAveragedNormalizationIntegrand=+self%haloEnvironment_%pdf(environmentOverdensity)
+      return
+    end function environmentAveragedNormalizationIntegrand
 
   end function environmentAveragedDifferential
