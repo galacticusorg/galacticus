@@ -250,6 +250,15 @@ module Cosmological_Density_Field
       haloEnvironmentOverdensityIsSettable=.true.
     </code>
    </method>
+   <method name="volumeFractionOccupied" >
+    <description>Return the fraction of the volume occupied by the regions described by this environment.</description>
+    <type>double precision</type>
+    <pass>yes</pass>
+    <code>
+      !$GLC attributes unused :: self
+      haloEnvironmentVolumeFractionOccupied=1.0d0
+    </code>
+   </method>
   </functionClass>
   !!]
 

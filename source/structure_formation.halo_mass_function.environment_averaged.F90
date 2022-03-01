@@ -39,6 +39,7 @@ environment-dependent) mass function over environment.
      class           (haloMassFunctionClass), pointer :: haloMassFunctionConditioned_ => null(), haloMassFunctionUnconditioned_ => null()
      class           (haloEnvironmentClass ), pointer :: haloEnvironment_             => null()
      double precision                                 :: factorMatching                        , timeMatching
+     logical                                          :: includeUnoccupiedVolume
    contains
      final     ::                 environmentAveragedDestructor
      procedure :: differential => environmentAveragedDifferential
@@ -61,19 +62,30 @@ contains
     !!}
     use :: Input_Parameters, only : inputParameter, inputParameters
     implicit none
-    type (haloMassFunctionEnvironmentAveraged)                :: self
-    type (inputParameters                    ), intent(inout) :: parameters
-    class(haloMassFunctionClass              ), pointer       :: haloMassFunctionConditioned_, haloMassFunctionUnconditioned_
-    class(haloEnvironmentClass               ), pointer       :: haloEnvironment_
-    class(cosmologyParametersClass           ), pointer       :: cosmologyParameters_
+    type   (haloMassFunctionEnvironmentAveraged)                :: self
+    type   (inputParameters                    ), intent(inout) :: parameters
+    class  (haloMassFunctionClass              ), pointer       :: haloMassFunctionConditioned_, haloMassFunctionUnconditioned_
+    class  (haloEnvironmentClass               ), pointer       :: haloEnvironment_
+    class  (cosmologyParametersClass           ), pointer       :: cosmologyParameters_
+    logical                                                     :: includeUnoccupiedVolume
 
     !![
+    <inputParameter>
+      <name>includeUnoccupiedVolume</name>
+      <source>parameters</source>
+      <defaultValue>.true.</defaultValue>
+      <description>
+	If true, account for any volume which is not included in the environment (e.g. regions which have collapsed on the scale
+	of the environment in a peak-background split environment), when averaging over environment. Otherwise, ignore this
+	unoccupied volume.
+      </description>
+    </inputParameter>
     <objectBuilder class="haloMassFunction"    name="haloMassFunctionConditioned_"   source="parameters" parameterName="haloMassFunctionConditioned"  />
     <objectBuilder class="haloMassFunction"    name="haloMassFunctionUnconditioned_" source="parameters" parameterName="haloMassFunctionUnconditioned"/>
     <objectBuilder class="haloEnvironment"     name="haloEnvironment_"               source="parameters"                                              />
     <objectBuilder class="cosmologyParameters" name="cosmologyParameters_"           source="parameters"                                              />
     !!]
-    self=haloMassFunctionEnvironmentAveraged(haloMassFunctionConditioned_,haloMassFunctionUnconditioned_,haloEnvironment_,cosmologyParameters_)
+    self=haloMassFunctionEnvironmentAveraged(includeUnoccupiedVolume,haloMassFunctionConditioned_,haloMassFunctionUnconditioned_,haloEnvironment_,cosmologyParameters_)
     !![
     <inputParametersValidate source="parameters"/>
     <objectDestructor name="haloMassFunctionConditioned_"  />
@@ -84,17 +96,18 @@ contains
     return
   end function environmentAveragedConstructorParameters
 
-  function environmentAveragedConstructorInternal(haloMassFunctionConditioned_,haloMassFunctionUnconditioned_,haloEnvironment_,cosmologyParameters_) result(self)
+  function environmentAveragedConstructorInternal(includeUnoccupiedVolume,haloMassFunctionConditioned_,haloMassFunctionUnconditioned_,haloEnvironment_,cosmologyParameters_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily environmentAveraged} halo mass function class.
     !!}
     implicit none
-    type (haloMassFunctionEnvironmentAveraged)                        :: self
-    class(haloMassFunctionClass              ), target, intent(in   ) :: haloMassFunctionConditioned_,haloMassFunctionUnconditioned_
-    class(haloEnvironmentClass               ), target, intent(in   ) :: haloEnvironment_
-    class(cosmologyParametersClass           ), target, intent(in   ) :: cosmologyParameters_
+    type   (haloMassFunctionEnvironmentAveraged)                        :: self
+    class  (haloMassFunctionClass              ), target, intent(in   ) :: haloMassFunctionConditioned_,haloMassFunctionUnconditioned_
+    class  (haloEnvironmentClass               ), target, intent(in   ) :: haloEnvironment_
+    class  (cosmologyParametersClass           ), target, intent(in   ) :: cosmologyParameters_
+    logical                                             , intent(in   ) :: includeUnoccupiedVolume
     !![
-    <constructorAssign variables="*haloMassFunctionConditioned_, *haloMassFunctionUnconditioned_, *haloEnvironment_, *cosmologyParameters_"/>
+    <constructorAssign variables="includeUnoccupiedVolume, *haloMassFunctionConditioned_, *haloMassFunctionUnconditioned_, *haloEnvironment_, *cosmologyParameters_"/>
     !!]
 
     self%timeMatching=-1.0d0
@@ -136,7 +149,7 @@ contains
     double precision                                                               :: environmentOverdensityLower       , environmentOverdensityUpper, &
          &                                                                            cdfTarget                         , massBackground             , &
          &                                                                            massFunctionUnconditioned         , massFunctionConditioned
-    type            (integrator                         )                          :: integrator_                       , integratorNormalization_
+    type            (integrator                         )                          :: integrator_
     type            (rootFinder                         )                          :: finder
 
     massBackground=self%haloEnvironment_%environmentMass()
@@ -193,24 +206,18 @@ contains
           environmentOverdensityLower=environmentOverdensityLower-rangeExpandStep
        end if
        ! Perform the averaging integral.
-       integrator_                    = integrator                        (                                                             &
-            &                                                                                environmentAveragedIntegrand             , &
-            &                                                              toleranceAbsolute=1.0d-100                                 , &
-            &                                                              toleranceRelative=1.0d-009                                   &
-            &                                                             )
-       integratorNormalization_       = integrator                        (                                                             &
-            &                                                                                environmentAveragedNormalizationIntegrand, &
-            &                                                              toleranceAbsolute=1.0d-100                                 , &
-            &                                                              toleranceRelative=1.0d-009                                   &
-            &                                                             )
-       environmentAveragedDifferential=+integrator_%integrate             (                                                             &
-            &                                                                                environmentOverdensityLower              , &
-            &                                                                                environmentOverdensityUpper                &
-            &                                                             )                                                             &
-            &                          /integratorNormalization_%integrate(                                                             &
-            &                                                                                environmentOverdensityLower              , &
-            &                                                                                environmentOverdensityUpper                &
-            &                                                             )
+       integrator_                    = integrator           (                                                &
+            &                                                                   environmentAveragedIntegrand, &
+            &                                                 toleranceAbsolute=1.0d-100                    , &
+            &                                                 toleranceRelative=1.0d-009                      &
+            &                                                )
+       environmentAveragedDifferential=+integrator_%integrate(                                                &
+            &                                                                   environmentOverdensityLower , &
+            &                                                                   environmentOverdensityUpper   &
+            &                                                )
+       if (self%includeUnoccupiedVolume)                                                         &
+            &    environmentAveragedDifferential=+environmentAveragedDifferential                &
+            &                                    *self%haloEnvironment_%volumeFractionOccupied()
        ! Clean up our work node.
        call tree%nodeBase%destroy()
        deallocate(tree%nodeBase)
@@ -242,17 +249,5 @@ contains
            &                       *self%haloEnvironment_            %pdf         (environmentOverdensity                        )
       return
     end function environmentAveragedIntegrand
-
-    double precision function environmentAveragedNormalizationIntegrand(environmentOverdensity)
-      !!{
-      Integrand function used in computing the normalization when averging the dark matter halo mass function over environment.
-      !!}
-      implicit none
-      double precision, intent(in   ) :: environmentOverdensity
-
-      call self%haloEnvironment_%overdensityLinearSet(node=tree%nodeBase,overdensity=environmentOverdensity)
-      environmentAveragedNormalizationIntegrand=+self%haloEnvironment_%pdf(environmentOverdensity)
-      return
-    end function environmentAveragedNormalizationIntegrand
 
   end function environmentAveragedDifferential

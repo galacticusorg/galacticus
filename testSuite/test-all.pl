@@ -403,7 +403,12 @@ my @executablesToRun = (
 	mpi      => 0
     },
     {
-	name     => "tests.halo_mass_function.Reed2007.exe",                                # Tests of dark matter halo mass functions.
+	name     => "tests.halo_mass_function.Reed2007.exe",                              # Tests of dark matter halo mass functions.
+ 	valgrind => 0,
+	mpi      => 0
+    },
+    {
+	name     => "tests.halo_mass_function.environment_averaged.exe",                  # Tests of dark matter halo mass functions.
  	valgrind => 0,
 	mpi      => 0
     },

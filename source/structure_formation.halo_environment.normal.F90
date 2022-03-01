@@ -77,6 +77,7 @@ Contains a module which implements a normally-distributed halo environment.
      procedure :: pdf                           => normalPDF
      procedure :: cdf                           => normalCDF
      procedure :: overdensityLinearSet          => normalOverdensityLinearSet
+     procedure :: volumeFractionOccupied        => normalVolumeFractionOccupied
      procedure :: autoHook                      => normalAutoHook
      procedure :: calculationReset              => normalCalculationReset
   end type haloEnvironmentNormal
@@ -423,11 +424,7 @@ contains
     class           (haloEnvironmentNormal), intent(inout) :: self
     double precision                       , intent(in   ) :: overdensity
 
-    ! Include a factor of the included volume fraction - that is, the fraction of the volume of the universe for which the
-    ! background is below the collapse threshold. This ensures that such volumes are excluded when averaging functions weighted by
-    ! the environment PDF.
-    normalPDF=+self%distributionOverdensity%density(overdensity) &
-         &    *self%includedVolumeFraction
+    normalPDF=+self%distributionOverdensity%density(overdensity)
     return
   end function normalPDF
 
@@ -460,3 +457,14 @@ contains
     self%overdensityPrevious=overdensity
     return
   end subroutine normalOverdensityLinearSet
+
+  double precision function normalVolumeFractionOccupied(self)
+    !!{
+    Return the fraction of the volume occupied by regions described by this environment.
+    !!}
+    implicit none
+    class(haloEnvironmentNormal), intent(inout) :: self
+
+    normalVolumeFractionOccupied=self%includedVolumeFraction
+    return
+  end function normalVolumeFractionOccupied
