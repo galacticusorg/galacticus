@@ -53,6 +53,8 @@
      procedure :: differentialEvolutionPre            => multiDifferentialEvolutionPre
      procedure :: differentialEvolution               => multiDifferentialEvolution
      procedure :: differentialEvolutionScales         => multiDifferentialEvolutionScales
+     procedure :: differentialEvolutionAnalytics      => multiDifferentialEvolutionAnalytics
+     procedure :: differentialEvolutionSolveAnalytics => multiDifferentialEvolutionSolveAnalytics
      procedure :: differentialEvolutionInactives      => multiDifferentialEvolutionInactives
      procedure :: differentialEvolutionStepFinalState => multiDifferentialEvolutionStepFinalState
      procedure :: differentialEvolutionPost           => multiDifferentialEvolutionPost
@@ -261,9 +263,26 @@ contains
     return
   end subroutine multiDifferentialEvolutionScales
 
+  subroutine multiDifferentialEvolutionAnalytics(self,node)
+    !!{
+    Mark (meta-)properties as analytically solved for the ODE solver prior to differential evolution.
+    !!}
+    implicit none
+    class(nodeOperatorMulti), intent(inout) :: self
+    type (treeNode         ), intent(inout) :: node
+    type (multiProcessList ), pointer       :: process_
+
+    process_ => self%processes
+    do while (associated(process_))
+       call process_%process_%differentialEvolutionAnalytics(node)
+       process_ => process_%next
+    end do
+    return
+  end subroutine multiDifferentialEvolutionAnalytics
+
   subroutine multiDifferentialEvolutionInactives(self,node)
     !!{
-    Mark meta-properties as inactive for the ODE solver prior to differential evolution.
+    Mark (meta-)properties as inactive for the ODE solver prior to differential evolution.
     !!}
     implicit none
     class(nodeOperatorMulti), intent(inout) :: self
@@ -297,6 +316,24 @@ contains
     end do
     return
   end subroutine multiDifferentialEvolution
+
+  subroutine multiDifferentialEvolutionSolveAnalytics(self,node,time)
+    !!{
+    Set the values of analytically-solvable properties of a node during differential evolution.
+    !!}
+    implicit none
+    class           (nodeOperatorMulti), intent(inout) :: self
+    type            (treeNode         ), intent(inout) :: node
+    double precision                   , intent(in   ) :: time
+    type            (multiProcessList ), pointer       :: process_
+
+    process_ => self%processes
+    do while (associated(process_))
+       call process_%process_%differentialEvolutionSolveAnalytics(node,time)
+       process_ => process_%next
+    end do
+    return
+  end subroutine multiDifferentialEvolutionSolveAnalytics
 
   subroutine multiDifferentialEvolutionStepFinalState(self,node)
     !!{

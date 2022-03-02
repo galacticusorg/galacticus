@@ -257,8 +257,8 @@ contains
     !!{
     Compute the time until satellite merging rate of change.
     !!}
-    use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatellite, nodeComponentSatelliteStandard, propertyTypeActive, &
-          &                         propertyTypeAll          , propertyTypeInactive  , treeNode
+    use :: Galacticus_Nodes, only : defaultSatelliteComponent, nodeComponentSatellite, nodeComponentSatelliteStandard, propertyEvaluate, &
+          &                         treeNode
     implicit none
     type            (treeNode              ), intent(inout)          :: node
     logical                                 , intent(inout)          :: interrupt
@@ -276,15 +276,9 @@ contains
     select type (satellite)
     class is (nodeComponentSatelliteStandard)
        if (node%isSatellite()) then
-          call satellite%mergeTimeRate(-1.0d0      )
+          call satellite%mergeTimeRate(-1.0d0)
           ! Compute mass loss rate if necessary.
-          if     (                                                                                &
-               &   (propertyType == propertyTypeActive   .and. .not.satelliteBoundMassIsInactive) &
-               &  .or.                                                                            &
-               &   (propertyType == propertyTypeInactive .and.      satelliteBoundMassIsInactive  &
-               &  .or.                                                                            &
-               &    propertyType == propertyTypeAll)                                              &
-               & ) then
+          if (propertyEvaluate(propertyType,satelliteBoundMassIsInactive)) then
              massLossRate=darkMatterHaloMassLossRate_%rate(node)
              call satellite%boundMassRate(massLossRate)
           end if

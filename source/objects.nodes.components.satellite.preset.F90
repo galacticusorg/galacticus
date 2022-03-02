@@ -414,7 +414,7 @@ contains
     Interrupt differential evolution when a preset satellite becomes an orphan.
     !!}
     use :: Galacticus_Nodes, only : defaultSatelliteComponent, interruptTask, nodeComponentBasic, nodeComponentSatellite, &
-          &                         propertyTypeInactive     , treeNode
+          &                         propertyInactive         , treeNode
     use :: Histories       , only : history
     implicit none
     type     (treeNode              ), intent(inout)          :: node
@@ -429,7 +429,7 @@ contains
     ! Return immediately if the preset satellite implementation is not active.
     if (.not.defaultSatelliteComponent%presetIsActive()) return
     ! Return immediately if inactive variables are requested.
-    if (propertyType == propertyTypeInactive) return
+    if (propertyInactive(propertyType)) return
     basic            => node     %basic           ()
     satellite        => node     %satellite       ()
     historyBoundMass =  satellite%boundMassHistory()

@@ -345,7 +345,7 @@ contains
           &                                                  errorStatusXCPU
     use            :: Galacticus_Nodes              , only : interruptTask                , mergerTree                                      , nodeComponentBasic                             , propertyTypeActive, &
           &                                                  propertyTypeAll              , propertyTypeInactive                            , propertyTypeNone                               , rateComputeState  , &
-          &                                                  treeNode    
+          &                                                  treeNode                     , propertyTypeNumerics
     use, intrinsic :: ISO_C_Binding                 , only : c_funloc                     , c_funptr                                        , c_null_funptr
     use            :: Memory_Management             , only : Memory_Usage_Record
     use            :: Numerical_Integration2        , only : integratorMultiVectorized1D  , integratorMultiVectorizedCompositeGaussKronrod1D, integratorMultiVectorizedCompositeTrapezoidal1D
@@ -508,12 +508,13 @@ contains
              self%propertyTypeODE       =propertyTypeActive
              self%propertyTypeIntegrator=propertyTypeInactive
           else
-             self%propertyTypeODE       =propertyTypeAll
+             self%propertyTypeODE       =propertyTypeNumerics
              self%propertyTypeIntegrator=propertyTypeNone
           end if
           rateComputeState=self%propertyTypeODE
           ! Determine active and inactive properties.
           call node%odeStepInactivesInitialize()
+          call node%odeStepAnalyticsInitialize()
           if (jacobianSolver) then
              !![
              <include directive="inactiveSetTask" type="functionCall" functionType="void">
@@ -525,6 +526,8 @@ contains
              !!]
              call self%nodeOperator_%differentialEvolutionInactives(node)
           end if
+          ! Determine analytically-solvable properties.
+          call self%nodeOperator_%differentialEvolutionAnalytics(node)
           ! Compute offsets into serialization arrays for rates and scales.
           call node%serializationOffsets(self%propertyTypeODE       )
           call node%serializationOffsets(self%propertyTypeIntegrator)
@@ -698,7 +701,8 @@ contains
           if (solvedNumerically) then
              ! Extract values.
              call node%deserializeValues(self%propertyValuesActive  ,self%propertyTypeODE       )
-             call node%deserializeValues(self%propertyValuesInactive,self%propertyTypeIntegrator)            
+             call node%deserializeValues(self%propertyValuesInactive,self%propertyTypeIntegrator)
+             call self%nodeOperator_%differentialEvolutionSolveAnalytics(node,timeEnd)
              ! Flag interruption if one occurred, and ensure that the time is matched precisely to the end or interrupt time (can differ
              ! due to finite precision of the ODE integrator).
              if (self%timeInterruptFirst /= 0.0d0) then
@@ -767,6 +771,7 @@ contains
        call standardSelf%activeNode%deserializeValues(propertyValues               (1:standardSelf%propertyCountActive  ,iTime),standardSelf%propertyTypeODE     )
        call standardSelf%activeNode%deserializeRates (propertyRates                (1:standardSelf%propertyCountActive  ,iTime),standardSelf%propertyTypeODE     )
        call standardSelf%activeNode%deserializeValues(inactivePropertyInitialValues(1:standardSelf%propertyCountInactive      ),             propertyTypeInactive)
+       call standardSelf%nodeOperator_%differentialEvolutionSolveAnalytics(standardSelf%activeNode,time(iTime))
        ! If past the time of the first interrupt, integrands are set to zero. Otherwise, evaluate integrands.
        if (standardSelf%interruptFirstFound .and. time(iTime) >= standardSelf%timeInterruptFirst) then
           integrands(:,iTime)=0.0d0
@@ -785,15 +790,17 @@ contains
     return
   end subroutine standardIntegrands
 
-  subroutine standardFinalStateProcessing(propertyValues)
+  subroutine standardFinalStateProcessing(time,propertyValues)
     !!{
     Perform any actions based on the final state of the ODE step.
     !!}
     implicit none
+    double precision, intent(in   )               :: time
     double precision, intent(in   ), dimension(:) :: propertyValues
 
     call standardSelf%activeNode   %deserializeValues                  (propertyValues(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
-    call standardSelf%nodeOperator_%differentialEvolutionStepFinalState(                                                   standardSelf%activeNode     )
+    call standardSelf%nodeOperator_%differentialEvolutionSolveAnalytics(                 standardSelf%activeNode          ,time                        )
+    call standardSelf%nodeOperator_%differentialEvolutionStepFinalState(                 standardSelf%activeNode                                       )
     return
   end subroutine standardFinalStateProcessing
 
@@ -813,7 +820,7 @@ contains
     procedure       (interruptTask     ), pointer                     :: functionInterrupt
     class           (nodeComponentBasic), pointer                     :: basic
     integer         (kind_int8         )                              :: systemClockCount
-
+ 
     ! Check for exceeding wall time.
     if (standardSelf%systemClockMaximum > 0_kind_int8) then
        call System_Clock(systemClockCount)
@@ -838,6 +845,7 @@ contains
     end if
     ! Extract values.
     call standardSelf%activeNode%deserializeValues(y(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
+    call standardSelf%nodeOperator_%differentialEvolutionSolveAnalytics(standardSelf%activeNode,time)
     ! If the node is significantly inaccurate (as judged by the node time being different from the system time), then set rates to
     ! zero, as the ODE solver is likely just taking a step which is too large.
     basic => standardSelf%activeNode%basic()
@@ -848,9 +856,11 @@ contains
     ! Set derivatives to zero initially.
     call standardSelf%activeNode%odeStepRatesInitialize()
     if (standardSelf%interruptFirstFound .and. time >= standardSelf%timeInterruptFirst) then
-       ! Already beyond the location of the first interrupt, simply return zero derivatives.
+       ! Already beyond the location of the first interrupt, simply set any analytic solutions to the interrupt time and return
+       ! zero derivatives.
        dydt                              (1:standardSelf%propertyCountActive)=0.0d0
        standardSelf%propertyRatesPrevious(1:standardSelf%propertyCountActive)=0.0d0
+       call standardSelf%nodeOperator_%differentialEvolutionSolveAnalytics(standardSelf%activeNode,standardSelf%timeInterruptFirst)
     else
        ! Compute derivatives.
        call standardDerivativesCompute(standardSelf%activeNode,interrupt,functionInterrupt,standardSelf%propertyTypeODE)
@@ -907,6 +917,7 @@ contains
     else
        ! Compute rates at current parameter values.
        call standardSelf%activeNode%deserializeValues     (propertyValues0(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
+       call standardSelf%nodeOperator_%differentialEvolutionSolveAnalytics(standardSelf%activeNode,time)
        call standardSelf%activeNode%odeStepRatesInitialize(                                                                                             )
        call standardDerivativesCompute                    (standardSelf%activeNode,interrupt,functionInterrupt,standardSelf%propertyTypeODE)
        call standardSelf%activeNode%serializeRates        (propertyRates0                                     ,standardSelf%propertyTypeODE)
@@ -1085,7 +1096,7 @@ contains
     return
   end function standardODEStepTolerances
 
-  subroutine standardPostStepProcessing(y,postStepStatus) bind(c)
+  subroutine standardPostStepProcessing(time,y,postStepStatus) bind(c)
     !!{
     Perform any post-step actions on the node.
     !!}
@@ -1099,11 +1110,13 @@ contains
     </include>
     !!]
     implicit none
+    real   (kind=c_double), intent(in   ), value        :: time
     real   (kind=c_double), intent(inout), dimension(*) :: y
     integer(kind=c_int   ), intent(inout)               :: postStepStatus
 
-    call standardSelf%activeNode   %deserializeValues            (y(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
-    call standardSelf%nodeOperator_%differentialEvolutionPostStep(standardSelf%activeNode,postStepStatus)
+    call standardSelf%activeNode   %deserializeValues                  (y(1:standardSelf%propertyCountActive),standardSelf%propertyTypeODE)
+    call standardSelf%nodeOperator_%differentialEvolutionSolveAnalytics(    standardSelf%activeNode          ,time                        )
+    call standardSelf%nodeOperator_%differentialEvolutionPostStep      (    standardSelf%activeNode          ,postStepStatus              )
     !![
     <include directive="postStepTask" type="functionCall" functionType="void">
      <functionArgs>standardSelf%activeNode,postStepStatus</functionArgs>

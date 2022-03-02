@@ -294,7 +294,7 @@ contains
     Compute the very simple hot halo component mass rate of change.
     !!}
     use :: Accretion_Halos , only : accretionModeTotal
-    use :: Galacticus_Nodes, only : nodeComponentHotHalo   , nodeComponentHotHaloVerySimple, propertyTypeInactive, treeNode, &
+    use :: Galacticus_Nodes, only : nodeComponentHotHalo   , nodeComponentHotHaloVerySimple, propertyInactive, treeNode, &
          &                          defaultHotHaloComponent
     implicit none
     type            (treeNode            ), intent(inout)          :: node
@@ -305,7 +305,7 @@ contains
     double precision                                               :: massAccretionRate   , failedMassAccretionRate
 
     ! Return immediately if inactive variables are requested.
-    if (propertyType == propertyTypeInactive) return
+    if (propertyInactive(propertyType)) return
     ! Return immediately if this class is not in use.
     if (.not.defaultHotHaloComponent%verySimpleIsActive()) return
     ! Get the hot halo component.

@@ -1087,7 +1087,7 @@ contains
     use :: Chemical_Abundances_Structure        , only : chemicalAbundances
     use :: Chemical_Reaction_Rates_Utilities    , only : Chemicals_Mass_To_Density_Conversion
     use :: Galacticus_Nodes                     , only : defaultHotHaloComponent              , interruptTask                    , nodeComponentBasic, nodeComponentHotHalo, &
-          &                                              nodeComponentHotHaloStandard         , propertyTypeInactive             , treeNode          , nodeComponentSpin
+          &                                              nodeComponentHotHaloStandard         , propertyInactive                 , treeNode          , nodeComponentSpin
     use :: Node_Component_Hot_Halo_Standard_Data, only : outerRadiusOverVirialRadiusMinimum   , hotHaloAngularMomentumAlwaysGrows
     use :: Numerical_Constants_Astronomical     , only : gigaYear
     use :: Numerical_Constants_Math             , only : Pi
@@ -1111,7 +1111,7 @@ contains
          &                                                                       rateAccretionMass
 
     ! Return immediately if inactive variables are requested.
-    if (propertyType == propertyTypeInactive) return
+    if (propertyInactive(propertyType)) return
     ! Return immediately if this class is not in use.
     if (.not.defaultHotHaloComponent%standardIsActive()) return
     ! Reset calculations if necessary.

@@ -256,15 +256,17 @@ module Numerical_ODE_Solvers
 
   ! Final state interface.
   abstract interface
-     subroutine finalStateTemplate(y)
+     subroutine finalStateTemplate(x,y)
+       double precision, intent(in   )               :: x
        double precision, intent(in   ), dimension(:) :: y
      end subroutine finalStateTemplate
   end interface
   
   ! Post-step interface.
   abstract interface
-     subroutine postStepTemplate(y,status)
+     subroutine postStepTemplate(x,y,status)
        import c_int, c_double
+       real   (c_double), intent(in   ), value        :: x
        real   (c_double), intent(inout), dimension(*) :: y
        integer(c_int   ), intent(inout)               :: status
      end subroutine postStepTemplate
@@ -542,7 +544,7 @@ contains
       ! Call with the final state.
       if (associated(solvers(active)%solver%finalState)) then
          call MSBDFActive_State(self%gsl_odeiv2_driver,solvers(active)%solver%dim,y)
-         call solvers(active)%solver%finalState(y)
+         call solvers(active)%solver%finalState(x,y)
       end if
       ! Evaluate the integrals, and update the stored time ready for the next step.
       z      =+z                                         &

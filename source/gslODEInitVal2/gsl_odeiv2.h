@@ -49,7 +49,7 @@ gsl_odeiv2_control *gsl_odeiv2_control_scaled2_new (double eps_abs,
 
 int gsl_odeiv2_driver2_apply (gsl_odeiv2_driver * d, double *t,
 			      const double t1, double y[],
-			      void(*postStep)(double y[], int *s),
+			      void(*postStep)(double t, double y[], int *s),
 			      void(*latentIntegrator)(double *t),
 			      void(*stepAnalyzer)(double y[], double yerr[], double h, int s)
 			      );

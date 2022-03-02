@@ -141,7 +141,7 @@ sub offsetName {
 	(
 	 all      => "all",
 	 active   => "atv",
-	 inactive => "itv"	 
+	 inactive => "itv"
 	);
     if ( scalar(@_) == 3 ) {
 	my $status        = shift();

@@ -35,11 +35,11 @@
      private
      integer :: massDMOTargetID
    contains
-     procedure :: nodeInitialize                => dmoInterpolateNodeInitialize
-     procedure :: nodePromote                   => dmoInterpolateNodePromote
-     procedure :: nodesMerge                    => dmoInterpolateNodesMerge
-     procedure :: differentialEvolution         => dmoInterpolateDifferentialEvolution
-     procedure :: differentialEvolutionPostStep => dmoInterpolateDifferentialEvolutionPostStep
+     procedure :: nodeInitialize                      => dmoInterpolateNodeInitialize
+     procedure :: nodePromote                         => dmoInterpolateNodePromote
+     procedure :: nodesMerge                          => dmoInterpolateNodesMerge
+     procedure :: differentialEvolutionAnalytics      => dmoInterpolateDifferentialEvolutionAnalytics
+     procedure :: differentialEvolutionSolveAnalytics => dmoInterpolateDifferentialEvolutionSolveAnalytics
   end type nodeOperatorDMOInterpolate
   
   interface nodeOperatorDMOInterpolate
@@ -199,53 +199,44 @@ contains
 
   end subroutine dmoInterpolateNodeInitialize
 
-  subroutine dmoInterpolateDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
+  subroutine dmoInterpolateDifferentialEvolutionAnalytics(self,node)
+    !!{
+    Mark analytically-solvable properties.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentBasic
+    implicit none
+    class(nodeOperatorDMOInterpolate), intent(inout) :: self
+    type (treeNode                  ), intent(inout) :: node
+    class(nodeComponentBasic        ), pointer       :: basic
+
+    basic => node%basic()
+    call basic%massAnalytic()
+    return
+  end subroutine dmoInterpolateDifferentialEvolutionAnalytics
+
+  subroutine dmoInterpolateDifferentialEvolutionSolveAnalytics(self,node,time)
     !!{
     Evolve ``\gls{dmou}'' mass at a constant rate, to achieve linear interpolation in time.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, propertyTypeInactive
-    implicit none
-    class    (nodeOperatorDMOInterpolate), intent(inout), target  :: self
-    type     (treeNode                  ), intent(inout)          :: node
-    logical                              , intent(inout)          :: interrupt
-    procedure(interruptTask             ), intent(inout), pointer :: functionInterrupt
-    integer                              , intent(in   )          :: propertyType
-    class    (nodeComponentBasic        ), pointer                :: basic
-    !$GLC attributes unused :: self, interrupt, functionInterrupt
-    
-    ! Return immediately if inactive variables are requested.
-    if (propertyType == propertyTypeInactive) return
-    ! Mass rate of change is set to the accretion rate.
-    basic => node%basic()
-    call basic%massRate(basic%accretionRate())
-    return
-  end subroutine dmoInterpolateDifferentialEvolution
-
-  subroutine dmoInterpolateDifferentialEvolutionPostStep(self,node,status)
-    !!{
-    Act on a node after a differential evolution step.
-    !!}
     use :: Galacticus_Nodes, only : nodeComponentBasic
-    use :: Interface_GSL   , only : GSL_Failure
     implicit none
-    class  (nodeOperatorDMOInterpolate), intent(inout) :: self
-    type   (treeNode                  ), intent(inout) :: node
-    integer                            , intent(inout) :: status
-
-    class  (nodeComponentBasic        ), pointer       :: basic
-    !$GLC attributes unused :: self
-
-    basic => node%basic()
-    if     (                                                                                                            &
-         &   (basic%accretionRate() < 0.0d0 .and. basic%mass() < basic%floatRank0MetaPropertyGet(self%massDMOTargetID)) &
-         &  .or.                                                                                                        &
-         &   (basic%accretionRate() > 0.0d0 .and. basic%mass() > basic%floatRank0MetaPropertyGet(self%massDMOTargetID)) &
-         & ) then
-       call basic%massSet(basic%floatRank0MetaPropertyGet(self%massDMOTargetID))
-       status=GSL_Failure
-    end if
+    class           (nodeOperatorDMOInterpolate), intent(inout) :: self
+    type            (treeNode                  ), intent(inout) :: node
+    double precision                            , intent(in   ) :: time
+    class           (nodeComponentBasic        ), pointer       :: basic            , basicParent
+    double precision                                            :: massTarget       , timeTarget , &
+         &                                                         massRateAccretion
+    
+    basic             => node %basic        ()
+    massRateAccretion =  basic%accretionRate()
+    if (massRateAccretion == 0.0d0) return
+    basicParent => node       %parent%basic                    (                    )
+    massTarget  =  basic             %floatRank0MetaPropertyGet(self%massDMOTargetID)
+    timeTarget  =  basicParent       %time                     (                    )
+    ! The mass is assumed to grow linearly with time.
+    call basic%massSet(massTarget+massRateAccretion*(time-timeTarget))
     return
-  end subroutine dmoInterpolateDifferentialEvolutionPostStep
+  end subroutine dmoInterpolateDifferentialEvolutionSolveAnalytics
 
   subroutine dmoInterpolateNodePromote(self,node)
     !!{

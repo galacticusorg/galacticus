@@ -201,7 +201,7 @@ contains
     !!{
     Accumulate the mean rate of star formation between outputs.
     !!}
-    use :: Galacticus_Nodes, only : propertyTypeInactive, nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid
+    use :: Galacticus_Nodes, only : propertyInactive, nodeComponentBasic, nodeComponentDisk, nodeComponentSpheroid
     implicit none
     class           (nodeOperatorStarFormationRateInterOutput), intent(inout), target  :: self
     type            (treeNode                                ), intent(inout)          :: node
@@ -214,7 +214,7 @@ contains
     double precision                                                                   :: timeInterval
     
     ! Return immediately if inactive variables are requested.
-    if (propertyType == propertyTypeInactive) return
+    if (propertyInactive(propertyType)) return
     ! Get required components.
     basic    => node%basic   ()
     disk     => node%disk    ()

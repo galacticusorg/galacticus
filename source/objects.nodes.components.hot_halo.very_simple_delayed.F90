@@ -205,8 +205,8 @@ contains
     !!{
     Compute the very simple hot halo component mass rate of change.
     !!}
-    use :: Abundances_Structure, only : abundances                   , operator(*)                          , zeroAbundances
-    use :: Galacticus_Nodes    , only : nodeComponentHotHalo         , nodeComponentHotHaloVerySimpleDelayed, propertyTypeInactive, treeNode, &
+    use :: Abundances_Structure, only : abundances             , operator(*)                          , zeroAbundances
+    use :: Galacticus_Nodes    , only : nodeComponentHotHalo   , nodeComponentHotHaloVerySimpleDelayed, propertyInactive, treeNode, &
          &                              defaultHotHaloComponent
     implicit none
     type            (treeNode             ), intent(inout)          :: node
@@ -220,7 +220,7 @@ contains
     !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Return immediately if inactive variables are requested.
-    if (propertyType == propertyTypeInactive) return
+    if (propertyInactive(propertyType)) return
     ! Return immediately if this class is not in use.
     if (.not.defaultHotHaloComponent%verySimpleDelayedIsActive()) return
     ! Don't reincorporate gas for satellites - we don't want it to be able to re-infall back onto the satellite.

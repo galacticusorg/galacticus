@@ -199,7 +199,7 @@ contains
     !!{
     Integrates unweighted and time-weighted star formation rates in disk and spheroid components.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentDisk, nodeComponentSpheroid, nodeComponentBasic, propertyTypeActive
+    use :: Galacticus_Nodes, only : nodeComponentDisk   , nodeComponentSpheroid, nodeComponentBasic, propertyActive
     implicit none
     class           (nodeOperatorAgesStellarMassWeighted), intent(inout), target  :: self
     type            (treeNode                           ), intent(inout)          :: node
@@ -214,7 +214,7 @@ contains
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
 
     ! Return immediately if active variables are requested.
-    if (propertyType == propertyTypeActive) return
+    if (propertyActive(propertyType)) return
     ! Get the star formation rates.
     disk                      => node                            %disk    (    )
     spheroid                  => node                            %spheroid(    )

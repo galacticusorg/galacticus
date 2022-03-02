@@ -42,23 +42,24 @@
      class(darkMatterProfileShapeClass), pointer :: darkMatterProfileShape_ => null()
      integer                                     :: shapeGrowthRateID
    contains
-     final     ::                          darkMatterProfileShapeInterpolateConstructorDestructor
-     procedure :: nodeInitialize        => darkMatterProfileShapeInterpolateNodeInitialize
-     procedure :: nodePromote           => darkMatterProfileShapeInterpolateNodePromote
-     procedure :: differentialEvolution => darkMatterProfileShapeInterpolateDifferentialEvolution
+     final     ::                                        dmpShapeInterpolateConstructorDestructor
+     procedure :: nodeInitialize                      => dmpShapeInterpolateNodeInitialize
+     procedure :: nodePromote                         => dmpShapeInterpolateNodePromote
+     procedure :: differentialEvolutionAnalytics      => dmpShapeInterpolateDifferentialEvolutionAnalytics
+     procedure :: differentialEvolutionSolveAnalytics => dmpShapeInterpolateDifferentialEvolutionSolveAnalytics
   end type nodeOperatorDarkMatterProfileShapeInterpolate
   
   interface nodeOperatorDarkMatterProfileShapeInterpolate
      !!{
-     Constructors for the {\normalfont \ttfamily darkMatterProfileShapeInterpolate} node operator class.
+     Constructors for the {\normalfont \ttfamily dmpShapeInterpolate} node operator class.
      !!}
-     module procedure darkMatterProfileShapeInterpolateConstructorParameters
-     module procedure darkMatterProfileShapeInterpolateConstructorInternal
+     module procedure dmpShapeInterpolateConstructorParameters
+     module procedure dmpShapeInterpolateConstructorInternal
   end interface nodeOperatorDarkMatterProfileShapeInterpolate
   
 contains
   
-  function darkMatterProfileShapeInterpolateConstructorParameters(parameters) result(self)
+  function dmpShapeInterpolateConstructorParameters(parameters) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily darkMatterProfileShapeInterpolate} node operator class which takes a parameter set as input.
     !!}
@@ -77,9 +78,9 @@ contains
     <objectDestructor name="darkMatterProfileShape_"/>
     !!]
     return
-  end function darkMatterProfileShapeInterpolateConstructorParameters
+  end function dmpShapeInterpolateConstructorParameters
 
-  function darkMatterProfileShapeInterpolateConstructorInternal(darkMatterProfileShape_) result(self)
+  function dmpShapeInterpolateConstructorInternal(darkMatterProfileShape_) result(self)
     !!{
     Constructor for the {\normalfont \ttfamily darkMatterProfileShapeInterpolate} node operator class which takes a parameter set as input.
     !!}
@@ -94,9 +95,9 @@ contains
     <addMetaProperty component="darkMatterProfile" name="shapeGrowthRate" id="self%shapeGrowthRateID" isEvolvable="no" isCreator="yes"/>
     !!]
     return
-  end function darkMatterProfileShapeInterpolateConstructorInternal
+  end function dmpShapeInterpolateConstructorInternal
 
-  subroutine darkMatterProfileShapeInterpolateConstructorDestructor(self)
+  subroutine dmpShapeInterpolateConstructorDestructor(self)
     !!{
     Destructor for the {\normalfont \ttfamily darkMatterProfileShapeInterpolate} dark matter halo profile shape parameter class.
     !!}
@@ -107,9 +108,9 @@ contains
     <objectDestructor name="self%darkMatterProfileShape_"/>
     !!]
     return
-  end subroutine darkMatterProfileShapeInterpolateConstructorDestructor
+  end subroutine dmpShapeInterpolateConstructorDestructor
 
-  subroutine darkMatterProfileShapeInterpolateNodeInitialize(self,node)
+  subroutine dmpShapeInterpolateNodeInitialize(self,node)
     !!{
     Compute the rate of growth of dark matter profile shape parameter assuming a constant growth rate.
     !!}
@@ -161,42 +162,51 @@ contains
        end if
     end select
     return
-  end subroutine darkMatterProfileShapeInterpolateNodeInitialize
+  end subroutine dmpShapeInterpolateNodeInitialize
   
-  subroutine darkMatterProfileShapeInterpolateDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
+  subroutine dmpShapeInterpolateDifferentialEvolutionAnalytics(self,node)
+    !!{
+    Mark analytically-solvable properties.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile
+    implicit none
+    class(nodeOperatorDarkMatterProfileShapeInterpolate), intent(inout) :: self
+    type (treeNode                                     ), intent(inout) :: node
+    class(nodeComponentDarkMatterProfile               ), pointer       :: darkMatterProfile
+
+    darkMatterProfile => node%darkMatterProfile()
+    call darkMatterProfile%shapeAnalytic()
+    return
+  end subroutine dmpShapeInterpolateDifferentialEvolutionAnalytics
+
+  subroutine dmpShapeInterpolateDifferentialEvolutionSolveAnalytics(self,node,time)
     !!{
     Evolve dark matter profile shape parameter at a constant rate, to achieve linear interpolation in time.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentDarkMatterProfile, propertyTypeInactive
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentDarkMatterProfile
     implicit none
-    class           (nodeOperatorDarkMatterProfileShapeInterpolate), intent(inout), target  :: self
-    type            (treeNode                                     ), intent(inout)          :: node
-    logical                                                        , intent(inout)          :: interrupt
-    procedure       (interruptTask                                ), intent(inout), pointer :: functionInterrupt
-    integer                                                        , intent(in   )          :: propertyType
-    class           (nodeComponentDarkMatterProfile               )               , pointer :: darkMatterProfile, darkMatterProfileParent
-    double precision                                                                        :: rateShapeParameter
-    !$GLC attributes unused :: interrupt, functionInterrupt
-    
-    ! Return immediately if inactive variables are requested.
-    if (propertyType == propertyTypeInactive) return
-    ! Get the dark matter profile component.
-    darkMatterProfile  => node             %darkMatterProfile        (                      )
-    rateShapeParameter =  darkMatterProfile%floatRank0MetaPropertyGet(self%shapeGrowthRateID)
-    if (node%isPrimaryProgenitor()) then
-       ! If necessary, limit the growth rate so that we do not exceed the shape parameter of the parent halo.
-       darkMatterProfileParent => node%parent%darkmatterProfile()
-       if     (                                                                                                 &
-            &   (rateShapeParameter > 0.0d0 .and. darkMatterProfile%shape() >= darkMatterProfileParent%shape()) &
-            &  .or.                                                                                             &
-            &   (rateShapeParameter < 0.0d0 .and. darkMatterProfile%shape() <= darkMatterProfileParent%shape()) &
-            & ) rateShapeParameter=0.0d0
-    end if
-    call darkMatterProfile%shapeRate(rateShapeParameter)
-    return
-  end subroutine darkMatterProfileShapeInterpolateDifferentialEvolution
+    class           (nodeOperatorDarkMatterProfileShapeInterpolate), intent(inout) :: self
+    type            (treeNode                                     ), intent(inout) :: node
+    double precision                                               , intent(in   ) :: time
+    class           (nodeComponentBasic                           ), pointer       :: basicParent
+    class           (nodeComponentDarkMatterProfile               ), pointer       :: darkMatterProfile, darkMatterProfileParent
 
-  subroutine darkMatterProfileShapeInterpolateNodePromote(self,node)
+    if (.not.node%isPrimaryProgenitor()) return
+    darkMatterProfile       => node       %darkMatterProfile()
+    darkMatterProfileParent => node%parent%darkMatterProfile()
+    basicParent             => node%parent%basic            ()
+    call darkMatterProfile%shapeSet(                                                                           &
+         &                          +darkMatterProfileParent%shape                    (                      ) &
+         &                          +(                                                                         &
+         &                            +                      time                                              &
+         &                            -basicParent          %time                     (                      ) &
+         &                           )                                                                         &
+         &                          *darkMatterProfile      %floatRank0MetaPropertyGet(self%shapeGrowthRateID) &
+         &                         )
+    return
+  end subroutine dmpShapeInterpolateDifferentialEvolutionSolveAnalytics
+
+  subroutine dmpShapeInterpolateNodePromote(self,node)
     !!{
     Ensure that {\normalfont \ttfamily node} is ready for promotion to its parent. In this case, we simply update the shape parameter
     growth rate of {\normalfont \ttfamily node} to be that of its parent.
@@ -212,4 +222,4 @@ contains
     call darkMatterProfile%floatRank0MetaPropertySet(self%shapeGrowthRateID,darkMatterProfileParent%floatRank0MetaPropertyGet(self%shapeGrowthRateID))
     call darkMatterProfile%                 shapeSet(                       darkMatterProfileParent%shape                    (                      ))
     return
-  end subroutine darkMatterProfileShapeInterpolateNodePromote
+  end subroutine dmpShapeInterpolateNodePromote

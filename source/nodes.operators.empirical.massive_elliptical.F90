@@ -164,7 +164,7 @@ contains
     !!{
     Impose the star formation rate for the massive elliptical.
     !!}
-    use :: Galacticus_Nodes, only : propertyTypeInactive, nodeComponentSpheroid
+    use :: Galacticus_Nodes, only : propertyInactive, nodeComponentSpheroid
     implicit none
     class           (nodeOperatorEmpiricalMassiveElliptical), intent(inout), target  :: self
     type            (treeNode                              ), intent(inout)          :: node
@@ -175,7 +175,7 @@ contains
     double precision                                                                 :: rateStarFormation, rateAngularMomentum
 
     ! Return immediately for inactive property evolution.
-    if (propertyType == propertyTypeInactive) return
+    if (propertyInactive(propertyType)) return
     ! Compute and set the rates of star formation and angular momentum growth.
     spheroid            =>    node    %spheroid                                 ()
     rateStarFormation   =  +  spheroid%massStellar                              () &

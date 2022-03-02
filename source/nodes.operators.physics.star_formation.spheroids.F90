@@ -125,7 +125,7 @@ contains
     Perform star formation in a spheroid.
     !!}
     use :: Abundances_Structure          , only : abundances
-    use :: Galacticus_Nodes              , only : propertyTypeInactive, propertyTypeActive, propertyTypeAll, nodeComponentSpheroid
+    use :: Galacticus_Nodes              , only : propertyInactive   , propertyActive, propertyEvaluate, nodeComponentSpheroid
     use :: Histories                     , only : history
     use :: Stellar_Luminosities_Structure, only : stellarLuminosities
     implicit none
@@ -153,7 +153,7 @@ contains
          &  .or. spheroid%radius         () <          radiusMinimum &
          &  .or. spheroid%massGas        () <            massMinimum &
          & ) return
-    if (propertyType == propertyTypeInactive) then
+    if (propertyInactive(propertyType)) then
        ! For inactive property solution make use of the "massStellarFormed" property to determine the star formation rate.
        rateStarFormation=spheroid%massStellarFormedRateGet()
     else
@@ -168,11 +168,7 @@ contains
     abundancesFuel=spheroid%abundancesGas()
     call abundancesFuel%massToMassFraction(massFuel)
     ! Determine if luminosities must be computed.
-    luminositiesCompute= (propertyType == propertyTypeActive   .and. .not.self%luminositiesStellarInactive) &
-         &              .or.                                                                                &
-         &               (propertyType == propertyTypeInactive .and.      self%luminositiesStellarInactive) &
-         &              .or.                                                                                &
-         &                propertyType == propertyTypeAll
+    luminositiesCompute=propertyEvaluate(propertyType,self%luminositiesStellarInactive)
     ! Find rates of change of stellar mass, gas mass, abundances and luminosities.
     ratePropertiesStellar=spheroid%stellarPropertiesHistory()
     call self%stellarPopulationProperties_%rates(                         &
@@ -190,11 +186,7 @@ contains
          &                                       luminositiesCompute      &
          &                                      )
     ! Adjust rates.
-    if     (                                    &
-         &   propertyType == propertyTypeActive &
-         &  .or.                                &
-         &   propertyType == propertyTypeAll    &
-         & ) then
+    if (propertyActive(propertyType)) then
        rateHistoryStarFormation=spheroid%starFormationHistory()
        call        rateHistoryStarFormation%reset                       (                                                              )
        call self  %starFormationHistory_   %                        rate(node,rateHistoryStarFormation,abundancesFuel,rateStarFormation)

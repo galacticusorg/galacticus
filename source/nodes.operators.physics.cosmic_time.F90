@@ -34,8 +34,9 @@
      !!}
      private
    contains
-     procedure :: differentialEvolution => cosmicTimeDifferentialEvolution
-     procedure :: nodesMerge            => cosmicTimeNodesMerge
+     procedure :: differentialEvolutionAnalytics      => cosmicTimeDifferentialEvolutionAnalytics
+     procedure :: differentialEvolutionSolveAnalytics => cosmicTimeDifferentialEvolutionSolveAnalytics
+     procedure :: nodesMerge                          => cosmicTimeNodesMerge
   end type nodeOperatorCosmicTime
   
   interface nodeOperatorCosmicTime
@@ -63,27 +64,37 @@ contains
     return
   end function cosmicTimeConstructorParameters
 
-  subroutine cosmicTimeDifferentialEvolution(self,node,interrupt,functionInterrupt,propertyType)
+  subroutine cosmicTimeDifferentialEvolutionAnalytics(self,node)
     !!{
-    Evolve the cosmic time of a node.
+    Mark analytically-solvable properties.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, propertyTypeInactive
+    use :: Galacticus_Nodes, only : nodeComponentBasic
     implicit none
-    class    (nodeOperatorCosmicTime), intent(inout), target  :: self
-    type     (treeNode              ), intent(inout)          :: node
-    logical                          , intent(inout)          :: interrupt
-    procedure(interruptTask         ), intent(inout), pointer :: functionInterrupt
-    integer                          , intent(in   )          :: propertyType
-    class    (nodeComponentBasic    )               , pointer :: basic
-    !$GLC attributes unused :: interrupt, functionInterrupt
-    
-    ! Return immediately if inactive variables are requested.
-    if (propertyType == propertyTypeInactive) return
-    ! Evolve the time.
+    class(nodeOperatorCosmicTime), intent(inout) :: self
+    type (treeNode              ), intent(inout) :: node
+    class(nodeComponentBasic    ), pointer       :: basic
+
     basic => node%basic()
-    call basic%timeRate(1.0d0)
+    call basic%timeAnalytic()
     return
-  end subroutine cosmicTimeDifferentialEvolution
+  end subroutine cosmicTimeDifferentialEvolutionAnalytics
+
+  subroutine cosmicTimeDifferentialEvolutionSolveAnalytics(self,node,time)
+    !!{
+    Set values of analytically-solvable properties.
+    !!}
+    use :: Galacticus_Nodes, only : nodeComponentBasic
+    implicit none
+    class           (nodeOperatorCosmicTime), intent(inout) :: self
+    type            (treeNode              ), intent(inout) :: node
+    double precision                        , intent(in   ) :: time
+    class           (nodeComponentBasic    ), pointer       :: basic
+    !$GLC attributes unused :: self
+
+    basic => node%basic()
+    call basic%timeSet(time)
+    return
+  end subroutine cosmicTimeDifferentialEvolutionSolveAnalytics
 
   subroutine cosmicTimeNodesMerge(self,node)
     !!{
