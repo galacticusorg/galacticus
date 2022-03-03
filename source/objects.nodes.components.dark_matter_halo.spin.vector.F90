@@ -172,11 +172,19 @@ contains
     use :: Galacticus_Nodes, only : nodeComponentSpinVector
     class(nodeComponentSpinVector), intent(inout) :: self
 
-    angularMomentumGrowthRateGet=+sum(                                        &
-         &                            +self%angularMomentumVector          () &
-         &                            *self%angularMomentumVectorGrowthRate() &
-         &                           )                                        &
-         &                       /     self%angularMomentum                ()
+    if     (                                                      &
+         &   all(self%angularMomentumVectorGrowthRate() == 0.0d0) &
+         &  .or.                                                  &
+         &   all(self%angularMomentumVector          () == 0.0d0) &
+         & ) then
+       angularMomentumGrowthRateGet=+0.0d0
+    else
+       angularMomentumGrowthRateGet=+sum(                                        &
+            &                            +self%angularMomentumVector          () &
+            &                            *self%angularMomentumVectorGrowthRate() &
+            &                           )                                        &
+            &                       /     self%angularMomentum                ()
+    end if
     return
   end function angularMomentumGrowthRateGet
 
