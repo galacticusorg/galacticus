@@ -682,7 +682,7 @@ nodeInactives({$offsetName})=.true.
 CODE
 	} else {
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-nodeInactives({$offsetName}:{$offsetName}+size(self%{$property->{'name'}}Data))=.true.
+nodeInactives({$offsetName}:{$offsetName}+size(self%{$property->{'name'}}Data)-1)=.true.
 CODE
 	}
     } else {
@@ -755,8 +755,8 @@ nodeAnalytics({$offsetName})=.true.
 CODE
 	} else {
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-if (any(nodeAnalytics({$offsetName}:{$offsetName}+size(self%{$property->{'name'}}Data)))) call Galacticus_Error_Report('property is already marked analytically-solvable'//\{introspection:location\})
-nodeAnalytics({$offsetName}:{$offsetName}+size(self%{$property->{'name'}}Data))=.true.
+if (any(nodeAnalytics({$offsetName}:{$offsetName}+size(self%{$property->{'name'}}Data)-1))) call Galacticus_Error_Report('property is already marked analytically-solvable'//\{introspection:location\})
+nodeAnalytics({$offsetName}:{$offsetName}+size(self%{$property->{'name'}}Data)-1)=.true.
 CODE
 	}
     } else {
