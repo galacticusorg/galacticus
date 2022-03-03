@@ -123,7 +123,7 @@ contains
     !!{
     Initializes the tree node scale dark matter profile module.
     !!}
-    use :: Events_Hooks                                    , only : nodePromotionEvent      , openMPThreadBindingAtLevel
+    use :: Events_Hooks                                    , only : nodePromotionEvent      , postEvolveEvent, openMPThreadBindingAtLevel
     use :: Galacticus_Nodes                                , only : defaultPositionComponent
     use :: Input_Parameters                                , only : inputParameters
     use :: Node_Component_Position_Preset_Interpolated_Data, only : cosmologyFunctions_
@@ -135,6 +135,7 @@ contains
        <objectBuilder class="cosmologyFunctions" name="cosmologyFunctions_" source="parameters_"/>
        !!]
        call nodePromotionEvent%attach(defaultPositionComponent,nodePromotion,openMPThreadBindingAtLevel,label='nodeComponentPositionPresetInterpolated')
+       call    postEvolveEvent%attach(defaultPositionComponent,postEvolve   ,openMPThreadBindingAtLevel,label='nodeComponentPositionPresetInterpolated')
     end if
     return
   end subroutine threadInitialize
@@ -148,7 +149,7 @@ contains
     !!{
     Uninitializes the tree node scale dark matter profile module.
     !!}
-    use :: Events_Hooks                                    , only : nodePromotionEvent
+    use :: Events_Hooks                                    , only : nodePromotionEvent      , postEvolveEvent
     use :: Galacticus_Nodes                                , only : defaultPositionComponent
     use :: Node_Component_Position_Preset_Interpolated_Data, only : cosmologyFunctions_
     implicit none
@@ -158,6 +159,7 @@ contains
        <objectDestructor name="cosmologyFunctions_"/>
        !!]
        if (nodePromotionEvent%isAttached(defaultPositionComponent,nodePromotion)) call nodePromotionEvent%detach(defaultPositionComponent,nodePromotion)
+       if (   postEvolveEvent%isAttached(defaultPositionComponent,postEvolve   )) call    postEvolveEvent%detach(defaultPositionComponent,postEvolve   )
     end if
     return
   end subroutine threadUninitialize
@@ -186,6 +188,25 @@ contains
     end select
     return
   end subroutine nodePromotion
+
+  subroutine postEvolve(self,node)
+    !!{
+    Trigger interpoltion recalculation after an evolution step.
+    !!}
+    use :: Galacticus_Error, only : Galacticus_Error_Report
+    use :: Galacticus_Nodes, only : nodeComponentPositionPresetInterpolated, treeNode
+    implicit none
+    class(*       ), intent(inout)          :: self
+    type (treeNode), intent(inout), target  :: node
+
+    select type (self)
+    class is (nodeComponentPositionPresetInterpolated)
+       call computeInterpolation(node)
+    class default
+       call Galacticus_Error_Report('incorrect class'//{introspection:location})
+    end select
+    return
+  end subroutine postEvolve
 
   !![
   <nodeMergerTask>
