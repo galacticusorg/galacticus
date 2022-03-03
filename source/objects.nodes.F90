@@ -1880,11 +1880,7 @@ module Galacticus_Nodes
     implicit none
     integer, intent(in   ) :: propertyType
 
-    propertyActive= propertyType == propertyTypeActive   &
-         &         .or.                                  &
-         &          propertyType == propertyTypeNumerics &
-         &         .or.                                  &
-         &          propertyType == propertyTypeAll
+    propertyActive=propertyType == propertyTypeActive
     return
   end function propertyActive
   
