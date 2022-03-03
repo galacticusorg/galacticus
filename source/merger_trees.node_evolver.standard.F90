@@ -589,7 +589,7 @@ contains
           self%functionInterruptFirst => null()
           ! Call ODE solver routines.
           solvedNumerically=.true.
-          if (timeStart /= timeEnd) then
+          if (timeStart /= timeEnd .and. self%propertyCountActive > 0) then
              self%propertyCountPrevious=self%propertyCountActive
              self%trialCount           =0
              solverInitialized         =.false.
