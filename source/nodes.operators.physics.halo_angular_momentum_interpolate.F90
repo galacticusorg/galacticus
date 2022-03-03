@@ -120,13 +120,13 @@ contains
        end if
     else
        ! For non-primary progenitors, assume no growth.
-          call        spin%angularMomentumGrowthRateSet      (                                      &
-               &                                               +0.0d0                               &
-               &                                             )
-          if (angularMomentumIsVector)                                                              &
-               & call spin%angularMomentumVectorGrowthRateSet(                                      &
-               &                                              [+0.0d0,+0.0d0,+0.0d0]                &
-               &                                             )
+       call           spin%angularMomentumGrowthRateSet      (                                      &
+            &                                                  +0.0d0                               &
+            &                                                )
+       if (angularMomentumIsVector)                                                                 &
+            &    call spin%angularMomentumVectorGrowthRateSet(                                      &
+            &                                                 [+0.0d0,+0.0d0,+0.0d0]                &
+            &                                                 )
     end if
     return
   end subroutine haloAngMomInterpolateNodeInitialize
@@ -145,7 +145,7 @@ contains
     spin                    => node%spin                                     ()
     angularMomentumIsVector =  spin%angularMomentumVectorGrowthRateIsSettable()
     call        spin%angularMomentumAnalytic      ()
-    if (angularMomentumIsVector) &
+    if (angularMomentumIsVector)                     &
          & call spin%angularMomentumVectorAnalytic()
     return
   end subroutine haloAngMomInterpolateDifferentialEvolutionAnalytics
