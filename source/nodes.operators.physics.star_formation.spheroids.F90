@@ -125,7 +125,7 @@ contains
     Perform star formation in a spheroid.
     !!}
     use :: Abundances_Structure          , only : abundances
-    use :: Galacticus_Nodes              , only : propertyInactive   , propertyActive, propertyEvaluate, nodeComponentSpheroid
+    use :: Galacticus_Nodes              , only : propertyInactive   , propertyTypeActive, propertyEvaluate, nodeComponentSpheroid
     use :: Histories                     , only : history
     use :: Stellar_Luminosities_Structure, only : stellarLuminosities
     implicit none
@@ -186,7 +186,7 @@ contains
          &                                       luminositiesCompute      &
          &                                      )
     ! Adjust rates.
-    if (propertyActive(propertyType)) then
+    if (propertyEvaluate(propertyTypeActive,propertyIsInactive=.false.)) then
        rateHistoryStarFormation=spheroid%starFormationHistory()
        call        rateHistoryStarFormation%reset                       (                                                              )
        call self  %starFormationHistory_   %                        rate(node,rateHistoryStarFormation,abundancesFuel,rateStarFormation)
