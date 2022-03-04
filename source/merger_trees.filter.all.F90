@@ -30,6 +30,9 @@ Contains a module which implements a merger tree filter class which is the ``all
    <stateStore>
     <linkedList type="filterList" variable="filters" next="next" object="filter_"/>
    </stateStore>
+   <allowedParameters>
+    <linkedList type="filterList" variable="filters" next="next" object="filter_"/>
+   </allowedParameters>
   </mergerTreeFilter>
   !!]
   type, extends(mergerTreeFilterClass) :: mergerTreeFilterAll

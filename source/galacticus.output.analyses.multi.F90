@@ -33,8 +33,11 @@
     <linkedList type="multiAnalysisList" variable="analyses" next="next" object="analysis_" objectType="outputAnalysisClass"/>
    </deepCopy>
    <stateStore>
-    <linkedList type="multiAnalysisList" variable="analyses" next="next" object="analysis_"/>
+    <linkedList type="multiAnalysisList" variable="analyses" next="next" object="analysis_"                                 />
    </stateStore>
+   <allowedParameters>
+    <linkedList type="multiAnalysisList" variable="analyses" next="next" object="analysis_"                                 />
+   </allowedParameters>
   </outputAnalysis>
   !!]
   type, extends(outputAnalysisClass) :: outputAnalysisMulti

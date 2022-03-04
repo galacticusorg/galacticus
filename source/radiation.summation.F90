@@ -35,6 +35,9 @@ Implements a radiation field class which sums over other radiation fields.
    <stateStore>
     <linkedList type="radiationFieldList" variable="radiationFields" next="next" object="radiationField_"/>
    </stateStore>
+   <allowedParameters>
+    <linkedList type="radiationFieldList" variable="radiationFields" next="next" object="radiationField_"/>
+   </allowedParameters>
   </radiationField>
   !!]
   type, extends(radiationFieldClass) :: radiationFieldSummation

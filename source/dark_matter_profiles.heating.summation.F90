@@ -30,6 +30,9 @@
    <stateStore>
     <linkedList type="heatSourceList" variable="heatSources" next="next" object="heatSource"/>
    </stateStore>
+   <allowedParameters>
+    <linkedList type="heatSourceList" variable="heatSources" next="next" object="heatSource"/>
+   </allowedParameters>
   </darkMatterProfileHeating>
   !!]
 

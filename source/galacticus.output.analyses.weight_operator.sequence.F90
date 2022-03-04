@@ -35,6 +35,9 @@ Contains a module which implements a sequence output analysis weight operator cl
    <stateStore>
     <linkedList type="weightOperatorList" variable="operators" next="next" object="operator_"/>
    </stateStore>
+   <allowedParameters>
+    <linkedList type="weightOperatorList" variable="operators" next="next" object="operator_"/>
+   </allowedParameters>
   </outputAnalysisWeightOperator>
   !!]
   type, extends(outputAnalysisWeightOperatorClass) :: outputAnalysisWeightOperatorSequence

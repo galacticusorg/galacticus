@@ -33,6 +33,9 @@
    <stateStore>
     <linkedList type="radiativeTransferSourceList" variable="radiativeTransferSources" next="next" object="radiativeTransferSource"/>
    </stateStore>
+   <allowedParameters>
+    <linkedList type="radiativeTransferSourceList" variable="radiativeTransferSources" next="next" object="radiativeTransferSource"/>
+   </allowedParameters>
   </radiativeTransferSource>
   !!]
   type, extends(radiativeTransferSourceClass) :: radiativeTransferSourceSummation

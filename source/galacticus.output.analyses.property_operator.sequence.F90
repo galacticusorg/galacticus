@@ -35,6 +35,9 @@ Contains a module which implements a sequence output analysis property operator 
    <stateStore>
     <linkedList type="propertyOperatorList" variable="operators" next="next" object="operator_"/>
    </stateStore>
+   <allowedParameters>
+    <linkedList type="propertyOperatorList" variable="operators" next="next" object="operator_"/>
+   </allowedParameters>
   </outputAnalysisPropertyOperator>
   !!]
   type, extends(outputAnalysisPropertyOperatorClass) :: outputAnalysisPropertyOperatorSequence

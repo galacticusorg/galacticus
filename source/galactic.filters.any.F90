@@ -30,6 +30,9 @@ Contains a module which implements a galactic filter class which is the ``any'' 
    <stateStore>
     <linkedList type="filterList" variable="filters" next="next" object="filter_"/>
    </stateStore>
+   <allowedParameters>
+    <linkedList type="filterList" variable="filters" next="next" object="filter_"/>
+   </allowedParameters>
   </galacticFilter>
   !!]
 

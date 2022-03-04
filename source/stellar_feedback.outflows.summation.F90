@@ -31,6 +31,9 @@
    <stateStore>
     <linkedList type="stellarFeedbackOutflowsList" variable="stellarFeedbackOutflowss" next="next" object="stellarFeedbackOutflows"/>
    </stateStore>
+   <allowedParameters>
+    <linkedList type="stellarFeedbackOutflowsList" variable="stellarFeedbackOutflowss" next="next" object="stellarFeedbackOutflows"/>
+   </allowedParameters>
   </stellarFeedbackOutflows>
   !!]
   type, extends(stellarFeedbackOutflowsClass) :: stellarFeedbackOutflowsSummation

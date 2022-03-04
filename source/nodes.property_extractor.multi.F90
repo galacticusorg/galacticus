@@ -37,6 +37,9 @@
    <stateStore>
     <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_"/>
    </stateStore>
+   <allowedParameters>
+     <linkedList type="multiExtractorList" variable="extractors" next="next" object="extractor_"/>
+   </allowedParameters>
   </nodePropertyExtractor>
   !!]
   type, extends(nodePropertyExtractorClass) :: nodePropertyExtractorMulti

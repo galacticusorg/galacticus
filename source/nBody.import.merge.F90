@@ -30,7 +30,10 @@ Contains a module which implements an N-body data importer which merges data fro
    <stateStore>
     <linkedList type="nbodyImporterList" variable="importers" next="next" object="importer_"/>
    </stateStore>
-  </nbodyImporter>
+   <allowedParameters>
+    <linkedList type="nbodyImporterList" variable="importers" next="next" object="importer_"/>
+   </allowedParameters>
+ </nbodyImporter>
   !!]
   type, extends(nbodyImporterClass) :: nbodyImporterMerge
      !!{

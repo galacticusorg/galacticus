@@ -31,6 +31,9 @@
    <stateStore>
     <linkedList type="multiTaskList" variable="tasks" next="next" object="task_"/>
    </stateStore>
+   <allowedParameters>
+    <linkedList type="multiTaskList" variable="tasks" next="next" object="task_"/>
+   </allowedParameters>
   </task>
   !!]
   type, extends(taskClass) :: taskMulti
