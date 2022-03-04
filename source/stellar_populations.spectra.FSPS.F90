@@ -29,8 +29,9 @@ Implements a stellar population spectra class which utilizes the FSPS package \c
     A stellar population spectra class utilizing the FSPS package \citep{conroy_propagation_2009}. If necessary, the
     \href{https://github.com/cconroy20/fsps}{\normalfont \ttfamily FSPS} code will be downloaded, patched and compiled and run
     to generate spectra. These tabulations are then stored to file for later re-use. The file name used is {\normalfont
-    \ttfamily datasets/dynamic/stellarPopulations/simpleStellarPopulationsFSPS:v2.5\_$&lt;$descriptor$&gt;$.hdf5} where
-    $&lt;${\normalfont \ttfamily descriptor}$&gt;$ is an MD5 hash descriptor of the selected stellar population.
+    \ttfamily datasets/dynamic/stellarPopulations/simpleStellarPopulationsFSPS:v$&lt;$version$&gt;$\_$&lt;$descriptor$&gt;$.hdf5} where
+    $&lt;{\normalfont \ttfamily version}$&gt;$ is the FSPS version used, and $&lt;${\normalfont \ttfamily descriptor}$&gt;$ is
+    an MD5 hash descriptor of the selected stellar population.
    </description>
   </stellarPopulationSpectra>
   !!]
@@ -86,16 +87,20 @@ contains
     !!{
     Internal constructor for the FSPS stellar spectra class.
     !!}
-    use :: Galacticus_Paths, only : galacticusPath, pathTypeDataDynamic
+    use :: Galacticus_Paths  , only : galacticusPath        , pathTypeDataDynamic
+    use :: ISO_Varying_String, only : varying_string        , operator(//)
+    use :: Interfaces_FSPS   , only : Interface_FSPS_Version
     implicit none
     type   (stellarPopulationSpectraFSPS)                        :: self
     logical                              , intent(in   )         :: forceZeroMetallicity
     class  (initialMassFunctionClass    ), intent(in   ), target :: initialMassFunction_
+    type   (varying_string              )                        :: fspsVersion
     !![
     <constructorAssign variables="forceZeroMetallicity, *initialMassFunction_"/>
     !!]
 
-    self%stellarPopulationSpectraFile=stellarPopulationSpectraFile(forceZeroMetallicity,char(galacticusPath(pathTypeDataDynamic)//'stellarPopulations/simpleStellarPopulationsFSPS:v2.5_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'))
+    call Interface_FSPS_Version(fspsVersion)
+    self%stellarPopulationSpectraFile=stellarPopulationSpectraFile(forceZeroMetallicity,char(galacticusPath(pathTypeDataDynamic)//'stellarPopulations/simpleStellarPopulationsFSPS:v'//fspsVersion//'_'//self%hashedDescriptor(includeSourceDigest=.true.)//'.hdf5'))
     return
   end function fspsConstructorInternal
 

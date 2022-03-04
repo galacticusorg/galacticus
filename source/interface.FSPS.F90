@@ -27,7 +27,7 @@ module Interfaces_FSPS
   !!}
   use :: File_Utilities, only : lockDescriptor
   private
-  public :: Interface_FSPS_Initialize, Interface_FSPS_SSPs_Tabulate
+  public :: Interface_FSPS_Initialize, Interface_FSPS_SSPs_Tabulate, Interface_FSPS_Version
 
   ! Lock object to prevent multiple threads/processes attempting to build the code simultaneously.
   type(lockDescriptor) :: fspsLock
@@ -37,6 +37,18 @@ module Interfaces_FSPS
 
 contains
 
+  subroutine Interface_FSPS_Version(fspsVersion)
+    !!{
+    Set the version of FSPS being used.
+    !!}
+    use :: ISO_Varying_String, only : varying_string, assignment(=)
+    implicit none
+    type(varying_string), intent(  out) :: fspsVersion
+    
+    fspsVersion="3.2"
+    return
+  end subroutine Interface_FSPS_Version
+  
   subroutine Interface_FSPS_Initialize(fspsPath,fspsVersion,static)
     !!{
     Initialize the interface with FSPS, including downloading and compiling FSPS if necessary.
@@ -60,7 +72,7 @@ contains
     !!]
 
     ! Specify source code path.
-    fspsVersion="3.2"
+    call Interface_FSPS_Version(fspsVersion)
     fspsPath=galacticusPath(pathTypeDataDynamic)//"fsps-"//fspsVersion
     lockPath=galacticusPath(pathTypeDataDynamic)//"fsps" //fspsVersion
     call File_Lock(char(lockPath),fspsLock)
