@@ -272,7 +272,7 @@ contains
     use :: Accretion_Halos                                  , only : accretionModeCold
     use :: Galactic_Structure_Options                       , only : componentTypeColdHalo            , coordinateSystemSpherical         , massTypeGaseous
     use :: Galacticus_Nodes                                 , only : defaultHotHaloComponent          , interruptTask                     , nodeComponentBasic, nodeComponentHotHalo, &
-          &                                                          nodeComponentHotHaloColdMode     , propertyTypeInactive              , treeNode          , nodeComponentSpin
+          &                                                          nodeComponentHotHaloColdMode     , propertyInactive                  , treeNode          , nodeComponentSpin
     use :: Node_Component_Hot_Halo_Standard_Data            , only : hotHaloAngularMomentumAlwaysGrows, outerRadiusOverVirialRadiusMinimum
     use :: Node_Component_Hot_Halo_Cold_Mode_Structure_Tasks, only : darkMatterHaloScale_
     use :: Numerical_Constants_Math                         , only : Pi
@@ -290,7 +290,7 @@ contains
          &                                                            gasMass                     , infallRate
 
     ! Return immediately if inactive variables are requested.
-    if (propertyType == propertyTypeInactive) return
+    if (propertyInactive(propertyType)) return
     ! Return immediately if this class is not in use.
     if (.not.defaultHotHaloComponent%coldModeIsActive()) return
     ! Get the hot halo component.

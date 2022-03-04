@@ -147,7 +147,7 @@ contains
     !!{
     Check for a reformation event in a halo.
     !!}
-    use :: Galacticus_Nodes, only : propertyTypeInactive, nodeComponentBasic
+    use :: Galacticus_Nodes, only : propertyInactive, nodeComponentBasic
     implicit none
     class    (nodeOperatorNodeFormationTimeCole2000), intent(inout), target  :: self
     type     (treeNode                             ), intent(inout)          :: node
@@ -157,8 +157,8 @@ contains
     class    (nodeComponentBasic                   )               , pointer :: basicFormation   , basic
 
     ! Return immediately if inactive variables are requested or if reformation happens only on halo formation.
-    if (propertyType == propertyTypeInactive) return
-    if (self%reformationOnPromotionOnly     ) return
+    if (propertyInactive(propertyType) ) return
+    if (self%reformationOnPromotionOnly) return
     ! Check if the halo has grown sufficiently in mass to trigger a new formation event.
     basic          => node              %basic()
     basicFormation => node%formationNode%basic()

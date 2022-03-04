@@ -121,10 +121,10 @@ contains
     !!{
     Implement the effects of global bar instability on the galactic disk.
     !!}
-    use :: Galacticus_Nodes              , only : propertyTypeInactive, nodeComponentDisk  , nodeComponentSpheroid
-    use :: Abundances_Structure          , only : operator(*)         , abundances         , zeroAbundances         , max
-    use :: Histories                     , only : operator(*)         , history
-    use :: Stellar_Luminosities_Structure, only : operator(*)         , stellarLuminosities, zeroStellarLuminosities, max
+    use :: Galacticus_Nodes              , only : propertyInactive, nodeComponentDisk  , nodeComponentSpheroid
+    use :: Abundances_Structure          , only : operator(*)     , abundances         , zeroAbundances         , max
+    use :: Histories                     , only : operator(*)     , history
+    use :: Stellar_Luminosities_Structure, only : operator(*)     , stellarLuminosities, zeroStellarLuminosities, max
     implicit none
     class           (nodeOperatorBarInstability), intent(inout), target  :: self
     type            (treeNode                  ), intent(inout)          :: node
@@ -142,7 +142,7 @@ contains
     type            (history                   )                         :: historyTransferRate
 
     ! Do nothing during inactive property solving.
-    if (propertyType == propertyTypeInactive) return
+    if (propertyInactive(propertyType)) return
     ! Check for a realistic disk, return immediately if disk is unphysical.
     disk => node%disk()
     if     (     disk%angularMomentum() < 0.0d0 &

@@ -271,7 +271,7 @@ contains
     Compute the black hole mass rate of change.
     !!}
     use :: Galacticus_Nodes            , only : defaultBlackHoleComponent, interruptTask        , nodeComponentBlackHole, nodeComponentBlackHoleSimple, &
-          &                                     nodeComponentHotHalo     , nodeComponentSpheroid, propertyTypeInactive  , treeNode
+          &                                     nodeComponentHotHalo     , nodeComponentSpheroid, propertyInactive      , treeNode
     use :: Numerical_Constants_Physical, only : speedLight
     use :: Numerical_Constants_Prefixes, only : kilo
     implicit none
@@ -290,7 +290,7 @@ contains
          &                                                                x
 
     ! Return immediately if inactive variables are requested.
-    if (propertyType == propertyTypeInactive) return
+    if (propertyInactive(propertyType)) return
     if (defaultBlackHoleComponent%simpleIsActive()) then
 
        ! Get the spheroid component.

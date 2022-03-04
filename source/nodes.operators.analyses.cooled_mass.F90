@@ -152,7 +152,7 @@ contains
     !!{
     Integrates the mass cooling out of the \gls{cgm}.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentHotHalo, propertyTypeActive
+    use :: Galacticus_Nodes, only : nodeComponentHotHalo, propertyActive
     implicit none
     class    (nodeOperatorMassCooled), intent(inout), target  :: self
     type     (treeNode              ), intent(inout)          :: node
@@ -163,7 +163,7 @@ contains
     !$GLC attributes unused :: interrupt, functionInterrupt, propertyType
 
     ! Return immediately if active variables are requested.
-    if (propertyType == propertyTypeActive) return
+    if (propertyActive(propertyType)) return
     ! Compute the cooling rate.
     hotHalo => node%hotHalo()
     ! Accumulate rates.

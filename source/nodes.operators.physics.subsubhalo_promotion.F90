@@ -100,7 +100,7 @@ contains
     !!{
     Determine if sub-sub-halos should be promoted.
     !!}
-    use :: Galacticus_Nodes, only : propertyTypeInactive, nodeComponentSatellite
+    use :: Galacticus_Nodes, only : propertyInactive, nodeComponentSatellite
     implicit none
     class           (nodeOperatorSubsubhaloPromotion), intent(inout), target  :: self
     type            (treeNode                       ), intent(inout)          :: node
@@ -114,7 +114,7 @@ contains
     !$GLC attributes unused :: self
     
     ! Return if inactive variables are requested.
-    if (propertyType == propertyTypeInactive) return
+    if (propertyInactive(propertyType)            ) return
     ! Return if this is not a sub-sub-halo.
     if (.not.associated(node%parent              )) return
     if (.not.           node%parent%isSatellite() ) return

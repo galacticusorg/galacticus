@@ -43,7 +43,8 @@ module Galacticus_Nodes
   use            :: Stellar_Luminosities_Structure  , only : stellarLuminosities
   use            :: Tensors                         , only : tensorNullR2D3Sym         , tensorRank2Dimension3Symmetric
   private
-  public :: nodeClassHierarchyInitialize, nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask, nodeEventBuildFromRaw
+  public :: nodeClassHierarchyInitialize, nodeClassHierarchyFinalize, Galacticus_Nodes_Unique_ID_Set, interruptTask   , &
+       &    nodeEventBuildFromRaw       , propertyEvaluate          , propertyActive                , propertyInactive
   
   type, public :: treeNodeList
      !!{
@@ -219,11 +220,16 @@ module Galacticus_Nodes
   integer         (kind=kind_int8)                                  :: universeUniqueIdCount=0
 
   ! Enumeration for active/inactive properties.
-  integer, parameter, public :: propertyTypeAll     =0
-  integer, parameter, public :: propertyTypeActive  =1
-  integer, parameter, public :: propertyTypeInactive=2
-  integer, parameter, public :: propertyTypeNone    =3
+  integer, parameter, public :: propertyTypeAll       =0
+  integer, parameter, public :: propertyTypeActive    =1
+  integer, parameter, public :: propertyTypeInactive  =2
+  integer, parameter, public :: propertyTypeNumerics  =3
+  integer, parameter, public :: propertyTypeNone      =4
 
+  ! Enumeration for analytically/numerically-solved properties.
+  integer, parameter, public :: solutionTypeNumerical =0
+  integer, parameter, public :: solutionTypeAnalytical=1
+  
   ! State for rate computations.
   integer           , public :: rateComputeState    =propertyTypeActive
   !$omp threadprivate(rateComputeState)
@@ -1867,4 +1873,44 @@ module Galacticus_Nodes
     return
   end subroutine universePushTree
 
+  logical function propertyActive(propertyType)
+    !!{
+    Returns true if active property evaulate is underway.
+    !!}
+    implicit none
+    integer, intent(in   ) :: propertyType
+
+    propertyActive=propertyType == propertyTypeActive
+    return
+  end function propertyActive
+  
+  logical function propertyInactive(propertyType)
+    !!{
+    Returns true if inactive property evaulate is underway.
+    !!}
+    implicit none
+    integer, intent(in   ) :: propertyType
+
+    propertyInactive=propertyType == propertyTypeInactive
+    return
+  end function propertyInactive
+  
+  logical function propertyEvaluate(propertyType,propertyIsInactive)
+    !!{
+    Returns true if a property should be evaulated during the current stage of evolution.
+    !!}
+    implicit none
+    integer, intent(in   ) :: propertyType
+    logical, intent(in   ) :: propertyIsInactive
+
+    propertyEvaluate= (propertyType == propertyTypeAll                                   ) &
+         &           .or.                                                                  &
+         &            (propertyType == propertyTypeActive   .and. .not.propertyIsInactive) &
+         &           .or.                                                                  &
+         &            (propertyType == propertyTypeNumerics .and. .not.propertyIsInactive) &
+         &           .or.                                                                  &
+         &            (propertyType == propertyTypeInactive .and.      propertyIsInactive)
+    return
+  end function propertyEvaluate
+  
 end module Galacticus_Nodes

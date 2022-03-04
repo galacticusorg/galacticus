@@ -114,19 +114,24 @@ if (count <= 0) return
 CODE
     } elsif ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
 	# Include meta-properties here.
-	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+	$code::offsetName = &offsetName('all',$code::class->{'name'},'floatRank0MetaProperties');
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 if (allocated({$class->{'name'}}FloatRank0MetaPropertyNames)) then
  do i=1,size({$class->{'name'}}FloatRank0MetaPropertyNames)
-   if (                                                                                 &
-    &  {$class->{'name'}}FloatRank0MetaPropertyEvolvable(i)                             &
-    & .and.                                                                             &
-    &  (                                                                                &
-    &     propertyType == propertyTypeAll                                               &
-    &   .or.                                                                            &
-    &    (propertyType == propertyTypeActive   .and. .not.nodeInactives({$offsetName})) &
-    &   .or.                                                                            &
-    &    (propertyType == propertyTypeInactive .and.      nodeInactives({$offsetName})) &
-    &  )                                                                                &
+   if (                                                                                    &
+    &  {$class->{'name'}}FloatRank0MetaPropertyEvolvable(i)                                &
+    & .and.                                                                                &
+    &                                                 .not.nodeAnalytics({$offsetName}(i)) &
+    & .and.                                                                                &
+    &  (                                                                                   &
+    &     propertyType == propertyTypeAll                                                  &
+    &   .or.                                                                               &
+    &    (propertyType == propertyTypeActive   .and. .not.nodeInactives({$offsetName}(i))) &
+    &   .or.                                                                               &
+    &    (propertyType == propertyTypeInactive .and.      nodeInactives({$offsetName}(i))) &
+    &   .or.                                                                               &
+    &     propertyType == propertyTypeNumerics                                             &
+    &  )                                                                                   &
     & ) count=count-1
   if (count <= 0) then
    name={$class->{'name'}}FloatRank0MetaPropertyNames(i)
@@ -164,12 +169,18 @@ CODE
 	$code::offsetName = &offsetName('all',$code::class,$code::member,$code::property);
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 {$conditionOpen}
- if (                                                                                             &
-  &    propertyType == propertyTypeAll                                                            &
-  &  .or.                                                                                         &
-  &   (propertyType == propertyTypeActive   .and. all(.not.nodeInactives({$offsetName}:{$offsetName}+{$count}-1))) &
-  &  .or.                                                                                         &
-  &   (propertyType == propertyTypeInactive .and. all(     nodeInactives({$offsetName}:{$offsetName}+{$count}-1))) &
+ if (                                                                                                               &
+  &                                                all(.not.nodeAnalytics({$offsetName}:{$offsetName}+{$count}-1))  &
+  &  .and.                                                                                                          &
+  &  (                                                                                                              &
+  &     propertyType == propertyTypeAll                                                                             &
+  &   .or.                                                                                                          &
+  &    (propertyType == propertyTypeActive   .and. all(.not.nodeInactives({$offsetName}:{$offsetName}+{$count}-1))) &
+  &   .or.                                                                                                          &
+  &    (propertyType == propertyTypeInactive .and. all(     nodeInactives({$offsetName}:{$offsetName}+{$count}-1))) &
+  &   .or.                                                                                                          &
+  &     propertyType == propertyTypeNumerics                                                                        &
+  &  )                                                                                                              &
   & ) count=count-{$count}
 {$conditionClose}
 CODE
@@ -290,7 +301,7 @@ CODE
 {$conditionOpen}
 if (propertyType == propertyTypeAll) then
  {$implementationTypeName}SerializeCount={$implementationTypeName}SerializeCount+count
-else if ((propertyType == propertyTypeActive .and. all(.not.nodeInactives({$offsetName}:{$offsetName}+count-1))) .or. (propertyType == propertyTypeInactive .and. all(nodeInactives({$offsetName}:{$offsetName}+count-1)))) then
+else if (((propertyType == propertyTypeActive .and. all(.not.nodeInactives({$offsetName}:{$offsetName}+count-1))) .or. (propertyType == propertyTypeInactive .and. all(nodeInactives({$offsetName}:{$offsetName}+count-1))) .or. propertyType == propertyTypeNumerics) .and. all(.not.nodeAnalytics({$offsetName}:{$offsetName}+count-1))) then
  {$implementationTypeName}SerializeCount={$implementationTypeName}SerializeCount+count
 end if
 {$conditionClose}
@@ -395,7 +406,7 @@ CODE
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
 if (allocated({$class->{'name'}}FloatRank0MetaPropertyNames)) then
  do i=1,size({$class->{'name'}}FloatRank0MetaPropertyNames)
-  if ({$class->{'name'}}FloatRank0MetaPropertyEvolvable(i).and.(propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. .not.nodeInactives({$offsetName}(i))) .or. (propertyType == propertyTypeInactive .and. nodeInactives({$offsetName}(i))))) then
+  if ({$class->{'name'}}FloatRank0MetaPropertyEvolvable(i).and..not.nodeAnalytics({$offsetName}(i)).and.(propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. .not.nodeInactives({$offsetName}(i))) .or. (propertyType == propertyTypeInactive .and. nodeInactives({$offsetName}(i))) .or. propertyType == propertyTypeNumerics)) then
    array(offset)=self%floatRank0MetaProperties(i)
    offset=offset+1
   end if
@@ -409,7 +420,7 @@ CODE
 	if ( $code::property->{'data'}->{'rank'} == 0 ) {
 	    if ( $code::property->{'data'}->{'type'} eq "double" ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
-if (propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. .not.nodeInactives({$offsetName})) .or. (propertyType == propertyTypeInactive .and. nodeInactives({$offsetName}))) then
+if (.not.nodeAnalytics({$offsetName}) .and. (propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. .not.nodeInactives({$offsetName})) .or. (propertyType == propertyTypeInactive .and. nodeInactives({$offsetName})) .or. propertyType == propertyTypeNumerics)) then
  array(offset)=self%{$property->{'name'}}Data
  offset=offset+1
 end if
@@ -417,7 +428,7 @@ CODE
 	    } else {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
 count=self%{$property->{'name'}}Data%serializeCount()
-if (propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. all(.not.nodeInactives({$offsetName}:{$offsetName}+count-1))) .or. (propertyType == propertyTypeInactive .and. all(nodeInactives({$offsetName}:{$offsetName}+count-1)))) then
+if (all(.not.nodeAnalytics({$offsetName}:{$offsetName}+count-1)) .and. (propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. all(.not.nodeInactives({$offsetName}:{$offsetName}+count-1))) .or. (propertyType == propertyTypeInactive .and. all(nodeInactives({$offsetName}:{$offsetName}+count-1))) .or. propertyType == propertyTypeNumerics)) then
  if (count > 0) call self%{$property->{'name'}}Data%serialize(array(offset:offset+count-1))
  offset=offset+count
 end if
@@ -427,7 +438,7 @@ CODE
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
 if (allocated(self%{$property->{'name'}}Data)) then
    count=size(self%{$property->{'name'}}Data)
-   if (propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. all(.not.nodeInactives({$offsetName}:{$offsetName}+count-1))) .or. (propertyType == propertyTypeInactive .and. all(nodeInactives({$offsetName}:{$offsetName}+count-1)))) then
+   if (all(.not.nodeAnalytics({$offsetName}:{$offsetName}+count-1)) .and. (propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. all(.not.nodeInactives({$offsetName}:{$offsetName}+count-1))) .or. (propertyType == propertyTypeInactive .and. all(nodeInactives({$offsetName}:{$offsetName}+count-1))) .or. propertyType == propertyTypeNumerics)) then
     array(offset:offset+count-1)=reshape(self%{$property->{'name'}}Data,[count])
     offset=offset+count
    end if
@@ -539,7 +550,7 @@ CODE
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
 if (allocated({$class->{'name'}}FloatRank0MetaPropertyNames)) then
  do i=1,size({$class->{'name'}}FloatRank0MetaPropertyNames)
-  if ({$class->{'name'}}FloatRank0MetaPropertyEvolvable(i).and.(propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. .not.nodeInactives({$offsetName}(i))) .or. (propertyType == propertyTypeInactive .and. nodeInactives({$offsetName}(i))))) then
+  if ({$class->{'name'}}FloatRank0MetaPropertyEvolvable(i).and..not.nodeAnalytics({$offsetName}(i)).and.(propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. .not.nodeInactives({$offsetName}(i))) .or. (propertyType == propertyTypeInactive .and. nodeInactives({$offsetName}(i))) .or. propertyType == propertyTypeNumerics)) then
    self%floatRank0MetaProperties(i)=array(offset)
    offset=offset+1
   end if
@@ -553,7 +564,7 @@ CODE
 	if ( $code::property->{'data'}->{'rank'} == 0 ) {
 	    if ( $code::property->{'data'}->{'type'} eq "double" ) {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
-if (propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. .not.nodeInactives({$offsetName})) .or. (propertyType == propertyTypeInactive .and. nodeInactives({$offsetName}))) then
+if (.not.nodeAnalytics({$offsetName}) .and. (propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. .not.nodeInactives({$offsetName})) .or. (propertyType == propertyTypeInactive .and. nodeInactives({$offsetName})) .or. propertyType == propertyTypeNumerics)) then
  self%{$property->{'name'}}Data=array(offset)
  offset=offset+1
 end if
@@ -561,7 +572,7 @@ CODE
 	    } else {
 		$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
 count=self%{$property->{'name'}}Data%serializeCount()
-if (propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. all(.not.nodeInactives({$offsetName}:{$offsetName}+count-1))) .or. (propertyType == propertyTypeInactive .and. all(nodeInactives({$offsetName}:{$offsetName}+count-1)))) then
+if (all(.not.nodeAnalytics({$offsetName}:{$offsetName}+count-1)) .and. (propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. all(.not.nodeInactives({$offsetName}:{$offsetName}+count-1))) .or. (propertyType == propertyTypeInactive .and. all(nodeInactives({$offsetName}:{$offsetName}+count-1))) .or. propertyType == propertyTypeNumerics)) then
  if (count > 0) call self%{$property->{'name'}}Data%deserialize(array(offset:offset+count-1))
  offset=offset+count
 end if
@@ -571,7 +582,7 @@ CODE
 	    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
 if (allocated(self%{$property->{'name'}}Data)) then
    count=size(self%{$property->{'name'}}Data)
-   if (propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. all(.not.nodeInactives({$offsetName}:{$offsetName}+count-1))) .or. (propertyType == propertyTypeInactive .and. all(nodeInactives({$offsetName}:{$offsetName}+count-1)))) then
+   if (all(.not.nodeAnalytics({$offsetName}:{$offsetName}+count-1)) .and. (propertyType == propertyTypeAll .or. (propertyType == propertyTypeActive .and. all(.not.nodeInactives({$offsetName}:{$offsetName}+count-1))) .or. (propertyType == propertyTypeInactive .and. all(nodeInactives({$offsetName}:{$offsetName}+count-1))) .or. propertyType == propertyTypeNumerics)) then
     self%{$property->{'name'}}Data=reshape(array(offset:offset+count-1),shape(self%{$property->{'name'}}Data))
     offset=offset+count
    end if
@@ -688,12 +699,14 @@ CODE
   if      (propertyType == propertyTypeAll     ) then
                                     {$offsetNameAll}     (i)=count      +1
   else if (propertyType == propertyTypeInactive) then
-   if (     nodeInactives(count+1)) {$offsetNameInactive}(i)=countSubset+1
+   if (     nodeInactives(count+1).and..not.nodeAnalytics(count+1)) {$offsetNameInactive}(i)=countSubset+1
   else if (propertyType == propertyTypeActive  ) then
-   if (.not.nodeInactives(count+1)) {$offsetNameActive}  (i)=countSubset+1
+   if (.not.nodeInactives(count+1).and..not.nodeAnalytics(count+1)) {$offsetNameActive}  (i)=countSubset+1
+  else if (propertyType == propertyTypeNumerics) then
+   if (                                .not.nodeAnalytics(count+1)) {$offsetNameActive}  (i)=countSubset+1
   end if
   if (propertyType /= propertyTypeAll) then
-   if ((nodeInactives(count+1) .and. propertyType == propertyTypeInactive) .or. (.not.nodeInactives(count+1) .and. propertyType == propertyTypeActive)) countSubset=countSubset+1
+   if (((nodeInactives(count+1) .and. propertyType == propertyTypeInactive) .or. (.not.nodeInactives(count+1) .and. propertyType == propertyTypeActive) .or. propertyType == propertyTypeNumerics) .and. .not.nodeAnalytics(count+1)) countSubset=countSubset+1
   end if
   count=count+1
  end do
@@ -728,15 +741,17 @@ if (propertySize > 0) then
  if      (propertyType == propertyTypeAll     ) then
                                    {$offsetNameAll}     =count      +1
  else if (propertyType == propertyTypeInactive) then
-  if (     nodeInactives(count+1)) {$offsetNameInactive}=countSubset+1
+  if (     nodeInactives(count+1).and..not.nodeAnalytics(count+1)) {$offsetNameInactive}=countSubset+1
  else if (propertyType == propertyTypeActive  ) then
-  if (.not.nodeInactives(count+1)) {$offsetNameActive}  =countSubset+1
+  if (.not.nodeInactives(count+1).and..not.nodeAnalytics(count+1)) {$offsetNameActive}  =countSubset+1
+ else if (propertyType == propertyTypeNumerics) then
+  if (                                .not.nodeAnalytics(count+1)) {$offsetNameActive}  =countSubset+1
  end if
 CODE
 	# Update the counts by the size of this property.
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');	
  if (propertyType /= propertyTypeAll) then
-  if ((nodeInactives(count+1) .and. propertyType == propertyTypeInactive) .or. (.not.nodeInactives(count+1) .and. propertyType == propertyTypeActive)) countSubset=countSubset+propertySize
+  if (((nodeInactives(count+1) .and. propertyType == propertyTypeInactive) .or. (.not.nodeInactives(count+1) .and. propertyType == propertyTypeActive) .or. propertyType == propertyTypeNumerics) .and. .not.nodeAnalytics(count+1)) countSubset=countSubset+propertySize
  end if
  count=count+propertySize
 end if
@@ -811,7 +826,7 @@ sub Implementation_ODE_Rate_Variables {
 	    intrinsic  => "logical",
 	    attributes => [ "allocatable", "dimension(:)" ],
 	    ompPrivate => 1,
-	    variables  => [ "nodeInactives" ]
+	    variables  => [ "nodeInactives", "nodeAnalytics" ]
 	}
 	);
 }

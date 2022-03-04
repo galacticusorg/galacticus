@@ -125,7 +125,7 @@ contains
     !!}
     use :: Abundances_Structure                 , only : abundances              , operator(*)
     use :: Galacticus_Nodes                     , only : defaultHotHaloComponent , interruptTask, nodeComponentHotHalo, nodeComponentHotHaloOutflowTracking, &
-          &                                              propertyTypeInactive    , treeNode
+          &                                              propertyInactive        , treeNode
     use :: Node_Component_Hot_Halo_Standard_Data, only : hotHaloOutflowReturnRate
     implicit none
     type            (treeNode                    ), intent(inout)          :: node
@@ -138,9 +138,8 @@ contains
     !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Return immediately if inactive variables are requested.
-    if (propertyType == propertyTypeInactive) return
+    if (propertyInactive(propertyType)) return
     ! Return immediately if this class is not in use.
-
     if (.not.defaultHotHaloComponent%outflowTrackingIsActive()) return
     ! Get the hot halo component.
     hotHalo => node%hotHalo()

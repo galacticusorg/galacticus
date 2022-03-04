@@ -162,7 +162,7 @@ contains
     !!{
     Compute the black hole node mass rate of change.
     !!}
-    use :: Galacticus_Nodes                , only : defaultBlackHoleComponent      , interruptTask, nodeComponentBlackHole, propertyTypeInactive, &
+    use :: Galacticus_Nodes                , only : defaultBlackHoleComponent      , interruptTask, nodeComponentBlackHole, propertyInactive, &
           &                                         treeNode
     use :: Numerical_Constants_Astronomical, only : gravitationalConstantGalacticus
     implicit none
@@ -179,7 +179,7 @@ contains
     logical                                                          :: binaryRadiusFound
 
     ! Return immediately if inactive variables are requested.
-    if (propertyType == propertyTypeInactive) return
+    if (propertyInactive(propertyType)) return
     if (defaultBlackHoleComponent%noncentralIsActive()) then
        ! Get a count of the number of black holes associated with this node.
        instanceCount=node%blackHoleCount()

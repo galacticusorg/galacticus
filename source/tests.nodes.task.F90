@@ -48,8 +48,8 @@ contains
     class           (nodeComponent  ), pointer       :: component
     double precision                                 :: mapResult
 
-  ! Set verbosity level.
-  call displayVerbositySet(verbosityLevelStandard)
+    ! Set verbosity level.
+    call displayVerbositySet(verbosityLevelStandard)
 
     ! Create a black hole component.
     component => node%blackHole(autoCreate=.true.)

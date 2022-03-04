@@ -63,9 +63,6 @@
   <!-- Halo accretion options -->
   <accretionHalo value="zero"/>
 
-  <!-- Dark matter halo profile -->
-  <darkMatterProfileDMO value="isothermal"/>
-
   <!-- Hot halo model options -->
   <hotHaloMassDistribution value="betaProfile"/>
 

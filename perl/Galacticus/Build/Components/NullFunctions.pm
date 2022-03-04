@@ -104,6 +104,17 @@ sub createNullFunction {
 		 variables  => [ "self" ]
 	     }
 	    );
+    } elsif ( $descriptor->{'attribute'} eq "analytic" ) {
+	$returnType = "void";
+	@variables =
+	    (
+	     {
+		 intrinsic  => "class",
+		 type       => $selfType,
+		 attributes => [ "intent(".$descriptor->{'intent'}.")" ],
+		 variables  => [ "self" ]
+	     }
+	    );
     } else {
 	die("createNullFunction: attribute '".$descriptor->{'attribute'}."' not supported");
     }

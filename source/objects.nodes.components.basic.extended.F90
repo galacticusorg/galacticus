@@ -397,7 +397,7 @@ contains
     !!{
     Compute rates of change of properties in the standard implementation of the basic component.
     !!}
-    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandardExtended, propertyTypeInactive, treeNode
+    use :: Galacticus_Nodes, only : nodeComponentBasic, nodeComponentBasicStandardExtended, propertyInactive, treeNode
     implicit none
     type     (treeNode          ), intent(inout)          :: node
     logical                      , intent(inout)          :: interrupt
@@ -407,7 +407,7 @@ contains
     !$GLC attributes unused :: interrupt, interruptProcedure
 
     ! Return immediately if inactive variables are requested.
-    if (propertyType == propertyTypeInactive) return
+    if (propertyInactive(propertyType)) return
     ! Get the basic component.
     basic => node%basic()
     ! Ensure that it is of the standard class.

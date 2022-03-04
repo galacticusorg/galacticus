@@ -101,10 +101,10 @@ contains
     !!{
     Perform star formation in a spheroid.
     !!}
-    use :: Galacticus_Nodes              , only : propertyTypeInactive, nodeComponentSpheroid  , nodeComponentHotHalo
+    use :: Galacticus_Nodes              , only : propertyInactive, nodeComponentSpheroid  , nodeComponentHotHalo
     use :: Abundances_Structure          , only : operator(*)
-    use :: Histories                     , only : operator(*)         , history
-    use :: Stellar_Luminosities_Structure, only : operator(*)         , stellarLuminosities, zeroStellarLuminosities, max
+    use :: Histories                     , only : operator(*)     , history
+    use :: Stellar_Luminosities_Structure, only : operator(*)     , stellarLuminosities, zeroStellarLuminosities, max
     implicit none
     class           (nodeOperatorTidalMassLossSpheroids), intent(inout), target  :: self
     type            (treeNode                          ), intent(inout)          :: node
@@ -120,13 +120,13 @@ contains
     type            (history                           )                         :: historyTransferRate
 
     ! Do nothing during inactive property solving.
-    if (propertyType                              == propertyTypeInactive) return
+    if (propertyInactive(propertyType)                    ) return
     ! Return if the spheroid has no mass.
     spheroid => node%spheroid()
-    if (spheroid%massGas()+spheroid%massStellar() <= 0.0d0               ) return
+    if (spheroid%massGas()+spheroid%massStellar() <= 0.0d0) return
     ! Return if the tidal mass loss rate is zero.
     massLossRate=self%tidalStripping_%rateMassLoss(spheroid)
-    if (massLossRate                              <= 0.0d0               ) return
+    if (massLossRate                              <= 0.0d0) return
     ! Transfer stripped material from the spheroid.
     !! Gas is moved to the hot halo component.
     hotHalo         => node%hotHalo()

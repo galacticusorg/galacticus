@@ -129,6 +129,9 @@ program Test_Nodes
   ! Test serialization functions.
   !
 
+  ! Establish property offsets.
+  call node%serializationOffsets(propertyTypeAll)
+
   ! Check that total count of properties is correct.
   call Assert('Total count of properties in tree node',node%serializeCount(propertyTypeAll),2)
 

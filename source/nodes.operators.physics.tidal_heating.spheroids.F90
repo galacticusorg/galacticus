@@ -108,7 +108,7 @@ contains
     !!{
     Perform star formation in a spheroid.
     !!}
-    use :: Galacticus_Nodes, only : propertyTypeInactive, nodeComponentSpheroid
+    use :: Galacticus_Nodes, only : propertyInactive, nodeComponentSpheroid
     implicit none
     class           (nodeOperatorTidalHeatingSpheroids), intent(inout), target  :: self
     type            (treeNode                         ), intent(inout)          :: node
@@ -119,7 +119,7 @@ contains
     double precision                                                            :: tidalField       , tidalTorque
     
     ! Do nothing during inactive property solving.
-    if     (propertyType == propertyTypeInactive) return
+    if     (propertyInactive(propertyType)      ) return
     ! Return if the node is not a satellite.
     if     (.not.node%isSatellite()             ) return
     ! Return if the spheroid is unphysical.

@@ -115,8 +115,8 @@ contains
     !!{
     Perform star formation in a disk.
     !!}
-    use :: Abundances_Structure          , only : abundances          , zeroAbundances
-    use :: Galacticus_Nodes              , only : propertyTypeInactive, nodeComponentDisk, nodeComponentHotHalo
+    use :: Abundances_Structure          , only : abundances         , zeroAbundances
+    use :: Galacticus_Nodes              , only : propertyInactive   , nodeComponentDisk, nodeComponentHotHalo
     use :: Histories                     , only : history
     use :: Stellar_Luminosities_Structure, only : stellarLuminosities
     implicit none
@@ -139,7 +139,7 @@ contains
     type            (stellarLuminosities             )                         :: rateLuminositiesStellar
 
     ! Do nothing during inactive property solving.
-    if (propertyType == propertyTypeInactive) return
+    if (propertyInactive(propertyType)) return
     ! Check for a realistic disk, return immediately if disk is unphysical.
     disk => node%disk()
     if     (     disk%angularMomentum() < 0.0d0 &

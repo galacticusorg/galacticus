@@ -355,8 +355,8 @@ contains
     !!{
     Compute the black hole node mass rate of change.
     !!}
-    use :: Galacticus_Nodes                , only : defaultBlackHoleComponent, interruptTask        , nodeComponentBasic  , nodeComponentBlackHole, &
-          &                                         nodeComponentHotHalo     , nodeComponentSpheroid, propertyTypeInactive, treeNode
+    use :: Galacticus_Nodes                , only : defaultBlackHoleComponent, interruptTask        , nodeComponentBasic, nodeComponentBlackHole, &
+          &                                         nodeComponentHotHalo     , nodeComponentSpheroid, propertyInactive  , treeNode
     use :: Numerical_Constants_Astronomical, only : gigaYear                 , megaParsec
     use :: Numerical_Constants_Atomic      , only : massHydrogenAtom
     use :: Numerical_Constants_Math        , only : Pi
@@ -385,7 +385,7 @@ contains
          &                                                                windFraction
 
     ! Return immediately if inactive variables are requested.
-    if (propertyType == propertyTypeInactive) return
+    if (propertyInactive(propertyType)) return
     if (defaultBlackHoleComponent%standardIsActive()) then
        ! Get a count of the number of black holes associated with this node.
        instanceCount=node%blackHoleCount()
