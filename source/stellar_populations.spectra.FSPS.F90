@@ -30,7 +30,7 @@ Implements a stellar population spectra class which utilizes the FSPS package \c
     \href{https://github.com/cconroy20/fsps}{\normalfont \ttfamily FSPS} code will be downloaded, patched and compiled and run
     to generate spectra. These tabulations are then stored to file for later re-use. The file name used is {\normalfont
     \ttfamily datasets/dynamic/stellarPopulations/simpleStellarPopulationsFSPS:v$&lt;$version$&gt;$\_$&lt;$descriptor$&gt;$.hdf5} where
-    $&lt;{\normalfont \ttfamily version}$&gt;$ is the FSPS version used, and $&lt;${\normalfont \ttfamily descriptor}$&gt;$ is
+    $&lt;${\normalfont \ttfamily version}$&gt;$ is the FSPS version used, and $&lt;${\normalfont \ttfamily descriptor}$&gt;$ is
     an MD5 hash descriptor of the selected stellar population.
    </description>
   </stellarPopulationSpectra>
