@@ -603,13 +603,19 @@ contains
                   &   Dot_Product(positionRelative(2,:),+vectorInPlaneNormal(k,2,:)) &
                   & ) vectorInPlaneNormal(k,2,:)=-vectorInPlaneNormal(k,2,:)
              !! Find the linear fit coefficients to angle.
-             coefficientsAngle    (k,2)=+acos(                                                                    &
-                  &                           +Dot_Product     (positionRelative(2,:),vectorInPlaneNormal(k,1,:)) &
-                  &                           /Vector_Magnitude(positionRelative(2,:)                           ) &
-                  &                          )                                                                    &
-                  &                     /    (                                                                    &
-                  &                           +time(2) &
-                  &                           -time(1) &
+             coefficientsAngle    (k,2)=+acos(                                                                              &
+                  &                           min(                                                                          &
+                  &                               +1.0d0                                                                  , &
+                  &                               max(                                                                      &
+                  &                                   -1.0d0                                                              , &
+                  &                                   +Dot_Product     (positionRelative(2,:),vectorInPlaneNormal(k,1,:))   &
+                  &                                   /Vector_Magnitude(positionRelative(2,:)                           )   &
+                  &                                  )                                                                      &
+                  &                               )                                                                         &
+                  &                          )                                                                              &
+                  &                     /    (                                                                              &
+                  &                           +time(2)                                                                      &
+                  &                           -time(1)                                                                      &
                   &                          )
              coefficientsAngle    (k,1)=-time(1) &
                   &                     *coefficientsAngle(k,2)
