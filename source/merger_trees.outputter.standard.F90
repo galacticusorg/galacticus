@@ -192,6 +192,8 @@ contains
     self%integerBufferCount      = 0
     self%integerBufferSize       =standardBufferSizeIncrement
     self%doubleBufferSize        =standardBufferSizeIncrement
+    allocate(self%integerProperty(0))
+    allocate(self% doubleProperty(0))
     !$omp critical(mergerTreeOutputterStandardInitialize)
     if (.not.treeLockInitialized) then
        treeLock           =ompLock()
@@ -318,11 +320,11 @@ contains
           if (.not.treeLock%ownedByThread()) call treeLock%set()
           !$ call hdf5Access%set()
           referenceLength(1)=max(self%integerPropertiesWritten,self%doublePropertiesWritten)
-          if      (allocated(self%integerProperty).and.self%outputGroups(indexOutput)%nodeDataGroup%hasDataset(self%integerProperty(1)%name)) then
+          if      (allocated(self%integerProperty).and.size(self%integerProperty) > 0.and.self%outputGroups(indexOutput)%nodeDataGroup%hasDataset(self%integerProperty(1)%name)) then
              toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self%integerProperty(1)%name)
              referenceStart(1)=toDataset%size(1)-referenceLength(1)
              call toDataset%close()
-          else if (allocated(self% doubleProperty).and.self%outputGroups(indexOutput)%nodeDataGroup%hasDataset(self% doubleProperty(1)%name)) then
+          else if (allocated(self% doubleProperty).and.size(self% doubleProperty) > 0.and.self%outputGroups(indexOutput)%nodeDataGroup%hasDataset(self% doubleProperty(1)%name)) then
              toDataset=self%outputGroups(indexOutput)%nodeDataGroup%openDataset(self% doubleProperty(1)%name)
              referenceStart(1)=toDataset%size(1)-referenceLength(1)
              call toDataset%close()
@@ -946,16 +948,20 @@ contains
          &                                                                        i
     type            (varying_string             ), allocatable  , dimension(:) :: namesTmp      , descriptionsTmp
 
-    do i=1,size(self%integerProperty)
-       if (allocated(self%integerProperty(i)%metaData)) deallocate(self%integerProperty(i)%metaData)
-       allocate(self%integerProperty(i)%metaData)
-       self%integerProperty(i)%metaData=doubleHash()
-    end do
-    do i=1,size(self%doubleProperty )
-       if (allocated(self%doubleProperty (i)%metaData)) deallocate(self%doubleProperty (i)%metaData)
-       allocate(self%doubleProperty (i)%metaData)
-       self%doubleProperty (i)%metaData=doubleHash()
-    end do
+    if (allocated(self%integerProperty)) then
+       do i=1,size(self%integerProperty)
+          if (allocated(self%integerProperty(i)%metaData)) deallocate(self%integerProperty(i)%metaData)
+          allocate(self%integerProperty(i)%metaData)
+          self%integerProperty(i)%metaData=doubleHash()
+       end do
+    end if
+    if (allocated(self%doubleProperty )) then
+       do i=1,size(self%doubleProperty )
+          if (allocated(self%doubleProperty (i)%metaData)) deallocate(self%doubleProperty (i)%metaData)
+          allocate(self%doubleProperty (i)%metaData)
+          self%doubleProperty (i)%metaData=doubleHash()
+       end do
+    end if
     integerProperty=0
     doubleProperty =0
     !![
