@@ -83,7 +83,7 @@ contains
     use :: Galacticus_Error, only : Galacticus_Error_Report, errorStatusSuccess, errorStatusFail
     use :: System_Command  , only : System_Command_Do
     implicit none
-    character(len=*), intent(in   )           :: url, outputFileName
+    character(len=*), intent(in   )           :: url    , outputFileName
     integer         , intent(  out), optional :: status
     integer                                   :: status_
     
@@ -96,7 +96,11 @@ contains
     else if (.not.present(status)) then
        call Galacticus_Error_Report('no downloader available'//{introspection:location})
     end if
-    if (present(status)) status=status_
+    if (present(status)) then
+       status=status_
+    else if (status_ /= 0) then
+       call Galacticus_Error_Report('failed to download "'//trim(url)//'"'//{introspection:location})
+    end if
     return
   end subroutine downloadChar
 
