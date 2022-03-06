@@ -35,6 +35,9 @@
    <stateStore>
     <linkedList type="multiProcessList" variable="processes" next="next" object="process_"/>
    </stateStore>
+   <allowedParameters>
+    <linkedList type="multiProcessList" variable="processes" next="next" object="process_"/>
+   </allowedParameters>
   </nodeOperator>
   !!]
   type, extends(nodeOperatorClass) :: nodeOperatorMulti

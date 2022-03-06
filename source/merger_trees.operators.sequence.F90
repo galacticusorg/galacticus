@@ -30,6 +30,9 @@ Contains a module which implements a sequence of operators on merger trees.
    <stateStore>
     <linkedList type="operatorList" variable="operators" next="next" object="operator_"/>
    </stateStore>
+   <allowedParameters>
+    <linkedList type="operatorList" variable="operators" next="next" object="operator_"/>
+   </allowedParameters>
   </mergerTreeOperator>
   !!]
 

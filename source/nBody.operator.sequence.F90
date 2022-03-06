@@ -35,6 +35,9 @@ Contains a module which implements an N-body data operator which applies a seque
    <stateStore>
     <linkedList type="nbodyOperatorList" variable="operators" next="next" object="operator_"/>
    </stateStore>
+   <allowedParameters>
+    <linkedList type="nbodyOperatorList" variable="operators" next="next" object="operator_"/>
+   </allowedParameters>
   </nbodyOperator>
   !!]
   type, extends(nbodyOperatorClass) :: nbodyOperatorSequence

@@ -30,6 +30,9 @@
    <stateStore>
     <linkedList type="normalizerList" variable="normalizers" next="next" object="normalizer_"/>
    </stateStore>
+   <allowedParameters>
+    <linkedList type="normalizerList" variable="normalizers" next="next" object="normalizer_"/>
+   </allowedParameters>
   </outputAnalysisDistributionNormalizer>
   !!]
 

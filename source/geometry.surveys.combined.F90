@@ -35,6 +35,9 @@ Implements a survey geometry which combines multiple other surveys.
    <stateStore>
     <linkedList type="surveyGeometryList" variable="surveyGeometries" next="next" object="surveyGeometry_"/>
    </stateStore>
+   <allowedParameters>
+    <linkedList type="surveyGeometryList" variable="surveyGeometries" next="next" object="surveyGeometry_"/>
+   </allowedParameters>
   </surveyGeometry>
   !!]
   type, extends(surveyGeometryClass) :: surveyGeometryCombined

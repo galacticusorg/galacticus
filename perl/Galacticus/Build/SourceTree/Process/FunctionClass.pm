@@ -803,6 +803,8 @@ CODE
 		    $node = $node->{'type'} eq "contains" ? $node->{'firstChild'} : $node->{'sibling'};
 		}
 	    }
+	    my $allowedParametersLinkedListVariables;
+	    @{$allowedParametersLinkedListVariables} = ();
 	    $allowedParametersCode .= "select type (self)\n";
 	    foreach my $class ( @classes ) {
 		if ( $allowedParameters->{$class->{'name'}}->{'declarationMatches'} ) {
@@ -863,6 +865,8 @@ CODE
 				foreach ( @{$allowedParameters->{$className}->{'parameters'}->{$source}->{'objects'}} ) {
 				    $allowedParametersCode .= "  if (associated(self%".$_.")) call self%".$_."%allowedParameters(allowedParameters,'".$source."',.true.)\n";
 				}
+				# Handle any linked lists.
+				$allowedParametersCode .= &allowedParametesLinkedList($class,$allowedParametersLinkedListVariables,$source);
 			    }
 			}
 			if ( defined($allowedParameters->{$className}->{'classParent'}) ) {
@@ -879,6 +883,7 @@ CODE
 	    } else {
 		$allowedParametersCode = "!\$GLC attributes unused :: self, allowedParameters, sourceName\n".$directive->{'name'}."DsblVldtn=".$directive->{'name'}."DsblVldtn\n";
 	    }
+            $allowedParametersCode  = &Fortran::Utils::Format_Variable_Definitions($allowedParametersLinkedListVariables).$allowedParametersCode;
 	    $methods{'allowedParameters'} =
 	    {
 		description => "Return a list of parameter names allowed for this object.",
@@ -3641,6 +3646,40 @@ do while (associated(item_))
 end do
 CODE
     return ($inputCode,$outputCode);
+}
+
+sub allowedParametesLinkedList {
+    # Create allowed parameter instructions for linked list objects.
+    my $nonAbstractClass    = shift();
+    my $linkedListVariables = shift();
+    my $source              = shift();
+    return ""
+	unless ( exists($nonAbstractClass->{'allowedParameters'}->{'linkedList'}) );
+    my $linkedList = $nonAbstractClass->{'allowedParameters'}->{'linkedList'};
+    # Add variables needed for linked list processing.
+    push(
+	@{$linkedListVariables},
+	{
+	    intrinsic  => 'type',
+	    type       => $linkedList->{'type'},
+	    attributes => [ 'pointer' ],
+	    variables  => [ 'item_' ]
+	}
+	)
+	unless ( grep {$_->{'type'} eq $linkedList->{'type'}} @{$linkedListVariables} );
+    # Generate code for the walk through the linked list.
+    $code::variable = $linkedList->{'variable'};
+    $code::object   = $linkedList->{'object'  };
+    $code::next     = $linkedList->{'next'    };
+    $code::source   = $source;
+    my $iterator   = fill_in_string(<<'CODE', PACKAGE => 'code');
+item_ => self%{$variable}
+do while (associated(item_))
+   call item_%{$object}%allowedParameters(allowedParameters,'{$source}',.true.)
+   item_ => item_%{$next}
+end do
+CODE
+    return $iterator;
 }
 
 sub stateStoreExplicitFunction {

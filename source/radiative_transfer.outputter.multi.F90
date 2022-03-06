@@ -35,6 +35,9 @@
    <stateStore>
     <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_"/>
    </stateStore>
+   <allowedParameters>
+    <linkedList type="multiOutputterList" variable="outputters" next="next" object="outputter_"/>
+   </allowedParameters>
   </radiativeTransferOutputter>
   !!]
   type, extends(radiativeTransferOutputterClass) :: radiativeTransferOutputterMulti
