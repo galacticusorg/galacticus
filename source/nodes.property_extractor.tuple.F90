@@ -17,6 +17,8 @@
 !!    You should have received a copy of the GNU General Public License
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
+  use :: Hashes, only : doubleHash
+
   !![
   <nodePropertyExtractor name="nodePropertyExtractorTuple" abstract="yes">
    <description>An abstract output analysis property extractor class which provieds a tuple of floating point properties.</description>
@@ -35,6 +37,7 @@
        <method method="names"        description="Return the names of the properties extracted."                      />
        <method method="descriptions" description="Return descriptions of the properties extracted."                   />
        <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."     />
+       <method method="metaData"    description="Populate a hash with meta-data for the property."                    />
      </methods>
      !!]
      procedure(tupleElementCount), deferred :: elementCount
@@ -42,6 +45,7 @@
      procedure(tupleNames       ), deferred :: names
      procedure(tupleDescriptions), deferred :: descriptions
      procedure(tupleUnitsInSI   ), deferred :: unitsInSI
+     procedure                              :: metaData     => tupleMetaData
   end type nodePropertyExtractorTuple
 
   abstract interface
@@ -104,3 +108,18 @@
        double precision                            , intent(in   ) :: time
      end function tupleElementCount
   end interface
+
+contains
+  
+  subroutine tupleMetaData(self,indexProperty,metaData)
+    !!{
+    Interface for scalar property meta-data.
+    !!}
+    implicit none
+    class  (nodePropertyExtractorTuple), intent(inout) :: self
+    integer                            , intent(in   ) :: indexProperty
+    type   (doubleHash                ), intent(inout) :: metaData
+    !$GLC attributes unused :: self, indexProperty, metaData
+    
+    return
+  end subroutine tupleMetaData

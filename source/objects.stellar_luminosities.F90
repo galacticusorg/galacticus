@@ -140,7 +140,8 @@ module Stellar_Luminosities_Structure
   integer                                                            , allocatable, dimension(:) :: luminosityFilterIndex                                , luminosityIndex               , &
        &                                                                                            luminosityMap
   double precision                                                   , allocatable, dimension(:) :: luminosityBandRedshift                               , luminosityCosmicTime          , &
-       &                                                                                            luminosityRedshift
+       &                                                                                            luminosityRedshift                                   , luminosityWavelengthEffective , &
+       &                                                                                            luminosityVegaOffset
   type            (stellarPopulationSpectraPostprocessorList        ), allocatable, dimension(:) :: luminosityPostprocessor
   type            (varying_string                                   ), allocatable, dimension(:) :: luminosityFilter                                     , luminosityName                , &
        &                                                                                            luminosityPostprocessSet                             , luminosityType                , &
@@ -173,10 +174,10 @@ contains
     use            :: Cosmology_Functions, only : cosmologyFunctions     , cosmologyFunctionsClass
     use            :: Galacticus_Error   , only : Galacticus_Error_Report
     use, intrinsic :: ISO_C_Binding      , only : c_size_t
-    use            :: ISO_Varying_String , only : assignment(=)          , char                   , operator(//), operator(/=), &
+    use            :: ISO_Varying_String , only : assignment(=)          , char                       , operator(//)      , operator(/=), &
           &                                       operator(==)           , var_str
     use            :: Input_Parameters   , only : inputParameters
-    use            :: Instruments_Filters, only : Filter_Get_Index
+    use            :: Instruments_Filters, only : Filter_Get_Index       , Filter_Wavelength_Effective, Filter_Vega_Offset
     use            :: Sorting            , only : sortByIndex            , sortIndex
     use            :: String_Handling    , only : operator(//)
     implicit none
@@ -318,18 +319,22 @@ contains
        call Stellar_Luminosities_Special_Cases(luminosityMap,luminosityRedshiftText,luminosityRedshift,luminosityBandRedshift,luminosityFilter,luminosityType,luminosityPostprocessSet,parameters_)
        luminosityCount=size(luminosityRedshift)
        ! Allocate remaining required arrays.
-       if (allocated(luminosityName         )) deallocate(luminosityName         )
-       if (allocated(luminosityPostprocessor)) deallocate(luminosityPostprocessor)
-       if (allocated(luminosityFilterIndex  )) deallocate(luminosityFilterIndex  )
-       if (allocated(luminosityIndex        )) deallocate(luminosityIndex        )
-       if (allocated(luminosityCosmicTime   )) deallocate(luminosityCosmicTime   )
-       if (allocated(luminosityTimeIndex    )) deallocate(luminosityTimeIndex    )
-       allocate(luminosityName         (luminosityCount))
-       allocate(luminosityPostprocessor(luminosityCount))
-       allocate(luminosityFilterIndex  (luminosityCount))
-       allocate(luminosityIndex        (luminosityCount))
-       allocate(luminosityCosmicTime   (luminosityCount))
-       allocate(luminosityTimeIndex    (luminosityCount))
+       if (allocated(luminosityName               )) deallocate(luminosityName               )
+       if (allocated(luminosityPostprocessor      )) deallocate(luminosityPostprocessor      )
+       if (allocated(luminosityFilterIndex        )) deallocate(luminosityFilterIndex        )
+       if (allocated(luminosityIndex              )) deallocate(luminosityIndex              )
+       if (allocated(luminosityCosmicTime         )) deallocate(luminosityCosmicTime         )
+       if (allocated(luminosityTimeIndex          )) deallocate(luminosityTimeIndex          )
+       if (allocated(luminosityWavelengthEffective)) deallocate(luminosityWavelengthEffective)
+       if (allocated(luminosityVegaOffset         )) deallocate(luminosityVegaOffset         )
+       allocate(luminosityName               (luminosityCount))
+       allocate(luminosityPostprocessor      (luminosityCount))
+       allocate(luminosityFilterIndex        (luminosityCount))
+       allocate(luminosityIndex              (luminosityCount))
+       allocate(luminosityCosmicTime         (luminosityCount))
+       allocate(luminosityTimeIndex          (luminosityCount))
+       allocate(luminosityWavelengthEffective(luminosityCount))
+       allocate(luminosityVegaOffset         (luminosityCount))
        ! Process the list of luminosities.
        do iLuminosity=1,luminosityCount
           ! Assign a name to this luminosity.
@@ -353,12 +358,15 @@ contains
              end do
           end if
           ! Assign an index for this luminosity.
-          luminosityIndex(iLuminosity)=iLuminosity
+          luminosityIndex              (iLuminosity)=                                                                      iLuminosity
           ! Get the index of the specified filter.
-          luminosityFilterIndex(iLuminosity)=Filter_Get_Index(luminosityFilter(iLuminosity))
+          luminosityFilterIndex        (iLuminosity)=Filter_Get_Index                               (luminosityFilter     (iLuminosity))
+          ! Get effctive wavelength and Vega offset.
+          luminosityWavelengthEffective(iLuminosity)=Filter_Wavelength_Effective                    (luminosityFilterIndex(iLuminosity))
+          luminosityVegaOffset         (iLuminosity)=Filter_Vega_Offset                             (luminosityFilterIndex(iLuminosity))
           ! Set the reference time (i.e. cosmological time corresponding to the specified redshift) for this filter.
-          expansionFactor                  =cosmologyFunctions_%expansionFactorFromRedshift(luminosityRedshift(iLuminosity))
-          luminosityCosmicTime(iLuminosity)=cosmologyFunctions_%cosmicTime                 (expansionFactor                )
+          expansionFactor                           =cosmologyFunctions_%expansionFactorFromRedshift(luminosityRedshift   (iLuminosity))
+          luminosityCosmicTime         (iLuminosity)=cosmologyFunctions_%cosmicTime                 (expansionFactor                   )
           ! Set the filter redshifting factor. This is equal to the requested redshift if an observed frame was specified, otherwise
           ! it is set to zero to indicate a rest-frame filter.
           select case(char(luminosityType(iLuminosity)))
@@ -374,15 +382,17 @@ contains
        end do
        ! Sort the luminosities such that the latest luminosities are stored first.
        luminosityTimeIndex=Array_Reverse(sortIndex(luminosityCosmicTime))
-       call sortByIndex             (luminosityFilterIndex   ,luminosityTimeIndex)
-       call sortByIndexPostprocessor(luminosityPostprocessor ,luminosityTimeIndex)
-       call sortByIndex             (luminosityCosmicTime    ,luminosityTimeIndex)
-       call sortByIndex             (luminosityName          ,luminosityTimeIndex)
-       call sortByIndex             (luminosityRedshift      ,luminosityTimeIndex)
-       call sortByIndex             (luminosityBandRedshift  ,luminosityTimeIndex)
-       call sortByIndex             (luminosityFilter        ,luminosityTimeIndex)
-       call sortByIndex             (luminosityType          ,luminosityTimeIndex)
-       call sortByIndex             (luminosityPostprocessSet,luminosityTimeIndex)
+       call sortByIndex             (luminosityFilterIndex        ,luminosityTimeIndex)
+       call sortByIndexPostprocessor(luminosityPostprocessor      ,luminosityTimeIndex)
+       call sortByIndex             (luminosityCosmicTime         ,luminosityTimeIndex)
+       call sortByIndex             (luminosityName               ,luminosityTimeIndex)
+       call sortByIndex             (luminosityRedshift           ,luminosityTimeIndex)
+       call sortByIndex             (luminosityBandRedshift       ,luminosityTimeIndex)
+       call sortByIndex             (luminosityFilter             ,luminosityTimeIndex)
+       call sortByIndex             (luminosityType               ,luminosityTimeIndex)
+       call sortByIndex             (luminosityPostprocessSet     ,luminosityTimeIndex)
+       call sortByIndex             (luminosityWavelengthEffective,luminosityTimeIndex)
+       call sortByIndex             (luminosityVegaOffset         ,luminosityTimeIndex)
        ! Allocate unit and zero stellar abundance objects.
        if (allocated(unitStellarLuminosities%luminosityValue)) deallocate(unitStellarLuminosities%luminosityValue)
        if (allocated(zeroStellarLuminosities%luminosityValue)) deallocate(zeroStellarLuminosities%luminosityValue)
@@ -970,6 +980,8 @@ contains
              doubleProperties(doubleProperty)%name     =trim(prefix )// ':'//trim(luminosityName(i))
              doubleProperties(doubleProperty)%comment  =trim(comment)//' ['//trim(luminosityName(i))//']'
              doubleProperties(doubleProperty)%unitsInSI=unitsInSI
+             call doubleProperties(doubleProperty)%metaData%set('wavelengthEffective',luminosityWavelengthEffective(i))
+             call doubleProperties(doubleProperty)%metaData%set('vegaOffset'         ,luminosityVegaOffset         (i))
           end if
        end do
     end if

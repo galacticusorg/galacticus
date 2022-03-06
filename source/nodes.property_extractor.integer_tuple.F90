@@ -18,6 +18,7 @@
 !!    along with Galacticus.  If not, see <http://www.gnu.org/licenses/>.
 
   use :: Kind_Numbers, only : kind_int8
+  use :: Hashes      , only : doubleHash
 
   !![
   <nodePropertyExtractor name="nodePropertyExtractorIntegerTuple" abstract="yes">
@@ -37,6 +38,7 @@
        <method method="names"        description="Return the names of the properties extracted."                      />
        <method method="descriptions" description="Return descriptions of the properties extracted."                   />
        <method method="unitsInSI"    description="Return the units of the properties extracted in the SI system."     />
+       <method method="metaData"     description="Populate a hash with meta-data for the property."                   />
      </methods>
      !!]
      procedure(integerTupleElementCount), deferred :: elementCount
@@ -44,6 +46,7 @@
      procedure(integerTupleNames       ), deferred :: names
      procedure(integerTupleDescriptions), deferred :: descriptions
      procedure(integerTupleUnitsInSI   ), deferred :: unitsInSI
+     procedure                                     :: metaData    => integerTupleMetaData
   end type nodePropertyExtractorIntegerTuple
 
   abstract interface
@@ -106,3 +109,18 @@
        double precision                                   , intent(in   ) :: time
      end function integerTupleElementCount
   end interface
+
+contains
+
+  subroutine integerTupleMetaData(self,indexProperty,metaData)
+    !!{
+    Interface for integerTuple property meta-data.
+    !!}
+    implicit none
+    class  (nodePropertyExtractorIntegerTuple), intent(inout) :: self
+    integer                                   , intent(in   ) :: indexProperty
+    type   (doubleHash                       ), intent(inout) :: metaData
+    !$GLC attributes unused :: self, indexProperty, metaData
+    
+    return
+  end subroutine integerTupleMetaData

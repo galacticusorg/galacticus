@@ -91,6 +91,7 @@ contains
     implicit none
     type   (varying_string), intent(in   ) :: filterName
     integer                                :: iFilter
+    logical                                :: isLocked
 
     ! Initialize lock if necessary.
     if (.not.lockInitialized) then
@@ -102,7 +103,8 @@ contains
        !$omp end critical (instrumentsFiltersLock)
     end if
     ! See if we already have this filter loaded. If not, load it.
-    call lock%setRead()
+    isLocked=lock%owned()
+    if (.not.isLocked) call lock%setRead()
     if (countFilterResponses == 0) then
        call Filter_Response_Load(filterName)
        Filter_Get_Index=countFilterResponses
@@ -119,7 +121,7 @@ contains
           Filter_Get_Index=countFilterResponses
        end if
     end if
-    call lock%unsetRead()
+    if (.not.isLocked) call lock%unsetRead()
     return
   end function Filter_Get_Index
 
@@ -130,10 +132,12 @@ contains
     implicit none
     type   (varying_string)                :: Filter_Name
     integer                , intent(in   ) :: filterIndex
+    logical                                :: isLocked
 
-    call lock%setRead()
+    isLocked=lock%owned()
+    if (.not.isLocked) call lock%setRead()
     Filter_Name=filterResponses(filterIndex)%name
-    call lock%unsetRead()
+    if (.not.isLocked) call lock%unsetRead()
     return
   end function Filter_Name
 
@@ -144,11 +148,13 @@ contains
     implicit none
     double precision, dimension(2)  :: Filter_Extent
     integer         , intent(in   ) :: filterIndex
+    logical                         :: isLocked
 
-    call lock%setRead()
+    isLocked=lock%owned()
+    if (.not.isLocked) call lock%setRead()
     Filter_Extent(1)=filterResponses(filterIndex)%wavelength(1)
     Filter_Extent(2)=filterResponses(filterIndex)%wavelength(filterResponses(filterIndex)%nPoints)
-    call lock%unsetRead()
+    if (.not.isLocked) call lock%unsetRead()
     return
   end function Filter_Extent
 
@@ -157,16 +163,15 @@ contains
     Load a filter response curve.
     !!}
     use :: File_Utilities           , only : File_Exists            , Directory_Make
-    use :: FoX_DOM                  , only : DOMException           , Node                             , destroy           , getExceptionCode                          , &
+    use :: FoX_DOM                  , only : DOMException           , Node               , destroy           , getExceptionCode, &
          &                                   inException
-    use :: FoX_WXML                 , only : xml_AddCharacters      , xml_Close                        , xml_EndElement    , xml_NewElement                            , &
+    use :: FoX_WXML                 , only : xml_AddCharacters      , xml_Close          , xml_EndElement    , xml_NewElement  , &
           &                                  xml_OpenFile           , xmlf_t
     use :: Galacticus_Error         , only : Galacticus_Error_Report
-    use :: Galacticus_Paths         , only : galacticusPath         , pathTypeDataDynamic              , pathTypeDataStatic
+    use :: Galacticus_Paths         , only : galacticusPath         , pathTypeDataDynamic, pathTypeDataStatic
     use :: HII_Region_Emission_Lines, only : emissionLineWavelength
-    use :: IO_XML                   , only : XML_Array_Read         , XML_Get_First_Element_By_Tag_Name, XML_Path_Exists   , extractDataContent => extractDataContentTS, &
-         &                                   XML_Parse
-    use :: ISO_Varying_String       , only : assignment(=)          , char                             , operator(//)      , operator(==)                              , &
+    use :: IO_XML                   , only : XML_Array_Read         , XML_Parse
+    use :: ISO_Varying_String       , only : assignment(=)          , char               , operator(//)      , operator(==)    , &
          &                                   extract
     use :: Memory_Management        , only : Memory_Usage_Record    , allocateArray
     use :: String_Handling          , only : String_Split_Words     , operator(//)
@@ -175,7 +180,6 @@ contains
     type            (Node          ), pointer                     :: doc
     type            (filterType    ), allocatable  , dimension(:) :: filterResponsesTemporary
     type            (varying_string)               , dimension(4) :: specialFilterWords
-    type            (node          ), pointer                     :: vegaElement                   , wavelengthEffectiveElement
     double precision                , parameter                   :: cutOffResolution        =1.0d4
     integer                                                       :: filterIndex                   , ioErr                     , &
          &                                                           i
@@ -213,8 +217,6 @@ contains
        read (word,*) centralWavelength
        word=char(specialFilterWords(3))
        read (word,*) resolution
-       filterResponses(filterIndex)%vegaOffsetAvailable=.false.
-       filterResponses(filterIndex)%vegaOffset         =0.0d0
        filterResponses(filterIndex)%nPoints            =4
        call allocateArray(filterResponses(filterIndex)%wavelength,[4])
        call allocateArray(filterResponses(filterIndex)%response  ,[4])
@@ -242,8 +244,6 @@ contains
        read (word,*) centralWavelength
        word=char(specialFilterWords(3))
        read (word,*) filterWidth
-       filterResponses(filterIndex)%vegaOffsetAvailable=.false.
-       filterResponses(filterIndex)%vegaOffset         =0.0d0
        filterResponses(filterIndex)%nPoints            =4
        call allocateArray(filterResponses(filterIndex)%wavelength,[4])
        call allocateArray(filterResponses(filterIndex)%response  ,[4])
@@ -282,8 +282,6 @@ contains
           word=char(specialFilterWords(4))
           read (word,*) resolution
        end if
-       filterResponses(filterIndex)%vegaOffsetAvailable=.false.
-       filterResponses(filterIndex)%vegaOffset         =0.0d0
        filterResponses(filterIndex)%nPoints            =4
        call allocateArray(filterResponses(filterIndex)%wavelength,[4])
        call allocateArray(filterResponses(filterIndex)%response  ,[4])
@@ -334,31 +332,14 @@ contains
        ! Extract wavelengths and filter response.
        call XML_Array_Read(doc,"datum",filterResponses(filterIndex)%wavelength,filterResponses(filterIndex)%response)
        filterResponses(filterIndex)%nPoints=size(filterResponses(filterIndex)%wavelength)
-       ! Extract the Vega offset.
-       filterResponses(filterIndex)%vegaOffsetAvailable=XML_Path_Exists(doc,"vegaOffset")
-       if (filterResponses(filterIndex)%vegaOffsetAvailable) then
-          vegaElement => XML_Get_First_Element_By_Tag_Name(doc,"vegaOffset")
-          call extractDataContent(vegaElement,filterResponses(filterIndex)%vegaOffset)
-       else
-          filterResponses(filterIndex)%vegaOffset=0.0d0
-       end if
-       ! Extract the effective wavelength.
-       filterResponses(filterIndex)%wavelengthEffectiveAvailable=XML_Path_Exists(doc,"effectiveWavelength")
-       if (filterResponses(filterIndex)%wavelengthEffectiveAvailable) then
-          wavelengthEffectiveElement => XML_Get_First_Element_By_Tag_Name(doc,"effectiveWavelength")
-          call extractDataContent(wavelengthEffectiveElement,filterResponses(filterIndex)%wavelengthEffective)
-       else
-          filterResponses(filterIndex)%wavelengthEffective=0.0d0
-       end if
        ! Destroy the document.
        call destroy(doc)
        !$omp end critical (FoX_DOM_Access)
        filterConstructed=.false.
     end if
-    ! No effective wavelength was supplied - compute it directly.
-    filterResponses(filterIndex)%wavelengthEffectiveAvailable=.true.
-    filterResponses(filterIndex)%wavelengthEffective         =+sum(filterResponses(filterIndex)%wavelength*filterResponses(filterIndex)%response) &
-         &                                                    /sum(                                        filterResponses(filterIndex)%response)
+    ! Mark effective wavelength and Vega offset as unavailable.
+    filterResponses(filterIndex)%wavelengthEffectiveAvailable=.false.
+    filterResponses(filterIndex)%         vegaOffsetAvailable=.false.
     call lock%unsetWrite(haveReadLock=.true.)
     ! Write out the filter file if necessary.
     call Directory_Make(galacticusPath(pathTypeDataDynamic)//'filters')
@@ -382,18 +363,16 @@ contains
           call xml_AddCharacters(filterDoc,trim(adjustl(label)))
           call xml_EndElement   (filterDoc,"datum")
        end do
-       call xml_EndElement   (filterDoc,"response"   )
+       call xml_EndElement   (filterDoc,"response"           )
        call xml_NewElement   (filterDoc,"effectiveWavelength")
-       write (label,'(f16.8)') filterResponses(filterIndex)%wavelengthEffective
+       write (label,'(f16.8)') Filter_Wavelength_Effective(filterIndex)
        call xml_AddCharacters(filterDoc,trim(adjustl(label)))
        call xml_EndElement   (filterDoc,"effectiveWavelength")
-       if (filterResponses(filterIndex)%vegaOffsetAvailable) then
-          call xml_NewElement   (filterDoc,"vegaOffset")
-          write (label,'(f16.12)') filterResponses(filterIndex)%vegaOffset
-          call xml_AddCharacters(filterDoc,trim(adjustl(label)))
-          call xml_EndElement   (filterDoc,"vegaOffset")
-       end if
-          call xml_EndElement   (filterDoc,"filter"    )
+       call xml_NewElement   (filterDoc,"vegaOffset"         )
+       write (label,'(f16.12)') Filter_Vega_Offset        (filterIndex)
+       call xml_AddCharacters(filterDoc,trim(adjustl(label)))
+       call xml_EndElement   (filterDoc,"vegaOffset"         )
+       call xml_EndElement   (filterDoc,"filter"             )
        call xml_Close        (filterDoc                      )
     end if
     return
@@ -439,11 +418,13 @@ contains
     implicit none
     type   (interpolator), pointer       :: interpolator_
     integer              , intent(in   ) :: filterIndex
+    logical                              :: isLocked
 
     allocate(interpolator_)
-    call lock%setRead()
+    isLocked=lock%owned()
+    if (.not.isLocked) call lock%setRead()
     interpolator_=interpolator(filterResponses(filterIndex)%wavelength,filterResponses(filterIndex)%response)
-    call lock%unsetRead()
+    if (.not.isLocked) call lock%unsetRead()
     return
   end function Filter_Response_Function
 
@@ -463,34 +444,161 @@ contains
     return
   end function Filter_Response
 
-  double precision function Filter_Vega_Offset(filterIndex)
-    !!{
-    Return the Vega to AB magnitude offset for the specified filter.
-    !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
-    implicit none
-    integer, intent(in   ) :: filterIndex
-
-    call lock%setRead()
-    if (.not.filterResponses(filterIndex)%vegaOffsetAvailable) call Galacticus_Error_Report('Vega offset is not available'//{introspection:location})
-    Filter_Vega_Offset=filterResponses(filterIndex)%vegaOffset
-    call lock%unsetRead()
-   return
-  end function Filter_Vega_Offset
-
   double precision function Filter_Wavelength_Effective(filterIndex)
     !!{
     Return the effective wavelength for the specified filter.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     integer, intent(in   ) :: filterIndex
+    logical                :: isLocked
 
-    call lock%setRead()
-    if (.not.filterResponses(filterIndex)%wavelengthEffectiveAvailable) call Galacticus_Error_Report('effective wavelength is not available'//{introspection:location})
+    isLocked=lock%owned()
+    if (.not.isLocked) call lock%setRead()
+    if (.not.filterResponses(filterIndex)%wavelengthEffectiveAvailable) then
+       ! No effective wavelength was supplied - compute it directly.
+       filterResponses(filterIndex)%wavelengthEffectiveAvailable=.true.
+       filterResponses(filterIndex)%wavelengthEffective         =+sum(filterResponses(filterIndex)%wavelength*filterResponses(filterIndex)%response) &
+            &                                                    /sum(                                        filterResponses(filterIndex)%response)
+    end if
     Filter_Wavelength_Effective=filterResponses(filterIndex)%wavelengthEffective
-    call lock%unsetRead()
+    if (.not.isLocked) call lock%unsetRead()
     return
   end function Filter_Wavelength_Effective
 
+  double precision function Filter_Vega_Offset(indexFilter)
+    !!{
+    Compute the Vega-AB offset for the given filter.
+    !!}
+    use, intrinsic :: ISO_C_Binding          , only : c_size_t
+    use            :: FoX_DOM                , only : node                   , destroy
+    use            :: Galacticus_Error       , only : Galacticus_Error_Report
+    use            :: Galacticus_Paths       , only : galacticusPath         , pathTypeDataStatic
+    use            :: IO_XML                 , only : XML_Array_Read         , XML_Parse
+    use            :: ISO_Varying_String     , only : var_str                , char              , operator(//)
+    use            :: Numerical_Integration  , only : GSL_Integ_Gauss15      , integrator
+    use            :: Numerical_Interpolation, only : interpolator
+    implicit none
+    integer                       , intent(in   )              :: indexFilter
+    type            (integrator  )               , allocatable :: integratorVegaBuserV_        , integratorABBuserV_  , &
+         &                                                        integratorVegaFilter_        , integratorABFilter_
+    type            (interpolator), pointer                    :: interpolatorBuserV_          , interpolatorFilter_
+    type            (interpolator), save                       :: interpolatorVega_
+    type            (node        ), pointer                    :: doc
+    logical                       , save                       :: vegaLoaded           =.false.
+    double precision              , dimension(2)               :: wavelengthRangeBuserV        , wavelengthRangeFilter
+    double precision              , dimension(:) , allocatable :: wavelengthVega               , spectrumVega
+    integer                                                    :: indexBuserV                  , ioErr
+    logical                                                    :: isLocked
+
+    isLocked=lock%owned()
+    if (.not.isLocked) call lock%setRead()
+    if (.not.filterResponses(indexFilter)%vegaOffsetAvailable) then
+       if (.not.isLocked) call lock%unsetRead()
+       ! Get the Buser_V reference filter.
+       indexBuserV         =  Filter_Get_Index        (var_str('Buser_V'   ))
+       interpolatorBuserV_ => Filter_Response_Function(         indexBuserV )
+       ! Get the interpolator for the given filter.
+       interpolatorFilter_ => Filter_Response_Function(         indexFilter )
+       ! Load the reference Vega spectrum.
+       if (.not.vegaLoaded) then
+          !$omp critical (loadVegaSpectrum)
+          if (.not.vegaLoaded) then
+             !$omp critical (FoX_DOM_Access)
+             doc => XML_Parse(char(galacticusPath(pathTypeDataStatic)//'stellarAstrophysics/vega/A0V_Castelli.xml'),iostat=ioErr)
+             if (ioErr /= 0) call Galacticus_Error_Report('failed to read Vega spectrum'//{introspection:location})
+             call XML_Array_Read(doc,"datum",wavelengthVega,spectrumVega)
+             call destroy(doc)
+             !$omp end critical (FoX_DOM_Access)
+             interpolatorVega_=interpolator(wavelengthVega,spectrumVega)
+             vegaLoaded       =.true.
+          end if
+          !$omp end critical (loadVegaSpectrum)
+       end if
+       ! Get wavelength ranges for integration.
+       wavelengthRangeBuserV=Filter_Extent(indexBuserV)
+       wavelengthRangeFilter=Filter_Extent(indexFilter)
+       ! Build integrators.
+       if (.not.isLocked) call lock%setRead()
+       allocate(integratorVegaBuserV_)
+       allocate(integratorVegaFilter_)
+       allocate(integratorABBuserV_  )
+       allocate(integratorABFilter_  )
+       integratorVegaBuserV_=integrator(integrandVegaBuserV,toleranceRelative=1.0d-1,integrationRule=GSL_Integ_Gauss15,intervalsMaximum=10000_c_size_t)
+       integratorVegaFilter_=integrator(integrandVegaFilter,toleranceRelative=1.0d-1,integrationRule=GSL_Integ_Gauss15,intervalsMaximum=10000_c_size_t)
+       integratorABBuserV_  =integrator(integrandABBuserV  ,toleranceRelative=1.0d-1,integrationRule=GSL_Integ_Gauss15,intervalsMaximum=10000_c_size_t)
+       integratorABFilter_  =integrator(integrandABFilter  ,toleranceRelative=1.0d-1,integrationRule=GSL_Integ_Gauss15,intervalsMaximum=10000_c_size_t)
+       ! Compute the Vega offset.
+       filterResponses(indexFilter)%vegaOffset         =+2.5d0                                                                                     &
+            &                                           *log10(                                                                                    &
+            &                                                  +integratorVegaFilter_%integrate(wavelengthRangeFilter(1),wavelengthRangeFilter(2)) &
+            &                                                  *integratorABBuserV_  %integrate(wavelengthRangeBuserV(1),wavelengthRangeBuserV(2)) &
+            &                                                  /integratorVegaBuserV_%integrate(wavelengthRangeBuserV(1),wavelengthRangeBuserV(2)) &
+            &                                                  /integratorABFilter_  %integrate(wavelengthRangeFilter(1),wavelengthRangeFilter(2)) &
+            &                                                 )
+       filterResponses(indexFilter)%vegaOffsetAvailable=.true.
+       ! Clean up.
+       deallocate(interpolatorBuserV_  )
+       deallocate(interpolatorFilter_  )
+       deallocate(integratorVegaBuserV_)
+       deallocate(integratorVegaFilter_)
+       deallocate(integratorABBuserV_  )
+       deallocate(integratorABFilter_  )
+    end if
+    ! Return the offset.
+    Filter_Vega_Offset=filterResponses(indexFilter)%vegaOffset
+    if (.not.isLocked) call lock%unsetRead()
+    return
+
+  contains
+
+    double precision function integrandVegaBuserV(wavelength) result(flux)
+      !!{
+      Integrand used in calculation of Vega-AB offsets.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: wavelength
+
+      flux   =+interpolatorVega_  %interpolate(wavelength) &
+           &  *interpolatorBuserV_%interpolate(wavelength)
+      return
+    end function integrandVegaBuserV
+    
+    double precision function integrandABBuserV(wavelength) result(flux)
+      !!{
+      Integrand used in calculation of Vega-AB offsets.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: wavelength
+
+      flux   =+interpolatorBuserV_%interpolate(wavelength)    &
+           &  /                                wavelength **2
+      return
+    end function integrandABBuserV
+    
+    double precision function integrandVegaFilter(wavelength) result(flux)
+      !!{
+      Integrand used in calculation of Vega-AB offsets.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: wavelength
+
+      flux   =+interpolatorVega_  %interpolate(wavelength) &
+           &  *interpolatorFilter_%interpolate(wavelength)
+      return
+    end function integrandVegaFilter
+    
+    double precision function integrandABFilter(wavelength) result(flux)
+      !!{
+      Integrand used in calculation of Vega-AB offsets.
+      !!}
+      implicit none
+      double precision, intent(in   ) :: wavelength
+
+      flux   =+interpolatorFilter_%interpolate(wavelength)    &
+           &  /                                wavelength **2
+      return
+    end function integrandABFilter
+    
+  end function Filter_Vega_Offset
+  
 end module Instruments_Filters
