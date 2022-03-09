@@ -77,6 +77,8 @@ subroutine metaPropertyNoCreator(component_,name_,type_,rank_)
  character(len=* ), intent(in   ) :: component_, name_             , type_
  integer          , intent(in   ) :: rank_
  character(len=64)                :: className , implementationName, rankLabel
+
+ write (rankLabel,'(i1)') rank_
 CODE
 	    my $join = "";
 	    foreach my $creator ( @creators ) {
@@ -92,7 +94,6 @@ CODE
  else
   className         =""
   implementationName=""
-  write (rankLabel,'(i1)') rank_
   call Galacticus_Error_Report("no class creates the rank-"//trim(rankLabel)//" '"//trim(type_)//"' type meta-property '"//trim(name_)//"' in component '"//trim(component_)//"'"//{$location})
  end if
  call Galacticus_Error_Report("the rank-"//trim(rankLabel)//" '"//trim(type_)//"' type meta-property '"//trim(name_)//"' in component '"//trim(component_)//"' is required"//char(10)//"it is created by the '"//trim(implementationName)//"' implementation of the '"//trim(className)//"' class"//char(10)//"to create this meta-property include the following in your parameter file:"//char(10)//" <"//trim(className)//" value="""//trim(implementationName)//"""/>"//{$location})
