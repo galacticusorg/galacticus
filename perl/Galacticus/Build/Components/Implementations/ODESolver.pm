@@ -238,7 +238,15 @@ sub Implementation_ODE_Serialize_Count {
 	    variables  => [ "count" ]
 	}
 	)
-	if ( &Galacticus::Build::Components::Implementations::Utils::hasRealEvolvers($code::member) );
+	if ( &Galacticus::Build::Components::Implementations::Utils::hasRealEvolvers($code::member) || ! exists($code::member->{'extends'}) );
+    push(
+	@{$function->{'variables'}},
+	{
+	    intrinsic  => "integer",
+	    variables  => [ "i" ]
+	}
+	)
+	if (                                                                                           ! exists($code::member->{'extends'}) );
     # Determine if "self" will be used. It is used iff the implementation extends another implementation, or if any
     # property is evolveable and is not a rank-0 double.
     undef(@code::unused);
@@ -259,12 +267,28 @@ CODE
     }
     # If this component is an extension, first call on the extended type.
     if ( exists($code::member->{'extends'}) ) {
-    $function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
+	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
 {$implementationTypeName}SerializeCount=self%nodeComponent{ucfirst($member->{'extends'}->{'class'}).ucfirst($member->{'extends'}->{'name'})}%serializeCount(propertyType)
 CODE
     } elsif ( grep {$code::class->{'name'} eq $_} @{$build->{'componentClassListActive'}} ) {
 	$function->{'content'} .= fill_in_string(<<'CODE', PACKAGE => 'code');
-{$implementationTypeName}SerializeCount={$class->{'name'}}FloatRank0MetaPropertyEvolvableCount
+{$implementationTypeName}SerializeCount=0
+if (allocated({$class->{'name'}}FloatRank0MetaPropertyNames)) then
+ count=0
+ do i=1,size({$class->{'name'}}FloatRank0MetaPropertyNames)
+  if (.not.{$class->{'name'}}FloatRank0MetaPropertyEvolvable(i)) cycle
+  if      (propertyType == propertyTypeAll     ) then
+                                                                    {$implementationTypeName}SerializeCount={$implementationTypeName}SerializeCount+1
+  else if (propertyType == propertyTypeInactive) then
+   if (     nodeInactives(count+1).and..not.nodeAnalytics(count+1)) {$implementationTypeName}SerializeCount={$implementationTypeName}SerializeCount+1
+  else if (propertyType == propertyTypeActive  ) then
+   if (.not.nodeInactives(count+1).and..not.nodeAnalytics(count+1)) {$implementationTypeName}SerializeCount={$implementationTypeName}SerializeCount+1
+  else if (propertyType == propertyTypeNumerics) then
+   if (                                .not.nodeAnalytics(count+1)) {$implementationTypeName}SerializeCount={$implementationTypeName}SerializeCount+1
+  end if
+  count=count+1
+ end do
+end if
 CODE
     }
     # Iterate over non-virtual, evolvable properties.
