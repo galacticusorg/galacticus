@@ -22,9 +22,10 @@
   proportion to specific angular momentum).
   !!}
 
-  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScale , darkMatterHaloScaleClass
-  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMO, darkMatterProfileDMOClass
-
+  use :: Dark_Matter_Halo_Scales , only : darkMatterHaloScaleClass
+  use :: Dark_Matter_Profiles_DMO, only : darkMatterProfileDMOClass
+  use :: Virial_Density_Contrast , only : virialDensityContrastClass
+  
   !![
   <galacticStructureSolver name="galacticStructureSolverFixed">
    <description>
@@ -44,10 +45,11 @@
      proportion to specific angular momentum).
      !!}
      private
-     double precision                                     :: factor
-     integer                                              :: radiusFixed
-     class           (darkMatterHaloScaleClass ), pointer :: darkMatterHaloScale_  => null()
-     class           (darkMatterProfileDMOClass), pointer :: darkMatterProfileDMO_ => null()
+     double precision                                      :: factor
+     integer                                               :: radiusFixed
+     class           (darkMatterHaloScaleClass  ), pointer :: darkMatterHaloScale_   => null()
+     class           (darkMatterProfileDMOClass ), pointer :: darkMatterProfileDMO_  => null()
+     class           (virialDensityContrastClass), pointer :: virialDensityContrast_ => null()
    contains
      final     ::             fixedDestructor
      procedure :: solve    => fixedSolve
@@ -88,6 +90,7 @@ contains
     type            (inputParameters             ), intent(inout) :: parameters
     class           (darkMatterHaloScaleClass    ), pointer       :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass   ), pointer       :: darkMatterProfileDMO_
+    class           (virialDensityContrastClass  ), pointer       :: virialDensityContrast_
     double precision                                              :: factor
     type            (varying_string              )                :: radiusFixed
 
@@ -105,47 +108,37 @@ contains
       <description>The radius to use in the ``fixed'' galactic structure radius solver algorithm. Allowed options are ``virial'' and ``turnaround''.</description>
       <source>parameters</source>
     </inputParameter>
-    <objectBuilder class="darkMatterHaloScale"  name="darkMatterHaloScale_"  source="parameters"/>
-    <objectBuilder class="darkMatterProfileDMO" name="darkMatterProfileDMO_" source="parameters"/>
+    <objectBuilder class="darkMatterHaloScale"   name="darkMatterHaloScale_"   source="parameters"/>
+    <objectBuilder class="darkMatterProfileDMO"  name="darkMatterProfileDMO_"  source="parameters"/>
+    <objectBuilder class="virialDensityContrast" name="virialDensityContrast_" source="parameters"/>
     !!]
-    self=galacticStructureSolverFixed(factor,enumerationRadiusFixedEncode(char(radiusFixed),includesPrefix=.false.),darkMatterHaloScale_,darkMatterProfileDMO_)
+    self=galacticStructureSolverFixed(factor,enumerationRadiusFixedEncode(char(radiusFixed),includesPrefix=.false.),darkMatterHaloScale_,darkMatterProfileDMO_,virialDensityContrast_)
     !![
     <inputParametersValidate source="parameters"/>
-    <objectDestructor name="darkMatterHaloScale_" />
-    <objectDestructor name="darkMatterProfileDMO_"/>
+    <objectDestructor name="darkMatterHaloScale_"  />
+    <objectDestructor name="darkMatterProfileDMO_" />
+    <objectDestructor name="virialDensityContrast_"/>
     !!]
     return
   end function fixedConstructorParameters
 
-  function fixedConstructorInternal(factor,radiusFixed,darkMatterHaloScale_,darkMatterProfileDMO_) result(self)
+  function fixedConstructorInternal(factor,radiusFixed,darkMatterHaloScale_,darkMatterProfileDMO_,virialDensityContrast_) result(self)
     !!{
     Internal constructor for the {\normalfont \ttfamily fixed} galactic structure solver class.
     !!}
-    use :: Galacticus_Error, only : Galacticus_Component_List, Galacticus_Error_Report
-    use :: Galacticus_Nodes, only : defaultBasicComponent
+    use :: Galacticus_Error, only : Galacticus_Error_Report
     implicit none
     type            (galacticStructureSolverFixed)                        :: self
     double precision                              , intent(in   )         :: factor
     integer                                       , intent(in   )         :: radiusFixed
     class           (darkMatterHaloScaleClass    ), intent(in   ), target :: darkMatterHaloScale_
     class           (darkMatterProfileDMOClass   ), intent(in   ), target :: darkMatterProfileDMO_
+    class           (virialDensityContrastClass  ), intent(in   ), target :: virialDensityContrast_
     !![
-    <constructorAssign variables="factor, radiusFixed, *darkMatterHaloScale_, *darkMatterProfileDMO_"/>
+    <constructorAssign variables="factor, radiusFixed, *darkMatterHaloScale_, *darkMatterProfileDMO_, *virialDensityContrast_"/>
     !!]
 
     if (.not.enumerationRadiusFixedIsValid(radiusFixed)) call Galacticus_Error_Report('invalid radiusFixed'//{introspection:location})
-    if (radiusFixed == radiusFixedTurnaround) then
-       if (.not.defaultBasicComponent%radiusTurnaroundIsGettable())                                                         &
-            & call Galacticus_Error_Report                                                                                  &
-            &   (                                                                                                           &
-            &    'the "radiusTurnaround" property of the basic component must be gettable.'                              // &
-            &    Galacticus_Component_List(                                                                                 &
-            &                              'basic'                                                                        , &
-            &                                defaultBasicComponent%radiusTurnaroundAttributeMatch(requireGettable=.true.)   &
-            &                             )                                                                              // &
-            &    {introspection:location}                                                                                   &
-            &   )
-    end if
     return
   end function fixedConstructorInternal
 
@@ -176,8 +169,9 @@ contains
     type(galacticStructureSolverFixed), intent(inout) :: self
 
     !![
-    <objectDestructor name="self%darkMatterHaloScale_" />
-    <objectDestructor name="self%darkMatterProfileDMO_"/>
+    <objectDestructor name="self%darkMatterHaloScale_"  />
+    <objectDestructor name="self%darkMatterProfileDMO_" />
+    <objectDestructor name="self%virialDensityContrast_"/>
     !!]
     if (  preDerivativeEvent%isAttached(self,fixedSolvePreDeriativeHook)) call   preDerivativeEvent%detach(self,fixedSolvePreDeriativeHook)
     if (     postEvolveEvent%isAttached(self,fixedSolveHook            )) call      postEvolveEvent%detach(self,fixedSolveHook            )
@@ -270,18 +264,19 @@ contains
       spin => node%spin()
       select case (self%radiusFixed)
       case (radiusFixedVirial    )
-         velocity             =  +self %darkMatterHaloScale_ %velocityVirial         (node                           )
-         radius               =  +self %darkMatterHaloScale_ %radiusVirial           (node                           ) &
-              &                  *self                       %factor                                                   &
-              &                  *spin                       %angularMomentum        (                               ) &
-              &                  /Dark_Matter_Halo_Angular_Momentum_Scale            (node,self%darkMatterProfileDMO_)
+         velocity             =  +self %darkMatterHaloScale_ %velocityVirial                (node                                           )
+         radius               =  +self %darkMatterHaloScale_ %radiusVirial             (     node                                           ) &
+              &                  *self                       %factor                                                                          &
+              &                  *spin                       %angularMomentum          (                                                    ) &
+              &                  /Dark_Matter_Halo_Angular_Momentum_Scale              (     node         ,     self %darkMatterProfileDMO_ )
       case (radiusFixedTurnaround)
-         basic                =>  node                       %basic                  (                               )
-         velocity             =  +self %darkMatterProfileDMO_%circularVelocityMaximum(node                           )
-         radius               =  +basic                      %radiusTurnaround       (                               ) &
-              &                  *self                       %factor                                                   &
-              &                  *spin                       %angularMomentum        (                               ) &
-              &                  /Dark_Matter_Halo_Angular_Momentum_Scale            (node,self%darkMatterProfileDMO_)
+         basic                =>  node                       %basic                    (                                                    )
+         velocity             =  +self%darkMatterProfileDMO_ %circularVelocityMaximum  (     node                                           )
+         radius               =  +self%darkMatterHaloScale_  %radiusVirial             (     node                                           ) &
+              &                  *self%virialDensityContrast_%turnAroundOverVirialRadii(mass=basic%mass(),time=basic%timeLastIsolated     ()) &
+              &                  *self                       %factor                                                                          &
+              &                  *spin                       %angularMomentum          (                                                    ) &
+              &                  /Dark_Matter_Halo_Angular_Momentum_Scale              (     node        ,     self %darkMatterProfileDMO_  )
       end select
       ! Set the component size to new radius and velocity.
       call radiusSet  (node,radius  )
