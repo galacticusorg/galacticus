@@ -193,7 +193,7 @@
       <neutrinoMassSummed value="0.0"/>
       <neutrinoNumberEffective value="3.04"/>
     </transferFunction>
-    <componentBasic value="standardExtended"/>
+    <componentBasic value="standard"/>
     <componentBlackHole value="null"/>
     <componentDarkMatterProfile value="scale"/>
     <componentDisk value="verySimpleSize"/>
@@ -219,6 +219,7 @@
       <nodeOperator value="cosmicTime"                        iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate"                    iterable="no"/>
+      <nodeOperator value="bertschingerMass"                  iterable="no"/>
       <!-- Halo concentrations -->
       <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>

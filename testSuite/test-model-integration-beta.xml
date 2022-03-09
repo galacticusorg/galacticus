@@ -64,7 +64,7 @@
   </intergalacticMediumState>
 
   <!-- Tree node component selection -->
-  <componentBasic value="standardExtended"/>
+  <componentBasic value="standard"/>
   <componentBlackHole value="null"/>
   <componentDarkMatterProfile value="scale"/>
   <componentDisk value="verySimpleSize"/>
@@ -251,6 +251,7 @@
     <nodeOperator value="cosmicTime"/>
     <!-- DMO evolution -->
     <nodeOperator value="DMOInterpolate"/>
+    <nodeOperator value="bertschingerMass"/>
     <!-- Halo concentrations -->
     <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>
