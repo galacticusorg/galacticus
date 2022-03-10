@@ -156,7 +156,7 @@ contains
     Compute the rate of growth of the ``\gls{dmou}'' mass of a halo assuming a constant growth rate.
     !!}
     use :: Dark_Matter_Profile_Mass_Definitions, only : Dark_Matter_Profile_Mass_Definition
-    use :: Galacticus_Nodes, only : nodeComponentBasic
+    use :: Galacticus_Nodes                    , only : nodeComponentBasic
     implicit none
     class           (nodeOperatorBertschingerMass), intent(inout)          :: self
     type            (treeNode                    ), intent(inout), target  :: node
@@ -168,7 +168,6 @@ contains
     !$GLC attributes unused :: self
 
     basic => node%basic()
-    if (basic%floatRank0MetaPropertyGet(self%massBertschingerID) > 0.0d0) return
     ! Set the Bertschinger mass of the node.
     call basic%floatRank0MetaPropertySet(                                                                                                                                 &
          &                               self%massBertschingerID                                                                                                        , &
@@ -276,13 +275,13 @@ contains
       ! Get the basic component.
       basic => node%basic()
       ! Initialize the unresolved mass to the mass of the current node's basic component.
-      call self%nodeInitialize(node)
+      if (basic%floatRank0MetaPropertyGet(self%massBertschingerID) == 0.0d0) call self%nodeInitialize(node)
       nodeMassUnresolved=basic%floatRank0MetaPropertyGet(self%massBertschingerID)
       ! Remove the mass of all child nodes.
       nodeChild => node%firstChild
       do while (associated(nodeChild))
-         call self%nodeInitialize(nodeChild)
          basicChild         =>  nodeChild %basic                    (                       )
+         if (basic%floatRank0MetaPropertyGet(self%massBertschingerID) == 0.0d0) call self%nodeInitialize(nodeChild)
          nodeMassUnresolved =  +           nodeMassUnresolved                                 &
               &                -basicChild%floatRank0MetaPropertyGet(self%massBertschingerID)
          nodeChild          =>  nodeChild %sibling
