@@ -47,6 +47,7 @@
           &                                          accretionRateBertschingerID
    contains
      final     ::                                        bertschingerMassDestructor
+     procedure :: nodeTreeInitialize                  => bertschingerMassNodeTreeInitialize
      procedure :: nodeInitialize                      => bertschingerMassNodeInitialize
      procedure :: nodePromote                         => bertschingerMassNodePromote
      procedure :: nodesMerge                          => bertschingerMassNodesMerge
@@ -132,6 +133,24 @@ contains
     return
   end subroutine bertschingerMassDestructor
 
+  subroutine bertschingerMassNodeTreeInitialize(self,node)
+    !!{
+    Initialize the Bertschinger mass of all nodes in the tree.    
+    !!}
+    use :: Merger_Tree_Walkers, only : mergerTreeWalkerAllNodes
+    implicit none
+    class(nodeOperatorBertschingerMass), intent(inout), target  :: self
+    type (treeNode                    ), intent(inout), target  :: node
+    type (treeNode                    )               , pointer :: nodeWork
+    type (mergerTreeWalkerAllNodes    )                         :: treeWalker
+    
+    treeWalker=mergerTreeWalkerAllNodes(node%hostTree,spanForest=.true.)
+    do while (treeWalker%next(nodeWork))
+       call self%nodeInitialize(nodeWork)
+    end do
+    return
+  end subroutine bertschingerMassNodeTreeInitialize
+  
   recursive subroutine bertschingerMassNodeInitialize(self,node)
     !!{
     Compute the rate of growth of the ``\gls{dmou}'' mass of a halo assuming a constant growth rate.
@@ -231,10 +250,6 @@ contains
                &                                      /massTotalProgenitor                                                &
                &                                      /timeDelta                                                          &
                &                                     )
-          write (0,*) "SET ",node%index(),massUnresolved,+basic%floatRank0MetaPropertyGet(self%         massBertschingerID)  &
-               &                                      *massUnresolved                                                     &
-               &                                      /massTotalProgenitor                                                &
-               &                                      /timeDelta
           call        basic%floatRank0MetaPropertySet(                                                                    &
                &                                                                       self%   massBertschingerTargetID , &
                &                                      +basic%floatRank0MetaPropertyGet(self%         massBertschingerID)  &
@@ -248,7 +263,7 @@ contains
 
   contains
     
-    double precision function nodeMassUnresolved(node)
+    recursive double precision function nodeMassUnresolved(node)
       !!{
       Return the unresolved mass for {\normalfont \ttfamily node}.
       !!}
@@ -266,6 +281,7 @@ contains
       ! Remove the mass of all child nodes.
       nodeChild => node%firstChild
       do while (associated(nodeChild))
+         call self%nodeInitialize(nodeChild)
          basicChild         =>  nodeChild %basic                    (                       )
          nodeMassUnresolved =  +           nodeMassUnresolved                                 &
               &                -basicChild%floatRank0MetaPropertyGet(self%massBertschingerID)
