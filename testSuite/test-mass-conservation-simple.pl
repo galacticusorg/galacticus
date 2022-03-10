@@ -53,7 +53,7 @@ $galacticus->{'tree' } = "all";
 &Galacticus::HDF5::Get_Parameters($galacticus    );
 &Galacticus::HDF5::Count_Trees   ($galacticus    );
 &Galacticus::HDF5::Select_Output ($galacticus,0.0);
-&Galacticus::HDF5::Get_Dataset($galacticus,['mergerTreeWeight','diskMassStellar','diskMassGas','hotHaloMass','hotHaloOutflowedMass','nodeIsIsolated','basicMassBertschinger','hotHaloUnaccretedMass','mergerTreeIndex']);
+&Galacticus::HDF5::Get_Dataset($galacticus,['mergerTreeWeight','diskMassStellar','diskMassGas','hotHaloMass','hotHaloOutflowedMass','nodeIsIsolated','massBertschinger','hotHaloUnaccretedMass','mergerTreeIndex']);
 my $properties = $galacticus->{'dataSets'  };
 my $parameters = $galacticus->{'parameters'};
 # Find centrals.
@@ -75,38 +75,38 @@ for(my $i=0;$i<nelem($centrals);++$i) {
 		+$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
 		/$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
 	    )
-	    /$properties->{'basicMassBertschinger'}->($centrals)->(($i));
+	    /$properties->{'massBertschinger'}->($centrals)->(($i));
 }
 $properties->{'diskMassStellar'} /= 
     (
      +$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
      /$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
     )
-    *$properties->{'basicMassBertschinger'};
+    *$properties->{'massBertschinger'};
 $properties->{'diskMassGas'} /= 
     (
      +$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
      /$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
     )
-    *$properties->{'basicMassBertschinger'  };
+    *$properties->{'massBertschinger'  };
 $properties->{'hotHaloMass'} /= 
     (
      +$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
      /$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
     )
-    *$properties->{'basicMassBertschinger'  };
+    *$properties->{'massBertschinger'  };
 $properties->{'hotHaloOutflowedMass'} /= 
     (
      +$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
      /$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
     )
-    *$properties->{'basicMassBertschinger'  };
+    *$properties->{'massBertschinger'  };
 $properties->{'hotHaloUnaccretedMass'} /= 
     (
      +$parameters->{'cosmologyParameters'}->{'OmegaBaryon'}->{'value'}
      /$parameters->{'cosmologyParameters'}->{'OmegaMatter'}->{'value'}
     )
-    *$properties->{'basicMassBertschinger'  };
+    *$properties->{'massBertschinger'  };
 my $massTotal =
     +$properties    ->{'diskMassStellar'      }->($centrals)
     +$properties    ->{'diskMassGas'          }->($centrals)

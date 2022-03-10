@@ -72,7 +72,6 @@
   <componentSatellite value="verySimple"/>
   <componentSpheroid value="null"/>
   <componentSpin value="scalar"/>
-  <nodeComponentBasicExtendedSphericalCollapseType value="bryanNorman"/>
 
   <!-- Merger tree construction -->
   <mergerTreeConstructor value="build"/>
@@ -183,6 +182,7 @@
   <galacticStructureSolver value="fixed">
     <factor value="0.26657982137919706"/>
     <radiusFixed value="turnaround"/>
+    <virialDensityContrast value="bryanNorman1998"/>
   </galacticStructureSolver>
 
   <!-- Star formation in disks -->
@@ -251,7 +251,9 @@
     <nodeOperator value="cosmicTime"/>
     <!-- DMO evolution -->
     <nodeOperator value="DMOInterpolate"/>
-    <nodeOperator value="bertschingerMass"/>
+    <nodeOperator value="bertschingerMass">
+      <virialDensityContrast value="bryanNorman1998"/>
+    </nodeOperator>
     <!-- Halo concentrations -->
     <nodeOperator value="darkMatterProfileScaleSet"        />
     <nodeOperator value="darkMatterProfileScaleInterpolate"/>

@@ -228,8 +228,8 @@ sub massFunctionHalo {
     &Galacticus::HDF5::Select_Output ($model,0.0);
     &Galacticus::HDF5::Count_Trees   ($model    );
     &Galacticus::HDF5::Get_Dataset($model,['mergerTreeWeight','basicMass']);
-    my $massHaloLogarithmic = log10($model->{'dataSets'}->{'basicMass'});
-    my $weight                 = $model->{'dataSets'}->{'mergerTreeWeight'};
+    my $massHaloLogarithmic = log10($model->{'dataSets'}->{'basicMass'       });
+    my $weight              =       $model->{'dataSets'}->{'mergerTreeWeight'} ;
     (my $massFunction, my $massFunctionError) = &Stats::Histograms::Histogram($massHaloLogarithmicBins,$massHaloLogarithmic,$weight,differential => 1);
     $massFunction      /= log(10.0);
     $massFunctionError /= log(10.0);

@@ -73,6 +73,7 @@
     <galacticStructureSolver value="fixed">
       <factor value="0.29610738271059550"/>
       <radiusFixed value="turnaround"/>
+      <virialDensityContrast value="bryanNorman1998"/>
     </galacticStructureSolver>
     <gravitationalLensing value="takahashi2011"/>
     <haloMassFunction value="simpleSystematic">
@@ -137,7 +138,6 @@
       <precisionHypergeometric value="1.0e-6"/>
       <cdmAssumptions value="true"/>
     </mergerTreeBranchingProbability>
-    <nodeComponentBasicExtendedSphericalCollapseType value="bryanNorman"/>
     <mergerTreeNodeMerger value="singleLevelHierarchy"/>
     <mergerTreeNodeEvolver value="standard">
       <odeAlgorithm value="rungeKuttaSecondOrder"/>
@@ -219,7 +219,9 @@
       <nodeOperator value="cosmicTime"                        iterable="no"/>
       <!-- DMO evolution -->
       <nodeOperator value="DMOInterpolate"                    iterable="no"/>
-      <nodeOperator value="bertschingerMass"                  iterable="no"/>
+      <nodeOperator value="bertschingerMass"                  iterable="no" >
+	<virialDensityContrast value="bryanNorman1998"/>
+      </nodeOperator>
       <!-- Halo concentrations -->
       <nodeOperator value="darkMatterProfileScaleSet"         iterable="no"/>
       <nodeOperator value="darkMatterProfileScaleInterpolate" iterable="no"/>
@@ -241,7 +243,12 @@
 	</stellarFeedbackOutflows>
       </nodeOperator>
     </nodeOperator>
-    
+
+    <nodePropertyExtractor value="multi">
+      <nodePropertyExtractor value="nodeIndices"      iterable="no"/>
+      <nodePropertyExtractor value="massBertschinger" iterable="no"/>
+    </nodePropertyExtractor>
+
   </parameters>
   
 </parameterGrid>
