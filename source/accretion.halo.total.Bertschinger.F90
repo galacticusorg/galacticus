@@ -105,7 +105,6 @@ contains
     class(accretionHaloTotalBertschinger), intent(inout) :: self
     type (treeNode                      ), intent(inout) :: node
     class(nodeComponentBasic            ), pointer       :: basic
-    double precision :: a
     !$GLC attributes unused :: self
 
     basic                    => node %basic                    (                       )
