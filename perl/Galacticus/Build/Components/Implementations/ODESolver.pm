@@ -278,13 +278,13 @@ if (allocated({$class->{'name'}}FloatRank0MetaPropertyNames)) then
  do i=1,size({$class->{'name'}}FloatRank0MetaPropertyNames)
   if (.not.{$class->{'name'}}FloatRank0MetaPropertyEvolvable(i)) cycle
   if      (propertyType == propertyTypeAll     ) then
-                                                                    {$implementationTypeName}SerializeCount={$implementationTypeName}SerializeCount+1
+                                                                                                                                                                  {$implementationTypeName}SerializeCount={$implementationTypeName}SerializeCount+1
   else if (propertyType == propertyTypeInactive) then
-   if (     nodeInactives(count+1).and..not.nodeAnalytics(count+1)) {$implementationTypeName}SerializeCount={$implementationTypeName}SerializeCount+1
+   if (     nodeInactives(offsetAll{$class->{'name'}}FloatRank0MetaProperties(i)).and..not.nodeAnalytics(offsetAll{$class->{'name'}}FloatRank0MetaProperties(i))) {$implementationTypeName}SerializeCount={$implementationTypeName}SerializeCount+1
   else if (propertyType == propertyTypeActive  ) then
-   if (.not.nodeInactives(count+1).and..not.nodeAnalytics(count+1)) {$implementationTypeName}SerializeCount={$implementationTypeName}SerializeCount+1
+   if (.not.nodeInactives(offsetAll{$class->{'name'}}FloatRank0MetaProperties(i)).and..not.nodeAnalytics(offsetAll{$class->{'name'}}FloatRank0MetaProperties(i))) {$implementationTypeName}SerializeCount={$implementationTypeName}SerializeCount+1
   else if (propertyType == propertyTypeNumerics) then
-   if (                                .not.nodeAnalytics(count+1)) {$implementationTypeName}SerializeCount={$implementationTypeName}SerializeCount+1
+   if (                                                                               .not.nodeAnalytics(offsetAll{$class->{'name'}}FloatRank0MetaProperties(i))) {$implementationTypeName}SerializeCount={$implementationTypeName}SerializeCount+1
   end if
   count=count+1
  end do
