@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+  
+  <!-- Task and output -->
+  <task value="haloMassFunction">
+   <haloMassMinimum                     value=" 1.122018454e06"/>
+   <haloMassMaximum                     value=" 1.122018454e16"/>
+   <pointsPerDecade                     value="10.0"           />
+   <includeMassAccretionRate            value="false"          />
+   <includeUnevolvedSubhaloMassFunction value="false"          />
+  </task>
+
+  <!-- N-body error model -->
+  <nbodyHaloMassError value="trenti2010">
+    <massParticle value="=[simulation::massParticle]"/>
+  </nbodyHaloMassError>
+
+  <!-- Halo mass function -->
+  <haloMassFunction value="errorConvolved">
+    <errorFractionalMaximum value="1.0"/>
+    <haloMassFunction value="environmentalRenormalized">
+      <fractionMassEnvironmentNormalize value="0.1"/>
+      <!-- The actual mass function to be used (after renormalization), conditioned on the environment as described above -->
+      <haloMassFunction value="shethTormenPlus">
+	<a             value="=[haloMassFunctionParameters::a]"            />
+        <b             value="=[haloMassFunctionParameters::b]"            />
+        <c             value="=[haloMassFunctionParameters::c]"            />
+        <d             value="=[haloMassFunctionParameters::d]"            />
+	<p             value="=[haloMassFunctionParameters::p]"            />
+	<q             value="=[haloMassFunctionParameters::q]"            />
+	<normalization value="=[haloMassFunctionParameters::normalization]"/>
+      </haloMassFunction>
+      <!-- The environment-averaged mass function that will be used to compute the offset from an unconditioned mass function -->
+      <haloMassFunctionConditioned value="environmentAveraged">
+	<includeUnoccupiedVolume value="true"/>
+	<haloEnvironment value="normal">
+	  <massEnvironment value="+3.577749e+12"/>
+	  <redshift value="0.000"/>
+	  <cosmologicalMassVariance value="filteredPower">
+	    <sigma_8         value="0.820" />
+	    <tolerance       value="4.0e-4"/>
+	    <toleranceTopHat value="2.0e-4"/>
+	    <nonMonotonicIsFatal value="false"/>
+	  </cosmologicalMassVariance>
+	  <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+	</haloEnvironment>
+	<haloMassFunctionConditioned value="shethTormenPlus">
+	  <cosmologicalMassVariance value="peakBackgroundSplit">
+	    <cosmologicalMassVariance value="filteredPower">
+	      <sigma_8         value="0.820" />
+	      <tolerance       value="4.0e-4"/>
+	      <toleranceTopHat value="2.0e-4"/>
+	      <nonMonotonicIsFatal value="false"/>
+	    </cosmologicalMassVariance>
+	  </cosmologicalMassVariance>
+	  <criticalOverdensity   value="peakBackgroundSplit"                       >
+	    <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+	  </criticalOverdensity>
+	  <a             value="=[haloMassFunctionParameters::a]"            />
+          <b             value="=[haloMassFunctionParameters::b]"            />
+          <c             value="=[haloMassFunctionParameters::c]"            />
+          <d             value="=[haloMassFunctionParameters::d]"            />
+	  <p             value="=[haloMassFunctionParameters::p]"            />
+	  <q             value="=[haloMassFunctionParameters::q]"            />
+	  <normalization value="=[haloMassFunctionParameters::normalization]"/>
+	</haloMassFunctionConditioned>
+	<haloMassFunctionUnconditioned value="shethTormenPlus">
+	  <a             value="=[haloMassFunctionParameters::a]"            />
+          <b             value="=[haloMassFunctionParameters::b]"            />
+          <c             value="=[haloMassFunctionParameters::c]"            />
+          <d             value="=[haloMassFunctionParameters::d]"            />
+	  <p             value="=[haloMassFunctionParameters::p]"            />
+	  <q             value="=[haloMassFunctionParameters::q]"            />
+	  <normalization value="=[haloMassFunctionParameters::normalization]"/>
+	</haloMassFunctionUnconditioned>
+      </haloMassFunctionConditioned>
+      <!-- The unconditioned mass function -->
+      <haloMassFunctionUnconditioned value="shethTormenPlus">
+	<a             value="=[haloMassFunctionParameters::a]"            />
+        <b             value="=[haloMassFunctionParameters::b]"            />
+        <c             value="=[haloMassFunctionParameters::c]"            />
+        <d             value="=[haloMassFunctionParameters::d]"            />
+	<p             value="=[haloMassFunctionParameters::p]"            />
+	<q             value="=[haloMassFunctionParameters::q]"            />
+	<normalization value="=[haloMassFunctionParameters::normalization]"/>
+	<criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+	<cosmologicalMassVariance value="filteredPower">
+	  <sigma_8         value="0.820" />
+	  <tolerance       value="4.0e-4"/>
+	  <toleranceTopHat value="2.0e-4"/>
+	  <nonMonotonicIsFatal value="false"/>
+	</cosmologicalMassVariance>
+      </haloMassFunctionUnconditioned>
+    </haloMassFunction>
+  </haloMassFunction>
+  
+</parameters>

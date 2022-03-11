@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Output control -->
+  <galacticusOutputFileName value="haloMassFunction_MilkyWay_Halo268_z0.000.hdf5"/>
+  <outputTimes value="list">
+    <redshifts value="0.000"/>
+  </outputTimes>  
+
+  <!-- Halo environments -->
+  <haloEnvironment value="fixed">
+    <massEnvironment value="+3.332281e+12"/>
+    <overdensity     value="-0.179318"    />
+  </haloEnvironment>
+
+  <!-- Include Milky Way cosmology and mass function parameters -->
+  <xi:include href="haloMassFunctionParameters.xml" xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="simulation_MilkyWay.xml"        xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="cosmology_MilkyWay.xml"         xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+  <xi:include href="haloMassFunction_MilkyWay.xml"  xpointer="xpointer(parameters/*)" xmlns:xi="http://www.w3.org/2001/XInclude"/>
+
+</parameters>

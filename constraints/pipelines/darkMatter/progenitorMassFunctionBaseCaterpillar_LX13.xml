@@ -38,6 +38,7 @@
     <running             value="0.00"/>
   </powerSpectrumPrimordial>
   <powerSpectrumPrimordialTransferred value="simple"       />
+  <powerSpectrumWindowFunction        value="ETHOS"        />
   <cosmologicalMassVariance           value="filteredPower" >
     <sigma_8 value="0.83"/>
   </cosmologicalMassVariance>

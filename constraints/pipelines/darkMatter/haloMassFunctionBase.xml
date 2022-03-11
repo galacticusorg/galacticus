@@ -5,9 +5,11 @@
 
   <!-- Task and output -->
   <task value="haloMassFunction">
-   <haloMassMinimum value=" 1.122018454e08"/>
-   <haloMassMaximum value=" 1.122018454e16"/>
-   <pointsPerDecade value="10.0"           />
+   <haloMassMinimum                     value=" 1.122018454e06"/>
+   <haloMassMaximum                     value=" 1.122018454e16"/>
+   <pointsPerDecade                     value="10.0"           />
+   <includeMassAccretionRate            value="false"          />
+   <includeUnevolvedSubhaloMassFunction value="false"          />
   </task>
   <galacticusOutputFileName value="output.hdf5"/>
   <outputTimes value="list">
@@ -26,17 +28,40 @@
   </cosmologyParameters>
 
   <!-- Power spectrum options -->
-  <powerSpectrumPrimordial value="powerLaw">
-    <!-- MDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/mdpl -->
-    <index               value="0.9600"/>
-    <wavenumberReference value="1.000"/>
-    <running             value="0.000"/>
+  <powerSpectrumPrimordial value="cosmologicalCube">
+    <lengthCube value="=160.0/([cosmologyParameters::HubbleConstant]/100.0)"/>
+    <wavenumberMinimumFactor value="0.5"/>
+    <powerSpectrumPrimordial value="powerLaw">
+      <!-- MDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/mdpl -->
+      <index               value="0.960"/>
+      <wavenumberReference value="1.000"/>
+      <running             value="0.000"/>
+    </powerSpectrumPrimordial>
   </powerSpectrumPrimordial>
+  <powerSpectrumWindowFunction value="ETHOS"/>
   <cosmologicalMassVariance value="filteredPower">
-    <!-- MDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/mdpl -->
-    <sigma_8         value="0.8228"/>
-    <tolerance       value="4.0e-4"/>
-    <toleranceTopHat value="2.0e-4"/>
+    <!-- Normalize to a reference power spectrum at small scales because the actual power spectrum we used excludes modes which do
+         not fit into the cosmological box. Normalizing that power spectrum would result in too much power on small scales to
+         compensate. -->
+    <tolerance           value="4.0e-4"/>
+    <toleranceTopHat     value="2.0e-4"/>
+    <wavenumberReference value="1.0e+2"/>
+    <reference value="">
+      <powerSpectrumPrimordial value="powerLaw">
+	<!-- MDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/mdpl -->
+	<index               value="0.960"/>
+	<wavenumberReference value="1.000"/>
+	<running             value="0.000"/>
+      </powerSpectrumPrimordial>
+      <powerSpectrumPrimordialTransferred value="simple" />
+      <powerSpectrumWindowFunction value="ETHOS" />
+      <cosmologicalMassVariance value="filteredPower">
+	<!-- MDPL simulation power spectrum; https://www.cosmosim.org/cms/simulations/mdpl -->
+	<sigma_8 value="0.8228" />
+	<tolerance value="4.0e-4" />
+	<toleranceTopHat value="2.0e-4" />
+      </cosmologicalMassVariance>
+    </reference>
   </cosmologicalMassVariance>
   <transferFunction value="CAMB"/>
   <powerSpectrumPrimordialTransferred value="simple"/>
@@ -60,7 +85,7 @@
   <haloMassFunction value="errorConvolved">
     <errorFractionalMaximum value="1.0"/>
     <haloMassFunction value="environmentAveraged">
-      <haloMassFunctionConditioned value="shethTormen">
+      <haloMassFunctionConditioned value="shethTormenPlus">
 	<!-- The "conditioned" mass function is used for halo mass scales below the environment scale - see Benson, Ludlow, & Cole (2019). -->
 	<cosmologicalMassVariance value="peakBackgroundSplit"    >
 	  <!-- Cosmological mass variance is based on peak-background split model, so is environment dependent. -->
@@ -74,15 +99,23 @@
 	  <!-- Critical overdensity is based on peak-background split model, so is environment dependent. -->
           <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
 	</criticalOverdensity>
-	<a             value="0.0"/>
-	<normalization value="0.0"/>
-	<p             value="0.0"/>
+	<a             value="+0.8745"/> <!-- Best fit values for z=0 from Benson (2017) -->
+	<b             value="+0.0000"/>
+        <c             value="+0.0000"/>
+        <d             value="+0.0000"/>
+        <p             value="-0.0306"/>
+	<q             value="+1.0000"/>
+	<normalization value="+0.3318"/>
       </haloMassFunctionConditioned>
-      <haloMassFunctionUnconditioned value="shethTormen">
+      <haloMassFunctionUnconditioned value="shethTormenPlus">
 	<!-- The "unconditioned" mass function is used for halo mass scales above the environment scale - see Benson, Ludlow, & Cole (2019). -->
-	<a             value="0.0"/>
-	<normalization value="0.0"/>
-	<p             value="0.0"/>
+	<a             value="+0.8745"/> <!-- Best fit values for z=0 from Benson (2017) -->
+	<b             value="+0.0000"/>
+        <c             value="+0.0000"/>
+        <d             value="+0.0000"/>
+        <p             value="-0.0306"/>
+	<q             value="+1.0000"/>
+	<normalization value="+0.3318"/>
       </haloMassFunctionUnconditioned>
     </haloMassFunction>
   </haloMassFunction>

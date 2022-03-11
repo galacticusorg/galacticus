@@ -40,71 +40,195 @@ my @tasks =
      {
 	 label        => "haloMassFunction"                            ,
 	 config       => "haloMassFunctionConfig.xml"                  ,
-	 base         => [ "haloMassFunctionBase.xml" ]                ,
+	 base         =>
+	     [
+	      "haloMassFunctionBase_VSMDPL_z0.000.xml"                 ,
+	      "haloMassFunctionBase_VSMDPL_z0.490.xml"                 ,
+	      "haloMassFunctionBase_VSMDPL_z0.990.xml"                 ,
+	      "haloMassFunctionBase_VSMDPL_z2.030.xml"                 ,
+	      "haloMassFunctionBase_VSMDPL_z3.040.xml"                 ,
+	      "haloMassFunctionBase_SMDPL_z0.000.xml"                  ,
+	      "haloMassFunctionBase_SMDPL_z0.505.xml"                  ,
+	      "haloMassFunctionBase_SMDPL_z1.000.xml"                  ,
+	      "haloMassFunctionBase_SMDPL_z2.021.xml"                  ,
+	      "haloMassFunctionBase_SMDPL_z3.032.xml"                  ,
+	      "haloMassFunctionBase_MDPL2_z0.000.xml"                  ,
+	      "haloMassFunctionBase_MDPL2_z0.490.xml"                  ,
+	      "haloMassFunctionBase_MDPL2_z0.987.xml"                  ,
+	      "haloMassFunctionBase_MDPL2_z2.028.xml"                  ,
+	      "haloMassFunctionBase_MDPL2_z3.127.xml"                  ,
+	      "haloMassFunctionBase_BigMDPL_z0.000.xml"                ,
+	      "haloMassFunctionBase_BigMDPL_z0.492.xml"                ,
+	      "haloMassFunctionBase_BigMDPL_z1.000.xml"                ,
+	      "haloMassFunctionBase_BigMDPL_z2.145.xml"                ,
+	      "haloMassFunctionBase_HugeMDPL_z0.000.xml"               ,
+	      "haloMassFunctionBase_HugeMDPL_z0.490.xml"               ,
+	      "haloMassFunctionBase_HugeMDPL_z0.987.xml"               ,
+	      "haloMassFunctionBase_HugeMDPL_z2.028.xml"               ,
+              "haloMassFunctionBase_MilkyWay_Halo014_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo247_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo327_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo414_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo460_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo530_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo569_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo628_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo749_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo8247_z0.000.xml"      ,
+              "haloMassFunctionBase_MilkyWay_Halo852_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo925_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo939_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo9829_z0.000.xml"      ,
+              "haloMassFunctionBase_MilkyWay_Halo023_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo268_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo349_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo415_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo469_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo558_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo570_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo641_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo797_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo825_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo878_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo926_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo967_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo990_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo119_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo288_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo374_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo416_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo490_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo567_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo573_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo675_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo800_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo829_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo881_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo937_z0.000.xml"       ,
+              "haloMassFunctionBase_MilkyWay_Halo9749_z0.000.xml"      ,
+	     ]                                                         ,
+	 suffix       =>
+	     [
+	      "VSMDPL_z0.000"                                          ,
+	      "VSMDPL_z0.490"                                          ,
+	      "VSMDPL_z0.990"                                          ,
+	      "VSMDPL_z2.030"                                          ,
+	      "VSMDPL_z3.040"                                          ,
+	      "SMDPL_z0.000"                                           ,
+	      "SMDPL_z0.505"                                           ,
+	      "SMDPL_z1.000"                                           ,
+	      "SMDPL_z2.021"                                           ,
+	      "SMDPL_z3.032"                                           ,
+	      "MDPL2_z0.000"                                           ,
+	      "MDPL2_z0.490"                                           ,
+	      "MDPL2_z0.987"                                           ,
+	      "MDPL2_z2.028"                                           ,
+	      "MDPL2_z3.127"                                           ,
+	      "BigMDPL_z0.000"                                         ,
+	      "BigMDPL_z0.492"                                         ,
+	      "BigMDPL_z1.000"                                         ,
+	      "BigMDPL_z2.145"                                         ,
+	      "HugeMDPL_z0.000"                                        ,
+	      "HugeMDPL_z0.490"                                        ,
+	      "HugeMDPL_z0.987"                                        ,
+	      "HugeMDPL_z2.028"                                        ,
+              "MilkyWay_Halo014_z0.000"                                ,
+              "MilkyWay_Halo247_z0.000"                                ,
+              "MilkyWay_Halo327_z0.000"                                ,
+              "MilkyWay_Halo414_z0.000"                                ,
+              "MilkyWay_Halo460_z0.000"                                ,
+              "MilkyWay_Halo530_z0.000"                                ,
+              "MilkyWay_Halo569_z0.000"                                ,
+              "MilkyWay_Halo628_z0.000"                                ,
+              "MilkyWay_Halo749_z0.000"                                ,
+              "MilkyWay_Halo8247_z0.000"                               ,
+              "MilkyWay_Halo852_z0.000"                                ,
+              "MilkyWay_Halo925_z0.000"                                ,
+              "MilkyWay_Halo939_z0.000"                                ,
+              "MilkyWay_Halo9829_z0.000"                               ,
+              "MilkyWay_Halo023_z0.000"                                ,
+              "MilkyWay_Halo268_z0.000"                                ,
+              "MilkyWay_Halo349_z0.000"                                ,
+              "MilkyWay_Halo415_z0.000"                                ,
+              "MilkyWay_Halo469_z0.000"                                ,
+              "MilkyWay_Halo558_z0.000"                                ,
+              "MilkyWay_Halo570_z0.000"                                ,
+              "MilkyWay_Halo641_z0.000"                                ,
+              "MilkyWay_Halo797_z0.000"                                ,
+              "MilkyWay_Halo825_z0.000"                                ,
+              "MilkyWay_Halo878_z0.000"                                ,
+              "MilkyWay_Halo926_z0.000"                                ,
+              "MilkyWay_Halo967_z0.000"                                ,
+              "MilkyWay_Halo990_z0.000"                                ,
+              "MilkyWay_Halo119_z0.000"                                ,
+              "MilkyWay_Halo288_z0.000"                                ,
+              "MilkyWay_Halo374_z0.000"                                ,
+              "MilkyWay_Halo416_z0.000"                                ,
+              "MilkyWay_Halo490_z0.000"                                ,
+              "MilkyWay_Halo567_z0.000"                                ,
+              "MilkyWay_Halo573_z0.000"                                ,
+              "MilkyWay_Halo675_z0.000"                                ,
+              "MilkyWay_Halo800_z0.000"                                ,
+              "MilkyWay_Halo829_z0.000"                                ,
+              "MilkyWay_Halo881_z0.000"                                ,
+              "MilkyWay_Halo937_z0.000"                                ,
+              "MilkyWay_Halo9749_z0.000"                               ,
+	     ]                                                         ,
 	 ppn          => 16                                            ,
-	 nodes        =>  1                                            ,
-	 postProcess  => $pipelinePath."haloMassFunctionPostProcess.pl",
-	 parameterMap =>
-	 {
-	     "haloMassFunction::haloMassFunction::haloMassFunctionConditioned::a"               => "haloMassFunction::a"            ,
-	     "haloMassFunction::haloMassFunction::haloMassFunctionConditioned::p"               => "haloMassFunction::p"            ,
-	     "haloMassFunction::haloMassFunction::haloMassFunctionConditioned::normalization"   => "haloMassFunction::normalization",
-	     "haloMassFunction::haloMassFunction::haloMassFunctionUnconditioned::a"             => "haloMassFunction::a"            ,
-	     "haloMassFunction::haloMassFunction::haloMassFunctionUnconditioned::p"             => "haloMassFunction::p"            ,
-	     "haloMassFunction::haloMassFunction::haloMassFunctionUnconditioned::normalization" => "haloMassFunction::normalization",
-	 }
+	 nodes        =>  2                                            ,
+	 postProcess  => $pipelinePath."haloMassFunctionPostProcess.pl"
      },
      {
-	 label        => "progenitorMassFunction"                            ,
-	 config       => "progenitorMassFunctionConfig.xml"                  ,
-	 base         =>
-	     [
-	      "progenitorMassFunctionBaseHugeMDPL.xml"        ,
-	      "progenitorMassFunctionBaseBigMDPL.xml"         ,
-	      "progenitorMassFunctionBaseMDPL2.xml"           ,
-	      "progenitorMassFunctionBaseSMDPL.xml"           ,
-	      "progenitorMassFunctionBaseVSMDPL.xml"          ,
-	      "progenitorMassFunctionBaseCaterpillar_LX12.xml",
-	      "progenitorMassFunctionBaseCaterpillar_LX13.xml",
-	      "progenitorMassFunctionBaseCaterpillar_LX14.xml"
-	     ],
-	 suffix       =>
-	     [
-	      "HugeMDPL"        ,
-	      "BigMDPL"         ,
-	      "MDPL2"           ,
-	      "SMDPL"           ,
-	      "VSMDPL"          ,
-	      "Caterpillar_LX12",
-	      "Caterpillar_LX13",
-	      "Caterpillar_LX14"
-	     ],
-	 ppn          => 16                                                  ,
-	 nodes        =>  1                                                  ,
-	 postProcess  => $pipelinePath."progenitorMassFunctionPostProcess.pl"
+     	 label        => "progenitorMassFunction"                            ,
+     	 config       => "progenitorMassFunctionConfig.xml"                  ,
+     	 base         =>
+     	     [
+     	      "progenitorMassFunctionBaseHugeMDPL.xml"        ,
+     	      "progenitorMassFunctionBaseBigMDPL.xml"         ,
+     	      "progenitorMassFunctionBaseMDPL2.xml"           ,
+     	      "progenitorMassFunctionBaseSMDPL.xml"           ,
+     	      "progenitorMassFunctionBaseVSMDPL.xml"          ,
+     	      "progenitorMassFunctionBaseCaterpillar_LX12.xml",
+     	      "progenitorMassFunctionBaseCaterpillar_LX13.xml",
+     	      "progenitorMassFunctionBaseCaterpillar_LX14.xml"
+     	     ],
+     	 suffix       =>
+     	     [
+     	      "HugeMDPL"        ,
+     	      "BigMDPL"         ,
+     	      "MDPL2"           ,
+     	      "SMDPL"           ,
+     	      "VSMDPL"          ,
+     	      "Caterpillar_LX12",
+     	      "Caterpillar_LX13",
+     	      "Caterpillar_LX14"
+     	     ],
+     	 ppn          => 16                                                  ,
+     	 nodes        =>  1                                                  ,
+     	 postProcess  => $pipelinePath."progenitorMassFunctionPostProcess.pl"
      },
      {
-	 label        => "spinConcentration"          ,
-	 config       => "spinConcentrationConfig.xml",
-	 base         =>
-	     [
-	      "spinConcentrationBaseHugeMDPL.xml",
-	      "spinConcentrationBaseBigMDPL.xml" ,
-	      "spinConcentrationBaseMDPL2.xml"   ,
-	      "spinConcentrationBaseSMDPL.xml"   ,
-	      "spinConcentrationBaseVSMDPL.xml"
-	     ],
-	 suffix       =>
-	     [
-	      "HugeMDPL",
-	      "BigMDPL" ,
-	      "MDPL2"   ,
-	      "SMDPL"   ,
-	      "VSMDPL"
-	     ],
-	 ppn          => 16                                             ,
-	 nodes        =>  1                                             ,
-	 postProcess  => $pipelinePath."spinConcentrationPostProcess.pl"
+     	 label        => "spinConcentration"          ,
+     	 config       => "spinConcentrationConfig.xml",
+     	 base         =>
+     	     [
+     	      "spinConcentrationBaseHugeMDPL.xml",
+     	      "spinConcentrationBaseBigMDPL.xml" ,
+     	      "spinConcentrationBaseMDPL2.xml"   ,
+     	      "spinConcentrationBaseSMDPL.xml"   ,
+     	      "spinConcentrationBaseVSMDPL.xml"
+     	     ],
+     	 suffix       =>
+     	     [
+     	      "HugeMDPL",
+     	      "BigMDPL" ,
+     	      "MDPL2"   ,
+     	      "SMDPL"   ,
+     	      "VSMDPL"
+     	     ],
+     	 ppn          => 16                                             ,
+     	 nodes        =>  1                                             ,
+     	 postProcess  => $pipelinePath."spinConcentrationPostProcess.pl"
      },
      {
 	 label       => "final"    ,
@@ -124,8 +248,14 @@ foreach my $task ( @tasks ) {
     # Parse the config and base parameter files for this task.
     my $config =      $xml->XMLin($pipelinePath.$task->{'config'})
 	if ( exists($task->{'config'}) );
-    my @bases  = map {$xml->XMLin($pipelinePath.$_)} @{$task->{'base'}};
-    
+    my $parser = XML::LibXML->new();
+    my @bases;
+    foreach my $baseFileName ( @{$task->{'base'}} ) {
+	my $dom = $parser->load_xml(location => $pipelinePath.$baseFileName);
+	$parser->process_xincludes($dom);
+	push(@bases,$xml->XMLin($dom->serialize()));
+    }
+   
     # Copy in current best parameters.
     &applyParameters($_,$task,\%parametersDetermined)
 	foreach ( @bases );
@@ -226,7 +356,6 @@ foreach my $task ( @tasks ) {
 		print $baseFile $xml->XMLout($base,RootName => "parameters");
 		close($baseFile);
 	    }
-
 	    # Postprocess the results.
 	    if ( exists($task->{'postProcess'}) ) {
 		system($task->{'postProcess'}." ".$options{'outputDirectory'});

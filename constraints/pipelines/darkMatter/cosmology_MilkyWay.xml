@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <!-- Cosmological parameters and options -->
+  <cosmologyFunctions  value="matterLambda"/>
+  <cosmologyParameters value="simple"       >
+    <HubbleConstant  value="70.000000"/>
+    <OmegaMatter     value=" 0.286000"/>
+    <OmegaDarkEnergy value=" 0.714000"/>
+    <OmegaBaryon     value=" 0.047000"/>
+    <temperatureCMB  value=" 2.725480"/>
+  </cosmologyParameters>
+
+  <!-- Power spectrum options -->
+  <powerSpectrumPrimordial value="powerLaw">
+    <index               value="1.000"/>
+    <wavenumberReference value="1.000"/>
+    <running             value="0.000"/>
+  </powerSpectrumPrimordial>
+  <powerSpectrumWindowFunction value="ETHOS">
+    <cW   value="=[haloMassFunctionParameters::cW]"  />
+    <beta value="=[haloMassFunctionParameters::beta]"/>
+  </powerSpectrumWindowFunction>
+  <cosmologicalMassVariance value="peakBackgroundSplit">
+    <cosmologicalMassVariance value="filteredPower">
+      <sigma_8         value="0.820" />
+      <tolerance       value="4.0e-4"/>
+      <toleranceTopHat value="2.0e-4"/>
+      <nonMonotonicIsFatal value="false"/>
+    </cosmologicalMassVariance>
+  </cosmologicalMassVariance>
+  <transferFunction value="eisensteinHu1999"/>
+  <powerSpectrumPrimordialTransferred value="simple"/>
+
+  <!-- Structure formation options -->
+  <linearGrowth          value="collisionlessMatter"                      />
+  <criticalOverdensity   value="peakBackgroundSplit"                       >
+    <criticalOverdensity value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+  </criticalOverdensity>
+  <virialDensityContrast value="sphericalCollapseClsnlssMttrCsmlgclCnstnt"/>
+
+</parameters>

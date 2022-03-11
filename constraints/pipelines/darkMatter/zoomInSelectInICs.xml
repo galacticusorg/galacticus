@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Select particles in the initial conditions -->
+<parameters>
+  <formatVersion>2</formatVersion>
+  <version>0.9.4</version>
+
+  <task value="NBodyAnalyze"/>
+
+  <nbodyImporter value="gadgetBinary">
+    <fileName         value=""           />
+    <particleType     value="-1"         />
+    <lengthSoftening  value="242.86e-6"  />
+    <unitMassInSI     value="1.989e40"   />
+    <unitLengthInSI   value="3.085678e22"/>
+    <unitVelocityInSI value="1.0e3"      />
+    <isCosmological   value="true"       />
+  </nbodyImporter>
+
+  <nbodyOperator value="sequence">
+    <nbodyOperator value="filterID" >
+      <idSelectionFileName value=""/>
+    </nbodyOperator>
+    <nbodyOperator value="exportIRATE">
+      <fileName value="" />
+      <snapshot value="1"/>
+      <redshift value="" />
+    </nbodyOperator>
+  </nbodyOperator>
+
+  <cosmologyParameters value="simple">
+    <HubbleConstant  value="70.000000"/>
+    <OmegaMatter     value=" 0.286000"/>
+    <OmegaDarkEnergy value=" 0.714000"/>
+    <OmegaBaryon     value=" 0.047000"/>
+    <temperatureCMB  value=" 2.725480"/>
+  </cosmologyParameters>
+
+</parameters>
